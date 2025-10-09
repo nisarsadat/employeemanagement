@@ -1,0 +1,21 @@
+import { createApp } from 'vue';
+import App from "./App.vue";
+import vuetify from './plugins/vuetify';
+import router from './router/router';
+import { createPinia } from 'pinia';
+import i18n from './localization/Local.js';
+import Toast from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
+import "@fontsource/amiri/400.css";
+import "@fontsource/amiri/700.css";
+import "@fontsource/scheherazade-new/400.css";
+import "@fontsource/scheherazade-new/700.css";
+
+const app = createApp(App);
+const pinia = createPinia();
+app.use(pinia);
+app.use(router);
+app.use(Toast);
+app.use(vuetify);
+app.use(i18n);
+app.mount('#app');
