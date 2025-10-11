@@ -1,0 +1,27 @@
+{
+  // Use Prettier everywhere
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[vue]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[javascript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+
+  // Format on save, NOT on type (prevents cursor jumps)
+  "editor.formatOnSave": true,
+  "editor.formatOnType": false,
+
+  // Let Prettier handle formatting (Volar stays for IntelliSense)
+  "volar.format.enable": false,
+
+  // Nice global Prettier defaults (used when a project has no .prettierrc)
+  "prettier.singleQuote": true,
+  "prettier.semi": true,
+  "prettier.trailingComma": "es5",
+  "prettier.printWidth": 100,
+  "prettier.tabWidth": 2,
+  "prettier.vueIndentScriptAndStyle": true,
+
+  // Make invisible/RTL chars visible (avoids weird cursor behavior)
+  "editor.unicodeHighlight.invisibleCharacters": true,
+  "editor.unicodeHighlight.ambiguousCharacters": true
+}

@@ -620,6 +620,20 @@ export const useDatabaseRepository = defineStore("DatabaseRepository", {
                 this.loading = false;
             }
         },
+        async DeleteCaptiveDelivery (id) {
+            try {
+                await axios.delete(`/captive-deliveries/${id}`);
+                toast.success("Delevery Captive deleted", { autoClose: 1100 });
+                await this.FetchInformationsData({
+                    page: this.page,
+                    itemsPerPage: this.itemsPerPage,
+                });
+            } catch (e) {
+                console.error(e);
+                this.error = e;
+                toast.error("Delete Deleviry Captive failed");
+            }
+        },
 
         // --- CREATE with progress ---
         async CreateCaptiveDelivery(formData, onProgress) {

@@ -16,7 +16,17 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventDocumentController;
 use App\Http\Controllers\CaptiveDeliveryController;
 use App\Http\Controllers\CaptiveDeliveryDocumentController;
-
+// FIFTHY FORMATS controllers
+use App\Http\Controllers\fifthyFormats\FasadController;
+use App\Http\Controllers\fifthyFormats\SaeenFasadController;
+use App\Http\Controllers\fifthyFormats\HeistController;
+use App\Http\Controllers\fifthyFormats\CaptiveController;
+use App\Http\Controllers\fifthyFormats\MulkanoController;
+use App\Http\Controllers\fifthyFormats\EntryExitController;
+use App\Http\Controllers\fifthyFormats\SarafyanoController;
+use App\Http\Controllers\fifthyFormats\ClubsController;
+use App\Http\Controllers\fifthyFormats\MahajeratController;
+use App\Http\Controllers\fifthyFormats\SoldierController;
 
 
 
@@ -53,6 +63,30 @@ Route::get('captive-deliveries/{captiveDelivery}/documents', [CaptiveDeliveryDoc
 Route::post('captive-deliveries/{captiveDelivery}/documents', [CaptiveDeliveryDocumentController::class, 'store']);
 Route::delete('captive-deliveries/{captiveDelivery}/documents/{document}', [CaptiveDeliveryDocumentController::class, 'destroy']);
 Route::get('captive-deliveries/{captiveDelivery}/documents/zip', [CaptiveDeliveryDocumentController::class, 'downloadAll']);
+// 50 formats
+// Fasad
+Route::apiResource('fasads', FasadController::class);
+// SaeenFasad
+Route::apiResource('saeen-fasads', SaeenFasadController::class);
+// Heist
+Route::apiResource('heists', HeistController::class);
+// Captive
+Route::apiResource('captives', CaptiveController::class);
+// Mulkano
+Route::apiResource('mulkanos', MulkanoController::class);
+// EntryExit
+Route::apiResource('entry-exits', EntryExitController::class);
+// Sarafyano
+Route::apiResource('sarafyanos', SarafyanoController::class);
+// Clubs
+Route::apiResource('clubs', ClubsController::class);
+// Mahajerat
+Route::apiResource('mahajerats', MahajeratController::class);
+// Soldier
+Route::apiResource('soldiers', SoldierController::class);
+
+
+
 
 // Ping
 Route::get('/ping', fn() => ['pong' => true]);

@@ -1,5 +1,5 @@
 <template>
-    <v-card flat fluid class="rounded-xl bg-white">
+    <v-app flat fluid class="rounded-xl bg-white">
         <v-layout flat fluid>
             <NavigationDrawer
                 v-if="employeerepository.drawerVisible"
@@ -8,6 +8,7 @@
                 class="bg-bgproject"
                 flat
                 :rail="employeerepository.rail"
+                color="bgproject"
             />
             <v-main
                 class="thepage h-ful scrollabl-content-home rounded-xl bg-bgproject"
@@ -15,7 +16,7 @@
                 <router-view />
             </v-main>
         </v-layout>
-    </v-card>
+    </v-app>
 </template>
 
 <script setup>

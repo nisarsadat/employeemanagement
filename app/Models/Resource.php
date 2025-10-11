@@ -2,6 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\fifthyFormats\Captive;
+use App\Models\fifthyFormats\Clubs;
+use App\Models\fifthyFormats\EntryExit;
+use App\Models\fifthyFormats\Fasad;
+use App\Models\fifthyFormats\Heist;
+use App\Models\fifthyFormats\Mahajerat;
+use App\Models\fifthyFormats\Mulkano;
+use App\Models\fifthyFormats\SaeenFasad;
+use App\Models\fifthyFormats\Sarafyano;
+use App\Models\fifthyFormats\Soldier;
 use Illuminate\Database\Eloquent\Model;
 
 class Resource extends Model
@@ -54,5 +64,44 @@ class Resource extends Model
     {
         return $this->hasMany(Event::class);
     }
-
+    public function fasads()
+    {
+        return $this->hasMany(Fasad::class , 'resource_id', 'id');
+    }
+    public function saeenFasads()
+    {
+        return $this->hasMany(SaeenFasad::class  , 'resource_id', 'id');
+    }
+    public function heists()
+    {
+        return $this->hasMany(Heist::class , 'resource_id', 'id');
+    }
+    public function captives()
+    {
+        return $this->hasMany(Captive::class , 'resource_id', 'id');
+    }
+    public function mulkanos()
+    {
+        return $this->hasMany(Mulkano::class , 'resource_id', 'id');
+    }
+    public function entryExits()
+    {
+        return $this->hasMany(EntryExit::class , 'resource_id', 'id');
+    }
+    public function sarafyanos()
+    {
+        return $this->hasMany(Sarafyano::class , 'resource_id', 'id');
+    }
+    public function clubs()
+    {
+        return $this->hasMany(Clubs::class , 'resource_id', 'id');
+    }
+    public function mahajerats()
+    {
+        return $this->hasMany(Mahajerat::class , 'resource_id', 'id');
+    }
+    public function soldiers()
+    {
+        return $this->hasMany(Soldier::class , 'resource_id', 'id');
+    }
 }
