@@ -15,7 +15,6 @@
               "Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
 
   --v-font-family: var(--app-font); /* Vuetify will read this */
-  font-size: 12px; /* tweak 12–14px for compact UI */
 }
 
 /* Apply to the whole app */
@@ -24,11 +23,6 @@ html, body, #app { font-family: var(--app-font); }
 /* Make sure Vuetify uses it too */
 .v-application { font-family: var(--app-font) !important; }
 
-/* RTL specific styles */
-[dir="rtl"] body {
-  font-family: 'BNazanin', sans-serif !important;
-  font-size: 18px !important;
-}
 
 /* 🌈 Table variables */
 .v-data-table {
@@ -174,12 +168,3 @@ div.v-data-table-footer {
   padding-left: 0 !important;
 }
 
-/* 🌐 Bold all Dari & Pashto (Arabic-script) text */
-:lang(fa),
-:lang(ps),
-:lang(prs),
-:lang(da-AF),
-:lang(ps-AF),
-[dir="rtl"] *:not(i):not(svg):not(path) {
-  font-weight: 900 !important;
-}

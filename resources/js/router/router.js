@@ -21,6 +21,26 @@ import Sarafyanos from '../pages/FiftyFormats/Sarafyano.vue';
 import Clubs from '../pages/FiftyFormats/Clubs.vue';
 import Mahajerats from '../pages/FiftyFormats/Mahajerat.vue';
 import Soldiers from '../pages/FiftyFormats/Soldiers.vue';
+import Mawads from '../pages/FiftyFormats/Mawads.vue';
+import LostMujremeens from '../pages/FiftyFormats/LostMujremens.vue';
+import OldSoldiersHomes from '../pages/FiftyFormats/OldSoldiersHomes.vue';
+import Robbers from '../pages/FiftyFormats/Robbers.vue';
+import NonResposablePeople from '../pages/FiftyFormats/NonResponsablePeople.vue';
+import MashkokHomes from '../pages/FiftyFormats/MashkokHomes.vue';
+import DamagePlacses from '../pages/FiftyFormats/DamagePlacses.vue';
+import DamageRasanPlaces from '../pages/FiftyFormats/DamageRasanPlaces.vue';
+import MashkokShops from '../pages/FiftyFormats/MashkokShops.vue';
+import Luchakanos from '../pages/FiftyFormats/Luchakanos.vue';
+import Schools from '../pages/FiftyFormats/Schools.vue';
+import HadoBusStop from '../pages/FiftyFormats/HadoBusStop.vue';
+import TransportCompany from '../pages/FiftyFormats/TransportCompany.vue';
+import CarSalesCompany from '../pages/FiftyFormats/CarSalesCompany.vue';
+import Parkings from '../pages/FiftyFormats/Parkings.vue';
+import Banks from '../pages/FiftyFormats/Bank.vue';
+import Apartments from '../pages/FiftyFormats/Apartments.vue';
+import RahnomaMamlats from '../pages/FiftyFormats/RahnomaMamlat.vue';
+import Hosppitals from '../pages/FiftyFormats/Hosppital.vue';
+import WorkShops from '../pages/FiftyFormats/WorkShops.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -48,6 +68,26 @@ const router = createRouter({
     { path: '/clubs', component: Clubs },
     { path: '/mahajerats', component: Mahajerats },
     { path: '/soldiers', component: Soldiers },
+    { path: '/mawads', component: Mawads },
+    { path: '/lostmujremeens', component: LostMujremeens },
+    { path: '/oldsoldiershomes', component: OldSoldiersHomes },
+    { path: '/robbers', component: Robbers },
+    { path: '/nonresponsablepeople', component: NonResposablePeople },
+    { path: '/mashkokhomes', component: MashkokHomes },
+    { path: '/damageplaces', component: DamagePlacses },
+    { path: '/damagerasanplaces', component: DamageRasanPlaces },
+    { path: '/mashkokshops', component: MashkokShops },
+    { path: '/luchakanos', component: Luchakanos },
+    { path: '/schools', component: Schools },
+    { path: '/hadobusstops', component: HadoBusStop },
+    { path: '/transportcompanies', component: TransportCompany },
+    { path: '/carsalescompanies', component: CarSalesCompany },
+    { path: '/parkings', component: Parkings },
+    { path: '/banks', component: Banks },
+    { path: '/apartments', component: Apartments },
+    { path: '/rahnomamamlats', component: RahnomaMamlats },
+    { path: '/hosppitals', component: Hosppitals },
+    { path: '/workshops', component: WorkShops },
     // {
     //     path: "/home",
     //     component: home,

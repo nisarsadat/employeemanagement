@@ -4,7 +4,6 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
-import Soldiers from '../pages/FiftyFormats/Soldiers.vue';
 
 // ---- sane defaults
 axios.defaults.headers.common['Accept'] = 'application/json';
@@ -43,6 +42,9 @@ export const useFasadRepository = defineStore('FasadRepository', {
       Heists: reactive([]),
       Heist: reactive({}),
 
+      Captives: reactive([]),
+      Captive: reactive({}),
+
       Mulkanos: reactive([]),
       Mulkano: reactive({}),
 
@@ -57,6 +59,9 @@ export const useFasadRepository = defineStore('FasadRepository', {
 
       Soldiers: reactive([]),
       Soldier: reactive({}),
+
+      Mahajerats: reactive([]),
+      Mahajerat: reactive([]),
 
       // dropdown support (used by your UI)
       resourcecode: reactive([]),

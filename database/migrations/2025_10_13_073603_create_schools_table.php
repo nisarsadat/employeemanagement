@@ -1,0 +1,48 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('schools', function (Blueprint $table) {
+            $table->id();
+
+            $table->string('school_name');
+            $table->string('school_type')->nullable();
+
+            $table->string('principle_name')->nullable();
+            $table->string('principle_f_name')->nullable();
+            $table->string('principle_phone')->nullable();
+
+            $table->unsignedInteger('male_teachers_quantity')->nullable();
+            $table->unsignedInteger('female_teachers_quantity')->nullable();
+            $table->unsignedInteger('male_students_quantity')->nullable();
+            $table->unsignedInteger('female_students_quantity')->nullable();
+
+            $table->string('province')->nullable();
+            $table->string('zone')->nullable();
+            $table->string('district')->nullable();
+            $table->string('specific_place')->nullable();
+            $table->string('village')->nullable();
+            $table->string('street_number')->nullable();
+            $table->string('coordinates')->nullable();
+
+            $table->text('note')->nullable();
+
+            $table->foreignId('resource_id')
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
+
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('schools');
+    }
+};

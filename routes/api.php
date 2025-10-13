@@ -27,8 +27,30 @@ use App\Http\Controllers\fifthyFormats\SarafyanoController;
 use App\Http\Controllers\fifthyFormats\ClubsController;
 use App\Http\Controllers\fifthyFormats\MahajeratController;
 use App\Http\Controllers\fifthyFormats\SoldierController;
-
-
+// FIFTHY FORMAT ONE (new set)
+use App\Http\Controllers\fifthyformatone\MawadController;
+use App\Http\Controllers\fifthyformatone\LostMujremeenController;
+use App\Http\Controllers\fifthyformatone\OldSoldiersHomesController;
+use App\Http\Controllers\fifthyformatone\RobbersController;
+use App\Http\Controllers\fifthyformatone\NonResponsablePeopleController;
+use App\Http\Controllers\fifthyformatone\MashkokHomesController;
+use App\Http\Controllers\fifthyformatone\DamagePlacesController;
+use App\Http\Controllers\fifthyformatone\DamageRasanPlacesController;
+use App\Http\Controllers\fifthyformatone\MashkokShopsController;
+use App\Http\Controllers\fifthyformatone\LuchakanoController;
+// ---------------------------------------------------------
+// FIFTHY FORMATS TWO (Group Two)
+// ---------------------------------------------------------
+use App\Http\Controllers\fifthyformatstow\SchoolController;
+use App\Http\Controllers\fifthyformatstow\HadoBusStopController;
+use App\Http\Controllers\fifthyformatstow\TransportCompanyController;
+use App\Http\Controllers\fifthyformatstow\CarSalesCompanyController;
+use App\Http\Controllers\fifthyformatstow\ParkingController;
+use App\Http\Controllers\fifthyformatstow\BankController;
+use App\Http\Controllers\fifthyformatstow\ApartmentController;
+use App\Http\Controllers\fifthyformatstow\RahnomaMamlatController;
+use App\Http\Controllers\fifthyformatstow\HosppitalController;
+use App\Http\Controllers\fifthyformatstow\WorkShopController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -84,9 +106,90 @@ Route::apiResource('clubs', ClubsController::class);
 Route::apiResource('mahajerats', MahajeratController::class);
 // Soldier
 Route::apiResource('soldiers', SoldierController::class);
+/*
+|--------------------------------------------------------------------------
+| 50 FORMAT ONE (NEW CONTROLLERS)
+|--------------------------------------------------------------------------
+*/
+// Mawads
+Route::apiResource('mawads', MawadController::class);
+Route::post('mawads/bulk-delete', [MawadController::class, 'bulkDelete']);
 
+// Lost Mujremeens
+Route::apiResource('lost-mujremeens', LostMujremeenController::class);
+Route::post('lost-mujremeens/bulk-delete', [LostMujremeenController::class, 'bulkDelete']);
 
+// Old Soldiers Homes
+Route::apiResource('old-soldiers-homes', OldSoldiersHomesController::class);
+Route::post('old-soldiers-homes/bulk-delete', [OldSoldiersHomesController::class, 'bulkDelete']);
 
+// Robbers
+Route::apiResource('robbers', RobbersController::class);
+Route::post('robbers/bulk-delete', [RobbersController::class, 'bulkDelete']);
+
+// Non Responsable People
+Route::apiResource('non-responsable-people', NonResponsablePeopleController::class);
+Route::post('non-responsable-people/bulk-delete', [NonResponsablePeopleController::class, 'bulkDelete']);
+
+// Mashkok Homes
+Route::apiResource('mashkok-homes', MashkokHomesController::class);
+Route::post('mashkok-homes/bulk-delete', [MashkokHomesController::class, 'bulkDelete']);
+
+// Damage Places
+Route::apiResource('damage-places', DamagePlacesController::class);
+Route::post('damage-places/bulk-delete', [DamagePlacesController::class, 'bulkDelete']);
+
+// Damage Rasan Places
+Route::apiResource('damage-rasan-places', DamageRasanPlacesController::class);
+Route::post('damage-rasan-places/bulk-delete', [DamageRasanPlacesController::class, 'bulkDelete']);
+
+// Mashkok Shops
+Route::apiResource('mashkok-shops', MashkokShopsController::class);
+Route::post('mashkok-shops/bulk-delete', [MashkokShopsController::class, 'bulkDelete']);
+
+// Luchakanos
+Route::apiResource('luchakanos', LuchakanoController::class);
+Route::post('luchakanos/bulk-delete', [LuchakanoController::class, 'bulkDelete']);
+
+//  Schools
+Route::apiResource('schools', SchoolController::class);
+Route::delete('schools-bulk', [SchoolController::class, 'bulkDelete']);
+
+//  Hado Bus Stops
+Route::apiResource('hado-bus-stops', HadoBusStopController::class);
+Route::delete('hado-bus-stops-bulk', [HadoBusStopController::class, 'bulkDelete']);
+
+//  Transport Companies
+Route::apiResource('transport-companies', TransportCompanyController::class);
+Route::delete('transport-companies-bulk', [TransportCompanyController::class, 'bulkDelete']);
+
+//  Car Sales Companies
+Route::apiResource('car-sales-companies', CarSalesCompanyController::class);
+Route::delete('car-sales-companies-bulk', [CarSalesCompanyController::class, 'bulkDelete']);
+
+//  Parkings
+Route::apiResource('parkings', ParkingController::class);
+Route::delete('parkings-bulk', [ParkingController::class, 'bulkDelete']);
+
+// Banks
+Route::apiResource('banks', BankController::class);
+Route::delete('banks-bulk', [BankController::class, 'bulkDelete']);
+
+// Apartments
+Route::apiResource('apartments', ApartmentController::class);
+Route::delete('apartments-bulk', [ApartmentController::class, 'bulkDelete']);
+
+// Rahnoma Mamlat
+Route::apiResource('rahnoma-mamlats', RahnomaMamlatController::class);
+Route::delete('rahnoma-mamlats-bulk', [RahnomaMamlatController::class, 'bulkDelete']);
+
+// Hosppitals
+Route::apiResource('hosppitals', HosppitalController::class);
+Route::delete('hosppitals-bulk', [HosppitalController::class, 'bulkDelete']);
+
+// WorkShops
+Route::apiResource('work-shops', WorkShopController::class);
+Route::delete('work-shops-bulk', [WorkShopController::class, 'bulkDelete']);
 
 // Ping
 Route::get('/ping', fn() => ['pong' => true]);
