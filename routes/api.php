@@ -38,6 +38,16 @@ use App\Http\Controllers\fifthyformatone\DamagePlacesController;
 use App\Http\Controllers\fifthyformatone\DamageRasanPlacesController;
 use App\Http\Controllers\fifthyformatone\MashkokShopsController;
 use App\Http\Controllers\fifthyformatone\LuchakanoController;
+use App\Http\Controllers\fifthyformatsthree\BadmashanoController;
+use App\Http\Controllers\fifthyformatsthree\EmaratOfficeController;
+use App\Http\Controllers\fifthyformatsthree\HostelController;
+use App\Http\Controllers\fifthyformatsthree\HotelController;
+use App\Http\Controllers\fifthyformatsthree\MadrasaController;
+use App\Http\Controllers\fifthyformatsthree\MashkokPeopleController;
+use App\Http\Controllers\fifthyformatsthree\MujahedinoController;
+use App\Http\Controllers\fifthyformatsthree\OldJahadiController;
+use App\Http\Controllers\fifthyformatsthree\SarayanoController;
+use App\Http\Controllers\fifthyformatsthree\TujaranController;
 // ---------------------------------------------------------
 // FIFTHY FORMATS TWO (Group Two)
 // ---------------------------------------------------------
@@ -190,6 +200,48 @@ Route::delete('hosppitals-bulk', [HosppitalController::class, 'bulkDelete']);
 // WorkShops
 Route::apiResource('work-shops', WorkShopController::class);
 Route::delete('work-shops-bulk', [WorkShopController::class, 'bulkDelete']);
+
+// Badamashano
+Route::apiResource('badmashanos', BadmashanoController::class);
+Route::delete('badmashanos', [BadmashanoController::class, 'bulkDelete']);
+
+//Sarayano
+Route::apiResource('sarayanos', SarayanoController::class);
+Route::delete('sarayanos', [SarayanoController::class, 'bulkDelete']);
+
+//Hotel
+Route::apiResource('hotels', HotelController::class);
+Route::delete('hotels', [HotelController::class, 'bulkDelete']);
+
+//Hostel
+Route::apiResource('hostels', HostelController::class);
+Route::delete('hostels', [HostelController::class, 'bulkDelete']);
+
+//Tujaran
+Route::apiResource('tujarans', TujaranController::class);
+Route::delete('tujarans', [TujaranController::class, 'bulkDelete']);
+
+//Mujahedino
+Route::apiResource('mujahedinos', MujahedinoController::class);
+Route::delete('mujahedinos', [MujahedinoController::class, 'bulkDelete']);
+
+//Emarat Offices 
+Route::apiResource('emarat-offices', EmaratOfficeController::class);
+Route::delete('emarat-offices', [EmaratOfficeController::class, 'bulkDelete']);
+
+//Old Jahadi 
+Route::apiResource('old-jahadis', OldJahadiController::class);
+Route::delete('old-jahadis', [OldJahadiController::class, 'bulkDelete']);
+
+//Mashkok People 
+Route::apiResource('mashkok-people', MashkokPeopleController::class)->parameters([
+    'mashkok-people' => 'mashkokPeople', 
+]);Route::delete('mashkok-people', [MashkokPeopleController::class, 'bulkDelete']);
+
+//Madrasa
+Route::apiResource('madrasas', MadrasaController::class);
+Route::delete('madrasas', [MadrasaController::class, 'bulkDelete']);
+
 
 // Ping
 Route::get('/ping', fn() => ['pong' => true]);

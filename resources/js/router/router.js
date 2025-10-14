@@ -41,6 +41,16 @@ import Apartments from '../pages/FiftyFormats/Apartments.vue';
 import RahnomaMamlats from '../pages/FiftyFormats/RahnomaMamlat.vue';
 import Hosppitals from '../pages/FiftyFormats/Hosppital.vue';
 import WorkShops from '../pages/FiftyFormats/WorkShops.vue';
+import Badmashanos from '../pages/FiftyFormats/Badmashano.vue';
+import Sarayanos from '../pages/FiftyFormats/Sarayanos.vue';
+import Hotels from '../pages/FiftyFormats/Hotels.vue';
+import Hostels from '../pages/FiftyFormats/Hostels.vue';
+import Tujarans from '../pages/FiftyFormats/Tujarans.vue';
+import Mujahedinos from '../pages/FiftyFormats/Mujahedinos.vue';
+import EmaratOffices from '../pages/FiftyFormats/EmaratOffices.vue';
+import OldJahadis from '../pages/FiftyFormats/OldJahadis.vue';
+import MashkokPeopls from '../pages/FiftyFormats/MashkokPeoples.vue';
+import Madrasa from '../pages/FiftyFormats/Madrasa.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -58,6 +68,7 @@ const router = createRouter({
     { path: '/informations', component: Informations },
     { path: '/fifthyformatsroute', component: FifthyFormatsRoute },
     { path: '/fifthyformatsroute', component: Fasads },
+    // fifthy formats
     { path: '/fasads', component: Fasads },
     { path: '/saeenfasad', component: SaeenFasad },
     { path: '/heist', component: Heist },
@@ -68,6 +79,7 @@ const router = createRouter({
     { path: '/clubs', component: Clubs },
     { path: '/mahajerats', component: Mahajerats },
     { path: '/soldiers', component: Soldiers },
+    // fifthy formats one
     { path: '/mawads', component: Mawads },
     { path: '/lostmujremeens', component: LostMujremeens },
     { path: '/oldsoldiershomes', component: OldSoldiersHomes },
@@ -78,6 +90,7 @@ const router = createRouter({
     { path: '/damagerasanplaces', component: DamageRasanPlaces },
     { path: '/mashkokshops', component: MashkokShops },
     { path: '/luchakanos', component: Luchakanos },
+    //fifthy fomats tow
     { path: '/schools', component: Schools },
     { path: '/hadobusstops', component: HadoBusStop },
     { path: '/transportcompanies', component: TransportCompany },
@@ -88,6 +101,17 @@ const router = createRouter({
     { path: '/rahnomamamlats', component: RahnomaMamlats },
     { path: '/hosppitals', component: Hosppitals },
     { path: '/workshops', component: WorkShops },
+    // fifthy formats three
+    { path: '/badmashanos', component: Badmashanos },
+    { path: '/sarayanos', component: Sarayanos },
+    { path: '/hotels', component: Hotels },
+    { path: '/hostels', component: Hostels },
+    { path: '/tujarans', component: Tujarans },
+    { path: '/mujahedinos', component: Mujahedinos },
+    { path: '/emaratoffices', component: EmaratOffices },
+    { path: '/oldjahadis', component: OldJahadis },
+    { path: '/mashkokpeoples', component: MashkokPeopls },
+    { path: '/madrasas', component: Madrasa },
     // {
     //     path: "/home",
     //     component: home,
