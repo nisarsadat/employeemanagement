@@ -168,3 +168,33 @@ div.v-data-table-footer {
   padding-left: 0 !important;
 }
 
+  .pic-overlay {
+    position: absolute;
+    inset: -6px -16px auto auto;
+    display: none;
+    gap: 2px;
+    background: rgba(0, 0, 0, 0.55);
+    padding: 6px;
+    border-radius: 8px;
+    transform: translateY(-20%);
+    white-space: nowrap;
+  }
+
+  .pic-thumb:hover .pic-overlay {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .pic-overlay :deep(.v-btn) {
+    color: #fff;
+  }
+  
+  /* image overlay */
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }

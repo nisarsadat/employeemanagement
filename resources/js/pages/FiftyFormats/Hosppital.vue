@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pt-6 mt-12">
+  <v-container fluid class="pt-6">
     <AppBar
       :title="t('شفاخانه‌ها')"
       :subtitle="t('اضافه کردن یک ریکارډ جدید شفاخانه')"

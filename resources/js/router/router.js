@@ -51,6 +51,10 @@ import EmaratOffices from '../pages/FiftyFormats/EmaratOffices.vue';
 import OldJahadis from '../pages/FiftyFormats/OldJahadis.vue';
 import MashkokPeopls from '../pages/FiftyFormats/MashkokPeoples.vue';
 import Madrasa from '../pages/FiftyFormats/Madrasa.vue';
+import Inlineinfoindex from '../pages/InlineInfo/inlineinfoindex.vue';
+import ResourceInfo from '../pages/InlineInfo/ResourceInfo.vue';
+import Resourcetab from '../pages/InlineInfo/Resourcetab.vue';
+import Eventtab from '../pages/InlineInfo/Eventtab.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -67,7 +71,10 @@ const router = createRouter({
     { path: '/delevirycaptive', component: DeleviryCaptive },
     { path: '/informations', component: Informations },
     { path: '/fifthyformatsroute', component: FifthyFormatsRoute },
-    { path: '/fifthyformatsroute', component: Fasads },
+    { path: '/inlineinfo', component: Inlineinfoindex },
+    { path: '/resourceinfo', component: ResourceInfo },
+    { path: '/resourcetab', component: Resourcetab },
+    { path: '/eventtabl', component: Eventtab },
     // fifthy formats
     { path: '/fasads', component: Fasads },
     { path: '/saeenfasad', component: SaeenFasad },
