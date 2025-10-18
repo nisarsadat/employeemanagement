@@ -19,7 +19,6 @@ class ZoneEmployee extends Model
         'zone',
         'degree',
         'zone_entry_hour',
-        'resedint_id', // FK to resedints.id
         'notes',
     ];
 
@@ -38,10 +37,6 @@ class ZoneEmployee extends Model
         });
     }
 
-    public function resedint()
-    {
-        return $this->belongsTo(Resedint::class, 'resedint_id');
-    }
     public function informations()
     {
         return $this->hasMany(Information::class);

@@ -34,6 +34,17 @@ class ResedintResource extends JsonResource
 
             "officeemployee_id"=> $this->officeemployee_id,
             "notes"            => $this->notes,
+            'coordinates'       => $this->coordinates,
+
+            // eager loaded
+            'documents'         => ResedintDocumentResource::collection($this->whenLoaded('documents')),
+            'office_employee'   => $this->whenLoaded('officeEmployee', function () {
+                return [
+                    'id'          => $this->officeEmployee?->id,
+                    'code_number' => $this->officeEmployee?->code_number,
+                    'name'        => $this->officeEmployee?->name,
+                ];
+            }),
         ];
     }
 }

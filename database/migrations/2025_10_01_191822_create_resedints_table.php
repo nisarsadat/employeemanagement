@@ -26,21 +26,25 @@ return new class extends Migration {
 
             $table->string('phone_number')->nullable();
             $table->string('whatsapp_number')->nullable();
-            $table->string('hawza')->nullable();
 
+            $table->string('hawza')->nullable();
             $table->string('zone')->nullable();
+
             $table->string('code_number')->nullable()->unique();
 
-            
+            $table->foreignId('officeemployee_id')
+                ->nullable()
+                ->constrained('office_employees')
+                ->nullOnDelete();
 
             $table->text('notes')->nullable();
-            $table->foreignId('officeemployee_id')
-                    ->nullable()
-                    ->constrained('office_employees')
-                    ->nullOnDelete();
-                        $table->timestamps();
-                    });
-                }
+
+            // NEW
+            $table->string('coordinates')->nullable()->comment('latitude,longitude or address reference');
+
+            $table->timestamps();
+        });
+    }
 
     public function down(): void
     {

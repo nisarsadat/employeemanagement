@@ -3,7 +3,6 @@
     <AppBar
       :title="t('کارمندان میریت')"
       :subtitle="t('اضافه کردن یک کارمند مدیریت')"
-      @toggle-drawer="drawer = !drawer"
     >
       <template #actions>
         <v-btn icon></v-btn>
@@ -12,7 +11,7 @@
 
     <!-- Search -->
     <v-row class="d-flex">
-      <v-col cols="12" md="9">
+      <v-col>
         <v-text-field
           v-model.trim="repo.Search"
           :label="t('جستجو')"
@@ -30,412 +29,419 @@
         />
       </v-col>
     </v-row>
-
-    <!-- Single-row editor (create/edit) — NO pagination/footers -->
-    <v-card class="tablebody" ref="editorCard">
-      <v-data-table
-        :headers="headers"
-        :items="rows"
-        :loading="repo.loading"
-        item-key="idOrTmp"
-        class="elevation-2 custom-table"
-        :dir="isRtl ? 'rtl' : 'ltr'"
-        density="comfortable"
-        hide-default-footer
-      >
-        <!-- Picture cell with hover actions -->
-        <template #item.picture="{ item }">
-          <div class="pic-wrap">
-            <input
-              class="hidden-file"
-              type="file"
-              accept="image/*"
-              :id="`up-${item.idOrTmp}`"
-              @change="(e) => onPickFile(item, e.target.files?.[0] ?? null)"
-            />
-            <v-btn
-              v-if="!item.previewUrl && !item.picture"
-              size="small"
-              color="primary"
-              variant="outlined"
-              icon
-              @click="triggerFile(item)"
-            >
-              <v-icon>mdi-plus</v-icon>
-            </v-btn>
-            <div v-else class="pic-thumb" :title="t('گزینه ها')">
-              <v-avatar size="32">
-                <v-img :src="item.previewUrl || item.picture" :alt="t('عکس')" cover />
-              </v-avatar>
-              <div class="pic-overlay">
-                <v-btn
-                  size="small"
-                  color="secondary"
-                  variant="flat"
-                  @click.stop="triggerFile(item)"
-                >
-                  <v-icon start>mdi-pencil</v-icon>{{ t('ویرایش') }}
-                </v-btn>
-                <v-btn
-                  size="small"
-                  color="secondary"
-                  @click.stop="openPreview(item.previewUrl || item.picture)"
-                >
-                  <v-icon start>mdi-eye</v-icon>{{ t('نمایش') }}
-                </v-btn>
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <!-- Basic text fields -->
-        <template #item.name="{ item }">
-          <v-text-field
-            v-model="item.draft.name"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('نام')"
-            hide-details
-            required
-            :error="hasError(item, 'name')"
-            :error-messages="getErrorMessages(item, 'name')"
-          />
-        </template>
-        <template #item.father_name="{ item }">
-          <v-text-field
-            v-model="item.draft.father_name"
-            class="text-group"
-            density="compact"
-            required
-            variant="outlined"
-            :label="t('نام پدر')"
-            hide-details
-            :error="hasError(item, 'father_name')"
-            :error-messages="getErrorMessages(item, 'father_name')"
-          />
-        </template>
-        <template #item.nickname="{ item }">
-          <v-text-field
-            v-model="item.draft.nickname"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('نام مستعار')"
-            hide-details
-            :error="hasError(item, 'nickname')"
-            :error-messages="getErrorMessages(item, 'nickname')"
-          />
-        </template>
-
-        <!-- Main address -->
-        <template #item.main_province="{ item }">
-          <div class="addr-group">
-            <v-text-field
-              v-model="item.draft.main_province"
-              density="compact"
-              variant="outlined"
-              hide-details
-              :label="t('ولایت اصلی')"
-              :error="hasError(item, 'main_province')"
-              :error-messages="getErrorMessages(item, 'main_province')"
-            />
-            <v-text-field
-              v-model="item.draft.main_district"
-              density="compact"
-              variant="outlined"
-              hide-details
-              :label="t('ولسوالی اصلی')"
-              :error="hasError(item, 'main_district')"
-              :error-messages="getErrorMessages(item, 'main_district')"
-            />
-            <v-text-field
-              v-model="item.draft.main_village"
-              density="compact"
-              variant="outlined"
-              :label="t('قریه/ناحیه اصلی')"
-              hide-details
-              :error="hasError(item, 'main_village')"
-              :error-messages="getErrorMessages(item, 'main_village')"
-            />
-          </div>
-        </template>
-
-        <!-- Now address -->
-        <template #item.now_province="{ item }">
-          <div class="addr-group">
-            <v-text-field
-              v-model="item.draft.now_province"
-              density="compact"
-              variant="outlined"
-              hide-details
-              :label="t('ولایت فعلی')"
-              :error="hasError(item, 'now_province')"
-              :error-messages="getErrorMessages(item, 'now_province')"
-            />
-            <v-text-field
-              v-model="item.draft.now_district"
-              density="compact"
-              variant="outlined"
-              hide-details
-              :label="t('ولسوالی فعلی')"
-              :error="hasError(item, 'now_district')"
-              :error-messages="getErrorMessages(item, 'now_district')"
-            />
-            <v-text-field
-              v-model="item.draft.now_village"
-              density="compact"
-              variant="outlined"
-              hide-details
-              :label="t('قریه/ناحیه فعلی')"
-              :error="hasError(item, 'now_village')"
-              :error-messages="getErrorMessages(item, 'now_village')"
-            />
-          </div>
-        </template>
-
-        <!-- Studies -->
-        <template #item.releg_study="{ item }">
-          <v-text-field
-            v-model="item.draft.releg_study"
-            class="text-group"
-            density="compact"
-            :label="t('تغلیمات دینی')"
-            variant="outlined"
-            hide-details
-            :error="hasError(item, 'releg_study')"
-            :error-messages="getErrorMessages(item, 'releg_study')"
-          />
-        </template>
-        <template #item.new_study="{ item }">
-          <v-text-field
-            v-model="item.draft.new_study"
-            class="text-group"
-            density="compact"
-            :label="t('تعلیمات عصری')"
-            variant="outlined"
-            hide-details
-            :error="hasError(item, 'new_study')"
-            :error-messages="getErrorMessages(item, 'new_study')"
-          />
-        </template>
-
-        <!-- Phone / Tazkira -->
-        <template #item.phone_number="{ item }">
-          <v-text-field
-            v-model="item.draft.phone_number"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('شماره تماس')"
-            hide-details
-            :error="hasError(item, 'phone_number')"
-            :error-messages="getErrorMessages(item, 'phone_number')"
-          />
-        </template>
-        <template #item.code_number="{ item }">
-          <v-text-field
-            v-model="item.draft.code_number"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('مود نمبر')"
-            hide-details
-            :error="hasError(item, 'code_number')"
-            :error-messages="getErrorMessages(item, 'code_number')"
-          />
-        </template>
-        <template #item.tazkira="{ item }">
-          <v-text-field
-            v-model="item.draft.tazkira"
-            density="compact"
-            class="text-group"
-            variant="outlined"
-            :label="t('شماره تذکره')"
-            hide-details
-            :error="hasError(item, 'tazkira')"
-            :error-messages="getErrorMessages(item, 'tazkira')"
-          />
-        </template>
-
-        <!-- Dates -->
-        <template #item.apply_date="{ item }">
-          <v-text-field
-            v-model="item.draft.apply_date"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('تاریخ مقرر شدن')"
-            hide-details
-            :error="hasError(item, 'apply_date')"
-            :error-messages="getErrorMessages(item, 'apply_date')"
-          />
-        </template>
-        <template #item.join_date="{ item }">
-          <v-text-field
-            v-model="item.draft.join_date"
-            class="text-group"
-            density="compact"
-            :label="t('تاریخ آمدن')"
-            variant="outlined"
-            hide-details
-            :error="hasError(item, 'join_date')"
-            :error-messages="getErrorMessages(item, 'join_date')"
-          />
-        </template>
-        <template #item.left_date="{ item }">
-          <v-text-field
-            v-model="item.draft.left_date"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('تاریخ رفتن')"
-            hide-details
-            :error="hasError(item, 'left_date')"
-            :error-messages="getErrorMessages(item, 'left_date')"
-          />
-        </template>
-
-        <!-- Notes -->
-        <template #item.notes="{ item }">
-          <v-text-field
-            v-model="item.draft.notes"
-            density="compact"
-            class="text-group-note"
-            variant="outlined"
-            :label="t('ملاحضات')"
-            hide-details
-            :error="hasError(item, 'notes')"
-            :error-messages="getErrorMessages(item, 'notes')"
-          />
-        </template>
-        <!-- Documents (Upload + chips OUTSIDE the input) -->
-        <template #item.documents="{ item }">
-          <div class="documents-inline">
-            <input
-              class="hidden-file"
-              :id="`docs-${item.idOrTmp}`"
-              type="file"
-              multiple
-              @change="(e) => onPickDocs(item, Array.from(e.target.files || []))"
-            />
-
-            <div class="docs-field-row">
+    <v-form
+      ref="editorForm"
+      v-model="editorValid"
+      lazy-validation
+      :key="formKey"
+      @submit.prevent="onSubmit(rows[0])"
+    >
+      <!-- Single-row editor (create/edit) — NO pagination/footers -->
+      <v-card class="tablebody" ref="editorCard">
+        <v-data-table
+          :headers="headers"
+          :items="rows"
+          :loading="repo.loading"
+          item-key="idOrTmp"
+          class="elevation-2 custom-table"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+          density="comfortable"
+          hide-default-footer
+        >
+          <!-- Picture cell with hover actions -->
+          <template #item.picture="{ item }">
+            <div class="pic-wrap">
+              <input
+                class="hidden-file"
+                type="file"
+                accept="image/*"
+                :id="`up-${item.idOrTmp}`"
+                @change="(e) => onPickFile(item, e.target.files?.[0] ?? null)"
+              />
               <v-btn
-                class="uploader-btn2"
+                v-if="!item.previewUrl && !item.picture"
                 size="small"
-                variant="text"
-                density="compact"
-                prepend-icon="mdi-tray-arrow-up"
-                @click="triggerDocs(item)"
+                color="primary"
+                variant="outlined"
+                icon
+                @click="triggerFile(item)"
               >
-                {{ t('آپلود فایل ها') }}
+                <v-icon>mdi-plus</v-icon>
               </v-btn>
-
-              <div
-                class="chips-row"
-                :title="
-                  item.draft._newDocs?.length || item.existingDocs?.length
-                    ? ''
-                    : t('فایلی انتخاب نشده است')
-                "
-              >
-                <!-- new files (unsaved) -->
-                <v-chip
-                  v-for="(f, idx) in item.draft._newDocs || []"
-                  :key="`${item.idOrTmp}-nf-${idx}`"
-                  size="small"
-                  variant="text"
-                  class="chip-outline"
-                  :title="f.name"
-                >
-                  {{ shortName(f.name) }}
-                </v-chip>
-
-                <!-- existing files (from API) -->
-                <v-chip
-                  v-for="(d, idx) in item.existingDocs || []"
-                  :key="`${item.idOrTmp}-df-${idx}`"
-                  size="small"
-                  color="primary"
-                  variant="text"
-                  class="chip-existing"
-                  :title="d.file_name"
-                  @click="openDoc(d.url)"
-                >
-                  {{ shortName(d.file_name) }}
-                  <v-icon
-                    size="16"
-                    class="ml-1"
-                    title="حذف"
-                    @click.stop="markDocForRemoval(item, d)"
-                    >mdi-close</v-icon
+              <div v-else class="pic-thumb" :title="t('گزینه ها')">
+                <v-avatar size="32">
+                  <v-img :src="item.previewUrl || item.picture" :alt="t('عکس')" cover />
+                </v-avatar>
+                <div class="pic-overlay">
+                  <v-btn
+                    size="small"
+                    color="secondary"
+                    variant="flat"
+                    @click.stop="triggerFile(item)"
                   >
-                </v-chip>
+                    <v-icon start>mdi-pencil</v-icon>{{ t('ویرایش') }}
+                  </v-btn>
+                  <v-btn
+                    size="small"
+                    color="secondary"
+                    @click.stop="openPreview(item.previewUrl || item.picture)"
+                  >
+                    <v-icon start>mdi-eye</v-icon>{{ t('نمایش') }}
+                  </v-btn>
+                </div>
               </div>
-
-              <v-btn
-                class="download-all-btn"
-                prepend-icon="mdi-download"
-                :disabled="!item.id"
-                color="error"
-                size="small"
-                @click="downloadAll(item)"
-              >
-                {{ t('دانلود فایل ها') }}
-              </v-btn>
             </div>
-          </div>
-        </template>
+          </template>
 
-        <!-- Actions -->
-        <template #item.actions="{ item }">
-          <div class="flex items-center gap-1">
-            <v-btn
-              class="bg-primary"
+          <!-- Basic text fields -->
+          <template #item.name="{ item }">
+            <v-text-field
+              v-model="item.draft.name"
+              class="text-group"
+              density="compact"
               variant="outlined"
-              @click="save(item)"
-              :loading="item.loading"
-              >{{ t('ثبت دیتا') }}</v-btn
-            >
+              :label="t('نام')"
+              :rules="[rules.required]"
+              hide-details
+              required
+              :error="hasError(item, 'name')"
+              :error-messages="getErrorMessages(item, 'name')"
+            />
+          </template>
+          <template #item.father_name="{ item }">
+            <v-text-field
+              v-model="item.draft.father_name"
+              class="text-group"
+              density="compact"
+              required
+              :rules="[rules.required]"
+              variant="outlined"
+              :label="t('نام پدر')"
+              hide-details
+              :error="hasError(item, 'father_name')"
+              :error-messages="getErrorMessages(item, 'father_name')"
+            />
+          </template>
+          <template #item.nickname="{ item }">
+            <v-text-field
+              v-model="item.draft.nickname"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('نام مستعار')"
+              hide-details
+              :error="hasError(item, 'nickname')"
+              :error-messages="getErrorMessages(item, 'nickname')"
+            />
+          </template>
 
-            <v-btn class="bg-error" variant="outlined" @click="del(item)">{{
-              t('حذف دیتا')
-            }}</v-btn>
-            <!-- ✅ Clear inputs button -->
-            <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
-              {{ t('پاک کردن ورودی‌ها') }}
-            </v-btn>
+          <!-- Main address -->
+          <template #item.main_province="{ item }">
+            <div class="addr-group">
+              <v-text-field
+                v-model="item.draft.main_province"
+                :rules="[rules.required]"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('ولایت اصلی')"
+                :error="hasError(item, 'main_province')"
+                :error-messages="getErrorMessages(item, 'main_province')"
+              />
+              <v-text-field
+                v-model="item.draft.main_district"
+                density="compact"
+                variant="outlined"
+                :rules="[rules.required]"
+                hide-details
+                :label="t('ولسوالی اصلی')"
+                :error="hasError(item, 'main_district')"
+                :error-messages="getErrorMessages(item, 'main_district')"
+              />
+              <v-text-field
+                v-model="item.draft.main_village"
+                density="compact"
+                :rules="[rules.required]"
+                variant="outlined"
+                :label="t('قریه/ناحیه اصلی')"
+                hide-details
+                :error="hasError(item, 'main_village')"
+                :error-messages="getErrorMessages(item, 'main_village')"
+              />
+            </div>
+          </template>
 
-            <!-- <v-btn variant="outlined" class="bg-info" @click="openPeek(item?.raw ?? item)">
+          <!-- Now address -->
+          <template #item.now_province="{ item }">
+            <div class="addr-group">
+              <v-text-field
+                v-model="item.draft.now_province"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('ولایت فعلی')"
+                :error="hasError(item, 'now_province')"
+                :error-messages="getErrorMessages(item, 'now_province')"
+              />
+              <v-text-field
+                v-model="item.draft.now_district"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('ولسوالی فعلی')"
+                :error="hasError(item, 'now_district')"
+                :error-messages="getErrorMessages(item, 'now_district')"
+              />
+              <v-text-field
+                v-model="item.draft.now_village"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('قریه/ناحیه فعلی')"
+                :error="hasError(item, 'now_village')"
+                :error-messages="getErrorMessages(item, 'now_village')"
+              />
+            </div>
+          </template>
+
+          <!-- Studies -->
+          <template #item.releg_study="{ item }">
+            <v-text-field
+              v-model="item.draft.releg_study"
+              class="text-group"
+              density="compact"
+              :label="t('تغلیمات دینی')"
+              variant="outlined"
+              hide-details
+              :error="hasError(item, 'releg_study')"
+              :error-messages="getErrorMessages(item, 'releg_study')"
+            />
+          </template>
+          <template #item.new_study="{ item }">
+            <v-text-field
+              v-model="item.draft.new_study"
+              class="text-group"
+              density="compact"
+              :label="t('تعلیمات عصری')"
+              variant="outlined"
+              hide-details
+              :error="hasError(item, 'new_study')"
+              :error-messages="getErrorMessages(item, 'new_study')"
+            />
+          </template>
+
+          <!-- Phone / Tazkira -->
+          <template #item.phone_number="{ item }">
+            <v-text-field
+              v-model="item.draft.phone_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('شماره تماس')"
+              hide-details
+              :error="hasError(item, 'phone_number')"
+              :error-messages="getErrorMessages(item, 'phone_number')"
+            />
+          </template>
+          <template #item.code_number="{ item }">
+            <v-text-field
+              v-model="item.draft.code_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مود نمبر')"
+              hide-details
+              :error="hasError(item, 'code_number')"
+              :error-messages="getErrorMessages(item, 'code_number')"
+            />
+          </template>
+          <template #item.tazkira="{ item }">
+            <v-text-field
+              v-model="item.draft.tazkira"
+              density="compact"
+              class="text-group"
+              variant="outlined"
+              :label="t('شماره تذکره')"
+              hide-details
+              :error="hasError(item, 'tazkira')"
+              :error-messages="getErrorMessages(item, 'tazkira')"
+            />
+          </template>
+          <!-- Dates -->
+          <template #item.apply_date="{ item }">
+            <DateInput
+              v-model="item.draft.apply_date"
+              class="text-group"
+              :rules="[rules.required]"
+              :label="t('تاریخ مقرر شدن')"
+            />
+          </template>
+
+          <template #item.join_date="{ item }">
+            <DateInput
+              v-model="item.draft.join_date"
+              class="text-group"
+              :rules="[rules.required]"
+              :label="t('تاریخ آمدن')"
+            />
+          </template>
+
+          <template #item.left_date="{ item }">
+            <DateInput
+              v-model="item.draft.left_date"
+              class="text-group"
+              :rules="[rules.required]"
+              :label="t('تاریخ رفتن')"
+            />
+          </template>
+
+          <!-- Notes -->
+          <template #item.notes="{ item }">
+            <v-text-field
+              v-model="item.draft.notes"
+              density="compact"
+              class="text-group-note"
+              variant="outlined"
+              :label="t('ملاحضات')"
+              hide-details
+              :error="hasError(item, 'notes')"
+              :error-messages="getErrorMessages(item, 'notes')"
+            />
+          </template>
+          <!-- Documents (Upload + chips OUTSIDE the input) -->
+          <template #item.documents="{ item }">
+            <div class="documents-inline">
+              <input
+                class="hidden-file"
+                :id="`docs-${item.idOrTmp}`"
+                type="file"
+                multiple
+                @change="(e) => onPickDocs(item, Array.from(e.target.files || []))"
+              />
+
+              <div class="docs-field-row">
+                <v-btn
+                  class="uploader-btn2"
+                  size="small"
+                  variant="text"
+                  density="compact"
+                  prepend-icon="mdi-tray-arrow-up"
+                  @click="triggerDocs(item)"
+                >
+                  {{ t('آپلود فایل ها') }}
+                </v-btn>
+
+                <div
+                  class="chips-row"
+                  :title="
+                    item.draft._newDocs?.length || item.existingDocs?.length
+                      ? ''
+                      : t('فایلی انتخاب نشده است')
+                  "
+                >
+                  <!-- new files (unsaved) -->
+                  <v-chip
+                    v-for="(f, idx) in item.draft._newDocs || []"
+                    :key="`${item.idOrTmp}-nf-${idx}`"
+                    size="small"
+                    variant="text"
+                    class="chip-outline"
+                    :title="f.name"
+                  >
+                    {{ shortName(f.name) }}
+                  </v-chip>
+
+                  <!-- existing files (from API) -->
+                  <v-chip
+                    v-for="(d, idx) in item.existingDocs || []"
+                    :key="`${item.idOrTmp}-df-${idx}`"
+                    size="small"
+                    color="primary"
+                    variant="text"
+                    class="chip-existing"
+                    :title="d.file_name"
+                    @click="openDoc(d.url)"
+                  >
+                    {{ shortName(d.file_name) }}
+                    <v-icon
+                      size="16"
+                      class="ml-1"
+                      title="حذف"
+                      @click.stop="markDocForRemoval(item, d)"
+                      >mdi-close</v-icon
+                    >
+                  </v-chip>
+                </div>
+
+                <v-btn
+                  class="download-all-btn"
+                  prepend-icon="mdi-download"
+                  :disabled="!item.id"
+                  color="error"
+                  size="small"
+                  @click="downloadAll(item)"
+                >
+                  {{ t('دانلود فایل ها') }}
+                </v-btn>
+              </div>
+            </div>
+          </template>
+
+          <!-- Actions -->
+          <template #item.actions="{ item }">
+            <div class="flex items-center gap-1">
+              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">{{
+                t('ثبت دیتا')
+              }}</v-btn>
+
+              <v-btn class="bg-error" variant="outlined" @click="del(item)">{{
+                t('حذف دیتا')
+              }}</v-btn>
+              <!-- ✅ Clear inputs button -->
+              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
+                {{ t('پاک کردن ورودی‌ها') }}
+              </v-btn>
+
+              <!-- <v-btn variant="outlined" class="bg-info" @click="openPeek(item?.raw ?? item)">
               {{ t('جزییات') }}
             </v-btn> -->
-          </div>
-        </template>
+            </div>
+          </template>
 
-        <template #no-data>
-          <div class="py-8 text-medium-emphasis">
-            {{ t('یک سطر ویرایش/ایجاد آماده است') }}
-          </div>
-        </template>
-      </v-data-table>
+          <template #no-data>
+            <div class="py-8 text-medium-emphasis">
+              {{ t('یک سطر ویرایش/ایجاد آماده است') }}
+            </div>
+          </template>
+        </v-data-table>
 
-      <!-- Image preview dialog -->
-      <v-dialog v-model="previewOpen" max-width="520">
-        <v-card>
-          <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
-          <v-card-text class="d-flex justify-center">
-            <v-img :src="previewSrc" :alt="t('پیش نمایش')" max-width="480" max-height="420" cover />
-          </v-card-text>
-          <v-card-actions class="justify-end">
-            <v-btn color="primary" variant="flat" @click="previewOpen = false">
-              {{ t('بستن') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </v-card>
-
+        <!-- Image preview dialog -->
+        <v-dialog v-model="previewOpen" max-width="520">
+          <v-card>
+            <v-toolbar
+              density="compact"
+              color="primary"
+              :title="t('پیش نمایش')"
+              class="text-white"
+            />
+            <v-card-text class="d-flex justify-center">
+              <v-img
+                :src="previewSrc"
+                :alt="t('پیش نمایش')"
+                max-width="480"
+                max-height="420"
+                cover
+              />
+            </v-card-text>
+            <v-card-actions class="justify-end">
+              <v-btn color="primary" variant="flat" @click="previewOpen = false">
+                {{ t('بستن') }}
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-card>
+    </v-form>
     <!-- Filterable table (ALL data, with Edit button) -->
     <v-container fluid class="">
       <PeekButton
@@ -462,6 +468,8 @@
       :rtl="true"
       :enableEdit="true"
       :enablePeek="true"
+      :autoDetectDates="false"
+      :dateKeys="['apply_date', 'join_date', 'left_date']"
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
@@ -486,9 +494,12 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useI18n } from 'vue-i18n';
-
+  import DateInput from '../../components/DateInput.vue';
   const { t, locale } = useI18n();
   const repo = useEmployeOfficeRepository();
+  const editorForm = ref(null);
+  const editorValid = ref(false);
+  const formKey = ref(0); // forces full <v-form> remount when incremented
 
   /* ===== UI & Snackbar ===== */
   const previewOpen = ref(false);
@@ -623,6 +634,17 @@
     { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
     { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
   ]);
+  // require validation
+
+  const rules = {
+    required: (v) => !!v || 'This field is required',
+    selectRequired: (label) => (v) => !!v || `${label} is required`,
+    min: (n) => (v) => (v && v.length >= n) || `Minimum ${n} characters`,
+    max: (n) => (v) => (v && v.length <= n) || `Maximum ${n} characters`,
+    number: (v) => !v || /^[0-9]+$/.test(v) || 'Only numbers allowed',
+    email: (v) =>
+      !v || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) || 'Invalid email address',
+  };
 
   const filters = ref({});
 
@@ -683,6 +705,23 @@
     });
     return fd;
   }
+  async function hardResetFormValidation() {
+    // clear Vuetify's v-form model
+    editorValid.value = false;
+
+    // clear your backend error bucket entirely (so no lingering :error-messages)
+    itemErrors.value = {};
+
+    // wait so new row mounts
+    await nextTick();
+
+    // try a soft reset if the form is there
+    editorForm.value?.resetValidation?.();
+
+    // as a final nuke, remount the form (clears any hidden stale refs in nested slots)
+    formKey.value++;
+    await nextTick();
+  }
 
   /* ===== Save / Delete ===== */
   /* IMPORTANT: After successful CREATE or UPDATE we:
@@ -709,12 +748,13 @@
 
         const created = await repo.CreateEmployee(fd);
         if (created && created.id) {
-          showErrorMessage(t('کارمند با موفقیت ایجاد شد'));
           await fetchAll();
           setBlankEditorRow();
+          editorForm.value?.resetValidation?.();
         } else {
           await fetchAll();
           setBlankEditorRow();
+          editorForm.value?.resetValidation?.();
         }
         return;
       }
@@ -750,9 +790,9 @@
           URL.revokeObjectURL(item._blobUrl);
           item._blobUrl = null;
         }
-        showErrorMessage(t('کارمند با موفقیت بروزرسانی شد'));
         await fetchAll();
         setBlankEditorRow();
+        editorForm.value?.resetValidation?.();
       }
     } catch (error) {
       console.error('Save error:', error);
@@ -764,6 +804,37 @@
       }
     } finally {
       item.loading = false;
+    }
+  }
+  // === VALIDATED SUBMIT ===
+  async function onSubmit(item) {
+    const form = editorForm.value;
+    if (!form) return;
+
+    // Trigger Vuetify validation for all inputs inside the form
+    const { valid } = await form.validate();
+
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+
+    // If valid → call your existing save()
+    await save(item);
+  }
+
+  // === SCROLL TO FIRST INVALID INPUT ===
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
     }
   }
 
@@ -780,7 +851,6 @@
     try {
       await repo.DeleteEmployee(item.id);
       await fetchAll();
-      showErrorMessage(t('کارمند با موفقیت حذف شد'));
       setBlankEditorRow();
     } catch (error) {
       console.error('Delete error:', error);
@@ -879,8 +949,12 @@
   /* ===== Fetch ALL for FilterableTable ===== */
   async function fetchAll() {
     try {
-      if (typeof repo.FetchEmployeesDataAll === 'function') {
-        await repo.FetchEmployeesDataAll();
+      if (typeof repo.FetchEmployeesData === 'function') {
+        await repo.FetchEmployeesData({
+          page: repo.page,
+          perPage: repo.perPage,
+          search: repo.Search,
+        });
         return;
       }
       // fallback: huge page size to get all
@@ -1020,28 +1094,36 @@
   .pic-overlay :deep(.v-btn) {
     color: #fff;
   }
-  .documents-inline { min-width: 520px; }
-.docs-field-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px dashed #9e9e9e;
-  border-radius: 8px;
-  padding: 6px 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-.chips-row {
-  flex: 1 1 auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 2px 0;
-  scrollbar-width: thin;
-}
-.chip-existing { background: #c8dae1; color: black !important; }
-.chip-outline { background: #c8dae1; }
-.download-all-btn { white-space: nowrap; }
-
+  .documents-inline {
+    min-width: 520px;
+  }
+  .docs-field-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px dashed #9e9e9e;
+    border-radius: 8px;
+    padding: 6px 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+  .chips-row {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 0;
+    scrollbar-width: thin;
+  }
+  .chip-existing {
+    background: #c8dae1;
+    color: black !important;
+  }
+  .chip-outline {
+    background: #c8dae1;
+  }
+  .download-all-btn {
+    white-space: nowrap;
+  }
 </style>

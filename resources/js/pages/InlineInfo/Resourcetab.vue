@@ -10,8 +10,8 @@
 
         <!-- Codes Section -->
         <v-card-text class="pa-0" :dir="isRtl ? 'rtl' : 'ltr'">
-          <v-row class=" tight-grid">
-            <v-col cols="12" md="4">
+          <v-row class="tight-grid">
+            <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('کود منبع') }}</v-card-subtitle>
               </v-card-item>
@@ -22,6 +22,8 @@
                   item-title="code_number"
                   item-value="id"
                   variant="outlined"
+                  rounded="lg"
+                  class="cell"
                   density="compact"
                   clearable
                   :rules="[rules.selectRequired(t('کود منبع'))]"
@@ -30,7 +32,7 @@
               </v-card-text>
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('مربوطه کارمند کود') }}</v-card-subtitle>
               </v-card-item>
@@ -40,6 +42,8 @@
                   :items="officeEmployeesItems"
                   item-title="code_number"
                   item-value="id"
+                  rounded="lg"
+                  class="cell"
                   variant="outlined"
                   density="compact"
                   clearable
@@ -48,7 +52,7 @@
               </v-card-text>
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">
                   {{ t('مربوطه تدابیری کارمند کود') }}
@@ -61,6 +65,8 @@
                   item-title="code_number"
                   item-value="id"
                   variant="outlined"
+                  rounded="lg"
+                  class="cell"
                   density="compact"
                   clearable
                   prepend-inner-icon="mdi-account-tie"
@@ -70,7 +76,7 @@
           </v-row>
 
           <!-- Introduction Section -->
-          <v-row class=" tight-grid">
+          <v-row class="tight-grid">
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('نام') }}</v-card-subtitle>
@@ -80,6 +86,8 @@
                   v-model="draft.name"
                   variant="outlined"
                   density="compact"
+                  rounded="lg"
+                  class="cell"
                   clearable
                   :rules="[rules.required(t('نام'))]"
                   prepend-inner-icon="mdi-account"
@@ -97,6 +105,8 @@
                   variant="outlined"
                   density="compact"
                   clearable
+                  rounded="lg"
+                  class="cell"
                   prepend-inner-icon="mdi-account-supervisor"
                 />
               </v-card-text>
@@ -111,6 +121,8 @@
                   v-model="draft.nickname"
                   variant="outlined"
                   density="compact"
+                  rounded="lg"
+                  class="cell"
                   clearable
                   prepend-inner-icon="mdi-tag"
                 />
@@ -126,6 +138,8 @@
                   v-model="draft.grand_father_name"
                   variant="outlined"
                   density="compact"
+                  rounded="lg"
+                  class="cell"
                   clearable
                   prepend-inner-icon="mdi-account-supervisor-outline"
                 />
@@ -142,7 +156,7 @@
               </v-expansion-panel-title>
               <v-expansion-panel-text>
                 <!-- Main Address -->
-                <v-row class=" tight-grid">
+                <v-row class="tight-grid">
                   <v-col cols="12">
                     <v-card-subtitle class="section-subtitle mb-2">
                       <v-icon size="small" class="mr-1">mdi-home</v-icon>
@@ -155,6 +169,7 @@
                       :label="t('ولایت اصلی')"
                       variant="outlined"
                       density="compact"
+                      rounded="lg"
                       clearable
                     />
                   </v-col>
@@ -173,6 +188,7 @@
                       :label="t('قصبه/قریه اصلی')"
                       variant="outlined"
                       density="compact"
+                      rounded="lg"
                       clearable
                     />
                   </v-col>
@@ -193,6 +209,7 @@
                       variant="outlined"
                       density="compact"
                       clearable
+                      rounded="lg"
                     />
                   </v-col>
                   <v-col cols="12" md="4">
@@ -202,6 +219,7 @@
                       variant="outlined"
                       density="compact"
                       clearable
+                      rounded="lg"
                     />
                   </v-col>
                   <v-col cols="12" md="4">
@@ -211,6 +229,7 @@
                       variant="outlined"
                       density="compact"
                       clearable
+                      rounded="lg"
                     />
                   </v-col>
                 </v-row>
@@ -219,8 +238,8 @@
           </v-expansion-panels>
 
           <!-- Type / Category -->
-          <v-row class=" tight-grid">
-            <v-col cols="12" md="6">
+          <v-row class="tight-grid">
+            <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('سیاسی') }}</v-card-subtitle>
               </v-card-item>
@@ -230,6 +249,8 @@
                   :items="seyasiItems"
                   item-title="name"
                   item-value="id"
+                  rounded="lg"
+                  class="cell"
                   variant="outlined"
                   density="compact"
                   clearable
@@ -250,6 +271,8 @@
                   item-value="id"
                   variant="outlined"
                   density="compact"
+                  rounded="lg"
+                  class="cell"
                   clearable
                   prepend-inner-icon="mdi-shield-account"
                 />
@@ -258,25 +281,21 @@
           </v-row>
 
           <!-- Information Details -->
-          <v-row class=" tight-grid">
-            <v-col cols="12" md="4">
+          <v-row class="tight-grid">
+            <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('تاریخ اطلاع') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
-                <v-text-field
+                <DateInput
                   v-model="draft.information_date"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  :rules="[rules.dateYMD(t('تاریخ اطلاع'))]"
-                  placeholder="YYYY-MM-DD"
-                  prepend-inner-icon="mdi-calendar"
+                  :rules="[rules.required]"
+                  :label="t('تاریخ اطلاع ')"
                 />
               </v-card-text>
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('ساعت اطلاع') }}</v-card-subtitle>
               </v-card-item>
@@ -289,11 +308,13 @@
                   :rules="[rules.timeHM(t('ساعت اطلاع'))]"
                   placeholder="HH:MM"
                   prepend-inner-icon="mdi-clock"
+                  rounded="lg"
+                  class="cell"
                 />
               </v-card-text>
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('درجه موثقیت اطلاع') }}</v-card-subtitle>
               </v-card-item>
@@ -304,13 +325,15 @@
                   density="compact"
                   clearable
                   prepend-inner-icon="mdi-star"
+                  rounded="lg"
+                  class="cell"
                 />
               </v-card-text>
             </v-col>
           </v-row>
 
           <!-- Information Category -->
-          <v-row class=" tight-grid">
+          <v-row class="tight-grid">
             <v-col cols="12">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('کتگوری اطلاع') }}</v-card-subtitle>
@@ -320,6 +343,7 @@
                   v-model="draft.information_category"
                   :items="infoCategoryItems"
                   item-title="name"
+                  rounded="lg"
                   item-value="id"
                   variant="outlined"
                   density="compact"
@@ -331,7 +355,7 @@
           </v-row>
 
           <!-- Info Employee Codes -->
-          <v-row class=" tight-grid">
+          <v-row class="tight-grid">
             <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{
@@ -345,6 +369,7 @@
                   item-title="code_number"
                   item-value="id"
                   variant="outlined"
+                  rounded="lg"
                   density="compact"
                   clearable
                   prepend-inner-icon="mdi-badge-account"
@@ -362,6 +387,7 @@
                 <v-autocomplete
                   v-model="draft.infomation_zone_employee_code"
                   :items="zoneEmployeesItems"
+                  rounded="lg"
                   item-title="code_number"
                   item-value="id"
                   variant="outlined"
@@ -374,7 +400,7 @@
           </v-row>
 
           <!-- Long Texts -->
-          <v-row class=" tight-grid">
+          <v-row class="tight-grid">
             <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('تفصیل') }}</v-card-subtitle>
@@ -385,6 +411,7 @@
                   variant="outlined"
                   density="compact"
                   clearable
+                  rounded="lg"
                   rows="3"
                   auto-grow
                 />
@@ -403,6 +430,7 @@
                   variant="outlined"
                   density="compact"
                   clearable
+                  rounded="lg"
                   rows="3"
                   auto-grow
                 />
@@ -411,7 +439,7 @@
           </v-row>
 
           <!-- Outcome & Notes -->
-          <v-row class=" tight-grid">
+          <v-row class="tight-grid">
             <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('نتیجه') }}</v-card-subtitle>
@@ -422,6 +450,7 @@
                   variant="outlined"
                   density="compact"
                   clearable
+                  rounded="lg"
                   rows="2"
                   auto-grow
                 />
@@ -439,6 +468,7 @@
                   density="compact"
                   clearable
                   rows="2"
+                  rounded="lg"
                   auto-grow
                 />
               </v-card-text>
@@ -446,7 +476,7 @@
           </v-row>
 
           <!-- Documents Section -->
-          <v-card variant="outlined" class=" docs-field-row">
+          <v-card variant="outlined" class="docs-field-row">
             <v-card-item>
               <v-card-subtitle class="field-label">{{ t('اسناد / ضمایم') }}</v-card-subtitle>
             </v-card-item>
@@ -455,6 +485,7 @@
                 ref="fileInput"
                 type="file"
                 class="hidden-file"
+                rounded="lg"
                 multiple
                 @change="onFilesPicked($event)"
               />
@@ -535,6 +566,7 @@
   import { ref, reactive, computed, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+  import DateInput from '../../components/DateInput.vue';
 
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
@@ -704,7 +736,10 @@
     font-weight: 600;
     color: #1e293b;
   }
-
+  .cell {
+    min-width: 160px;
+    max-width: 190px;
+  }
   .field-card {
     border-radius: 12px;
     transition: all 0.3s ease;

@@ -19,16 +19,39 @@ class OfficeEmployeeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = OfficeEmployee::with(['documents'])
-            ->when($request->search, function ($q) use ($request) {
-                $s = $request->search;
-                $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('code_number', 'like', "%{$s}%")
-                  ->orWhere('phone_number', 'like', "%{$s}%");
-            });
+        // ✅ Validate/sanitize pagination & search
+        $request->validate([
+            'page'    => 'sometimes|integer|min:1',
+            'perPage' => 'sometimes', // allow 'all' (string) from UI
+            'search'  => 'nullable|string',
+        ]);
+
+        $rawPerPage = $request->input('perPage', 15);
+        $page       = (int) $request->input('page', 1);
+        $search     = $request->input('search');
+
+        $query = OfficeEmployee::query()
+            ->with(['documents'])
+            // ✅ Grouped search to avoid OR leaking outside
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('name', 'like', "%{$search}%")
+                       ->orWhere('code_number', 'like', "%{$search}%")
+                       ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+            })
+            ->orderByDesc('id');
+
+        // ✅ Support "all" without breaking paginator math
+        if ($rawPerPage === 'all') {
+            $items = $query->get();
+            return OfficeEmployeeResource::collection($items);
+        }
+
+        $perPage = (int) $rawPerPage ?: 15;
 
         return OfficeEmployeeResource::collection(
-            $query->paginate($request->perPage ?? 15)
+            $query->paginate($perPage, ['*'], 'page', $page)
         );
     }
 
@@ -43,16 +66,16 @@ class OfficeEmployeeController extends Controller
             // ✅ Create the employee
             $employee = OfficeEmployee::create($request->validated());
 
-            // 🖼️ Optional: handle profile picture (if you send it here)
+            // 🖼️ Optional: handle profile picture
             if ($request->hasFile('picture')) {
                 $path = $request->file('picture')->store('uploads/office-employees', 'public');
                 $employee->update(['picture' => "storage/{$path}"]);
             }
 
-            // 📎 Handle document uploads (same pattern as Event)
+            // 📎 Handle document uploads
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
-                    $path = $file->store("office_employees/{$employee->id}", 'public');
+                    $path = $file->store("office_employees/{$employee->id}", 'public'); // ✅ fixed braces/spacing
                     $employee->documents()->create([
                         'file_name'  => $file->getClientOriginalName(),
                         'file_path'  => $path,
@@ -65,14 +88,14 @@ class OfficeEmployeeController extends Controller
             DB::commit();
 
             return new OfficeEmployeeResource(
-                $employee->load(['documents'])
+                $employee->load(['documents']) // ✅ load before return
             );
 
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Office employee creation failed',
-                'error'   => $e->getMessage()
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -83,7 +106,7 @@ class OfficeEmployeeController extends Controller
     public function show(OfficeEmployee $officeEmployee)
     {
         return new OfficeEmployeeResource(
-            $officeEmployee->load(['documents'])
+            $officeEmployee->load(['documents']) // ✅ load before return
         );
     }
 
@@ -108,10 +131,10 @@ class OfficeEmployeeController extends Controller
                 $officeEmployee->update(['picture' => "storage/{$path}"]);
             }
 
-            // 📎 Handle new documents (if uploaded) — add like Event
+            // 📎 Handle new documents
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
-                    $path = $file->store("office_employees/{ $officeEmployee->id }", 'public');
+                    $path = $file->store("office_employees/{$officeEmployee->id}", 'public'); // ✅ fixed braces/spacing
                     $officeEmployee->documents()->create([
                         'file_name'  => $file->getClientOriginalName(),
                         'file_path'  => $path,
@@ -124,14 +147,14 @@ class OfficeEmployeeController extends Controller
             DB::commit();
 
             return new OfficeEmployeeResource(
-                $officeEmployee->load(['documents'])
+                $officeEmployee->load(['documents']) // ✅ load before return
             );
 
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Office employee update failed',
-                'error'   => $e->getMessage()
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }

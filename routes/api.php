@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ResedintController;
 use App\Http\Controllers\Api\ResourceController;
 use App\Http\Controllers\Api\ZoneEmployeeController;
 use App\Http\Controllers\Api\OfficeEmployeeController;
+use App\Http\Controllers\Api\ResedintDocumentController;
 use App\Http\Controllers\Api\ZoneEmployeeDocumentController;
 use App\Http\Controllers\InformationController;
 use App\Http\Controllers\InformationDocumentController;
@@ -70,6 +71,11 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 
 // People
 Route::apiResource('resedints', ResedintController::class);
+Route::get('resedints/{resedint}/documents', [ResedintDocumentController::class, 'index']);
+Route::post('resedints/{resedint}/documents', [ResedintDocumentController::class, 'store']);
+Route::delete('resedints/{resedint}/documents/{doc}', [ResedintDocumentController::class, 'destroy']);
+Route::get('resedints/{resedint}/documents/zip', [ResedintDocumentController::class, 'downloadAll']);
+
 Route::apiResource('zone-employees', ZoneEmployeeController::class);
 // ZIP
 Route::get('zone-employees/{zoneEmployee}/documents/download-all', [ZoneEmployeeDocumentController::class, 'downloadAll']);

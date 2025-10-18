@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pt-6 mt-12">
+  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
     <AppBar
       :title="t('اطلاعات')"
       :subtitle="t('اضافه کردن اطلاعات')"
@@ -8,6 +8,7 @@
       <template #actions><v-btn icon /></template>
     </AppBar>
 
+    <!-- Search -->
     <v-row class="d-flex">
       <v-col cols="12" md="9">
         <v-text-field
@@ -16,47 +17,37 @@
           density="compact"
           prepend-inner-icon="mdi-magnify"
           variant="outlined"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          @keyup.enter="fetch()"
+          @keyup.enter="fetchAll"
           clearable
           @click:clear="
             () => {
               repo.Search = '';
-              fetch();
+              fetchAll();
             }
           "
         />
       </v-col>
+      <!-- Optional: add/reset editor row -->
+      <!--
       <v-col cols="12" md="3" class="text-md-right">
-        <v-btn color="primary" @click="addBlankRow">
-          {{ t('اضافه کردن اطلاعات') }}
+        <v-btn color="primary" @click="setBlankEditorRow">
+          {{ t('اضافه کردن اطلاع') }}
         </v-btn>
       </v-col>
+      -->
     </v-row>
 
-    <v-card class="tablebody">
+    <!-- Single-row editor (create/edit) -->
+    <v-card class="tablebody" ref="editorCard">
       <v-data-table
         :headers="headers"
         :items="rows"
         :loading="repo.loading"
-        :items-per-page="repo.itemsPerPage"
-        :page="repo.page"
-        :items-length="repo.totalItems || 0"
         item-key="idOrTmp"
-        class="elevation-2 custom-table"
         :dir="isRtl ? 'rtl' : 'ltr'"
-        @update:page="
-          (p) => {
-            repo.page = p;
-            fetch();
-          }
-        "
-        @update:items-per-page="
-          (n) => {
-            repo.itemsPerPage = n;
-            fetch();
-          }
-        "
+        class="elevation-2 custom-table"
+        density="comfortable"
+        hide-default-footer
       >
         <!-- Codes -->
         <template #item.codes="{ item }">
@@ -193,6 +184,49 @@
               clearable
             />
           </div>
+        </template>
+
+        <!-- Provision place (optional meta) -->
+        <template #item.provision_place="{ item }">
+          <div class="addr-group">
+            <v-text-field
+              v-model="item.draft.zone"
+              :label="t('زون')"
+              density="compact"
+              variant="outlined"
+              hide-details
+              clearable
+            />
+            <v-text-field
+              v-model="item.draft.hawza"
+              :label="t('حوزه')"
+              density="compact"
+              variant="outlined"
+              hide-details
+              clearable
+            />
+            <v-text-field
+              v-model="item.draft.specific_place"
+              :label="t('موقعیت مشخص')"
+              density="compact"
+              variant="outlined"
+              hide-details
+              clearable
+            />
+          </div>
+        </template>
+
+        <!-- NEW: coordenates -->
+        <template #item.coordenates="{ item }">
+          <v-text-field
+            v-model="item.draft.coordenates"
+            class="text-group"
+            density="compact"
+            variant="outlined"
+            :label="t('کوردینات')"
+            hide-details
+            clearable
+          />
         </template>
 
         <!-- Information type -->
@@ -432,69 +466,113 @@
         <!-- Actions -->
         <template #item.actions="{ item }">
           <div class="flex items-center gap-1">
-            <v-btn color="primary" class="bg-navi" variant="outlined" @click="save(item)">
+            <v-btn
+              class="bg-primary"
+              variant="outlined"
+              @click="save(item)"
+              :loading="item.loading"
+            >
               {{ t('ذخیره دیتا') }}
             </v-btn>
             <v-btn class="bg-error" variant="outlined" @click="del(item)">
               {{ t('حذف دیتا') }}
             </v-btn>
+            <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
+              {{ t('پاک کردن ورودی‌ها') }}
+            </v-btn>
           </div>
         </template>
 
         <template #no-data>
-          <div class="py-8 text-medium-emphasis">
-            {{ t('اطلاع موجود نیست') }}
-          </div>
+          <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
         </template>
       </v-data-table>
     </v-card>
-  </v-container>
 
-  <!-- ✅ Filterable & printable table (now using atomic keys) -->
-  <FilterableTable
-    :headers="headersFT"
-    :rows="rows"
-    :filters="filters"
-    @update:filters="(v) => (filters = { ...v })"
-    :top-groups="topGroups"
-    :showIndex="true"
-    :rtl="true"
-    :index-label="t('شماره')"
-    :all-label="t('همه')"
-    class="mb-20 mx-2"
-  />
+    <!-- Peek drawer -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loading"
+        title-key="name"
+        image-key="picture"
+        :fields="headers"
+        :cols="3"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
+    <!-- Filterable table (print/export) with Edit + Peek -->
+    <FilterableTable
+      :headers="headersFT"
+      :rows="rowsFT"
+      :filters="filters"
+      @update:filters="(v) => (filters = { ...v })"
+      :top-groups="topGroups"
+      :showIndex="true"
+      :rtl="true"
+      :enableEdit="true"
+      :enablePeek="true"
+      @edit="startEdit"
+      @peek="openPeek"
+      class="mb-20 mx-2"
+    />
+
+    <!-- Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="5000">
+      {{ errorMessage }}
+      <template #actions>
+        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+      </template>
+    </v-snackbar>
+  </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, watch, computed, reactive } from 'vue';
+  import { ref, onMounted, watch, computed, nextTick, reactive } from 'vue';
   import { useI18n } from 'vue-i18n';
   import AppBar from '../../components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
 
   const repo = useDatabaseRepository();
-  const rows = ref([]);
-  const drawer = ref(false);
+  const { t, locale } = useI18n();
 
-  /* progress per row */
+  /* UI / RTL */
+  const drawer = ref(false);
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
+
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (msg) => {
+    errorMessage.value = msg;
+    showError.value = true;
+  };
+
+  /* Upload progress per row */
   const uploadingPct = reactive({});
   const startProgress = (key) => (uploadingPct[key] = 1);
   const setProgress = (key, pct) => (uploadingPct[key] = pct);
   const endProgress = (key) => (uploadingPct[key] = 0);
 
-  /* unwrap for slot proxies */
+  /* Slot helper */
   const getRow = (s) => (s && s.raw ? s.raw : s);
 
-  /* tmp id for unsaved rows */
-  let tmpId = 0;
-  const newTmpId = () => `tmp-${++tmpId}`;
+  /* Preview (optional image field if you add later) */
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
+  function openPreview(src) {
+    previewSrc.value = src || null;
+    if (previewSrc.value) previewOpen.value = true;
+  }
 
-  /* i18n RTL */
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (newLocale) => (isRtl.value = newLocale === 'fa'));
-
-  /* normalizer */
+  /* Data sources normalizer */
   const toArray = (v) => {
     if (v && typeof v.then === 'function') return [];
     if (Array.isArray(v)) return v;
@@ -504,7 +582,7 @@
     return [];
   };
 
-  /* dropdown sources */
+  /* Dropdown options */
   const resourceItems = computed(() => toArray(repo.resource));
   const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
   const zoneEmployeesItems = computed(() => toArray(repo.ZoneEmployees));
@@ -512,97 +590,16 @@
   const jenayeeItems = computed(() => toArray(repo.jenayeeOptions));
   const infoCategoryItems = computed(() => toArray(repo.infoCategoryOptions));
 
-  /* headers for the editable Vuetify table (same as you had, localized) */
-  const headers = computed(() => [
-    { title: t('کود ها'), key: 'codes', align: 'center' },
-    { title: t('معرفت'), key: 'introduction', align: 'center' },
-    { title: t('سکونت اصلی'), key: 'main_province', align: 'center' },
-    { title: t('سکونت فعلی'), key: 'now_province', align: 'center' },
-    { title: t('نوعیت اطلاع'), key: 'information_type', align: 'center' },
-    { title: t('تاریخ اطلاع'), key: 'information_date', align: 'center' },
-    { title: t('ساعت اطلاع'), key: 'information_hour', align: 'center' },
-    { title: t('درجه موثقیت اطلاع'), key: 'importance_degree', align: 'center' },
-    { title: t('کتگوری اطلاع'), key: 'information_category', align: 'center' },
-    { title: t('کود اطلاع گیرنده'), key: 'infomation_employee_code', align: 'center' },
-    { title: t('تفصیل'), key: 'tafseel', align: 'center' },
-    { title: t('گفت‌وگوها'), key: 'talks', align: 'center' },
-    { title: t('نتیجه'), key: 'outcome', align: 'center' },
-    { title: t('ملاحظات'), key: 'notes', align: 'center' },
-    { title: t('اسناد و شواهد'), key: 'documents', align: 'center' },
-    { title: t('عمل'), key: 'actions', sortable: false, align: 'center' },
-  ]);
+  /* Single-row editor */
+  let tmpId = 0;
+  const newTmpId = () => `tmp-${++tmpId}`;
+  const rows = ref([]);
 
-  /* ✅ headers for FilterableTable (ATOMIC KEYS that exist on each row) */
-  const headersFT = computed(() => [
-    // codes
-    { title: 'resource', key: 'resource_id' },
-    { title: 'employee', key: 'officeemployee_id' },
-    { title: 'zone', key: 'zone_employee_id' },
-    /* Introduction */
-    { title: t('نام'), key: 'name' },
-    { title: t('نام پدر'), key: 'father_name' },
-    { title: t('نام پدرکلان'), key: 'grand_father_name' },
-    { title: t('نام مستعار'), key: 'nickname' },
-
-    /* Addresses (main) */
-    { title: t('ولایت اصلی'), key: 'main_province' },
-    { title: t('ولسوالی اصلی'), key: 'main_district' },
-    { title: t('قریه اصلی'), key: 'main_village' },
-
-    /* Addresses (now) */
-    { title: t('ولایت فعلی'), key: 'now_province' },
-    { title: t('ولسوالی فعلی'), key: 'now_district' },
-    { title: t('قریه فعلی'), key: 'now_village' },
-
-    /* Types & meta */
-    { title: t('سیاسی'), key: 'seyasi' },
-    { title: t('جنایی'), key: 'jenayee' },
-    { title: t('تاریخ اطلاع'), key: 'information_date' },
-    { title: t('ساعت اطلاع'), key: 'information_hour' },
-    { title: t('درجه موثقیت اطلاع'), key: 'importance_degree' },
-    { title: t('کتگوری اطلاع'), key: 'information_category' },
-    /* Employee codes (plain values) */
-    { title: t('کود کارمند اطلاع گیرنده'), key: 'information_office_employee_code' },
-    { title: t('کود رزیدانت اطلاع گیرنده'), key: 'infomation_zone_employee_code' },
-    /* Long texts */
-    { title: t('تفصیل'), key: 'tafseel' },
-    { title: t('گفت‌وگوها'), key: 'talks' },
-    { title: t('نتیجه'), key: 'outcome' },
-    { title: t('ملاحظات'), key: 'notes' },
-  ]);
-
-  /* ✅ Grouped header row for FilterableTable */
-  const topGroups = computed(() => [
-    { title: t('کود ها'), key: ['resource_id', 'officeemployee_id', 'zone_employee_id'] },
-    { title: t('معرفت'), keys: ['name', 'father_name', 'grand_father_name', 'nickname'] },
-    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-    { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
-    {
-      title: t('نوع و زمان اطلاع'),
-      keys: [
-        'seyasi',
-        'jenayee',
-        'information_date',
-        'information_hour',
-        'importance_degree',
-        'information_category',
-      ],
-    },
-    {
-      title: t('کودهای کارمند'),
-      keys: ['information_office_employee_code', 'infomation_zone_employee_code'],
-    },
-    { title: t('متن‌ها'), keys: ['tafseel', 'talks', 'outcome', 'notes'] },
-  ]);
-
-  /* filters for FilterableTable (two-way via update:filters) */
-  const filters = ref({});
-
-  /* map API → row model */
   function toRowModel(x = {}) {
     const base = {
       id: x.id ?? null,
       idOrTmp: x.id ?? newTmpId(),
+      loading: false,
 
       /* codes */
       resource_id: x.resource_id ?? null,
@@ -622,6 +619,11 @@
       now_province: x.now_province ?? '',
       now_district: x.now_district ?? '',
       now_village: x.now_village ?? '',
+
+      /* provision/meta (optional) */
+      zone: x.zone ?? '',
+      hawza: x.hawza ?? '',
+      specific_place: x.specific_place ?? '',
 
       /* types */
       seyasi: x.seyasi ?? '',
@@ -643,29 +645,123 @@
       outcome: x.outcome ?? '',
       notes: x.notes ?? '',
 
+      /* coordenates */
+      coordenates: x.coordenates ?? '',
+
       /* documents */
       existingDocs: Array.isArray(x.documents) ? x.documents : [],
     };
 
-    /* draft carries pending edits + new files */
     return { ...base, draft: { ...base, _newDocs: [] } };
   }
 
-  /* fetch & hydrate */
-  function hydrate() {
-    rows.value = toArray(repo.Informations).map(toRowModel);
-  }
-  async function fetch() {
-    await repo
-      .FetchInformationsData({ page: repo.page || 1, itemsPerPage: repo.itemsPerPage || 50 })
-      .catch(() => {});
-    hydrate();
-  }
-  function addBlankRow() {
-    rows.value = [toRowModel({}), ...rows.value];
+  function setBlankEditorRow() {
+    rows.value = [toRowModel({})];
   }
 
-  /* documents UI */
+  /* Table headers (editor) */
+  const headers = computed(() => [
+    { title: t('کود ها'), key: 'codes', align: 'center' },
+    { title: t('معرفت'), key: 'introduction', align: 'center' },
+    { title: t('سکونت اصلی'), key: 'main_province', align: 'center' },
+    { title: t('سکونت فعلی'), key: 'now_province', align: 'center' },
+    { title: t('محل تدارک'), key: 'provision_place', align: 'center' },
+    { title: t('کوردینات'), key: 'coordenates', align: 'center' },
+    { title: t('نوعیت اطلاع'), key: 'information_type', align: 'center' },
+    { title: t('تاریخ اطلاع'), key: 'information_date', align: 'center' },
+    { title: t('ساعت اطلاع'), key: 'information_hour', align: 'center' },
+    { title: t('درجه موثقیت اطلاع'), key: 'importance_degree', align: 'center' },
+    { title: t('کتگوری اطلاع'), key: 'information_category', align: 'center' },
+    { title: t('کود اطلاع گیرنده'), key: 'infomation_employee_code', align: 'center' },
+    { title: t('تفصیل'), key: 'tafseel', align: 'center' },
+    { title: t('گفت‌وگوها'), key: 'talks', align: 'center' },
+    { title: t('نتیجه'), key: 'outcome', align: 'center' },
+    { title: t('ملاحظات'), key: 'notes', align: 'center' },
+    { title: t('اسناد و شواهد'), key: 'documents', align: 'center' },
+    { title: t('عمل'), key: 'actions', sortable: false, align: 'center' },
+  ]);
+
+  /* Filterable table (bottom) */
+  const rowsFT = computed(() => toArray(repo.Informations));
+  const headersFT = computed(() => [
+    // codes (atomic)
+    { title: 'resource', key: 'resource_id' },
+    { title: 'employee', key: 'officeemployee_id' },
+    { title: 'zone', key: 'zone_employee_id' },
+
+    // intro
+    { title: t('نام'), key: 'name' },
+    { title: t('نام پدر'), key: 'father_name' },
+    { title: t('نام پدرکلان'), key: 'grand_father_name' },
+    { title: t('نام مستعار'), key: 'nickname' },
+
+    // addresses
+    { title: t('ولایت اصلی'), key: 'main_province' },
+    { title: t('ولسوالی اصلی'), key: 'main_district' },
+    { title: t('قریه اصلی'), key: 'main_village' },
+
+    { title: t('ولایت فعلی'), key: 'now_province' },
+    { title: t('ولسوالی فعلی'), key: 'now_district' },
+    { title: t('قریه فعلی'), key: 'now_village' },
+
+    // provision/meta
+    { title: t('زون'), key: 'zone' },
+    { title: t('حوزه'), key: 'hawza' },
+    { title: t('موقعیت مشخص'), key: 'specific_place' },
+
+    // types & time
+    { title: t('سیاسی'), key: 'seyasi' },
+    { title: t('جنایی'), key: 'jenayee' },
+    { title: t('تاریخ اطلاع'), key: 'information_date' },
+    { title: t('ساعت اطلاع'), key: 'information_hour' },
+    { title: t('درجه موثقیت اطلاع'), key: 'importance_degree' },
+    { title: t('کتگوری اطلاع'), key: 'information_category' },
+
+    // employee codes (plain)
+    { title: t('کود کارمند اطلاع گیرنده'), key: 'information_office_employee_code' },
+    { title: t('کود رزیدانت اطلاع گیرنده'), key: 'infomation_zone_employee_code' },
+
+    // coordenates
+    { title: t('کوردینات'), key: 'coordenates' },
+
+    // long texts
+    { title: t('تفصیل'), key: 'tafseel' },
+    { title: t('گفت‌وگوها'), key: 'talks' },
+    { title: t('نتیجه'), key: 'outcome' },
+    { title: t('ملاحظات'), key: 'notes' },
+  ]);
+
+  const topGroups = computed(() => [
+    { title: t('کود ها'), keys: ['resource_id', 'officeemployee_id', 'zone_employee_id'] },
+    { title: t('معرفت'), keys: ['name', 'father_name', 'grand_father_name', 'nickname'] },
+    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+    { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
+    {
+      title: t('محل تدارک / متفرقه'),
+      keys: ['zone', 'hawza', 'specific_place', 'coordenates'],
+    },
+    {
+      title: t('نوع و زمان اطلاع'),
+      keys: [
+        'seyasi',
+        'jenayee',
+        'information_date',
+        'information_hour',
+        'importance_degree',
+        'information_category',
+      ],
+    },
+    {
+      title: t('کودهای کارمند'),
+      keys: ['information_office_employee_code', 'infomation_zone_employee_code'],
+    },
+    { title: t('متن‌ها'), keys: ['tafseel', 'talks', 'outcome', 'notes'] },
+  ]);
+
+  /* Filters for FilterableTable */
+  const filters = ref({});
+
+  /* Docs UI */
   function openDocsPicker(slotItem) {
     const item = getRow(slotItem);
     if (!item) return;
@@ -685,7 +781,7 @@
     return `${base}…${ext}`;
   }
 
-  /* diff calculation */
+  /* Diff & payload */
   function diffDraft(item) {
     const d = item.draft || {};
     const changed = {};
@@ -703,6 +799,10 @@
       'now_province',
       'now_district',
       'now_village',
+      'zone',
+      'hawza',
+      'specific_place',
+      'coordenates',
       'seyasi',
       'jenayee',
       'information_date',
@@ -722,14 +822,13 @@
     return changed;
   }
 
-  /* FormData selective append */
   function appendFD(fd, k, v) {
     if (v == null) return;
     if (Array.isArray(v)) {
       v.forEach((val) => appendFD(fd, k + '[]', val));
       return;
     }
-    if (typeof v === 'object') {
+    if (typeof v === 'object' && !(v instanceof File) && !(v instanceof Blob)) {
       fd.append(k, v.id ?? v.value ?? JSON.stringify(v));
       return;
     }
@@ -741,7 +840,7 @@
     return fd;
   }
 
-  /* save / delete / download zip */
+  /* Save / Delete / Download zip */
   async function save(slotItem) {
     const item = getRow(slotItem);
     if (!item) return;
@@ -751,6 +850,7 @@
     (item.draft._newDocs || []).forEach((f) => fd.append('documents[]', f));
 
     const key = item.idOrTmp ?? item.id ?? `tmp-${Date.now()}`;
+    item.loading = true;
     startProgress(key);
 
     try {
@@ -759,29 +859,33 @@
           .CreateInformation(fd, (pct) => setProgress(key, pct))
           .catch(() => null);
         if (created?.id) {
-          const model = toRowModel(created);
-          model.idOrTmp = item.idOrTmp;
-          Object.assign(item, model);
-          item.draft = { ...model, _newDocs: [] };
+          // refresh & reset
+          await fetchAll();
+          setBlankEditorRow();
+          showErrorMessage(t('اطلاع ایجاد شد'));
         } else {
-          await fetch();
+          await fetchAll();
+          setBlankEditorRow();
         }
         return;
       }
 
-      if ([...fd.keys()].length === 0) return;
-
+      // UPDATE
+      if ([...fd.keys()].length === 0) {
+        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
+        return;
+      }
       const updated = await repo
         .UpdateInformation(item.id, fd, (pct) => setProgress(key, pct))
         .catch(() => null);
       if (updated?.id) {
-        const model = toRowModel(updated);
-        model.idOrTmp = item.idOrTmp;
-        Object.assign(item, model);
-        item.draft = { ...model, _newDocs: [] };
+        await fetchAll();
+        setBlankEditorRow();
+        showErrorMessage(t('اطلاع بروزرسانی شد'));
       }
     } finally {
       endProgress(key);
+      item.loading = false;
     }
   }
 
@@ -789,12 +893,19 @@
     const item = getRow(slotItem);
     if (!item) return;
     if (!item.id) {
-      rows.value = rows.value.filter((r) => r.idOrTmp !== item.idOrTmp);
+      setBlankEditorRow();
       return;
     }
-    if (!confirm(`Delete "${item.name || 'record'}"?`)) return;
-    await repo.DeleteInformation(item.id);
-    await fetch();
+    if (!confirm(t('آیا از حذف "{name}" مطمئن هستید؟', { name: item.name || t('رکورد') }))) return;
+
+    try {
+      await repo.DeleteInformation(item.id);
+      await fetchAll();
+      setBlankEditorRow();
+      showErrorMessage(t('اطلاع حذف شد'));
+    } catch {
+      showErrorMessage(t('خطا در حذف اطلاع'));
+    }
   }
 
   async function downloadAll(slotItem) {
@@ -804,14 +915,97 @@
     await repo.DownloadInformationZip(item.id, `${base}_documents.zip`);
   }
 
-  /* init */
+  function clearEditor(slotItem) {
+    const item = getRow(slotItem);
+    if (!item) return;
+    item.draft = { ...toRowModel({}).draft };
+    item.draft._newDocs = [];
+    showErrorMessage(t('ورودی‌ها پاک شد'));
+  }
+
+  /* Fetch ALL for FilterableTable */
+  async function fetchAll() {
+    try {
+      await repo.FetchInformationsData({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search,
+      });
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  /* Start edit from FilterableTable */
+  const editorCard = ref(null);
+  async function startEdit(row) {
+    try {
+      const id = row?.id;
+      if (!id) return;
+
+      if (typeof repo.FetchInformationData === 'function') {
+        await repo.FetchInformationData(id);
+        const single =
+          (repo.Information && Array.isArray(repo.Information)
+            ? repo.Information[0]
+            : repo.Information) || row;
+        rows.value = [toRowModel(single)];
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        const single = list.find((r) => r.id === id) || row;
+        rows.value = [toRowModel(single)];
+      }
+
+      await nextTick();
+      const el = editorCard.value?.$el || editorCard.value;
+      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    } catch {
+      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
+    }
+  }
+
+  /* Peek state & methods */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loading.value = true;
+    try {
+      if (typeof repo.FetchInformationData === 'function') {
+        await repo.FetchInformationData(id);
+        detail.value =
+          (repo.Information && Array.isArray(repo.Information)
+            ? repo.Information[0]
+            : repo.Information) || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } finally {
+      loading.value = false;
+    }
+  }
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
+
+  /* Init */
   onMounted(async () => {
-    await Promise.all([
-      repo.GetOfficeEmployee(),
-      repo.GetResource(),
-      repo.GetZoneEmployees(),
-    ]).catch(() => {});
-    await fetch();
+    await Promise.allSettled([
+      repo.GetOfficeEmployee?.(),
+      repo.GetResource?.(),
+      repo.GetZoneEmployees?.(),
+    ]);
+    await fetchAll();
+    setBlankEditorRow();
   });
 </script>
 
@@ -933,7 +1127,7 @@
     white-space: nowrap;
   }
 
-  /* Hidden input */
+  /* Hidden inputs */
   .hidden-file {
     position: absolute;
     width: 1px;

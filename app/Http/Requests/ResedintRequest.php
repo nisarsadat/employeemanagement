@@ -31,12 +31,15 @@ class ResedintRequest extends FormRequest
             'officeemployee_id' => ['nullable','integer','exists:office_employees,id'],
             'notes'             => ['nullable','string'],
             'old_picture'       => ['nullable','string'],
+
             // ⬇️ NEW
             'code_number'       => [
                 $this->isMethod('POST') ? 'required' : 'sometimes',
                 'string','max:100',
                 new UniqueCodeNumberAcrossStaff('resedints', $id),
             ],
+            'coordinates'       => ['nullable','string'], 
+
         ];
 
         if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {

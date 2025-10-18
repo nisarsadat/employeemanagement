@@ -356,6 +356,42 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
         throw e;
       }
     },
+    // ===== Resedint Documents =====
+    async FetchResedintDocuments(resedintId) {
+      const { data } = await axios.get(`/resedints/${resedintId}/documents`);
+      return data.data ?? data;
+    },
+    async UploadResedintDocuments(resedintId, files) {
+      const fd = new FormData();
+      [...files].forEach((f) => fd.append('files[]', f));
+      delete axios.defaults.headers.common['Content-Type'];
+      const { data } = await axios.post(`/resedints/${resedintId}/documents`, fd);
+      toast.success('اسناد رزیدانت اپلود شد', { autoClose: 1100 });
+      return data.data ?? data;
+    },
+    async DeleteResedintDocument(resedintId, docId) {
+      await axios.delete(`/resedints/${resedintId}/documents/${docId}`);
+      toast.success('سند رزیدانت حذف شد', { autoClose: 1100 });
+    },
+    async DownloadResedintZip(id, filename) {
+      const res = await axios.get(`/resedints/${id}/documents/zip`, {
+        responseType: 'blob',
+      });
+      const blob = new Blob([res.data], { type: 'application/zip' });
+      const url = window.URL.createObjectURL(blob);
+      const safe = (s) =>
+        String(s || '')
+          .toLowerCase()
+          .replace(/\s+/g, '_')
+          .replace(/[^a-z0-9._-]/g, '');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = safe(filename || `documents_${id}.zip`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    },
 
     // ====================== ZONE EMPLOYEES ======================
     async FetchZoneEmployeesData({ page, itemsPerPage }) {

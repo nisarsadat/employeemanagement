@@ -13,19 +13,19 @@
             <v-autocomplete
               v-model="selectedId"
               :items="resourceItems"
-              :loading="loading"
               item-title="display"
               item-value="id"
               :label="t('نام یا کد منبع')"
               variant="outlined"
               density="compact"
               prepend-inner-icon="mdi-account-search"
-              clearable
-              hide-details
+              :hint="selectedObj ? selectedObj.display : ''"
+              persistent-hint
+              hide-details="auto"
               color="primary"
               :dir="isRtl ? 'rtl' : 'ltr'"
               @update:search="onType"
-            ></v-autocomplete>
+            />
           </v-col>
 
           <v-col cols="12" md="4" class="text-center">
@@ -216,6 +216,10 @@
   const loading = ref(false);
   const searchText = ref('');
   const activeTab = ref('personal');
+  // script
+  const selectedObj = computed(
+    () => resourceItems.value.find((i) => i.id === selectedId.value) || null
+  );
 
   /* Utilities */
   const toArray = (v) => {
