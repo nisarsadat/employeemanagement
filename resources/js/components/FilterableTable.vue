@@ -59,12 +59,14 @@
               :key="'col-' + colKey(h)"
               :style="colWidth(h) ? { width: colWidth(h) } : undefined"
             />
+            <!-- Actions column width -->
+            <col v-if="showActions" style="width: 120px" />
           </colgroup>
 
           <thead class="bg-gray-50">
             <!-- Row 1 -->
             <tr>
-              <!-- Select-all column (also selectable for print) -->
+              <!-- Select column -->
               <th
                 v-if="selectable"
                 rowspan="2"
@@ -89,7 +91,7 @@
                 </div>
               </th>
 
-              <!-- Index column (ردیف) -->
+              <!-- Index column -->
               <th
                 v-if="showIndex"
                 rowspan="2"
@@ -108,6 +110,7 @@
                 </div>
               </th>
 
+              <!-- Group or single headers -->
               <template v-for="h in headers" :key="'top-' + colKey(h)">
                 <th
                   v-if="isFirstKeyOfGroup(hKey(h))"
@@ -132,6 +135,15 @@
                   </div>
                 </th>
               </template>
+
+              <!-- Actions header (not printed) -->
+              <th
+                v-if="showActions"
+                rowspan="2"
+                class="px-2 py-2 border text-center align-top print:hidden"
+              >
+                عملیات
+              </th>
             </tr>
 
             <!-- Row 2 -->
@@ -264,7 +276,7 @@
               class="hover:bg-gray-50 transition print:hover:bg-transparent"
               :class="{ 'print-hidden': printOnlySelected && !selectedSet.has(row[rowKey]) }"
             >
-              <!-- select checkbox cell (visibility follows SELECT_KEY) -->
+              <!-- select checkbox cell -->
               <td
                 v-if="selectable"
                 class="px-2 py-2 border text-center align-top"
@@ -278,7 +290,7 @@
                 />
               </td>
 
-              <!-- index cell (visibility follows INDEX_KEY) -->
+              <!-- index cell -->
               <td
                 v-if="showIndex"
                 class="px-2 py-2 border text-center align-top text-xs sm:text-sm text-gray-700"
@@ -305,11 +317,36 @@
                   </div>
                 </template>
               </td>
+
+              <!-- Actions cell -->
+              <td v-if="showActions" class="px-2 py-2 border text-center align-top print:hidden">
+                <div class="inline-flex gap-2">
+                  <button
+                    v-if="enablePeek"
+                    type="button"
+                    class="px-2.5 py-1 text-xs rounded bg-slate-700 text-white hover:bg-slate-600"
+                    @click="$emit('peek', row)"
+                    title="نمایش"
+                  >
+                    مشاهده
+                  </button>
+
+                  <button
+                    v-if="enableEdit"
+                    type="button"
+                    class="px-2.5 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
+                    @click="$emit('edit', row)"
+                    title="ویرایش"
+                  >
+                    ویرایش
+                  </button>
+                </div>
+              </td>
             </tr>
 
             <tr v-if="filteredRows.length === 0">
               <td
-                :colspan="(selectable ? 1 : 0) + (showIndex ? 1 : 0) + headers.length"
+                :colspan="(selectable ? 1 : 0) + (showIndex ? 1 : 0) + headers.length + (showActions ? 1 : 0)"
                 class="text-center py-5 text-gray-500 text-sm"
               >
                 نتیجه‌ای یافت نشد
@@ -339,8 +376,12 @@ const props = defineProps({
   allLabel: { type: String, default: 'همه' },
   topGroups: { type: Array, default: () => [] },
   selectable: { type: Boolean, default: true },
+  enableEdit: { type: Boolean, default: true },
+  enablePeek: { type: Boolean, default: true },
 })
-const emit = defineEmits(['update:filters'])
+
+/* === Emits === */
+const emit = defineEmits(['update:filters', 'edit', 'peek'])
 
 /* === Texts === */
 const allLabel = computed(() => props.allLabel ?? 'همه')
@@ -359,6 +400,9 @@ const showIndex = computed(() => props.showIndex ?? true)
 const rowKey = computed(() => props.rowKey ?? 'idOrTmp')
 const includeEmptyOption = computed(() => props.includeEmptyOption ?? true)
 const selectable = computed(() => props.selectable !== false)
+
+/* Actions column visibility */
+const showActions = computed(() => props.enableEdit || props.enablePeek)
 
 /* Keys for special columns */
 const INDEX_KEY = '__index__'
@@ -393,9 +437,9 @@ function groupHasAnySelected(firstKey) {
 }
 
 /* === Dropdown state === */
-const openDropdown = ref(null)     // string | null
-const dropdownQuery = ref({})      // { [key]: string }
-const triggerRefs = ref({})        // { [key]: HTMLElement | null }
+const openDropdown = ref(null)
+const dropdownQuery = ref({})
+const triggerRefs = ref({})
 const panelEl = ref(null)
 const overlayEl = ref(null)
 const panelStyle = ref({ display: 'none' })
@@ -623,7 +667,7 @@ async function printSelectedColumns() {
   window.print()
 }
 
-// Printed value shown under each header in print mode
+/* Printed value under each header in print mode */
 function getPrintedFilterValue(key) {
   if (!key) return allLabel.value
   const arr = localFilters.value?.[key]

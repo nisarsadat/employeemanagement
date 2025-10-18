@@ -22,12 +22,16 @@ return new class extends Migration {
             $table->string('zone_entry_hour')->nullable();
 
             $table->foreignId('resedint_id')
-                  ->nullable()
-                  ->constrained('resedints')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('resedints')
+                ->nullOnDelete();
 
             $table->text('notes')->nullable();
             $table->string('code_number')->nullable()->unique();
+
+            // Coordinates
+            $table->string('coordinates')->nullable()
+                  ->comment('latitude,longitude or address reference');
 
             $table->timestamps();
         });

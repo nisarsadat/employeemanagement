@@ -38,14 +38,19 @@ class ZoneEmployee extends Model
         });
     }
 
-    // 🔗 many zone employees -> one resedint
     public function resedint()
     {
         return $this->belongsTo(Resedint::class, 'resedint_id');
     }
     public function informations()
     {
-        return $this->hasMany(\App\Models\Information::class);
+        return $this->hasMany(Information::class);
     }
+
+    public function documents()
+    {
+        return $this->hasMany(ZoneEmployeeDocument::class);
+    }
+
 
 }

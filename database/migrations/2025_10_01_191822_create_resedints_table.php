@@ -31,16 +31,16 @@ return new class extends Migration {
             $table->string('zone')->nullable();
             $table->string('code_number')->nullable()->unique();
 
-            $table->foreignId('officeemployee_id')
-                  ->nullable()
-                  ->constrained('office_employees')
-                  ->nullOnDelete();
+            
 
             $table->text('notes')->nullable();
-
-            $table->timestamps();
-        });
-    }
+            $table->foreignId('officeemployee_id')
+                    ->nullable()
+                    ->constrained('office_employees')
+                    ->nullOnDelete();
+                        $table->timestamps();
+                    });
+                }
 
     public function down(): void
     {

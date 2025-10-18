@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pt-6 mt-12">
+  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
     <AppBar
       :title="t('کارمندان میریت')"
       :subtitle="t('اضافه کردن یک کارمند مدیریت')"
@@ -9,6 +9,8 @@
         <v-btn icon></v-btn>
       </template>
     </AppBar>
+
+    <!-- Search -->
     <v-row class="d-flex">
       <v-col cols="12" md="9">
         <v-text-field
@@ -17,51 +19,33 @@
           density="compact"
           prepend-inner-icon="mdi-magnify"
           variant="outlined"
-          @keyup.enter="fetch()"
+          @keyup.enter="fetchAll"
           clearable
           @click:clear="
             () => {
               repo.Search = '';
-              fetch();
+              fetchAll();
             }
           "
         />
       </v-col>
-
-      <v-col cols="12" md="3" class="text-md-right">
-        <v-btn color="primary" @click="addBlankRow">{{ t('اضافه کردن کارمند مدیریت') }}</v-btn>
-      </v-col>
     </v-row>
 
-    <v-card class="tablebody">
+    <!-- Single-row editor (create/edit) — NO pagination/footers -->
+    <v-card class="tablebody" ref="editorCard">
       <v-data-table
         :headers="headers"
         :items="rows"
         :loading="repo.loading"
-        :items-per-page="repo.itemsPerPage"
-        :page="repo.page"
-        :items-length="repo.totalItems"
         item-key="idOrTmp"
         class="elevation-2 custom-table"
         :dir="isRtl ? 'rtl' : 'ltr'"
         density="comfortable"
-        @update:page="
-          (p) => {
-            repo.page = p;
-            fetch();
-          }
-        "
-        @update:items-per-page="
-          (n) => {
-            repo.itemsPerPage = n;
-            fetch();
-          }
-        "
+        hide-default-footer
       >
         <!-- Picture cell with hover actions -->
         <template #item.picture="{ item }">
           <div class="pic-wrap">
-            <!-- hidden file input (kept) -->
             <input
               class="hidden-file"
               type="file"
@@ -69,8 +53,6 @@
               :id="`up-${item.idOrTmp}`"
               @change="(e) => onPickFile(item, e.target.files?.[0] ?? null)"
             />
-
-            <!-- no picture → plus button -->
             <v-btn
               v-if="!item.previewUrl && !item.picture"
               size="small"
@@ -81,14 +63,10 @@
             >
               <v-icon>mdi-plus</v-icon>
             </v-btn>
-
-            <!-- has picture → avatar with hover overlay -->
             <div v-else class="pic-thumb" :title="t('گزینه ها')">
               <v-avatar size="32">
                 <v-img :src="item.previewUrl || item.picture" :alt="t('عکس')" cover />
               </v-avatar>
-
-              <!-- hover overlay -->
               <div class="pic-overlay">
                 <v-btn
                   size="small"
@@ -96,23 +74,21 @@
                   variant="flat"
                   @click.stop="triggerFile(item)"
                 >
-                  <v-icon start>mdi-pencil</v-icon>
-                  {{ t('ویرایش') }}
+                  <v-icon start>mdi-pencil</v-icon>{{ t('ویرایش') }}
                 </v-btn>
                 <v-btn
                   size="small"
                   color="secondary"
                   @click.stop="openPreview(item.previewUrl || item.picture)"
                 >
-                  <v-icon start>mdi-eye</v-icon>
-                  {{ t('نمایش') }}
+                  <v-icon start>mdi-eye</v-icon>{{ t('نمایش') }}
                 </v-btn>
               </div>
             </div>
           </div>
         </template>
 
-        <!-- Basic text fields (outlined) -->
+        <!-- Basic text fields -->
         <template #item.name="{ item }">
           <v-text-field
             v-model="item.draft.name"
@@ -121,7 +97,7 @@
             variant="outlined"
             :label="t('نام')"
             hide-details
-            require
+            required
             :error="hasError(item, 'name')"
             :error-messages="getErrorMessages(item, 'name')"
           />
@@ -333,8 +309,86 @@
             :error-messages="getErrorMessages(item, 'notes')"
           />
         </template>
+        <!-- Documents (Upload + chips OUTSIDE the input) -->
+        <template #item.documents="{ item }">
+          <div class="documents-inline">
+            <input
+              class="hidden-file"
+              :id="`docs-${item.idOrTmp}`"
+              type="file"
+              multiple
+              @change="(e) => onPickDocs(item, Array.from(e.target.files || []))"
+            />
 
-        <!-- Actions: Save + Delete -->
+            <div class="docs-field-row">
+              <v-btn
+                class="uploader-btn2"
+                size="small"
+                variant="text"
+                density="compact"
+                prepend-icon="mdi-tray-arrow-up"
+                @click="triggerDocs(item)"
+              >
+                {{ t('آپلود فایل ها') }}
+              </v-btn>
+
+              <div
+                class="chips-row"
+                :title="
+                  item.draft._newDocs?.length || item.existingDocs?.length
+                    ? ''
+                    : t('فایلی انتخاب نشده است')
+                "
+              >
+                <!-- new files (unsaved) -->
+                <v-chip
+                  v-for="(f, idx) in item.draft._newDocs || []"
+                  :key="`${item.idOrTmp}-nf-${idx}`"
+                  size="small"
+                  variant="text"
+                  class="chip-outline"
+                  :title="f.name"
+                >
+                  {{ shortName(f.name) }}
+                </v-chip>
+
+                <!-- existing files (from API) -->
+                <v-chip
+                  v-for="(d, idx) in item.existingDocs || []"
+                  :key="`${item.idOrTmp}-df-${idx}`"
+                  size="small"
+                  color="primary"
+                  variant="text"
+                  class="chip-existing"
+                  :title="d.file_name"
+                  @click="openDoc(d.url)"
+                >
+                  {{ shortName(d.file_name) }}
+                  <v-icon
+                    size="16"
+                    class="ml-1"
+                    title="حذف"
+                    @click.stop="markDocForRemoval(item, d)"
+                    >mdi-close</v-icon
+                  >
+                </v-chip>
+              </div>
+
+              <v-btn
+                class="download-all-btn"
+                prepend-icon="mdi-download"
+                :disabled="!item.id"
+                color="error"
+                size="small"
+                @click="downloadAll(item)"
+              >
+                {{ t('دانلود فایل ها') }}
+              </v-btn>
+            </div>
+          </div>
+        </template>
+
+        <!-- Actions -->
         <template #item.actions="{ item }">
           <div class="flex items-center gap-1">
             <v-btn
@@ -344,21 +398,29 @@
               :loading="item.loading"
               >{{ t('ثبت دیتا') }}</v-btn
             >
+
             <v-btn class="bg-error" variant="outlined" @click="del(item)">{{
               t('حذف دیتا')
             }}</v-btn>
-            <v-btn variant="outlined" class="bg-info" @click="openPeek(item?.raw ?? item)">
-              {{ t('جزییات') }}
+            <!-- ✅ Clear inputs button -->
+            <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
+              {{ t('پاک کردن ورودی‌ها') }}
             </v-btn>
+
+            <!-- <v-btn variant="outlined" class="bg-info" @click="openPeek(item?.raw ?? item)">
+              {{ t('جزییات') }}
+            </v-btn> -->
           </div>
         </template>
 
         <template #no-data>
           <div class="py-8 text-medium-emphasis">
-            {{ t('کارمند دفتر یافت نشد لطفا اضافه کنید') }}
+            {{ t('یک سطر ویرایش/ایجاد آماده است') }}
           </div>
         </template>
       </v-data-table>
+
+      <!-- Image preview dialog -->
       <v-dialog v-model="previewOpen" max-width="520">
         <v-card>
           <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
@@ -366,53 +428,59 @@
             <v-img :src="previewSrc" :alt="t('پیش نمایش')" max-width="480" max-height="420" cover />
           </v-card-text>
           <v-card-actions class="justify-end">
-            <v-btn color="primary" variant="flat" @click="previewOpen = false">{{
-              t('بستن')
-            }}</v-btn>
+            <v-btn color="primary" variant="flat" @click="previewOpen = false">
+              {{ t('بستن') }}
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
     </v-card>
-  </v-container>
 
-  <v-container fluid class="">
-    <PeekButton
-      v-model="expanded"
-      :id="selectedId"
-      :item="detail"
-      :loading="loading"
-      title-key="name"
-      image-key="picture"
-      :fields="headers"
-      :cols="3"
-      dir="rtl"
-      @fetch="FetchOne"
+    <!-- Filterable table (ALL data, with Edit button) -->
+    <v-container fluid class="">
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loading"
+        title-key="name"
+        image-key="picture"
+        :fields="headers"
+        :cols="3"
+        dir="rtl"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
+    <FilterableTable
+      :headers="headersFT"
+      :rows="rowsFT"
+      :filters="filters"
+      @update:filters="(v) => (filters = { ...v })"
+      :top-groups="topGroups"
+      :showIndex="true"
+      :rtl="true"
+      :enableEdit="true"
+      :enablePeek="true"
+      @edit="startEdit"
+      @peek="openPeek"
+      class="mb-20 mx-2"
     />
-  </v-container>
-  <FilterableTable
-    :headers="headersFT"
-    :rows="rows"
-    :filters="filters"
-    @update:filters="(v) => (filters = { ...v })"
-    :top-groups="topGroups"
-    :showIndex="true"
-    :rtl="true"
-    class="mb-20 mx-2"
-  />
 
-  <!-- Error Snackbar -->
-  <v-snackbar v-model="showError" color="error" timeout="5000">
-    {{ errorMessage }}
-    <template v-slot:actions>
-      <v-btn variant="text" @click="showError = false">
-        {{ t('بستن') }}
-      </v-btn>
-    </template>
-  </v-snackbar>
+    <!-- Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="5000">
+      {{ errorMessage }}
+      <template #actions>
+        <v-btn variant="text" @click="showError = false">
+          {{ t('بستن') }}
+        </v-btn>
+      </template>
+    </v-snackbar>
+  </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, watch } from 'vue';
+  import { ref, onMounted, computed, watch, nextTick } from 'vue';
   import { useEmployeOfficeRepository } from '../../stores/EmployeeRepository';
   import AppBar from '../../components/AppBar.vue';
   import PeekButton from '@/components/PeekButton.vue';
@@ -420,123 +488,49 @@
   import { useI18n } from 'vue-i18n';
 
   const { t, locale } = useI18n();
+  const repo = useEmployeOfficeRepository();
 
+  /* ===== UI & Snackbar ===== */
   const previewOpen = ref(false);
   const previewSrc = ref(null);
   const showError = ref(false);
   const errorMessage = ref('');
-
+  const editorCard = ref(null);
   function openPreview(src) {
     previewSrc.value = src || null;
     if (previewSrc.value) previewOpen.value = true;
   }
-
   function showErrorMessage(message) {
     errorMessage.value = message;
     showError.value = true;
   }
-
-  const repo = useEmployeOfficeRepository();
-  const rows = ref([]);
-  let tmpId = 0;
-  const newTmpId = () => `tmp-${++tmpId}`;
 
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (newLocale) => {
     isRtl.value = newLocale === 'fa';
   });
 
-  // Error handling functions
+  /* ===== Errors per row ===== */
   const itemErrors = ref({});
-
   function setItemErrors(item, errors) {
     itemErrors.value[item.idOrTmp] = errors;
   }
-
   function clearItemErrors(item) {
-    if (itemErrors.value[item.idOrTmp]) {
-      delete itemErrors.value[item.idOrTmp];
-    }
+    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
   }
-
   function hasError(item, field) {
     return !!(itemErrors.value[item.idOrTmp] && itemErrors.value[item.idOrTmp][field]);
   }
-
   function getErrorMessages(item, field) {
-    if (itemErrors.value[item.idOrTmp] && itemErrors.value[item.idOrTmp][field]) {
-      return itemErrors.value[item.idOrTmp][field];
-    }
-    return [];
+    return itemErrors.value[item.idOrTmp]?.[field] ?? [];
   }
 
-  // For Vuetify v-data-table (all keys are strings!)
-  const headers = computed(() => [
-    { title: t('تضویر'), key: 'picture', width: 120, sortable: false },
-    { title: t('نام'), key: 'name' },
-    { title: t('نام پدر'), key: 'father_name' },
-    { title: t('نام مستعار'), key: 'nickname' },
-    { title: t('کود نمبر'), key: 'code_number' },
-    { title: t('آدرس اصلی'), key: 'main_province' },
-    { title: t('آدرس فعلی'), key: 'now_province' },
-    { title: t('تعلیمات دینی'), key: 'releg_study' },
-    { title: t('تعلیمات عصری'), key: 'new_study' },
-    { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('شماره تذکره'), key: 'tazkira' },
-    { title: t('تاریخ مقرر شدن'), key: 'apply_date' },
-    { title: t('تاریخ آمدن'), key: 'join_date' },
-    { title: t('تاریخ رفتن'), key: 'left_date' },
-    { title: t('ملاحضات'), key: 'notes' },
-    { title: t('عمل'), key: 'actions', sortable: false },
-  ]);
-
-  // For FilterableTable (composite keys supported)
-  const headersFT = computed(() => [
-    { title: t('نام'), key: 'name' },
-    { title: t('نام پدر'), key: 'father_name' },
-    { title: t('نام مستعار'), key: 'nickname' },
-    { title: t('کود نمبر'), key: 'code_number' },
-
-    { title: t('ولایت اصلی'), key: 'main_province' },
-    { title: t('ولسوالی'), key: 'main_district' },
-    { title: t('قریه'), key: 'main_village' },
-
-    { title: t('ولایت فعلی'), key: 'now_province' },
-    { title: t('ولسوالی'), key: 'now_district' },
-    { title: t('قریه'), key: 'now_village' },
-
-    { title: t('تعلیمات دینی'), key: 'releg_study' },
-    { title: t('تعلیمات عصری'), key: 'new_study' },
-    { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('شماره تذکره'), key: 'tazkira' },
-    { title: t('تاریخ مقرر شدن'), key: 'apply_date' },
-    { title: t('تاریخ آمدن'), key: 'join_date' },
-    { title: t('تاریخ رفتن'), key: 'left_date' },
-    { title: t('ملاحضات'), key: 'notes' },
-  ]);
-
-  const topGroups = computed(() => [
-    {
-      title: t('معرفت'),
-      keys: ['name', 'father_name', 'nickname', 'code_number'],
-    },
-    {
-      title: t('آدرس اصلی'),
-      keys: ['main_province', 'main_district', 'main_village'],
-    },
-    {
-      title: t('آدرس فعلی'),
-      keys: ['now_province', 'now_district', 'now_village'],
-    },
-  ]);
-
-  const filters = ref({});
-
-  // map API -> row with a draft used by inputs
+  /* ===== Single editor row ===== */
+  const rows = ref([]); // only one row (create/edit)
   function toRowModel(x = {}) {
     const base = {
       id: x.id ?? null,
-      idOrTmp: x.id ?? newTmpId(),
+      idOrTmp: x.id ?? 'tmp-1',
       picture: x.picture ?? null,
       previewUrl: x.picture ?? null,
       loading: false,
@@ -564,36 +558,79 @@
       join_date: x.join_date ?? '',
       left_date: x.left_date ?? '',
       notes: x.notes ?? '',
+
+      // 🆕 documents coming from API (OfficeEmployeeResource->documents)
+      existingDocs: Array.isArray(x.documents) ? x.documents : [],
     };
-    return { ...base, draft: { ...base, picture: null } };
+    // 🆕 _newDocs for files just picked; removed ids bucket for delete-on-save
+    return { ...base, draft: { ...base, picture: null, _newDocs: [], removed_document_ids: [] } };
   }
 
-  function hydrate() {
-    rows.value = (repo.Employees || []).map(toRowModel);
+  function setBlankEditorRow() {
+    rows.value = [toRowModel({})];
   }
 
-  async function fetch() {
-    await repo.FetchEmployeesData({
-      page: repo.page || 1,
-      itemsPerPage: repo.itemsPerPage || 50,
-    });
-    hydrate();
-  }
+  /* ===== ALL data for FilterableTable ===== */
+  const rowsFT = computed(() => repo.Employees || []);
 
-  function addBlankRow() {
-    const newRow = toRowModel({});
-    rows.value = [...rows.value, newRow];
-    const per = repo.itemsPerPage || 50;
-    const totalLocal = rows.value.length;
-    repo.page = Math.max(1, Math.ceil(totalLocal / per));
-  }
+  /* ===== Headers ===== */
+  const headers = computed(() => [
+    { title: t('تضویر'), key: 'picture', width: 120, sortable: false },
+    { title: t('نام'), key: 'name' },
+    { title: t('نام پدر'), key: 'father_name' },
+    { title: t('نام مستعار'), key: 'nickname' },
+    { title: t('کود نمبر'), key: 'code_number' },
+    { title: t('آدرس اصلی'), key: 'main_province' },
+    { title: t('آدرس فعلی'), key: 'now_province' },
+    { title: t('تعلیمات دینی'), key: 'releg_study' },
+    { title: t('تعلیمات عصری'), key: 'new_study' },
+    { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('شماره تذکره'), key: 'tazkira' },
+    { title: t('تاریخ مقرر شدن'), key: 'apply_date' },
+    { title: t('تاریخ آمدن'), key: 'join_date' },
+    { title: t('تاریخ رفتن'), key: 'left_date' },
+    { title: t('ملاحضات'), key: 'notes' },
+    { title: t('اسناد'), key: 'documents' },
+    { title: t('عمل'), key: 'actions', sortable: false },
+  ]);
 
-  /* ===== image picker logic ===== */
+  const headersFT = computed(() => [
+    { title: t('نام'), key: 'name' },
+    { title: t('نام پدر'), key: 'father_name' },
+    { title: t('نام مستعار'), key: 'nickname' },
+    { title: t('کود نمبر'), key: 'code_number' },
+
+    { title: t('ولایت اصلی'), key: 'main_province' },
+    { title: t('ولسوالی'), key: 'main_district' },
+    { title: t('قریه'), key: 'main_village' },
+
+    { title: t('ولایت فعلی'), key: 'now_province' },
+    { title: t('ولسوالی'), key: 'now_district' },
+    { title: t('قریه'), key: 'now_village' },
+
+    { title: t('تعلیمات دینی'), key: 'releg_study' },
+    { title: t('تعلیمات عصری'), key: 'new_study' },
+    { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('شماره تذکره'), key: 'tazkira' },
+    { title: t('تاریخ مقرر شدن'), key: 'apply_date' },
+    { title: t('تاریخ آمدن'), key: 'join_date' },
+    { title: t('تاریخ رفتن'), key: 'left_date' },
+    { title: t('ملاحضات'), key: 'notes' },
+  ]);
+
+  const topGroups = computed(() => [
+    { title: t('معرفت'), keys: ['name', 'father_name', 'nickname', 'code_number'] },
+    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+    { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
+  ]);
+
+  const filters = ref({});
+
+  /* ===== image picker ===== */
   function triggerFile(item) {
     const el = document.getElementById(`up-${item.idOrTmp}`);
     if (el) el.click();
   }
-
   function onPickFile(item, file) {
     item.draft.picture = file || null;
     if (file) {
@@ -639,71 +676,88 @@
     }
     return { changed, imageChanged };
   }
-
   function toFormDataSelective(obj) {
     const fd = new FormData();
     Object.entries(obj).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
+      if (v !== undefined && v !== null) fd.append(k, v);
     });
     return fd;
   }
 
-  /* ===== Save / Delete with error handling ===== */
+  /* ===== Save / Delete ===== */
+  /* IMPORTANT: After successful CREATE or UPDATE we:
+   1) refresh all data in FilterableTable
+   2) reset editor with setBlankEditorRow()  ← clears inputs */
   async function save(item) {
     if (!item.draft?.name?.trim()) {
       showErrorMessage(t('نام الزامی است'));
       return;
     }
-
     item.loading = true;
     clearItemErrors(item);
 
     try {
-      // CREATE
+      // ===== CREATE =====
       if (!item.id) {
-        const fd = toFormDataSelective(item.draft);
-        const created = await repo.CreateEmployee(fd);
+        // 🆕 build FormData (to include files)
+        const fd = new FormData();
+        Object.entries(item.draft).forEach(([k, v]) => {
+          if (k === '_newDocs' || k === 'removed_document_ids') return; // not for create
+          if (v !== undefined && v !== null) fd.append(k, v);
+        });
+        (item.draft._newDocs || []).forEach((file) => fd.append('documents[]', file)); // 🆕
 
+        const created = await repo.CreateEmployee(fd);
         if (created && created.id) {
-          const model = toRowModel(created);
-          model.idOrTmp = item.idOrTmp;
-          Object.assign(item, model);
-          item.draft = { ...model, picture: null };
           showErrorMessage(t('کارمند با موفقیت ایجاد شد'));
+          await fetchAll();
+          setBlankEditorRow();
         } else {
-          await fetch();
+          await fetchAll();
+          setBlankEditorRow();
         }
         return;
       }
 
-      // UPDATE
+      // ===== UPDATE =====
       const { changed, imageChanged } = diffDraft(item);
-      if (Object.keys(changed).length === 0) {
+
+      // 🆕 If you’re using delete-on-save, append removed ids even if nothing else changed
+      const hasRemovals = (item.draft.removed_document_ids || []).length > 0;
+      const hasNewDocs = (item.draft._newDocs || []).length > 0;
+
+      if (!hasRemovals && !hasNewDocs && Object.keys(changed).length === 0) {
         showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
         return;
       }
 
-      const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateEmployee(item.id, fd);
+      const fd = new FormData();
+      Object.entries(changed).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) fd.append(k, v);
+      });
 
+      // 🆕 Attach new files
+      (item.draft._newDocs || []).forEach((file) => fd.append('documents[]', file));
+
+      // 🆕 Attach deletions (if any)
+      (item.draft.removed_document_ids || []).forEach((id) =>
+        fd.append('removed_document_ids[]', id)
+      );
+
+      const updated = await repo.UpdateEmployee(item.id, fd);
       if (updated && updated.id) {
-        const model = toRowModel(updated);
-        model.idOrTmp = item.idOrTmp;
         if (!imageChanged && item._blobUrl) {
           URL.revokeObjectURL(item._blobUrl);
           item._blobUrl = null;
         }
-        Object.assign(item, model);
-        item.draft = { ...model, picture: null };
         showErrorMessage(t('کارمند با موفقیت بروزرسانی شد'));
+        await fetchAll();
+        setBlankEditorRow();
       }
     } catch (error) {
       console.error('Save error:', error);
-
-      if (error.response && error.response.data && error.response.data.errors) {
-        const errors = error.response.data.errors;
-        setItemErrors(item, errors);
+      if (error.response?.data?.errors) {
+        setItemErrors(item, error.response.data.errors);
         showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
       } else {
         showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error.message || t('خطای ناشناخته')));
@@ -715,7 +769,7 @@
 
   async function del(item) {
     if (!item.id) {
-      rows.value = rows.value.filter((r) => r.idOrTmp !== item.idOrTmp);
+      setBlankEditorRow();
       return;
     }
 
@@ -725,15 +779,79 @@
 
     try {
       await repo.DeleteEmployee(item.id);
-      await fetch();
+      await fetchAll();
       showErrorMessage(t('کارمند با موفقیت حذف شد'));
+      setBlankEditorRow();
     } catch (error) {
       console.error('Delete error:', error);
       showErrorMessage(t('خطا در حذف کارمند') + ': ' + (error.message || t('خطای ناشناخته')));
     }
   }
+  function clearEditor(item) {
+    try {
+      // revoke previous preview blob (if any)
+      if (item && item._blobUrl) {
+        URL.revokeObjectURL(item._blobUrl);
+        item._blobUrl = null;
+      }
 
-  // peek button
+      // clear hidden file input (if rendered)
+      const inputEl = document.getElementById(`up-${item?.idOrTmp}`);
+      if (inputEl) inputEl.value = '';
+
+      // clear per-field errors for this row
+      if (item && item.idOrTmp && itemErrors.value[item.idOrTmp]) {
+        delete itemErrors.value[item.idOrTmp];
+      }
+
+      // reset the single editor row to a fresh blank one
+      setBlankEditorRow();
+
+      // notify
+      showErrorMessage(t('ورودی‌ها پاک شد'));
+    } catch (e) {
+      console.error('clearEditor error:', e);
+    }
+  }
+  function triggerDocs(item) {
+    const el = document.getElementById(`docs-${item.idOrTmp}`);
+    if (el) el.click();
+  }
+  function onPickDocs(item, files) {
+    item.draft._newDocs = Array.isArray(files) ? files : [];
+  }
+  function shortName(name = '') {
+    if (name.length <= 18) return name;
+    const dot = name.lastIndexOf('.');
+    if (dot === -1) return name.slice(0, 15) + '…';
+    const ext = name.slice(dot);
+    const base = name.slice(0, 15);
+    return `${base}…${ext}`;
+  }
+  function openDoc(url) {
+    if (!url) return;
+    window.open(url, '_blank');
+  }
+  // Mark for deletion (batch delete on Save, like Event pattern variant B)
+  function markDocForRemoval(item, doc) {
+    if (!doc?.id) return;
+    if (!Array.isArray(item.draft.removed_document_ids)) item.draft.removed_document_ids = [];
+    if (!item.draft.removed_document_ids.includes(doc.id)) {
+      item.draft.removed_document_ids.push(doc.id);
+    }
+    // Optimistic UI: hide chip immediately
+    item.existingDocs = (item.existingDocs || []).filter((d) => d.id !== doc.id);
+  }
+
+  // Download all (ZIP)
+  async function downloadAll(item) {
+    if (!item.id) return;
+    const base = (item.code_number || item.name || 'documents').toLowerCase().replace(/\s+/g, '_');
+    const filename = `${base}_documents.zip`;
+    await repo.DownloadOfficeEmployeeZip(item.id, filename);
+  }
+
+  /* ===== Peek ===== */
   const expanded = ref(false);
   const selectedId = ref(null);
   const loading = ref(false);
@@ -742,7 +860,7 @@
   async function fetchOne(id) {
     loading.value = true;
     try {
-      const res = await repo.FetchEmployeeData(id);
+      await repo.FetchEmployeeData(id);
       detail.value = repo.Employee || [];
     } catch (error) {
       console.error('Fetch one error:', error);
@@ -751,7 +869,6 @@
       loading.value = false;
     }
   }
-
   function openPeek(payload) {
     const row = payload?.raw ?? payload;
     if (!row?.id) return;
@@ -759,12 +876,48 @@
     fetchOne(row.id);
   }
 
-  /* ===== init ===== */
-  onMounted(fetch);
+  /* ===== Fetch ALL for FilterableTable ===== */
+  async function fetchAll() {
+    try {
+      if (typeof repo.FetchEmployeesDataAll === 'function') {
+        await repo.FetchEmployeesDataAll();
+        return;
+      }
+      // fallback: huge page size to get all
+      repo.page = 1;
+      repo.itemsPerPage = 100000;
+      await repo.FetchEmployeesData({ page: 1, itemsPerPage: 100000 });
+    } catch (e) {
+      console.error('fetchAll error', e);
+    }
+  }
+
+  /* ===== Start edit from FilterableTable ===== */
+  async function startEdit(row) {
+    try {
+      const id = row?.id;
+      if (!id) return;
+      await repo.FetchEmployeeData(id);
+      const single =
+        repo.Employee && Array.isArray(repo.Employee) ? repo.Employee[0] : repo.Employee || row;
+      rows.value = [toRowModel(single || row)];
+      await nextTick();
+      const el = editorCard.value?.$el || editorCard.value;
+      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      console.error('startEdit error', e);
+      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
+    }
+  }
+
+  /* ===== Init ===== */
+  onMounted(async () => {
+    await fetchAll(); // load ALL data for FilterableTable
+    setBlankEditorRow(); // prepare a fresh editor row
+  });
 </script>
 
 <style scoped>
-  /* ... existing styles remain unchanged ... */
   table th {
     white-space: nowrap;
   }
@@ -789,6 +942,7 @@
     width: 400px;
     gap: 2px;
   }
+
   .flex {
     display: flex;
   }
@@ -799,11 +953,6 @@
     gap: 4px;
   }
 
-  .pic-cell {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
   .hidden-file {
     position: absolute;
     width: 1px;
@@ -814,6 +963,7 @@
   .pic-thumb {
     display: inline-flex;
     cursor: pointer;
+    position: relative;
   }
   .tablebody {
     display: flex !important;
@@ -827,7 +977,6 @@
     line-height: 1.2 !important;
     color: #555 !important;
   }
-
   :deep(.v-field__input) {
     min-height: 26px !important;
     padding: 2px 6px !important;
@@ -835,6 +984,7 @@
     line-height: 1.2 !important;
   }
 
+  /* compact spacing in groups */
   .addr-group,
   .text-group,
   .text-group-note {
@@ -845,18 +995,12 @@
     gap: -10px !important;
   }
 
+  /* picture hover tools */
   .pic-wrap {
     position: relative;
     display: inline-flex;
     align-items: center;
   }
-
-  .pic-thumb {
-    display: inline-flex;
-    cursor: pointer;
-    position: relative;
-  }
-
   .pic-overlay {
     position: absolute;
     inset: -6px -16px auto auto;
@@ -868,14 +1012,36 @@
     transform: translateY(-20%);
     white-space: nowrap;
   }
-
   .pic-thumb:hover .pic-overlay {
     display: flex;
     flex-direction: column-reverse;
     gap: 8px;
   }
-
   .pic-overlay :deep(.v-btn) {
     color: #fff;
   }
+  .documents-inline { min-width: 520px; }
+.docs-field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px dashed #9e9e9e;
+  border-radius: 8px;
+  padding: 6px 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.chips-row {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0;
+  scrollbar-width: thin;
+}
+.chip-existing { background: #c8dae1; color: black !important; }
+.chip-outline { background: #c8dae1; }
+.download-all-btn { white-space: nowrap; }
+
 </style>

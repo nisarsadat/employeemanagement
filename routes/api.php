@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ResedintController;
 use App\Http\Controllers\Api\ResourceController;
 use App\Http\Controllers\Api\ZoneEmployeeController;
 use App\Http\Controllers\Api\OfficeEmployeeController;
+use App\Http\Controllers\Api\ZoneEmployeeDocumentController;
 use App\Http\Controllers\InformationController;
 use App\Http\Controllers\InformationDocumentController;
 use App\Http\Controllers\EventController;
@@ -61,6 +62,7 @@ use App\Http\Controllers\fifthyformatstow\ApartmentController;
 use App\Http\Controllers\fifthyformatstow\RahnomaMamlatController;
 use App\Http\Controllers\fifthyformatstow\HosppitalController;
 use App\Http\Controllers\fifthyformatstow\WorkShopController;
+use App\Http\Controllers\OfficeEmployeeDocumentController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -69,7 +71,19 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 // People
 Route::apiResource('resedints', ResedintController::class);
 Route::apiResource('zone-employees', ZoneEmployeeController::class);
+// ZIP
+Route::get('zone-employees/{zoneEmployee}/documents/download-all', [ZoneEmployeeDocumentController::class, 'downloadAll']);
+
+// Optional single delete
+Route::delete('zone-employees/{zoneEmployee}/documents/{document}', [ZoneEmployeeController::class, 'destroyDocument']);
+
+//office employee
 Route::apiResource('office-employees', OfficeEmployeeController::class);
+// Download ALL documents as ZIP (like Event)
+Route::get('office-employees/{officeEmployee}/documents/download-all', [OfficeEmployeeDocumentController::class, 'downloadAll']);
+
+// (Optional) Delete a single document
+Route::delete('office-employees/{officeEmployee}/documents/{document}', [OfficeEmployeeController::class, 'destroyDocument']);
 Route::apiResource('users', UserController::class);
 
 // Database

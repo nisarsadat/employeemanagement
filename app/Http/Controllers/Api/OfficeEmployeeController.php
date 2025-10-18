@@ -2,95 +2,154 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Storage;
-use App\Models\OfficeEmployee;
 use App\Http\Requests\OfficeEmployeeRequest;
+use App\Models\OfficeEmployee;
+use Illuminate\Http\Request;
+use App\Http\Requests\StoreOfficeEmployeeRequest;
+use App\Http\Requests\UpdateOfficeEmployeeRequest;
 use App\Http\Resources\OfficeEmployeeResource;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class OfficeEmployeeController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('can:viewOfficeEmployee')->only(['index','show']);
-    //     $this->middleware('can:createOfficeEmployee')->only('store');
-    //     $this->middleware('can:updateOfficeEmployee')->only('update');
-    //     $this->middleware('can:deleteOfficeEmployee')->only('destroy');
-    // }
-
     /**
-     * GET /office-employees
+     * List all office employees with search and documents.
      */
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $query = OfficeEmployee::with(['documents'])
+            ->when($request->search, function ($q) use ($request) {
+                $s = $request->search;
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('code_number', 'like', "%{$s}%")
+                  ->orWhere('phone_number', 'like', "%{$s}%");
+            });
 
-        $employees = OfficeEmployee::query()
-            ->search($search)
-            ->latest()
-            ->paginate($perPage);
-
-        return OfficeEmployeeResource::collection($employees);
+        return OfficeEmployeeResource::collection(
+            $query->paginate($request->perPage ?? 15)
+        );
     }
 
     /**
-     * POST /office-employees
+     * Store a new office employee.
      */
     public function store(OfficeEmployeeRequest $request)
     {
-        $data = $request->validated();
+        DB::beginTransaction();
 
-        // handle picture upload
-        if ($request->hasFile('picture')) {
-            $path = $request->file('picture')->store('uploads/office-employees', 'public');
-            $data['picture'] = "storage/{$path}";
+        try {
+            // ✅ Create the employee
+            $employee = OfficeEmployee::create($request->validated());
+
+            // 🖼️ Optional: handle profile picture (if you send it here)
+            if ($request->hasFile('picture')) {
+                $path = $request->file('picture')->store('uploads/office-employees', 'public');
+                $employee->update(['picture' => "storage/{$path}"]);
+            }
+
+            // 📎 Handle document uploads (same pattern as Event)
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $path = $file->store("office_employees/{$employee->id}", 'public');
+                    $employee->documents()->create([
+                        'file_name'  => $file->getClientOriginalName(),
+                        'file_path'  => $path,
+                        'mime_type'  => $file->getClientMimeType(),
+                        'size_bytes' => $file->getSize(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return new OfficeEmployeeResource(
+                $employee->load(['documents'])
+            );
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Office employee creation failed',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        $employee = OfficeEmployee::create($data);
-
-        return OfficeEmployeeResource::make($employee);
     }
 
     /**
-     * GET /office-employees/{officeEmployee}
+     * Show a single office employee with documents.
      */
     public function show(OfficeEmployee $officeEmployee)
     {
-        return OfficeEmployeeResource::make($officeEmployee);
+        return new OfficeEmployeeResource(
+            $officeEmployee->load(['documents'])
+        );
     }
 
     /**
-     * PUT /office-employees/{officeEmployee}
+     * Update an existing office employee.
      */
-    public function update(OfficeEmployeeRequest $request, OfficeEmployee $officeEmployee)
+    public function update(UpdateOfficeEmployeeRequest $request, OfficeEmployee $officeEmployee)
     {
-        $data = $request->validated();
+        DB::beginTransaction();
 
-        // picture replacement (delete old if exists)
-        if ($request->hasFile('picture')) {
-            if ($officeEmployee->picture && str_starts_with($officeEmployee->picture, 'storage/')) {
-                $diskPath = str_replace('storage/', '', $officeEmployee->picture);
-                Storage::disk('public')->delete($diskPath);
+        try {
+            // ✅ Update base fields
+            $officeEmployee->update($request->validated());
+
+            // 🖼️ Optional: replace profile picture
+            if ($request->hasFile('picture')) {
+                if ($officeEmployee->picture && str_starts_with($officeEmployee->picture, 'storage/')) {
+                    $diskPath = str_replace('storage/', '', $officeEmployee->picture);
+                    Storage::disk('public')->delete($diskPath);
+                }
+                $path = $request->file('picture')->store('uploads/office-employees', 'public');
+                $officeEmployee->update(['picture' => "storage/{$path}"]);
             }
-            $path = $request->file('picture')->store('uploads/office-employees', 'public');
-            $data['picture'] = "storage/{$path}";
-        } else {
-            // do not null picture if not sent
-            unset($data['picture']);
+
+            // 📎 Handle new documents (if uploaded) — add like Event
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $path = $file->store("office_employees/{ $officeEmployee->id }", 'public');
+                    $officeEmployee->documents()->create([
+                        'file_name'  => $file->getClientOriginalName(),
+                        'file_path'  => $path,
+                        'mime_type'  => $file->getClientMimeType(),
+                        'size_bytes' => $file->getSize(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return new OfficeEmployeeResource(
+                $officeEmployee->load(['documents'])
+            );
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Office employee update failed',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        $officeEmployee->update($data);
-
-        return OfficeEmployeeResource::make($officeEmployee);
     }
 
     /**
-     * DELETE /office-employees/{officeEmployee}
+     * Delete an office employee and their documents.
      */
     public function destroy(OfficeEmployee $officeEmployee)
     {
+        // 🗑️ Delete files from storage
+        foreach ($officeEmployee->documents as $doc) {
+            Storage::disk('public')->delete($doc->file_path);
+        }
+
+        // 🗑️ Delete DB records
+        $officeEmployee->documents()->delete();
+
+        // 🖼️ Delete profile picture if present
         if ($officeEmployee->picture && str_starts_with($officeEmployee->picture, 'storage/')) {
             $diskPath = str_replace('storage/', '', $officeEmployee->picture);
             Storage::disk('public')->delete($diskPath);
@@ -98,18 +157,6 @@ class OfficeEmployeeController extends Controller
 
         $officeEmployee->delete();
 
-        // keep same style: noContent() like your sample
-        return response()->noContent();
-    }
-
-    /**
-     * Optional: bulk delete (same style as your sample)
-     * POST /office-employees/bulk-delete  with  { "employeeIds": [1,2,3] }
-     */
-    public function bulkDelete(Request $request)
-    {
-        $ids = $request->input('employeeIds', []);
-        OfficeEmployee::destroy($ids);
-        return response()->noContent();
+        return response()->json(['message' => 'Office employee deleted successfully']);
     }
 }

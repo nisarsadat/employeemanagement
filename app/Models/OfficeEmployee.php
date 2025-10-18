@@ -54,13 +54,13 @@ class OfficeEmployee extends Model
     }
     public function resources()
     {
-        return $this->hasMany(\App\Models\Resource::class, 'officeemployee_id');
+        return $this->hasMany(Resource::class, 'officeemployee_id');
 
     }
 
     public function informations()
     {
-        return $this->hasMany(\App\Models\Information::class);
+        return $this->hasMany(Information::class);
     }
 
     public function events()
@@ -72,5 +72,11 @@ class OfficeEmployee extends Model
     {
         return $this->hasMany(Event::class, 'event_office_employee_id');
     }
+    // ...
+    public function documents()
+    {
+        return $this->hasMany(OfficeEmployeeDocument::class);
+    }
+
 
 }
