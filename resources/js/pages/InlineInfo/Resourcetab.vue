@@ -107,6 +107,7 @@
                   clearable
                   rounded="lg"
                   class="cell"
+                  :rules="[rules.selectRequired(t('نام پدر '))]"
                   prepend-inner-icon="mdi-account-supervisor"
                 />
               </v-card-text>
@@ -141,6 +142,7 @@
                   rounded="lg"
                   class="cell"
                   clearable
+                  :rules="[rules.selectRequired(t('نام پدر کلان '))]"
                   prepend-inner-icon="mdi-account-supervisor-outline"
                 />
               </v-card-text>
@@ -171,25 +173,28 @@
                       density="compact"
                       rounded="lg"
                       clearable
+                      :rules="[rules.selectRequired(t('ولایت اصلی'))]"
                     />
                   </v-col>
                   <v-col cols="12" md="4">
                     <v-text-field
                       v-model="draft.main_district"
-                      :label="t('ولسوالی اصلی')"
+                      :label="t('حوزه/ولسوالی اصلی')"
                       variant="outlined"
                       density="compact"
                       clearable
+                      :rules="[rules.selectRequired(t(' حوزه اصلی/ ولسوالی اصلی'))]"
                     />
                   </v-col>
                   <v-col cols="12" md="4">
                     <v-text-field
                       v-model="draft.main_village"
-                      :label="t('قصبه/قریه اصلی')"
+                      :label="t('گذر/قریه اصلی')"
                       variant="outlined"
                       density="compact"
                       rounded="lg"
                       clearable
+                      :rules="[rules.selectRequired(t('گذر/قریه اصلی'))]"
                     />
                   </v-col>
                 </v-row>
@@ -238,10 +243,10 @@
           </v-expansion-panels>
 
           <!-- Type / Category -->
-          <v-row class="tight-grid">
+          <v-row class="tight-grid mt-2">
             <v-col cols="12" md="3">
               <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('سیاسی') }}</v-card-subtitle>
+                <v-card-subtitle class="field-label">{{ t('جنایی/سیاسی') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
                 <v-autocomplete
@@ -259,7 +264,7 @@
               </v-card-text>
             </v-col>
 
-            <v-col cols="12" md="6">
+            <!-- <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('جنایی') }}</v-card-subtitle>
               </v-card-item>
@@ -277,11 +282,8 @@
                   prepend-inner-icon="mdi-shield-account"
                 />
               </v-card-text>
-            </v-col>
-          </v-row>
-
-          <!-- Information Details -->
-          <v-row class="tight-grid">
+            </v-col> -->
+   
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('تاریخ اطلاع') }}</v-card-subtitle>

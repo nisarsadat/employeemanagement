@@ -72,10 +72,7 @@
                 />
               </v-card-text>
             </v-col>
-          </v-row>
 
-          <!-- Free text descriptors -->
-          <v-row class="tight-grid">
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('نوعیت مشخص واقعه') }}</v-card-subtitle>
@@ -126,10 +123,7 @@
                 />
               </v-card-text>
             </v-col>
-          </v-row>
 
-          <!-- Date & Hour -->
-          <v-row class="tight-grid">
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('تاریخ واقعه') }}</v-card-subtitle>
@@ -139,6 +133,7 @@
                   v-model="draft.event_date"
                   :rules="[rules.required]"
                   :label="t('تاریخ واقعه ')"
+                  
                 />
               </v-card-text>
             </v-col>
@@ -226,8 +221,7 @@
                   item-value="id"
                   variant="outlined"
                   density="compact"
-                rounded="lg"
-
+                  rounded="lg"
                   clearable
                   prepend-inner-icon="mdi-hospital"
                 />
@@ -246,8 +240,7 @@
                   item-value="id"
                   variant="outlined"
                   density="compact"
-                rounded="lg"
-
+                  rounded="lg"
                   clearable
                   prepend-inner-icon="mdi-cash-multiple"
                 />
@@ -268,7 +261,7 @@
                   v-model="draft.event_office_employee_code"
                   :items="officeEmployeesItems"
                   item-title="code_number"
-                rounded="lg"
+                  rounded="lg"
                   item-value="id"
                   variant="outlined"
                   density="compact"
@@ -289,7 +282,7 @@
                   v-model="draft.event_zone_employee_code"
                   :items="zoneEmployeesItems"
                   item-title="code_number"
-                rounded="lg"
+                  rounded="lg"
                   item-value="id"
                   variant="outlined"
                   density="compact"
@@ -311,7 +304,7 @@
                   v-model="draft.tafseel"
                   variant="outlined"
                   density="compact"
-                rounded="lg"
+                  rounded="lg"
                   clearable
                   rows="3"
                   auto-grow
@@ -328,7 +321,7 @@
                   v-model="draft.talks"
                   variant="outlined"
                   density="compact"
-                rounded="lg"
+                  rounded="lg"
                   clearable
                   rows="3"
                   auto-grow
@@ -347,7 +340,7 @@
                 <v-textarea
                   v-model="draft.notes"
                   variant="outlined"
-                rounded="lg"
+                  rounded="lg"
                   density="compact"
                   clearable
                   rows="2"

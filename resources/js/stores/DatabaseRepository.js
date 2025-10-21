@@ -68,7 +68,7 @@ export const useDatabaseRepository = defineStore("DatabaseRepository", {
         // options
         activityOptions: ["فعال", "غیر فعال"],
         halatMadaniOptions: ["مجرد", "متاهل"],
-        seyasiOptions: ["ساعین بالفساد", "شر و فساد", "ضد جاسوسی"],
+        seyasiOptions: ["ساعین بالفساد", "شر و فساد", "ضد جاسوسی" , "جینایی"],
         jenayeeOptions: ["جینایی"],
         infoCategoryOptions: ["الف", "ب", "ج"],
 

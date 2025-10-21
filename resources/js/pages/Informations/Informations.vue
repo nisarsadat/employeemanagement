@@ -27,467 +27,536 @@
           "
         />
       </v-col>
-      <!-- Optional: add/reset editor row -->
-      <!--
-      <v-col cols="12" md="3" class="text-md-right">
-        <v-btn color="primary" @click="setBlankEditorRow">
-          {{ t('اضافه کردن اطلاع') }}
-        </v-btn>
-      </v-col>
-      -->
     </v-row>
 
-    <!-- Single-row editor (create/edit) -->
-    <v-card class="tablebody" ref="editorCard">
-      <v-data-table
-        :headers="headers"
-        :items="rows"
-        :loading="repo.loading"
-        item-key="idOrTmp"
-        :dir="isRtl ? 'rtl' : 'ltr'"
-        class="elevation-2 custom-table"
-        density="comfortable"
-        hide-default-footer
-      >
-        <!-- Codes -->
-        <template #item.codes="{ item }">
-          <div class="drop-group">
-            <v-autocomplete
-              v-model="item.draft.resource_id"
-              :items="resourceItems"
-              item-title="code_number"
-              item-value="id"
-              variant="outlined"
-              density="compact"
-              :label="t('کود منبع')"
-              hide-details
-              clearable
-            />
-            <v-autocomplete
-              v-model="item.draft.officeemployee_id"
-              :items="officeEmployeesItems"
-              item-title="code_number"
-              item-value="id"
-              variant="outlined"
-              density="compact"
-              :label="t('مربوطه کارمند کود')"
-              hide-details
-              clearable
-            />
-            <v-autocomplete
-              v-model="item.draft.zone_employee_id"
-              :items="zoneEmployeesItems"
-              item-title="code_number"
-              item-value="id"
-              variant="outlined"
-              density="compact"
-              :label="t('مربوطه تدابیری کارمند کود')"
-              hide-details
-              clearable
-            />
-          </div>
-        </template>
-
-        <!-- Introduction -->
-        <template #item.introduction="{ item }">
-          <div class="intro-group">
-            <v-text-field
-              v-model="item.draft.name"
-              :label="t('نام')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-            <v-text-field
-              v-model="item.draft.father_name"
-              :label="t('نام پدر')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-            <v-text-field
-              v-model="item.draft.nickname"
-              :label="t('نام مستعار')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-            <v-text-field
-              v-model="item.draft.grand_father_name"
-              :label="t('نام پدر کلان')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-          </div>
-        </template>
-
-        <!-- Main address -->
-        <template #item.main_province="{ item }">
-          <div class="addr-group">
-            <v-text-field
-              v-model="item.draft.main_province"
-              :label="t('ولایت اصلی')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-            <v-text-field
-              v-model="item.draft.main_district"
-              :label="t('ولسوالی اصلی')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-            <v-text-field
-              v-model="item.draft.main_village"
-              :label="t('قریه اصلی')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-          </div>
-        </template>
-
-        <!-- Now address -->
-        <template #item.now_province="{ item }">
-          <div class="addr-group">
-            <v-text-field
-              v-model="item.draft.now_province"
-              :label="t('ولایت فعلی')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-            <v-text-field
-              v-model="item.draft.now_district"
-              :label="t('ولسوالی فعلی')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-            <v-text-field
-              v-model="item.draft.now_village"
-              :label="t('قریه فعلی')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-          </div>
-        </template>
-
-        <!-- Provision place (optional meta) -->
-        <template #item.provision_place="{ item }">
-          <div class="addr-group">
-            <v-text-field
-              v-model="item.draft.zone"
-              :label="t('زون')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-            <v-text-field
-              v-model="item.draft.hawza"
-              :label="t('حوزه')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-            <v-text-field
-              v-model="item.draft.specific_place"
-              :label="t('موقعیت مشخص')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-          </div>
-        </template>
-
-        <!-- NEW: coordenates -->
-        <template #item.coordenates="{ item }">
-          <v-text-field
-            v-model="item.draft.coordenates"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('کوردینات')"
-            hide-details
-            clearable
-          />
-        </template>
-
-        <!-- Information type -->
-        <template #item.information_type="{ item }">
-          <div class="drop-group2">
-            <v-autocomplete
-              v-model="item.draft.seyasi"
-              :items="seyasiItems"
-              item-title="name"
-              item-value="id"
-              :label="t('سیاسی')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-            <v-autocomplete
-              v-model="item.draft.jenayee"
-              :items="jenayeeItems"
-              item-title="name"
-              item-value="id"
-              :label="t('جنایی')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-          </div>
-        </template>
-
-        <!-- Date / Hour -->
-        <template #item.information_date="{ item }">
-          <v-text-field
-            v-model="item.draft.information_date"
-            :label="t('تاریخ اطلاع')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-          />
-        </template>
-        <template #item.information_hour="{ item }">
-          <v-text-field
-            v-model="item.draft.information_hour"
-            :label="t('ساعت اطلاع')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-          />
-        </template>
-
-        <!-- Degree + Category -->
-        <template #item.importance_degree="{ item }">
-          <v-text-field
-            v-model="item.draft.importance_degree"
-            :label="t('درجه موثقیت اطلاع')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-          />
-        </template>
-        <template #item.information_category="{ item }">
-          <v-autocomplete
-            v-model="item.draft.information_category"
-            :items="infoCategoryItems"
-            item-title="name"
-            item-value="id"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('کتگوری اطلاع')"
-            hide-details
-            clearable
-          />
-        </template>
-
-        <!-- Info employee codes -->
-        <template #item.infomation_employee_code="{ item }">
-          <div class="drop-group2">
-            <v-autocomplete
-              v-model="item.draft.information_office_employee_code"
-              :items="officeEmployeesItems"
-              item-title="code_number"
-              item-value="id"
-              :label="t('کود کارمند اطلاع گیرنده')"
-              density="compact"
-              variant="outlined"
-              clearable
-              hide-details
-            />
-            <v-autocomplete
-              v-model="item.draft.infomation_zone_employee_code"
-              :items="zoneEmployeesItems"
-              item-title="code_number"
-              item-value="id"
-              :label="t('کود رزیدانت اطلاع گیرنده')"
-              density="compact"
-              variant="outlined"
-              clearable
-              hide-details
-            />
-          </div>
-        </template>
-
-        <!-- Big text -->
-        <template #item.tafseel="{ item }">
-          <v-text-field
-            v-model="item.draft.tafseel"
-            :label="t('تفصیل')"
-            class="text-group-note"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-          />
-        </template>
-        <template #item.talks="{ item }">
-          <v-text-field
-            v-model="item.draft.talks"
-            :label="t('گفت‌وگوهای انجام‌شده')"
-            class="text-group-note"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-          />
-        </template>
-        <template #item.outcome="{ item }">
-          <v-text-field
-            v-model="item.draft.outcome"
-            :label="t('نتیجه')"
-            class="text-group-note"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-          />
-        </template>
-        <template #item.notes="{ item }">
-          <v-text-field
-            v-model="item.draft.notes"
-            :label="t('ملاحظات')"
-            class="text-group-note"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-          />
-        </template>
-
-        <!-- Documents -->
-        <template #item.documents="{ item }">
-          <div class="documents-inline">
-            <input
-              class="hidden-file"
-              :id="`docs-${item.idOrTmp}`"
-              type="file"
-              multiple
-              @change="(e) => onPickDocs(item, Array.from(e.target.files || []))"
-            />
-
-            <div class="docs-field-row">
-              <v-btn
-                class="uploader-btn2"
-                size="small"
-                variant="text"
+    <!-- 🟩 Editor wrapped in a validated v-form -->
+    <v-form
+      ref="editorForm"
+      v-model="editorValid"
+      lazy-validation
+      :key="formKey"
+      @submit.prevent="onSubmit(rows[0])"
+    >
+      <!-- Single-row editor (create/edit) -->
+      <v-card class="tablebody" ref="editorCard">
+        <v-data-table
+          :headers="headers"
+          :items="rows"
+          :loading="repo.loading"
+          item-key="idOrTmp"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+          class="elevation-2 custom-table"
+          density="comfortable"
+          hide-default-footer
+        >
+          <!-- Codes -->
+          <template #item.codes="{ item }">
+            <div class="drop-group">
+              <v-autocomplete
+                v-model="item.draft.resource_id"
+                :items="resourceItems"
+                item-title="code_number"
+                item-value="id"
+                variant="outlined"
                 density="compact"
-                prepend-icon="mdi-tray-arrow-up"
-                @click="openDocsPicker(item)"
-              >
-                {{ t('ّپلود فایل ها') }}
-              </v-btn>
-
-              <div class="chips-row">
-                <v-chip
-                  v-for="(f, idx) in item.draft._newDocs || []"
-                  :key="`${item.idOrTmp}-nf-${idx}`"
-                  size="small"
-                  variant="text"
-                  class="chip-outline"
-                  :title="f.name"
-                >
-                  {{ shortName(f.name) }}
-                </v-chip>
-
-                <v-chip
-                  v-for="(d, idx) in item.existingDocs || []"
-                  :key="`${item.idOrTmp}-df-${idx}`"
-                  size="small"
-                  color="primary"
-                  variant="text"
-                  class="chip-existing"
-                  :title="d.original_name || d.file_name"
-                >
-                  {{ shortName(d.original_name || d.file_name) }}
-                </v-chip>
-              </div>
-
-              <v-btn
-                class="download-all-btn"
-                size="small"
-                prepend-icon="mdi-download"
-                :disabled="!item.id"
-                color="error"
-                @click="downloadAll(item)"
-              >
-                {{ t('دانلود فایل ها') }}
-              </v-btn>
-            </div>
-
-            <!-- progress -->
-            <div v-if="uploadingPct[item.idOrTmp] && uploadingPct[item.idOrTmp] < 100" class="mt-2">
-              <v-progress-linear
-                :model-value="uploadingPct[item.idOrTmp]"
-                height="6"
-                color="primary"
-                rounded
+                :label="t('کود منبع')"
+                hide-details
+                clearable
+                :rules="[rules.selectRequired(t('کود منبع'))]"
+                :error="hasError(item, 'resource_id')"
+                :error-messages="getErrorMessages(item, 'resource_id')"
               />
-              <div class="text-caption mt-1">
-                ...{{ t('در حال پلود') }} {{ uploadingPct[item.idOrTmp] }}%
+              <v-autocomplete
+                v-model="item.draft.officeemployee_id"
+                :items="officeEmployeesItems"
+                item-title="code_number"
+                item-value="id"
+                variant="outlined"
+                density="compact"
+                :label="t('مربوطه کارمند کود')"
+                hide-details
+                clearable
+                :error="hasError(item, 'officeemployee_id')"
+                :error-messages="getErrorMessages(item, 'officeemployee_id')"
+              />
+              <v-autocomplete
+                v-model="item.draft.zone_employee_id"
+                :items="zoneEmployeesItems"
+                item-title="code_number"
+                item-value="id"
+                variant="outlined"
+                density="compact"
+                :label="t('مربوطه تدابیری کارمند کود')"
+                hide-details
+                clearable
+                :error="hasError(item, 'zone_employee_id')"
+                :error-messages="getErrorMessages(item, 'zone_employee_id')"
+              />
+            </div>
+          </template>
+
+          <!-- Introduction -->
+          <template #item.introduction="{ item }">
+            <div class="intro-group">
+              <v-text-field
+                v-model="item.draft.name"
+                :label="t('نام')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :rules="[rules.required]"
+                :error="hasError(item, 'name')"
+                :error-messages="getErrorMessages(item, 'name')"
+              />
+              <v-text-field
+                v-model="item.draft.father_name"
+                :label="t('نام پدر')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :error="hasError(item, 'father_name')"
+                :error-messages="getErrorMessages(item, 'father_name')"
+              />
+              <v-text-field
+                v-model="item.draft.nickname"
+                :label="t('نام مستعار')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :error="hasError(item, 'nickname')"
+                :error-messages="getErrorMessages(item, 'nickname')"
+              />
+              <v-text-field
+                v-model="item.draft.grand_father_name"
+                :label="t('نام پدر کلان')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :error="hasError(item, 'grand_father_name')"
+                :error-messages="getErrorMessages(item, 'grand_father_name')"
+              />
+            </div>
+          </template>
+
+          <!-- Main address -->
+          <template #item.main_province="{ item }">
+            <div class="addr-group">
+              <v-text-field
+                v-model="item.draft.main_province"
+                :label="t('ولایت اصلی')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :rules="[rules.required]"
+                :error="hasError(item, 'main_province')"
+                :error-messages="getErrorMessages(item, 'main_province')"
+              />
+              <v-text-field
+                v-model="item.draft.main_district"
+                :label="t('ولسوالی اصلی')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :rules="[rules.required]"
+                :error="hasError(item, 'main_district')"
+                :error-messages="getErrorMessages(item, 'main_district')"
+              />
+              <v-text-field
+                v-model="item.draft.main_village"
+                :label="t('قریه اصلی')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :rules="[rules.required]"
+                :error="hasError(item, 'main_village')"
+                :error-messages="getErrorMessages(item, 'main_village')"
+              />
+            </div>
+          </template>
+
+          <!-- Now address -->
+          <template #item.now_province="{ item }">
+            <div class="addr-group">
+              <v-text-field
+                v-model="item.draft.now_province"
+                :label="t('ولایت فعلی')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :error="hasError(item, 'now_province')"
+                :error-messages="getErrorMessages(item, 'now_province')"
+              />
+              <v-text-field
+                v-model="item.draft.now_district"
+                :label="t('ولسوالی فعلی')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :error="hasError(item, 'now_district')"
+                :error-messages="getErrorMessages(item, 'now_district')"
+              />
+              <v-text-field
+                v-model="item.draft.now_village"
+                :label="t('قریه فعلی')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :error="hasError(item, 'now_village')"
+                :error-messages="getErrorMessages(item, 'now_village')"
+              />
+            </div>
+          </template>
+
+          <!-- Provision place -->
+          <template #item.provision_place="{ item }">
+            <div class="addr-group">
+              <v-text-field
+                v-model="item.draft.zone"
+                :label="t('زون')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :error="hasError(item, 'zone')"
+                :error-messages="getErrorMessages(item, 'zone')"
+              />
+              <v-text-field
+                v-model="item.draft.hawza"
+                :label="t('حوزه')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :error="hasError(item, 'hawza')"
+                :error-messages="getErrorMessages(item, 'hawza')"
+              />
+              <v-text-field
+                v-model="item.draft.specific_place"
+                :label="t('موقعیت مشخص')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :error="hasError(item, 'specific_place')"
+                :error-messages="getErrorMessages(item, 'specific_place')"
+              />
+            </div>
+          </template>
+
+          <!-- NEW: coordenates -->
+          <template #item.coordenates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordenates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('کوردینات')"
+              hide-details
+              clearable
+              :error="hasError(item, 'coordenates')"
+              :error-messages="getErrorMessages(item, 'coordenates')"
+            />
+          </template>
+
+          <!-- Information type -->
+          <template #item.information_type="{ item }">
+            <div class="drop-group2">
+              <v-autocomplete
+                v-model="item.draft.seyasi"
+                :items="seyasiItems"
+                item-title="name"
+                item-value="id"
+                :label="t('سیاسی')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :error="hasError(item, 'seyasi')"
+                :error-messages="getErrorMessages(item, 'seyasi')"
+              />
+              <v-autocomplete
+                v-model="item.draft.jenayee"
+                :items="jenayeeItems"
+                item-title="name"
+                item-value="id"
+                :label="t('جنایی')"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                :error="hasError(item, 'jenayee')"
+                :error-messages="getErrorMessages(item, 'jenayee')"
+              />
+            </div>
+          </template>
+
+          <!-- Date / Hour -->
+          <template #item.information_date="{ item }">
+            <DateInput
+              v-model="item.draft.information_date"
+              class="text-group"
+              :rules="[rules.required]"
+              :label="t('تاریخ اطلاع')"
+            />
+          </template>
+          <template #item.information_hour="{ item }">
+            <v-text-field
+              v-model="item.draft.information_hour"
+              type="time"
+              step="60"
+              :label="t('ساعت اطلاع')"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              hide-details
+              clearable
+              :error="hasError(item, 'information_hour')"
+              :error-messages="getErrorMessages(item, 'information_hour')"
+            />
+          </template>
+
+          <!-- Degree + Category -->
+          <template #item.importance_degree="{ item }">
+            <v-text-field
+              v-model="item.draft.importance_degree"
+              :label="t('درجه موثقیت اطلاع')"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              hide-details
+              clearable
+              :error="hasError(item, 'importance_degree')"
+              :error-messages="getErrorMessages(item, 'importance_degree')"
+            />
+          </template>
+          <template #item.information_category="{ item }">
+            <v-autocomplete
+              v-model="item.draft.information_category"
+              :items="infoCategoryItems"
+              item-title="name"
+              item-value="id"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('کتگوری اطلاع')"
+              hide-details
+              clearable
+              :error="hasError(item, 'information_category')"
+              :error-messages="getErrorMessages(item, 'information_category')"
+            />
+          </template>
+
+          <!-- Info employee codes -->
+          <template #item.infomation_employee_code="{ item }">
+            <div class="drop-group2">
+              <v-autocomplete
+                v-model="item.draft.information_office_employee_code"
+                :items="officeEmployeesItems"
+                item-title="code_number"
+                item-value="id"
+                :label="t('کود کارمند اطلاع گیرنده')"
+                density="compact"
+                variant="outlined"
+                clearable
+                hide-details
+                :error="hasError(item, 'information_office_employee_code')"
+                :error-messages="getErrorMessages(item, 'information_office_employee_code')"
+              />
+              <v-autocomplete
+                v-model="item.draft.infomation_zone_employee_code"
+                :items="zoneEmployeesItems"
+                item-title="code_number"
+                item-value="id"
+                :label="t('کود رزیدانت اطلاع گیرنده')"
+                density="compact"
+                variant="outlined"
+                clearable
+                hide-details
+                :error="hasError(item, 'infomation_zone_employee_code')"
+                :error-messages="getErrorMessages(item, 'infomation_zone_employee_code')"
+              />
+            </div>
+          </template>
+
+          <!-- Big text -->
+          <template #item.tafseel="{ item }">
+            <v-text-field
+              v-model="item.draft.tafseel"
+              :label="t('تفصیل')"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              hide-details
+              clearable
+              :error="hasError(item, 'tafseel')"
+              :error-messages="getErrorMessages(item, 'tafseel')"
+            />
+          </template>
+          <template #item.talks="{ item }">
+            <v-text-field
+              v-model="item.draft.talks"
+              :label="t('گفت‌وگوهای انجام‌شده')"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              hide-details
+              clearable
+              :error="hasError(item, 'talks')"
+              :error-messages="getErrorMessages(item, 'talks')"
+            />
+          </template>
+          <template #item.outcome="{ item }">
+            <v-text-field
+              v-model="item.draft.outcome"
+              :label="t('نتیجه')"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              hide-details
+              clearable
+              :error="hasError(item, 'outcome')"
+              :error-messages="getErrorMessages(item, 'outcome')"
+            />
+          </template>
+          <template #item.notes="{ item }">
+            <v-text-field
+              v-model="item.draft.notes"
+              :label="t('ملاحظات')"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              hide-details
+              clearable
+              :error="hasError(item, 'notes')"
+              :error-messages="getErrorMessages(item, 'notes')"
+            />
+          </template>
+
+          <!-- Documents -->
+          <template #item.documents="{ item }">
+            <div class="documents-inline">
+              <input
+                class="hidden-file"
+                :id="`docs-${item.idOrTmp}`"
+                type="file"
+                multiple
+                @change="(e) => onPickDocs(item, Array.from(e.target.files || []))"
+              />
+
+              <div class="docs-field-row">
+                <v-btn
+                  class="uploader-btn2"
+                  size="small"
+                  variant="text"
+                  density="compact"
+                  prepend-icon="mdi-tray-arrow-up"
+                  @click="openDocsPicker(item)"
+                >
+                  {{ t('ّپلود فایل ها') }}
+                </v-btn>
+
+                <div class="chips-row">
+                  <v-chip
+                    v-for="(f, idx) in item.draft._newDocs || []"
+                    :key="`${item.idOrTmp}-nf-${idx}`"
+                    size="small"
+                    variant="text"
+                    class="chip-outline"
+                    :title="f.name"
+                  >
+                    {{ shortName(f.name) }}
+                  </v-chip>
+
+                  <v-chip
+                    v-for="(d, idx) in item.existingDocs || []"
+                    :key="`${item.idOrTmp}-df-${idx}`"
+                    size="small"
+                    color="primary"
+                    variant="text"
+                    class="chip-existing"
+                    :title="d.original_name || d.file_name"
+                    @click="openDoc(d.url)"
+                  >
+                    {{ shortName(d.original_name || d.file_name) }}
+                    <v-icon
+                      size="16"
+                      class="ml-1"
+                      title="حذف"
+                      @click.stop="markDocForRemoval(item, d)"
+                    >mdi-close</v-icon>
+                  </v-chip>
+                </div>
+
+                <v-btn
+                  class="download-all-btn"
+                  size="small"
+                  prepend-icon="mdi-download"
+                  :disabled="!item.id"
+                  color="error"
+                  @click="downloadAll(item)"
+                >
+                  {{ t('دانلود فایل ها') }}
+                </v-btn>
+              </div>
+
+              <!-- progress -->
+              <div v-if="uploadingPct[item.idOrTmp] && uploadingPct[item.idOrTmp] < 100" class="mt-2">
+                <v-progress-linear
+                  :model-value="uploadingPct[item.idOrTmp]"
+                  height="6"
+                  color="primary"
+                  rounded
+                />
+                <div class="text-caption mt-1">
+                  ...{{ t('در حال پلود') }} {{ uploadingPct[item.idOrTmp] }}%
+                </div>
+              </div>
+              <div
+                v-else-if="uploadingPct[item.idOrTmp] === 100"
+                class="text-caption mt-1 text-success"
+              >
+                100% — {{ t('آپلود شد') }}
               </div>
             </div>
-            <div
-              v-else-if="uploadingPct[item.idOrTmp] === 100"
-              class="text-caption mt-1 text-success"
-            >
-              100% — {{ t('آپلود شد') }}
+          </template>
+
+          <!-- Actions -->
+          <template #item.actions="{ item }">
+            <div class="flex items-center gap-1">
+              <!-- ✅ submit goes through v-form validation -->
+              <v-btn
+                class="bg-primary"
+                variant="outlined"
+                type="submit"
+                :loading="item.loading"
+              >
+                {{ t('ذخیره دیتا') }}
+              </v-btn>
+              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+                {{ t('حذف دیتا') }}
+              </v-btn>
+              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
+                {{ t('پاک کردن ورودی‌ها') }}
+              </v-btn>
             </div>
-          </div>
-        </template>
+          </template>
 
-        <!-- Actions -->
-        <template #item.actions="{ item }">
-          <div class="flex items-center gap-1">
-            <v-btn
-              class="bg-primary"
-              variant="outlined"
-              @click="save(item)"
-              :loading="item.loading"
-            >
-              {{ t('ذخیره دیتا') }}
-            </v-btn>
-            <v-btn class="bg-error" variant="outlined" @click="del(item)">
-              {{ t('حذف دیتا') }}
-            </v-btn>
-            <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
-              {{ t('پاک کردن ورودی‌ها') }}
-            </v-btn>
-          </div>
-        </template>
-
-        <template #no-data>
-          <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
-        </template>
-      </v-data-table>
-    </v-card>
+          <template #no-data>
+            <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
+          </template>
+        </v-data-table>
+      </v-card>
+    </v-form>
 
     <!-- Peek drawer -->
     <v-container fluid>
@@ -532,481 +601,573 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, watch, computed, nextTick, reactive } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import AppBar from '../../components/AppBar.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import PeekButton from '@/components/PeekButton.vue';
-  import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+import { ref, onMounted, watch, computed, nextTick, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
+import AppBar from '../../components/AppBar.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import DateInput from '../../components/DateInput.vue';
+import { useDatabaseRepository } from '../../stores/DatabaseRepository';
 
-  const repo = useDatabaseRepository();
-  const { t, locale } = useI18n();
+const repo = useDatabaseRepository();
+const { t, locale } = useI18n();
 
-  /* UI / RTL */
-  const drawer = ref(false);
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+/* UI / RTL */
+const drawer = ref(false);
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-  /* Snackbar */
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const showErrorMessage = (msg) => {
-    errorMessage.value = msg;
-    showError.value = true;
+/* Snackbar */
+const showError = ref(false);
+const errorMessage = ref('');
+function showErrorMessage(msg) {
+  errorMessage.value = msg;
+  showError.value = true;
+}
+
+/* v-form state */
+const editorForm = ref(null);
+const editorValid = ref(false);
+const formKey = ref(0);
+
+/* Upload progress per row */
+const uploadingPct = reactive({});
+const startProgress = (key) => (uploadingPct[key] = 1);
+const setProgress = (key, pct) => (uploadingPct[key] = pct);
+const endProgress = (key) => (uploadingPct[key] = 0);
+
+/* Per-row backend errors */
+const itemErrors = ref({});
+function setItemErrors(item, errors) {
+  itemErrors.value[item.idOrTmp] = errors;
+}
+function clearItemErrors(item) {
+  if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
+}
+function hasError(item, field) {
+  return !!(itemErrors.value[item.idOrTmp] && itemErrors.value[item.idOrTmp][field]);
+}
+function getErrorMessages(item, field) {
+  return itemErrors.value[item.idOrTmp]?.[field] ?? [];
+}
+
+/* Validation rules (keep same style across modules) */
+const rules = {
+  required: (v) => !!v || t('این فیلد الزامی است'),
+  selectRequired: (label) => (v) => !!v || t('{label} الزامی است', { label }),
+  number: (v) => !v || /^[0-9]+$/.test(v) || t('فقط اعداد مجاز است'),
+  min: (n) => (v) => (v && v.length >= n) || t('حداقل {n} حرف', { n }),
+  max: (n) => (v) => (v && v.length <= n) || t('حداکثر {n} حرف', { n }),
+};
+
+/* Slot helper */
+const getRow = (s) => (s && s.raw ? s.raw : s);
+
+/* Preview (if you add picture later) */
+const previewOpen = ref(false);
+const previewSrc = ref(null);
+function openPreview(src) {
+  previewSrc.value = src || null;
+  if (previewSrc.value) previewOpen.value = true;
+}
+
+/* Data sources normalizer */
+const toArray = (v) => {
+  if (v && typeof v.then === 'function') return [];
+  if (Array.isArray(v)) return v;
+  if (Array.isArray(v?.data)) return v.data;
+  if (Array.isArray(v?.items)) return v.items;
+  if (v && typeof v === 'object') return Object.values(v);
+  return [];
+};
+
+/* Dropdown options */
+const resourceItems = computed(() => toArray(repo.resource));
+const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
+const zoneEmployeesItems = computed(() => toArray(repo.ZoneEmployees));
+const seyasiItems = computed(() => toArray(repo.seyasiOptions));
+const jenayeeItems = computed(() => toArray(repo.jenayeeOptions));
+const infoCategoryItems = computed(() => toArray(repo.infoCategoryOptions));
+
+/* Single-row editor */
+let tmpId = 0;
+const newTmpId = () => `tmp-${++tmpId}`;
+const rows = ref([]);
+
+function toRowModel(x = {}) {
+  const base = {
+    id: x.id ?? null,
+    idOrTmp: x.id ?? newTmpId(),
+    loading: false,
+
+    /* codes */
+    resource_id: x.resource_id ?? null,
+    officeemployee_id: x.officeemployee_id ?? null,
+    zone_employee_id: x.zone_employee_id ?? null,
+
+    /* intro */
+    name: x.name ?? '',
+    father_name: x.father_name ?? '',
+    nickname: x.nickname ?? '',
+    grand_father_name: x.grand_father_name ?? '',
+
+    /* addresses */
+    main_province: x.main_province ?? '',
+    main_district: x.main_district ?? '',
+    main_village: x.main_village ?? '',
+    now_province: x.now_province ?? '',
+    now_district: x.now_district ?? '',
+    now_village: x.now_village ?? '',
+
+    /* provision/meta (optional) */
+    zone: x.zone ?? '',
+    hawza: x.hawza ?? '',
+    specific_place: x.specific_place ?? '',
+
+    /* types */
+    seyasi: x.seyasi ?? '',
+    jenayee: x.jenayee ?? '',
+
+    /* time & category */
+    information_date: x.information_date ?? '',
+    information_hour: x.information_hour ?? '',
+    importance_degree: x.importance_degree ?? '',
+    information_category: x.information_category ?? '',
+
+    /* info employee codes */
+    information_office_employee_code: x.information_office_employee_code ?? '',
+    infomation_zone_employee_code: x.infomation_zone_employee_code ?? '',
+
+    /* long texts */
+    tafseel: x.tafseel ?? '',
+    talks: x.talks ?? '',
+    outcome: x.outcome ?? '',
+    notes: x.notes ?? '',
+
+    /* coordenates */
+    coordenates: x.coordenates ?? '',
+
+    /* documents */
+    existingDocs: Array.isArray(x.documents) ? x.documents : [],
   };
 
-  /* Upload progress per row */
-  const uploadingPct = reactive({});
-  const startProgress = (key) => (uploadingPct[key] = 1);
-  const setProgress = (key, pct) => (uploadingPct[key] = pct);
-  const endProgress = (key) => (uploadingPct[key] = 0);
+  return { ...base, draft: { ...base, _newDocs: [], removed_document_ids: [] } };
+}
 
-  /* Slot helper */
-  const getRow = (s) => (s && s.raw ? s.raw : s);
+function setBlankEditorRow() {
+  rows.value = [toRowModel({})];
+}
 
-  /* Preview (optional image field if you add later) */
-  const previewOpen = ref(false);
-  const previewSrc = ref(null);
-  function openPreview(src) {
-    previewSrc.value = src || null;
-    if (previewSrc.value) previewOpen.value = true;
-  }
+/* Table headers (editor) */
+const headers = computed(() => [
+  { title: t('کود ها'), key: 'codes', align: 'center' },
+  { title: t('معرفت'), key: 'introduction', align: 'center' },
+  { title: t('سکونت اصلی'), key: 'main_province', align: 'center' },
+  { title: t('سکونت فعلی'), key: 'now_province', align: 'center' },
+  { title: t('محل تدارک'), key: 'provision_place', align: 'center' },
+  { title: t('کوردینات'), key: 'coordenates', align: 'center' },
+  { title: t('نوعیت اطلاع'), key: 'information_type', align: 'center' },
+  { title: t('تاریخ اطلاع'), key: 'information_date', align: 'center' },
+  { title: t('ساعت اطلاع'), key: 'information_hour', align: 'center' },
+  { title: t('درجه موثقیت اطلاع'), key: 'importance_degree', align: 'center' },
+  { title: t('کتگوری اطلاع'), key: 'information_category', align: 'center' },
+  { title: t('کود اطلاع گیرنده'), key: 'infomation_employee_code', align: 'center' },
+  { title: t('تفصیل'), key: 'tafseel', align: 'center' },
+  { title: t('گفت‌وگوها'), key: 'talks', align: 'center' },
+  { title: t('نتیجه'), key: 'outcome', align: 'center' },
+  { title: t('ملاحظات'), key: 'notes', align: 'center' },
+  { title: t('اسناد و شواهد'), key: 'documents', align: 'center' },
+  { title: t('عمل'), key: 'actions', sortable: false, align: 'center' },
+]);
 
-  /* Data sources normalizer */
-  const toArray = (v) => {
-    if (v && typeof v.then === 'function') return [];
-    if (Array.isArray(v)) return v;
-    if (Array.isArray(v?.data)) return v.data;
-    if (Array.isArray(v?.items)) return v.items;
-    if (v && typeof v === 'object') return Object.values(v);
-    return [];
-  };
+/* Filterable table (bottom) */
+const rowsFT = computed(() => toArray(repo.Informations));
+const headersFT = computed(() => [
+  { title: 'resource', key: 'resource_id' },
+  { title: 'employee', key: 'officeemployee_id' },
+  { title: 'zone', key: 'zone_employee_id' },
 
-  /* Dropdown options */
-  const resourceItems = computed(() => toArray(repo.resource));
-  const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
-  const zoneEmployeesItems = computed(() => toArray(repo.ZoneEmployees));
-  const seyasiItems = computed(() => toArray(repo.seyasiOptions));
-  const jenayeeItems = computed(() => toArray(repo.jenayeeOptions));
-  const infoCategoryItems = computed(() => toArray(repo.infoCategoryOptions));
+  { title: t('نام'), key: 'name' },
+  { title: t('نام پدر'), key: 'father_name' },
+  { title: t('نام پدرکلان'), key: 'grand_father_name' },
+  { title: t('نام مستعار'), key: 'nickname' },
 
-  /* Single-row editor */
-  let tmpId = 0;
-  const newTmpId = () => `tmp-${++tmpId}`;
-  const rows = ref([]);
+  { title: t('ولایت اصلی'), key: 'main_province' },
+  { title: t('ولسوالی اصلی'), key: 'main_district' },
+  { title: t('قریه اصلی'), key: 'main_village' },
 
-  function toRowModel(x = {}) {
-    const base = {
-      id: x.id ?? null,
-      idOrTmp: x.id ?? newTmpId(),
-      loading: false,
+  { title: t('ولایت فعلی'), key: 'now_province' },
+  { title: t('ولسوالی فعلی'), key: 'now_district' },
+  { title: t('قریه فعلی'), key: 'now_village' },
 
-      /* codes */
-      resource_id: x.resource_id ?? null,
-      officeemployee_id: x.officeemployee_id ?? null,
-      zone_employee_id: x.zone_employee_id ?? null,
+  { title: t('زون'), key: 'zone' },
+  { title: t('حوزه'), key: 'hawza' },
+  { title: t('موقعیت مشخص'), key: 'specific_place' },
 
-      /* intro */
-      name: x.name ?? '',
-      father_name: x.father_name ?? '',
-      nickname: x.nickname ?? '',
-      grand_father_name: x.grand_father_name ?? '',
+  { title: t('سیاسی'), key: 'seyasi' },
+  { title: t('جنایی'), key: 'jenayee' },
+  { title: t('تاریخ اطلاع'), key: 'information_date' },
+  { title: t('ساعت اطلاع'), key: 'information_hour' },
+  { title: t('درجه موثقیت اطلاع'), key: 'importance_degree' },
+  { title: t('کتگوری اطلاع'), key: 'information_category' },
 
-      /* addresses */
-      main_province: x.main_province ?? '',
-      main_district: x.main_district ?? '',
-      main_village: x.main_village ?? '',
-      now_province: x.now_province ?? '',
-      now_district: x.now_district ?? '',
-      now_village: x.now_village ?? '',
+  { title: t('کود کارمند اطلاع گیرنده'), key: 'information_office_employee_code' },
+  { title: t('کود رزیدانت اطلاع گیرنده'), key: 'infomation_zone_employee_code' },
 
-      /* provision/meta (optional) */
-      zone: x.zone ?? '',
-      hawza: x.hawza ?? '',
-      specific_place: x.specific_place ?? '',
+  { title: t('کوردینات'), key: 'coordenates' },
 
-      /* types */
-      seyasi: x.seyasi ?? '',
-      jenayee: x.jenayee ?? '',
+  { title: t('تفصیل'), key: 'tafseel' },
+  { title: t('گفت‌وگوها'), key: 'talks' },
+  { title: t('نتیجه'), key: 'outcome' },
+  { title: t('ملاحظات'), key: 'notes' },
+]);
 
-      /* time & category */
-      information_date: x.information_date ?? '',
-      information_hour: x.information_hour ?? '',
-      importance_degree: x.importance_degree ?? '',
-      information_category: x.information_category ?? '',
-
-      /* info employee codes */
-      information_office_employee_code: x.information_office_employee_code ?? '',
-      infomation_zone_employee_code: x.infomation_zone_employee_code ?? '',
-
-      /* long texts */
-      tafseel: x.tafseel ?? '',
-      talks: x.talks ?? '',
-      outcome: x.outcome ?? '',
-      notes: x.notes ?? '',
-
-      /* coordenates */
-      coordenates: x.coordenates ?? '',
-
-      /* documents */
-      existingDocs: Array.isArray(x.documents) ? x.documents : [],
-    };
-
-    return { ...base, draft: { ...base, _newDocs: [] } };
-  }
-
-  function setBlankEditorRow() {
-    rows.value = [toRowModel({})];
-  }
-
-  /* Table headers (editor) */
-  const headers = computed(() => [
-    { title: t('کود ها'), key: 'codes', align: 'center' },
-    { title: t('معرفت'), key: 'introduction', align: 'center' },
-    { title: t('سکونت اصلی'), key: 'main_province', align: 'center' },
-    { title: t('سکونت فعلی'), key: 'now_province', align: 'center' },
-    { title: t('محل تدارک'), key: 'provision_place', align: 'center' },
-    { title: t('کوردینات'), key: 'coordenates', align: 'center' },
-    { title: t('نوعیت اطلاع'), key: 'information_type', align: 'center' },
-    { title: t('تاریخ اطلاع'), key: 'information_date', align: 'center' },
-    { title: t('ساعت اطلاع'), key: 'information_hour', align: 'center' },
-    { title: t('درجه موثقیت اطلاع'), key: 'importance_degree', align: 'center' },
-    { title: t('کتگوری اطلاع'), key: 'information_category', align: 'center' },
-    { title: t('کود اطلاع گیرنده'), key: 'infomation_employee_code', align: 'center' },
-    { title: t('تفصیل'), key: 'tafseel', align: 'center' },
-    { title: t('گفت‌وگوها'), key: 'talks', align: 'center' },
-    { title: t('نتیجه'), key: 'outcome', align: 'center' },
-    { title: t('ملاحظات'), key: 'notes', align: 'center' },
-    { title: t('اسناد و شواهد'), key: 'documents', align: 'center' },
-    { title: t('عمل'), key: 'actions', sortable: false, align: 'center' },
-  ]);
-
-  /* Filterable table (bottom) */
-  const rowsFT = computed(() => toArray(repo.Informations));
-  const headersFT = computed(() => [
-    // codes (atomic)
-    { title: 'resource', key: 'resource_id' },
-    { title: 'employee', key: 'officeemployee_id' },
-    { title: 'zone', key: 'zone_employee_id' },
-
-    // intro
-    { title: t('نام'), key: 'name' },
-    { title: t('نام پدر'), key: 'father_name' },
-    { title: t('نام پدرکلان'), key: 'grand_father_name' },
-    { title: t('نام مستعار'), key: 'nickname' },
-
-    // addresses
-    { title: t('ولایت اصلی'), key: 'main_province' },
-    { title: t('ولسوالی اصلی'), key: 'main_district' },
-    { title: t('قریه اصلی'), key: 'main_village' },
-
-    { title: t('ولایت فعلی'), key: 'now_province' },
-    { title: t('ولسوالی فعلی'), key: 'now_district' },
-    { title: t('قریه فعلی'), key: 'now_village' },
-
-    // provision/meta
-    { title: t('زون'), key: 'zone' },
-    { title: t('حوزه'), key: 'hawza' },
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-
-    // types & time
-    { title: t('سیاسی'), key: 'seyasi' },
-    { title: t('جنایی'), key: 'jenayee' },
-    { title: t('تاریخ اطلاع'), key: 'information_date' },
-    { title: t('ساعت اطلاع'), key: 'information_hour' },
-    { title: t('درجه موثقیت اطلاع'), key: 'importance_degree' },
-    { title: t('کتگوری اطلاع'), key: 'information_category' },
-
-    // employee codes (plain)
-    { title: t('کود کارمند اطلاع گیرنده'), key: 'information_office_employee_code' },
-    { title: t('کود رزیدانت اطلاع گیرنده'), key: 'infomation_zone_employee_code' },
-
-    // coordenates
-    { title: t('کوردینات'), key: 'coordenates' },
-
-    // long texts
-    { title: t('تفصیل'), key: 'tafseel' },
-    { title: t('گفت‌وگوها'), key: 'talks' },
-    { title: t('نتیجه'), key: 'outcome' },
-    { title: t('ملاحظات'), key: 'notes' },
-  ]);
-
-  const topGroups = computed(() => [
-    { title: t('کود ها'), keys: ['resource_id', 'officeemployee_id', 'zone_employee_id'] },
-    { title: t('معرفت'), keys: ['name', 'father_name', 'grand_father_name', 'nickname'] },
-    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-    { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
-    {
-      title: t('محل تدارک / متفرقه'),
-      keys: ['zone', 'hawza', 'specific_place', 'coordenates'],
-    },
-    {
-      title: t('نوع و زمان اطلاع'),
-      keys: [
-        'seyasi',
-        'jenayee',
-        'information_date',
-        'information_hour',
-        'importance_degree',
-        'information_category',
-      ],
-    },
-    {
-      title: t('کودهای کارمند'),
-      keys: ['information_office_employee_code', 'infomation_zone_employee_code'],
-    },
-    { title: t('متن‌ها'), keys: ['tafseel', 'talks', 'outcome', 'notes'] },
-  ]);
-
-  /* Filters for FilterableTable */
-  const filters = ref({});
-
-  /* Docs UI */
-  function openDocsPicker(slotItem) {
-    const item = getRow(slotItem);
-    if (!item) return;
-    document.getElementById(`docs-${item.idOrTmp}`)?.click();
-  }
-  function onPickDocs(slotItem, files) {
-    const item = getRow(slotItem);
-    if (!item?.draft) return;
-    item.draft._newDocs = Array.isArray(files) ? files : [];
-  }
-  function shortName(name = '') {
-    if (name.length <= 18) return name;
-    const dot = name.lastIndexOf('.');
-    if (dot === -1) return name.slice(0, 15) + '…';
-    const ext = name.slice(dot);
-    const base = name.slice(0, 15);
-    return `${base}…${ext}`;
-  }
-
-  /* Diff & payload */
-  function diffDraft(item) {
-    const d = item.draft || {};
-    const changed = {};
-    const keys = [
-      'resource_id',
-      'officeemployee_id',
-      'zone_employee_id',
-      'name',
-      'father_name',
-      'nickname',
-      'grand_father_name',
-      'main_province',
-      'main_district',
-      'main_village',
-      'now_province',
-      'now_district',
-      'now_village',
-      'zone',
-      'hawza',
-      'specific_place',
-      'coordenates',
+const topGroups = computed(() => [
+  { title: t('کود ها'), keys: ['resource_id', 'officeemployee_id', 'zone_employee_id'] },
+  { title: t('معرفت'), keys: ['name', 'father_name', 'grand_father_name', 'nickname'] },
+  { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+  { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
+  { title: t('محل تدارک / متفرقه'), keys: ['zone', 'hawza', 'specific_place', 'coordenates'] },
+  {
+    title: t('نوع و زمان اطلاع'),
+    keys: [
       'seyasi',
       'jenayee',
       'information_date',
       'information_hour',
       'importance_degree',
       'information_category',
-      'information_office_employee_code',
-      'infomation_zone_employee_code',
-      'tafseel',
-      'talks',
-      'outcome',
-      'notes',
-    ];
-    for (const k of keys) {
-      if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    }
-    return changed;
+    ],
+  },
+  { title: t('کودهای کارمند'), keys: ['information_office_employee_code', 'infomation_zone_employee_code'] },
+  { title: t('متن‌ها'), keys: ['tafseel', 'talks', 'outcome', 'notes'] },
+]);
+
+/* Filters */
+const filters = ref({});
+
+/* Docs UI */
+function openDocsPicker(slotItem) {
+  const item = getRow(slotItem);
+  if (!item) return;
+  document.getElementById(`docs-${item.idOrTmp}`)?.click();
+}
+function onPickDocs(slotItem, files) {
+  const item = getRow(slotItem);
+  if (!item?.draft) return;
+  item.draft._newDocs = Array.isArray(files) ? files : [];
+}
+function shortName(name = '') {
+  if (name.length <= 18) return name;
+  const dot = name.lastIndexOf('.');
+  if (dot === -1) return name.slice(0, 15) + '…';
+  const ext = name.slice(dot);
+  const base = name.slice(0, 15);
+  return `${base}…${ext}`;
+}
+function openDoc(url) {
+  if (!url) return;
+  window.open(url, '_blank');
+}
+function markDocForRemoval(item, doc) {
+  if (!doc?.id) return;
+  if (!Array.isArray(item.draft.removed_document_ids)) item.draft.removed_document_ids = [];
+  if (!item.draft.removed_document_ids.includes(doc.id)) {
+    item.draft.removed_document_ids.push(doc.id);
+  }
+  item.existingDocs = (item.existingDocs || []).filter((d) => d.id !== doc.id);
+}
+
+/* Diff & payload */
+function diffDraft(item) {
+  const d = item.draft || {};
+  const changed = {};
+  const keys = [
+    'resource_id',
+    'officeemployee_id',
+    'zone_employee_id',
+    'name',
+    'father_name',
+    'nickname',
+    'grand_father_name',
+    'main_province',
+    'main_district',
+    'main_village',
+    'now_province',
+    'now_district',
+    'now_village',
+    'zone',
+    'hawza',
+    'specific_place',
+    'coordenates',
+    'seyasi',
+    'jenayee',
+    'information_date',
+    'information_hour',
+    'importance_degree',
+    'information_category',
+    'information_office_employee_code',
+    'infomation_zone_employee_code',
+    'tafseel',
+    'talks',
+    'outcome',
+    'notes',
+  ];
+  for (const k of keys) {
+    if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
+  }
+  return changed;
+}
+
+function appendFD(fd, k, v) {
+  if (v == null) return;
+  if (Array.isArray(v)) {
+    v.forEach((val) => appendFD(fd, k + '[]', val));
+    return;
+  }
+  if (typeof v === 'object' && !(v instanceof File) && !(v instanceof Blob)) {
+    fd.append(k, v.id ?? v.value ?? JSON.stringify(v));
+    return;
+  }
+  fd.append(k, v);
+}
+function toFormDataSelective(obj) {
+  const fd = new FormData();
+  for (const [k, v] of Object.entries(obj)) appendFD(fd, k, v);
+  return fd;
+}
+
+/* Save / Delete / Download zip */
+async function save(slotItem) {
+  const item = getRow(slotItem);
+  if (!item) return;
+
+  clearItemErrors(item);
+
+  // basic client-side check
+  if (!item.draft?.name?.trim()) {
+    showErrorMessage(t('نام الزامی است'));
+    await nextTick();
+    scrollToFirstInvalid();
+    return;
   }
 
-  function appendFD(fd, k, v) {
-    if (v == null) return;
-    if (Array.isArray(v)) {
-      v.forEach((val) => appendFD(fd, k + '[]', val));
-      return;
-    }
-    if (typeof v === 'object' && !(v instanceof File) && !(v instanceof Blob)) {
-      fd.append(k, v.id ?? v.value ?? JSON.stringify(v));
-      return;
-    }
-    fd.append(k, v);
-  }
-  function toFormDataSelective(obj) {
-    const fd = new FormData();
-    for (const [k, v] of Object.entries(obj)) appendFD(fd, k, v);
-    return fd;
-  }
+  const changed = item.id ? diffDraft(item) : { ...item.draft };
+  const fd = toFormDataSelective(changed);
+  (item.draft._newDocs || []).forEach((f) => fd.append('documents[]', f));
+  // attach deletions if any
+  (item.draft.removed_document_ids || []).forEach((id) => fd.append('removed_document_ids[]', id));
 
-  /* Save / Delete / Download zip */
-  async function save(slotItem) {
-    const item = getRow(slotItem);
-    if (!item) return;
+  const key = item.idOrTmp ?? item.id ?? `tmp-${Date.now()}`;
+  item.loading = true;
+  startProgress(key);
 
-    const changed = item.id ? diffDraft(item) : { ...item.draft };
-    const fd = toFormDataSelective(changed);
-    (item.draft._newDocs || []).forEach((f) => fd.append('documents[]', f));
+  try {
+    if (!item.id) {
+      const created = await repo
+        .CreateInformation?.(fd, (pct) => setProgress(key, pct))
+        .catch((e) => {
+          if (e?.response?.data?.errors) setItemErrors(item, e.response.data.errors);
+          return null;
+        });
 
-    const key = item.idOrTmp ?? item.id ?? `tmp-${Date.now()}`;
-    item.loading = true;
-    startProgress(key);
-
-    try {
-      if (!item.id) {
-        const created = await repo
-          .CreateInformation(fd, (pct) => setProgress(key, pct))
-          .catch(() => null);
-        if (created?.id) {
-          // refresh & reset
-          await fetchAll();
-          setBlankEditorRow();
-          showErrorMessage(t('اطلاع ایجاد شد'));
-        } else {
-          await fetchAll();
-          setBlankEditorRow();
-        }
-        return;
-      }
-
-      // UPDATE
-      if ([...fd.keys()].length === 0) {
-        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
-        return;
-      }
-      const updated = await repo
-        .UpdateInformation(item.id, fd, (pct) => setProgress(key, pct))
-        .catch(() => null);
-      if (updated?.id) {
+      if (created?.id) {
         await fetchAll();
         setBlankEditorRow();
-        showErrorMessage(t('اطلاع بروزرسانی شد'));
+        editorForm.value?.resetValidation?.();
+        showErrorMessage(t('اطلاع ایجاد شد'));
+      } else {
+        // ensure list reflects any server-side changes
+        await fetchAll();
       }
-    } finally {
-      endProgress(key);
-      item.loading = false;
-    }
-  }
-
-  async function del(slotItem) {
-    const item = getRow(slotItem);
-    if (!item) return;
-    if (!item.id) {
-      setBlankEditorRow();
       return;
     }
-    if (!confirm(t('آیا از حذف "{name}" مطمئن هستید؟', { name: item.name || t('رکورد') }))) return;
 
-    try {
-      await repo.DeleteInformation(item.id);
+    // UPDATE
+    if ([...fd.keys()].length === 0) {
+      showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
+      return;
+    }
+
+    const updated = await repo
+      .UpdateInformation?.(item.id, fd, (pct) => setProgress(key, pct))
+      .catch((e) => {
+        if (e?.response?.data?.errors) setItemErrors(item, e.response.data.errors);
+        return null;
+      });
+
+    if (updated?.id) {
       await fetchAll();
       setBlankEditorRow();
-      showErrorMessage(t('اطلاع حذف شد'));
-    } catch {
-      showErrorMessage(t('خطا در حذف اطلاع'));
+      editorForm.value?.resetValidation?.();
+      showErrorMessage(t('اطلاع بروزرسانی شد'));
     }
+  } finally {
+    endProgress(key);
+    item.loading = false;
   }
+}
 
-  async function downloadAll(slotItem) {
-    const item = getRow(slotItem);
-    if (!item?.id) return;
-    const base = (item.name || 'documents').toLowerCase().replace(/\s+/g, '_');
-    await repo.DownloadInformationZip(item.id, `${base}_documents.zip`);
+/* VALIDATED SUBMIT */
+async function onSubmit(item) {
+  const form = editorForm.value;
+  if (!form) return;
+  const { valid } = await form.validate();
+  if (!valid) {
+    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+    await nextTick();
+    scrollToFirstInvalid();
+    return;
   }
+  await save(item);
+}
 
-  function clearEditor(slotItem) {
-    const item = getRow(slotItem);
-    if (!item) return;
-    item.draft = { ...toRowModel({}).draft };
-    item.draft._newDocs = [];
-    showErrorMessage(t('ورودی‌ها پاک شد'));
+/* SCROLL TO FIRST INVALID INPUT */
+function scrollToFirstInvalid() {
+  const first =
+    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+    document.querySelector('.v-messages__message');
+
+  if (first) {
+    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const input = first.querySelector('input, textarea, .v-field__input');
+    if (input && typeof input.focus === 'function') input.focus();
   }
+}
 
-  /* Fetch ALL for FilterableTable */
-  async function fetchAll() {
-    try {
-      await repo.FetchInformationsData({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search,
-      });
-    } catch (e) {
-      // ignore
-    }
+/* Hard reset form validation if ever needed */
+async function hardResetFormValidation() {
+  editorValid.value = false;
+  itemErrors.value = {};
+  await nextTick();
+  editorForm.value?.resetValidation?.();
+  formKey.value++;
+  await nextTick();
+}
+
+async function del(slotItem) {
+  const item = getRow(slotItem);
+  if (!item) return;
+  if (!item.id) {
+    setBlankEditorRow();
+    editorForm.value?.resetValidation?.();
+    return;
   }
+  if (!confirm(t('آیا از حذف "{name}" مطمئن هستید؟', { name: item.name || t('رکورد') }))) return;
 
-  /* Start edit from FilterableTable */
-  const editorCard = ref(null);
-  async function startEdit(row) {
-    try {
-      const id = row?.id;
-      if (!id) return;
-
-      if (typeof repo.FetchInformationData === 'function') {
-        await repo.FetchInformationData(id);
-        const single =
-          (repo.Information && Array.isArray(repo.Information)
-            ? repo.Information[0]
-            : repo.Information) || row;
-        rows.value = [toRowModel(single)];
-      } else {
-        await fetchAll();
-        const list = rowsFT.value || [];
-        const single = list.find((r) => r.id === id) || row;
-        rows.value = [toRowModel(single)];
-      }
-
-      await nextTick();
-      const el = editorCard.value?.$el || editorCard.value;
-      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-    } catch {
-      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
-    }
-  }
-
-  /* Peek state & methods */
-  const expanded = ref(false);
-  const selectedId = ref(null);
-  const loading = ref(false);
-  const detail = ref(null);
-
-  async function fetchOne(id) {
-    loading.value = true;
-    try {
-      if (typeof repo.FetchInformationData === 'function') {
-        await repo.FetchInformationData(id);
-        detail.value =
-          (repo.Information && Array.isArray(repo.Information)
-            ? repo.Information[0]
-            : repo.Information) || {};
-      } else {
-        await fetchAll();
-        const list = rowsFT.value || [];
-        detail.value = list.find((r) => r.id === id) || {};
-      }
-    } finally {
-      loading.value = false;
-    }
-  }
-  function openPeek(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-    selectedId.value = row.id;
-    expanded.value = true;
-    fetchOne(row.id);
-  }
-
-  /* Init */
-  onMounted(async () => {
-    await Promise.allSettled([
-      repo.GetOfficeEmployee?.(),
-      repo.GetResource?.(),
-      repo.GetZoneEmployees?.(),
-    ]);
+  try {
+    await repo.DeleteInformation?.(item.id);
     await fetchAll();
     setBlankEditorRow();
-  });
+    editorForm.value?.resetValidation?.();
+    showErrorMessage(t('اطلاع حذف شد'));
+  } catch (e) {
+    showErrorMessage(t('خطا در حذف اطلاع'));
+  }
+}
+
+async function downloadAll(slotItem) {
+  const item = getRow(slotItem);
+  if (!item?.id) return;
+  const base = (item.name || 'documents').toLowerCase().replace(/\s+/g, '_');
+  await repo.DownloadInformationZip?.(item.id, `${base}_documents.zip`);
+}
+
+function clearEditor(slotItem) {
+  const item = getRow(slotItem);
+  if (!item) return;
+  item.draft = { ...toRowModel({}).draft };
+  item.draft._newDocs = [];
+  item.draft.removed_document_ids = [];
+  clearItemErrors(item);
+  editorForm.value?.resetValidation?.();
+  showErrorMessage(t('ورودی‌ها پاک شد'));
+}
+
+/* Fetch ALL for FilterableTable */
+async function fetchAll() {
+  try {
+    await repo.FetchInformationsData?.({
+      page: 1,
+      itemsPerPage: 100000,
+      search: repo.Search,
+    });
+  } catch (e) {
+    // ignore
+  }
+}
+
+/* Start edit from FilterableTable */
+const editorCard = ref(null);
+async function startEdit(row) {
+  try {
+    const id = row?.id;
+    if (!id) return;
+
+    if (typeof repo.FetchInformationData === 'function') {
+      await repo.FetchInformationData(id);
+      const single =
+        (repo.Information && Array.isArray(repo.Information)
+          ? repo.Information[0]
+          : repo.Information) || row;
+      rows.value = [toRowModel(single)];
+    } else {
+      await fetchAll();
+      const list = rowsFT.value || [];
+      const single = list.find((r) => r.id === id) || row;
+      rows.value = [toRowModel(single)];
+    }
+
+    await nextTick();
+    const el = editorCard.value?.$el || editorCard.value;
+    el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  } catch {
+    showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
+  }
+}
+
+/* Peek state & methods */
+const expanded = ref(false);
+const selectedId = ref(null);
+const loading = ref(false);
+const detail = ref(null);
+
+async function fetchOne(id) {
+  loading.value = true;
+  try {
+    if (typeof repo.FetchInformationData === 'function') {
+      await repo.FetchInformationData(id);
+      detail.value =
+        (repo.Information && Array.isArray(repo.Information)
+          ? repo.Information[0]
+          : repo.Information) || {};
+    } else {
+      await fetchAll();
+      const list = rowsFT.value || [];
+      detail.value = list.find((r) => r.id === id) || {};
+    }
+  } finally {
+    loading.value = false;
+  }
+}
+function openPeek(payload) {
+  const row = payload?.raw ?? payload;
+  if (!row?.id) return;
+  selectedId.value = row.id;
+  expanded.value = true;
+  fetchOne(row.id);
+}
+
+/* Init */
+onMounted(async () => {
+  await Promise.allSettled([
+    repo.GetOfficeEmployee?.(),
+    repo.GetResource?.(),
+    repo.GetZoneEmployees?.(),
+  ]);
+  await fetchAll();
+  setBlankEditorRow();
+});
 </script>
 
 <style scoped>
@@ -1145,5 +1306,10 @@
   :deep(.v-autocomplete) {
     margin-right: -10px !important;
     margin-left: 2px;
+  }
+
+  .tablebody {
+    display: flex !important;
+    gap: 2px !important;
   }
 </style>

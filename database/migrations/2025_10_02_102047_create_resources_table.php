@@ -10,55 +10,58 @@ return new class extends Migration {
         Schema::create('resources', function (Blueprint $table) {
             $table->id();
 
+            
             $table->string('picture')->nullable();
-
             // introduction
             $table->string('name');
             $table->string('father_name')->nullable();
             $table->string('grand_father_name')->nullable();
-            $table->string('nickname')->nullable();
-            $table->string('tazkira')->nullable();
+            $table->string('nick_name')->nullable();
             $table->string('code_number')->nullable()->index();
+            $table->string('tazkira')->nullable();
 
-            // addresses
+            // main address
             $table->string('main_province')->nullable();
             $table->string('main_district')->nullable();
             $table->string('main_village')->nullable();
 
+            // current address
             $table->string('now_province')->nullable();
             $table->string('now_district')->nullable();
             $table->string('now_village')->nullable();
+            $table->string('now_specific_place')->nullable();
+            $table->string('now_street_number')->nullable();
+            $table->string('now_home_number')->nullable();
 
-            // job & provision place
+            // jobs
             $table->string('old_job')->nullable();
-            $table->string('new_job')->nullable();
+            $table->string('now_job')->nullable();
             $table->string('job_place')->nullable();
 
-            $table->string('zone')->nullable();
-            $table->string('hawza')->nullable();
-            $table->string('specific_place')->nullable();
-
-            // others
-            $table->string('phone_number')->nullable();
-            $table->enum('activity', ['غیر فعال', 'فعال'])->nullable();
-            $table->enum('halat_madani', ['مجرد', 'متاهل'])->nullable();
+            // status & education
+            $table->enum('activity', ['غیر فعال','فعال'])->nullable();
+            $table->enum('halat_madani', ['مجرد','متاهل'])->nullable();
             $table->string('age')->nullable();
-            $table->string('study_status')->nullable();
+            $table->string('elmi_level')->nullable();
+            $table->string('faculty')->nullable();
+            $table->string('specific_skills')->nullable();
+            $table->string('train')->nullable();
+
+            // misc
             $table->string('resource_saved_date')->nullable();
             $table->string('resource_activity_type')->nullable();
+
+            // relation
+            $table->foreignId('office_employee_id')->nullable()
+                  ->constrained('office_employees')->nullOnDelete();
+
             $table->string('resource_cover')->nullable();
             $table->string('language')->nullable();
             $table->string('nation')->nullable();
-            $table->string('project')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->string('coordinates')->nullable();
 
-            // relations
-            $table->foreignId('resedint_id')->nullable()
-                ->constrained('resedints')->nullOnDelete();
-
-            $table->foreignId('officeemployee_id')->nullable()
-                ->constrained('office_employees')->nullOnDelete();
-
-            $table->text('notes')->nullable();
+            $table->text('note')->nullable();
 
             $table->timestamps();
         });

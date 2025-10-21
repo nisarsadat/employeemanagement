@@ -149,9 +149,9 @@
     // },
     { title: t(' خطی اطلاعات'), path: '/inlineinfo', icon: 'mdi-menu' },
     { title: t('استفاده کوونکی'), path: '/users', icon: 'mdi-account' },
-    { title: t('د مدیریت کارمندان'), path: '/officeemployee', icon: 'mdi-account-outline' },
-    { title: t('تدابیری کارمندان'), path: '/zoneemployee', icon: 'mdi-account-outline' },
-    { title: t('د رزیدینتانو په اره'), path: '/resedintemployee', icon: 'mdi-account-outline' },
+    { title: t('  کارمندان'), path: '/officeemployee', icon: 'mdi-account-outline' },
+    // { title: t('تدابیری کارمندان'), path: '/zoneemployee', icon: 'mdi-account-outline' },
+    // { title: t('د رزیدینتانو په اره'), path: '/resedintemployee', icon: 'mdi-account-outline' },
     // {
     //   title: t('افراد'),
     //   icon: 'mdi-account-outline',

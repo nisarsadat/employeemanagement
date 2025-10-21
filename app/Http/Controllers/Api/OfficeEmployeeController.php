@@ -17,43 +17,63 @@ class OfficeEmployeeController extends Controller
     /**
      * List all office employees with search and documents.
      */
+
     public function index(Request $request)
     {
-        // ✅ Validate/sanitize pagination & search
         $request->validate([
             'page'    => 'sometimes|integer|min:1',
-            'perPage' => 'sometimes', // allow 'all' (string) from UI
+            'perPage' => 'sometimes', // int | "all" | missing
             'search'  => 'nullable|string',
         ]);
 
-        $rawPerPage = $request->input('perPage', 15);
-        $page       = (int) $request->input('page', 1);
         $search     = $request->input('search');
+        $rawPerPage = $request->input('perPage', null);
+        $page       = (int) $request->input('page', 1);
 
         $query = OfficeEmployee::query()
             ->with(['documents'])
-            // ✅ Grouped search to avoid OR leaking outside
+            ->withCount([
+                'events',
+                'resources',
+                'informations',
+                'documents',
+            ])
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($qq) use ($search) {
                     $qq->where('name', 'like', "%{$search}%")
-                       ->orWhere('code_number', 'like', "%{$search}%")
-                       ->orWhere('phone_number', 'like', "%{$search}%");
+                    ->orWhere('code_number', 'like', "%{$search}%")
+                    ->orWhere('phone_number', 'like', "%{$search}%");
                 });
             })
             ->orderByDesc('id');
 
-        // ✅ Support "all" without breaking paginator math
-        if ($rawPerPage === 'all') {
+        // Return ALL if perPage missing / "all" / 0
+        if (is_null($rawPerPage) || $rawPerPage === '' || strtolower((string)$rawPerPage) === 'all' || (int)$rawPerPage === 0) {
             $items = $query->get();
             return OfficeEmployeeResource::collection($items);
         }
 
-        $perPage = (int) $rawPerPage ?: 15;
+        $perPage = max(1, (int) $rawPerPage);
 
         return OfficeEmployeeResource::collection(
             $query->paginate($perPage, ['*'], 'page', $page)
         );
     }
+
+    public function show(OfficeEmployee $officeEmployee)
+    {
+        return new OfficeEmployeeResource(
+            $officeEmployee
+                ->load(['documents'])
+                ->loadCount([
+                    'events',
+                    'resources',
+                    'informations',
+                    'documents',
+                ])
+        );
+    }
+
 
     /**
      * Store a new office employee.
@@ -100,15 +120,7 @@ class OfficeEmployeeController extends Controller
         }
     }
 
-    /**
-     * Show a single office employee with documents.
-     */
-    public function show(OfficeEmployee $officeEmployee)
-    {
-        return new OfficeEmployeeResource(
-            $officeEmployee->load(['documents']) // ✅ load before return
-        );
-    }
+
 
     /**
      * Update an existing office employee.

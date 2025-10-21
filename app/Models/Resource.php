@@ -38,185 +38,88 @@ class Resource extends Model
 {
     protected $fillable = [
         'picture',
+        // intro
         'name',
         'father_name',
         'grand_father_name',
-        'nickname',
-        'tazkira',
+        'nick_name',
         'code_number',
+        'tazkira',
+
+        // main address
         'main_province',
         'main_district',
         'main_village',
+
+        // current address
         'now_province',
         'now_district',
         'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+
+        // jobs
         'old_job',
-        'new_job',
+        'now_job',
         'job_place',
-        'zone',
-        'hawza',
-        'specific_place',
-        'phone_number',
+
+        // status & education
         'activity',
         'halat_madani',
         'age',
-        'study_status',
+        'elmi_level',
+        'faculty',
+        'specific_skills',
+        'train',
+
+        // misc
         'resource_saved_date',
         'resource_activity_type',
+        'office_employee_id',
         'resource_cover',
         'language',
         'nation',
-        'project',
-        'resedint_id',
-        'officeemployee_id',
-        'notes',
+        'phone_number',
+        'coordinates',
+        'note',
     ];
 
-    public function resedint()
-    {
-        return $this->belongsTo(\App\Models\Resedint::class);
-    }
+    // Relations (unchanged)
     public function officeEmployee()
     {
-        return $this->belongsTo(\App\Models\OfficeEmployee::class, 'officeemployee_id');
-    }
-    public function events()
-    {
-        return $this->hasMany(Event::class);
-    }
-    public function fasads()
-    {
-        return $this->hasMany(Fasad::class , 'resource_id', 'id');
-    }
-    public function saeenFasads()
-    {
-        return $this->hasMany(SaeenFasad::class  , 'resource_id', 'id');
-    }
-    public function heists()
-    {
-        return $this->hasMany(Heist::class , 'resource_id', 'id');
-    }
-    public function captives()
-    {
-        return $this->hasMany(Captive::class , 'resource_id', 'id');
-    }
-    public function mulkanos()
-    {
-        return $this->hasMany(Mulkano::class , 'resource_id', 'id');
-    }
-    public function entryExits()
-    {
-        return $this->hasMany(EntryExit::class , 'resource_id', 'id');
-    }
-    public function sarafyanos()
-    {
-        return $this->hasMany(Sarafyano::class , 'resource_id', 'id');
-    }
-    public function clubs()
-    {
-        return $this->hasMany(Clubs::class , 'resource_id', 'id');
-    }
-    public function mahajerats()
-    {
-        return $this->hasMany(Mahajerat::class , 'resource_id', 'id');
-    }
-    public function soldiers()
-    {
-        return $this->hasMany(Soldier::class , 'resource_id', 'id');
-    }
-    public function mawads()
-    {
-        return $this->hasMany(Mawad::class , 'resource_id' , 'id');
-    }
-    public function lostmujremeens()
-    {
-        return $this->hasMany(LostMujremeen::class , 'resource_id' , 'id');
-    }
-    public function oldSoldiersHomes()
-    {
-        return $this->hasMany(OldSoldiersHomes::class , 'resource_id' , 'id');
-    }
-    public function robbers()
-    {
-        return $this->hasMany(Robbers::class , 'resource_id' , 'id');
-    }
-    public function nonResponsablePeople()
-    {
-        return $this->hasMany(NonResponsablePeople::class , 'resource_id' , 'id');
-    }
-    public function mashkokHomes()
-    {
-        return $this->hasMany(MashkokHomes::class , 'resource_id' , 'id');
-    }
-    public function damagePlaces()
-    {
-        return $this->hasMany(DamagePlaces::class , 'resource_id' , 'id');
-    }
-    public function damageRasanPlaces()
-    {
-        return $this->hasMany(DamageRasanPlaces::class , 'resource_id' , 'id');
-    }
-    public function mashkokShops()
-    {
-        return $this->hasMany(MashkokShops::class , 'resource_id' , 'id');
-    }
-    public function luchakano()
-    {
-        return $this->hasMany(Luchakano::class , 'resource_id' , 'id');
-    }
-    public function workshops()
-    {
-        return $this->hasMany(WorkShop::class , 'resource_id' , 'id');
+        return $this->belongsTo(OfficeEmployee::class, 'office_employee_id');
     }
 
-    public function hosppitals()
-    {
-        return $this->hasMany(Hosppital::class , 'resource_id' , 'id');
-    }
-
-    public function rahnomaMamlats()
-    {
-        return $this->hasMany(RahnomaMamlat::class , 'resource_id' , 'id');
-    }
-
-    public function apartments()
-    {
-        return $this->hasMany(Apartment::class , 'resource_id' , 'id');
-    }
-
-    public function banks()
-    {
-        return $this->hasMany(Bank::class , 'resource_id' , 'id');
-    }
-
-    public function transportCompanies()
-    {
-        return $this->hasMany(TransportCompany::class , 'resource_id' , 'id');
-    }
-
-    public function hadoBusStops()
-    {
-        return $this->hasMany(HadoBusStop::class , 'resource_id' , 'id');
-    }
-
-    public function carSalesCompanies()
-    {
-        return $this->hasMany(CarSalesCompany::class , 'resource_id' , 'id');
-    }
-
-    public function schools()
-    {
-        return $this->hasMany(School::class , 'resource_id' , 'id');
-    }
-
-    public function parkings()
-    {
-        return $this->hasMany(Parking::class , 'resource_id' , 'id');
-    }
-
-
-
-
-
-
+    public function events() { return $this->hasMany(Event::class); }
+    public function fasads() { return $this->hasMany(Fasad::class , 'resource_id','id'); }
+    public function saeenFasads() { return $this->hasMany(SaeenFasad::class , 'resource_id','id'); }
+    public function heists() { return $this->hasMany(Heist::class , 'resource_id','id'); }
+    public function captives() { return $this->hasMany(Captive::class , 'resource_id','id'); }
+    public function mulkanos() { return $this->hasMany(Mulkano::class , 'resource_id','id'); }
+    public function entryExits() { return $this->hasMany(EntryExit::class , 'resource_id','id'); }
+    public function sarafyanos() { return $this->hasMany(Sarafyano::class , 'resource_id','id'); }
+    public function clubs() { return $this->hasMany(Clubs::class , 'resource_id','id'); }
+    public function mahajerats() { return $this->hasMany(Mahajerat::class , 'resource_id','id'); }
+    public function soldiers() { return $this->hasMany(Soldier::class , 'resource_id','id'); }
+    public function mawads() { return $this->hasMany(Mawad::class , 'resource_id','id'); }
+    public function lostmujremeens() { return $this->hasMany(LostMujremeen::class , 'resource_id','id'); }
+    public function oldSoldiersHomes() { return $this->hasMany(OldSoldiersHomes::class , 'resource_id','id'); }
+    public function robbers() { return $this->hasMany(Robbers::class , 'resource_id','id'); }
+    public function nonResponsablePeople() { return $this->hasMany(NonResponsablePeople::class , 'resource_id','id'); }
+    public function mashkokHomes() { return $this->hasMany(MashkokHomes::class , 'resource_id','id'); }
+    public function damagePlaces() { return $this->hasMany(DamagePlaces::class , 'resource_id','id'); }
+    public function damageRasanPlaces() { return $this->hasMany(DamageRasanPlaces::class , 'resource_id','id'); }
+    public function mashkokShops() { return $this->hasMany(MashkokShops::class , 'resource_id','id'); }
+    public function luchakano() { return $this->hasMany(Luchakano::class , 'resource_id','id'); }
+    public function workshops() { return $this->hasMany(WorkShop::class , 'resource_id','id'); }
+    public function hosppitals() { return $this->hasMany(Hosppital::class , 'resource_id','id'); }
+    public function rahnomaMamlats() { return $this->hasMany(RahnomaMamlat::class , 'resource_id','id'); }
+    public function apartments() { return $this->hasMany(Apartment::class , 'resource_id','id'); }
+    public function banks() { return $this->hasMany(Bank::class , 'resource_id','id'); }
+    public function transportCompanies() { return $this->hasMany(TransportCompany::class , 'resource_id','id'); }
+    public function hadoBusStops() { return $this->hasMany(HadoBusStop::class , 'resource_id','id'); }
+    public function carSalesCompanies() { return $this->hasMany(CarSalesCompany::class , 'resource_id','id'); }
+    public function schools() { return $this->hasMany(School::class , 'resource_id','id'); }
+    public function parkings() { return $this->hasMany(Parking::class , 'resource_id','id'); }
 }

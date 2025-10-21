@@ -25,7 +25,7 @@ class UniqueCodeNumberAcrossStaff implements ValidationRule
             }
 
             if ($query->exists()) {
-                $fail("The :attribute has already been taken.");
+                $fail("کود نمبر نیول شوی ");
                 return;
             }
         }

@@ -1,9 +1,6 @@
 <template>
   <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar
-      :title="t('کارمندان میریت')"
-      :subtitle="t('اضافه کردن یک کارمند مدیریت')"
-    >
+    <AppBar :title="t('کارمندان مدیریت')" :subtitle="t('اضافه کردن یک کارمند مدیریت')">
       <template #actions>
         <v-btn icon></v-btn>
       </template>
@@ -29,6 +26,7 @@
         />
       </v-col>
     </v-row>
+
     <v-form
       ref="editorForm"
       v-model="editorValid"
@@ -48,7 +46,7 @@
           density="comfortable"
           hide-default-footer
         >
-          <!-- Picture cell with hover actions -->
+          <!-- Picture -->
           <template #item.picture="{ item }">
             <div class="pic-wrap">
               <input
@@ -93,7 +91,7 @@
             </div>
           </template>
 
-          <!-- Basic text fields -->
+          <!-- Identity -->
           <template #item.name="{ item }">
             <v-text-field
               v-model="item.draft.name"
@@ -108,30 +106,154 @@
               :error-messages="getErrorMessages(item, 'name')"
             />
           </template>
+
           <template #item.father_name="{ item }">
             <v-text-field
               v-model="item.draft.father_name"
               class="text-group"
               density="compact"
-              required
-              :rules="[rules.required]"
               variant="outlined"
               :label="t('نام پدر')"
+              :rules="[rules.required]"
               hide-details
               :error="hasError(item, 'father_name')"
               :error-messages="getErrorMessages(item, 'father_name')"
             />
           </template>
-          <template #item.nickname="{ item }">
+
+          <template #item.grand_father_name="{ item }">
             <v-text-field
-              v-model="item.draft.nickname"
+              v-model="item.draft.grand_father_name"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('نام پدرکلان')"
+              hide-details
+              :error="hasError(item, 'grand_father_name')"
+              :error-messages="getErrorMessages(item, 'grand_father_name')"
+            />
+          </template>
+
+          <template #item.nick_name="{ item }">
+            <v-text-field
+              v-model="item.draft.nick_name"
               class="text-group"
               density="compact"
               variant="outlined"
               :label="t('نام مستعار')"
               hide-details
-              :error="hasError(item, 'nickname')"
-              :error-messages="getErrorMessages(item, 'nickname')"
+              :error="hasError(item, 'nick_name')"
+              :error-messages="getErrorMessages(item, 'nick_name')"
+            />
+          </template>
+
+          <template #item.code_number="{ item }">
+            <v-text-field
+              v-model="item.draft.code_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('کود نمبر')"
+              hide-details
+              :error="hasError(item, 'code_number')"
+              :error-messages="getErrorMessages(item, 'code_number')"
+            />
+          </template>
+
+          <!-- Rank / Levels -->
+          <template #item.bast="{ item }">
+            <v-text-field
+              v-model="item.draft.bast"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('بست')"
+              hide-details
+              :error="hasError(item, 'bast')"
+              :error-messages="getErrorMessages(item, 'bast')"
+            />
+          </template>
+
+          <template #item.level="{ item }">
+            <v-text-field
+              v-model="item.draft.level"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('رتبه/سطح')"
+              hide-details
+              :error="hasError(item, 'level')"
+              :error-messages="getErrorMessages(item, 'level')"
+            />
+          </template>
+
+          <!-- Background -->
+          <template #item.history_jahad="{ item }">
+            <v-text-field
+              v-model="item.draft.history_jahad"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('سابقه جهاد')"
+              hide-details
+            />
+          </template>
+
+          <template #item.dilgay_mesher="{ item }">
+            <v-text-field
+              v-model="item.draft.dilgay_mesher"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('دلګی/مشری')"
+              hide-details
+            />
+          </template>
+          <template #item.jahadi_mawaqaf="{ item }">
+            <v-select
+              v-model="item.draft.jahadi_mawaqaf"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مواقف جهادی')"
+              :items="repo.getJahadiMawqafOptions()"
+              hide-details
+            />
+          </template>
+
+          <template #item.jahad_time_responsibility="{ item }">
+            <v-text-field
+              v-model="item.draft.jahad_time_responsibility"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مسئولیت در زمان جهاد')"
+              hide-details
+            />
+          </template>
+
+          <template #item.tazkira="{ item }">
+            <v-text-field
+              v-model="item.draft.tazkira"
+              density="compact"
+              class="text-group"
+              variant="outlined"
+              :label="t('شماره تذکره')"
+              hide-details
+              :error="hasError(item, 'tazkira')"
+              :error-messages="getErrorMessages(item, 'tazkira')"
+            />
+          </template>
+
+          <!-- Jahad Place -->
+          <template #item.jahad_place="{ item }">
+            <v-text-field
+              v-model="item.draft.jahad_place"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('محل جهاد')"
+              hide-details
             />
           </template>
 
@@ -180,8 +302,6 @@
                 variant="outlined"
                 hide-details
                 :label="t('ولایت فعلی')"
-                :error="hasError(item, 'now_province')"
-                :error-messages="getErrorMessages(item, 'now_province')"
               />
               <v-text-field
                 v-model="item.draft.now_district"
@@ -189,8 +309,6 @@
                 variant="outlined"
                 hide-details
                 :label="t('ولسوالی فعلی')"
-                :error="hasError(item, 'now_district')"
-                :error-messages="getErrorMessages(item, 'now_district')"
               />
               <v-text-field
                 v-model="item.draft.now_village"
@@ -198,25 +316,130 @@
                 variant="outlined"
                 hide-details
                 :label="t('قریه/ناحیه فعلی')"
-                :error="hasError(item, 'now_village')"
-                :error-messages="getErrorMessages(item, 'now_village')"
               />
             </div>
           </template>
 
-          <!-- Studies -->
-          <template #item.releg_study="{ item }">
+          <template #item.now_specific_place="{ item }">
             <v-text-field
-              v-model="item.draft.releg_study"
+              v-model="item.draft.now_specific_place"
               class="text-group"
               density="compact"
-              :label="t('تغلیمات دینی')"
               variant="outlined"
+              :label="t('محل مشخص فعلی')"
               hide-details
-              :error="hasError(item, 'releg_study')"
-              :error-messages="getErrorMessages(item, 'releg_study')"
             />
           </template>
+
+          <template #item.now_street_number="{ item }">
+            <v-text-field
+              v-model="item.draft.now_street_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('نمبر سرک')"
+              hide-details
+            />
+          </template>
+
+          <template #item.now_home_number="{ item }">
+            <v-text-field
+              v-model="item.draft.now_home_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('نمبر خانه')"
+              hide-details
+            />
+          </template>
+
+          <!-- Job / Org -->
+          <template #item.specific_job="{ item }">
+            <v-text-field
+              v-model="item.draft.specific_job"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('وظیفه مشخص')"
+              hide-details
+            />
+          </template>
+
+          <template #item.qisem="{ item }">
+            <v-text-field
+              v-model="item.draft.qisem"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('قسم')"
+              hide-details
+            />
+          </template>
+
+          <!-- Zone -->
+          <template #item.zone="{ item }">
+            <v-select
+              v-model="item.draft.zone"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('زون')"
+              :items="repo.getZoneOptions()"
+              hide-details
+              @update:modelValue="onZoneChange(item)"
+            />
+          </template>
+
+          <!-- Hawza -->
+          <template #item.hawza="{ item }">
+            <v-select
+              v-model="item.draft.hawza"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('حوزه')"
+              :items="hawzaItems(item)"
+              :rules="[(v) => hawzaValidForZone(item, v)]"
+              hide-details
+              @update:modelValue="onHawzaChange(item)"
+            />
+          </template>
+
+          <!-- Status & education -->
+          <template #item.madani_halat="{ item }">
+            <v-select
+              v-model="item.draft.madani_halat"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('حالت مدنی')"
+              :items="repo.getHalatMadaniOptions()"
+              hide-details
+            />
+          </template>
+
+          <template #item.activity="{ item }">
+            <v-text-field
+              v-model="item.draft.activity"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('فعالیت')"
+              hide-details
+            />
+          </template>
+
+          <template #item.relegy_study="{ item }">
+            <v-text-field
+              v-model="item.draft.relegy_study"
+              class="text-group"
+              density="compact"
+              :label="t('تعلیمات دینی')"
+              variant="outlined"
+              hide-details
+            />
+          </template>
+
           <template #item.new_study="{ item }">
             <v-text-field
               v-model="item.draft.new_study"
@@ -225,12 +448,89 @@
               :label="t('تعلیمات عصری')"
               variant="outlined"
               hide-details
-              :error="hasError(item, 'new_study')"
-              :error-messages="getErrorMessages(item, 'new_study')"
             />
           </template>
 
-          <!-- Phone / Tazkira -->
+          <template #item.faculty="{ item }">
+            <v-text-field
+              v-model="item.draft.faculty"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('پوهنحی/رشته')"
+              hide-details
+            />
+          </template>
+
+          <template #item.nizami="{ item }">
+            <v-text-field
+              v-model="item.draft.nizami"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('نظامی')"
+              hide-details
+            />
+          </template>
+
+          <template #item.gun_knowledge="{ item }">
+            <v-text-field
+              v-model="item.draft.gun_knowledge"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('معلومات سلاح')"
+              hide-details
+            />
+          </template>
+
+          <!-- Demographic -->
+          <template #item.age="{ item }">
+            <v-text-field
+              v-model="item.draft.age"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              type="number"
+              :label="t('سن')"
+              hide-details
+            />
+          </template>
+
+          <template #item.specific_skills="{ item }">
+            <v-text-field
+              v-model="item.draft.specific_skills"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مهارت‌های مشخص')"
+              hide-details
+            />
+          </template>
+
+          <template #item.language="{ item }">
+            <v-text-field
+              v-model="item.draft.language"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('زبان')"
+              hide-details
+            />
+          </template>
+
+          <template #item.nation="{ item }">
+            <v-text-field
+              v-model="item.draft.nation"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('قوم/ملیت')"
+              hide-details
+            />
+          </template>
+
+          <!-- Contact -->
           <template #item.phone_number="{ item }">
             <v-text-field
               v-model="item.draft.phone_number"
@@ -243,72 +543,42 @@
               :error-messages="getErrorMessages(item, 'phone_number')"
             />
           </template>
-          <template #item.code_number="{ item }">
+
+          <template #item.coordinates="{ item }">
             <v-text-field
-              v-model="item.draft.code_number"
+              v-model="item.draft.coordinates"
               class="text-group"
               density="compact"
               variant="outlined"
-              :label="t('مود نمبر')"
+              :label="t('مختصات')"
               hide-details
-              :error="hasError(item, 'code_number')"
-              :error-messages="getErrorMessages(item, 'code_number')"
-            />
-          </template>
-          <template #item.tazkira="{ item }">
-            <v-text-field
-              v-model="item.draft.tazkira"
-              density="compact"
-              class="text-group"
-              variant="outlined"
-              :label="t('شماره تذکره')"
-              hide-details
-              :error="hasError(item, 'tazkira')"
-              :error-messages="getErrorMessages(item, 'tazkira')"
-            />
-          </template>
-          <!-- Dates -->
-          <template #item.apply_date="{ item }">
-            <DateInput
-              v-model="item.draft.apply_date"
-              class="text-group"
-              :rules="[rules.required]"
-              :label="t('تاریخ مقرر شدن')"
             />
           </template>
 
+          <!-- Dates -->
           <template #item.join_date="{ item }">
-            <DateInput
-              v-model="item.draft.join_date"
-              class="text-group"
-              :rules="[rules.required]"
-              :label="t('تاریخ آمدن')"
-            />
+            <DateInput v-model="item.draft.join_date" class="text-group" :label="t('تاریخ آمدن')" />
           </template>
 
           <template #item.left_date="{ item }">
-            <DateInput
-              v-model="item.draft.left_date"
-              class="text-group"
-              :rules="[rules.required]"
-              :label="t('تاریخ رفتن')"
-            />
+            <DateInput v-model="item.draft.left_date" class="text-group" :label="t('تاریخ رفتن')" />
           </template>
 
-          <!-- Notes -->
-          <template #item.notes="{ item }">
+          <!-- Note -->
+          <template #item.note="{ item }">
             <v-text-field
-              v-model="item.draft.notes"
+              v-model="item.draft.note"
               density="compact"
               class="text-group-note"
               variant="outlined"
-              :label="t('ملاحضات')"
+              :label="t('ملاحظات')"
               hide-details
-              :error="hasError(item, 'notes')"
-              :error-messages="getErrorMessages(item, 'notes')"
+              :error="hasError(item, 'note')"
+              :error-messages="getErrorMessages(item, 'note')"
             />
           </template>
-          <!-- Documents (Upload + chips OUTSIDE the input) -->
+
+          <!-- Documents -->
           <template #item.documents="{ item }">
             <div class="documents-inline">
               <input
@@ -390,21 +660,17 @@
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">{{
-                t('ثبت دیتا')
-              }}</v-btn>
+              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
+                {{ t('ثبت دیتا') }}
+              </v-btn>
 
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">{{
-                t('حذف دیتا')
-              }}</v-btn>
-              <!-- ✅ Clear inputs button -->
+              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+                {{ t('حذف دیتا') }}
+              </v-btn>
+
               <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
                 {{ t('پاک کردن ورودی‌ها') }}
               </v-btn>
-
-              <!-- <v-btn variant="outlined" class="bg-info" @click="openPeek(item?.raw ?? item)">
-              {{ t('جزییات') }}
-            </v-btn> -->
             </div>
           </template>
 
@@ -442,7 +708,8 @@
         </v-dialog>
       </v-card>
     </v-form>
-    <!-- Filterable table (ALL data, with Edit button) -->
+
+    <!-- Peek + FilterableTable -->
     <v-container fluid class="">
       <PeekButton
         v-model="expanded"
@@ -469,7 +736,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      :dateKeys="['apply_date', 'join_date', 'left_date']"
+      :dateKeys="['join_date', 'left_date']"
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
@@ -495,18 +762,19 @@
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useI18n } from 'vue-i18n';
   import DateInput from '../../components/DateInput.vue';
+
   const { t, locale } = useI18n();
   const repo = useEmployeOfficeRepository();
   const editorForm = ref(null);
   const editorValid = ref(false);
-  const formKey = ref(0); // forces full <v-form> remount when incremented
+  const formKey = ref(0);
 
-  /* ===== UI & Snackbar ===== */
   const previewOpen = ref(false);
   const previewSrc = ref(null);
   const showError = ref(false);
   const errorMessage = ref('');
   const editorCard = ref(null);
+
   function openPreview(src) {
     previewSrc.value = src || null;
     if (previewSrc.value) previewOpen.value = true;
@@ -537,7 +805,8 @@
   }
 
   /* ===== Single editor row ===== */
-  const rows = ref([]); // only one row (create/edit)
+  const rows = ref([]);
+
   function toRowModel(x = {}) {
     const base = {
       id: x.id ?? null,
@@ -546,10 +815,24 @@
       previewUrl: x.picture ?? null,
       loading: false,
 
+      // Identity
       name: x.name ?? '',
       father_name: x.father_name ?? '',
-      nickname: x.nickname ?? '',
+      grand_father_name: x.grand_father_name ?? '',
+      nick_name: x.nick_name ?? '',
+      code_number: x.code_number ?? '',
 
+      // Rank/levels & background
+      bast: x.bast ?? '',
+      level: x.level ?? '',
+      history_jahad: x.history_jahad ?? '',
+      dilgay_mesher: x.dilgay_mesher ?? '',
+      jahadi_mawaqaf: x.jahadi_mawaqaf ?? '',
+      jahad_time_responsibility: x.jahad_time_responsibility ?? '',
+      tazkira: x.tazkira ?? '',
+
+      // Places
+      jahad_place: x.jahad_place ?? '',
       main_province: x.main_province ?? '',
       main_district: x.main_district ?? '',
       main_village: x.main_village ?? '',
@@ -557,23 +840,41 @@
       now_province: x.now_province ?? '',
       now_district: x.now_district ?? '',
       now_village: x.now_village ?? '',
+      now_specific_place: x.now_specific_place ?? '',
+      now_street_number: x.now_street_number ?? '',
+      now_home_number: x.now_home_number ?? '',
 
-      releg_study: x.releg_study ?? '',
+      // Job & org
+      specific_job: x.specific_job ?? '',
+      qisem: x.qisem ?? '',
+      zone: x.zone ?? '',
+      hawza: x.hawza ?? '',
+
+      // Status & education
+      madani_halat: x.madani_halat ?? '',
+      activity: x.activity ?? '',
+      relegy_study: x.relegy_study ?? '',
       new_study: x.new_study ?? '',
+      faculty: x.faculty ?? '',
+      nizami: x.nizami ?? '',
+      gun_knowledge: x.gun_knowledge ?? '',
 
+      // Demographic
+      age: x.age ?? '',
+      specific_skills: x.specific_skills ?? '',
+      language: x.language ?? '',
+      nation: x.nation ?? '',
+
+      // Contact & misc
       phone_number: x.phone_number ?? '',
-      code_number: x.code_number ?? '',
-      tazkira: x.tazkira ?? '',
-
-      apply_date: x.apply_date ?? '',
+      coordinates: x.coordinates ?? '',
       join_date: x.join_date ?? '',
       left_date: x.left_date ?? '',
-      notes: x.notes ?? '',
+      note: x.note ?? '',
 
-      // 🆕 documents coming from API (OfficeEmployeeResource->documents)
+      // documents from API
       existingDocs: Array.isArray(x.documents) ? x.documents : [],
     };
-    // 🆕 _newDocs for files just picked; removed ids bucket for delete-on-save
     return { ...base, draft: { ...base, picture: null, _newDocs: [], removed_document_ids: [] } };
   }
 
@@ -584,58 +885,161 @@
   /* ===== ALL data for FilterableTable ===== */
   const rowsFT = computed(() => repo.Employees || []);
 
-  /* ===== Headers ===== */
+  /* ===== Headers (editor table) ===== */
   const headers = computed(() => [
     { title: t('تضویر'), key: 'picture', width: 120, sortable: false },
+
+    // Identity
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
-    { title: t('نام مستعار'), key: 'nickname' },
+    { title: t('نام پدرکلان'), key: 'grand_father_name' },
+    { title: t('نام مستعار'), key: 'nick_name' },
     { title: t('کود نمبر'), key: 'code_number' },
+
+    // Rank/levels
+    { title: t('بست'), key: 'bast' },
+    { title: t('رتبه/سطح'), key: 'level' },
+
+    // Background
+    { title: t('سابقه جهاد'), key: 'history_jahad' },
+    { title: t('دلګی/مشری'), key: 'dilgay_mesher' },
+    { title: t('مواقف جهادی'), key: 'jahadi_mawaqaf' },
+    { title: t('مسئولیت جهاد'), key: 'jahad_time_responsibility' },
+    { title: t('شماره تذکره'), key: 'tazkira' },
+    { title: t('محل جهاد'), key: 'jahad_place' },
+
+    // Addresses
     { title: t('آدرس اصلی'), key: 'main_province' },
     { title: t('آدرس فعلی'), key: 'now_province' },
-    { title: t('تعلیمات دینی'), key: 'releg_study' },
+    { title: t('محل مشخص فعلی'), key: 'now_specific_place' },
+    { title: t('نمبر سرک'), key: 'now_street_number' },
+    { title: t('نمبر خانه'), key: 'now_home_number' },
+
+    // Job/org
+    { title: t('وظیفه مشخص'), key: 'specific_job' },
+    { title: t('قسم'), key: 'qisem' },
+    { title: t('زون'), key: 'zone' },
+    { title: t('حوزه'), key: 'hawza' },
+
+    // Status & education
+    { title: t('حالت مدنی'), key: 'madani_halat' },
+    { title: t('فعالیت'), key: 'activity' },
+    { title: t('تعلیمات دینی'), key: 'relegy_study' },
     { title: t('تعلیمات عصری'), key: 'new_study' },
+    { title: t('پوهنحی/رشته'), key: 'faculty' },
+    { title: t('نظامی'), key: 'nizami' },
+    { title: t('معلومات سلاح'), key: 'gun_knowledge' },
+
+    // Demographic
+    { title: t('سن'), key: 'age' },
+    { title: t('مهارت‌های مشخص'), key: 'specific_skills' },
+    { title: t('زبان'), key: 'language' },
+    { title: t('قوم/ملیت'), key: 'nation' },
+
+    // Contact & misc
     { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('شماره تذکره'), key: 'tazkira' },
-    { title: t('تاریخ مقرر شدن'), key: 'apply_date' },
+    { title: t('مختصات'), key: 'coordinates' },
     { title: t('تاریخ آمدن'), key: 'join_date' },
     { title: t('تاریخ رفتن'), key: 'left_date' },
-    { title: t('ملاحضات'), key: 'notes' },
+    { title: t('ملاحظات'), key: 'note' },
+
     { title: t('اسناد'), key: 'documents' },
     { title: t('عمل'), key: 'actions', sortable: false },
   ]);
 
+  /* ===== Headers for FilterableTable ===== */
   const headersFT = computed(() => [
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
-    { title: t('نام مستعار'), key: 'nickname' },
+    { title: t('نام پدرکلان'), key: 'grand_father_name' },
+    { title: t('نام مستعار'), key: 'nick_name' },
     { title: t('کود نمبر'), key: 'code_number' },
 
-    { title: t('ولایت اصلی'), key: 'main_province' },
-    { title: t('ولسوالی'), key: 'main_district' },
-    { title: t('قریه'), key: 'main_village' },
+    // Rank/levels
+    { title: t('بست'), key: 'bast' },
+    { title: t('رتبه/سطح'), key: 'level' },
 
-    { title: t('ولایت فعلی'), key: 'now_province' },
-    { title: t('ولسوالی'), key: 'now_district' },
-    { title: t('قریه'), key: 'now_village' },
-
-    { title: t('تعلیمات دینی'), key: 'releg_study' },
-    { title: t('تعلیمات عصری'), key: 'new_study' },
-    { title: t('شماره تماس'), key: 'phone_number' },
+    // Background
+    { title: t('سابقه جهاد'), key: 'history_jahad' },
+    { title: t('دلګی/مشری'), key: 'dilgay_mesher' },
+    { title: t('مواقف جهادی'), key: 'jahadi_mawaqaf' },
+    { title: t('مسئولیت جهاد'), key: 'jahad_time_responsibility' },
     { title: t('شماره تذکره'), key: 'tazkira' },
-    { title: t('تاریخ مقرر شدن'), key: 'apply_date' },
+    { title: t('محل جهاد'), key: 'jahad_place' },
+
+    // Addresses
+    { title: t('آدرس اصلی'), key: 'main_province' },
+    { title: t('آدرس فعلی'), key: 'now_province' },
+    { title: t('محل مشخص فعلی'), key: 'now_specific_place' },
+    { title: t('نمبر سرک'), key: 'now_street_number' },
+    { title: t('نمبر خانه'), key: 'now_home_number' },
+
+    // Job/org
+    { title: t('وظیفه مشخص'), key: 'specific_job' },
+    { title: t('قسم'), key: 'qisem' },
+    { title: t('زون'), key: 'zone' },
+    { title: t('حوزه'), key: 'hawza' },
+
+    // Status & education
+    { title: t('حالت مدنی'), key: 'madani_halat' },
+    { title: t('فعالیت'), key: 'activity' },
+    { title: t('تعلیمات دینی'), key: 'relegy_study' },
+    { title: t('تعلیمات عصری'), key: 'new_study' },
+    { title: t('پوهنحی/رشته'), key: 'faculty' },
+    { title: t('نظامی'), key: 'nizami' },
+    { title: t('معلومات سلاح'), key: 'gun_knowledge' },
+
+    // Demographic
+    { title: t('سن'), key: 'age' },
+    { title: t('مهارت‌های مشخص'), key: 'specific_skills' },
+    { title: t('زبان'), key: 'language' },
+    { title: t('قوم/ملیت'), key: 'nation' },
+
+    // Contact & misc
+    { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('مختصات'), key: 'coordinates' },
     { title: t('تاریخ آمدن'), key: 'join_date' },
     { title: t('تاریخ رفتن'), key: 'left_date' },
-    { title: t('ملاحضات'), key: 'notes' },
+    { title: t('ملاحظات'), key: 'note', width: 400 },
   ]);
 
   const topGroups = computed(() => [
-    { title: t('معرفت'), keys: ['name', 'father_name', 'nickname', 'code_number'] },
+    {
+      title: t('معرفت'),
+      keys: [
+        'name',
+        'father_name',
+        'grand_father_name',
+        'nick_name',
+        'code_number',
+        'bast',
+        'level',
+        'history_jahad',
+        'dilgay_mehser',
+        'jahadi_mawaqaf',
+        'jahad_time_responsibility',
+        'tazkira',
+      ],
+    },
     { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-    { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
+    {
+      title: t('آدرس فعلی'),
+      keys: [
+        'now_province',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+      ],
+    },
+    {
+      title: t(' تحصیلات'),
+      keys: ['relegy_study', 'new_study', 'faculty', 'nizami', 'gun_knowledge'],
+    },
   ]);
-  // require validation
 
+  /* ===== Rules ===== */
   const rules = {
     required: (v) => !!v || 'This field is required',
     selectRequired: (label) => (v) => !!v || `${label} is required`,
@@ -648,7 +1052,7 @@
 
   const filters = ref({});
 
-  /* ===== image picker ===== */
+  /* ===== Image picker ===== */
   function triggerFile(item) {
     const el = document.getElementById(`up-${item.idOrTmp}`);
     if (el) el.click();
@@ -668,26 +1072,59 @@
   function diffDraft(item) {
     const d = item.draft || {};
     const changed = {};
+
     const keys = [
+      // identity
       'name',
       'father_name',
-      'nickname',
+      'grand_father_name',
+      'nick_name',
+      'code_number',
+      // rank/background
+      'bast',
+      'level',
+      'history_jahad',
+      'dilgay_mesher',
+      'jahadi_mawaqaf',
+      'jahad_time_responsibility',
+      'tazkira',
+      // places
+      'jahad_place',
       'main_province',
       'main_district',
       'main_village',
       'now_province',
       'now_district',
       'now_village',
-      'releg_study',
+      'now_specific_place',
+      'now_street_number',
+      'now_home_number',
+      // job/org
+      'specific_job',
+      'qisem',
+      'zone',
+      'hawza',
+      // status & education
+      'madani_halat',
+      'activity',
+      'relegy_study',
       'new_study',
+      'faculty',
+      'nizami',
+      'gun_knowledge',
+      // demographic
+      'age',
+      'specific_skills',
+      'language',
+      'nation',
+      // contact & misc
       'phone_number',
-      'code_number',
-      'tazkira',
-      'apply_date',
+      'coordinates',
       'join_date',
       'left_date',
-      'notes',
+      'note',
     ];
+
     for (const k of keys) {
       if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
     }
@@ -706,27 +1143,15 @@
     return fd;
   }
   async function hardResetFormValidation() {
-    // clear Vuetify's v-form model
     editorValid.value = false;
-
-    // clear your backend error bucket entirely (so no lingering :error-messages)
     itemErrors.value = {};
-
-    // wait so new row mounts
     await nextTick();
-
-    // try a soft reset if the form is there
     editorForm.value?.resetValidation?.();
-
-    // as a final nuke, remount the form (clears any hidden stale refs in nested slots)
     formKey.value++;
     await nextTick();
   }
 
   /* ===== Save / Delete ===== */
-  /* IMPORTANT: After successful CREATE or UPDATE we:
-   1) refresh all data in FilterableTable
-   2) reset editor with setBlankEditorRow()  ← clears inputs */
   async function save(item) {
     if (!item.draft?.name?.trim()) {
       showErrorMessage(t('نام الزامی است'));
@@ -736,16 +1161,14 @@
     clearItemErrors(item);
 
     try {
-      // ===== CREATE =====
+      // CREATE
       if (!item.id) {
-        // 🆕 build FormData (to include files)
         const fd = new FormData();
         Object.entries(item.draft).forEach(([k, v]) => {
-          if (k === '_newDocs' || k === 'removed_document_ids') return; // not for create
+          if (k === '_newDocs' || k === 'removed_document_ids') return;
           if (v !== undefined && v !== null) fd.append(k, v);
         });
-        (item.draft._newDocs || []).forEach((file) => fd.append('documents[]', file)); // 🆕
-
+        (item.draft._newDocs || []).forEach((file) => fd.append('documents[]', file));
         const created = await repo.CreateEmployee(fd);
         if (created && created.id) {
           await fetchAll();
@@ -759,10 +1182,8 @@
         return;
       }
 
-      // ===== UPDATE =====
+      // UPDATE
       const { changed, imageChanged } = diffDraft(item);
-
-      // 🆕 If you’re using delete-on-save, append removed ids even if nothing else changed
       const hasRemovals = (item.draft.removed_document_ids || []).length > 0;
       const hasNewDocs = (item.draft._newDocs || []).length > 0;
 
@@ -775,11 +1196,7 @@
       Object.entries(changed).forEach(([k, v]) => {
         if (v !== undefined && v !== null) fd.append(k, v);
       });
-
-      // 🆕 Attach new files
       (item.draft._newDocs || []).forEach((file) => fd.append('documents[]', file));
-
-      // 🆕 Attach deletions (if any)
       (item.draft.removed_document_ids || []).forEach((id) =>
         fd.append('removed_document_ids[]', id)
       );
@@ -806,31 +1223,25 @@
       item.loading = false;
     }
   }
-  // === VALIDATED SUBMIT ===
+
+  // VALIDATED SUBMIT
   async function onSubmit(item) {
     const form = editorForm.value;
     if (!form) return;
-
-    // Trigger Vuetify validation for all inputs inside the form
     const { valid } = await form.validate();
-
     if (!valid) {
       showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
       await nextTick();
       scrollToFirstInvalid();
       return;
     }
-
-    // If valid → call your existing save()
     await save(item);
   }
 
-  // === SCROLL TO FIRST INVALID INPUT ===
   function scrollToFirstInvalid() {
     const first =
       document.querySelector('.v-input--error, [aria-invalid="true"]') ||
       document.querySelector('.v-messages__message');
-
     if (first) {
       first.scrollIntoView({ behavior: 'smooth', block: 'center' });
       const input = first.querySelector('input, textarea, .v-field__input');
@@ -843,9 +1254,8 @@
       setBlankEditorRow();
       return;
     }
-
     if (!confirm(t('آیا از حذف  مطمئن هستید؟', { name: item.name }))) return;
-    if (!confirm(t('  با حذف این مورد مواد را کاملا از دست میتین .آیا  واقعااز حذف  مطمئن هستید؟')))
+    if (!confirm(t('با حذف این مورد مواد را کاملا از دست میتین .آیا  واقعااز حذف  مطمئن هستید؟')))
       return;
 
     try {
@@ -857,32 +1267,26 @@
       showErrorMessage(t('خطا در حذف کارمند') + ': ' + (error.message || t('خطای ناشناخته')));
     }
   }
+
   function clearEditor(item) {
     try {
-      // revoke previous preview blob (if any)
       if (item && item._blobUrl) {
         URL.revokeObjectURL(item._blobUrl);
         item._blobUrl = null;
       }
-
-      // clear hidden file input (if rendered)
       const inputEl = document.getElementById(`up-${item?.idOrTmp}`);
       if (inputEl) inputEl.value = '';
-
-      // clear per-field errors for this row
       if (item && item.idOrTmp && itemErrors.value[item.idOrTmp]) {
         delete itemErrors.value[item.idOrTmp];
       }
-
-      // reset the single editor row to a fresh blank one
       setBlankEditorRow();
-
-      // notify
       showErrorMessage(t('ورودی‌ها پاک شد'));
     } catch (e) {
       console.error('clearEditor error:', e);
     }
   }
+
+  /* ===== Docs helpers ===== */
   function triggerDocs(item) {
     const el = document.getElementById(`docs-${item.idOrTmp}`);
     if (el) el.click();
@@ -902,18 +1306,14 @@
     if (!url) return;
     window.open(url, '_blank');
   }
-  // Mark for deletion (batch delete on Save, like Event pattern variant B)
   function markDocForRemoval(item, doc) {
     if (!doc?.id) return;
     if (!Array.isArray(item.draft.removed_document_ids)) item.draft.removed_document_ids = [];
     if (!item.draft.removed_document_ids.includes(doc.id)) {
       item.draft.removed_document_ids.push(doc.id);
     }
-    // Optimistic UI: hide chip immediately
     item.existingDocs = (item.existingDocs || []).filter((d) => d.id !== doc.id);
   }
-
-  // Download all (ZIP)
   async function downloadAll(item) {
     if (!item.id) return;
     const base = (item.code_number || item.name || 'documents').toLowerCase().replace(/\s+/g, '_');
@@ -921,7 +1321,7 @@
     await repo.DownloadOfficeEmployeeZip(item.id, filename);
   }
 
-  /* ===== Peek ===== */
+  /* ===== Peek / Fetch ===== */
   const expanded = ref(false);
   const selectedId = ref(null);
   const loading = ref(false);
@@ -946,7 +1346,7 @@
     fetchOne(row.id);
   }
 
-  /* ===== Fetch ALL for FilterableTable ===== */
+  /* ===== Fetch ALL ===== */
   async function fetchAll() {
     try {
       if (typeof repo.FetchEmployeesData === 'function') {
@@ -957,7 +1357,6 @@
         });
         return;
       }
-      // fallback: huge page size to get all
       repo.page = 1;
       repo.itemsPerPage = 100000;
       await repo.FetchEmployeesData({ page: 1, itemsPerPage: 100000 });
@@ -983,11 +1382,43 @@
       showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
     }
   }
+  function hawzaItems(item) {
+    const z = item?.draft?.zone || null;
+    // If zone is chosen → show only that zone’s hawzas
+    // If zone empty → show all hawzas (so hawza can be chosen first)
+    return repo.getHawzaOptionsForZone(z);
+  }
+
+  function onZoneChange(item) {
+    const { zone, hawza } = repo.normalizeAfterZoneChange(
+      item?.draft?.zone ?? '',
+      item?.draft?.hawza ?? ''
+    );
+    item.draft.zone = zone;
+    item.draft.hawza = hawza;
+  }
+
+  function onHawzaChange(item) {
+    const { zone, hawza } = repo.normalizeAfterHawzaChange(
+      item?.draft?.hawza ?? '',
+      item?.draft?.zone ?? ''
+    );
+    item.draft.zone = zone;
+    item.draft.hawza = hawza;
+  }
+
+  function hawzaValidForZone(item, value) {
+    return (
+      repo.hawzaIsValidForZone(item?.draft?.zone ?? '', value ?? '') ||
+      t('حوزه انتخابی مربوط به این زون نیست')
+    );
+  }
 
   /* ===== Init ===== */
   onMounted(async () => {
-    await fetchAll(); // load ALL data for FilterableTable
-    setBlankEditorRow(); // prepare a fresh editor row
+    await fetchAll();
+    setBlankEditorRow();
+
   });
 </script>
 
@@ -1000,7 +1431,6 @@
     color: #fff;
     font-weight: 400;
   }
-
   .addr-group {
     display: grid;
     grid-template-columns: repeat(3, minmax(120px, 1fr));
@@ -1016,7 +1446,6 @@
     width: 400px;
     gap: 2px;
   }
-
   .flex {
     display: flex;
   }
@@ -1026,7 +1455,6 @@
   .gap-1 {
     gap: 4px;
   }
-
   .hidden-file {
     position: absolute;
     width: 1px;
@@ -1094,6 +1522,7 @@
   .pic-overlay :deep(.v-btn) {
     color: #fff;
   }
+
   .documents-inline {
     min-width: 520px;
   }

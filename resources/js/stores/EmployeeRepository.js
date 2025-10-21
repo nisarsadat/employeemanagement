@@ -4,6 +4,25 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+// === ZONE <-> HAWZA mapping (from your picture) ===
+const ZONE_HAWZA_MAP = {
+  'لومړی زون': ['حوزه ۳', 'حوزه ۷', 'حوزه ۶', 'حوزه ۸', 'حوزه ۱۸'],
+  'دوهم زون': ['حوزه ۸', 'بګرامی ولسوالی', 'حوزه ۱۲', 'حوزه ۱۹', 'حوزه ۲۱'],
+  'دریم زون': ['حوزه ۱', 'حوزه ۲', 'حوزه ۱۶', 'حوزه ۹', 'حوزه ۱۰'],
+  'څلورم زون': ['حوزه ۵', 'حوزه ۱۱', 'حوزه ۱۵', 'حوزه ۴', 'حوزه ۱۷'],
+};
+// === Jahadi Mawqaf options ===
+const JAHADI_MAWQAFA_OPTIONS = ['فرد', 'سرګروف', 'ډلګی مشر', 'محاظ مشر'];
+// === Halat Madani (Marital Status) options ===
+const HALAT_MADANI_OPTIONS = ['مجرد', 'متاهل'];
+
+// Build reverse map: Hawza -> Zone
+const HAWZA_ZONE_MAP = Object.entries(ZONE_HAWZA_MAP).reduce((acc, [zone, list]) => {
+  (list || []).forEach((hz) => {
+    acc[hz] = zone;
+  });
+  return acc;
+}, {});
 
 // ---- sane defaults
 axios.defaults.headers.common['Accept'] = 'application/json';
@@ -49,6 +68,7 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
 
       Users: reactive([]),
       User: reactive([]),
+      // === Jahadi Mawqaf options ===
 
       createDailog: false,
       updateDailog: false,
@@ -72,6 +92,50 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
   },
 
   actions: {
+    /* ========= Zone/Hawza helpers (used by Vue) ========= */
+    getZoneOptions() {
+      return Object.keys(ZONE_HAWZA_MAP);
+    },
+    getAllHawzaOptions() {
+      return Object.values(ZONE_HAWZA_MAP).flat();
+    },
+    getHawzaOptionsForZone(zone) {
+      if (!zone) return this.getAllHawzaOptions(); // allow picking hawza first
+      return ZONE_HAWZA_MAP[zone] ?? [];
+    },
+    getZoneForHawza(hawza) {
+      if (!hawza) return undefined;
+      return HAWZA_ZONE_MAP[hawza];
+    },
+    hawzaIsValidForZone(zone, hawza) {
+      if (!zone || !hawza) return true; // treat empty as valid if optional
+      return (ZONE_HAWZA_MAP[zone] ?? []).includes(hawza);
+    },
+    /** Normalize after user changes Zone:
+     *  - if hawza doesn’t belong to new zone, clear it
+     */
+    normalizeAfterZoneChange(currentZone, currentHawza) {
+      if (!currentZone) return { zone: '', hawza: '' };
+      const allowed = new Set(ZONE_HAWZA_MAP[currentZone] || []);
+      return { zone: currentZone, hawza: allowed.has(currentHawza || '') ? currentHawza : '' };
+    },
+    /** Normalize after user changes Hawza:
+     *  - auto-select the correct zone for that hawza
+     */
+    normalizeAfterHawzaChange(currentHawza, currentZone) {
+      if (!currentHawza) return { zone: currentZone || '', hawza: '' };
+      const z = HAWZA_ZONE_MAP[currentHawza];
+      return { zone: z || currentZone || '', hawza: currentHawza };
+    },
+    /* ====== Jahadi Mawqaf (dropdown) ====== */
+    getJahadiMawqafOptions() {
+      return JAHADI_MAWQAFA_OPTIONS;
+    },
+    /* ====== Halat Madani (dropdown) ====== */
+    getHalatMadaniOptions() {
+      return HALAT_MADANI_OPTIONS;
+    },
+
     toggleRail() {
       this.rail = !this.rail;
     },

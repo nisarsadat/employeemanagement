@@ -13,38 +13,50 @@ class ResourceController extends Controller
 {
     public function index(Request $req)
     {
-        $perPage = (int) $req->get('perPage', 10);
-        $search  = trim((string) $req->get('search', ''));
+        $search = trim((string)$req->get('search', ''));
 
-        $q = Resource::query();
+        $q = Resource::query()
+            ->with(['officeEmployee:id,name,code_number,father_name,nickname'])
+            ->when($search !== '', function ($w) use ($search) {
+                $w->where(function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%$search%")
+                       ->orWhere('father_name', 'like', "%$search%")
+                       ->orWhere('grand_father_name', 'like', "%$search%")
+                       ->orWhere('nick_name', 'like', "%$search%")
+                       ->orWhere('code_number', 'like', "%$search%")
+                       ->orWhere('tazkira', 'like', "%$search%")
+                       ->orWhere('phone_number', 'like', "%$search%");
+                });
+            })
+            ->latest('id');
 
-        if ($search !== '') {
-            $q->where(function ($w) use ($search) {
-                $w->where('name', 'like', "%$search%")
-                  ->orWhere('father_name', 'like', "%$search%")
-                  ->orWhere('grand_father_name', 'like', "%$search%")
-                  ->orWhere('nickname', 'like', "%$search%")
-                  ->orWhere('code_number', 'like', "%$search%")
-                  ->orWhere('tazkira', 'like', "%$search%")
-                  ->orWhere('phone_number', 'like', "%$search%");
-            });
+        // If perPage is provided and valid (>0), paginate (honors ?page=)
+        $perPage = $req->filled('perPage') ? (int) $req->get('perPage') : null;
+        if ($perPage !== null && $perPage > 0) {
+            $data = $q->paginate($perPage);
+            return ResourceResource::collection($data)
+                ->additional(['meta' => ['total' => $data->total()]]);
         }
 
-        $data = $q->latest('id')->paginate($perPage);
-
-        return ResourceResource::collection($data)
-            ->additional(['meta' => ['total' => $data->total()]]);
+        // Otherwise return all
+        $rows = $q->get();
+        return ResourceResource::collection($rows)
+            ->additional(['meta' => ['total' => $rows->count()]]);
     }
 
     public function show($id)
     {
-        return new ResourceResource(Resource::findOrFail($id));
+        $row = Resource::with(['officeEmployee:id,name,code_number,father_name,nickname'])
+            ->findOrFail($id);
+
+        return new ResourceResource($row);
     }
 
     public function store(ResourceRequest $req)
     {
         $data = $req->validated();
 
+        // Image upload (optional)
         if ($req->hasFile('picture')) {
             $path = $req->file('picture')->store('uploads/resources', 'public');
             $data['picture'] = "storage/{$path}";
@@ -52,7 +64,7 @@ class ResourceController extends Controller
 
         $row = Resource::create($data);
 
-        return (new ResourceResource($row))
+        return (new ResourceResource($row->loadMissing('officeEmployee:id,name,code_number,father_name,nickname')))
             ->additional(['message' => 'Created'])
             ->response()->setStatusCode(201);
     }
@@ -62,20 +74,20 @@ class ResourceController extends Controller
         $row  = Resource::findOrFail($id);
         $data = $req->validated();
 
+        // Replace image if a new one is provided
         if ($req->hasFile('picture')) {
-            $old = $row->picture;
-            if ($old && str_starts_with($old, 'storage/')) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $old));
+            if ($row->picture && str_starts_with($row->picture, 'storage/')) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $row->picture));
             }
             $path = $req->file('picture')->store('uploads/resources', 'public');
             $data['picture'] = "storage/{$path}";
         } else {
-            unset($data['picture']);
+            unset($data['picture']); // don't null out existing if not sent
         }
 
         $row->fill($data)->save();
 
-        return new ResourceResource($row->fresh());
+        return new ResourceResource($row->loadMissing('officeEmployee:id,name,code_number,father_name,nickname'));
     }
 
     public function destroy($id)
