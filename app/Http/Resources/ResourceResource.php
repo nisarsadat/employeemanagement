@@ -55,6 +55,7 @@ class ResourceResource extends JsonResource
             'language'               => $this->language,
             'nation'                 => $this->nation,
             'phone_number'           => $this->phone_number,
+            'resedint_code'          =>$this->resedint_code,
             'coordinates'            => $this->coordinates,
             'note'                   => $this->note,
 

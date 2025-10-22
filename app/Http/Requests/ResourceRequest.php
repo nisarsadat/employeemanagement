@@ -56,6 +56,7 @@ class ResourceRequest extends FormRequest
             'nation' => ['nullable','string'],
             'phone_number' => ['nullable','string'],
             'coordinates' => ['nullable','string'],
+            'resedint_code' => ['nullable' , 'string'],
             'note' => ['nullable','string'],
         ];
 

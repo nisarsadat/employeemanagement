@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InformationDocument extends Model
 {
-    protected $table = 'information_documents';
-
     protected $fillable = [
         'information_id',
         'file_name',
@@ -16,8 +15,8 @@ class InformationDocument extends Model
         'size_bytes',
     ];
 
-    public function information()
+    public function information(): BelongsTo
     {
-        return $this->belongsTo(Information::class);
+        return $this->belongsTo(Information::class, 'information_id');
     }
 }

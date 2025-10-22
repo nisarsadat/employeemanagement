@@ -15,50 +15,30 @@ class Event extends Model
         'event_type',
         'event_specific_type',
         'target_person',
-        'who_did',
+        'criminal',
         'event_date',
         'event_hour',
-        'zone',
-        'hawza',
-        'specific_place',
-        'jani_talafat',
-        'mali_talafat',
-        'event_office_employee_code',
-        'event_zone_employee_code',
+        'event_zone',
+        'event_hawza',
+        'event_specific_place',
+        'talafat_jani',
+        'talafat_mali',
         'tafseel',
         'talks',
-        'notes',
+        'coordinates',
+        'note',
     ];
 
-    // 🔗 Each event belongs to one Resource
+    // 🔗 Relations (UNCHANGED)
     public function resource()
     {
         return $this->belongsTo(Resource::class);
     }
 
-    // 🔗 The employee who reported the event (main office employee)
     public function officeEmployee()
     {
         return $this->belongsTo(OfficeEmployee::class, 'office_employee_id');
     }
-
-    // 🔗 The office employee assigned to the event
-    public function eventOfficeEmployee()
-    {
-        return $this->belongsTo(OfficeEmployee::class, 'event_office_employee_code');
-    }
-
-    // 🔗 The zone employee assigned to the event
-    public function eventZoneEmployee()
-    {
-        return $this->belongsTo(ZoneEmployee::class, 'event_zone_employee_code');
-    }
-    public function zoneEmployee()
-    {
-        return $this->belongsTo(ZoneEmployee::class, 'zone_employee_id');
-    }
-
-    // 📁 Documents uploaded for this event
     public function documents()
     {
         return $this->hasMany(EventDocument::class);

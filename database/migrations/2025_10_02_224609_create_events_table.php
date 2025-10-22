@@ -11,36 +11,30 @@ return new class extends Migration {
             Schema::create('events', function (Blueprint $table) {
                 $table->id();
 
-                // Relationships
+                // Main relations (unchanged)
                 $table->foreignId('resource_id')->nullable()->constrained('resources')->cascadeOnDelete();
                 $table->foreignId('office_employee_id')->nullable()->constrained('office_employees')->cascadeOnDelete();
-                $table->foreignId('zone_employee_id')->nullable()->constrained('zone_employees')->cascadeOnDelete();
 
-                // Core info
-                $table->string('event_type')->nullable(); // جنایي / سیاسي / ...
+                // New input fields (renamed to your spec)
+                $table->string('event_type')->nullable();
                 $table->string('event_specific_type')->nullable();
                 $table->string('target_person')->nullable();
-                $table->string('who_did')->nullable();
-                $table->string('event_date')->nullable(); // store as string
+                $table->string('criminal')->nullable();
+                $table->string('event_date')->nullable();
                 $table->string('event_hour')->nullable();
 
-                // Place info
-                $table->string('zone')->nullable();
-                $table->string('hawza')->nullable();
-                $table->string('specific_place')->nullable();
+                $table->string('event_zone')->nullable();
+                $table->string('event_hawza')->nullable();
+                $table->string('event_specific_place')->nullable();
 
-                // Talafat
-                $table->string('jani_talafat')->nullable();
-                $table->string('mali_talafat')->nullable();
-
-                // Additional fields
-                $table->foreignId('event_office_employee_code')->nullable()->constrained('office_employees')->nullOnDelete();
-                $table->foreignId('event_zone_employee_code')->nullable()->constrained('zone_employees')->nullOnDelete();
-
+                $table->string('talafat_jani')->nullable();
+                $table->string('talafat_mali')->nullable();
 
                 $table->text('tafseel')->nullable();
                 $table->text('talks')->nullable();
-                $table->text('notes')->nullable();
+                $table->string('coordinates')->nullable();
+                $table->text('note')->nullable();
+
 
                 $table->timestamps();
             });

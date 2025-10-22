@@ -29,7 +29,7 @@
       </v-col>
     </v-row>
 
-    <!-- ✅ Validated editor form -->
+    <!-- Form (logic unchanged) -->
     <v-form
       ref="editorForm"
       v-model="editorValid"
@@ -37,7 +37,6 @@
       :key="formKey"
       @submit.prevent="onSubmit(rows[0])"
     >
-      <!-- Single-row editor (create/edit) -->
       <v-card class="tablebody" ref="editorCard">
         <v-data-table
           :headers="headers"
@@ -50,7 +49,7 @@
           :loading="repo.loading"
         >
           <!-- resource_id -->
-          <template #item.resource_code="{ item }">
+          <template #item.resource_id="{ item }">
             <v-autocomplete
               v-model="item.draft.resource_id"
               :items="resourceCodeItems"
@@ -69,7 +68,7 @@
           </template>
 
           <!-- office_employee_id -->
-          <template #item.office_employee_code="{ item }">
+          <template #item.office_employee_id="{ item }">
             <v-autocomplete
               v-model="item.draft.office_employee_id"
               :items="officeEmployeesCodeItems"
@@ -90,7 +89,7 @@
           <template #item.event_type="{ item }">
             <v-autocomplete
               v-model="item.draft.event_type"
-              :items="eventTypeItems"
+              :items="eventTypeOptions"
               class="text-group"
               density="compact"
               variant="outlined"
@@ -103,10 +102,11 @@
             />
           </template>
 
-          <!-- free text -->
+          <!-- event_specific_type -->
           <template #item.event_specific_type="{ item }">
-            <v-text-field
+            <v-autocomplete
               v-model="item.draft.event_specific_type"
+              :items="eventSpecificTypeOptions"
               class="text-group"
               density="compact"
               variant="outlined"
@@ -118,6 +118,7 @@
             />
           </template>
 
+          <!-- target_person -->
           <template #item.target_person="{ item }">
             <v-text-field
               v-model="item.draft.target_person"
@@ -132,17 +133,18 @@
             />
           </template>
 
-          <template #item.who_did="{ item }">
+          <!-- criminal -->
+          <template #item.criminal="{ item }">
             <v-text-field
-              v-model="item.draft.who_did"
+              v-model="item.draft.criminal"
               class="text-group"
               density="compact"
               variant="outlined"
               :label="t('کی جرم را انجام داده')"
               hide-details
               clearable
-              :error="hasError(item, 'who_did')"
-              :error-messages="getErrorMessages(item, 'who_did')"
+              :error="hasError(item, 'criminal')"
+              :error-messages="getErrorMessages(item, 'criminal')"
             />
           </template>
 
@@ -172,77 +174,80 @@
             />
           </template>
 
-          <!-- place -->
-          <template #item.event_place="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.zone"
-                density="compact"
-                variant="outlined"
-                hide-details
-                :label="t('زون')"
-                clearable
-                :error="hasError(item, 'zone')"
-                :error-messages="getErrorMessages(item, 'zone')"
-              />
-              <v-text-field
-                v-model="item.draft.hawza"
-                density="compact"
-                variant="outlined"
-                hide-details
-                :label="t('حوزه')"
-                clearable
-                :error="hasError(item, 'hawza')"
-                :error-messages="getErrorMessages(item, 'hawza')"
-              />
-              <v-text-field
-                v-model="item.draft.specific_place"
-                density="compact"
-                variant="outlined"
-                hide-details
-                :label="t('محل مشخص')"
-                clearable
-                :error="hasError(item, 'specific_place')"
-                :error-messages="getErrorMessages(item, 'specific_place')"
-              />
-            </div>
+          <!-- Place -->
+          <template #item.event_zone="{ item }">
+            <v-text-field
+              v-model="item.draft.event_zone"
+              density="compact"
+              variant="outlined"
+              hide-details
+              :label="t('زون')"
+              clearable
+              :error="hasError(item, 'event_zone')"
+              :error-messages="getErrorMessages(item, 'event_zone')"
+            />
           </template>
 
-          <!-- NEW: coordenates -->
-          <template #item.coordenates="{ item }">
+          <template #item.event_hawza="{ item }">
             <v-text-field
-              v-model="item.draft.coordenates"
+              v-model="item.draft.event_hawza"
+              density="compact"
+              variant="outlined"
+              hide-details
+              :label="t('حوزه')"
+              clearable
+              :error="hasError(item, 'event_hawza')"
+              :error-messages="getErrorMessages(item, 'event_hawza')"
+            />
+          </template>
+
+          <template #item.event_specific_place="{ item }">
+            <v-text-field
+              v-model="item.draft.event_specific_place"
+              density="compact"
+              variant="outlined"
+              hide-details
+              :label="t('محل مشخص')"
+              clearable
+              :error="hasError(item, 'event_specific_place')"
+              :error-messages="getErrorMessages(item, 'event_specific_place')"
+            />
+          </template>
+
+          <!-- coordinates -->
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
               class="text-group"
               density="compact"
               variant="outlined"
               :label="t('کوردینات')"
               hide-details
               clearable
-              :error="hasError(item, 'coordenates')"
-              :error-messages="getErrorMessages(item, 'coordenates')"
+              :error="hasError(item, 'coordinates')"
+              :error-messages="getErrorMessages(item, 'coordinates')"
             />
           </template>
 
-          <!-- jani_talafat -->
-          <template #item.jani_talafat="{ item }">
+          <!-- talafat -->
+          <template #item.talafat_jani="{ item }">
             <v-autocomplete
-              v-model="item.draft.jani_talafat"
+              v-model="item.draft.talafat_jani"
               :items="janiTalafatItems"
               class="text-group"
               density="compact"
               variant="outlined"
-              :label="t('תلفات جانی')"
+              :label="t('تلفات جانی')"
               hide-details
               clearable
-              :error="hasError(item, 'jani_talafat')"
-              :error-messages="getErrorMessages(item, 'jani_talafat')"
+              :error="hasError(item, 'talafat_jani')"
+              :error-messages="getErrorMessages(item, 'talafat_jani')"
             />
           </template>
 
-          <!-- mali_talafat -->
-          <template #item.mali_talafat="{ item }">
+          <template #item.talafat_mali="{ item }">
             <v-autocomplete
-              v-model="item.draft.mali_talafat"
+              v-model="item.draft.talafat_mali"
               :items="maliTalafatItems"
               class="text-group"
               density="compact"
@@ -250,44 +255,12 @@
               :label="t('تلفات مالی')"
               hide-details
               clearable
-              :error="hasError(item, 'mali_talafat')"
-              :error-messages="getErrorMessages(item, 'mali_talafat')"
+              :error="hasError(item, 'talafat_mali')"
+              :error-messages="getErrorMessages(item, 'talafat_mali')"
             />
           </template>
 
-          <!-- event employee codes -->
-          <template #item.event_employee_code="{ item }">
-            <div class="drop-group2">
-              <v-autocomplete
-                v-model="item.draft.event_office_employee_code"
-                :items="officeEmployeesItems"
-                item-title="code_number"
-                item-value="id"
-                :label="t('کود کارمند واقعه گیرنده')"
-                density="compact"
-                variant="outlined"
-                clearable
-                hide-details
-                :error="hasError(item, 'event_office_employee_code')"
-                :error-messages="getErrorMessages(item, 'event_office_employee_code')"
-              />
-              <v-autocomplete
-                v-model="item.draft.event_zone_employee_code"
-                :items="zoneEmployeesItems"
-                item-title="code_number"
-                item-value="id"
-                :label="t('کود رزیدانت واقعه گیرنده')"
-                density="compact"
-                variant="outlined"
-                clearable
-                hide-details
-                :error="hasError(item, 'event_zone_employee_code')"
-                :error-messages="getErrorMessages(item, 'event_zone_employee_code')"
-              />
-            </div>
-          </template>
-
-          <!-- text areas -->
+          <!-- texts -->
           <template #item.tafseel="{ item }">
             <v-text-field
               v-model="item.draft.tafseel"
@@ -316,7 +289,7 @@
             />
           </template>
 
-          <!-- Documents -->
+          <!-- Documents (unchanged logic) -->
           <template #item.documents="{ item }">
             <div class="documents-inline">
               <input
@@ -340,7 +313,6 @@
                 </v-btn>
 
                 <div class="chips-row">
-                  <!-- new files -->
                   <v-chip
                     v-for="(f, idx) in item.draft._newDocs || []"
                     :key="`${item.idOrTmp}-nf-${idx}`"
@@ -352,7 +324,6 @@
                     {{ shortName(f.name) }}
                   </v-chip>
 
-                  <!-- existing files -->
                   <v-chip
                     v-for="(d, idx) in item.existingDocs || []"
                     :key="`${item.idOrTmp}-df-${idx}`"
@@ -369,7 +340,8 @@
                       class="ml-1"
                       title="حذف"
                       @click.stop="markDocForRemoval(item, d)"
-                    >mdi-close</v-icon>
+                      >mdi-close</v-icon
+                    >
                   </v-chip>
                 </div>
 
@@ -385,7 +357,6 @@
                 </v-btn>
               </div>
 
-              <!-- progress -->
               <div
                 v-if="uploadingPct[item.idOrTmp] && uploadingPct[item.idOrTmp] < 100"
                 class="mt-2"
@@ -409,24 +380,24 @@
             </div>
           </template>
 
-          <template #item.notes="{ item }">
+          <!-- note -->
+          <template #item.note="{ item }">
             <v-text-field
-              v-model="item.draft.notes"
+              v-model="item.draft.note"
               density="compact"
               class="text-group-note"
               variant="outlined"
               :label="t('ملاحظات')"
               hide-details
               clearable
-              :error="hasError(item, 'notes')"
-              :error-messages="getErrorMessages(item, 'notes')"
+              :error="hasError(item, 'note')"
+              :error-messages="getErrorMessages(item, 'note')"
             />
           </template>
 
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
-              <!-- submit through v-form -->
               <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
                 {{ t('ذخیره دیتا') }}
               </v-btn>
@@ -448,7 +419,7 @@
       </v-card>
     </v-form>
 
-    <!-- Peek drawer -->
+    <!-- Peek (unchanged) -->
     <v-container fluid>
       <PeekButton
         v-model="expanded"
@@ -463,7 +434,7 @@
       />
     </v-container>
 
-    <!-- Filterable / printable table with Edit + Peek -->
+    <!-- Filterable table -->
     <FilterableTable
       :headers="headersFT"
       :rows="rowsFT"
@@ -479,7 +450,6 @@
       class="mb-20 mx-2"
     />
 
-    <!-- Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
@@ -490,549 +460,522 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, nextTick, reactive } from "vue";
-import { useI18n } from "vue-i18n";
-import AppBar from "../../components/AppBar.vue";
-import FilterableTable from "@/components/FilterableTable.vue";
-import PeekButton from "@/components/PeekButton.vue";
-import DateInput from "../../components/DateInput.vue";
-import { useDatabaseRepository } from "../../stores/DatabaseRepository";
+  import { ref, onMounted, watch, computed, nextTick, reactive } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import AppBar from '../../components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import DateInput from '../../components/DateInput.vue';
+  import { useDatabaseRepository } from '../../stores/DatabaseRepository';
 
-const repo = useDatabaseRepository();
+  const repo = useDatabaseRepository();
 
-/* i18n / RTL */
-const { t, locale } = useI18n();
-const drawer = ref(false);
-const isRtl = ref(locale.value === "fa");
-watch(locale, (newLocale) => (isRtl.value = newLocale === "fa"));
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const drawer = ref(false);
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (newLocale) => (isRtl.value = newLocale === 'fa'));
 
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref("");
-function showErrorMessage(msg) {
-  errorMessage.value = msg;
-  showError.value = true;
-}
-
-/* v-form */
-const editorForm = ref(null);
-const editorValid = ref(false);
-const formKey = ref(0);
-
-/* helpers to guarantee arrays */
-const toArray = (v) => {
-  if (v && typeof v.then === "function") return [];
-  if (Array.isArray(v)) return v;
-  if (Array.isArray(v?.data)) return v.data;
-  if (Array.isArray(v?.items)) return v.items;
-  if (v && typeof v === "object") return Object.values(v);
-  return [];
-};
-
-/* option sources */
-const resourceCodeItems = computed(() => toArray(repo.resourcecode));
-const officeEmployeesCodeItems = computed(() => toArray(repo.officeemployeescode));
-const zoneEmployeesCodeItems = computed(() => toArray(repo.ZoneEmployeesCode));
-
-const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
-const zoneEmployeesItems = computed(() => toArray(repo.ZoneEmployees));
-const eventTypeItems = computed(() => toArray(repo.eventTypeOptions));
-const janiTalafatItems = computed(() => toArray(repo.janiTalafatOptions));
-const maliTalafatItems = computed(() => toArray(repo.maliTalafatOptions));
-
-/* Upload progress per row */
-const uploadingPct = reactive({});
-const startProgress = (key) => (uploadingPct[key] = 1);
-const setProgress = (key, pct) => (uploadingPct[key] = pct);
-const endProgress = (key) => (uploadingPct[key] = 0);
-
-/* Per-row backend errors */
-const itemErrors = ref({});
-function setItemErrors(item, errors) {
-  itemErrors.value[item.idOrTmp] = errors;
-}
-function clearItemErrors(item) {
-  if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
-}
-function hasError(item, field) {
-  return !!(itemErrors.value[item.idOrTmp] && itemErrors.value[item.idOrTmp][field]);
-}
-function getErrorMessages(item, field) {
-  return itemErrors.value[item.idOrTmp]?.[field] ?? [];
-}
-
-/* Validation rules */
-const rules = {
-  required: (v) => !!v || t("این فیلد الزامی است"),
-  selectRequired: (label) => (v) => !!v || t("{label} الزامی است", { label }),
-  number: (v) => !v || /^[0-9]+$/.test(v) || t("فقط اعداد مجاز است"),
-  min: (n) => (v) => (v && v.length >= n) || t("حداقل {n} حرف", { n }),
-  max: (n) => (v) => (v && v.length <= n) || t("حداکثر {n} حرف", { n }),
-};
-
-/* unwrap slot proxies */
-const getRow = (s) => (s && s.raw ? s.raw : s);
-
-/* rows - single-row editor */
-const rows = ref([]);
-let tmpId = 0;
-const newTmpId = () => `tmp-${++tmpId}`;
-
-/* map API -> row */
-function toRowModel(x = {}) {
-  const base = {
-    id: x.id ?? null,
-    idOrTmp: x.id ?? newTmpId(),
-    loading: false,
-
-    /* foreign keys (IDs) */
-    resource_id: x.resource_id ?? x.resource?.id ?? null,
-    office_employee_id: x.office_employee_id ?? x.office_employee?.id ?? null,
-
-    /* visible codes if server returns them */
-    resource_code: x.resource_code ?? "",
-    office_employee_code: x.office_employee_code ?? "",
-
-    /* event main fields */
-    event_type: x.event_type ?? "",
-    event_specific_type: x.event_specific_type ?? "",
-    who_did: x.who_did ?? "",
-    target_person: x.target_person ?? "",
-
-    /* time */
-    event_date: x.event_date ?? "",
-    event_hour: x.event_hour ?? "",
-
-    /* place */
-    zone: x.zone ?? "",
-    hawza: x.hawza ?? "",
-    specific_place: x.specific_place ?? "",
-    coordenates: x.coordenates ?? "",
-
-    /* losses */
-    jani_talafat: x.jani_talafat ?? "",
-    mali_talafat: x.mali_talafat ?? "",
-
-    /* receiver codes (IDs) */
-    event_office_employee_code: x.event_office_employee_code ?? x.event_office_employee?.id ?? null,
-    event_zone_employee_code: x.event_zone_employee_code ?? x.event_zone_employee?.id ?? null,
-
-    /* docs */
-    existingDocs: Array.isArray(x.documents) ? x.documents : [],
-
-    /* texts */
-    tafseel: x.tafseel ?? "",
-    talks: x.talks ?? "",
-    notes: x.notes ?? "",
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
   };
-  return { ...base, draft: { ...base, _newDocs: [], removed_document_ids: [] } };
-}
 
-/* create a blank row */
-function setBlankEditorRow() {
-  rows.value = [toRowModel({})];
-}
+  /* v-form */
+  const editorForm = ref(null);
+  const editorValid = ref(false);
+  const formKey = ref(0);
 
-/* headers (editor) */
-const headers = computed(() => [
-  { title: t("کود منبع"), key: "resource_code" },
-  { title: t("کود کارمند "), key: "office_employee_code", width: 300 },
-  { title: t("نوعیت واقعه"), key: "event_type" },
-  { title: t("نوعیت مشخص واقعه"), key: "event_specific_type" },
-  { title: t("هدف کی بود؟/جای بود"), key: "target_person" },
-  { title: t("جرم را کی انجام داده"), key: "who_did" },
-  { title: t("تاریخ واقعه"), key: "event_date" },
-  { title: t("ساعت واقعه"), key: "event_hour" },
-  { title: t("محل واقعه"), key: "event_place" },
-  { title: t("کوردینات"), key: "coordenates" },
-  { title: t("تلفات جانی"), key: "jani_talafat" },
-  { title: t("تلفات مالی"), key: "mali_talafat" },
-  { title: t("کود کارمند واقعه گیرنده"), key: "event_employee_code" },
-  { title: t("تفصیل"), key: "tafseel" },
-  { title: t("شواهد مربوط به واقعه"), key: "documents" },
-  { title: t("وضاحت"), key: "talks" },
-  { title: t("ملاحظات"), key: "notes" },
-  { title: t("عمل"), key: "actions", sortable: false },
-]);
+  /* helpers */
+  const toArray = (v) => {
+    if (v && typeof v.then === 'function') return [];
+    if (Array.isArray(v)) return v;
+    if (Array.isArray(v?.data)) return v.data;
+    if (Array.isArray(v?.items)) return v.items;
+    if (v && typeof v === 'object') return Object.values(v);
+    return [];
+  };
 
-/* Filterable table (bottom) */
-const rowsFT = computed(() => toArray(repo.Events));
-const headersFT = computed(() => [
-  { title: t("کود منبع (نمایشی)"), key: "resource_code" },
-  { title: t("کود کارمند (نمایشی)"), key: "office_employee_code" },
+  /* option sources */
+  const resourceCodeItems = computed(() => toArray(repo.resourcecode));
+  const officeEmployeesCodeItems = computed(() => toArray(repo.officeemployeescode));
+  const janiTalafatItems = computed(() => toArray(repo.janiTalafatOptions));
+  const maliTalafatItems = computed(() => toArray(repo.maliTalafatOptions));
 
-  { title: t("نوعیت واقعه"), key: "event_type" },
-  { title: t("نوعیت مشخص واقعه"), key: "event_specific_type" },
-  { title: t("هدف/مکان"), key: "target_person" },
-  { title: t("عامل واقعه"), key: "who_did" },
+  /* required fixed dropdowns */
+  const eventTypeOptions = ['سیاسی', 'جنایی', 'الهی'];
+  const eventSpecificTypeOptions = ['قتل', 'چاودنه', 'ټکر', 'سرقت', 'مسلحانه برید'];
 
-  { title: t("تاریخ واقعه"), key: "event_date" },
-  { title: t("ساعت واقعه"), key: "event_hour" },
+  /* progress */
+  const uploadingPct = reactive({});
+  const startProgress = (k) => (uploadingPct[k] = 1);
+  const setProgress = (k, pct) => (uploadingPct[k] = pct);
+  const endProgress = (k) => (uploadingPct[k] = 0);
 
-  { title: t("زون"), key: "zone" },
-  { title: t("حوزه"), key: "hawza" },
-  { title: t("محل مشخص"), key: "specific_place" },
-  { title: t("کوردینات"), key: "coordenates" },
+  /* errors */
+  const itemErrors = ref({});
+  const setItemErrors = (it, errs) => (itemErrors.value[it.idOrTmp] = errs);
+  const clearItemErrors = (it) => {
+    if (itemErrors.value[it.idOrTmp]) delete itemErrors.value[it.idOrTmp];
+  };
+  const hasError = (it, f) => !!(itemErrors.value[it.idOrTmp] && itemErrors.value[it.idOrTmp][f]);
+  const getErrorMessages = (it, f) => itemErrors.value[it.idOrTmp]?.[f] ?? [];
 
-  { title: t("تلفات جانی"), key: "jani_talafat" },
-  { title: t("تلفات مالی"), key: "mali_talafat" },
+  /* rules */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+    selectRequired: (label) => (v) => !!v || t('{label} الزامی است', { label }),
+  };
 
-  { title: t("کود کارمند واقعه گیرنده (ID)"), key: "event_office_employee_code" },
-  { title: t("کود رزیدانت واقعه گیرنده (ID)"), key: "event_zone_employee_code" },
-  { title: t("تفصیل"), key: "tafseel" },
-  { title: t("وضاحت"), key: "talks" },
-  { title: t("ملاحظات"), key: "notes" },
-]);
+  /* unwrap slot proxies */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
 
-const topGroups = computed(() => [
-  { title: t("کودهای نمایشی"), keys: ["resource_code", "office_employee_code"] },
-  { title: t("نوع واقعه"), keys: ["event_type", "event_specific_type"] },
-  { title: t("هدف و عامل"), keys: ["target_person", "who_did"] },
-  { title: t("زمان"), keys: ["event_date", "event_hour"] },
-  { title: t("مکان"), keys: ["zone", "hawza", "specific_place", "coordenates"] },
-  { title: t("تلفات"), keys: ["jani_talafat", "mali_talafat"] },
-  { title: t("کودهای کارمند (IDs)"), keys: ["event_office_employee_code", "event_zone_employee_code"] },
-  { title: t("متن‌ها"), keys: ["tafseel", "talks", "notes"] },
-]);
+  /* rows */
+  const rows = ref([]);
+  let tmpId = 0;
+  const newTmpId = () => `tmp-${++tmpId}`;
 
-/* filters for FilterableTable */
-const filters = ref({});
+  /* map API -> row (ONLY your fields) */
+  function toRowModel(x = {}) {
+    const base = {
+      id: x.id ?? null,
+      idOrTmp: x.id ?? newTmpId(),
+      loading: false,
 
-/* docs */
-function openDocsPicker(slotItem) {
-  const item = getRow(slotItem);
-  if (!item) return;
-  document.getElementById(`docs-${item.idOrTmp}`)?.click();
-}
-function onPickDocs(slotItem, files) {
-  const item = getRow(slotItem);
-  if (!item?.draft) return;
-  item.draft._newDocs = Array.isArray(files) ? files : [];
-}
-function shortName(name = "") {
-  if (name.length <= 18) return name;
-  const dot = name.lastIndexOf(".");
-  if (dot === -1) return name.slice(0, 15) + "…";
-  const ext = name.slice(dot);
-  const base = name.slice(0, 15);
-  return `${base}…${ext}`;
-}
-function openDoc(url) {
-  if (!url) return;
-  window.open(url, "_blank");
-}
-function markDocForRemoval(item, doc) {
-  if (!doc?.id) return;
-  if (!Array.isArray(item.draft.removed_document_ids)) item.draft.removed_document_ids = [];
-  if (!item.draft.removed_document_ids.includes(doc.id)) {
-    item.draft.removed_document_ids.push(doc.id);
-  }
-  // Optimistic UI
-  item.existingDocs = (item.existingDocs || []).filter((d) => d.id !== doc.id);
-}
+      resource_id: x.resource_id ?? x.resource?.id ?? null,
+      office_employee_id: x.office_employee_id ?? x.office_employee?.id ?? null,
 
-/* diff + selective FormData */
-function diffDraft(item) {
-  const d = item.draft || {};
-  const changed = {};
-  const keys = [
-    "resource_id",
-    "office_employee_id",
-    "event_type",
-    "event_specific_type",
-    "target_person",
-    "who_did",
-    "event_date",
-    "event_hour",
-    "zone",
-    "hawza",
-    "specific_place",
-    "coordenates",
-    "jani_talafat",
-    "mali_talafat",
-    "event_office_employee_code",
-    "event_zone_employee_code",
-    "tafseel",
-    "talks",
-    "notes",
-  ];
-  for (const k of keys) {
-    if ((d[k] ?? "") !== (item[k] ?? "")) changed[k] = d[k];
-  }
-  return changed;
-}
-function toFormDataSelective(obj) {
-  const fd = new FormData();
-  for (const [k, v] of Object.entries(obj)) {
-    if (v == null) continue;
-    fd.append(k, v);
-  }
-  return fd;
-}
+      event_type: x.event_type ?? '',
+      event_specific_type: x.event_specific_type ?? '',
+      target_person: x.target_person ?? '',
+      criminal: x.criminal ?? '',
 
-/* save / delete / download */
-async function save(slotItem) {
-  const item = getRow(slotItem);
-  if (!item) return;
+      event_date: x.event_date ?? '',
+      event_hour: x.event_hour ?? '',
 
-  clearItemErrors(item);
+      event_zone: x.event_zone ?? '',
+      event_hawza: x.event_hawza ?? '',
+      event_specific_place: x.event_specific_place ?? '',
+      coordinates: x.coordinates ?? '',
 
-  // basic client check
-  if (!item.draft?.event_type) {
-    showErrorMessage(t("نوعیت واقعه الزامی است"));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
+      talafat_jani: x.talafat_jani ?? '',
+      talafat_mali: x.talafat_mali ?? '',
+
+      tafseel: x.tafseel ?? '',
+      talks: x.talks ?? '',
+      note: x.note ?? '',
+
+      /* docs */
+      existingDocs: Array.isArray(x.documents) ? x.documents : [],
+    };
+    return { ...base, draft: { ...base, _newDocs: [], removed_document_ids: [] } };
   }
 
-  const changed = item.id ? diffDraft(item) : { ...item.draft };
-  const fd = toFormDataSelective(changed);
-  (item.draft._newDocs || []).forEach((file) => fd.append("documents[]", file));
-  (item.draft.removed_document_ids || []).forEach((id) => fd.append("removed_document_ids[]", id));
+  /* blank editor */
+  const setBlankEditorRow = () => (rows.value = [toRowModel({})]);
 
-  const key = item.idOrTmp ?? item.id ?? `tmp-${Date.now()}`;
-  item.loading = true;
-  startProgress(key);
+  /* headers (editor) — ONLY your fields */
+  const headers = computed(() => [
+    { title: t('کود منبع (ID)'), key: 'resource_id' },
+    { title: t('کود کارمند (ID)'), key: 'office_employee_id' },
+    { title: t('نوعیت واقعه'), key: 'event_type' },
+    { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
+    { title: t('هدف/مکان'), key: 'target_person' },
+    { title: t('عامل/مرتکب'), key: 'criminal' },
+    { title: t('تاریخ واقعه'), key: 'event_date' },
+    { title: t('ساعت واقعه'), key: 'event_hour' },
+    { title: t('زون'), key: 'event_zone' },
+    { title: t('حوزه'), key: 'event_hawza' },
+    { title: t('محل مشخص'), key: 'event_specific_place' },
+    { title: t('کوردینات'), key: 'coordinates' },
+    { title: t('تلفات جانی'), key: 'talafat_jani' },
+    { title: t('تلفات مالی'), key: 'talafat_mali' },
+    { title: t('تفصیل'), key: 'tafseel' },
+    { title: t('شواهد مربوط به واقعه'), key: 'documents' },
+    { title: t('وضاحت'), key: 'talks' },
+    { title: t('ملاحظات'), key: 'note' },
+    { title: t('عمل'), key: 'actions', sortable: false },
+  ]);
 
-  try {
-    if (!item.id) {
-      const created = await repo
-        .CreateEvent(fd, (pct) => setProgress(key, pct))
+  /* Filterable table */
+  const rowsFT = computed(() => toArray(repo.Events));
+  const headersFT = computed(() => [
+    { title: t('کود منبع (ID)'), key: 'resource_id' },
+    { title: t('کود کارمند (ID)'), key: 'office_employee_id' },
+    { title: t('نوعیت واقعه'), key: 'event_type' },
+    { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
+    { title: t('هدف/مکان'), key: 'target_person' },
+    { title: t('عامل/مرتکب'), key: 'criminal' },
+    { title: t('تاریخ واقعه'), key: 'event_date' },
+    { title: t('ساعت واقعه'), key: 'event_hour' },
+    { title: t('زون'), key: 'event_zone' },
+    { title: t('حوزه'), key: 'event_hawza' },
+    { title: t('محل مشخص'), key: 'event_specific_place' },
+    { title: t('کوردینات'), key: 'coordinates' },
+    { title: t('تلفات جانی'), key: 'talafat_jani' },
+    { title: t('تلفات مالی'), key: 'talafat_mali' },
+    { title: t('تفصیل'), key: 'tafseel' },
+    { title: t('وضاحت'), key: 'talks' },
+    { title: t('ملاحظات'), key: 'note' },
+  ]);
+
+  const topGroups = computed(() => [
+    { title: t('شناسه‌ها'), keys: ['resource_id', 'office_employee_id'] },
+    { title: t('نوع واقعه'), keys: ['event_type', 'event_specific_type'] },
+    { title: t('هدف و عامل'), keys: ['target_person', 'criminal'] },
+    { title: t('زمان'), keys: ['event_date', 'event_hour'] },
+    {
+      title: t('مکان'),
+      keys: ['event_zone', 'event_hawza', 'event_specific_place', 'coordinates'],
+    },
+    { title: t('تلفات'), keys: ['talafat_jani', 'talafat_mali'] },
+    { title: t('متن‌ها'), keys: ['tafseel', 'talks', 'note'] },
+  ]);
+
+  /* filters */
+  const filters = ref({});
+
+  /* documents */
+  function openDocsPicker(slotItem) {
+    const item = getRow(slotItem);
+    if (!item) return;
+    document.getElementById(`docs-${item.idOrTmp}`)?.click();
+  }
+  function onPickDocs(slotItem, files) {
+    const item = getRow(slotItem);
+    if (!item?.draft) return;
+    item.draft._newDocs = Array.isArray(files) ? files : [];
+  }
+  function shortName(name = '') {
+    if (name.length <= 18) return name;
+    const dot = name.lastIndexOf('.');
+    if (dot === -1) return name.slice(0, 15) + '…';
+    const ext = name.slice(dot);
+    const base = name.slice(0, 15);
+    return `${base}…${ext}`;
+  }
+  function openDoc(url) {
+    if (url) window.open(url, '_blank');
+  }
+  function markDocForRemoval(item, doc) {
+    if (!doc?.id) return;
+    if (!Array.isArray(item.draft.removed_document_ids)) item.draft.removed_document_ids = [];
+    if (!item.draft.removed_document_ids.includes(doc.id))
+      item.draft.removed_document_ids.push(doc.id);
+    item.existingDocs = (item.existingDocs || []).filter((d) => d.id !== doc.id);
+  }
+
+  /* diff + FormData — ONLY your fields */
+  function diffDraft(item) {
+    const d = item.draft || {};
+    const changed = {};
+    const keys = [
+      'resource_id',
+      'office_employee_id',
+      'event_type',
+      'event_specific_type',
+      'target_person',
+      'criminal',
+      'event_date',
+      'event_hour',
+      'event_zone',
+      'event_hawza',
+      'event_specific_place',
+      'coordinates',
+      'talafat_jani',
+      'talafat_mali',
+      'tafseel',
+      'talks',
+      'note',
+    ];
+    for (const k of keys) if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
+    return changed;
+  }
+  function toFormDataSelective(obj) {
+    const fd = new FormData();
+    for (const [k, v] of Object.entries(obj)) if (v != null) fd.append(k, v);
+    return fd;
+  }
+
+  /* save/update (unchanged flow) */
+  async function save(slotItem) {
+    const item = getRow(slotItem);
+    if (!item) return;
+
+    clearItemErrors(item);
+
+    if (!item.draft?.event_type) {
+      showErrorMessage(t('نوعیت واقعه الزامی است'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+
+    const changed = item.id ? diffDraft(item) : { ...item.draft };
+    const fd = toFormDataSelective(changed);
+    (item.draft._newDocs || []).forEach((file) => fd.append('documents[]', file));
+    (item.draft.removed_document_ids || []).forEach((id) =>
+      fd.append('removed_document_ids[]', id)
+    );
+
+    const key = item.idOrTmp ?? item.id ?? `tmp-${Date.now()}`;
+    item.loading = true;
+    startProgress(key);
+
+    try {
+      if (!item.id) {
+        const created = await repo
+          .CreateEvent(fd, (pct) => setProgress(key, pct))
+          .catch((e) => {
+            if (e?.response?.data?.errors) setItemErrors(item, e.response.data.errors);
+            return null;
+          });
+        if (created?.id) {
+          await fetchAll();
+          setBlankEditorRow();
+          editorForm.value?.resetValidation?.();
+          showErrorMessage(t('واقعه ایجاد شد'));
+        } else {
+          await fetchAll();
+          setBlankEditorRow();
+        }
+        return;
+      }
+
+      if ([...fd.keys()].length === 0) {
+        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
+        return;
+      }
+
+      const updated = await repo
+        .UpdateEvent(item.id, fd, (pct) => setProgress(key, pct))
         .catch((e) => {
           if (e?.response?.data?.errors) setItemErrors(item, e.response.data.errors);
           return null;
         });
-      if (created?.id) {
+
+      if (updated?.id) {
         await fetchAll();
         setBlankEditorRow();
         editorForm.value?.resetValidation?.();
-        showErrorMessage(t("واقعه ایجاد شد"));
+        showErrorMessage(t('واقعه بروزرسانی شد'));
+      }
+    } finally {
+      endProgress(key);
+      item.loading = false;
+    }
+  }
+
+  /* validated submit */
+  async function onSubmit(item) {
+    const form = editorForm.value;
+    if (!form) return;
+    const { valid } = await form.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+    await save(item);
+  }
+
+  /* scroll to first invalid */
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector(".v-input--error, [aria-invalid='true']") ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  /* hard reset */
+  async function hardResetFormValidation() {
+    editorValid.value = false;
+    itemErrors.value = {};
+    await nextTick();
+    editorForm.value?.resetValidation?.();
+    formKey.value++;
+    await nextTick();
+  }
+
+  /* fetch list (unchanged) */
+  async function fetchAll() {
+    try {
+      await repo.FetchEventsData({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search,
+      });
+    } catch {}
+  }
+
+  /* edit / peek (unchanged) */
+  const editorCard = ref(null);
+  async function startEdit(row) {
+    try {
+      const id = row?.id;
+      if (!id) return;
+
+      if (typeof repo.FetchEventData === 'function') {
+        await repo.FetchEventData(id);
+        const single =
+          (repo.Event && Array.isArray(repo.Event) ? repo.Event[0] : repo.Event) || row;
+        rows.value = [toRowModel(single)];
       } else {
         await fetchAll();
-        setBlankEditorRow();
+        const list = rowsFT.value || [];
+        const single = list.find((r) => r.id === id) || row;
+        rows.value = [toRowModel(single)];
       }
-      return;
+
+      await nextTick();
+      const el = editorCard.value?.$el || editorCard.value;
+      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    } catch {
+      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
     }
+  }
 
-    // UPDATE
-    if ([...fd.keys()].length === 0) {
-      showErrorMessage(t("هیچ تغییری برای ذخیره وجود ندارد"));
-      return;
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loading.value = true;
+    try {
+      if (typeof repo.FetchEventData === 'function') {
+        await repo.FetchEventData(id);
+        detail.value = (repo.Event && Array.isArray(repo.Event) ? repo.Event[0] : repo.Event) || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } finally {
+      loading.value = false;
     }
-
-    const updated = await repo
-      .UpdateEvent(item.id, fd, (pct) => setProgress(key, pct))
-      .catch((e) => {
-        if (e?.response?.data?.errors) setItemErrors(item, e.response.data.errors);
-        return null;
-      });
-
-    if (updated?.id) {
-      await fetchAll();
-      setBlankEditorRow();
-      editorForm.value?.resetValidation?.();
-      showErrorMessage(t("واقعه بروزرسانی شد"));
-    }
-  } finally {
-    endProgress(key);
-    item.loading = false;
   }
-}
-
-/* VALIDATED SUBMIT */
-async function onSubmit(item) {
-  const form = editorForm.value;
-  if (!form) return;
-  const { valid } = await form.validate();
-  if (!valid) {
-    showErrorMessage(t("لطفاً فیلدهای قرمز را درست کنید"));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
   }
-  await save(item);
-}
 
-/* SCROLL TO FIRST INVALID INPUT */
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector(".v-input--error, [aria-invalid='true']") ||
-    document.querySelector(".v-messages__message");
-
-  if (first) {
-    first.scrollIntoView({ behavior: "smooth", block: "center" });
-    const input = first.querySelector("input, textarea, .v-field__input");
-    if (input && typeof input.focus === "function") input.focus();
-  }
-}
-
-/* Hard reset form validation if needed */
-async function hardResetFormValidation() {
-  editorValid.value = false;
-  itemErrors.value = {};
-  await nextTick();
-  editorForm.value?.resetValidation?.();
-  formKey.value++;
-  await nextTick();
-}
-
-/* fetch list for FilterableTable */
-async function fetchAll() {
-  try {
-    await repo.FetchEventsData({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search,
-    });
-  } catch {}
-}
-
-/* Edit from FilterableTable */
-const editorCard = ref(null);
-async function startEdit(row) {
-  try {
-    const id = row?.id;
-    if (!id) return;
-
-    if (typeof repo.FetchEventData === "function") {
-      await repo.FetchEventData(id);
-      const single =
-        (repo.Event && Array.isArray(repo.Event) ? repo.Event[0] : repo.Event) || row;
-      rows.value = [toRowModel(single)];
-    } else {
-      await fetchAll();
-      const list = rowsFT.value || [];
-      const single = list.find((r) => r.id === id) || row;
-      rows.value = [toRowModel(single)];
-    }
-
-    await nextTick();
-    const el = editorCard.value?.$el || editorCard.value;
-    el?.scrollIntoView?.({ behavior: "smooth", block: "start" });
-  } catch {
-    showErrorMessage(t("خطا در باز کردن مورد برای ویرایش"));
-  }
-}
-
-/* ===== Peek state & methods ===== */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loading = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loading.value = true;
-  try {
-    if (typeof repo.FetchEventData === "function") {
-      await repo.FetchEventData(id);
-      detail.value =
-        (repo.Event && Array.isArray(repo.Event) ? repo.Event[0] : repo.Event) || {};
-    } else {
-      await fetchAll();
-      const list = rowsFT.value || [];
-      detail.value = list.find((r) => r.id === id) || {};
-    }
-  } finally {
-    loading.value = false;
-  }
-}
-function openPeek(payload) {
-  const row = payload?.raw ?? payload;
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
-
-/* init */
-onMounted(async () => {
-  await Promise.allSettled([
-    repo.GetOfficeEmployee?.(),
-    repo.GetZoneEmployees?.(),
-    repo.GetResource?.(),
-    repo.GetOfficeEmployeeCode?.(),
-    repo.GetZoneEmployeesCode?.(),
-    repo.GetResourceCode?.(),
-  ]);
-  await fetchAll();
-  setBlankEditorRow();
-});
+  /* init */
+  onMounted(async () => {
+    await Promise.allSettled([
+      repo.GetOfficeEmployee?.(),
+      repo.GetZoneEmployees?.(),
+      repo.GetResource?.(),
+      repo.GetOfficeEmployeeCode?.(),
+      repo.GetZoneEmployeesCode?.(),
+      repo.GetResourceCode?.(),
+    ]);
+    await fetchAll();
+    setBlankEditorRow();
+  });
 </script>
 
 <style scoped>
-.custom-table :deep(.v-data-table__thead th) {
-  background: rgb(var(--v-theme-primary));
-  color: #fff;
-  font-weight: 400;
-}
-.custom-table :deep(td) {
-  vertical-align: middle;
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
+  .custom-table :deep(.v-data-table__thead th) {
+    background: rgb(var(--v-theme-primary));
+    color: #fff;
+    font-weight: 400;
+  }
+  .custom-table :deep(td) {
+    vertical-align: middle;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
 
-/* compact inputs */
-.text-group { display: grid; width: 200px; gap: 2px; }
-.text-group-note { display: grid; width: 400px; gap: 2px; }
-.addr-group { display: grid; grid-template-columns: repeat(3, minmax(200px, 1fr)); gap: 6px !important; }
-.drop-group2 { display: grid; grid-template-columns: repeat(2, minmax(250px, 1fr)); gap: 6px; }
+  /* compact inputs */
+  .text-group {
+    display: grid;
+    width: 200px;
+    gap: 2px;
+  }
+  .text-group-note {
+    display: grid;
+    width: 400px;
+    gap: 2px;
+  }
 
-.flex { display: flex; }
-.items-center { align-items: center; }
-.gap-1 { gap: 4px; }
+  .flex {
+    display: flex;
+  }
+  .items-center {
+    align-items: center;
+  }
+  .gap-1 {
+    gap: 4px;
+  }
 
-/* labels/fields */
-:deep(.v-field-label),
-:deep(.v-label),
-:deep(input::placeholder) {
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  color: #555 !important;
-}
-:deep(.v-field__input) {
-  min-height: 26px !important;
-  padding: 2px 6px !important;
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-}
+  /* labels/fields */
+  :deep(.v-field-label),
+  :deep(.v-label),
+  :deep(input::placeholder) {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    color: #555 !important;
+  }
+  :deep(.v-field__input) {
+    min-height: 26px !important;
+    padding: 2px 6px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+  }
 
-/* Documents layout */
-.documents-inline { min-width: 520px; }
-.docs-field-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px dashed #9e9e9e;
-  border-radius: 8px;
-  padding: 6px 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-.chip-existing { background: #c8dae1; color: black !important; }
-.chips-row {
-  flex: 1 1 auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 2px 0;
-  scrollbar-width: thin;
-}
-.chip-outline { background: #c8dae1; }
-.download-all-btn { white-space: nowrap; }
+  /* documents */
+  .documents-inline {
+    min-width: 520px;
+  }
+  .docs-field-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px dashed #9e9e9e;
+    border-radius: 8px;
+    padding: 6px 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+  .chips-row {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 2px 0;
+    scrollbar-width: thin;
+  }
+  .chip-outline,
+  .chip-existing {
+    background: #c8dae1;
+    color: #000 !important;
+  }
+  .download-all-btn {
+    white-space: nowrap;
+  }
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
 
-/* Hidden input */
-.hidden-file {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* tighter table cell padding */
-.custom-table :deep(td) { padding-left: 8px !important; padding-right: 1px !important; }
-:deep(.v-text-field), :deep(.v-autocomplete) { margin-right: -10px !important; margin-left: 2px; }
-
-.tablebody { display: flex !important; gap: 2px !important; }
+  /* tighter cells */
+  .custom-table :deep(td) {
+    padding-left: 8px !important;
+    padding-right: 1px !important;
+  }
 </style>

@@ -14,6 +14,7 @@ class EventController extends Controller
 {
     /**
      * List all events with relationships and search support.
+     * If perPage & page are provided -> paginate, else -> full dataset.
      */
     public function index(Request $request)
     {
@@ -24,16 +25,23 @@ class EventController extends Controller
             'eventOfficeEmployee',
             'eventZoneEmployee',
             'documents'
-        ])
-        ->when($request->search, function ($q) use ($request) {
-            $q->where('event_type', 'like', "%{$request->search}%")
-              ->orWhere('event_specific_type', 'like', "%{$request->search}%")
-              ->orWhere('target_person', 'like', "%{$request->search}%");
+        ])->when($request->search, function ($q) use ($request) {
+            $s = $request->search;
+            $q->where('event_type', 'like', "%{$s}%")
+              ->orWhere('event_specific_type', 'like', "%{$s}%")
+              ->orWhere('target_person', 'like', "%{$s}%")
+              ->orWhere('criminal', 'like', "%{$s}%");
         });
 
-        return EventResource::collection(
-            $query->paginate($request->perPage ?? 15)
-        );
+        $perPage = $request->integer('perPage');
+        $page    = $request->integer('page');
+
+        // ✅ Rule you asked: only paginate if both are present; otherwise return all
+        if ($perPage && $perPage > 0 && $page && $page > 0) {
+            return EventResource::collection($query->paginate($perPage, ['*'], 'page', $page));
+        }
+
+        return EventResource::collection($query->get());
     }
 
     /**
@@ -44,17 +52,16 @@ class EventController extends Controller
         DB::beginTransaction();
 
         try {
-            // ✅ Create the event
             $event = Event::create($request->validated());
 
-            // 📎 Handle document uploads
+            // 📎 Documents upload (unchanged)
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("events/{$event->id}", 'public');
                     $event->documents()->create([
-                        'file_name' => $file->getClientOriginalName(),
-                        'file_path' => $path,
-                        'mime_type' => $file->getClientMimeType(),
+                        'file_name'  => $file->getClientOriginalName(),
+                        'file_path'  => $path,
+                        'mime_type'  => $file->getClientMimeType(),
                         'size_bytes' => $file->getSize(),
                     ]);
                 }
@@ -62,22 +69,19 @@ class EventController extends Controller
 
             DB::commit();
 
-            return new EventResource(
-                $event->load([
-                    'resource',
-                    'officeEmployee',
-                    'zoneEmployee',
-                    'eventOfficeEmployee',
-                    'eventZoneEmployee',
-                    'documents'
-                ])
-            );
-
+            return new EventResource($event->load([
+                'resource',
+                'officeEmployee',
+                'zoneEmployee',
+                'eventOfficeEmployee',
+                'eventZoneEmployee',
+                'documents'
+            ]));
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Event creation failed',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -87,16 +91,14 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
-        return new EventResource(
-            $event->load([
-                'resource',
-                'officeEmployee',
-                'zoneEmployee',
-                'eventOfficeEmployee',
-                'eventZoneEmployee',
-                'documents'
-            ])
-        );
+        return new EventResource($event->load([
+            'resource',
+            'officeEmployee',
+            'zoneEmployee',
+            'eventOfficeEmployee',
+            'eventZoneEmployee',
+            'documents'
+        ]));
     }
 
     /**
@@ -107,17 +109,16 @@ class EventController extends Controller
         DB::beginTransaction();
 
         try {
-            // ✅ Update event fields
             $event->update($request->validated());
 
-            // 📎 Handle new documents (if uploaded)
+            // 📎 New documents (optional)
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("events/{$event->id}", 'public');
                     $event->documents()->create([
-                        'file_name' => $file->getClientOriginalName(),
-                        'file_path' => $path,
-                        'mime_type' => $file->getClientMimeType(),
+                        'file_name'  => $file->getClientOriginalName(),
+                        'file_path'  => $path,
+                        'mime_type'  => $file->getClientMimeType(),
                         'size_bytes' => $file->getSize(),
                     ]);
                 }
@@ -125,22 +126,19 @@ class EventController extends Controller
 
             DB::commit();
 
-            return new EventResource(
-                $event->load([
-                    'resource',
-                    'officeEmployee',
-                    'zoneEmployee',
-                    'eventOfficeEmployee',
-                    'eventZoneEmployee',
-                    'documents'
-                ])
-            );
-
+            return new EventResource($event->load([
+                'resource',
+                'officeEmployee',
+                'zoneEmployee',
+                'eventOfficeEmployee',
+                'eventZoneEmployee',
+                'documents'
+            ]));
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Event update failed',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -150,12 +148,10 @@ class EventController extends Controller
      */
     public function destroy(Event $event)
     {
-        // 🗑️ Delete files from storage
         foreach ($event->documents as $doc) {
             Storage::disk('public')->delete($doc->file_path);
         }
 
-        // 🗑️ Delete DB records
         $event->documents()->delete();
         $event->delete();
 

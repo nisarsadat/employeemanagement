@@ -7,52 +7,50 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        // CREATE the base table (singular)
         Schema::create('information', function (Blueprint $table) {
             $table->id();
 
-            // foreign keys (nullable as you wanted)
+            // Foreign keys
             $table->unsignedBigInteger('resource_id')->nullable();
-            $table->unsignedBigInteger('officeemployee_id')->nullable();
-            $table->unsignedBigInteger('zone_employee_id')->nullable();
-            $table->unsignedBigInteger('information_office_employee_code')->nullable();
-            $table->unsignedBigInteger('infomation_zone_employee_code')->nullable();
+            $table->unsignedBigInteger('office_employee_id')->nullable();
 
-            // main fields
+            // Personal info
             $table->string('name')->nullable();
+            $table->string('nick_name')->nullable();
             $table->string('father_name')->nullable();
-            $table->string('nickname')->nullable();
             $table->string('grand_father_name')->nullable();
 
+            // Main address
             $table->string('main_province')->nullable();
-            $table->string('main_district')->nullable();
+            $table->string('main_districts')->nullable();
             $table->string('main_village')->nullable();
 
+            // Current address
             $table->string('now_province')->nullable();
             $table->string('now_district')->nullable();
             $table->string('now_village')->nullable();
 
-            $table->string('seyasi')->nullable();
-            $table->string('jenayee')->nullable();
-            $table->string('information_date')->nullable();
-            $table->string('information_hour')->nullable();
+            // Info types
+            $table->string('syasi_info_type')->nullable();
+            $table->string('jenayee_info_type')->nullable();
 
-            $table->string('importance_degree')->nullable();
-            $table->string('information_category')->nullable();
+            // Info details
+            $table->string('information_saved_date')->nullable();
+            $table->string('information_saved_hour')->nullable();
+            $table->string('information_degree')->nullable();
 
+            // Text areas
             $table->text('tafseel')->nullable();
+            $table->text('manager_comment')->nullable();
+            $table->text('lead_drirection')->nullable();
             $table->text('talks')->nullable();
-            $table->text('outcome')->nullable();
-            $table->text('notes')->nullable();
+            $table->text('note')->nullable();
 
             $table->timestamps();
 
-            // FKs (adjust table names if yours differ)
+            // FK constraints
             $table->foreign('resource_id')->references('id')->on('resources')->nullOnDelete();
-            $table->foreign('officeemployee_id')->references('id')->on('office_employees')->nullOnDelete();
-            $table->foreign('zone_employee_id')->references('id')->on('zone_employees')->nullOnDelete();
-            $table->foreign('information_office_employee_code')->references('id')->on('office_employees')->nullOnDelete();
-            $table->foreign('infomation_zone_employee_code')->references('id')->on('zone_employees')->nullOnDelete();
+            $table->foreign('office_employee_id')->references('id')->on('office_employees')->nullOnDelete();
         });
     }
 

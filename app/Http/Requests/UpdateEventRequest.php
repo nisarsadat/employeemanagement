@@ -14,24 +14,25 @@ class UpdateEventRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'resource_id' => 'sometimes|exists:resources,id',
-            'office_employee_id' => 'sometimes|exists:office_employees,id',
-            'event_type' => 'sometimes|string',
-            'event_specific_type' => 'sometimes|string',
-            'target_person' => 'sometimes|string',
-            'who_did' => 'sometimes|string',
-            'event_date' => 'sometimes|string',
-            'event_hour' => 'sometimes|string',
-            'zone' => 'sometimes|string',
-            'hawza' => 'sometimes|string',
-            'specific_place' => 'sometimes|string',
-            'jani_talafat' => 'sometimes|string',
-            'mali_talafat' => 'sometimes|string',
-            'event_office_employee_code' => 'sometimes|exists:office_employees,id',
-            'event_zone_employee_code' => 'sometimes|exists:zone_employees,id',
-            'tafseel' => 'sometimes|string',
-            'talks' => 'sometimes|string',
-            'notes' => 'sometimes|string',
+            'resource_id'           => 'sometimes|nullable|exists:resources,id',
+            'office_employee_id'    => 'sometimes|nullable|exists:office_employees,id',
+            'event_type'            => 'sometimes|nullable|string',
+            'event_specific_type'   => 'sometimes|nullable|string',
+            'target_person'         => 'sometimes|nullable|string',
+            'criminal'              => 'sometimes|nullable|string',
+            'event_date'            => 'sometimes|nullable|string',
+            'event_hour'            => 'sometimes|nullable|string',
+            'event_zone'            => 'sometimes|nullable|string',
+            'event_hawza'           => 'sometimes|nullable|string',
+            'event_specific_place'  => 'sometimes|nullable|string',
+            'talafat_jani'          => 'sometimes|nullable|string',
+            'talafat_mali'          => 'sometimes|nullable|string',
+            'tafseel'               => 'sometimes|nullable|string',
+            'talks'                 => 'sometimes|nullable|string',
+            'coordinates'           => 'sometimes|nullable|string',
+            'note'                  => 'sometimes|nullable|string',
+
+            'documents.*'           => 'sometimes|file',
         ];
     }
 }

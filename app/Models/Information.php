@@ -1,5 +1,5 @@
 <?php
-// app/Models/Information.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -12,36 +12,36 @@ class Information extends Model
 
     protected $fillable = [
         'resource_id',
-        'officeemployee_id',
-        'zone_employee_id',
-
-        // your “second” pair
-        'information_office_employee_code',
-        'infomation_zone_employee_code',
+        'office_employee_id',
 
         'name',
+        'nick_name',
         'father_name',
-        'nickname',
         'grand_father_name',
+
         'main_province',
-        'main_district',
+        'main_districts',
         'main_village',
+
         'now_province',
         'now_district',
         'now_village',
-        'seyasi',
-        'jenayee',
-        'information_date',
-        'information_hour',
-        'importance_degree',
-        'information_category',
+
+        'syasi_info_type',
+        'jenayee_info_type',
+
+        'information_saved_date',
+        'information_saved_hour',
+        'information_degree',
+
         'tafseel',
+        'manager_comment',
+        'lead_drirection',
         'talks',
-        'outcome',
-        'notes',
+        'note',
     ];
 
-    // Primary associations
+    // 🧭 Relations
     public function resource(): BelongsTo
     {
         return $this->belongsTo(Resource::class, 'resource_id');
@@ -49,26 +49,9 @@ class Information extends Model
 
     public function officeEmployee(): BelongsTo
     {
-        return $this->belongsTo(OfficeEmployee::class, 'officeemployee_id');
+        return $this->belongsTo(OfficeEmployee::class, 'office_employee_id');
     }
 
-    public function zoneEmployee(): BelongsTo
-    {
-        return $this->belongsTo(ZoneEmployee::class, 'zone_employee_id');
-    }
-
-    // “Information” associations (2nd pair)
-    public function infoOfficeEmployee(): BelongsTo
-    {
-        return $this->belongsTo(OfficeEmployee::class, 'information_office_employee_code');
-    }
-
-    public function infoZoneEmployee(): BelongsTo
-    {
-        return $this->belongsTo(ZoneEmployee::class, 'infomation_zone_employee_code');
-    }
-
-    // Documents
     public function documents(): HasMany
     {
         return $this->hasMany(InformationDocument::class, 'information_id');

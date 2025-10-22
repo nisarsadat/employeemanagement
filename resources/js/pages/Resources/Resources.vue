@@ -334,15 +334,19 @@
               :label="t('تاریخ ثبت منبع')"
             />
           </template>
-
+          <!-- نوع فعالیت منبع -->
           <template #item.resource_activity_type="{ item }">
-            <v-text-field
+            <v-autocomplete
               v-model="item.draft.resource_activity_type"
+              :items="resourceActivityTypeOptions"
+              item-title="label"
+              item-value="value"
               class="text-group"
               density="compact"
               variant="outlined"
               :label="t('نوع فعالیت منبع')"
               hide-details
+              clearable
             />
           </template>
 
@@ -361,7 +365,16 @@
               clearable
             />
           </template>
-
+          <template #item.resedint_code="{ item }">
+            <v-text-field
+              v-model="item.draft.resedint_code"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t(' رزیدانت مربوطه کود')"
+              hide-details
+            />
+          </template>
           <!-- Misc -->
           <template #item.resource_cover="{ item }">
             <v-text-field
@@ -601,6 +614,7 @@
       resource_saved_date: x.resource_saved_date ?? '',
       resource_activity_type: x.resource_activity_type ?? '',
       office_employee_id: x.office_employee_id ?? null,
+      resedint_code: x.resedint_code,
       resource_cover: x.resource_cover ?? '',
       language: x.language ?? '',
       nation: x.nation ?? '',
@@ -634,6 +648,7 @@
     { title: t('تاریخ ثبت منبع'), key: 'resource_saved_date' },
     { title: t('نوع فعالیت'), key: 'resource_activity_type' },
     { title: t('کارمند مربوطه'), key: 'office_employee_id' },
+    { title: t(' رزیدنت مربوطه'), key: 'resedint_code' },
     { title: t('پوشش منبع'), key: 'resource_cover' },
     { title: t('زبان'), key: 'language' },
     { title: t('قوم'), key: 'nation' },
@@ -678,6 +693,7 @@
     { title: t('تاریخ ثبت منبع'), key: 'resource_saved_date' },
     { title: t('نوع فعالیت منبع'), key: 'resource_activity_type' },
     { title: t('کارمند مربوطه'), key: 'office_employee_id' },
+    { title: t(' رزیدنت مربوطه'), key: 'resedint_code' },
     { title: t('پوشش منبع'), key: 'resource_cover' },
     { title: t('زبان'), key: 'language' },
     { title: t('قوم'), key: 'nation' },
@@ -756,6 +772,7 @@
       'resource_saved_date',
       'resource_activity_type',
       'office_employee_id',
+      'resedint_code',
       'resource_cover',
       'language',
       'nation',
@@ -988,6 +1005,13 @@
     expanded.value = true;
     fetchOne(row.id);
   }
+  const resourceActivityTypeOptions = [
+    { label: 'ثابت', value: 'ثابت' },
+    { label: 'سیار', value: 'سیار' },
+    { label: 'اجنت', value: 'اجنت' },
+    { label: 'ریزیدنت', value: 'ریزیدنت' },
+    { label: 'نفوذی', value: 'نفوذی' },
+  ];
 
   /* Init */
   onMounted(async () => {

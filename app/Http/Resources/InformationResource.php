@@ -1,5 +1,4 @@
 <?php
-// app/Http/Resources/InformationResource.php
 
 namespace App\Http\Resources;
 
@@ -10,50 +9,56 @@ class InformationResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id'   => $this->id,
+            'id' => $this->id,
 
-            // codes
-            'information_code'     => $this->information_code,
-            'office_employee_code' => $this->office_employee_code,
-            'zone_employee_code'   => $this->zone_employee_code,
+            'resource' => $this->whenLoaded('resource', function () {
+                return [
+                    'id'          => $this->resource->id,
+                    'name'        => $this->resource->name,
+                    'code_number' => $this->resource->code_number,
+                    'father_name' => $this->resource->father_name,
+                ];
+            }),
 
-            // intro
+            'office_employee' => $this->whenLoaded('officeEmployee', function () {
+                return [
+                    'id'          => $this->officeEmployee->id,
+                    'name'        => $this->officeEmployee->name,
+                    'code_number' => $this->officeEmployee->code_number,
+                    'father_name' => $this->officeEmployee->father_name,
+                ];
+            }),
+
             'name'              => $this->name,
+            'nick_name'         => $this->nick_name,
             'father_name'       => $this->father_name,
-            'nickname'          => $this->nickname,
             'grand_father_name' => $this->grand_father_name,
 
-            // main
-            'main_province' => $this->main_province,
-            'main_district' => $this->main_district,
-            'main_village'  => $this->main_village,
+            'main_province'  => $this->main_province,
+            'main_districts' => $this->main_districts,
+            'main_village'   => $this->main_village,
 
-            // now
             'now_province' => $this->now_province,
             'now_district' => $this->now_district,
             'now_village'  => $this->now_village,
 
-            // typing
-            'seyasi_type'        => $this->seyasi_type,
-            'jenayee_type'       => $this->jenayee_type,
-            'information_type'   => $this->information_type,
-            'information_date'   => $this->information_date,
-            'information_hour'   => $this->information_hour,
-            'importance_degree'  => $this->importance_degree,
-            'information_category'=> $this->information_category,
+            'syasi_info_type'   => $this->syasi_info_type,
+            'jenayee_info_type' => $this->jenayee_info_type,
 
-            // relations
-            'officeemployee_id' => $this->officeemployee_id,
-            'zone_employee_id'  => $this->zone_employee_id,
+            'information_saved_date' => $this->information_saved_date,
+            'information_saved_hour' => $this->information_saved_hour,
+            'information_degree'     => $this->information_degree,
 
-            // text
-            'tafseel' => $this->tafseel,
-            'talks'   => $this->talks,
-            'outcome' => $this->outcome,
-            'notes'   => $this->notes,
+            'tafseel'         => $this->tafseel,
+            'manager_comment' => $this->manager_comment,
+            'lead_drirection' => $this->lead_drirection,
+            'talks'           => $this->talks,
+            'note'            => $this->note,
 
-            // docs
             'documents' => InformationDocumentResource::collection($this->whenLoaded('documents')),
+
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

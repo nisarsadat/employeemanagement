@@ -55,6 +55,7 @@ return new class extends Migration {
             $table->foreignId('office_employee_id')->nullable()
                   ->constrained('office_employees')->nullOnDelete();
 
+            $table->string('resedint_code')->nullable();
             $table->string('resource_cover')->nullable();
             $table->string('language')->nullable();
             $table->string('nation')->nullable();

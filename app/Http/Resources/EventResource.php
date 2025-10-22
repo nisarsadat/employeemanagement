@@ -9,28 +9,46 @@ class EventResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'event_type' => $this->event_type,
-            'event_specific_type' => $this->event_specific_type,
-            'target_person' => $this->target_person,
-            'who_did' => $this->who_did,
-            'event_date' => $this->event_date,
-            'event_hour' => $this->event_hour,
-            'zone' => $this->zone,
-            'hawza' => $this->hawza,
-            'specific_place' => $this->specific_place,
-            'jani_talafat' => $this->jani_talafat,
-            'mali_talafat' => $this->mali_talafat,
-            'tafseel' => $this->tafseel,
-            'talks' => $this->talks,
-            'notes' => $this->notes,
+            'id'                   => $this->id,
+            'event_type'           => $this->event_type,
+            'event_specific_type'  => $this->event_specific_type,
+            'target_person'        => $this->target_person,
+            'criminal'             => $this->criminal,
+            'event_date'           => $this->event_date,
+            'event_hour'           => $this->event_hour,
+            'event_zone'           => $this->event_zone,
+            'event_hawza'          => $this->event_hawza,
+            'event_specific_place' => $this->event_specific_place,
+            'talafat_jani'         => $this->talafat_jani,
+            'talafat_mali'         => $this->talafat_mali,
+            'tafseel'              => $this->tafseel,
+            'talks'                => $this->talks,
+            'coordinates'          => $this->coordinates,
+            'note'                 => $this->note,
 
-            'resource' => $this->whenLoaded('resource'),
-            'office_employee' => $this->whenLoaded('officeEmployee'),
-            'zone_employee' => $this->whenLoaded('zoneEmployee'),
-            'event_office_employee' => $this->whenLoaded('eventOfficeEmployee'),
-            'event_zone_employee' => $this->whenLoaded('eventZoneEmployee'),
-            'documents' => $this->whenLoaded('documents'),
+            // ✅ Only minimal fields for resource & office employee
+            'resource' => $this->whenLoaded('resource', function () {
+                return $this->resource
+                    ? [
+                        'id'           => $this->resource->id,
+                        'name'         => $this->resource->name,
+                        'father_name'  => $this->resource->father_name ?? null,
+                        'code_number'  => $this->resource->code_number ?? null,
+                      ]
+                    : null;
+            }),
+            'office_employee' => $this->whenLoaded('officeEmployee', function () {
+                return $this->officeEmployee
+                    ? [
+                        'id'           => $this->officeEmployee->id,
+                        'name'         => $this->officeEmployee->name,
+                        'father_name'  => $this->officeEmployee->father_name ?? null,
+                        'code_number'  => $this->officeEmployee->code_number ?? null,
+                      ]
+                    : null;
+            }),
+
+            'documents'             => $this->whenLoaded('documents'),
         ];
     }
 }

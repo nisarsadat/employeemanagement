@@ -1,21 +1,19 @@
 <?php
-// app/Http/Resources/InformationDocumentResource.php
 
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class InformationDocumentResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'id'            => $this->id,
-            'original_name' => $this->original_name,
-            'mime'          => $this->mime,
-            'size'          => $this->size,
-            'url'           => $this->path ? Storage::disk('public')->url($this->path) : null,
+            'id'         => $this->id,
+            'file_name'  => $this->file_name,
+            'file_path'  => asset('storage/'.$this->file_path),
+            'mime_type'  => $this->mime_type,
+            'size_bytes' => $this->size_bytes,
         ];
     }
 }

@@ -96,7 +96,7 @@ class OfficeEmployee extends Model
 
     public function informations()
     {
-        return $this->hasMany(Information::class , 'officeemployee_id');
+        return $this->hasMany(Information::class , 'office_employee_id');
     }
 
     public function events()

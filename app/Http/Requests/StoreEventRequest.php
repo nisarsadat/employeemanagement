@@ -14,24 +14,26 @@ class StoreEventRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'resource_id' => 'nullable|exists:resources,id',
-            'office_employee_id' => 'nullable|exists:office_employees,id',
-            'event_type' => 'nullable|string',
-            'event_specific_type' => 'nullable|string',
-            'target_person' => 'nullable|string',
-            'who_did' => 'nullable|string',
-            'event_date' => 'nullable|string',
-            'event_hour' => 'nullable|string',
-            'zone' => 'nullable|string',
-            'hawza' => 'nullable|string',
-            'specific_place' => 'nullable|string',
-            'jani_talafat' => 'nullable|string',
-            'mali_talafat' => 'nullable|string',
-            'event_office_employee_code' => 'nullable|exists:office_employees,id',
-            'event_zone_employee_code' => 'nullable|exists:zone_employees,id',
-            'tafseel' => 'nullable|string',
-            'talks' => 'nullable|string',
-            'notes' => 'nullable|string',
+            'resource_id'           => 'nullable|exists:resources,id',
+            'office_employee_id'    => 'nullable|exists:office_employees,id',
+            'event_type'            => 'nullable|string',
+            'event_specific_type'   => 'nullable|string',
+            'target_person'         => 'nullable|string',
+            'criminal'              => 'nullable|string',
+            'event_date'            => 'nullable|string',
+            'event_hour'            => 'nullable|string',
+            'event_zone'            => 'nullable|string',
+            'event_hawza'           => 'nullable|string',
+            'event_specific_place'  => 'nullable|string',
+            'talafat_jani'          => 'nullable|string',
+            'talafat_mali'          => 'nullable|string',
+            'tafseel'               => 'nullable|string',
+            'talks'                 => 'nullable|string',
+            'coordinates'           => 'nullable|string',
+            'note'                  => 'nullable|string',
+
+            // documents handled as files (unchanged)
+            'documents.*'           => 'nullable|file',
         ];
     }
 }

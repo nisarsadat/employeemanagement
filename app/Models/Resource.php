@@ -77,6 +77,7 @@ class Resource extends Model
         'resource_saved_date',
         'resource_activity_type',
         'office_employee_id',
+        'resedint_code',
         'resource_cover',
         'language',
         'nation',
