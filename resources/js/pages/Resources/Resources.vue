@@ -1024,7 +1024,7 @@
 <style scoped>
   .custom-table :deep(.v-data-table__thead th) {
     background: rgb(var(--v-theme-primary));
-    color: #fff;
+    color: #831313ff;
     font-weight: 400;
   }
 
