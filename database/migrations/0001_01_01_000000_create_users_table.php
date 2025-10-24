@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->string('username', 60)->unique();
             $table->string('password');
             $table->string('photo_path')->nullable(); // stored relative path on 'public' disk
+            $table->boolean('active')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });

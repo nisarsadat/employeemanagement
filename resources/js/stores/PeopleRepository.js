@@ -5,8 +5,9 @@ import { reactive, ref } from "vue";
 // import { toast } from "vue3-toastify";
 import { useRouter } from "vue-router";
 // import { axios, setContentType } from "@/plugins/axiosInstance";
-import axios from "axios";
-import setContentType from "axios";
+import axios from "@/axios";
+// no-op helper kept for backward compatibility in this store
+const setContentType = (_ct) => {};
 export let usePeopleRepository = defineStore("PeopleRepository", {
     state() {
         return {

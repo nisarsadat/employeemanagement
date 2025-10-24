@@ -6,21 +6,30 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
     public function register(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required','string','max:255'],
-            'email' => ['required','email','max:255','unique:users'],
-            'password' => ['required','string','min:6'],
+            'name' => ['required','string','max:100'],
+            'username' => ['required','alpha_dash','max:60','unique:users,username'],
+            'password' => ['required','string','min:8','confirmed'],
+            'picture' => ['nullable','image','mimes:jpg,jpeg,png,webp,avif','max:2048'],
+            'active' => ['sometimes','boolean'],
         ]);
+
+        if ($request->hasFile('picture')) {
+            $data['photo_path'] = $request->file('picture')->store('users', 'public');
+        }
 
         $user = User::create([
             'name' => $data['name'],
-            'email'=> $data['email'],
+            'username'=> $data['username'],
             'password' => Hash::make($data['password']),
+            'photo_path' => $data['photo_path'] ?? null,
+            'active' => $data['active'] ?? true,
         ]);
 
         return response()->json(['user' => $user], 201);
@@ -29,26 +38,51 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $creds = $request->validate([
-            'email' => ['required','email'],
+            'username' => ['required','string'],
             'password' => ['required','string'],
         ]);
 
-        $user = User::where('email', $creds['email'])->first();
+        $user = User::where('username', $creds['username'])->first();
 
         if (! $user || ! Hash::check($creds['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'username' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        return response()->json(['user' => $user]);
+        if (! $user->active) {
+            throw ValidationException::withMessages([
+                'username' => ['User is inactive.'],
+            ]);
+        }
+
+        // Create Sanctum token
+        $tokenName = 'api-'.Str::uuid();
+        $token = $user->createToken($tokenName)->plainTextToken;
+
+        // Include roles and permissions
+        $roles = $user->getRoleNames();
+        $permissions = $user->getPermissionNames();
+
+        return response()->json([
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'photo_url' => $user->photo_url,
+                'active' => (bool) $user->active,
+                'roles' => $roles,
+                'permissions' => $permissions,
+            ],
+        ]);
     }
 
     public function logout(Request $request)
     {
-        auth()->guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($request->user()) {
+            $request->user()->currentAccessToken()?->delete();
+        }
         return response()->json(['message' => 'Logged out']);
     }
 }

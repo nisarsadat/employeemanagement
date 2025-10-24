@@ -9,7 +9,8 @@ export const useLoginRepository = defineStore("LoginRepository", () => {
     const router = useRouter();
     const loading = ref(false);
     const user = ref(JSON.parse(sessionStorage.getItem("user")) || null);
-    const isLoggedIn = ref(!!sessionStorage.getItem("token"));
+    const token = ref(sessionStorage.getItem("token") || null);
+    const isLoggedIn = ref(!!token.value);
     const error = ref(null);
     const rail = ref(false);
 
@@ -18,10 +19,11 @@ export const useLoginRepository = defineStore("LoginRepository", () => {
             loading.value = true;
             error.value = null;
 
-            const response = await axios.post("login", formData);
+            const response = await axios.post("/login", formData);
 
             // Store token and user data
             sessionStorage.setItem("token", response.data.token);
+            token.value = response.data.token;
             if (response.data.user) {
                 sessionStorage.setItem(
                     "user",
@@ -43,7 +45,7 @@ export const useLoginRepository = defineStore("LoginRepository", () => {
             });
 
             // Redirect to dashboard
-            await router.push("/Dashboard");
+            await router.push("/");
         } catch (err) {
             console.error("Login error:", err);
             error.value =
@@ -68,20 +70,21 @@ export const useLoginRepository = defineStore("LoginRepository", () => {
 
     const Logout = async () => {
         try {
-            const token = sessionStorage.getItem("token"); // 👈 get saved token
+            const tokenStr = sessionStorage.getItem("token");
 
             await axios.post(
-                "auth/logout",
+                "/logout",
                 {},
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`, // 👈 include token here
+                        Authorization: `Bearer ${tokenStr}`,
                     },
                 }
             );
 
             sessionStorage.removeItem("token");
             sessionStorage.removeItem("user");
+            token.value = null;
             isLoggedIn.value = false;
             user.value = null;
 

@@ -152,15 +152,14 @@ const router = createRouter({
     // },
   ],
 });
-
-// router.beforeEach((to, from, next) => {
-//     const loginRepository = useLoginRepository();
-//     console.log("isLoggedIn?", loginRepository.isLoggedIn); // Check if this updates correctly
-//     if (to.path !== "/" && !loginRepository.isLoggedIn) {
-//         next("/");
-//     } else {
-//         next();
-//     }
-// });
+// Simple auth guard: require login for all routes except /login
+router.beforeEach((to, from, next) => {
+  const publicPaths = ['/login']
+  const isPublic = publicPaths.includes(to.path)
+  const hasToken = typeof window !== 'undefined' && !!sessionStorage.getItem('token')
+  if (!isPublic && !hasToken) return next('/login')
+  if (to.path === '/login' && hasToken) return next('/')
+  next()
+})
 
 export default router;

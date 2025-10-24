@@ -1,91 +1,56 @@
 <template>
-    <form @submit.prevent="submit" class="space-y-3" enctype="multipart/form-data">
-      <div>
-        <label class="block mb-1">Name</label>
-        <input v-model="form.name" type="text" class="input" placeholder="Full name" />
-        <p v-if="errors.name" class="error">{{ errors.name }}</p>
-      </div>
-
-      <div>
-        <label class="block mb-1">Username</label>
-        <input v-model="form.username" type="text" class="input" placeholder="username" />
-        <p v-if="errors.username" class="error">{{ errors.username }}</p>
-      </div>
-
-      <div>
-        <label class="block mb-1">Password</label>
-        <input v-model="form.password" type="password" class="input" placeholder="********" />
-        <p v-if="errors.password" class="error">{{ errors.password }}</p>
-      </div>
-
-      <div>
-        <label class="block mb-1">Verify Password</label>
-        <input v-model="form.password_confirmation" type="password" class="input" placeholder="********" />
-      </div>
-
-      <div>
-        <label class="block mb-1">Picture</label>
-        <input @change="onFile" type="file" accept="image/*" />
-        <p v-if="errors.picture" class="error">{{ errors.picture }}</p>
-      </div>
-
-      <button :disabled="loading" class="btn">
-        {{ loading ? 'Saving...' : 'Create User' }}
-      </button>
-
-      <p v-if="serverMessage" class="mt-2 text-green-600">{{ serverMessage }}</p>
-    </form>
-  </template>
+  <form @submit.prevent="submit" class="space-y-4 max-w-md mx-auto">
+    <h2 class="text-xl font-semibold">Sign in</h2>
+    <div>
+      <label class="block mb-1">Username</label>
+      <input v-model="form.username" type="text" class="input" placeholder="username" />
+      <p v-if="errors.username" class="error">{{ errors.username }}</p>
+    </div>
+    <div>
+      <label class="block mb-1">Password</label>
+      <input v-model="form.password" type="password" class="input" placeholder="********" />
+      <p v-if="errors.password" class="error">{{ errors.password }}</p>
+    </div>
+    <button :disabled="loading" class="btn w-full">
+      {{ loading ? 'Signing in…' : 'Sign in' }}
+    </button>
+    <p v-if="serverMessage" class="mt-2 text-red-600">{{ serverMessage }}</p>
+  </form>
+</template>
 
   <script setup>
-  import axios from '@/axios' // or import axios from 'axios' if you don't have a wrapper
   import { ref } from 'vue'
+  import axios from '@/axios'
+  import { useLoginRepository } from '@/stores/LoginRepository'
+
+  const loginStore = useLoginRepository()
 
   const form = ref({
-    name: '',
     username: '',
     password: '',
-    password_confirmation: '',
   })
 
-  const pictureFile = ref(null)
   const loading = ref(false)
   const serverMessage = ref('')
   const errors = ref({})
-
-  function onFile(e) {
-    pictureFile.value = e.target.files?.[0] ?? null
-  }
 
   async function submit() {
     errors.value = {}
     serverMessage.value = ''
     loading.value = true
     try {
-      const fd = new FormData()
-      fd.append('name', form.value.name)
-      fd.append('username', form.value.username)
-      fd.append('password', form.value.password)
-      fd.append('password_confirmation', form.value.password_confirmation)
-      if (pictureFile.value) fd.append('picture', pictureFile.value)
-
-      const { data } = await axios.post('/api/users', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      await loginStore.Login({
+        username: form.value.username,
+        password: form.value.password,
       })
-
-      serverMessage.value = `User created: ${data.data.username}`
-      // Reset form
-      form.value = { name: '', username: '', password: '', password_confirmation: '' }
-      pictureFile.value = null
     } catch (err) {
       if (err.response?.status === 422) {
-        // Laravel validation errors
         const e = err.response.data.errors
         errors.value = Object.fromEntries(
           Object.entries(e).map(([k, v]) => [k, Array.isArray(v) ? v[0] : String(v)])
         )
       } else {
-        serverMessage.value = 'Something went wrong.'
+        serverMessage.value = 'Login failed.'
       }
     } finally {
       loading.value = false
