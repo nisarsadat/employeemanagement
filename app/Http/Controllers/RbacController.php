@@ -52,6 +52,64 @@ class RbacController extends Controller
         return Permission::orderBy('name')->get();
     }
 
+    /**
+     * Create CRUD permissions for a given resource name (idempotent).
+     * Convention: "<resource>.<action>", action ∈ {view, create, update, delete}.
+     */
+    public function createResourcePermissions(Request $request, PermissionRegistrar $registrar)
+    {
+        $data = $request->validate([
+            'resource' => ['required','string','max:100','regex:/^[a-z][a-z0-9_\-]*$/'],
+        ]);
+
+        $resource = strtolower($data['resource']);
+        $actions = ['view','create','update','delete'];
+        $created = [];
+        foreach ($actions as $action) {
+            $name = $resource . '.' . $action;
+            $perm = Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
+            $created[] = $perm->name;
+        }
+        $registrar->forgetCachedPermissions();
+
+        return response()->json(['resource' => $resource, 'permissions' => $created], 201);
+    }
+
+    /**
+     * Delete CRUD permissions for a given resource (idempotent).
+     */
+    public function deleteResourcePermissions(string $resource, PermissionRegistrar $registrar)
+    {
+        $resource = strtolower($resource);
+        $actions = ['view','create','update','delete'];
+        foreach ($actions as $action) {
+            $name = $resource . '.' . $action;
+            $perm = Permission::where('name', $name)->first();
+            if ($perm) {
+                $perm->delete();
+            }
+        }
+        $registrar->forgetCachedPermissions();
+        return response()->noContent();
+    }
+
+    /**
+     * Derived list of distinct resources from permission names (prefix before dot).
+     */
+    public function listResources()
+    {
+        $resources = Permission::query()
+            ->pluck('name')
+            ->map(function ($name) {
+                $pos = strpos($name, '.');
+                return $pos === false ? $name : substr($name, 0, $pos);
+            })
+            ->unique()
+            ->sort()
+            ->values();
+        return response()->json($resources);
+    }
+
     public function storePermission(Request $request, PermissionRegistrar $registrar)
     {
         $data = $request->validate([
