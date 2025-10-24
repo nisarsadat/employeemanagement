@@ -50,7 +50,7 @@ export const useAuthRepository = defineStore('AuthRepository', () => {
       '/rbac/permissions',
       '/rbac/permissions-builder',
       '/rbac/assign',
-      '/employees',
+      '/officeemployee',
       '/users',
       '/resources',
     ]
@@ -58,7 +58,7 @@ export const useAuthRepository = defineStore('AuthRepository', () => {
       // role-gated
       if (p.startsWith('/rbac/') && hasRole('admin')) return p
       // permission-gated examples
-      if (p === '/employees' && can('employees.view')) return p
+      if (p === '/officeemployee' && can('employees.view')) return p
       if (p === '/users' && can('users.view')) return p
       if (p === '/resources' && can('resources.view')) return p
     }
