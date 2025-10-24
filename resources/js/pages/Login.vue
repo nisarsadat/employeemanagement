@@ -20,10 +20,11 @@
 
   <script setup>
   import { ref } from 'vue'
-  import axios from '@/axios'
-  import { useLoginRepository } from '@/stores/LoginRepository'
+  import { useAuthRepository } from '@/stores/AuthRepository'
+  import { useRouter } from 'vue-router'
 
-  const loginStore = useLoginRepository()
+  const auth = useAuthRepository()
+  const router = useRouter()
 
   const form = ref({
     username: '',
@@ -39,10 +40,8 @@
     serverMessage.value = ''
     loading.value = true
     try {
-      await loginStore.Login({
-        username: form.value.username,
-        password: form.value.password,
-      })
+      await auth.login({ username: form.value.username, password: form.value.password })
+      await router.push('/')
     } catch (err) {
       if (err.response?.status === 422) {
         const e = err.response.data.errors

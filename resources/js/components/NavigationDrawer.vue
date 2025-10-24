@@ -101,6 +101,14 @@
   watch(locale, (newLocale) => {
     isRtl.value = newLocale === 'fa';
   });
+  const isAdmin = computed(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? sessionStorage.getItem('user') : null
+      const u = raw ? JSON.parse(raw) : null
+      return Array.isArray(u?.roles) && u.roles.includes('admin')
+    } catch (_) { return false }
+  })
+
   const navigationItems = computed(() => [
     {
       title: t('Dashboard'),
@@ -178,6 +186,13 @@
     //     { title: t('تسلیم شوی بندیان'), path: '/delevirycaptive' },
     //   ],
     // },
+    // RBAC (admin only)
+    ...(isAdmin.value ? [
+      { title: 'RBAC Roles', path: '/rbac/roles', icon: 'mdi-security' },
+      { title: 'RBAC Permissions', path: '/rbac/permissions', icon: 'mdi-key' },
+      { title: 'RBAC Assign', path: '/rbac/assign', icon: 'mdi-account-key' },
+    ] : []),
+
     {
       title: t('پنڅوس فارمټ '),
       icon: 'mdi-view-dashboard-outline',

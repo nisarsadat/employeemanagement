@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 // Controllers (import them, don't declare a namespace here)
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\RbacController;
 use App\Http\Controllers\Api\ResedintController;
 use App\Http\Controllers\Api\ResourceController;
 use App\Http\Controllers\Api\ZoneEmployeeController;
@@ -58,22 +59,42 @@ use App\Http\Controllers\OfficeEmployeeDocumentController;
 
 // ---------------------- AUTH ----------------------
 Route::post('/register', [AuthController::class, 'register']);
+
+// Preferred /auth/* endpoints
+Route::prefix('auth')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+    Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
+});
+
+// Backward-compatible endpoints
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::get('/me', function (Request $r) {
-    /** @var \App\Models\User $user */
-    $user = $r->user();
-    if (! $user) return response()->json(['message' => 'Unauthenticated'], 401);
-    return [
-        'id' => $user->id,
-        'name' => $user->name,
-        'username' => $user->username,
-        'photo_url' => $user->photo_url,
-        'active' => (bool) $user->active,
-        'roles' => $user->getRoleNames(),
-        'permissions' => $user->getPermissionNames(),
-    ];
-})->middleware('auth:sanctum');
+Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
+
+// ---------------------- RBAC (admin only) ----------------------
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('rbac')->group(function () {
+    // Roles CRUD
+    Route::get('roles', [RbacController::class, 'indexRoles']);
+    Route::post('roles', [RbacController::class, 'storeRole']);
+    Route::put('roles/{id}', [RbacController::class, 'updateRole']);
+    Route::delete('roles/{id}', [RbacController::class, 'destroyRole']);
+
+    // Permissions CRUD
+    Route::get('permissions', [RbacController::class, 'indexPermissions']);
+    Route::post('permissions', [RbacController::class, 'storePermission']);
+    Route::put('permissions/{id}', [RbacController::class, 'updatePermission']);
+    Route::delete('permissions/{id}', [RbacController::class, 'destroyPermission']);
+
+    // Role permissions
+    Route::get('roles/{id}/permissions', [RbacController::class, 'rolePermissions']);
+    Route::post('roles/{id}/permissions/sync', [RbacController::class, 'syncRolePermissions']);
+
+    // Users and assignments
+    Route::get('users', [RbacController::class, 'indexUsers']);
+    Route::post('users/{id}/roles/sync', [RbacController::class, 'syncUserRoles']);
+    Route::post('users/{id}/permissions/sync', [RbacController::class, 'syncUserPermissions']);
+});
 
 // ---------------------- BASE MODULES ----------------------
 Route::apiResource('resedints', ResedintController::class);

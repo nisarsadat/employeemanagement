@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -84,5 +85,25 @@ class AuthController extends Controller
             $request->user()->currentAccessToken()?->delete();
         }
         return response()->json(['message' => 'Logged out']);
+    }
+
+    public function me(Request $request)
+    {
+        /** @var User|null $user */
+        $user = $request->user();
+        if (! $user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'photo_url' => $user->photo_url,
+                'active' => (bool) $user->active,
+                'roles' => $user->getRoleNames(),
+                'permissions' => $user->getPermissionNames(),
+            ],
+        ]);
     }
 }
