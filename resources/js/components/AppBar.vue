@@ -89,11 +89,13 @@
   import { useTheme } from 'vuetify';
   import { useEmployeOfficeRepository } from '@/stores/EmployeeRepository';
   import { useCalendar } from '../../composables/useCalendar'; // ⬅️ NEW
+  import { useLoginRepository } from '@/stores/LoginRepository';
 
   const repo = useEmployeOfficeRepository();
   const { t, locale } = useI18n();
   const theme = useTheme();
   const darkMode = ref(false);
+  const login = useLoginRepository();
 
   // ⬅️ NEW: calendar composable
   const { calendar, cycleCalendar } = useCalendar();

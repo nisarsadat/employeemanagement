@@ -22,8 +22,9 @@ class UserController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('picture')) {
-            $data['photo_path'] = $request->file('picture')->store('users', 'public');
+        if ($request->hasFile('picture') || $request->hasFile('image')) {
+            $file = $request->file('picture') ?? $request->file('image');
+            $data['photo_path'] = $file->store('users', 'public');
         }
 
         $user = User::create($data);
@@ -42,12 +43,13 @@ class UserController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('picture')) {
+        if ($request->hasFile('picture') || $request->hasFile('image')) {
             // delete old
             if ($user->photo_path && Storage::disk('public')->exists($user->photo_path)) {
                 Storage::disk('public')->delete($user->photo_path);
             }
-            $data['photo_path'] = $request->file('picture')->store('users', 'public');
+            $file = $request->file('picture') ?? $request->file('image');
+            $data['photo_path'] = $file->store('users', 'public');
         }
 
         $user->update($data);
