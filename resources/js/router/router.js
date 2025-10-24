@@ -55,12 +55,18 @@ import Inlineinfoindex from '../pages/InlineInfo/inlineinfoindex.vue';
 import ResourceInfo from '../pages/InlineInfo/ResourceInfo.vue';
 import Resourcetab from '../pages/InlineInfo/Resourcetab.vue';
 import Eventtab from '../pages/InlineInfo/Eventtab.vue';
+import RolesPage from '../pages/Rbac/RolesPage.vue';
+import PermissionsPage from '../pages/Rbac/PermissionsPage.vue';
+import AssignPage from '../pages/Rbac/AssignPage.vue';
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: Home },
     { path: '/login', component: Login },
+    { path: '/rbac/roles', component: RolesPage, meta: { requiresAuth: true, requiresAdmin: true } },
+    { path: '/rbac/permissions', component: PermissionsPage, meta: { requiresAuth: true, requiresAdmin: true } },
+    { path: '/rbac/assign', component: AssignPage, meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/users', component: User },
     { path: '/register', component: Register },
     { path: '/officeemployee', component: OfficeEmployeesPage },
@@ -152,13 +158,20 @@ const router = createRouter({
     // },
   ],
 });
-// Simple auth guard: require login for all routes except /login
+// Guards: require auth and admin for RBAC pages
 router.beforeEach((to, from, next) => {
-  const publicPaths = ['/login']
-  const isPublic = publicPaths.includes(to.path)
-  const hasToken = typeof window !== 'undefined' && !!sessionStorage.getItem('token')
-  if (!isPublic && !hasToken) return next('/login')
-  if (to.path === '/login' && hasToken) return next('/')
+  const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null
+  const userRaw = typeof window !== 'undefined' ? sessionStorage.getItem('user') : null
+  const user = userRaw ? JSON.parse(userRaw) : null
+  const roles = user?.roles || []
+
+  if (to.meta?.requiresAuth && !token) return next('/login')
+
+  if (to.meta?.requiresAdmin && !roles.includes('admin')) {
+    return next('/')
+  }
+
+  if (to.path === '/login' && token) return next('/')
   next()
 })
 
