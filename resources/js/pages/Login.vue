@@ -38,54 +38,38 @@
   </template>
 
   <script setup>
-  import axios from '@/axios' // or import axios from 'axios' if you don't have a wrapper
   import { ref } from 'vue'
+  import axios from '@/axios'
+  import { useLoginRepository } from '@/stores/LoginRepository'
+
+  const loginStore = useLoginRepository()
 
   const form = ref({
-    name: '',
     username: '',
     password: '',
-    password_confirmation: '',
   })
 
-  const pictureFile = ref(null)
   const loading = ref(false)
   const serverMessage = ref('')
   const errors = ref({})
-
-  function onFile(e) {
-    pictureFile.value = e.target.files?.[0] ?? null
-  }
 
   async function submit() {
     errors.value = {}
     serverMessage.value = ''
     loading.value = true
     try {
-      const fd = new FormData()
-      fd.append('name', form.value.name)
-      fd.append('username', form.value.username)
-      fd.append('password', form.value.password)
-      fd.append('password_confirmation', form.value.password_confirmation)
-      if (pictureFile.value) fd.append('picture', pictureFile.value)
-
-      const { data } = await axios.post('/api/users', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      await loginStore.Login({
+        username: form.value.username,
+        password: form.value.password,
       })
-
-      serverMessage.value = `User created: ${data.data.username}`
-      // Reset form
-      form.value = { name: '', username: '', password: '', password_confirmation: '' }
-      pictureFile.value = null
     } catch (err) {
       if (err.response?.status === 422) {
-        // Laravel validation errors
         const e = err.response.data.errors
         errors.value = Object.fromEntries(
           Object.entries(e).map(([k, v]) => [k, Array.isArray(v) ? v[0] : String(v)])
         )
       } else {
-        serverMessage.value = 'Something went wrong.'
+        serverMessage.value = 'Login failed.'
       }
     } finally {
       loading.value = false

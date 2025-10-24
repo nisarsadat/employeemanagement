@@ -7,6 +7,7 @@ import { createPinia } from 'pinia'
 import i18n from './localization/Local.js'
 import Toast from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
+import './axios'
 
 import '@fontsource/amiri/400.css'
 import '@fontsource/amiri/700.css'

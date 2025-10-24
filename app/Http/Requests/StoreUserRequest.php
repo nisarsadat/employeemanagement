@@ -16,6 +16,7 @@ class StoreUserRequest extends FormRequest
             'password'              => ['required', 'string', 'min:8'],
             // expects password_confirmation
             'picture'               => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,avif', 'max:2048'],
+            'active'                => ['sometimes','boolean'],
         ];
     }
 }

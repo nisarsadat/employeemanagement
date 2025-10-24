@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -60,6 +60,20 @@ use App\Http\Controllers\OfficeEmployeeDocumentController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::get('/me', function (Request $r) {
+    /** @var \App\Models\User $user */
+    $user = $r->user();
+    if (! $user) return response()->json(['message' => 'Unauthenticated'], 401);
+    return [
+        'id' => $user->id,
+        'name' => $user->name,
+        'username' => $user->username,
+        'photo_url' => $user->photo_url,
+        'active' => (bool) $user->active,
+        'roles' => $user->getRoleNames(),
+        'permissions' => $user->getPermissionNames(),
+    ];
+})->middleware('auth:sanctum');
 
 // ---------------------- BASE MODULES ----------------------
 Route::apiResource('resedints', ResedintController::class);

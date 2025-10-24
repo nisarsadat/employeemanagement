@@ -15,6 +15,9 @@ class UserResource extends JsonResource
             'name'       => $this->name,
             'username'   => $this->username,
             'photo_url'  => $this->photo_url, // from accessor
+            'active'     => (bool) $this->active,
+            'roles'      => $this->whenLoaded('roles', fn() => $this->getRoleNames()),
+            'permissions'=> $this->whenLoaded('permissions', fn() => $this->getPermissionNames()),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];
