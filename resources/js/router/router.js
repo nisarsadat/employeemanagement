@@ -57,6 +57,8 @@ import Resourcetab from '../pages/InlineInfo/Resourcetab.vue';
 import Eventtab from '../pages/InlineInfo/Eventtab.vue';
 import RolesPage from '../pages/Rbac/RolesPage.vue';
 import PermissionsPage from '../pages/Rbac/PermissionsPage.vue';
+import PermissionsBuilder from '../pages/Rbac/PermissionsBuilder.vue';
+import NoAccess from '../components/NoAccess.vue';
 import AssignPage from '../pages/Rbac/AssignPage.vue';
 
 const router = createRouter({
@@ -64,15 +66,19 @@ const router = createRouter({
   routes: [
     { path: '/', component: Home },
     { path: '/login', component: Login },
-    { path: '/rbac/roles', component: RolesPage, meta: { requiresAuth: true, requiresAdmin: true } },
-    { path: '/rbac/permissions', component: PermissionsPage, meta: { requiresAuth: true, requiresAdmin: true } },
-    { path: '/rbac/assign', component: AssignPage, meta: { requiresAuth: true, requiresAdmin: true } },
-    { path: '/users', component: User },
+    // RBAC admin-only
+    { path: '/rbac/roles', component: RolesPage, meta: { requiresAuth: true, requiresRole: ['admin'] } },
+    { path: '/rbac/permissions', component: PermissionsPage, meta: { requiresAuth: true, requiresRole: ['admin'] } },
+    { path: '/rbac/permissions-builder', component: PermissionsBuilder, meta: { requiresAuth: true, requiresRole: ['admin'] } },
+    { path: '/rbac/assign', component: AssignPage, meta: { requiresAuth: true, requiresRole: ['admin'] } },
+    // 403
+    { path: '/403', component: NoAccess },
+    { path: '/users', component: User, meta: { requiresAuth: true, requiresPerm: 'users.view' } },
     { path: '/register', component: Register },
-    { path: '/officeemployee', component: OfficeEmployeesPage },
+    { path: '/officeemployee', component: OfficeEmployeesPage, meta: { requiresAuth: true, requiresPerm: 'employees.view' } },
     { path: '/resedintemployee', component: ResedintEmployee },
     { path: '/zoneemployee', component: ZoneEmployee },
-    { path: '/resources', component: Resources },
+    { path: '/resources', component: Resources, meta: { requiresAuth: true, requiresPerm: 'resources.view' } },
     { path: '/events', component: Events },
     { path: '/delevirycaptive', component: DeleviryCaptive },
     { path: '/informations', component: Informations },
@@ -158,19 +164,52 @@ const router = createRouter({
     // },
   ],
 });
-// Guards: require auth and admin for RBAC pages
+// Global guards: auth + role + permission
 router.beforeEach((to, from, next) => {
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null
   const userRaw = typeof window !== 'undefined' ? sessionStorage.getItem('user') : null
   const user = userRaw ? JSON.parse(userRaw) : null
   const roles = user?.roles || []
+  const permissions = user?.permissions || []
 
+  // 1) auth
   if (to.meta?.requiresAuth && !token) return next('/login')
 
-  if (to.meta?.requiresAdmin && !roles.includes('admin')) {
-    return next('/')
+  // 1b) app start: if root and not authenticated → login; if authenticated → first allowed route
+  if ((to.path === '/' || to.path === '')) {
+    if (!token) return next('/login')
+    const order = [
+      '/rbac/roles',
+      '/rbac/permissions',
+      '/rbac/permissions-builder',
+      '/rbac/assign',
+      '/officeemployee',
+      '/users',
+      '/resources',
+    ]
+    for (const p of order) {
+      if (p.startsWith('/rbac/') && roles.includes('admin')) return next(p)
+      if (p === '/officeemployee' && permissions.includes('employees.view')) return next(p)
+      if (p === '/users' && permissions.includes('users.view')) return next(p)
+      if (p === '/resources' && permissions.includes('resources.view')) return next(p)
+    }
   }
 
+  // 2) roles (requires any of)
+  if (to.meta?.requiresRole) {
+    const required = Array.isArray(to.meta.requiresRole) ? to.meta.requiresRole : [to.meta.requiresRole]
+    const ok = required.some(r => roles.includes(r))
+    if (!ok) return next('/403')
+  }
+
+  // 3) permissions (requires any of)
+  if (to.meta?.requiresPerm) {
+    const required = Array.isArray(to.meta.requiresPerm) ? to.meta.requiresPerm : [to.meta.requiresPerm]
+    const ok = required.some(p => permissions.includes(p))
+    if (!ok) return next('/403')
+  }
+
+  // Redirect authenticated away from login
   if (to.path === '/login' && token) return next('/')
   next()
 })

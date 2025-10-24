@@ -89,6 +89,8 @@
 <script setup>
   import { ref } from 'vue';
   import { useTheme } from 'vuetify';
+  import { computed } from 'vue';
+  import { useAuthRepository } from '@/stores/AuthRepository';
   // import LogInOut from "./LogInOut.vue";
   // const theme = useTheme();
   const activeItem = ref('');
@@ -101,13 +103,9 @@
   watch(locale, (newLocale) => {
     isRtl.value = newLocale === 'fa';
   });
-  const isAdmin = computed(() => {
-    try {
-      const raw = typeof window !== 'undefined' ? sessionStorage.getItem('user') : null
-      const u = raw ? JSON.parse(raw) : null
-      return Array.isArray(u?.roles) && u.roles.includes('admin')
-    } catch (_) { return false }
-  })
+  const auth = useAuthRepository();
+  const isAdmin = computed(() => auth.hasRole('admin'))
+  const can = (p) => auth.can(p)
 
   const navigationItems = computed(() => [
     {
@@ -156,8 +154,9 @@
     //     ],
     // },
     { title: t(' خطی اطلاعات'), path: '/inlineinfo', icon: 'mdi-menu' },
-    { title: t('استفاده کوونکی'), path: '/users', icon: 'mdi-account' },
-    { title: t('  کارمندان'), path: '/officeemployee', icon: 'mdi-account-outline' },
+    // Permission-gated links
+    ...(can('users.view') ? [{ title: t('استفاده کوونکی'), path: '/users', icon: 'mdi-account' }] : []),
+    ...(can('employees.view') ? [{ title: t('  کارمندان'), path: '/officeemployee', icon: 'mdi-account-outline' }] : []),
     // { title: t('تدابیری کارمندان'), path: '/zoneemployee', icon: 'mdi-account-outline' },
     // { title: t('د رزیدینتانو په اره'), path: '/resedintemployee', icon: 'mdi-account-outline' },
     // {
@@ -171,7 +170,7 @@
     //     { title: t('د رزیدینتانو په اره'), path: '/resedintemployee' },
     //   ],
     // },
-    { title: t('منابع'), path: '/resources' , icon: 'mdi-pen' },
+    ...(can('resources.view') ? [{ title: t('منابع'), path: '/resources' , icon: 'mdi-pen' }] : []),
     { title: t('اطلاعات'), path: '/informations' ,  icon: 'mdi-book'  },
     { title: t('پیښي'), path: '/events' ,  icon: 'mdi-book-outline'  },
     { title: t('تسلیم شوی بندیان'), path: '/delevirycaptive' ,  icon: 'mdi-lock'  },
@@ -191,6 +190,7 @@
       { title: 'RBAC Roles', path: '/rbac/roles', icon: 'mdi-security' },
       { title: 'RBAC Permissions', path: '/rbac/permissions', icon: 'mdi-key' },
       { title: 'RBAC Assign', path: '/rbac/assign', icon: 'mdi-account-key' },
+      { title: 'RBAC Builder', path: '/rbac/permissions-builder', icon: 'mdi-tools' },
     ] : []),
 
     {

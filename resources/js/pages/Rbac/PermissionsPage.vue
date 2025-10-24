@@ -1,10 +1,13 @@
 <template>
   <div class="pa-4">
-    <v-toolbar flat class="mb-4">
-      <v-toolbar-title>Permissions</v-toolbar-title>
-      <v-spacer />
-      <v-btn color="primary" @click="openCreate">New Permission</v-btn>
-    </v-toolbar>
+  <v-toolbar flat class="mb-4">
+    <v-toolbar-title>Permissions</v-toolbar-title>
+    <v-spacer />
+    <v-btn class="mr-2" color="secondary" variant="outlined" :to="'/rbac/permissions-builder'">
+      Open Builder
+    </v-btn>
+    <v-btn color="primary" @click="openCreate">New Permission</v-btn>
+  </v-toolbar>
 
     <v-data-table :items="permissions" :headers="headers" item-key="id">
       <template #item.actions="{ item }">

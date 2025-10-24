@@ -41,8 +41,10 @@ class RolePermissionSeeder extends Seeder
             'employees.view', 'employees.create', 'employees.update',
         ]);
 
-        // Regular user: optional baseline permission
-        $user->syncPermissions([]);
+        // Regular user: baseline permission
+        $user->syncPermissions([
+            'employees.view',
+        ]);
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }

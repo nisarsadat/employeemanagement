@@ -99,6 +99,8 @@ class AuthController extends Controller
         $roles = $user->getRoleNames();
         $permissions = $user->getPermissionNames();
         return response()->json([
+            // Return token if present in sessionStorage on client; for API symmetry we echo null here
+            'token' => null,
             'roles' => $roles,
             'permissions' => $permissions,
             'user' => [

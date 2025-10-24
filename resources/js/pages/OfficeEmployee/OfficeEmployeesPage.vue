@@ -660,11 +660,22 @@
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
+              <v-btn
+                v-if="auth.can('employees.create') || (item.id && auth.can('employees.update'))"
+                class="bg-primary"
+                variant="outlined"
+                type="submit"
+                :loading="item.loading"
+              >
                 {{ t('ثبت دیتا') }}
               </v-btn>
 
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+              <v-btn
+                v-if="item.id && auth.can('employees.delete')"
+                class="bg-error"
+                variant="outlined"
+                @click="del(item)"
+              >
                 {{ t('حذف دیتا') }}
               </v-btn>
 
@@ -762,9 +773,11 @@
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useI18n } from 'vue-i18n';
   import DateInput from '../../components/DateInput.vue';
+  import { useAuthRepository } from '@/stores/AuthRepository';
 
   const { t, locale } = useI18n();
   const repo = useEmployeOfficeRepository();
+  const auth = useAuthRepository();
   const editorForm = ref(null);
   const editorValid = ref(false);
   const formKey = ref(0);

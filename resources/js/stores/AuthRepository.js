@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from '@/axios'
+import router from '@/router/router'
 
 export const useAuthRepository = defineStore('AuthRepository', () => {
   const user = ref(JSON.parse(sessionStorage.getItem('user') || 'null'))
@@ -24,6 +25,8 @@ export const useAuthRepository = defineStore('AuthRepository', () => {
   async function login({ username, password }) {
     const { data } = await axios.post('/auth/login', { username, password })
     setSession(data)
+    // redirect to first allowed route
+    try { router.replace(firstAllowedRoute()) } catch (_) {}
     return data
   }
 
