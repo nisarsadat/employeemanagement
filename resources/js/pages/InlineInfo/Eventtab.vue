@@ -11,6 +11,7 @@
         <v-card-text class="pa-0">
           <!-- Codes -->
           <v-row class="tight-grid">
+            <!-- resource_id -->
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('کود منبع') }}</v-card-subtitle>
@@ -32,6 +33,7 @@
               </v-card-text>
             </v-col>
 
+            <!-- office_employee_id -->
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('کود کارمند دفتر') }}</v-card-subtitle>
@@ -52,6 +54,7 @@
               </v-card-text>
             </v-col>
 
+            <!-- event_type -->
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('نوعیت واقعه') }}</v-card-subtitle>
@@ -59,9 +62,7 @@
               <v-card-text>
                 <v-autocomplete
                   v-model="draft.event_type"
-                  :items="eventTypeItems"
-                  item-title="name"
-                  item-value="id"
+                  :items="eventTypeOptions"
                   variant="outlined"
                   density="compact"
                   rounded="lg"
@@ -73,21 +74,26 @@
               </v-card-text>
             </v-col>
 
+            <!-- event_specific_type -->
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('نوعیت مشخص واقعه') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
-                <v-text-field
+                <v-autocomplete
                   v-model="draft.event_specific_type"
+                  :items="eventSpecificTypeOptions"
                   variant="outlined"
                   density="compact"
+                  rounded="lg"
+                  class="cell"
                   clearable
                   prepend-inner-icon="mdi-format-list-bulleted-type"
                 />
               </v-card-text>
             </v-col>
 
+            <!-- target_person -->
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{
@@ -105,6 +111,7 @@
               </v-card-text>
             </v-col>
 
+            <!-- criminal -->
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{
@@ -113,7 +120,7 @@
               </v-card-item>
               <v-card-text>
                 <v-text-field
-                  v-model="draft.who_did"
+                  v-model="draft.criminal"
                   variant="outlined"
                   density="compact"
                   rounded="lg"
@@ -124,6 +131,7 @@
               </v-card-text>
             </v-col>
 
+            <!-- event_date -->
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('تاریخ واقعه') }}</v-card-subtitle>
@@ -132,12 +140,12 @@
                 <DateInput
                   v-model="draft.event_date"
                   :rules="[rules.required]"
-                  :label="t('تاریخ واقعه ')"
-                  
+                  :label="t('تاریخ واقعه')"
                 />
               </v-card-text>
             </v-col>
 
+            <!-- event_hour -->
             <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('ساعت واقعه') }}</v-card-subtitle>
@@ -167,9 +175,10 @@
               </v-card-subtitle>
             </v-col>
 
+            <!-- event_zone -->
             <v-col cols="12" md="3">
               <v-text-field
-                v-model="draft.zone"
+                v-model="draft.event_zone"
                 :label="t('زون')"
                 variant="outlined"
                 density="compact"
@@ -180,9 +189,10 @@
               />
             </v-col>
 
+            <!-- event_hawza -->
             <v-col cols="12" md="3">
               <v-text-field
-                v-model="draft.hawza"
+                v-model="draft.event_hawza"
                 :label="t('حوزه')"
                 variant="outlined"
                 rounded="lg"
@@ -193,9 +203,10 @@
               />
             </v-col>
 
+            <!-- event_specific_place -->
             <v-col cols="12" md="3">
               <v-text-field
-                v-model="draft.specific_place"
+                v-model="draft.event_specific_place"
                 :label="t('محل مشخص')"
                 variant="outlined"
                 density="compact"
@@ -205,17 +216,32 @@
                 prepend-inner-icon="mdi-map-marker-radius"
               />
             </v-col>
+
+            <!-- coordinates -->
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="draft.coordinates"
+                :label="t('کوردینات')"
+                variant="outlined"
+                density="compact"
+                rounded="lg"
+                class="cell"
+                clearable
+                prepend-inner-icon="mdi-crosshairs-gps"
+              />
+            </v-col>
           </v-row>
 
           <!-- Casualties -->
           <v-row class="tight-grid">
+            <!-- talafat_jani -->
             <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('تلفات جانی') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
                 <v-autocomplete
-                  v-model="draft.jani_talafat"
+                  v-model="draft.talafat_jani"
                   :items="janiTalafatItems"
                   item-title="name"
                   item-value="id"
@@ -228,13 +254,14 @@
               </v-card-text>
             </v-col>
 
+            <!-- talafat_mali -->
             <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('تلفات مالی') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
                 <v-autocomplete
-                  v-model="draft.mali_talafat"
+                  v-model="draft.talafat_mali"
                   :items="maliTalafatItems"
                   item-title="name"
                   item-value="id"
@@ -243,51 +270,6 @@
                   rounded="lg"
                   clearable
                   prepend-inner-icon="mdi-cash-multiple"
-                />
-              </v-card-text>
-            </v-col>
-          </v-row>
-
-          <!-- Event employee codes -->
-          <v-row class="tight-grid">
-            <v-col cols="12" md="6">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{
-                  t('کود کارمند واقعه گیرنده')
-                }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-autocomplete
-                  v-model="draft.event_office_employee_code"
-                  :items="officeEmployeesItems"
-                  item-title="code_number"
-                  rounded="lg"
-                  item-value="id"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  prepend-inner-icon="mdi-badge-account"
-                />
-              </v-card-text>
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{
-                  t('کود رزیدانت واقعه گیرنده')
-                }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-autocomplete
-                  v-model="draft.event_zone_employee_code"
-                  :items="zoneEmployeesItems"
-                  item-title="code_number"
-                  rounded="lg"
-                  item-value="id"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  prepend-inner-icon="mdi-account-tie"
                 />
               </v-card-text>
             </v-col>
@@ -330,7 +312,7 @@
             </v-col>
           </v-row>
 
-          <!-- Notes -->
+          <!-- Note -->
           <v-row class="tight-grid">
             <v-col cols="12">
               <v-card-item>
@@ -338,7 +320,7 @@
               </v-card-item>
               <v-card-text>
                 <v-textarea
-                  v-model="draft.notes"
+                  v-model="draft.note"
                   variant="outlined"
                   rounded="lg"
                   density="compact"
@@ -468,40 +450,48 @@
     return [];
   };
 
-  /* dropdown items */
+  /* dropdown items (same names used in the editor) */
   const resourceCodeItems = computed(() => toArray(repo.resourcecode));
   const officeEmployeesCodeItems = computed(() => toArray(repo.officeemployeescode));
   const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
   const zoneEmployeesItems = computed(() => toArray(repo.ZoneEmployees));
-  const eventTypeItems = computed(() => toArray(repo.eventTypeOptions));
   const janiTalafatItems = computed(() => toArray(repo.janiTalafatOptions));
   const maliTalafatItems = computed(() => toArray(repo.maliTalafatOptions));
 
-  /* form model */
+  /* fixed options — mirror the editor */
+  const eventTypeOptions = ['سیاسی', 'جنایی', 'الهی'];
+  const eventSpecificTypeOptions = ['قتل', 'چاودنه', 'ټکر', 'سرقت', 'مسلحانه برید'];
+
+  /* form model (EXACT keys as the editor) */
   const baseDraft = () => ({
     resource_id: null,
     office_employee_id: null,
-    event_type: null,
+
+    event_type: '',
     event_specific_type: '',
     target_person: '',
-    who_did: '',
+    criminal: '',
+
     event_date: '',
     event_hour: '',
-    zone: '',
-    hawza: '',
-    specific_place: '',
-    jani_talafat: null,
-    mali_talafat: null,
-    event_office_employee_code: null,
-    event_zone_employee_code: null,
+
+    event_zone: '',
+    event_hawza: '',
+    event_specific_place: '',
+    coordinates: '',
+
+    talafat_jani: null,
+    talafat_mali: null,
+
     tafseel: '',
     talks: '',
-    notes: '',
+    note: '',
+
     _newDocs: [],
   });
   const draft = reactive(baseDraft());
 
-  /* validation rules (same style as info form) */
+  /* validation */
   const rules = {
     required: (label) => (v) => (v && String(v).trim().length > 0) || `«${label}» ضروری است`,
     selectRequired: (label) => (v) =>
@@ -511,7 +501,7 @@
     timeHM: (label) => (v) => !v || /^\d{2}:\d{2}$/.test(v) || `${label} باید به صورت HH:MM باشد`,
   };
 
-  /* file helpers */
+  /* files */
   function shortName(name = '') {
     if (name.length <= 22) return name;
     const dot = name.lastIndexOf('.');
@@ -546,7 +536,7 @@
     return fd;
   }
 
-  /* actions */
+  /* submit/reset (unchanged) */
   async function onCreate() {
     const ok = await form.value?.validate();
     if (!ok?.valid) {
@@ -576,21 +566,19 @@
       setTimeout(() => (progress.value = 0), 800);
     }
   }
-
   function onReset() {
     Object.assign(draft, baseDraft());
     form.value?.resetValidation();
     if (fileInput.value) fileInput.value.value = '';
   }
 
-  /* preload dropdowns */
+  /* preload dropdowns (kept) */
   (async () => {
     await Promise.all([
-      repo.GetResourceCode(),
-      repo.GetOfficeEmployeeCode(),
-      repo.GetOfficeEmployee(),
-      repo.GetZoneEmployees(),
-      repo.GetEventTypeOptions?.(),
+      repo.GetResourceCode?.(),
+      repo.GetOfficeEmployeeCode?.(),
+      repo.GetOfficeEmployee?.(),
+      repo.GetZoneEmployees?.(),
       repo.GetJaniTalafatOptions?.(),
       repo.GetMaliTalafatOptions?.(),
     ]).catch(() => {});
@@ -624,7 +612,6 @@
     opacity: 1;
   }
 
-  /* docs uploader */
   .docs-field-row {
     display: flex;
     align-items: center;
@@ -641,13 +628,10 @@
     pointer-events: none;
   }
 
-  /* tighter gutters */
   .tight-grid {
     --v-gutter-x: 8px;
     --v-gutter-y: 8px;
   }
-
-  /* trim inner paddings */
   :deep(.v-card-item) {
     padding: 4px 0 2px 0;
   }
@@ -655,7 +639,6 @@
     padding: 4px 0 0 0;
   }
 
-  /* RTL support */
   :deep([dir='rtl'] .v-field__input) {
     direction: rtl;
     text-align: right;
@@ -670,7 +653,6 @@
     padding-inline-end: 10px !important;
   }
 
-  /* responsive */
   @media (max-width: 960px) {
     .form-card {
       padding: 16px;

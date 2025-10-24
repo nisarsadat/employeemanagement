@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Http\Requests\fifthyformatfour;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class UpdateDeplomaticPlaceRequest extends FormRequest
+{
+    public function authorize(): bool { return true; }
+
+    public function rules(): array
+    {
+        return [
+            'deplomatic_place_name' => ['sometimes','nullable','string'],
+            'activity_type'         => ['sometimes','nullable','string'],
+            'activity_place'        => ['sometimes','nullable','string'],
+
+            'enter_male_quantity'   => ['sometimes','nullable','integer'],
+            'outer_male_quantity'   => ['sometimes','nullable','integer'],
+            'enter_female_quantity' => ['sometimes','nullable','integer'],
+            'outer_female_quantity' => ['sometimes','nullable','integer'],
+
+            'responsible_name'      => ['sometimes','nullable','string'],
+            'responsible_f_name'    => ['sometimes','nullable','string'],
+            'responsible_possition' => ['sometimes','nullable','string'],
+            'responsible_country'   => ['sometimes','nullable','string'],
+            'responsible_phone'     => ['sometimes','nullable','string'],
+
+            'province'              => ['sometimes','nullable','string'],
+            'zone'                  => ['sometimes','nullable','string'],
+            'district'              => ['sometimes','nullable','string'],
+            'village'               => ['sometimes','nullable','string'],
+            'specefic_place'        => ['sometimes','nullable','string'],
+            'street_number'         => ['sometimes','nullable','string'],
+            'home_number'           => ['sometimes','nullable','string'],
+
+            'guard_quantity'        => ['sometimes','nullable','integer'],
+            'coordinates'           => ['sometimes','nullable','string'],
+
+            'resource_id'           => ['sometimes','nullable','integer','exists:resources,id'],
+            'note'                  => ['sometimes','nullable','string'],
+        ];
+    }
+}

@@ -41,6 +41,11 @@ class Information extends Model
         'note',
     ];
 
+    // ✅ Casts (helps with month-based checks if you use information_saved_date)
+    protected $casts = [
+        'information_saved_date' => 'date',
+    ];
+
     // 🧭 Relations
     public function resource(): BelongsTo
     {
@@ -55,5 +60,18 @@ class Information extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(InformationDocument::class, 'information_id');
+    }
+
+    // ✅ NEW: instant flip employee to فعال when a new information row is created
+    protected static function booted()
+    {
+        static::created(function ($row) {
+            $empId = $row->office_employee_id ?? null;
+            if ($empId) {
+                OfficeEmployee::where('id', $empId)
+                    ->where('activity', '!=', OfficeEmployee::ACTIVE)
+                    ->update(['activity' => OfficeEmployee::ACTIVE]);
+            }
+        });
     }
 }

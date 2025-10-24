@@ -17,18 +17,19 @@ class OfficeEmployeeController extends Controller
     /**
      * List all office employees with search and documents.
      */
-
     public function index(Request $request)
     {
         $request->validate([
             'page'    => 'sometimes|integer|min:1',
             'perPage' => 'sometimes', // int | "all" | missing
             'search'  => 'nullable|string',
+            'status'  => 'nullable|string', // 'active' | 'inactive' | 'فعال' | 'غیر فعال' | 'all'
         ]);
 
         $search     = $request->input('search');
         $rawPerPage = $request->input('perPage', null);
         $page       = (int) $request->input('page', 1);
+        $status     = $request->input('status', 'all');
 
         $query = OfficeEmployee::query()
             ->with(['documents'])
@@ -41,9 +42,20 @@ class OfficeEmployeeController extends Controller
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($qq) use ($search) {
                     $qq->where('name', 'like', "%{$search}%")
-                    ->orWhere('code_number', 'like', "%{$search}%")
-                    ->orWhere('phone_number', 'like', "%{$search}%");
+                       ->orWhere('code_number', 'like', "%{$search}%")
+                       ->orWhere('phone_number', 'like', "%{$search}%");
                 });
+            })
+            // ✅ NEW: filter by activity (accepts both Dari and English)
+            ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
+                $activeVals   = ['active', OfficeEmployee::ACTIVE];     // 'active' | 'فعال'
+                $inactiveVals = ['inactive', OfficeEmployee::INACTIVE]; // 'inactive' | 'غیر فعال'
+
+                if (in_array($status, $activeVals, true)) {
+                    $q->where('activity', OfficeEmployee::ACTIVE);
+                } elseif (in_array($status, $inactiveVals, true)) {
+                    $q->where('activity', OfficeEmployee::INACTIVE);
+                }
             })
             ->orderByDesc('id');
 
@@ -74,6 +86,17 @@ class OfficeEmployeeController extends Controller
         );
     }
 
+    /**
+     * ✅ NEW: quick counts for UI badges
+     */
+    public function counts()
+    {
+        return response()->json([
+            'active'   => OfficeEmployee::query()->where('activity', OfficeEmployee::ACTIVE)->count(),
+            'inactive' => OfficeEmployee::query()->where('activity', OfficeEmployee::INACTIVE)->count(),
+            'total'    => OfficeEmployee::count(),
+        ]);
+    }
 
     /**
      * Store a new office employee.
@@ -119,8 +142,6 @@ class OfficeEmployeeController extends Controller
             ], 500);
         }
     }
-
-
 
     /**
      * Update an existing office employee.
@@ -194,4 +215,60 @@ class OfficeEmployeeController extends Controller
 
         return response()->json(['message' => 'Office employee deleted successfully']);
     }
+        // -------------------------------------------------------------
+    // 🔹 List of ACTIVE office employees
+    // -------------------------------------------------------------
+    public function active(Request $request)
+    {
+        $query = OfficeEmployee::query()
+            ->where('activity', 'فعال')
+            ->with(['documents'])
+            ->withCount(['events', 'resources', 'informations', 'documents'])
+            ->orderByDesc('id');
+
+        // optional search and pagination
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                ->orWhere('code_number', 'like', "%{$search}%")
+                ->orWhere('phone_number', 'like', "%{$search}%");
+            });
+        }
+
+        $perPage = $request->input('perPage', 0);
+        if (!$perPage || strtolower($perPage) === 'all') {
+            return OfficeEmployeeResource::collection($query->get());
+        }
+
+        return OfficeEmployeeResource::collection($query->paginate($perPage));
+    }
+
+    // -------------------------------------------------------------
+    // 🔹 List of NON-ACTIVE office employees
+    // -------------------------------------------------------------
+    public function inactive(Request $request)
+    {
+        $query = OfficeEmployee::query()
+            ->where('activity', 'غیر فعال')
+            ->with(['documents'])
+            ->withCount(['events', 'resources', 'informations', 'documents'])
+            ->orderByDesc('id');
+
+        // optional search and pagination
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                ->orWhere('code_number', 'like', "%{$search}%")
+                ->orWhere('phone_number', 'like', "%{$search}%");
+            });
+        }
+
+        $perPage = $request->input('perPage', 0);
+        if (!$perPage || strtolower($perPage) === 'all') {
+            return OfficeEmployeeResource::collection($query->get());
+        }
+
+        return OfficeEmployeeResource::collection($query->paginate($perPage));
+    }
+
 }

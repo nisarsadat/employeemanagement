@@ -1,0 +1,55 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('companies', function (Blueprint $table) {
+            $table->id();
+
+            // Top block
+            $table->string('com_name')->nullable();
+            $table->string('com_type')->nullable();
+            $table->string('product_type')->nullable();
+            $table->string('com_level')->nullable();
+            $table->string('main_owner')->nullable();
+
+            // Responsible person
+            $table->string('responsible_name')->nullable();
+            $table->string('responsible_f_name')->nullable();
+            $table->string('responsible_position')->nullable();
+            $table->string('responsible_phone')->nullable();
+
+            // Company location
+            $table->string('com_province')->nullable();
+            $table->string('com_zone')->nullable();
+            $table->string('com_district')->nullable();
+            $table->string('com_village')->nullable();
+            $table->string('com_specific_place')->nullable();
+            $table->string('com_coordinates')->nullable();
+
+            // Staff counts
+            $table->integer('male_employee_quantity_inner')->nullable();
+            $table->integer('female_employee_quantity_inner')->nullable();
+            $table->integer('male_employee_quantity_out')->nullable();
+            $table->integer('female_employee_quantity_out')->nullable();
+            $table->integer('guard_quantity')->nullable();
+
+            // Link to resources
+            $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();
+
+            // Notes
+            $table->text('note')->nullable();
+
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('companies');
+    }
+};

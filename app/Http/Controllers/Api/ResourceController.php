@@ -16,7 +16,7 @@ class ResourceController extends Controller
         $search = trim((string)$req->get('search', ''));
 
         $q = Resource::query()
-            ->with(['officeEmployee:id,name,code_number,father_name,nickname'])
+            ->with(['officeEmployee:id,name,code_number,father_name'])
             ->when($search !== '', function ($w) use ($search) {
                 $w->where(function ($q2) use ($search) {
                     $q2->where('name', 'like', "%$search%")
@@ -64,7 +64,7 @@ class ResourceController extends Controller
 
         $row = Resource::create($data);
 
-        return (new ResourceResource($row->loadMissing('officeEmployee:id,name,code_number,father_name,nickname')))
+        return (new ResourceResource($row->loadMissing('officeEmployee:id,name,code_number,father_name')))
             ->additional(['message' => 'Created'])
             ->response()->setStatusCode(201);
     }
@@ -87,7 +87,7 @@ class ResourceController extends Controller
 
         $row->fill($data)->save();
 
-        return new ResourceResource($row->loadMissing('officeEmployee:id,name,code_number,father_name,nickname'));
+        return new ResourceResource($row->loadMissing('officeEmployee:id,name,code_number,father_name'));
     }
 
     public function destroy($id)

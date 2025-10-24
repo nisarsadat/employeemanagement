@@ -2,6 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\fifthyformatfour\Checkpoint;
+use App\Models\fifthyformatfour\Company;
+use App\Models\fifthyformatfour\Complex;
+use App\Models\fifthyformatfour\CriminalCapturePlace;
+use App\Models\fifthyformatfour\DeplomaticPlace;
+use App\Models\fifthyformatfour\Donelostplace;
+use App\Models\fifthyformatfour\EconemyProject;
+use App\Models\fifthyformatfour\GovernmentPlace;
+use App\Models\fifthyformatfour\Highway;
+use App\Models\fifthyformatfour\Masjid;
+use App\Models\fifthyformatfour\Park;
+use App\Models\fifthyformatfour\Pump;
+use App\Models\fifthyformatfour\Shora;
+use App\Models\fifthyformatfour\SuperMarket;
+use App\Models\fifthyformatfour\University;
+use App\Models\fifthyformatfour\Wakilano;
 use App\Models\fifthyformatone\DamagePlaces;
 use App\Models\fifthyformatone\LostMujremeen;
 use App\Models\fifthyformatone\Luchakano;
@@ -86,6 +102,11 @@ class Resource extends Model
         'note',
     ];
 
+    // ✅ Casts (helps if you filter by month on saved date)
+    protected $casts = [
+        'resource_saved_date' => 'date',
+    ];
+
     // Relations (unchanged)
     public function officeEmployee()
     {
@@ -123,4 +144,81 @@ class Resource extends Model
     public function carSalesCompanies() { return $this->hasMany(CarSalesCompany::class , 'resource_id','id'); }
     public function schools() { return $this->hasMany(School::class , 'resource_id','id'); }
     public function parkings() { return $this->hasMany(Parking::class , 'resource_id','id'); }
+    public function wakilanos()
+    {
+        return $this->hasMany(Wakilano::class);
+    }
+    public function universities()
+    {
+        return $this->hasMany(University::class);
+    }
+    public function masjids()
+    {
+        return $this->hasMany(Masjid::class);
+    }
+    public function highways()
+    {
+        return $this->hasMany(Highway::class);
+    }
+    public function companies()
+    {
+        return $this->hasMany(Company::class);
+    }
+    public function donelostplaces()
+    {
+        return $this->hasMany(Donelostplace::class);
+    }
+    public function econemyProjects()
+    {
+        return $this->hasMany(EconemyProject::class);
+    }
+    public function criminalCapturePlaces()
+    {
+        return $this->hasMany(CriminalCapturePlace::class);
+    }
+    public function pumps()
+    {
+        return $this->hasMany(Pump::class);
+    }
+    public function shoras()
+    {
+        return $this->hasMany(Shora::class);
+    }
+    public function checkpoints()
+    {
+        return $this->hasMany(Checkpoint::class);
+    }
+    public function governmentplaces()
+    {
+        return $this->hasMany(GovernmentPlace::class);
+    }
+    public function supermarkets()
+    {
+        return $this->hasMany(SuperMarket::class);
+    }
+    public function parks()
+    {
+        return $this->hasMany(Park::class);
+    }
+    public function complexes()
+    {
+        return $this->hasMany(Complex::class);
+    }
+    public function deplomaticplaces()
+    {
+        return $this->hasMany(DeplomaticPlace::class);
+    }
+
+    // ✅ NEW: instant flip employee to فعال when a new resource is created
+    protected static function booted()
+    {
+        static::created(function ($row) {
+            $empId = $row->office_employee_id ?? null;
+            if ($empId) {
+                OfficeEmployee::where('id', $empId)
+                    ->where('activity', '!=', OfficeEmployee::ACTIVE)
+                    ->update(['activity' => OfficeEmployee::ACTIVE]);
+            }
+        });
+    }
 }

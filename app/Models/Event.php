@@ -29,6 +29,11 @@ class Event extends Model
         'note',
     ];
 
+    // ✅ Casts (helps with "current month" filters if you use event_date)
+    protected $casts = [
+        'event_date' => 'date',
+    ];
+
     // 🔗 Relations (UNCHANGED)
     public function resource()
     {
@@ -39,8 +44,24 @@ class Event extends Model
     {
         return $this->belongsTo(OfficeEmployee::class, 'office_employee_id');
     }
+
     public function documents()
     {
         return $this->hasMany(EventDocument::class);
+    }
+
+    // ✅ NEW: instant flip employee to فعال when a new event is created
+    protected static function booted()
+    {
+        static::created(function ($row) {
+            foreach (['office_employee_id', 'event_office_employee_id'] as $key) {
+                $empId = $row->{$key} ?? null;
+                if ($empId) {
+                    OfficeEmployee::where('id', $empId)
+                        ->where('activity', '!=', OfficeEmployee::ACTIVE)
+                        ->update(['activity' => OfficeEmployee::ACTIVE]);
+                }
+            }
+        });
     }
 }

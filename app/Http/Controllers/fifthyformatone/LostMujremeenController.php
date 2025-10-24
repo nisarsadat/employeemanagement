@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\fifthyformatone;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\fifthyformatone\StoreRobbersRequest;
 use App\Http\Requests\fifthyformatone\UpdateRobbersRequest;
 use App\Http\Resources\fifthyformatone\RobbersResource;
 use App\Models\fifthyformatone\Robbers;
-use Illuminate\Http\Request;
 
 class RobbersController extends Controller
 {

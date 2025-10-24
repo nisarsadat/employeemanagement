@@ -4,10 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
+use Carbon\Carbon;
 
 class OfficeEmployee extends Model
 {
     use HasFactory;
+
+    // ... top of the class
+    public const ACTIVE   = 'فعال';
+    public const INACTIVE = 'غیر فعال';
+
+    // Tell the model which date columns to use
+    private const EVENT_DATE_COL       = 'event_date';              // events table
+    private const RESOURCE_DATE_COL    = 'resource_saved_date';     // resources table
+    private const INFORMATION_DATE_COL = 'information_saved_date';  // information table
+
 
     protected $fillable = [
         // Media
@@ -50,7 +62,7 @@ class OfficeEmployee extends Model
 
         // Status & education
         'madani_halat',
-        'activity',
+        'activity',         // 'فعال' | 'غیر فعال'
         'relegy_study',
         'new_study',
         'faculty',
@@ -71,6 +83,7 @@ class OfficeEmployee extends Model
         'note',
     ];
 
+    // ---------- Search ----------
     public function scopeSearch($query, $search)
     {
         if (!$search) return $query;
@@ -88,7 +101,7 @@ class OfficeEmployee extends Model
         });
     }
 
-    // Relationships — preserved
+    // ---------- Relationships ----------
     public function resources()
     {
         return $this->hasMany(Resource::class, 'office_employee_id');
@@ -112,5 +125,44 @@ class OfficeEmployee extends Model
     public function documents()
     {
         return $this->hasMany(OfficeEmployeeDocument::class);
+    }
+
+    // ---------- Activity logic ----------
+    public function scopeActive(Builder $q): Builder
+    {
+        return $q->where('activity', self::ACTIVE);
+    }
+
+    public function scopeInactive(Builder $q): Builder
+    {
+        return $q->where('activity', self::INACTIVE);
+    }
+
+   // ✅ REPLACE your scopeHasActivitySince with this version
+    public function scopeHasActivitySince(\Illuminate\Database\Eloquent\Builder $q, \Carbon\Carbon $since): \Illuminate\Database\Eloquent\Builder
+    {
+        $eventCol       = self::EVENT_DATE_COL       ?: 'created_at';
+        $resourceCol    = self::RESOURCE_DATE_COL    ?: 'created_at';
+        $informationCol = self::INFORMATION_DATE_COL ?: 'created_at';
+
+        return $q->where(function ($qq) use ($since, $eventCol, $resourceCol, $informationCol) {
+            $qq->whereHas('events', fn($e) => $e->where($eventCol, '>=', $since))
+            // ❌ removed assignedEvents because there is no event_office_employee_id column
+            ->orWhereHas('resources', fn($r) => $r->where($resourceCol, '>=', $since))
+            ->orWhereHas('informations', fn($i) => $i->where($informationCol, '>=', $since));
+        });
+    }
+
+
+    /** Flip to غیر فعال, then set فعال if activity exists in the window */
+    public static function refreshStatusesSince(Carbon $since): void
+    {
+        static::query()
+            ->where('activity', '!=', self::INACTIVE)
+            ->update(['activity' => self::INACTIVE]);
+
+        static::query()
+            ->hasActivitySince($since)
+            ->update(['activity' => self::ACTIVE]);
     }
 }
