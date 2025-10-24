@@ -86,6 +86,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('rbac')->group(functio
     Route::put('permissions/{id}', [RbacController::class, 'updatePermission']);
     Route::delete('permissions/{id}', [RbacController::class, 'destroyPermission']);
 
+    // Permissions Builder (resources)
+    Route::post('permissions/resource', [RbacController::class, 'createResourcePermissions']);
+    Route::delete('permissions/resource/{name}', [RbacController::class, 'deleteResourcePermissions']);
+    Route::get('resources', [RbacController::class, 'listResources']);
+
     // Role permissions
     Route::get('roles/{id}/permissions', [RbacController::class, 'rolePermissions']);
     Route::post('roles/{id}/permissions/sync', [RbacController::class, 'syncRolePermissions']);

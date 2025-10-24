@@ -67,6 +67,8 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
+            'roles' => $roles,
+            'permissions' => $permissions,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -94,15 +96,19 @@ class AuthController extends Controller
         if (! $user) {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
+        $roles = $user->getRoleNames();
+        $permissions = $user->getPermissionNames();
         return response()->json([
+            'roles' => $roles,
+            'permissions' => $permissions,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'username' => $user->username,
                 'photo_url' => $user->photo_url,
                 'active' => (bool) $user->active,
-                'roles' => $user->getRoleNames(),
-                'permissions' => $user->getPermissionNames(),
+                'roles' => $roles,
+                'permissions' => $permissions,
             ],
         ]);
     }
