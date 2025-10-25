@@ -55,6 +55,22 @@ import Inlineinfoindex from '../pages/InlineInfo/inlineinfoindex.vue';
 import ResourceInfo from '../pages/InlineInfo/ResourceInfo.vue';
 import Resourcetab from '../pages/InlineInfo/Resourcetab.vue';
 import Eventtab from '../pages/InlineInfo/Eventtab.vue';
+import Wakilanos from '../pages/FiftyFormats/Wakilano.vue';
+import Universities from '../pages/FiftyFormats/University.vue';
+import Masjids from '../pages/FiftyFormats/Masjid.vue';
+import HighWays from '../pages/FiftyFormats/Highway.vue';
+import Companies from '../pages/FiftyFormats/Company.vue';
+import DoneLostPlaces from '../pages/FiftyFormats/DoneLostPlaces.vue';
+import EconemyProjects from '../pages/FiftyFormats/EconemyProject.vue';
+import CriminalCapturePlaces from '../pages/FiftyFormats/CriminalCapturePlace.vue';
+import Pumps from '../pages/FiftyFormats/pump.vue';
+import Shoras from '../pages/FiftyFormats/Shora.vue';
+import CheckPoints from '../pages/FiftyFormats/Checkpoint.vue';
+import GovernmentPlaces from '../pages/FiftyFormats/GovernmentPlace.vue';
+import Parks from '../pages/FiftyFormats/Park.vue';
+import Complexes from '../pages/FiftyFormats/Complex.vue';
+import DeplomaticPlaces from '../pages/FiftyFormats/DeplomaticPlace.vue';
+import SuperMarkets from '../pages/FiftyFormats/SuperMarket.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -119,6 +135,23 @@ const router = createRouter({
     { path: '/oldjahadis', component: OldJahadis },
     { path: '/mashkokpeoples', component: MashkokPeopls },
     { path: '/madrasas', component: Madrasa },
+    // fifthy formats three
+    { path: '/wakilanos', component: Wakilanos },
+    { path: '/universities', component: Universities },
+    { path: '/masjids', component: Masjids },
+    { path: '/highways', component: HighWays },
+    { path: '/companies', component: Companies },
+    { path: '/donelostplaces', component: DoneLostPlaces },
+    { path: '/econemyprojects', component: EconemyProjects },
+    { path: '/criminalcaptureplaces', component: CriminalCapturePlaces },
+    { path: '/pumps', component: Pumps },
+    { path: '/shoras', component: Shoras },
+    { path: '/checkpoints', component: CheckPoints },
+    { path: '/governmentplaces', component: GovernmentPlaces },
+    { path: '/supermarkets', component: SuperMarkets },
+    { path: '/parks', component: Parks },
+    { path: '/complexes', component: Complexes },
+    { path: '/deplomaticplaces', component: DeplomaticPlaces },
     // {
     //     path: "/home",
     //     component: home,
