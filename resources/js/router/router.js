@@ -71,6 +71,7 @@ import Parks from '../pages/FiftyFormats/Park.vue';
 import Complexes from '../pages/FiftyFormats/Complex.vue';
 import DeplomaticPlaces from '../pages/FiftyFormats/DeplomaticPlace.vue';
 import SuperMarkets from '../pages/FiftyFormats/SuperMarket.vue';
+import finincalIndex from '../pages/Finincal/finincalIndex.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -135,7 +136,7 @@ const router = createRouter({
     { path: '/oldjahadis', component: OldJahadis },
     { path: '/mashkokpeoples', component: MashkokPeopls },
     { path: '/madrasas', component: Madrasa },
-    // fifthy formats three
+    // fifthy formats four
     { path: '/wakilanos', component: Wakilanos },
     { path: '/universities', component: Universities },
     { path: '/masjids', component: Masjids },
@@ -152,6 +153,7 @@ const router = createRouter({
     { path: '/parks', component: Parks },
     { path: '/complexes', component: Complexes },
     { path: '/deplomaticplaces', component: DeplomaticPlaces },
+    { path: '/finincalindex', component: finincalIndex },
     // {
     //     path: "/home",
     //     component: home,

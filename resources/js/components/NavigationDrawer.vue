@@ -163,10 +163,10 @@
     //     { title: t('د رزیدینتانو په اره'), path: '/resedintemployee' },
     //   ],
     // },
-    { title: t('منابع'), path: '/resources' , icon: 'mdi-pen' },
-    { title: t('اطلاعات'), path: '/informations' ,  icon: 'mdi-book'  },
-    { title: t('پیښي'), path: '/events' ,  icon: 'mdi-book-outline'  },
-    { title: t('تسلیم شوی بندیان'), path: '/delevirycaptive' ,  icon: 'mdi-lock'  },
+    { title: t('منابع'), path: '/resources', icon: 'mdi-pen' },
+    { title: t('اطلاعات'), path: '/informations', icon: 'mdi-book' },
+    { title: t('پیښي'), path: '/events', icon: 'mdi-book-outline' },
+    { title: t('تسلیم شوی بندیان'), path: '/delevirycaptive', icon: 'mdi-lock' },
     // {
     //   title: t('دیتابیس'),
     //   icon: 'mdi-cog-outline',
@@ -184,16 +184,21 @@
       path: '/fifthyformatsroute',
     },
     {
-      title: t('reports'),
-      icon: 'mdi-graph',
-      value: 'Report',
-      children: [
-        { title: t('reservation'), path: '/ReservationReport' },
-        { title: t('Account'), path: '/AccountSummary' },
-        { title: t('Customer'), path: '/CustomerReport' },
-        { title: t('MonthlyIncome'), path: '/MonthlyIncome' },
-      ],
+      title: t('بخش حساب مالی'),
+      icon: 'mdi-view-dashboard-outline',
+      path: '/finincalindex',
     },
+    // {
+    //   title: t('reports'),
+    //   icon: 'mdi-graph',
+    //   value: 'Report',
+    //   children: [
+    //     { title: t('reservation'), path: '/ReservationReport' },
+    //     { title: t('Account'), path: '/AccountSummary' },
+    //     { title: t('Customer'), path: '/CustomerReport' },
+    //     { title: t('MonthlyIncome'), path: '/MonthlyIncome' },
+    //   ],
+    // },
   ]);
 
   const setActive = (path) => {

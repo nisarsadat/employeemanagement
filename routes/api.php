@@ -19,6 +19,13 @@ use App\Http\Controllers\EventDocumentController;
 use App\Http\Controllers\CaptiveDeliveryController;
 use App\Http\Controllers\CaptiveDeliveryDocumentController;
 
+// ✅ FINANCE (NEW)
+use App\Http\Controllers\Api\AccountTypeController;
+use App\Http\Controllers\Api\AccountController;
+use App\Http\Controllers\Api\IncomeController;
+use App\Http\Controllers\Api\ExpenseController;
+
+
 // FIFTHY FORMATS controllers
 use App\Http\Controllers\fifthyFormats\{
     FasadController, SaeenFasadController, HeistController, CaptiveController, MulkanoController,
@@ -55,7 +62,9 @@ use App\Http\Controllers\Api\fifthyformatfour\{
 };
 
 use App\Http\Controllers\OfficeEmployeeDocumentController;
-
+use App\Http\Controllers\OilAccountController;
+use App\Http\Controllers\IncomeOilController;
+use App\Http\Controllers\ExpenseOilController;
 // ---------------------- AUTH ----------------------
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -95,6 +104,17 @@ Route::get('captive-deliveries/{captiveDelivery}/documents', [CaptiveDeliveryDoc
 Route::post('captive-deliveries/{captiveDelivery}/documents', [CaptiveDeliveryDocumentController::class, 'store']);
 Route::delete('captive-deliveries/{captiveDelivery}/documents/{document}', [CaptiveDeliveryDocumentController::class, 'destroy']);
 Route::get('captive-deliveries/{captiveDelivery}/documents/zip', [CaptiveDeliveryDocumentController::class, 'downloadAll']);
+
+// ---------------------- FINANCE (NEW) ----------------------
+// Account Types: name, note
+Route::apiResource('account-types', AccountTypeController::class);
+
+// Accounts: name, price, account_type_id, details
+Route::apiResource('accounts', AccountController::class);
+
+// ---------------------- FINANCE — Income & Expense ----------------------
+Route::apiResource('incomes', IncomeController::class)->only(['index','store']);
+Route::apiResource('expenses', ExpenseController::class)->only(['index','store']);
 
 // ---------------------- FIFTHY FORMATS ----------------------
 Route::apiResource('fasads', FasadController::class);
@@ -163,6 +183,14 @@ Route::apiResource('deplomaticplaces', DeplomaticPlaceController::class);
 Route::get('office-employees/active',   [OfficeEmployeeController::class, 'active']);
 Route::get('office-employees/inactive', [OfficeEmployeeController::class, 'inactive']);
 
+// 🔹 Oil Accounts (list of tanks or oil holders)
+Route::apiResource('oil-accounts', OilAccountController::class);
+
+// 🔹 Income Oils (petrol coming in)
+Route::apiResource('income-oils', IncomeOilController::class);
+
+// 🔹 Expense Oils (petrol going out)
+Route::apiResource('expense-oils', ExpenseOilController::class);
 // ---------------------- PING / AUTH TEST ----------------------
 Route::get('/ping', fn() => ['pong' => true]);
 Route::get('/user', fn(Request $r) => $r->user())->middleware('auth:sanctum');

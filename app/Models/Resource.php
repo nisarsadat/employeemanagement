@@ -208,6 +208,7 @@ class Resource extends Model
     {
         return $this->hasMany(DeplomaticPlace::class);
     }
+    public function expenses() { return $this->morphMany(Expense::class, 'payee'); }
 
     // ✅ NEW: instant flip employee to فعال when a new resource is created
     protected static function booted()

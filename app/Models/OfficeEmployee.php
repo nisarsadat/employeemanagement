@@ -126,6 +126,7 @@ class OfficeEmployee extends Model
     {
         return $this->hasMany(OfficeEmployeeDocument::class);
     }
+    public function expenses() { return $this->morphMany(Expense::class, 'payee'); }
 
     // ---------- Activity logic ----------
     public function scopeActive(Builder $q): Builder
