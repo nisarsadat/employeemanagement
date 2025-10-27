@@ -72,12 +72,14 @@ import Complexes from '../pages/FiftyFormats/Complex.vue';
 import DeplomaticPlaces from '../pages/FiftyFormats/DeplomaticPlace.vue';
 import SuperMarkets from '../pages/FiftyFormats/SuperMarket.vue';
 import finincalIndex from '../pages/Finincal/finincalIndex.vue';
+import MapAfghanistan from '../pages/Map/MapAfghanistan.vue';
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: Home },
     { path: '/login', component: Login },
+    { path: '/maps', component: MapAfghanistan },
     { path: '/users', component: User },
     { path: '/register', component: Register },
     { path: '/officeemployee', component: OfficeEmployeesPage },

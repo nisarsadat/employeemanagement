@@ -5,22 +5,35 @@
     </template>
   </AppBar>
 
-  <v-container fluid class="bg-bgproject" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid class="bg-bgproject py-4" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- Main Tabs -->
     <v-row class="align-start">
       <v-col cols="12">
-        <v-tabs v-model="mainTab" fixed-tabs class="mb-2">
-          <v-tab color="primary" value="accounts">{{ t('حسابونه') }}</v-tab>
-          <v-tab color="primary" value="cashflow">{{ t('عاید او مصرف') }}</v-tab>
-          <v-tab color="primary" value="oil">{{ t(' تیل ') }}</v-tab>
+        <v-tabs
+          v-model="mainTab"
+          fixed-tabs
+          class="mb-3 rounded-xl"
+          align-tabs="center"
+          density="comfortable"
+          color="primary"
+        >
+          <v-tab value="accounts">{{ t('حسابونه') }}</v-tab>
+          <v-tab value="cashflow">{{ t('عاید او مصرف') }}</v-tab>
+          <v-tab value="oil">{{ t('تیل') }}</v-tab>
+          <v-tab value="report">{{ t('راپورونه') }}</v-tab>
         </v-tabs>
 
         <v-window v-model="mainTab">
           <!-- ========== Accounts Window ========== -->
           <v-window-item value="accounts">
-            <v-card elevation="2" class="pa-2">
-              <!-- Sub Tabs for Accounts -->
-              <v-tabs v-model="accountsTab" grow class="mb-2">
+            <v-card elevation="2" class="pa-2 rounded-xl">
+              <v-tabs
+                v-model="accountsTab"
+                grow
+                class="mb-2 rounded-lg"
+                color="primary"
+                density="comfortable"
+              >
                 <v-tab value="list">{{ t('حسابونه') }}</v-tab>
                 <v-tab value="types">{{ t('د حساب ډولونه') }}</v-tab>
               </v-tabs>
@@ -38,9 +51,14 @@
 
           <!-- ========== Cashflow (Income/Expense) Window ========== -->
           <v-window-item value="cashflow">
-            <v-card elevation="2" class="pa-2">
-              <!-- Sub Tabs for Income/Expense -->
-              <v-tabs v-model="cashflowTab" grow class="mb-2">
+            <v-card elevation="2" class="pa-2 rounded-xl">
+              <v-tabs
+                v-model="cashflowTab"
+                grow
+                class="mb-2 rounded-lg"
+                color="primary"
+                density="comfortable"
+              >
                 <v-tab value="income">{{ t('عایدات') }}</v-tab>
                 <v-tab value="expense">{{ t('مصارف') }}</v-tab>
               </v-tabs>
@@ -55,24 +73,57 @@
               </v-window>
             </v-card>
           </v-window-item>
+
+          <!-- ========== Oil Window ========== -->
           <v-window-item value="oil">
-            <v-card elevation="2" class="pa-2">
-              <!-- Sub Tabs for Income/Expense -->
-              <v-tabs v-model="cashflowTab" grow class="mb-2">
-                <v-tab value="income">{{ t('آمد تیل') }}</v-tab>
-                <v-tab value="expense">{{ t('رفت تیل') }}</v-tab>
-                <v-tab value="account">{{ t('حساب تیل') }}</v-tab>
+            <v-card elevation="2" class="pa-2 rounded-xl">
+              <v-tabs
+                v-model="oilTab"
+                grow
+                class="mb-2 rounded-lg"
+                color="primary"
+                density="comfortable"
+              >
+                <v-tab value="income">{{ t('د تیلو داخل') }}</v-tab>
+                <v-tab value="expense">{{ t('د تیلو مصرف') }}</v-tab>
+                <v-tab value="account">{{ t('د تیلو حسابونه') }}</v-tab>
               </v-tabs>
 
-              <v-window v-model="cashflowTab">
+              <v-window v-model="oilTab">
                 <v-window-item value="income">
-                  <oilincomeIndex />
+                  <OilIncomeIndex />
                 </v-window-item>
                 <v-window-item value="expense">
-                  <oilExpenseIndex />
+                  <OilExpenseIndex />
                 </v-window-item>
                 <v-window-item value="account">
-                  <oilIndex />
+                  <OilIndex />
+                </v-window-item>
+              </v-window>
+            </v-card>
+          </v-window-item>
+
+          <!-- ========== Reports Window ========== -->
+          <v-window-item value="report">
+            <v-card elevation="2" class="pa-2 rounded-xl">
+              <v-tabs
+                v-model="reportTab"
+                grow
+                class="mb-2 rounded-lg"
+                color="primary"
+                density="comfortable"
+              >
+                <v-tab value="oilreport">{{ t('د تیلو راپور') }}</v-tab>
+                <v-tab value="moneyreport">{{ t('د پیسو راپور') }}</v-tab>
+              </v-tabs>
+
+              <!-- bind to reportTab (fixed) -->
+              <v-window v-model="reportTab">
+                <v-window-item value="oilreport">
+                  <OilReport />
+                </v-window-item>
+                <v-window-item value="moneyreport">
+                  <MoneyReport />
                 </v-window-item>
               </v-window>
             </v-card>
@@ -97,24 +148,50 @@
   import IncomesIndex from './IncomeOutcome/IncomesIndex.vue';
   import ExpensesIndex from './IncomeOutcome/ExpensesIndex.vue';
 
-  import oilIndex from './oil/oilindex.vue';
-  import oilincomeIndex from './oil/oilIncomeIndex.vue';
-  import oilExpenseIndex from './oil/expenseOil.vue';
+  // Oil area (normalized PascalCase)
+  import OilIndex from './oil/oilindex.vue';
+  import OilIncomeIndex from './oil/oilIncomeIndex.vue';
+  import OilExpenseIndex from './oil/expenseOil.vue';
+
+  // Reports
+  import OilReport from './Report/OilReport.vue';
+  import MoneyReport from './Report/MoneyReport.vue';
+
   const { t, locale } = useI18n();
   const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 
   const drawer = ref(false);
 
-  // Main tabs: accounts | cashflow
+  // Main tabs: accounts | cashflow | oil | report
   const mainTab = ref('accounts');
 
-  // Sub-tabs for Accounts window
+  // Sub-tabs
   const accountsTab = ref('list'); // list | types
-
-  // Sub-tabs for Cashflow window
   const cashflowTab = ref('income'); // income | expense
+  const oilTab = ref('income'); // income | expense | account
+  const reportTab = ref('oilreport'); // oilreport | moneyreport
 </script>
 
 <style scoped>
-  /* Optional: subtle card padding and spacing already added via classes */
+  :deep(.v-tabs) {
+    backdrop-filter: saturate(120%) blur(2px);
+  }
+
+  :deep(.v-tab) {
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+
+  :deep(.v-card) {
+    border-radius: 16px;
+  }
+
+  :deep(.v-window-item) {
+    padding: 8px;
+  }
+
+  /* Better spacing for RTL/LTR */
+  .v-container[dir='rtl'] :deep(.v-tab__slider) {
+    inset-inline-start: 0 !important;
+  }
 </style>

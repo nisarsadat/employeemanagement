@@ -65,6 +65,9 @@ use App\Http\Controllers\OfficeEmployeeDocumentController;
 use App\Http\Controllers\OilAccountController;
 use App\Http\Controllers\IncomeOilController;
 use App\Http\Controllers\ExpenseOilController;
+use App\Http\Controllers\OilReportController;
+use App\Http\Controllers\FinanceReportController;
+
 // ---------------------- AUTH ----------------------
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -191,6 +194,15 @@ Route::apiResource('income-oils', IncomeOilController::class);
 
 // 🔹 Expense Oils (petrol going out)
 Route::apiResource('expense-oils', ExpenseOilController::class);
+// routes/api.php
+Route::get('oil-reports', [OilReportController::class, 'index']);
+
+Route::prefix('finance-reports')->group(function () {
+    Route::get('income',   [FinanceReportController::class, 'incomeReport']);
+    Route::get('expense',  [FinanceReportController::class, 'expenseReport']);
+    Route::get('accounts', [FinanceReportController::class, 'accountsReport']);
+});
+
 // ---------------------- PING / AUTH TEST ----------------------
 Route::get('/ping', fn() => ['pong' => true]);
 Route::get('/user', fn(Request $r) => $r->user())->middleware('auth:sanctum');
