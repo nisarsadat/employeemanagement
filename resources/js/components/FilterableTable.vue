@@ -480,7 +480,7 @@
   function looksLikeDateKey(key = '') {
     if (!key) return false;
     const k = key.toLowerCase();
-    return /(date|dob|birth|joined|left|hired|apply|start|end|expiry|expire|issued|issue)/.test(k);
+    return /(date|dob|birth|joined|left|hired|apply|start|end|expiry|expire|issued|issue|event)/.test(k);
   }
 
   // HEURISTICS: does value look like a date?

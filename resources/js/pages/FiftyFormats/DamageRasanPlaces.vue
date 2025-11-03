@@ -1,5 +1,6 @@
+<!-- src/views/fifthyFormats/DamageRasanPlaces.vue -->
 <template>
-  <v-container fluid class="pt-6 mt-12">
+  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
     <AppBar
       :title="t('نقاط آسیب رسان')"
       :subtitle="t('اضافه کردن یک ریکارډ جدید')"
@@ -8,497 +9,685 @@
       <template #actions><v-btn icon /></template>
     </AppBar>
 
-    <!-- Search + Add -->
+    <!-- Search -->
     <v-row class="d-flex">
-      <v-col cols="12" md="9">
+      <v-col>
         <v-text-field
           v-model.trim="repo.Search"
           :label="t('جستجو')"
           density="compact"
           prepend-inner-icon="mdi-magnify"
           variant="outlined"
-          @keyup.enter="fetch()"
+          @keyup.enter="fetchAll"
           clearable
           @click:clear="
             () => {
               repo.Search = '';
-              fetch();
+              fetchAll();
             }
           "
         />
       </v-col>
-      <v-col cols="12" md="3" class="text-md-right">
-        <v-btn color="primary" @click="addBlankRow">
-          {{ t('اضافه کردن ریکارډ جدید') }}
-        </v-btn>
-      </v-col>
     </v-row>
 
-    <!-- TABLE -->
-    <v-card class="tablebody">
-      <v-data-table
-        :headers="headers"
-        :items="rows"
-        :loading="repo.loading"
-        :items-per-page="repo.itemsPerPage"
-        :page="repo.page"
-        :items-length="repo.totalItems || 0"
-        item-key="idOrTmp"
-        class="elevation-2 custom-table"
-        :dir="isRtl ? 'rtl' : 'ltr'"
-        density="comfortable"
-        @update:page="
-          (p) => {
-            repo.page = p;
-            fetch();
-          }
-        "
-        @update:items-per-page="
-          (n) => {
-            repo.itemsPerPage = n;
-            fetch();
-          }
-        "
-      >
-        <!-- LOCATION -->
-        <template #item.province="{ item }">
-          <v-text-field
-            v-model="item.draft.province"
-            :label="t('ولایت')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </template>
-        <template #item.zone="{ item }">
-          <v-text-field
-            v-model="item.draft.zone"
-            :label="t('زون')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </template>
-        <template #item.district="{ item }">
-          <v-text-field
-            v-model="item.draft.district"
-            :label="t('ولسوالی')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </template>
-        <template #item.village="{ item }">
-          <v-text-field
-            v-model="item.draft.village"
-            :label="t('قریه/ناحیه')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </template>
-
-        <!-- DETAILS -->
-        <template #item.specific_place="{ item }">
-          <v-text-field
-            v-model="item.draft.specific_place"
-            :label="t('موقعیت مشخص')"
-            class="text-group-note"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </template>
-        <template #item.specific_dot="{ item }">
-          <v-text-field
-            v-model="item.draft.specific_dot"
-            :label="t('نقطه مشخص')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </template>
-        <template #item.coordinates="{ item }">
-          <v-text-field
-            v-model="item.draft.coordinates"
-            :label="t('مختصات')"
-            hint="34.5553, 69.2075"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-            persistent-hint
-          />
-        </template>
-
-        <!-- THREAT -->
-        <template #item.tahdid_type="{ item }">
-          <v-text-field
-            v-model="item.draft.tahdid_type"
-            :label="t('نوع تهدید')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </template>
-        <template #item.percentage="{ item }">
-          <v-text-field
-            v-model="item.draft.percentage"
-            :label="t('درصدی')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </template>
-        <template #item.damage_place="{ item }">
-          <v-text-field
-            v-model="item.draft.damage_place"
-            :label="t('محل آسیب')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </template>
-
-        <!-- NOTE -->
-        <template #item.note="{ item }">
-          <v-text-field
-            v-model="item.draft.note"
-            :label="t('یادداشت')"
-            class="text-group-note"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </template>
-
-        <!-- RESOURCE (select by id; show name if present) -->
-        <template #item.resource_id="{ item }">
-          <v-autocomplete
-            v-model="item.draft.resource_id"
-            :items="resources"
-            item-title="code_number"
-            item-value="id"
-            :label="t('منبع')"
-            clearable
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-            @update:model-value="onResourceSelect(item)"
-          />
-        </template>
-
-        <template #item.resource_phone="{ item }">
-          <v-text-field
-            v-model="item.draft.resource_phone"
-            :label="t('نام منبع')"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            hide-details
-            readonly
-          />
-        </template>
-
-        <!-- ACTIONS -->
-        <template #item.actions="{ item }">
-          <div class="flex items-center gap-1">
-            <v-btn
+    <!-- Single-row validated editor (Fasad style) -->
+    <v-form
+      ref="editorForm"
+      v-model="editorValid"
+      lazy-validation
+      :key="formKey"
+      @submit.prevent="onSubmit(rows[0])"
+    >
+      <v-card class="tablebody" ref="editorCard">
+        <v-data-table
+          :headers="headers"
+          :items="rows"
+          :loading="repo.loading"
+          item-key="idOrTmp"
+          class="elevation-2 custom-table"
+          density="comfortable"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+          hide-default-footer
+        >
+          <!-- LOCATION -->
+          <template #item.province="{ item }">
+            <v-text-field
+              v-model="item.draft.province"
+              class="text-group"
+              density="compact"
               variant="outlined"
-              class="bg-primary"
-              :loading="item.loading"
-              @click="save(item)"
-            >
-              {{ t('ثبت دیتا') }}
-            </v-btn>
-            <v-btn class="bg-error" variant="outlined" @click="del(item)">
-              {{ t('حذف') }}
-            </v-btn>
-          </div>
-        </template>
+              :label="t('ولایت')"
+              :rules="[rules.required]"
+              hide-details
+              :error="hasError(item, 'province')"
+              :error-messages="getErrorMessages(item, 'province')"
+              required
+            />
+          </template>
+          <template #item.zone="{ item }">
+            <v-text-field
+              v-model="item.draft.zone"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('زون')"
+              hide-details
+            />
+          </template>
+          <template #item.district="{ item }">
+            <v-text-field
+              v-model="item.draft.district"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('ولسوالی')"
+              :rules="[rules.required]"
+              hide-details
+              :error="hasError(item, 'district')"
+              :error-messages="getErrorMessages(item, 'district')"
+              required
+            />
+          </template>
+          <template #item.village="{ item }">
+            <v-text-field
+              v-model="item.draft.village"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('قریه/ناحیه')"
+              hide-details
+            />
+          </template>
 
-        <!-- NO DATA -->
-        <template #no-data>
-          <div class="py-8 text-medium-emphasis">{{ t('هیچ ریکارډ یافت نشد') }}</div>
-        </template>
-      </v-data-table>
-    </v-card>
-  </v-container>
+          <!-- DETAILS -->
+          <template #item.specific_place="{ item }">
+            <v-text-field
+              v-model="item.draft.specific_place"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('موقعیت مشخص')"
+              hide-details
+            />
+          </template>
+          <template #item.specific_dot="{ item }">
+            <v-text-field
+              v-model="item.draft.specific_dot"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('نقطه مشخص')"
+              hide-details
+            />
+          </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مختصات')"
+              hint="34.5553, 69.2075"
+              persistent-hint
+              hide-details
+            />
+          </template>
 
-  <!-- FILTERABLE TABLE -->
-  <v-container fluid>
+          <!-- THREAT -->
+          <template #item.tahdid_type="{ item }">
+            <v-text-field
+              v-model="item.draft.tahdid_type"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('نوع تهدید')"
+              hide-details
+            />
+          </template>
+          <template #item.percentage="{ item }">
+            <v-text-field
+              v-model="item.draft.percentage"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('درصدی')"
+              :rules="[rules.number]"
+              hide-details
+              :error="hasError(item, 'percentage')"
+              :error-messages="getErrorMessages(item, 'percentage')"
+            />
+          </template>
+          <template #item.damage_place="{ item }">
+            <v-text-field
+              v-model="item.draft.damage_place"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('محل آسیب')"
+              hide-details
+            />
+          </template>
+
+          <!-- NOTE -->
+          <template #item.note="{ item }">
+            <v-text-field
+              v-model="item.draft.note"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('یادداشت')"
+              hide-details
+            />
+          </template>
+
+          <!-- RESOURCE (id select -> phone/code auto) -->
+          <template #item.resource_id="{ item }">
+            <v-autocomplete
+              v-model="item.draft.resource_id"
+              :items="resources"
+              item-title="code_number"
+              item-value="id"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('منبع')"
+              hide-details
+              clearable
+              @update:model-value="onResourceSelect(item)"
+            />
+          </template>
+          <template #item.resource_phone="{ item }">
+            <v-text-field
+              v-model="item.draft.resource_phone"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('شماره منبع')"
+              hide-details
+              readonly
+            />
+          </template>
+
+          <!-- ACTIONS -->
+          <template #item.actions="{ item }">
+            <div class="flex items-center gap-1">
+              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
+                {{ t('ثبت دیتا') }}
+              </v-btn>
+              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+                {{ t('حذف') }}
+              </v-btn>
+              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
+                {{ t('پاک کردن ورودی‌ها') }}
+              </v-btn>
+            </div>
+          </template>
+
+          <!-- NO DATA -->
+          <template #no-data>
+            <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
+          </template>
+        </v-data-table>
+      </v-card>
+    </v-form>
+
+    <!-- Peek + FilterableTable (Fasad pattern) -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loading"
+        title-key="specific_place"
+        :fields="headers"
+        :cols="3"
+        dir="rtl"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
     <FilterableTable
       :headers="headersFT"
-      :rows="rows"
+      :rows="rowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
       class="mb-20 mx-2"
+      :enableEdit="true"
+      :enablePeek="true"
+      @edit="startEdit"
+      @peek="openPeek"
     />
+
+    <!-- Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="5000">
+      {{ errorMessage }}
+      <template #actions>
+        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import AppBar from '@/components/AppBar.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import { useMawadRepository } from '@/stores/MawadRepository';
+import { ref, onMounted, computed, watch, nextTick, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
+import AppBar from '@/components/AppBar.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import { useMawadRepository } from '@/stores/MawadRepository';
 
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
-  const drawer = ref(false);
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
+const drawer = ref(false);
 
-  const repo = useMawadRepository();
+const repo = useMawadRepository();
 
-  const rows = ref([]);
-  const filters = ref({});
-  let tmpId = 0;
-  const newTmpId = () => `tmp-${++tmpId}`;
+/* ===== Editor form + snackbar ===== */
+const editorForm = ref(null);
+const editorValid = ref(false);
+const formKey = ref(0);
+const showError = ref(false);
+const errorMessage = ref('');
+const editorCard = ref(null);
+function showErrorMessage(message) {
+  errorMessage.value = message;
+  showError.value = true;
+}
 
-  /* Resource list from repository (assumed same as earlier) */
-  const resources = computed(() => repo.resourcecode || []);
-  function onResourceSelect(item) {
-    const found = resources.value.find((r) => r.id === item.draft.resource_id);
-    // show name in table (not persisted by API)
-    item.draft.resource_phone =  found?.phone_number ?? '';
+/* ===== Errors per row ===== */
+const itemErrors = ref({});
+function setItemErrors(item, errors) {
+  itemErrors.value[item.idOrTmp] = errors;
+}
+function clearItemErrors(item) {
+  if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
+}
+function hasError(item, field) {
+  return !!(itemErrors.value[item.idOrTmp] && itemErrors.value[item.idOrTmp][field]);
+}
+function getErrorMessages(item, field) {
+  return itemErrors.value[item.idOrTmp]?.[field] ?? [];
+}
+
+/* ===== Rules ===== */
+const rules = {
+  required: (v) => !!v || t('این فیلد الزامی است'),
+  number: (v) => !v || /^[0-9]+$/.test(v) || t('فقط اعداد مجاز است'),
+};
+
+/* ===== Single editor row ===== */
+const rows = ref([]);
+function setBlankEditorRow() {
+  rows.value = [toRowModel({})];
+}
+
+/* ===== Data for FilterableTable (all) ===== */
+const rowsFT = computed(() => repo.DamageRasanPlaces || []);
+
+/* ===== Headers (editor) ===== */
+const headers = computed(() => [
+  { title: t('ولایت'), key: 'province' },
+  { title: t('زون'), key: 'zone' },
+  { title: t('ولسوالی'), key: 'district' },
+  { title: t('قریه/ناحیه'), key: 'village' },
+
+  { title: t('موقعیت مشخص'), key: 'specific_place' },
+  { title: t('نقطه مشخص'), key: 'specific_dot' },
+  { title: t('مختصات'), key: 'coordinates' },
+
+  { title: t('نوع تهدید'), key: 'tahdid_type' },
+  { title: t('درصدی'), key: 'percentage' },
+  { title: t('محل آسیب'), key: 'damage_place' },
+
+  { title: t('یادداشت'), key: 'note' },
+
+  { title: t('منبع'), key: 'resource_id' },
+  { title: t('شماره منبع'), key: 'resource_phone' },
+
+  { title: t('عملیات'), key: 'actions', sortable: false },
+]);
+
+/* ===== Headers for FilterableTable ===== */
+const headersFT = computed(() => [
+  { title: t('ولایت'), key: 'province' },
+  { title: t('زون'), key: 'zone' },
+  { title: t('ولسوالی'), key: 'district' },
+  { title: t('قریه/ناحیه'), key: 'village' },
+
+  { title: t('موقعیت مشخص'), key: 'specific_place' },
+  { title: t('نقطه مشخص'), key: 'specific_dot' },
+  { title: t('مختصات'), key: 'coordinates' },
+
+  { title: t('نوع تهدید'), key: 'tahdid_type' },
+  { title: t('درصدی'), key: 'percentage' },
+  { title: t('محل آسیب'), key: 'damage_place' },
+
+  { title: t('کود منبع'), key: 'resource_code' },
+  { title: t('شماره منبع'), key: 'resource_phone' },
+
+  { title: t('یادداشت'), key: 'note' },
+]);
+
+/* ===== Top filter groups ===== */
+const topGroups = computed(() => [
+  { title: t('موقعیت'), keys: ['province', 'zone', 'district', 'village'] },
+  { title: t('جزییات'), keys: ['specific_place', 'specific_dot', 'coordinates'] },
+  { title: t('تهدید/آسیب'), keys: ['tahdid_type', 'percentage', 'damage_place'] },
+  { title: t('منبع/یادداشت'), keys: ['resource_code', 'resource_phone', 'note'] },
+]);
+
+/* ===== Resources dropdown -> set phone/code ===== */
+const resources = computed(() => repo.resourcecode || []);
+function onResourceSelect(item) {
+  const found = resources.value.find((r) => r.id === item.draft.resource_id);
+  item.draft.resource_code = found?.code_number ?? '';
+  item.draft.resource_phone = found?.phone_number ?? '';
+}
+
+/* ===== Row model & diff ===== */
+function toRowModel(x = {}) {
+  const base = {
+    id: x.id ?? null,
+    idOrTmp: x.id ?? 'tmp-1',
+    loading: false,
+
+    province: x.province ?? '',
+    zone: x.zone ?? '',
+    district: x.district ?? '',
+    village: x.village ?? '',
+
+    specific_place: x.specific_place ?? '',
+    specific_dot: x.specific_dot ?? '',
+    coordinates: x.coordinates ?? '',
+
+    tahdid_type: x.tahdid_type ?? '',
+    percentage: x.percentage ?? '',
+    damage_place: x.damage_place ?? '',
+
+    note: x.note ?? '',
+
+    resource_id: x.resource_id ?? null,
+    resource_code: x.resource_code ?? x.resource?.code_number ?? '',
+    resource_phone: x.resource_phone ?? x.resource?.phone_number ?? '',
+  };
+  return { ...base, draft: { ...base } };
+}
+
+const EDITABLE_KEYS = [
+  'province',
+  'zone',
+  'district',
+  'village',
+  'specific_place',
+  'specific_dot',
+  'coordinates',
+  'tahdid_type',
+  'percentage',
+  'damage_place',
+  'note',
+  'resource_id',
+  'resource_code',
+  'resource_phone',
+];
+const REQUIRED_ON_UPDATE = ['province', 'district'];
+
+function diffDraft(item) {
+  const d = item.draft || {};
+  const changed = {};
+  for (const k of EDITABLE_KEYS) {
+    if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
+  }
+  for (const k of REQUIRED_ON_UPDATE) {
+    if (d[k] !== undefined) changed[k] = d[k];
+  }
+  return changed;
+}
+
+function toFormDataSelective(obj) {
+  const fd = new FormData();
+  Object.entries(obj || {}).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    fd.append(k, v);
+  });
+  return fd;
+}
+
+/* ===== Save / Delete (Fasad flow) ===== */
+async function save(item) {
+  if (!item.draft?.province?.trim() || !item.draft?.district?.trim()) {
+    showErrorMessage(t('ولایت و ولسوالی الزامی است'));
+    return;
   }
 
-  /* HEADERS for DamageRasanPlaces */
-  const headers = computed(() => [
-    { title: t('ولایت'), key: 'province' },
-    { title: t('زون'), key: 'zone' },
-    { title: t('ولسوالی'), key: 'district' },
-    { title: t('قریه/ناحیه'), key: 'village' },
+  item.loading = true;
+  clearItemErrors(item);
 
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-    { title: t('نقطه مشخص'), key: 'specific_dot' },
-    { title: t('مختصات'), key: 'coordinates' },
-
-    { title: t('نوع تهدید'), key: 'tahdid_type' },
-    { title: t('درصدی'), key: 'percentage' },
-    { title: t('محل آسیب'), key: 'damage_place' },
-
-    { title: t('یادداشت'), key: 'note' },
-
-    { title: t('منبع'), key: 'resource_id' },
-    { title: t('نام منبع'), key: 'resource_phone' },
-
-    { title: t('عملیات'), key: 'actions', sortable: false },
-  ]);
-
-  /* FILTER headers = same keys */
-  const headersFT = headers;
-
-  /* Top filter groups */
-  const topGroups = computed(() => [
-    { title: t('موقعیت'), keys: ['province', 'zone', 'district', 'village'] },
-    { title: t('جزییات'), keys: ['specific_place', 'specific_dot', 'coordinates'] },
-    { title: t('تهدید/آسیب'), keys: ['tahdid_type', 'percentage', 'damage_place'] },
-    { title: t('منبع/یادداشت'), keys: ['note', 'resource_id', 'resource_phone'] },
-  ]);
-
-  /* Map API -> row with draft */
-  function toRowModel(x = {}) {
-    const base = {
-      id: x.id ?? null,
-      idOrTmp: x.id ?? newTmpId(),
-      loading: false,
-
-      province: x.province ?? '',
-      zone: x.zone ?? '',
-      district: x.district ?? '',
-      village: x.village ?? '',
-
-      specific_place: x.specific_place ?? '',
-      specific_dot: x.specific_dot ?? '',
-      coordinates: x.coordinates ?? '',
-
-      tahdid_type: x.tahdid_type ?? '',
-      percentage: x.percentage ?? '',
-      damage_place: x.damage_place ?? '',
-
-      note: x.note ?? '',
-
-
-      resource_code: x.resource_code ?? '',
-      resource_phone: x.resource_phone ?? '',
-      resource_id: x.resource_id ?? null,
-    };
-    return { ...base, draft: { ...base } };
-  }
-
-  /* Diff + FormData (only changed; exclude display-only fields) */
-  function diffDraft(item) {
-    const d = item.draft || {};
-    const changed = {};
-    const keys = [
-      'province',
-      'zone',
-      'district',
-      'village',
-      'specific_place',
-      'specific_dot',
-      'coordinates',
-      'tahdid_type',
-      'percentage',
-      'damage_place',
-      'note',
-      'resource_id',
-    ];
-    for (const k of keys) if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    return changed;
-  }
-
-  function toFormDataSelective(obj) {
-    const fd = new FormData();
-    Object.entries(obj || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null || v === '') return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
-
-  /* Hydrate + Fetch (use MAWAD repo functions analogs) */
-  function hydrate() {
-    rows.value = (repo.DamageRasanPlaces || []).map(toRowModel);
-  }
-  async function fetch() {
-    await repo.FetchDamageRasanPlacesData?.({
-      page: repo.page || 1,
-      itemsPerPage: repo.itemsPerPage || 50,
-      search: repo.Search || '',
-    });
-    hydrate();
-  }
-
-  /* Add blank row */
-  function addBlankRow() {
-    const newRow = toRowModel({});
-    rows.value = [...rows.value, newRow];
-    const per = repo.itemsPerPage || 50;
-    repo.page = Math.max(1, Math.ceil(rows.value.length / per));
-  }
-
-  /* Save / Delete */
-  async function save(item) {
-    item.loading = true;
-    try {
-      if (!item.id) {
-        const fd = toFormDataSelective(item.draft);
-        const created = await repo.CreateDamageRasanPlaces?.(fd);
-        if (created?.id) {
-          const model = toRowModel(created);
-          model.idOrTmp = item.idOrTmp;
-          Object.assign(item, model);
-          item.draft = { ...model };
-        } else {
-          await fetch();
-        }
-        return;
-      }
-      const changed = diffDraft(item);
-      if (Object.keys(changed).length === 0) return;
-
-      const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateDamageRasanPlaces?.(item.id, fd);
-      if (updated?.id) {
-        const model = toRowModel(updated);
-        model.idOrTmp = item.idOrTmp;
-        Object.assign(item, model);
-        item.draft = { ...model };
-      }
-    } finally {
-      item.loading = false;
-    }
-  }
-  async function del(item) {
+  try {
+    // CREATE
     if (!item.id) {
-      rows.value = rows.value.filter((r) => r.idOrTmp !== item.idOrTmp);
+      const fd = toFormDataSelective(item.draft);
+      const created = await repo.CreateDamageRasanPlaces?.(fd);
+      if (created && created.id) {
+        await fetchAll();
+        setBlankEditorRow();
+        editorForm.value?.resetValidation?.();
+      } else {
+        await fetchAll();
+        setBlankEditorRow();
+        editorForm.value?.resetValidation?.();
+      }
       return;
     }
-    if (!confirm(t('آیا مطمئن هستید؟'))) return;
-    await repo.DeleteDamageRasanPlaces?.(item.id);
-    await fetch();
-  }
 
-  /* init */
-  onMounted(async () => {
-    await Promise.allSettled([repo.GetResourceCode?.()]); // if you need resources dropdown
-    await fetch();
-  });
+    // UPDATE
+    const changed = diffDraft(item);
+    if (Object.keys(changed).length === 0) {
+      showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
+      return;
+    }
+    const fd = toFormDataSelective(changed);
+    const updated = await repo.UpdateDamageRasanPlaces?.(item.id, fd);
+    if (updated && updated.id) {
+      await fetchAll();
+      setBlankEditorRow();
+      editorForm.value?.resetValidation?.();
+    }
+  } catch (error) {
+    console.error('Save error:', error);
+    if (error?.response?.data?.errors) {
+      setItemErrors(item, error.response.data.errors);
+      showErrorMessage(t('لطفاً خطاهای فرم را بررسی کنید'));
+    } else {
+      showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته')));
+    }
+  } finally {
+    item.loading = false;
+  }
+}
+
+/* VALIDATED SUBMIT */
+async function onSubmit(item) {
+  const form = editorForm.value;
+  if (!form) return;
+  const { valid } = await form.validate();
+  if (!valid) {
+    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+    await nextTick();
+    scrollToFirstInvalid();
+    return;
+  }
+  await save(item);
+}
+
+function scrollToFirstInvalid() {
+  const first =
+    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+    document.querySelector('.v-messages__message');
+  if (first) {
+    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const input = first.querySelector('input, textarea, .v-field__input');
+    if (input && typeof input.focus === 'function') input.focus();
+  }
+}
+
+async function del(item) {
+  if (!item.id) {
+    setBlankEditorRow();
+    return;
+  }
+  if (!confirm(t('آیا مطمئن هستید؟'))) return;
+  try {
+    await repo.DeleteDamageRasanPlaces?.(item.id);
+    await fetchAll();
+    setBlankEditorRow();
+  } catch (e) {
+    console.error('Delete error:', e);
+    showErrorMessage(t('خطا در حذف') + ': ' + (e?.message || t('خطای ناشناخته')));
+  }
+}
+
+function clearEditor(item) {
+  try {
+    if (item && item.idOrTmp && itemErrors.value[item.idOrTmp]) {
+      delete itemErrors.value[item.idOrTmp];
+    }
+    setBlankEditorRow();
+    showErrorMessage(t('ورودی‌ها پاک شد'));
+  } catch (e) {
+    console.error('clearEditor error:', e);
+  }
+}
+
+/* ===== Peek / Fetch one ===== */
+const expanded = ref(false);
+const selectedId = ref(null);
+const loading = ref(false);
+const detail = ref(null);
+
+async function fetchOne(id) {
+  loading.value = true;
+  try {
+    await repo.FetchDamageRasanPlaceData?.(id);
+    detail.value =
+      repo.DamageRasanPlace && Array.isArray(repo.DamageRasanPlace)
+        ? repo.DamageRasanPlace[0]
+        : repo.DamageRasanPlace;
+  } catch (error) {
+    console.error('Fetch one error:', error);
+    showErrorMessage(t('خطا در دریافت اطلاعات'));
+  } finally {
+    loading.value = false;
+  }
+}
+function openPeek(payload) {
+  const row = payload?.raw ?? payload;
+  if (!row?.id) return;
+  expanded.value = true;
+  selectedId.value = row.id;
+  fetchOne(row.id);
+}
+
+/* ===== Fetch ALL (no pagination in editor) ===== */
+async function fetchAll() {
+  try {
+    if (typeof repo.FetchDamageRasanPlacesData === 'function') {
+      await repo.FetchDamageRasanPlacesData({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search || '',
+      });
+      return;
+    }
+    await repo.FetchDamageRasanPlacesData?.({
+      page: 1,
+      itemsPerPage: 100000,
+      search: repo.Search || '',
+    });
+  } catch (e) {
+    console.error('fetchAll error', e);
+  }
+}
+
+/* ===== Start edit from FilterableTable ===== */
+async function startEdit(row) {
+  try {
+    const id = row?.id;
+    if (!id) {
+      rows.value = [toRowModel(row)];
+      return;
+    }
+    await repo.FetchDamageRasanPlaceData?.(id);
+    const single =
+      repo.DamageRasanPlace && Array.isArray(repo.DamageRasanPlace)
+        ? repo.DamageRasanPlace[0]
+        : repo.DamageRasanPlace || row;
+    rows.value = [toRowModel(single || row)];
+    await nextTick();
+    const el = editorCard.value?.$el || editorCard.value;
+    el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  } catch (e) {
+    console.error('startEdit error', e);
+    showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
+  }
+}
+
+/* ===== Init ===== */
+onMounted(async () => {
+  await Promise.allSettled([repo.GetResourceCode?.()]); // fills repo.resourcecode
+  await fetchAll();
+  setBlankEditorRow();
+});
+
+onBeforeUnmount(() => {
+  // reserved for cleanup if previews/files are added later
+});
 </script>
 
 <style scoped>
-  table th {
-    white-space: nowrap;
-  }
+/* Prevent header wrap */
+table th { white-space: nowrap; }
 
-  .custom-table :deep(.v-data-table__thead th) {
-    background: rgb(var(--v-theme-primary));
-    color: #fff;
-    font-weight: 400;
-  }
+/* Colored table header */
+.custom-table :deep(.v-data-table__thead th) {
+  background: rgb(var(--v-theme-primary));
+  color: #fff;
+  font-weight: 400;
+}
 
-  /* layout */
-  .text-group {
-    display: grid;
-    width: 140px;
-    gap: 2px;
-  }
-  .text-group-note {
-    display: grid;
-    width: 380px;
-    gap: 2px;
-  }
+/* Layout helpers (Fasad style) */
+.tablebody { display: flex !important; gap: 2px !important; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-1 { gap: 4px; }
 
-  .flex {
-    display: flex;
-  }
-  .items-center {
-    align-items: center;
-  }
-  .gap-1 {
-    gap: 4px;
-  }
+/* Input sizing */
+.text-group { display: grid; width: 140px; gap: 2px; }
+.text-group-note { display: grid; width: 380px; gap: 2px; }
 
-  .tablebody {
-    display: flex !important;
-    gap: 2px !important;
-    overflow-x: auto;
-  }
+/* Compact inputs + labels */
+:deep(.v-field-label),
+:deep(.v-label),
+:deep(input::placeholder) {
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  color: #555 !important;
+}
+:deep(.v-field__input) {
+  min-height: 26px !important;
+  padding: 2px 6px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
 
-  :deep(.v-field-label),
-  :deep(.v-label),
-  :deep(input::placeholder) {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    color: #555 !important;
-  }
-  :deep(.v-field__input) {
-    min-height: 26px !important;
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-  }
-
-  /* compact spacing */
-  .text-group,
-  .text-group-note {
-    margin: -16px !important;
-    row-gap: -6px !important;
-    column-gap: 2px !important;
-  }
+/* Tight spacing like Fasad */
+.text-group,
+.text-group-note {
+  margin: -16px !important;
+  row-gap: -6px !important;
+  column-gap: 2px !important;
+}
 </style>

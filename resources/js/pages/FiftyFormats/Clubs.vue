@@ -8,7 +8,7 @@
       <template #actions><v-btn icon /></template>
     </AppBar>
 
-    <!-- Search (for the FilterableTable dataset) -->
+    <!-- Search (for FilterableTable dataset) -->
     <v-row class="d-flex">
       <v-col cols="12" md="9">
         <v-text-field
@@ -17,7 +17,7 @@
           density="compact"
           prepend-inner-icon="mdi-magnify"
           variant="outlined"
-          @keyup.enter="fetchAll()"
+          @keyup.enter="fetchAll"
           clearable
           @click:clear="
             () => {
@@ -29,7 +29,7 @@
       </v-col>
     </v-row>
 
-    <!-- Single-row editor (create/edit) — NO pagination/footers/add-row -->
+    <!-- Single-row editor — NO pagination/items-per-page -->
     <v-form
       ref="editorForm"
       v-model="editorValid"
@@ -57,7 +57,10 @@
               variant="outlined"
               :label="t('نام')"
               :rules="[rules.required]"
+              :error="hasError(item, 'name')"
+              :error-messages="getErrorMessages(item, 'name')"
               hide-details
+              required
             />
           </template>
 
@@ -69,7 +72,10 @@
               variant="outlined"
               :label="t('نام کلب')"
               :rules="[rules.required]"
+              :error="hasError(item, 'club_name')"
+              :error-messages="getErrorMessages(item, 'club_name')"
               hide-details
+              required
             />
           </template>
 
@@ -80,6 +86,8 @@
               density="compact"
               variant="outlined"
               :label="t('نوع کلب')"
+              :error="hasError(item, 'club_type')"
+              :error-messages="getErrorMessages(item, 'club_type')"
               hide-details
             />
           </template>
@@ -91,6 +99,8 @@
               density="compact"
               variant="outlined"
               :label="t('نام پدر')"
+              :error="hasError(item, 'father_name')"
+              :error-messages="getErrorMessages(item, 'father_name')"
               hide-details
             />
           </template>
@@ -102,6 +112,8 @@
               density="compact"
               variant="outlined"
               :label="t('وظیفه/موقعیت')"
+              :error="hasError(item, 'position')"
+              :error-messages="getErrorMessages(item, 'position')"
               hide-details
             />
           </template>
@@ -114,11 +126,13 @@
               variant="outlined"
               :label="t('شماره تماس')"
               :rules="[rules.phone]"
+              :error="hasError(item, 'phone_number')"
+              :error-messages="getErrorMessages(item, 'phone_number')"
               hide-details
             />
           </template>
 
-          <!-- Address (grouped layout) -->
+          <!-- Address (grouped) -->
           <template #item.province="{ item }">
             <div class="addr-group">
               <v-text-field
@@ -152,6 +166,8 @@
               density="compact"
               variant="outlined"
               :label="t('موقعیت مشخص')"
+              :error="hasError(item, 'specific_place')"
+              :error-messages="getErrorMessages(item, 'specific_place')"
               hide-details
             />
           </template>
@@ -163,6 +179,8 @@
               density="compact"
               variant="outlined"
               :label="t('مختصات')"
+              :error="hasError(item, 'cordinate')"
+              :error-messages="getErrorMessages(item, 'cordinate')"
               hide-details
             />
           </template>
@@ -177,6 +195,8 @@
               variant="outlined"
               :label="t('شاگردان صبح')"
               :rules="[rules.nonNegativeInt]"
+              :error="hasError(item, 'am_students')"
+              :error-messages="getErrorMessages(item, 'am_students')"
               hide-details
             />
           </template>
@@ -190,11 +210,13 @@
               variant="outlined"
               :label="t('شاگردان عصر')"
               :rules="[rules.nonNegativeInt]"
+              :error="hasError(item, 'pm_students')"
+              :error-messages="getErrorMessages(item, 'pm_students')"
               hide-details
             />
           </template>
 
-          <!-- Club link -->
+          <!-- Resource link -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
               v-model="item.draft.resource_code"
@@ -226,18 +248,13 @@
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
-              <v-btn
-                class="bg-primary"
-                variant="outlined"
-                :loading="item.loading"
-                @click="onSubmit(item)"
-              >
+              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
                 {{ t('ثبت دیتا') }}
               </v-btn>
               <v-btn class="bg-error" variant="outlined" @click="del(item)">
                 {{ t('حذف دیتا') }}
               </v-btn>
-              <v-btn color="warning" variant="outlined" @click="clearRow()">
+              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
                 {{ t('پاک کردن ورودی‌ها') }}
               </v-btn>
             </div>
@@ -251,46 +268,62 @@
         </v-data-table>
       </v-card>
     </v-form>
+
+    <!-- Peek button for details -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loadingOne"
+        title-key="club_name"
+        :fields="headers"
+        :cols="3"
+        dir="rtl"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
+    <!-- FilterableTable (list + edit/peek triggers) -->
+    <v-container fluid>
+      <FilterableTable
+        :headers="headersFT"
+        :rows="rowsFT"
+        :filters="filters"
+        @update:filters="(v) => (filters = { ...v })"
+        :top-groups="topGroups"
+        :showIndex="true"
+        :rtl="true"
+        :enableEdit="true"
+        :enablePeek="true"
+        :autoDetectDates="false"
+        :dateKeys="['resource_saved_date']"
+        @edit="startEdit"
+        @peek="openPeek"
+        class="mb-20 mx-2"
+      />
+    </v-container>
+
+    <!-- Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="4500">
+      {{ errorMessage }}
+      <template #actions>
+        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+      </template>
+    </v-snackbar>
+
+    <!-- Success Snackbar -->
+    <v-snackbar v-model="showOk" color="primary" timeout="3000">
+      {{ okMessage }}
+    </v-snackbar>
   </v-container>
-
-  <!-- FilterableTable -->
-  <v-container fluid>
-    <FilterableTable
-      :headers="headersFT"
-      :rows="rowsFT"
-      :filters="filters"
-      @update:filters="(v) => (filters = { ...v })"
-      :top-groups="topGroups"
-      :showIndex="true"
-      :rtl="true"
-      :enableEdit="true"
-      :enablePeek="true"
-      :autoDetectDates="false"
-      :dateKeys="['resource_saved_date']"
-      @edit="startEdit"
-      @peek="openPeek"
-      class="mb-20 mx-2"
-    />
-  </v-container>
-
-  <!-- Error Snackbar -->
-  <v-snackbar v-model="showError" color="error" timeout="4500">
-    {{ errorMessage }}
-    <template #actions>
-      <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
-    </template>
-  </v-snackbar>
-
-  <!-- Success Snackbar -->
-  <v-snackbar v-model="showOk" color="primary" timeout="3000">
-    {{ okMessage }}
-  </v-snackbar>
 </template>
 
 <script setup>
   import { ref, onMounted, computed, watch, nextTick } from 'vue';
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
+  import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
 
@@ -301,12 +334,61 @@
 
   const repo = useFasadRepository();
 
-  /* Single-row editor state */
+  /* ========= Validation + form ========= */
+  const editorForm = ref(null);
+  const editorValid = ref(false);
+  const formKey = ref(0);
+
+  const rules = {
+    required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
+    nonNegativeInt: (v) =>
+      v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
+    phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
+  };
+
+  async function validateForm() {
+    const form = editorForm.value;
+    if (!form?.validate) return { valid: true };
+    const { valid } = await form.validate();
+    if (!valid) await nextTick().then(scrollToFirstInvalid);
+    return { valid };
+  }
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  /* ========= Per-row error bucket ========= */
+  const itemErrors = ref({});
+  function setItemErrors(item, errors) {
+    itemErrors.value[item.idOrTmp] = errors || {};
+  }
+  function clearItemErrors(item) {
+    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
+  }
+  function hasError(item, field) {
+    return !!itemErrors.value[item.idOrTmp]?.[field];
+  }
+  function getErrorMessages(item, field) {
+    return itemErrors.value[item.idOrTmp]?.[field] ?? [];
+  }
+
+  /* ========= Single editor row ========= */
   const rows = ref([]);
+  let tmpId = 0;
+  const newTmpId = () => `tmp-${++tmpId}`;
+
   function toRowModel(x = {}) {
+    const r = x.resource || {};
     const base = {
       id: x.id ?? null,
-      idOrTmp: x.id ?? 'tmp-1',
+      idOrTmp: x.id ?? newTmpId(),
       loading: false,
 
       name: x.name ?? '',
@@ -325,10 +407,9 @@
       am_students: x.am_students ?? '',
       pm_students: x.pm_students ?? '',
 
-      // Club flatten
-      resource_code: x.resource_code ?? x.resource?.code_number ?? '',
-      resource_phone_number: x.resource_phone_number ?? x.resource?.phone_number ?? '',
-      resource_id: x.resource_id ?? x.resource?.id ?? null,
+      resource_code: x.resource_code ?? r.code_number ?? '',
+      resource_phone_number: x.resource_phone_number ?? r.phone_number ?? '',
+      resource_id: x.resource_id ?? r.id ?? null,
     };
     return { ...base, draft: { ...base } };
   }
@@ -336,25 +417,11 @@
     rows.value = [toRowModel({})];
   }
 
-  /* Dataset for FilterableTable */
+  /* ========= Filterable dataset ========= */
   const rowsFT = computed(() => repo.Clubs || []);
   const filters = ref({});
 
-  /* Snackbars */
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const showOk = ref(false);
-  const okMessage = ref('');
-  function showErrorMessage(msg) {
-    errorMessage.value = msg || t('خطا رخ داد');
-    showError.value = true;
-  }
-  function showOkMessage(msg) {
-    okMessage.value = msg || t('موفقیت‌آمیز');
-    showOk.value = true;
-  }
-
-  /* Resources dropdown */
+  /* ========= Resources dropdown ========= */
   const resources = computed(() => repo.resourcecode || []);
   function onResourceCodeChange(item) {
     const code = item.draft.resource_code;
@@ -363,7 +430,7 @@
     item.draft.resource_id = found?.id ?? null;
   }
 
-  /* Table headers */
+  /* ========= Headers ========= */
   const headers = computed(() => [
     { title: t('نام'), key: 'name' },
     { title: t('نام کلب'), key: 'club_name' },
@@ -371,7 +438,7 @@
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('وظیفه/موقعیت'), key: 'position' },
     { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('موقعیت'), key: 'province' },
+    { title: t('موقعیت'), key: 'province' }, // grouped province+zone+district
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('مختصات'), key: 'cordinate' },
     { title: t('شاگردان صبح'), key: 'am_students' },
@@ -408,54 +475,34 @@
     { title: t('شاگردان'), keys: ['am_students', 'pm_students'] },
     { title: t('منبع'), keys: ['resource_code', 'resource_phone_number'] },
   ]);
-  const editorCard = ref(null);
-  async function startEdit(row) {
-    try {
-      const id = row?.id;
-      if (!id) return;
-      if (typeof repo.FetchClubData === 'function') {
-        await repo.FetchClubData(id);
-      } else if (typeof repo.FetchClubsData === 'function') {
-        await repo.FetchClubsData({ page: 1, itemsPerPage: 100000 });
-      }
-      const single =
-        (repo.Club && Array.isArray(repo.Club) ? repo.Club[0] : repo.Club) ||
-        (repo.Clubs || []).find((r) => r.id === id) ||
-        row;
 
-      rows.value = [toRowModel(single)];
-      await nextTick();
-      const el = editorCard.value?.$el || editorCard.value;
-      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-    } catch (e) {
-      console.error('startEdit error', e);
-      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
-    }
-  }
-  /* Diff + payload helpers */
+  /* ========= Diff & payload ========= */
+  const EDITABLE_KEYS = [
+    'name',
+    'club_name',
+    'club_type',
+    'father_name',
+    'position',
+    'phone_number',
+    'province',
+    'zone',
+    'district',
+    'specific_place',
+    'cordinate',
+    'am_students',
+    'pm_students',
+    'resource_code',
+    'resource_phone_number',
+    'resource_id',
+  ];
+  const REQUIRED_ON_UPDATE = ['name', 'club_name'];
+
   function diffDraft(item) {
     const d = item.draft || {};
     const changed = {};
-    const keys = [
-      'name',
-      'club_name',
-      'club_type',
-      'father_name',
-      'position',
-      'phone_number',
-      'province',
-      'zone',
-      'district',
-      'specific_place',
-      'cordinate',
-      'am_students',
-      'pm_students',
-      'resource_code',
-      'resource_phone_number',
-      'resource_id',
-    ];
-    for (const k of keys) if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    return { changed };
+    for (const k of EDITABLE_KEYS) if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
+    for (const k of REQUIRED_ON_UPDATE) if (d[k] !== undefined) changed[k] = d[k];
+    return changed;
   }
   function toFormDataSelective(obj) {
     const fd = new FormData();
@@ -466,41 +513,25 @@
     return fd;
   }
 
-  /* Validation helpers */
-  const editorForm = ref(null);
-  const editorValid = ref(false);
-  const formKey = ref(0);
-  const rules = {
-    required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
-    nonNegativeInt: (v) =>
-      v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
-    phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
-  };
-
-  async function validateForm() {
-    const form = editorForm.value;
-    if (!form?.validate) return { valid: true };
-    const { valid } = await form.validate();
-    if (!valid) await nextTick().then(scrollToFirstInvalid);
-    return { valid };
+  /* ========= Snackbars ========= */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showOk = ref(false);
+  const okMessage = ref('');
+  function showErrorMessage(msg) {
+    errorMessage.value = msg || t('خطا رخ داد');
+    showError.value = true;
   }
-  function scrollToFirstInvalid() {
-    const first =
-      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-      document.querySelector('.v-messages__message');
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input && typeof input.focus === 'function') input.focus();
-    }
+  function showOkMessage(msg) {
+    okMessage.value = msg || t('موفقیت‌آمیز');
+    showOk.value = true;
   }
 
-  /* Save / Delete / Clear */
+  /* ========= Save / Submit / Delete / Clear ========= */
   async function onSubmit(item) {
-    if (!item?.draft?.name?.trim()) {
-      showErrorMessage(t('نام الزامی است'));
-      return;
-    }
+    if (!item?.draft?.name?.trim()) return showErrorMessage(t('نام الزامی است'));
+    if (!item?.draft?.club_name?.trim()) return showErrorMessage(t('نام کلب الزامی است'));
+
     const v = await validateForm();
     if (!v.valid) {
       showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
@@ -511,6 +542,7 @@
 
   async function save(item) {
     item.loading = true;
+    clearItemErrors(item);
     try {
       if (!item.id) {
         const fd = toFormDataSelective(item.draft);
@@ -518,7 +550,8 @@
         if (created?.id) {
           showOkMessage(t('کلب با موفقیت ایجاد شد'));
           await fetchAll();
-          setBlankEditorRow(); // clear inputs after create
+          setBlankEditorRow();
+          editorForm.value?.resetValidation?.();
         } else {
           await fetchAll();
           setBlankEditorRow();
@@ -526,21 +559,28 @@
         return;
       }
 
-      const { changed } = diffDraft(item);
+      const changed = diffDraft(item);
       if (Object.keys(changed).length === 0) {
         showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
         return;
       }
+
       const fd = toFormDataSelective(changed);
       const updated = await repo.UpdateClub?.(item.id, fd);
       if (updated?.id) {
         showOkMessage(t('کلب بروزرسانی شد'));
         await fetchAll();
-        setBlankEditorRow(); // clear inputs after update
+        setBlankEditorRow();
+        editorForm.value?.resetValidation?.();
       }
     } catch (e) {
       console.error('Save error:', e);
-      showErrorMessage(t('خطا در ذخیره داده'));
+      if (e?.response?.data?.errors) {
+        setItemErrors(item, e.response.data.errors);
+        showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
+      } else {
+        showErrorMessage(t('خطا در ذخیره داده'));
+      }
     } finally {
       item.loading = false;
     }
@@ -556,29 +596,74 @@
       await repo.DeleteClub?.(item.id);
       await fetchAll();
       showOkMessage(t('کلب حذف شد'));
-      setBlankEditorRow(); // clear inputs after delete
+      setBlankEditorRow();
     } catch (e) {
       console.error('Delete error:', e);
       showErrorMessage(t('خطا در حذف'));
     }
   }
 
-  function clearRow() {
+  function clearEditor(item) {
+    if (item && itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
     setBlankEditorRow();
     showOkMessage(t('ورودی‌ها پاک شد'));
   }
 
-  /* Load dataset for FilterableTable only */
+  /* ========= Peek / single fetch ========= */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      await repo.FetchClubData?.(id);
+      detail.value = repo.Club || [];
+    } catch (e) {
+      console.error('fetchOne error', e);
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      loadingOne.value = false;
+    }
+  }
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
+
+  /* ========= Edit from table ========= */
+  const editorCard = ref(null);
+  async function startEdit(row) {
+    try {
+      const id = row?.id;
+      if (!id) return;
+      await repo.FetchClubData?.(id);
+      const single = repo.Club && Array.isArray(repo.Club) ? repo.Club[0] : repo.Club || row;
+      rows.value = [toRowModel(single || row)];
+      await nextTick();
+      const el = editorCard.value?.$el || editorCard.value;
+      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      console.error('startEdit error', e);
+      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
+    }
+  }
+
+  /* ========= Data load ========= */
   async function fetchAll() {
     await Promise.allSettled([
       repo.GetResourceCode?.(),
-      repo.FetchClubsData?.({ page: 1, itemsPerPage: 100000, search: repo.Search }),
+      repo.FetchClubsData?.({ page: 1, itemsPerPage: 100000, search: repo.Search || '' }),
     ]);
   }
 
   onMounted(async () => {
     await fetchAll();
-    setBlankEditorRow(); // ensure blank editor on load
+    setBlankEditorRow();
   });
   repo.GetResourceCode?.();
 </script>
@@ -592,6 +677,7 @@
     color: #fff;
     font-weight: 400;
   }
+
   .addr-group {
     display: grid;
     grid-template-columns: repeat(3, minmax(120px, 1fr));
@@ -607,6 +693,7 @@
     width: 380px;
     gap: 2px;
   }
+
   .flex {
     display: flex;
   }
@@ -616,10 +703,13 @@
   .gap-1 {
     gap: 4px;
   }
+
   .tablebody {
     display: flex !important;
     gap: 2px !important;
   }
+
+  /* Compact labels/inputs */
   :deep(.v-field-label),
   :deep(.v-label),
   :deep(input::placeholder) {
@@ -632,5 +722,15 @@
     padding: 2px 6px !important;
     font-size: 12px !important;
     line-height: 1.2 !important;
+  }
+    /* Tight spacing inside grouped blocks */
+  .addr-group,
+  .text-group,
+  .text-group-note {
+    margin: -16px !important;
+    padding: -10px !important;
+    row-gap: -6px !important;
+    column-gap: 2px !important;
+    gap: -10px !important;
   }
 </style>

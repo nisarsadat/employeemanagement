@@ -7,7 +7,7 @@ import { createPinia } from 'pinia'
 import i18n from './localization/Local.js'
 import Toast from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
-
+import VueApexCharts from 'vue3-apexcharts'
 import '@fontsource/amiri/400.css'
 import '@fontsource/amiri/700.css'
 import '@fontsource/scheherazade-new/400.css'
@@ -28,7 +28,7 @@ import 'vue3-hijri-gregorian-datepicker/dist/style.css'
 // register as <HijriGregorianDatepicker ... />
 
 const app = createApp(App)
-
+app.use(VueApexCharts);
 app.use(createPinia())
 app.use(router)
 app.use(Toast)

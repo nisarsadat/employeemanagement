@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pt-6 mt-12">
+  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
     <AppBar
       :title="t('ورکشاپ‌ها')"
       :subtitle="t('اضافه کردن یک ریکارډ جدید ورکشاپ')"
@@ -8,274 +8,291 @@
       <template #actions><v-btn icon /></template>
     </AppBar>
 
-    <!-- Search + Add -->
+    <!-- Search -->
     <v-row class="d-flex">
-      <v-col cols="12" md="9">
+      <v-col>
         <v-text-field
           v-model.trim="repo.Search"
           :label="t('جستجو')"
           density="compact"
           prepend-inner-icon="mdi-magnify"
           variant="outlined"
-          @keyup.enter="fetch()"
+          @keyup.enter="fetchAll"
           clearable
           @click:clear="
             () => {
               repo.Search = '';
-              fetch();
+              fetchAll();
             }
           "
         />
       </v-col>
-
-      <v-col cols="12" md="3" class="text-md-right">
-        <v-btn color="primary" @click="addBlankRow">
-          {{ t('اضافه کردن ریکارډ جدید') }}
-        </v-btn>
-      </v-col>
     </v-row>
 
-    <!-- TABLE -->
-    <v-card class="tablebody">
-      <v-data-table
-        :headers="headers"
-        :items="rows"
-        :loading="repo.loading"
-        :items-per-page="repo.itemsPerPage"
-        :page="repo.page"
-        :items-length="repo.totalItems || 0"
-        item-key="idOrTmp"
-        class="elevation-2 custom-table"
-        :dir="isRtl ? 'rtl' : 'ltr'"
-        density="comfortable"
-        @update:page="
-          (p) => {
-            repo.page = p;
-            fetch();
-          }
-        "
-        @update:items-per-page="
-          (n) => {
-            repo.itemsPerPage = n;
-            fetch();
-          }
-        "
-      >
-        <!-- Basics -->
-        <template #item.workshop_name="{ item }">
-          <v-text-field
-            v-model="item.draft.workshop_name"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('نام ورکشاپ')"
-            hide-details
-          />
-        </template>
-        <template #item.workshop_type="{ item }">
-          <v-text-field
-            v-model="item.draft.workshop_type"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('نوع ورکشاپ')"
-            hide-details
-          />
-        </template>
-
-        <!-- Responsible -->
-        <template #item.responsible_name="{ item }">
-          <v-text-field
-            v-model="item.draft.responsible_name"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('نام مسئول')"
-            hide-details
-          />
-        </template>
-        <template #item.responsible_f_name="{ item }">
-          <v-text-field
-            v-model="item.draft.responsible_f_name"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('نام پدر مسئول')"
-            hide-details
-          />
-        </template>
-        <template #item.responsible_position="{ item }">
-          <v-text-field
-            v-model="item.draft.responsible_position"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('وظیفه مسئول')"
-            hide-details
-          />
-        </template>
-        <template #item.responsible_phone="{ item }">
-          <v-text-field
-            v-model="item.draft.responsible_phone"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('شماره مسئول')"
-            hide-details
-          />
-        </template>
-
-        <!-- Address -->
-        <template #item.province="{ item }">
-          <div class="addr-group">
+    <!-- Single-row validated editor -->
+    <v-form
+      ref="editorForm"
+      v-model="editorValid"
+      lazy-validation
+      :key="formKey"
+      @submit.prevent="onSubmit(rows[0])"
+    >
+      <v-card class="tablebody" ref="editorCard">
+        <v-data-table
+          :headers="headers"
+          :items="rows"
+          :loading="repo.loading"
+          item-key="idOrTmp"
+          class="elevation-2 custom-table"
+          density="comfortable"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+          hide-default-footer
+        >
+          <!-- Basics -->
+          <template #item.workshop_name="{ item }">
             <v-text-field
-              v-model="item.draft.province"
+              v-model="item.draft.workshop_name"
+              class="text-group pr-2"
               density="compact"
               variant="outlined"
+              :label="t('نام ورکشاپ')"
+              :rules="[rules.required]"
               hide-details
-              :label="t('ولایت')"
+              :error="hasError(item, 'workshop_name')"
+              :error-messages="getErrorMessages(item, 'workshop_name')"
+              required
             />
+          </template>
+          <template #item.workshop_type="{ item }">
             <v-text-field
-              v-model="item.draft.zone"
+              v-model="item.draft.workshop_type"
+              class="text-group"
               density="compact"
               variant="outlined"
+              :label="t('نوع ورکشاپ')"
               hide-details
-              :label="t('زون')"
             />
+          </template>
+
+          <!-- Responsible -->
+          <template #item.responsible_name="{ item }">
             <v-text-field
-              v-model="item.draft.district"
+              v-model="item.draft.responsible_name"
+              class="text-group"
               density="compact"
               variant="outlined"
+              :label="t('نام مسئول')"
               hide-details
-              :label="t('ولسوالی')"
             />
+          </template>
+          <template #item.responsible_f_name="{ item }">
             <v-text-field
-              v-model="item.draft.village"
+              v-model="item.draft.responsible_f_name"
+              class="text-group"
               density="compact"
               variant="outlined"
+              :label="t('نام پدر مسئول')"
               hide-details
-              :label="t('قریه')"
             />
-          </div>
-        </template>
-
-        <template #item.specific_place="{ item }">
-          <v-text-field
-            v-model="item.draft.specific_place"
-            class="text-group-note"
-            density="compact"
-            variant="outlined"
-            :label="t('موقعیت مشخص')"
-            hide-details
-          />
-        </template>
-        <template #item.coordinates="{ item }">
-          <v-text-field
-            v-model="item.draft.coordinates"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('مختصات')"
-            hide-details
-          />
-        </template>
-
-        <!-- Workers -->
-        <template #item.workers_quantity="{ item }">
-          <v-text-field
-            v-model="item.draft.workers_quantity"
-            class="text-group"
-            density="compact"
-            type="number"
-            variant="outlined"
-            :label="t('تعداد کارگران')"
-            hide-details
-          />
-        </template>
-
-        <!-- Note -->
-        <template #item.note="{ item }">
-          <v-text-field
-            v-model="item.draft.note"
-            class="text-group-note"
-            density="compact"
-            variant="outlined"
-            :label="t('یادداشت')"
-            hide-details
-          />
-        </template>
-
-        <!-- Resource (code → phone → id) -->
-        <template #item.resource_code="{ item }">
-          <v-autocomplete
-            v-model="item.draft.resource_code"
-            :items="resources"
-            item-title="code_number"
-            item-value="code_number"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('کود منبع')"
-            hide-details
-            clearable
-            @update:model-value="onResourceCodeChange(item)"
-          />
-        </template>
-        <template #item.resource_phone="{ item }">
-          <v-text-field
-            v-model="item.draft.resource_phone"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('شماره منبع')"
-            hide-details
-            readonly
-          />
-        </template>
-
-        <!-- ACTIONS -->
-        <template #item.actions="{ item }">
-          <div class="flex items-center gap-1">
-            <v-btn
-              class="bg-primary"
+          </template>
+          <template #item.responsible_position="{ item }">
+            <v-text-field
+              v-model="item.draft.responsible_position"
+              class="text-group"
+              density="compact"
               variant="outlined"
-              @click="save(item)"
-              :loading="item.loading"
-            >
-              {{ t('ثبت دیتا') }}
-            </v-btn>
-            <v-btn class="bg-error" variant="outlined" @click="del(item)">
-              {{ t('حذف') }}
-            </v-btn>
-          </div>
-        </template>
+              :label="t('وظیفه مسئول')"
+              hide-details
+            />
+          </template>
+          <template #item.responsible_phone="{ item }">
+            <v-text-field
+              v-model="item.draft.responsible_phone"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('شماره مسئول')"
+              :rules="[rules.number]"
+              hide-details
+              :error="hasError(item, 'responsible_phone')"
+              :error-messages="getErrorMessages(item, 'responsible_phone')"
+            />
+          </template>
 
-        <template #no-data>
-          <div class="py-8 text-medium-emphasis">{{ t('هیچ ریکارډ یافت نشد') }}</div>
-        </template>
-      </v-data-table>
-    </v-card>
-  </v-container>
+          <!-- Address (grouped) -->
+          <template #item.province="{ item }">
+            <div class="addr-group">
+              <v-text-field
+                v-model="item.draft.province"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('ولایت')"
+              />
+              <v-text-field
+                v-model="item.draft.zone"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('زون')"
+              />
+              <v-text-field
+                v-model="item.draft.district"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('ولسوالی')"
+              />
+              <v-text-field
+                v-model="item.draft.village"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('قریه')"
+              />
+            </div>
+          </template>
 
-  <!-- FILTERABLE TABLE -->
-  <v-container fluid>
+          <template #item.specific_place="{ item }">
+            <v-text-field
+              v-model="item.draft.specific_place"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('موقعیت مشخص')"
+              hide-details
+            />
+          </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مختصات')"
+              hide-details
+            />
+          </template>
+
+          <!-- Workers / Note -->
+          <template #item.workers_quantity="{ item }">
+            <v-text-field
+              v-model="item.draft.workers_quantity"
+              class="text-group"
+              density="compact"
+              type="number"
+              variant="outlined"
+              :label="t('تعداد کارگران')"
+              :rules="[rules.number]"
+              hide-details
+            />
+          </template>
+          <template #item.note="{ item }">
+            <v-text-field
+              v-model="item.draft.note"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('یادداشت')"
+              hide-details
+            />
+          </template>
+
+          <!-- Resource (code → phone → id) -->
+          <template #item.resource_code="{ item }">
+            <v-autocomplete
+              v-model="item.draft.resource_code"
+              :items="resources"
+              item-title="code_number"
+              item-value="code_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('کود منبع')"
+              hide-details
+              clearable
+              @update:model-value="onResourceCodeChange(item)"
+            />
+          </template>
+          <template #item.resource_phone="{ item }">
+            <v-text-field
+              v-model="item.draft.resource_phone"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('شماره منبع')"
+              hide-details
+              readonly
+            />
+          </template>
+
+          <!-- Actions -->
+          <template #item.actions="{ item }">
+            <div class="flex items-center gap-1">
+              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
+                {{ t('ثبت دیتا') }}
+              </v-btn>
+              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+                {{ t('حذف') }}
+              </v-btn>
+              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
+                {{ t('پاک کردن ورودی‌ها') }}
+              </v-btn>
+            </div>
+          </template>
+
+          <template #no-data>
+            <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
+          </template>
+        </v-data-table>
+      </v-card>
+    </v-form>
+
+    <!-- Peek + FilterableTable -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loading"
+        title-key="workshop_name"
+        :fields="headers"
+        :cols="3"
+        dir="rtl"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
     <FilterableTable
       :headers="headersFT"
-      :rows="rows"
+      :rows="rowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
       class="mb-20 mx-2"
+      :enableEdit="true"
+      :enablePeek="true"
+      @edit="startEdit"
+      @peek="openPeek"
     />
+
+    <!-- Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="5000">
+      {{ errorMessage }}
+      <template #actions>
+        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, watch } from 'vue';
+  import { ref, onMounted, computed, watch, nextTick } from 'vue';
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
+  import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useSchoolRepository } from '@/stores/SchoolRepository';
 
@@ -285,21 +302,50 @@
   const drawer = ref(false);
 
   const repo = useSchoolRepository();
-  const rows = ref([]);
-  const filters = ref({});
-  let tmpId = 0;
-  const newTmpId = () => `tmp-${++tmpId}`;
 
-  /* Resource dropdown mapping */
-  const resources = computed(() => repo.resourcecode || []);
-  function onResourceCodeChange(item) {
-    const code = item.draft.resource_code;
-    const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone = found?.phone_number ?? '';
-    item.draft.resource_id = found?.id ?? null;
+  /* ===== Editor form + snackbar ===== */
+  const editorForm = ref(null);
+  const editorValid = ref(false);
+  const formKey = ref(0);
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const editorCard = ref(null);
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
   }
 
-  /* HEADERS (table) */
+  /* ===== Errors per row ===== */
+  const itemErrors = ref({});
+  function setItemErrors(item, errors) {
+    itemErrors.value[item.idOrTmp] = errors;
+  }
+  function clearItemErrors(item) {
+    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
+  }
+  function hasError(item, field) {
+    return !!(itemErrors.value[item.idOrTmp] && itemErrors.value[item.idOrTmp][field]);
+  }
+  function getErrorMessages(item, field) {
+    return itemErrors.value[item.idOrTmp]?.[field] ?? [];
+  }
+
+  /* ===== Rules ===== */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+    number: (v) => !v || /^[-]?[0-9]+$/.test(String(v)) || t('فقط اعداد مجاز است'),
+  };
+
+  /* ===== Single editor row ===== */
+  const rows = ref([]);
+  function setBlankEditorRow() {
+    rows.value = [toRowModel({})];
+  }
+
+  /* ===== ALL data for FilterableTable ===== */
+  const rowsFT = computed(() => repo.WorkShops || []);
+
+  /* ===== Headers (editor table) ===== */
   const headers = computed(() => [
     { title: t('نام ورکشاپ'), key: 'workshop_name' },
     { title: t('نوع ورکشاپ'), key: 'workshop_type' },
@@ -322,7 +368,7 @@
     { title: t('عملیات'), key: 'actions', sortable: false },
   ]);
 
-  /* FILTER HEADERS */
+  /* ===== Headers for FilterableTable ===== */
   const headersFT = computed(() => [
     { title: t('نام ورکشاپ'), key: 'workshop_name' },
     { title: t('نوع ورکشاپ'), key: 'workshop_type' },
@@ -347,7 +393,7 @@
     { title: t('شماره منبع'), key: 'resource_phone' },
   ]);
 
-  /* Top filter groups */
+  /* ===== Top filter groups ===== */
   const topGroups = computed(() => [
     { title: t('مشخصات'), keys: ['workshop_name', 'workshop_type'] },
     {
@@ -360,21 +406,33 @@
     { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
   ]);
 
-  /* Map API -> row with draft */
+  /* ===== Resources dropdown -> code/phone + set resource_id ===== */
+  const resources = computed(() => repo.resourcecode || []);
+  function onResourceCodeChange(item) {
+    const code = item.draft.resource_code;
+    const found = resources.value.find((r) => r.code_number === code);
+    item.draft.resource_phone = found?.phone_number ?? '';
+    item.draft.resource_id = found?.id ?? null;
+  }
+
+  /* ===== Row model & diff ===== */
   function toRowModel(x = {}) {
     const base = {
       id: x.id ?? null,
-      idOrTmp: x.id ?? newTmpId(),
+      idOrTmp: x.id ?? 'tmp-1',
       loading: false,
 
+      // basics
       workshop_name: x.workshop_name ?? '',
       workshop_type: x.workshop_type ?? '',
 
+      // responsible
       responsible_name: x.responsible_name ?? '',
       responsible_f_name: x.responsible_f_name ?? '',
       responsible_position: x.responsible_position ?? '',
       responsible_phone: x.responsible_phone ?? '',
 
+      // address
       province: x.province ?? '',
       zone: x.zone ?? '',
       district: x.district ?? '',
@@ -382,9 +440,11 @@
       specific_place: x.specific_place ?? '',
       coordinates: x.coordinates ?? '',
 
+      // other
       workers_quantity: x.workers_quantity ?? '',
       note: x.note ?? '',
 
+      // resource
       resource_code: x.resource_code ?? '',
       resource_phone: x.resource_phone ?? '',
       resource_id: x.resource_id ?? null,
@@ -392,7 +452,6 @@
     return { ...base, draft: { ...base } };
   }
 
-  /* Diff / Save keys */
   const EDITABLE_KEYS = [
     'workshop_name',
     'workshop_type',
@@ -439,82 +498,213 @@
     return fd;
   }
 
-  /* Fetch + CRUD */
-  function hydrate() {
-    rows.value = (repo.WorkShops || []).map(toRowModel);
+  async function hardResetFormValidation() {
+    editorValid.value = false;
+    itemErrors.value = {};
+    await nextTick();
+    editorForm.value?.resetValidation?.();
+    formKey.value++;
+    await nextTick();
   }
-  async function fetch() {
-    await repo.FetchWorkShopsData?.({
-      page: repo.page || 1,
-      itemsPerPage: repo.itemsPerPage || 50,
-      search: repo.Search || '',
-    });
-    hydrate();
-  }
-  function addBlankRow() {
-    const newRow = toRowModel({});
-    rows.value = [...rows.value, newRow];
-    const per = repo.itemsPerPage || 50;
-    repo.page = Math.max(1, Math.ceil(rows.value.length / per));
-  }
+
+  /* ===== Save / Delete ===== */
   async function save(item) {
+    if (!item.draft?.workshop_name?.trim()) {
+      showErrorMessage(t('نام ورکشاپ الزامی است'));
+      return;
+    }
     item.loading = true;
+    clearItemErrors(item);
+
     try {
+      // CREATE
       if (!item.id) {
         const fd = toFormDataSelective(item.draft);
         const created = await repo.CreateWorkShop?.(fd);
-        if (created?.id) {
-          const model = toRowModel(created);
-          model.idOrTmp = item.idOrTmp;
-          Object.assign(item, model);
-          item.draft = { ...model };
+        if (created && created.id) {
+          await fetchAll();
+          setBlankEditorRow();
+          editorForm.value?.resetValidation?.();
         } else {
-          await fetch();
+          await fetchAll();
+          setBlankEditorRow();
+          editorForm.value?.resetValidation?.();
         }
         return;
       }
+
+      // UPDATE
       const changed = diffDraft(item);
-      if (Object.keys(changed).length === 0) return;
+      if (Object.keys(changed).length === 0) {
+        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
+        return;
+      }
       const fd = toFormDataSelective(changed);
       const updated = await repo.UpdateWorkShop?.(item.id, fd);
-      if (updated?.id) {
-        const model = toRowModel(updated);
-        model.idOrTmp = item.idOrTmp;
-        Object.assign(item, model);
-        item.draft = { ...model };
+      if (updated && updated.id) {
+        await fetchAll();
+        setBlankEditorRow();
+        editorForm.value?.resetValidation?.();
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      if (error?.response?.data?.errors) {
+        setItemErrors(item, error.response.data.errors);
+        showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
+      } else {
+        showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته')));
       }
     } finally {
       item.loading = false;
     }
   }
+
+  // VALIDATED SUBMIT
+  async function onSubmit(item) {
+    const form = editorForm.value;
+    if (!form) return;
+    const { valid } = await form.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+    await save(item);
+  }
+
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
   async function del(item) {
     if (!item.id) {
-      rows.value = rows.value.filter((r) => r.idOrTmp !== item.idOrTmp);
+      setBlankEditorRow();
       return;
     }
     if (!confirm(t('آیا مطمئن هستید؟'))) return;
-    await repo.DeleteWorkShop?.(item.id);
-    await fetch();
+    try {
+      await repo.DeleteWorkShop?.(item.id);
+      await fetchAll();
+      setBlankEditorRow();
+    } catch (e) {
+      console.error('Delete error:', e);
+      showErrorMessage(t('خطا در حذف') + ': ' + (e?.message || t('خطای ناشناخته')));
+    }
   }
 
-  /* init */
+  function clearEditor(item) {
+    try {
+      if (item && item.idOrTmp && itemErrors.value[item.idOrTmp]) {
+        delete itemErrors.value[item.idOrTmp];
+      }
+      setBlankEditorRow();
+      showErrorMessage(t('ورودی‌ها پاک شد'));
+    } catch (e) {
+      console.error('clearEditor error:', e);
+    }
+  }
+
+  /* ===== Peek / Fetch ===== */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loading.value = true;
+    try {
+      await repo.FetchWorkShopData?.(id);
+      detail.value = repo.WorkShop || [];
+    } catch (error) {
+      console.error('Fetch one error:', error);
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      loading.value = false;
+    }
+  }
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
+
+  /* ===== Fetch ALL (no pagination) ===== */
+  async function fetchAll() {
+    try {
+      if (typeof repo.FetchWorkShopsData === 'function') {
+        await repo.FetchWorkShopsData({ page: 1, itemsPerPage: 100000, search: repo.Search || '' });
+        return;
+      }
+      await repo.FetchWorkShopsData?.({ page: 1, itemsPerPage: 100000, search: repo.Search || '' });
+    } catch (e) {
+      console.error('fetchAll error', e);
+    }
+  }
+
+  /* ===== Start edit from FilterableTable ===== */
+  async function startEdit(row) {
+    try {
+      const id = row?.id;
+      if (!id) return;
+      await repo.FetchWorkShopData?.(id);
+      const single =
+        repo.WorkShop && Array.isArray(repo.WorkShop) ? repo.WorkShop[0] : repo.WorkShop || row;
+      rows.value = [toRowModel(single || row)];
+      await nextTick();
+      const el = editorCard.value?.$el || editorCard.value;
+      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      console.error('startEdit error', e);
+      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
+    }
+  }
+
+  /* ===== Init ===== */
   onMounted(async () => {
     await Promise.allSettled([repo.GetResourceCode?.()]);
-    await fetch();
+    await fetchAll();
+    setBlankEditorRow();
   });
 </script>
 
 <style scoped>
+  /* Prevent header wrap */
   table th {
     white-space: nowrap;
   }
+
+  /* Colored table header */
   .custom-table :deep(.v-data-table__thead th) {
     background: rgb(var(--v-theme-primary));
     color: #fff;
     font-weight: 400;
   }
 
-  /* compact layout */
+  /* Layout helpers (Fasad style) */
+  .tablebody {
+    display: flex !important;
+    gap: 2px !important;
+  }
+  .flex {
+    display: flex;
+  }
+  .items-center {
+    align-items: center;
+  }
+  .gap-1 {
+    gap: 4px;
+  }
+
+  /* Grouped inputs */
   .addr-group {
     display: grid;
     grid-template-columns: repeat(4, minmax(120px, 1fr));
@@ -531,21 +721,7 @@
     gap: 2px;
   }
 
-  .flex {
-    display: flex;
-  }
-  .items-center {
-    align-items: center;
-  }
-  .gap-1 {
-    gap: 4px;
-  }
-
-  .tablebody {
-    display: flex !important;
-    gap: 2px !important;
-  }
-
+  /* Compact inputs + labels */
   :deep(.v-field-label),
   :deep(.v-label),
   :deep(input::placeholder) {
@@ -560,6 +736,7 @@
     line-height: 1.2 !important;
   }
 
+  /* Tight spacing inside grouped blocks */
   .addr-group,
   .text-group,
   .text-group-note {

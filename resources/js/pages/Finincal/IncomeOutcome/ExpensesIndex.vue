@@ -117,7 +117,7 @@
   const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 
   const headers = computed(() => [
-    { title: t('نیټه'), key: 'date', sortable: false },
+    { title: t('نیټه'), key: 'paid_at', sortable: false },
     { title: t('مبلغ'), key: 'amount_price', sortable: false },
     { title: t('حساب'), key: 'account', sortable: false },
     { title: t('چا ته پیسې؟'), key: 'payee', sortable: false },

@@ -26,29 +26,27 @@ class EventResource extends JsonResource
             'coordinates'          => $this->coordinates,
             'note'                 => $this->note,
 
-            // ✅ Only minimal fields for resource & office employee
             'resource' => $this->whenLoaded('resource', function () {
-                return $this->resource
-                    ? [
-                        'id'           => $this->resource->id,
-                        'name'         => $this->resource->name,
-                        'father_name'  => $this->resource->father_name ?? null,
-                        'code_number'  => $this->resource->code_number ?? null,
-                      ]
-                    : null;
-            }),
-            'office_employee' => $this->whenLoaded('officeEmployee', function () {
-                return $this->officeEmployee
-                    ? [
-                        'id'           => $this->officeEmployee->id,
-                        'name'         => $this->officeEmployee->name,
-                        'father_name'  => $this->officeEmployee->father_name ?? null,
-                        'code_number'  => $this->officeEmployee->code_number ?? null,
-                      ]
-                    : null;
+                if (!$this->resource) return null;
+                return [
+                    'id'           => $this->resource->id,
+                    'name'         => $this->resource->name ?? $this->resource->full_name ?? null,
+                    'father_name'  => $this->resource->father_name ?? null,
+                    'code_number'  => $this->resource->code_number ?? null,
+                ];
             }),
 
-            'documents'             => $this->whenLoaded('documents'),
+            'office_employee' => $this->whenLoaded('officeEmployee', function () {
+                if (!$this->officeEmployee) return null;
+                return [
+                    'id'           => $this->officeEmployee->id,
+                    'name'         => $this->officeEmployee->name ?? $this->officeEmployee->employee_name ?? null,
+                    'father_name'  => $this->officeEmployee->father_name ?? null,
+                    'code_number'  => $this->officeEmployee->code_number ?? null,
+                ];
+            }),
+
+            'documents' => $this->whenLoaded('documents'),
         ];
     }
 }

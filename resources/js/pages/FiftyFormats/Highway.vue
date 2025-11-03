@@ -152,7 +152,7 @@
           </template>
 
           <!-- Resource ID (hidden in headersFT, stored for API) -->
-          <template #item.resource_id="{ item }">
+          <!-- <template #item.resource_id="{ item }">
             <v-text-field
               v-model="item.draft.resource_id"
               class="text-group"
@@ -163,7 +163,7 @@
               hide-details
               readonly
             />
-          </template>
+          </template> -->
 
           <!-- Note -->
           <template #item.note="{ item }">
@@ -325,7 +325,6 @@
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
-    { title: t('Resource ID'), key: 'resource_id' },
 
     { title: t('یادداشت'), key: 'note' },
     { title: t('عمل'), key: 'actions', sortable: false },
@@ -542,12 +541,12 @@
   }
   .text-group {
     display: grid;
-    width: 140px;
+    width: 120px;
     gap: 2px;
   }
   .text-group-note {
     display: grid;
-    width: 380px;
+    width: 400px;
     gap: 2px;
   }
   .flex {
@@ -559,10 +558,23 @@
   .gap-1 {
     gap: 4px;
   }
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .pic-thumb {
+    display: inline-flex;
+    cursor: pointer;
+    position: relative;
+  }
   .tablebody {
     display: flex !important;
     gap: 2px !important;
   }
+
   :deep(.v-field-label),
   :deep(.v-label),
   :deep(input::placeholder) {
@@ -576,4 +588,43 @@
     font-size: 12px !important;
     line-height: 1.2 !important;
   }
+
+  /* compact spacing in groups */
+  .addr-group,
+  .text-group,
+  .text-group-note {
+    margin: -16px !important;
+    padding: -10px !important;
+    row-gap: -6px !important;
+    column-gap: 2px !important;
+    gap: -10px !important;
+  }
+
+  /* picture hover tools */
+  .pic-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  .pic-overlay {
+    position: absolute;
+    inset: -6px -16px auto auto;
+    display: none;
+    gap: 2px;
+    background: rgba(0, 0, 0, 0.55);
+    padding: 6px;
+    border-radius: 8px;
+    transform: translateY(-20%);
+    white-space: nowrap;
+  }
+  .pic-thumb:hover .pic-overlay {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .pic-overlay :deep(.v-btn) {
+    color: #fff;
+  }
+
+
 </style>

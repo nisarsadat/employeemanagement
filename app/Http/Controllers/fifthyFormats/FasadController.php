@@ -1,63 +1,67 @@
 <?php
-namespace App\Http\Controllers\fifthyformatone;
+
+namespace App\Http\Controllers\fifthyformats;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\fifthyformatone\Mawad;
-use App\Http\Resources\fifthyformatone\MawadResource;
-use App\Http\Requests\fifthyformatone\StoreMawadRequest;
-use App\Http\Requests\fifthyformatone\UpdateMawadRequest;
+use App\Models\fifthyFormats\Fasad;
+use App\Http\Resources\fifthyformats\FasadResource;
+use App\Http\Requests\fifthyformats\StoreFasadRequest;
+use App\Http\Requests\fifthyformats\UpdateFasadRequest;
 
-class MawadController extends Controller
+class FasadController extends Controller
 {
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
         $search  = $request->input('search');
 
-        $q = Mawad::query()
+        $q = Fasad::query()
             ->with(['resource:id,name,code_number,phone_number'])
             ->latest();
 
         if ($search) {
             $q->where('name', 'like', "%{$search}%");
+            // If you want broader search (optional):
+            // $q->orWhere('father_name','like',"%{$search}%")
+            //   ->orWhere('nick_name','like',"%{$search}%");
         }
 
-        return MawadResource::collection($q->paginate($perPage));
+        return FasadResource::collection($q->paginate($perPage));
     }
 
-    public function store(StoreMawadRequest $request)
+    public function store(StoreFasadRequest $request)
     {
-        $mawad = Mawad::create($request->validated())
+        $fasad = Fasad::create($request->validated())
             ->load(['resource:id,name,code_number,phone_number']);
 
-        return MawadResource::make($mawad);
+        return FasadResource::make($fasad);
     }
 
-    public function show(Mawad $mawad)
+    public function show(Fasad $fasad)
     {
-        $mawad->load(['resource:id,name,code_number,phone_number']);
-        return MawadResource::make($mawad);
+        $fasad->load(['resource:id,name,code_number,phone_number']);
+        return FasadResource::make($fasad);
     }
 
-    public function update(UpdateMawadRequest $request, Mawad $mawad)
+    public function update(UpdateFasadRequest $request, Fasad $fasad)
     {
-        $mawad->update($request->validated());
-        $mawad->load(['resource:id,name,code_number,phone_number']);
+        $fasad->update($request->validated());
+        $fasad->load(['resource:id,name,code_number,phone_number']);
 
-        return MawadResource::make($mawad);
+        return FasadResource::make($fasad);
     }
 
-    public function destroy(Mawad $mawad)
+    public function destroy(Fasad $fasad)
     {
-        $mawad->delete();
+        $fasad->delete();
         return response()->noContent();
     }
 
     public function bulkDelete(Request $request)
     {
         $ids = $request->input('ids', []);
-        Mawad::destroy($ids);
+        Fasad::destroy($ids);
         return response()->noContent();
     }
 }

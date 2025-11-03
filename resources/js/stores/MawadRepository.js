@@ -211,7 +211,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
       }
     },
     /* ============================ Lost Mujremeens ============================ */
-    async FetchLostMujremeenssData({ page, itemsPerPage }) {
+    async FetchLostMujremeensData({ page, itemsPerPage }) {
       this.loading = true;
       try {
         setContentType('application/json');

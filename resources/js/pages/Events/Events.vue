@@ -445,6 +445,8 @@
       :rtl="true"
       :enableEdit="true"
       :enablePeek="true"
+      :dateKeys="['event_date', 'event_hour']"
+
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"

@@ -1,57 +1,60 @@
 <?php
 
-namespace App\Http\Resources\fifthyformatone;
+namespace App\Http\Resources\fifthyformats;
 
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class MawadResource extends JsonResource
+class FasadResource extends JsonResource
 {
-    public function toArray($request): array
+    /**
+     * Transform the resource into an array.
+     */
+    public function toArray(Request $request): array
     {
         return [
-            'id'                => $this->id,
-            'mawad_type'        => $this->mawad_type,
-            'nickname'          => $this->nickname,
-            'name'              => $this->name,
-            'father_name'       => $this->father_name,
+            'id'               => $this->id,
+            'name'             => $this->name,
+            'nick_name'        => $this->nick_name,
+            'father_name'      => $this->father_name,
 
-            // --- Main Address ---
-            'main_province'     => $this->main_province,
-            'main_district'     => $this->main_district,
-            'main_village'      => $this->main_village,
+            'main_province'    => $this->main_province,
+            'main_district'    => $this->main_district,
+            'main_village'     => $this->main_village,
 
-            // --- Current Address ---
-            'now_province'      => $this->now_province,
-            'now_district'      => $this->now_district,
-            'now_village'       => $this->now_village,
+            'now_province'     => $this->now_province,
+            'now_zone'         => $this->now_zone,
+            'now_district'     => $this->now_district,
+            'now_village'      => $this->now_village,
 
-            // --- Extra Location Block ---
-            'province'          => $this->province,
-            'zone'              => $this->zone,
-            'district'          => $this->district,
-            'village'           => $this->village,
+            'specific_place'   => $this->specific_place,
+            'street_number'    => $this->street_number,
+            'home_number'      => $this->home_number,
 
-            // --- Other Info ---
-            'specific_place'    => $this->specific_place,
-            'coordinates'       => $this->coordinates,
-            'mawad_sales_phone' => $this->mawad_sales_phone,
+            'jabha'            => $this->jabha,
+            'supplier_name'    => $this->supplier_name,
+            'responsibility'   => $this->responsibility,
+            'activity_zone'    => $this->activity_zone,
+            'friends_number'   => $this->friends_number,
+            'phone_number'     => $this->phone_number,
+            'bond_distance'    => $this->bond_distance,
+            'last_band_reason' => $this->last_band_reason,
+            'band_place'       => $this->band_place,
+            'now_job'          => $this->now_job,
 
-            'history_form'      => $this->history_form,
-            'supplier'          => $this->supplier,
-            'note'              => $this->note,
+            'resource_code'    => $this->resource_code,
+            'resource_phone'   => $this->resource_phone,
+            'resource_id'      => $this->resource_id,
 
-            // --- Resource Fields (flat + relation) ---
-            'resource_code'     => $this->resource->code_number ?? null,
-            'resource_phone'    => $this->resource->phone_number ?? null,
-
-            'resource_id'       => $this->resource_id,
-            'resource'          => $this->whenLoaded('resource', fn () => [
-                'id'   => $this->resource->id,
-                'name' => $this->resource->name ?? null,
-            ]),
-
-            'created_at'        => $this->created_at,
-            'updated_at'        => $this->updated_at,
+            // Minimal embedded resource (when loaded)
+            'resource' => $this->whenLoaded('resource', function () {
+                return [
+                    'id'           => $this->resource->id,
+                    'name'         => $this->resource->name,
+                    'code_number'  => $this->resource->code_number,
+                    'phone_number' => $this->resource->phone_number,
+                ];
+            }),
         ];
     }
 }

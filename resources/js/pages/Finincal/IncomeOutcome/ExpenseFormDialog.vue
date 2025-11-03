@@ -38,7 +38,7 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <DateInput v-model="localDraft.date" :label="t('نیټه')" />
+              <DateInput v-model="localDraft.paid_at" :label="t('نیټه')" />
             </v-col>
 
             <v-col cols="12" md="6">
@@ -154,7 +154,7 @@
       default: () => ({
         id: null,
         account_id: null,
-        date: null,
+        paid_at: null,
         payee_type: null,
         payee_id: null,
         amount_price: 0,
@@ -191,7 +191,7 @@
   const localDraft = reactive({
     id: null,
     account_id: null,
-    date: null,
+    paid_at: null,
     payee_type: null,
     payee_id: null,
     amount_price: 0,
@@ -204,7 +204,7 @@
     Object.assign(localDraft, {
       id: props.value?.id ?? null,
       account_id: props.value?.account_id ?? null,
-      date: props.value?.date ?? null,
+      paid_at: props.value?.paid_at ?? null,
       payee_type: props.value?.payee_type ?? null,
       payee_id: props.value?.payee_id ?? null,
       amount_price: props.value?.amount_price ?? 0,
@@ -286,7 +286,7 @@
     emit('save', {
       id: localDraft.id,
       account_id: localDraft.account_id,
-      date: localDraft.date,
+      paid_at: localDraft.paid_at,
       payee_type: localDraft.payee_type || null,
       payee_id: localDraft.payee_id || null,
       amount_price: Number(localDraft.amount_price ?? 0),

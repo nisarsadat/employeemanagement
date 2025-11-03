@@ -4,59 +4,57 @@ namespace App\Http\Resources\fifthyformatone;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class RobbersResource extends JsonResource
+class LostMujremeenResource extends JsonResource
 {
     public function toArray($request): array
     {
-        // Underlying model
-        $model = $this->resource;
-
-        // Safe access to eager-loaded relation
-        $res = $model->getRelationValue('resource');
+        $res = $this->resource->getRelationValue('resource');
 
         return [
-            'id'                  => $model->id,
-            'nickname'            => $model->nickname,
-            'name'                => $model->name,
-            'father_name'         => $model->father_name,
+            'id'          => $this->id,
+            'picture'     => $this->picture,
+            'nick_name'   => $this->nick_name,
+            'name'        => $this->name,
+            'father_name' => $this->father_name,
 
-            'main_province'       => $model->main_province,
-            'main_district'       => $model->main_district,
-            'main_village'        => $model->main_village,
+            'main_province' => $this->main_province,
+            'main_district' => $this->main_district,
+            'main_village'  => $this->main_village,
 
-            'now_province'        => $model->now_province,
-            'now_zone'            => $model->now_zone,
-            'now_district'        => $model->now_district,
-            'now_village'         => $model->now_village,
-            'now_specific_place'  => $model->now_specific_place,
-            'now_street_number'   => $model->now_street_number,
-            'now_home_number'     => $model->now_home_number,
+            'now_province'       => $this->now_province,
+            'now_district'       => $this->now_district,
+            'now_village'        => $this->now_village,
+            'now_specific_place' => $this->now_specific_place,
+            'now_street_number'  => $this->now_street_number,
+            'now_home_number'    => $this->now_home_number,
 
-            'old_job'             => $model->old_job,
-            'now_job'             => $model->now_job,
-            'supplier'            => $model->supplier,
-            'phone_number'        => $model->phone_number,
-            'history_form'        => $model->history_form,
+            'province' => $this->province,
+            'zone'     => $this->zone,
+            'district' => $this->district,
 
-            'note'                => $model->note,
+            'old_job'      => $this->old_job,
+            'jorm'         => $this->jorm,
+            'history_jorm' => $this->history_jorm,
+            'lost_reason'  => $this->lost_reason,
 
-            // Derived from related resource
-            'resource_code'       => $res->code_number  ?? null,
-            'resource_phone'      => $res->phone_number ?? null,
+            'phone_number' => $this->phone_number,
 
-            // Keep FK for saving
-            'resource_id'         => $model->resource_id,
+            'note'        => $this->note,
+            'resource_id' => $this->resource_id,
 
-            // Minimal embed of related resource if loaded
-            'resource'            => $this->whenLoaded('resource', function () use ($res) {
-                return [
-                    'id'   => $res->id   ?? null,
-                    'name' => $res->name ?? null,
-                ];
+            // Flattened from Resource
+            'resource_code'   => $res?->code_number,
+            'resource_phone'  => $res?->phone_number,
+
+            // Minimal embedded resource (when eager loaded)
+            'resource' => $this->whenLoaded('resource', function () use ($res) {
+                return $res ? [
+                    'id'           => $res->id,
+                    'name'         => $res->name,
+                    'code_number'  => $res->code_number,
+                    'phone_number' => $res->phone_number,
+                ] : null;
             }),
-
-            'created_at'          => $model->created_at,
-            'updated_at'          => $model->updated_at,
         ];
     }
 }

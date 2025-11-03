@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pt-6 mt-12">
+  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
     <AppBar
       :title="t('مدرسه ')"
       :subtitle="t('اضافه کردن یک ریکارډ جدید مدرسه')"
@@ -8,362 +8,341 @@
       <template #actions><v-btn icon /></template>
     </AppBar>
 
-    <!-- Search + Add -->
+    <!-- Search -->
     <v-row class="d-flex">
-      <v-col cols="12" md="9">
+      <v-col>
         <v-text-field
           v-model.trim="repo.Search"
           :label="t('جستجو')"
           density="compact"
           prepend-inner-icon="mdi-magnify"
           variant="outlined"
-          @keyup.enter="fetch()"
+          @keyup.enter="fetchAll"
           clearable
           @click:clear="
             () => {
               repo.Search = '';
-              fetch();
+              fetchAll();
             }
           "
         />
       </v-col>
-
-      <v-col cols="12" md="3" class="text-md-right">
-        <v-btn color="primary" @click="addBlankRow">
-          {{ t('اضافه کردن ریکارډ جدید') }}
-        </v-btn>
-      </v-col>
     </v-row>
 
-    <!-- TABLE -->
-    <v-card class="tablebody">
-      <v-data-table
-        :headers="headers"
-        :items="rows"
-        :loading="repo.loading"
-        :items-per-page="repo.itemsPerPage"
-        :page="repo.page"
-        :items-length="repo.totalItems || 0"
-        item-key="idOrTmp"
-        class="elevation-2 custom-table"
-        :dir="isRtl ? 'rtl' : 'ltr'"
-        density="comfortable"
-        @update:page="
-          (p) => {
-            repo.page = p;
-            fetch();
-          }
-        "
-        @update:items-per-page="
-          (n) => {
-            repo.itemsPerPage = n;
-            fetch();
-          }
-        "
-      >
-        <!-- Picture (preview + upload) -->
-        <!-- <template #item.picture="{ item }">
-          <div class="pic-cell">
-            <v-avatar size="48" class="mb-1" v-if="pictureSrc(item)">
-              <img :src="pictureSrc(item)" alt="pic" />
-            </v-avatar>
-            <v-file-input
-              v-model="item.draft.picture"
-              accept="image/*"
-              density="compact"
-              variant="outlined"
-              :label="t('عکس')"
-              hide-details
-              prepend-inner-icon="mdi-image"
-              class="pic-input"
-              @change="onPictureChange(item)"
-            />
-          </div>
-        </template> -->
-
-        <!-- Basic info -->
-        <template #item.name="{ item }">
-          <v-text-field
-            v-model="item.draft.name"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('نام مدرسه')"
-            hide-details
-          />
-        </template>
-        <template #item.madrasa_type="{ item }">
-          <v-text-field
-            v-model="item.draft.madrasa_type"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('نوع مدرسه')"
-            hide-details
-          />
-        </template>
-
-        <!-- Responsible -->
-        <template #item.responsible_name="{ item }">
-          <v-text-field
-            v-model="item.draft.responsible_name"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('مسؤول: نام')"
-            hide-details
-          />
-        </template>
-        <template #item.responsible_f_name="{ item }">
-          <v-text-field
-            v-model="item.draft.responsible_f_name"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('مسؤول: نام پدر')"
-            hide-details
-          />
-        </template>
-        <template #item.responsible_position="{ item }">
-          <v-text-field
-            v-model="item.draft.responsible_position"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('مسؤول: موقف')"
-            hide-details
-          />
-        </template>
-        <template #item.responsible_phone="{ item }">
-          <v-text-field
-            v-model="item.draft.responsible_phone"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('مسؤول: شماره تماس')"
-            hide-details
-          />
-        </template>
-        <template #item.responsible_main_province="{ item }">
-          <v-text-field
-            v-model="item.draft.responsible_main_province"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('ولایت اصلی مسؤول')"
-            hide-details
-          />
-        </template>
-        <template #item.tarafdari_type_responsible="{ item }">
-          <v-text-field
-            v-model="item.draft.tarafdari_type_responsible"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('نوع طرفداری مسؤول')"
-            hide-details
-          />
-        </template>
-
-        <!-- Religious & counts -->
-        <template #item.mazhab="{ item }">
-          <v-text-field
-            v-model="item.draft.mazhab"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('مذهب')"
-            hide-details
-          />
-        </template>
-        <template #item.male_teacher_quantity="{ item }">
-          <v-text-field
-            v-model="item.draft.male_teacher_quantity"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('تعداد استادان (ذکور)')"
-            hide-details
-          />
-        </template>
-        <template #item.female_teacher_quantity="{ item }">
-          <v-text-field
-            v-model="item.draft.female_teacher_quantity"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('تعداد استادان (اناث)')"
-            hide-details
-          />
-        </template>
-        <template #item.male_students_quantity="{ item }">
-          <v-text-field
-            v-model="item.draft.male_students_quantity"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('تعداد شاگردان (ذکور)')"
-            hide-details
-          />
-        </template>
-        <template #item.female_students_quantity="{ item }">
-          <v-text-field
-            v-model="item.draft.female_students_quantity"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('تعداد شاگردان (اناث)')"
-            hide-details
-          />
-        </template>
-
-        <!-- Address (grouped) -->
-        <template #item.province="{ item }">
-          <div class="addr-group">
+    <!-- Single-row validated editor -->
+    <v-form
+      ref="editorForm"
+      v-model="editorValid"
+      lazy-validation
+      :key="formKey"
+      @submit.prevent="onSubmit(rows[0])"
+    >
+      <v-card class="tablebody" ref="editorCard">
+        <v-data-table
+          :headers="headers"
+          :items="rows"
+          :loading="repo.loading"
+          item-key="idOrTmp"
+          class="elevation-2 custom-table"
+          density="comfortable"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+          hide-default-footer
+        >
+          <!-- Basic info -->
+          <template #item.name="{ item }">
             <v-text-field
-              v-model="item.draft.province"
+              v-model="item.draft.name"
+              class="text-group pr-2  "
               density="compact"
               variant="outlined"
+              :label="t('نام مدرسه')"
+              :rules="[rules.required]"
               hide-details
-              :label="t('ولایت')"
+              :error="hasError(item, 'name')"
+              :error-messages="getErrorMessages(item, 'name')"
+              required
             />
+          </template>
+          <template #item.madrasa_type="{ item }">
             <v-text-field
-              v-model="item.draft.zone"
+              v-model="item.draft.madrasa_type"
+              class="text-group"
               density="compact"
               variant="outlined"
+              :label="t('نوع مدرسه')"
               hide-details
-              :label="t('زون')"
             />
+          </template>
+
+          <!-- Responsible -->
+          <template #item.responsible_name="{ item }">
             <v-text-field
-              v-model="item.draft.district"
+              v-model="item.draft.responsible_name"
+              class="text-group"
               density="compact"
               variant="outlined"
+              :label="t('مسؤول: نام')"
               hide-details
-              :label="t('ولسوالی')"
             />
+          </template>
+          <template #item.responsible_f_name="{ item }">
             <v-text-field
-              v-model="item.draft.village"
+              v-model="item.draft.responsible_f_name"
+              class="text-group"
               density="compact"
               variant="outlined"
+              :label="t('مسؤول: نام پدر')"
               hide-details
-              :label="t('قریه/ناحیه')"
             />
-          </div>
-        </template>
-
-        <!-- Location details -->
-        <template #item.specific_place="{ item }">
-          <v-text-field
-            v-model="item.draft.specific_place"
-            class="text-group-note"
-            density="compact"
-            variant="outlined"
-            :label="t('موقعیت مشخص')"
-            hide-details
-          />
-        </template>
-        <template #item.street_number="{ item }">
-          <v-text-field
-            v-model="item.draft.street_number"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('شماره سرک')"
-            hide-details
-          />
-        </template>
-        <template #item.coordinates="{ item }">
-          <v-text-field
-            v-model="item.draft.coordinates"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('مختصات')"
-            hide-details
-          />
-        </template>
-
-        <!-- Note -->
-        <template #item.note="{ item }">
-          <v-text-field
-            v-model="item.draft.note"
-            class="text-group-note"
-            density="compact"
-            variant="outlined"
-            :label="t('یادداشت')"
-            hide-details
-          />
-        </template>
-
-        <!-- Resource code (autocomplete) + phone (readonly) -->
-        <template #item.resource_code="{ item }">
-          <v-autocomplete
-            v-model="item.draft.resource_code"
-            :items="resources"
-            item-title="code_number"
-            item-value="code_number"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('کود منبع')"
-            hide-details
-            clearable
-            @update:model-value="onResourceCodeChange(item)"
-          />
-        </template>
-        <template #item.resource_phone="{ item }">
-          <v-text-field
-            v-model="item.draft.resource_phone"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('شماره منبع')"
-            hide-details
-            readonly
-          />
-        </template>
-
-        <!-- ACTIONS -->
-        <template #item.actions="{ item }">
-          <div class="flex items-center gap-1">
-            <v-btn
-              class="bg-primary"
+          </template>
+          <template #item.responsible_position="{ item }">
+            <v-text-field
+              v-model="item.draft.responsible_position"
+              class="text-group"
+              density="compact"
               variant="outlined"
-              @click="save(item)"
-              :loading="item.loading"
-            >
-              {{ t('ثبت دیتا') }}
-            </v-btn>
-            <v-btn class="bg-error" variant="outlined" @click="del(item)">
-              {{ t('حذف') }}
-            </v-btn>
-          </div>
-        </template>
+              :label="t('مسؤول: موقف')"
+              hide-details
+            />
+          </template>
+          <template #item.responsible_phone="{ item }">
+            <v-text-field
+              v-model="item.draft.responsible_phone"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مسؤول: شماره تماس')"
+              hide-details
+            />
+          </template>
+          <template #item.responsible_main_province="{ item }">
+            <v-text-field
+              v-model="item.draft.responsible_main_province"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت اصلی مسؤول')"
+              hide-details
+            />
+          </template>
+          <template #item.tarafdari_type_responsible="{ item }">
+            <v-text-field
+              v-model="item.draft.tarafdari_type_responsible"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('نوع طرفداری مسؤول')"
+              hide-details
+            />
+          </template>
 
-        <template #no-data>
-          <div class="py-8 text-medium-emphasis">{{ t('هیچ ریکارډ یافت نشد') }}</div>
-        </template>
-      </v-data-table>
-    </v-card>
-  </v-container>
+          <!-- Religious & counts -->
+          <template #item.mazhab="{ item }">
+            <v-text-field
+              v-model="item.draft.mazhab"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مذهب')"
+              hide-details
+            />
+          </template>
+          <template #item.male_teacher_quantity="{ item }">
+            <v-text-field
+              v-model="item.draft.male_teacher_quantity"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('تعداد استادان (ذکور)')"
+              hide-details
+            />
+          </template>
+          <template #item.female_teacher_quantity="{ item }">
+            <v-text-field
+              v-model="item.draft.female_teacher_quantity"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('تعداد استادان (اناث)')"
+              hide-details
+            />
+          </template>
+          <template #item.male_students_quantity="{ item }">
+            <v-text-field
+              v-model="item.draft.male_students_quantity"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('تعداد شاگردان (ذکور)')"
+              hide-details
+            />
+          </template>
+          <template #item.female_students_quantity="{ item }">
+            <v-text-field
+              v-model="item.draft.female_students_quantity"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('تعداد شاگردان (اناث)')"
+              hide-details
+            />
+          </template>
 
-  <!-- FILTERABLE TABLE -->
-  <v-container fluid>
+          <!-- Address -->
+          <template #item.province="{ item }">
+            <div class="addr-group">
+              <v-text-field
+                v-model="item.draft.province"
+                density="compact"
+                variant="outlined"
+                :label="t('ولایت')"
+                hide-details
+              />
+              <v-text-field
+                v-model="item.draft.zone"
+                density="compact"
+                variant="outlined"
+                :label="t('زون')"
+                hide-details
+              />
+              <v-text-field
+                v-model="item.draft.district"
+                density="compact"
+                variant="outlined"
+                :label="t('ولسوالی')"
+                hide-details
+              />
+              <v-text-field
+                v-model="item.draft.village"
+                density="compact"
+                variant="outlined"
+                :label="t('قریه/ناحیه')"
+                hide-details
+              />
+            </div>
+          </template>
+
+          <!-- Location details -->
+          <template #item.specific_place="{ item }">
+            <v-text-field
+              v-model="item.draft.specific_place"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('موقعیت مشخص')"
+              hide-details
+            />
+          </template>
+          <template #item.street_number="{ item }">
+            <v-text-field
+              v-model="item.draft.street_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('شماره سرک')"
+              hide-details
+            />
+          </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مختصات')"
+              hide-details
+            />
+          </template>
+
+          <!-- Note -->
+          <template #item.note="{ item }">
+            <v-text-field
+              v-model="item.draft.note"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('یادداشت')"
+              hide-details
+            />
+          </template>
+
+          <!-- Resource code (autocomplete) + phone (readonly) -->
+          <template #item.resource_code="{ item }">
+            <v-autocomplete
+              v-model="item.draft.resource_code"
+              :items="resources"
+              item-title="code_number"
+              item-value="code_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('کود منبع')"
+              hide-details
+              clearable
+              @update:model-value="onResourceCodeChange(item)"
+            />
+          </template>
+          <template #item.resource_phone="{ item }">
+            <v-text-field
+              v-model="item.draft.resource_phone"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('شماره منبع')"
+              hide-details
+              readonly
+            />
+          </template>
+
+          <!-- Actions -->
+          <template #item.actions="{ item }">
+            <div class="flex items-center gap-1">
+              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
+                {{ t('ثبت دیتا') }}
+              </v-btn>
+              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+                {{ t('حذف') }}
+              </v-btn>
+              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
+                {{ t('پاک کردن ورودی‌ها') }}
+              </v-btn>
+            </div>
+          </template>
+
+          <template #no-data>
+            <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
+          </template>
+        </v-data-table>
+      </v-card>
+    </v-form>
+
+    <!-- Filterable Table -->
     <FilterableTable
       :headers="headersFT"
-      :rows="rows"
+      :rows="rowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
       class="mb-20 mx-2"
+      :enableEdit="true"
+      :enablePeek="false"
+      @edit="startEdit"
     />
+
+    <!-- Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="5000">
+      {{ errorMessage }}
+      <template #actions>
+        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, watch } from 'vue';
+  import { ref, onMounted, watch, computed, nextTick } from 'vue';
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
@@ -372,40 +351,44 @@
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (l) => (isRtl.value = l === 'fa'));
-  const drawer = ref(false);
 
+  const drawer = ref(false);
   const repo = useBadmashanoRepository();
 
-  const rows = ref([]);
-  const filters = ref({});
-  let tmpId = 0;
-  const newTmpId = () => `tmp-${++tmpId}`;
-
-  /* Resources dropdown -> code -> phone + id */
-  const resources = computed(() => repo.resourcecode || []);
-  function onResourceCodeChange(item) {
-    const code = item.draft.resource_code;
-    const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone = found?.phone_number ?? '';
-    item.draft.resource_id = found?.id ?? null;
+  /* ===== Editor form + snackbar ===== */
+  const editorForm = ref(null);
+  const editorValid = ref(false);
+  const formKey = ref(0);
+  const editorCard = ref(null);
+  const showError = ref(false);
+  const errorMessage = ref('');
+  function showErrorMessage(m) {
+    errorMessage.value = m;
+    showError.value = true;
   }
 
-  /* Picture helpers */
-  function pictureSrc(item) {
-    const p = item?.draft?.picture ?? item?.picture;
-    if (!p) return '';
-    if (typeof p === 'string') return p; // API URL
-    if (p instanceof File) return URL.createObjectURL(p);
-    return '';
+  /* ===== Errors per row ===== */
+  const itemErrors = ref({});
+  function setItemErrors(item, errors) {
+    itemErrors.value[item.idOrTmp] = errors;
   }
-  function onPictureChange(item) {
-    // FormData handles File
+  function clearItemErrors(item) {
+    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
+  }
+  function hasError(item, field) {
+    return !!itemErrors.value[item.idOrTmp]?.[field];
+  }
+  function getErrorMessages(item, field) {
+    return itemErrors.value[item.idOrTmp]?.[field] ?? [];
   }
 
-  /* HEADERS (table) */
+  /* ===== Rules ===== */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+  };
+
+  /* ===== Headers ===== */
   const headers = computed(() => [
-    // { title: t('عکس'), key: 'picture' },
-
     { title: t('نام مدرسه'), key: 'name' },
     { title: t('نوع مدرسه'), key: 'madrasa_type' },
 
@@ -435,7 +418,6 @@
     { title: t('عملیات'), key: 'actions', sortable: false },
   ]);
 
-  /* FILTER headers */
   const headersFT = computed(() => [
     { title: t('نام مدرسه'), key: 'name' },
     { title: t('نوع مدرسه'), key: 'madrasa_type' },
@@ -467,7 +449,6 @@
     { title: t('شماره منبع'), key: 'resource_phone' },
   ]);
 
-  /* Top filter groups */
   const topGroups = computed(() => [
     { title: t('مدرسه'), keys: ['name', 'madrasa_type'] },
     {
@@ -496,7 +477,28 @@
     { title: t('یادداشت/منبع'), keys: ['note', 'resource_code', 'resource_phone'] },
   ]);
 
-  /* Map API -> row with draft */
+  /* ===== Filterable data ===== */
+  const rowsFT = computed(() => repo.Madrasas || []);
+  const filters = ref({});
+
+  /* ===== Resources dropdown -> code/phone + id ===== */
+  const resources = computed(() => repo.resourcecode || []);
+  function onResourceCodeChange(item) {
+    const code = item.draft.resource_code;
+    const found = resources.value.find((r) => r.code_number === code);
+    item.draft.resource_phone = found?.phone_number ?? '';
+    item.draft.resource_id = found?.id ?? null;
+  }
+
+  /* ===== Main rows ===== */
+  const rows = ref([]);
+  function setBlankEditorRow() {
+    rows.value = [toRowModel({})];
+  }
+
+  /* ===== Row model & diff ===== */
+  let tmpId = 0;
+  const newTmpId = () => `tmp-${++tmpId}`;
   function toRowModel(x = {}) {
     const base = {
       id: x.id ?? null,
@@ -531,7 +533,6 @@
 
       note: x.note ?? '',
 
-      // resource fields
       resource_code: x.resource_code ?? '',
       resource_phone: x.resource_phone ?? '',
       resource_id: x.resource_id ?? null,
@@ -539,26 +540,21 @@
     return { ...base, draft: { ...base } };
   }
 
-  /* Diff -> only edited keys + always requireds if any */
   const EDITABLE_KEYS = [
     'picture',
-
     'name',
     'madrasa_type',
-
     'responsible_name',
     'responsible_f_name',
     'responsible_position',
     'responsible_phone',
     'responsible_main_province',
     'tarafdari_type_responsible',
-
     'mazhab',
     'male_teacher_quantity',
     'female_teacher_quantity',
     'male_students_quantity',
     'female_students_quantity',
-
     'province',
     'zone',
     'district',
@@ -566,9 +562,7 @@
     'specific_place',
     'street_number',
     'coordinates',
-
     'note',
-
     'resource_code',
     'resource_phone',
     'resource_id',
@@ -581,7 +575,6 @@
     for (const k of EDITABLE_KEYS) {
       const prev = item[k];
       const next = d[k];
-
       if (next instanceof File) {
         if (!(prev instanceof File)) changed[k] = next;
         continue;
@@ -597,88 +590,121 @@
   function toFormDataSelective(obj) {
     const fd = new FormData();
     Object.entries(obj || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
+      if (v !== undefined && v !== null) fd.append(k, v);
     });
     return fd;
   }
 
-  /* Hydrate + Fetch */
-  function hydrate() {
-    rows.value = (repo.Madrasas || []).map(toRowModel);
-  }
-  async function fetch() {
-    await repo.FetchMadrasasData?.({
-      page: repo.page || 1,
-      itemsPerPage: repo.itemsPerPage || 50,
-      search: repo.Search || '',
-    });
-    hydrate();
-  }
-
-  /* Add row */
-  function addBlankRow() {
-    const newRow = toRowModel({});
-    rows.value = [...rows.value, newRow];
-    const per = repo.itemsPerPage || 50;
-    repo.page = Math.max(1, Math.ceil(rows.value.length / per));
-  }
-
-  /* Save / Delete */
+  /* ===== Save / Delete / Submit ===== */
   async function save(item) {
+    if (!item?.draft?.name?.trim()) {
+      showErrorMessage(t('نام مدرسه الزامی است'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
     item.loading = true;
+    clearItemErrors(item);
     try {
+      // CREATE
       if (!item.id) {
         const fd = toFormDataSelective(item.draft);
-        const created = await repo.CreateMadrasa?.(fd);
-        if (created?.id) {
-          const model = toRowModel(created);
-          model.idOrTmp = item.idOrTmp;
-          Object.assign(item, model);
-          item.draft = { ...model };
-        } else {
-          await fetch();
-        }
+        await repo.CreateMadrasa?.(fd);
+        await fetchAll();
+        setBlankEditorRow();
+        editorForm.value?.resetValidation?.();
         return;
       }
-
+      // UPDATE
       const changed = diffDraft(item);
-      if (Object.keys(changed).length === 0) return;
-
+      if (Object.keys(changed).length === 0) {
+        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
+        return;
+      }
       const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateMadrasa?.(item.id, fd);
-      if (updated?.id) {
-        const model = toRowModel(updated);
-        model.idOrTmp = item.idOrTmp;
-        Object.assign(item, model);
-        item.draft = { ...model };
+      await repo.UpdateMadrasa?.(item.id, fd);
+      await fetchAll();
+      setBlankEditorRow();
+      editorForm.value?.resetValidation?.();
+    } catch (error) {
+      if (error?.response?.data?.errors) {
+        setItemErrors(item, error.response.data.errors);
+        showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
+      } else {
+        showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته')));
       }
     } finally {
       item.loading = false;
     }
   }
 
+  async function onSubmit(item) {
+    const { valid } = await editorForm.value.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+    await save(item);
+  }
+
+  function scrollToFirstInvalid() {
+    const root = editorCard.value?.$el || editorCard.value || document;
+    const first = root.querySelector(
+      '.v-input--error, [aria-invalid="true"], .v-messages__message'
+    );
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      input?.focus?.();
+    }
+  }
+
   async function del(item) {
     if (!item.id) {
-      rows.value = rows.value.filter((r) => r.idOrTmp !== item.idOrTmp);
+      setBlankEditorRow();
       return;
     }
     if (!confirm(t('آیا مطمئن هستید؟'))) return;
-    await repo.DeleteMadrasa?.(item.id);
-    await fetch();
+    try {
+      await repo.DeleteMadrasa?.(item.id);
+      await fetchAll();
+      setBlankEditorRow();
+    } catch (e) {
+      showErrorMessage(t('خطا در حذف') + ': ' + (e?.message || t('خطای ناشناخته')));
+    }
   }
 
-  /* init */
+  async function startEdit(row) {
+    const id = row?.id;
+    if (!id) return;
+    try {
+      await repo.FetchMadrasaData?.(id);
+      const single = Array.isArray(repo.Madrasa) ? repo.Madrasa[0] : repo.Madrasa || row;
+      rows.value = [toRowModel(single || row)];
+      await nextTick();
+      (editorCard.value?.$el || editorCard.value)?.scrollIntoView?.({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    } catch (e) {
+      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
+    }
+  }
+
+  /* ===== Fetch & init ===== */
+  async function fetchAll() {
+    await repo.FetchMadrasasData?.({ page: 1, itemsPerPage: 100000, search: repo.Search || '' });
+  }
   onMounted(async () => {
     await Promise.allSettled([repo.GetResourceCode?.()]);
-    await fetch();
+    await fetchAll();
+    setBlankEditorRow();
   });
 </script>
 
 <style scoped>
-  table th {
-    white-space: nowrap;
-  }
   .custom-table :deep(.v-data-table__thead th) {
     background: rgb(var(--v-theme-primary));
     color: #fff;
@@ -731,14 +757,14 @@
     font-size: 12px !important;
     line-height: 1.2 !important;
   }
-
-  /* picture cell */
-  .pic-cell {
-    display: grid;
-    gap: 4px;
-    width: 220px;
-  }
-  .pic-input :deep(.v-input__control) {
-    min-width: 200px;
+  .addr-group,
+  .addr-group1,
+  .text-group,
+  .text-group-note {
+    margin: -16px !important;
+    padding: -10px !important;
+    row-gap: -6px !important;
+    column-gap: 2px !important;
+    gap: -10px !important;
   }
 </style>

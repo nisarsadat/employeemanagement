@@ -11,35 +11,35 @@ class StoreLostMujremeenRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'               => ['required','string','max:255'],
-            'picture'            => ['nullable','image'],
-            'nickname'           => ['nullable','string','max:255'],
-            'father_name'        => ['nullable','string','max:255'],
+            'picture'     => ['nullable','string'],
+            'nick_name'   => ['nullable','string'],
+            'name'        => ['required','string'],
+            'father_name' => ['nullable','string'],
 
-            'main_province'      => ['nullable','string','max:255'],
-            'main_district'      => ['nullable','string','max:255'],
-            'main_village'       => ['nullable','string','max:255'],
+            'main_province' => ['nullable','string'],
+            'main_district' => ['nullable','string'],
+            'main_village'  => ['nullable','string'],
 
-            'now_province'       => ['nullable','string','max:255'],
-            'now_district'       => ['nullable','string','max:255'],
-            'now_village'        => ['nullable','string','max:255'],
-            'now_specific_place' => ['nullable','string','max:255'],
-            'now_street_number'  => ['nullable','string','max:255'],
-            'now_home_number'    => ['nullable','string','max:255'],
+            'now_province'       => ['nullable','string'],
+            'now_district'       => ['nullable','string'],
+            'now_village'        => ['nullable','string'],
+            'now_specific_place' => ['nullable','string'],
+            'now_street_number'  => ['nullable','string'],
+            'now_home_number'    => ['nullable','string'],
 
-            'province'           => ['nullable','string','max:255'],
-            'zone'               => ['nullable','string','max:255'],
-            'district'           => ['nullable','string','max:255'],
+            'province' => ['nullable','string'],
+            'zone'     => ['nullable','string'],
+            'district' => ['nullable','string'],
 
-            'old_job'            => ['nullable','string','max:255'],
+            'old_job'      => ['nullable','string'],
+            'jorm'         => ['nullable','string'],
+            'history_jorm' => ['nullable','string'],
+            'lost_reason'  => ['nullable','string'],
 
-            'jorm'               => ['nullable','string'],
-            'history_jorm'       => ['nullable','string'],
-            'lost_reason'        => ['nullable','string','max:255'],
-            'phone_number'       => ['nullable','string','max:100'],
+            'phone_number' => ['nullable','string'],
 
-            'note'               => ['nullable','string'],
-            'resource_id'        => ['nullable','integer','exists:resources,id'],
+            'note'        => ['nullable','string'],
+            'resource_id' => ['nullable','integer','exists:resources,id'],
         ];
     }
 }

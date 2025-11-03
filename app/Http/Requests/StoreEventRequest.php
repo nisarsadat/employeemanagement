@@ -32,7 +32,6 @@ class StoreEventRequest extends FormRequest
             'coordinates'           => 'nullable|string',
             'note'                  => 'nullable|string',
 
-            // documents handled as files (unchanged)
             'documents.*'           => 'nullable|file',
         ];
     }

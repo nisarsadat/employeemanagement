@@ -73,13 +73,17 @@ import DeplomaticPlaces from '../pages/FiftyFormats/DeplomaticPlace.vue';
 import SuperMarkets from '../pages/FiftyFormats/SuperMarket.vue';
 import finincalIndex from '../pages/Finincal/finincalIndex.vue';
 import MapAfghanistan from '../pages/Map/MapAfghanistan.vue';
+import offlinemap from '../pages/Map/offlinemap.vue';
+import Dashboard from '../pages/Dashboard/MainDashboard.vue';
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: Home },
     { path: '/login', component: Login },
-    { path: '/maps', component: MapAfghanistan },
+    { path: '/map-afg', component: MapAfghanistan },
+    { path: '/offlinemap', component: offlinemap },
+    { path: '/dashboards', component: Dashboard },
     { path: '/users', component: User },
     { path: '/register', component: Register },
     { path: '/officeemployee', component: OfficeEmployeesPage },

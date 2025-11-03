@@ -12,31 +12,25 @@ use Illuminate\Support\Facades\DB;
 
 class EventController extends Controller
 {
-    /**
-     * List all events with relationships and search support.
-     * If perPage & page are provided -> paginate, else -> full dataset.
-     */
     public function index(Request $request)
     {
         $query = Event::with([
             'resource',
             'officeEmployee',
-            'zoneEmployee',
-            'eventOfficeEmployee',
-            'eventZoneEmployee',
-            'documents'
+            'documents',
         ])->when($request->search, function ($q) use ($request) {
             $s = $request->search;
-            $q->where('event_type', 'like', "%{$s}%")
-              ->orWhere('event_specific_type', 'like', "%{$s}%")
-              ->orWhere('target_person', 'like', "%{$s}%")
-              ->orWhere('criminal', 'like', "%{$s}%");
+            $q->where(function ($qq) use ($s) {
+                $qq->where('event_type', 'like', "%{$s}%")
+                   ->orWhere('event_specific_type', 'like', "%{$s}%")
+                   ->orWhere('target_person', 'like', "%{$s}%")
+                   ->orWhere('criminal', 'like', "%{$s}%");
+            });
         });
 
         $perPage = $request->integer('perPage');
         $page    = $request->integer('page');
 
-        // ✅ Rule you asked: only paginate if both are present; otherwise return all
         if ($perPage && $perPage > 0 && $page && $page > 0) {
             return EventResource::collection($query->paginate($perPage, ['*'], 'page', $page));
         }
@@ -44,17 +38,12 @@ class EventController extends Controller
         return EventResource::collection($query->get());
     }
 
-    /**
-     * Store a new event.
-     */
     public function store(StoreEventRequest $request)
     {
         DB::beginTransaction();
-
         try {
             $event = Event::create($request->validated());
 
-            // 📎 Documents upload (unchanged)
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("events/{$event->id}", 'public');
@@ -72,10 +61,7 @@ class EventController extends Controller
             return new EventResource($event->load([
                 'resource',
                 'officeEmployee',
-                'zoneEmployee',
-                'eventOfficeEmployee',
-                'eventZoneEmployee',
-                'documents'
+                'documents',
             ]));
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -86,32 +72,21 @@ class EventController extends Controller
         }
     }
 
-    /**
-     * Show a single event with all relationships.
-     */
     public function show(Event $event)
     {
         return new EventResource($event->load([
             'resource',
             'officeEmployee',
-            'zoneEmployee',
-            'eventOfficeEmployee',
-            'eventZoneEmployee',
-            'documents'
+            'documents',
         ]));
     }
 
-    /**
-     * Update an existing event.
-     */
     public function update(UpdateEventRequest $request, Event $event)
     {
         DB::beginTransaction();
-
         try {
             $event->update($request->validated());
 
-            // 📎 New documents (optional)
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("events/{$event->id}", 'public');
@@ -129,10 +104,7 @@ class EventController extends Controller
             return new EventResource($event->load([
                 'resource',
                 'officeEmployee',
-                'zoneEmployee',
-                'eventOfficeEmployee',
-                'eventZoneEmployee',
-                'documents'
+                'documents',
             ]));
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -143,9 +115,6 @@ class EventController extends Controller
         }
     }
 
-    /**
-     * Delete an event and its documents.
-     */
     public function destroy(Event $event)
     {
         foreach ($event->documents as $doc) {

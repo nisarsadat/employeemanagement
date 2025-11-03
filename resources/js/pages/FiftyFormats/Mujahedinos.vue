@@ -1,498 +1,890 @@
 <template>
-  <v-container fluid class="pt-6 mt-12">
+  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
     <AppBar
-      :title="t('مجاهدینو')"
-      :subtitle="t('اضافه کردن یک ریکارډ جدید مجاهدینو')"
+      :title="t('فسادها')"
+      :subtitle="t('اضافه کردن یک ریکارډ جدید فساد')"
       @toggle-drawer="drawer = !drawer"
     >
       <template #actions><v-btn icon /></template>
     </AppBar>
 
-    <!-- Search + Add -->
+    <!-- Search -->
     <v-row class="d-flex">
-      <v-col cols="12" md="9">
+      <v-col>
         <v-text-field
           v-model.trim="repo.Search"
           :label="t('جستجو')"
           density="compact"
           prepend-inner-icon="mdi-magnify"
           variant="outlined"
-          @keyup.enter="fetch()"
+          @keyup.enter="fetchAll"
           clearable
-          @click:clear="() => { repo.Search = ''; fetch(); }"
+          @click:clear="
+            () => {
+              repo.Search = '';
+              fetchAll();
+            }
+          "
         />
-      </v-col>
-
-      <v-col cols="12" md="3" class="text-md-right">
-        <v-btn color="primary" @click="addBlankRow">
-          {{ t('اضافه کردن ریکارډ جدید') }}
-        </v-btn>
       </v-col>
     </v-row>
 
-    <!-- TABLE -->
-    <v-card class="tablebody">
-      <v-data-table
-        :headers="headers"
-        :items="rows"
-        :loading="repo.loading"
-        :items-per-page="repo.itemsPerPage"
-        :page="repo.page"
-        :items-length="repo.totalItems || 0"
-        item-key="idOrTmp"
-        class="elevation-2 custom-table"
-        :dir="isRtl ? 'rtl' : 'ltr'"
-        density="comfortable"
-        @update:page="(p) => { repo.page = p; fetch(); }"
-        @update:items-per-page="(n) => { repo.itemsPerPage = n; fetch(); }"
-      >
-        <!-- Picture (preview + upload) -->
-        <!-- <template #item.picture="{ item }">
-          <div class="pic-cell">
-            <v-avatar size="48" class="mb-1" v-if="pictureSrc(item)">
-              <img :src="pictureSrc(item)" alt="pic" />
-            </v-avatar>
-            <v-file-input
-              v-model="item.draft.picture"
-              accept="image/*"
+    <!-- Single-row validated editor -->
+    <v-form
+      ref="editorForm"
+      v-model="editorValid"
+      lazy-validation
+      :key="formKey"
+      @submit.prevent="onSubmit(rows[0])"
+    >
+      <v-card class="tablebody" ref="editorCard">
+        <v-data-table
+          :headers="headers"
+          :items="rows"
+          :loading="repo.loading"
+          item-key="idOrTmp"
+          class="elevation-2 custom-table"
+          density="comfortable"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+          hide-default-footer
+        >
+          <!-- Identity -->
+          <template #item.nick_name="{ item }">
+            <v-text-field
+              v-model="item.draft.nick_name"
+              class="text-group pr-2"
               density="compact"
               variant="outlined"
-              :label="t('عکس')"
+              :label="t('تخلص')"
               hide-details
-              prepend-inner-icon="mdi-image"
-              class="pic-input"
-              @change="onPictureChange(item)"
             />
-          </div>
-        </template> -->
+          </template>
 
-        <!-- Basics -->
-        <template #item.nickname="{ item }">
-          <v-text-field v-model="item.draft.nickname" class="text-group" density="compact" variant="outlined" :label="t('تخلص')" hide-details />
-        </template>
-        <template #item.name="{ item }">
-          <v-text-field v-model="item.draft.name" class="text-group" density="compact" variant="outlined" :label="t('نام')" hide-details />
-        </template>
-        <template #item.father_name="{ item }">
-          <v-text-field v-model="item.draft.father_name" class="text-group" density="compact" variant="outlined" :label="t('نام پدر')" hide-details />
-        </template>
+          <template #item.name="{ item }">
+            <v-text-field
+              v-model="item.draft.name"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('نام')"
+              :rules="[rules.required]"
+              hide-details
+              :error="hasError(item, 'name')"
+              :error-messages="getErrorMessages(item, 'name')"
+              required
+            />
+          </template>
 
-        <!-- Main address -->
-        <template #item.main_province="{ item }">
-          <div class="addr-group">
-            <v-text-field v-model="item.draft.main_province" density="compact" variant="outlined" hide-details :label="t('ولایت اصلی')" />
-            <v-text-field v-model="item.draft.main_district" density="compact" variant="outlined" hide-details :label="t('ولسوالی اصلی')" />
-            <v-text-field v-model="item.draft.main_village" density="compact" variant="outlined" hide-details :label="t('قریه/ناحیه اصلی')" />
-          </div>
-        </template>
+          <template #item.father_name="{ item }">
+            <v-text-field
+              v-model="item.draft.father_name"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('نام پدر')"
+              hide-details
+            />
+          </template>
 
-        <!-- Current address -->
-        <template #item.now_province="{ item }">
-          <div class="addr-group">
-            <v-text-field v-model="item.draft.now_province" density="compact" variant="outlined" hide-details :label="t('ولایت فعلی')" />
-            <v-text-field v-model="item.draft.now_zone" density="compact" variant="outlined" hide-details :label="t('زون فعلی')" />
-            <v-text-field v-model="item.draft.now_district" density="compact" variant="outlined" hide-details :label="t('ولسوالی فعلی')" />
-            <v-text-field v-model="item.draft.now_village" density="compact" variant="outlined" hide-details :label="t('قریه/ناحیه فعلی')" />
-          </div>
-        </template>
-        <template #item.now_specific_place="{ item }">
-          <v-text-field v-model="item.draft.now_specific_place" class="text-group-note" density="compact" variant="outlined" :label="t('موقعیت مشخص فعلی')" hide-details />
-        </template>
-        <template #item.now_street_number="{ item }">
-          <v-text-field v-model="item.draft.now_street_number" class="text-group" density="compact" variant="outlined" :label="t('شماره سرک فعلی')" hide-details />
-        </template>
-        <template #item.now_home_number="{ item }">
-          <v-text-field v-model="item.draft.now_home_number" class="text-group" density="compact" variant="outlined" :label="t('شماره خانه فعلی')" hide-details />
-        </template>
+          <!-- Main address (grouped) -->
+          <template #item.main_province="{ item }">
+            <div class="addr-group3">
+              <v-text-field
+                v-model="item.draft.main_province"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('ولایت اصلی')"
+              />
+              <v-text-field
+                v-model="item.draft.main_district"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('ولسوالی اصلی')"
+              />
+              <v-text-field
+                v-model="item.draft.main_village"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('قریه/ناحیه اصلی')"
+              />
+            </div>
+          </template>
 
-        <!-- Work & org -->
-        <template #item.duty_type="{ item }">
-          <v-text-field v-model="item.draft.duty_type" class="text-group" density="compact" variant="outlined" :label="t('نوع وظیفه')" hide-details />
-        </template>
-        <template #item.now_job="{ item }">
-          <v-text-field v-model="item.draft.now_job" class="text-group" density="compact" variant="outlined" :label="t('وظیفه فعلی')" hide-details />
-        </template>
-        <template #item.organ="{ item }">
-          <v-text-field v-model="item.draft.organ" class="text-group" density="compact" variant="outlined" :label="t('اداره/ارگان')" hide-details />
-        </template>
+          <!-- Current address (grouped) -->
+          <template #item.now_province="{ item }">
+            <div class="addr-group4">
+              <v-text-field
+                v-model="item.draft.now_province"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('ولایت فعلی')"
+              />
+              <v-text-field
+                v-model="item.draft.now_zone"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('زون فعلی')"
+              />
+              <v-text-field
+                v-model="item.draft.now_district"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('ولسوالی فعلی')"
+              />
+              <v-text-field
+                v-model="item.draft.now_village"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :label="t('قریه/ناحیه فعلی')"
+              />
+            </div>
+          </template>
 
-        <!-- Contact / note -->
-        <template #item.phone_number="{ item }">
-          <v-text-field v-model="item.draft.phone_number" class="text-group" density="compact" variant="outlined" :label="t('شماره تماس')" hide-details />
-        </template>
-        <template #item.note="{ item }">
-          <v-text-field v-model="item.draft.note" class="text-group-note" density="compact" variant="outlined" :label="t('یادداشت')" hide-details />
-        </template>
+          <!-- Current place details -->
+          <template #item.specific_place="{ item }">
+            <v-text-field
+              v-model="item.draft.specific_place"
+              density="compact"
+              variant="outlined"
+              class="text-group-note"
+              :label="t('موقعیت مشخص فعلی')"
+              hide-details
+            />
+          </template>
 
-        <!-- Resource code (autocomplete) + phone (readonly) -->
-        <template #item.resource_code="{ item }">
-          <v-autocomplete
-            v-model="item.draft.resource_code"
-            :items="resources"
-            item-title="code_number"
-            item-value="code_number"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('کود منبع')"
-            hide-details
-            clearable
-            @update:model-value="onResourceCodeChange(item)"
-          />
-        </template>
-        <template #item.resource_phone="{ item }">
-          <v-text-field
-            v-model="item.draft.resource_phone"
-            class="text-group"
-            density="compact"
-            variant="outlined"
-            :label="t('شماره منبع')"
-            hide-details
-            readonly
-          />
-        </template>
+          <template #item.street_number="{ item }">
+            <v-text-field
+              v-model="item.draft.street_number"
+              density="compact"
+              variant="outlined"
+              class="text-group"
+              :label="t('شماره سرک')"
+              hide-details
+            />
+          </template>
 
-        <!-- ACTIONS -->
-        <template #item.actions="{ item }">
-          <div class="flex items-center gap-1">
-            <v-btn class="bg-primary" variant="outlined" @click="save(item)" :loading="item.loading">
-              {{ t('ثبت دیتا') }}
-            </v-btn>
-            <v-btn class="bg-error" variant="outlined" @click="del(item)">
-              {{ t('حذف') }}
-            </v-btn>
-          </div>
-        </template>
+          <template #item.home_number="{ item }">
+            <v-text-field
+              v-model="item.draft.home_number"
+              density="compact"
+              variant="outlined"
+              class="text-group"
+              :label="t('شماره خانه')"
+              hide-details
+            />
+          </template>
 
-        <template #no-data>
-          <div class="py-8 text-medium-emphasis">{{ t('هیچ ریکارډ یافت نشد') }}</div>
-        </template>
-      </v-data-table>
-    </v-card>
-  </v-container>
+          <!-- Job / social / contact -->
+          <template #item.jabha="{ item }">
+            <v-text-field
+              v-model="item.draft.jabha"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('جبهه')"
+              hide-details
+            />
+          </template>
 
-  <!-- FILTERABLE TABLE -->
-  <v-container fluid>
+          <template #item.supplier_name="{ item }">
+            <v-text-field
+              v-model="item.draft.supplier_name"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('نام تمویل‌کننده')"
+              hide-details
+            />
+          </template>
+
+          <template #item.responsibility="{ item }">
+            <v-text-field
+              v-model="item.draft.responsibility"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مسئولیت')"
+              hide-details
+            />
+          </template>
+
+          <template #item.activity_zone="{ item }">
+            <v-text-field
+              v-model="item.draft.activity_zone"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('ساحه فعالیت')"
+              hide-details
+            />
+          </template>
+
+          <template #item.friends_number="{ item }">
+            <v-text-field
+              v-model="item.draft.friends_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('تعداد دوستان')"
+              hide-details
+            />
+          </template>
+
+          <template #item.phone_number="{ item }">
+            <v-text-field
+              v-model="item.draft.phone_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('شماره تماس')"
+              :rules="[rules.number]"
+              hide-details
+              :error="hasError(item, 'phone_number')"
+              :error-messages="getErrorMessages(item, 'phone_number')"
+            />
+          </template>
+
+          <template #item.bond_distance="{ item }">
+            <v-text-field
+              v-model="item.draft.bond_distance"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('فاصله ارتباط')"
+              hide-details
+            />
+          </template>
+
+          <template #item.last_band_reason="{ item }">
+            <v-text-field
+              v-model="item.draft.last_band_reason"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('دلیل آخرین بند/ارتباط')"
+              hide-details
+            />
+          </template>
+
+          <template #item.band_place="{ item }">
+            <v-text-field
+              v-model="item.draft.band_place"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('محل بند/ارتباط')"
+              hide-details
+            />
+          </template>
+
+          <template #item.now_job="{ item }">
+            <v-text-field
+              v-model="item.draft.now_job"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('وظیفه فعلی')"
+              hide-details
+            />
+          </template>
+
+          <!-- Resource code (autocomplete) + phone (readonly) -->
+          <template #item.resource_code="{ item }">
+            <v-autocomplete
+              v-model="item.draft.resource_code"
+              :items="resources"
+              item-title="code_number"
+              item-value="code_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('کود منبع')"
+              hide-details
+              clearable
+              @update:model-value="onResourceCodeChange(item)"
+            />
+          </template>
+
+          <template #item.resource_phone="{ item }">
+            <v-text-field
+              v-model="item.draft.resource_phone"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('شماره منبع')"
+              hide-details
+              readonly
+            />
+          </template>
+
+          <!-- Actions -->
+          <template #item.actions="{ item }">
+            <div class="flex items-center gap-1">
+              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
+                {{ t('ثبت دیتا') }}
+              </v-btn>
+              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+                {{ t('حذف') }}
+              </v-btn>
+              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
+                {{ t('پاک کردن ورودی‌ها') }}
+              </v-btn>
+            </div>
+          </template>
+
+          <template #no-data>
+            <div class="py-8 text-medium-emphasis">
+              {{ t('یک سطر ویرایش/ایجاد آماده است') }}
+            </div>
+          </template>
+        </v-data-table>
+      </v-card>
+    </v-form>
+
+    <!-- Peek + FilterableTable -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loading"
+        title-key="name"
+        :fields="headers"
+        :cols="3"
+        dir="rtl"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
     <FilterableTable
       :headers="headersFT"
-      :rows="rows"
+      :rows="rowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
       class="mb-20 mx-2"
+      :enableEdit="true"
+      :enablePeek="true"
+      @edit="startEdit"
+      @peek="openPeek"
     />
+
+    <!-- Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="5000">
+      {{ errorMessage }}
+      <template #actions>
+        <v-btn variant="text" @click="showError = false">
+          {{ t('بستن') }}
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import { ref, onMounted, computed, watch, nextTick, onBeforeUnmount } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import AppBar from '../../components/AppBar.vue';
+  import PeekButton from '../../components/PeekButton.vue';
+  import FilterableTable from '../../components/FilterableTable.vue';
+  import { useFasadRepository } from '@/stores/FasadRepository';
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = (l === 'fa')));
-const drawer = ref(false);
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const drawer = ref(false);
 
-const repo = useBadmashanoRepository();
+  const repo = useFasadRepository();
 
-const rows = ref([]);
-const filters = ref({});
-let tmpId = 0;
-const newTmpId = () => `tmp-${++tmpId}`;
+  /* ===== Editor form + snackbar ===== */
+  const editorForm = ref(null);
+  const editorValid = ref(false);
+  const formKey = ref(0);
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const editorCard = ref(null);
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
+  }
 
-/* Resources dropdown -> keep code/phone behavior and also set resource_id */
-const resources = computed(() => repo.resourcecode || []);
-function onResourceCodeChange(item) {
-  const code = item.draft.resource_code;
-  const found = resources.value.find((r) => r.code_number === code);
-  item.draft.resource_phone = found?.phone_number ?? '';
-  item.draft.resource_id = found?.id ?? null;
-}
+  /* ===== Errors per row ===== */
+  const itemErrors = ref({});
+  function setItemErrors(item, errors) {
+    itemErrors.value[item.idOrTmp] = errors;
+  }
+  function clearItemErrors(item) {
+    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
+  }
+  function hasError(item, field) {
+    return !!(itemErrors.value[item.idOrTmp] && itemErrors.value[item.idOrTmp][field]);
+  }
+  function getErrorMessages(item, field) {
+    return itemErrors.value[item.idOrTmp]?.[field] ?? [];
+  }
 
-/* Picture helpers */
-function pictureSrc(item) {
-  const p = item?.draft?.picture ?? item?.picture;
-  if (!p) return '';
-  if (typeof p === 'string') return p; // API URL
-  if (p instanceof File) return URL.createObjectURL(p);
-  return '';
-}
-function onPictureChange(item) {
-  // no extra logic; FormData handles File
-}
-
-/* HEADERS (table) */
-const headers = computed(() => [
-  // { title: t('عکس'), key: 'picture' },
-
-  { title: t('تخلص'), key: 'nickname' },
-  { title: t('نام'), key: 'name' },
-  { title: t('نام پدر'), key: 'father_name' },
-
-  { title: t('آدرس اصلی'), key: 'main_province' },
-  { title: t('آدرس فعلی'), key: 'now_province' },
-
-  { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
-  { title: t('شماره سرک'), key: 'now_street_number' },
-  { title: t('شماره خانه'), key: 'now_home_number' },
-
-  { title: t('نوع وظیفه'), key: 'duty_type' },
-  { title: t('وظیفه فعلی'), key: 'now_job' },
-  { title: t('اداره/ارگان'), key: 'organ' },
-
-  { title: t('شماره تماس'), key: 'phone_number' },
-  { title: t('یادداشت'), key: 'note' },
-
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone' },
-
-  { title: t('عملیات'), key: 'actions', sortable: false },
-]);
-
-/* FILTER headers */
-const headersFT = computed(() => [
-  { title: t('تخلص'), key: 'nickname' },
-  { title: t('نام'), key: 'name' },
-  { title: t('نام پدر'), key: 'father_name' },
-
-  { title: t('ولایت اصلی'), key: 'main_province' },
-  { title: t('ولسوالی اصلی'), key: 'main_district' },
-  { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
-
-  { title: t('ولایت فعلی'), key: 'now_province' },
-  { title: t('زون فعلی'), key: 'now_zone' },
-  { title: t('ولسوالی فعلی'), key: 'now_district' },
-  { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
-  { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
-  { title: t('شماره سرک فعلی'), key: 'now_street_number' },
-  { title: t('شماره خانه فعلی'), key: 'now_home_number' },
-
-  { title: t('نوع وظیفه'), key: 'duty_type' },
-  { title: t('وظیفه فعلی'), key: 'now_job' },
-  { title: t('اداره/ارگان'), key: 'organ' },
-
-  { title: t('شماره تماس'), key: 'phone_number' },
-  { title: t('یادداشت'), key: 'note' },
-
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone' },
-]);
-
-/* Top filter groups */
-const topGroups = computed(() => [
-  { title: t('مشخصات'), keys: ['nickname', 'name', 'father_name'] },
-  { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-  { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
-  { title: t('موقعیت/خانه'), keys: ['now_specific_place', 'now_street_number', 'now_home_number'] },
-  { title: t('وظیفه/ارگان'), keys: ['duty_type', 'now_job', 'organ'] },
-  { title: t('تماس/یادداشت'), keys: ['phone_number', 'note'] },
-  { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
-]);
-
-/* Map API -> row with draft */
-function toRowModel(x = {}) {
-  const base = {
-    id: x.id ?? null,
-    idOrTmp: x.id ?? newTmpId(),
-    loading: false,
-
-    picture: x.picture ?? null,
-
-    nickname: x.nickname ?? '',
-    name: x.name ?? '',
-    father_name: x.father_name ?? '',
-
-    main_province: x.main_province ?? '',
-    main_district: x.main_district ?? '',
-    main_village: x.main_village ?? '',
-
-    now_province: x.now_province ?? '',
-    now_zone: x.now_zone ?? '',
-    now_district: x.now_district ?? '',
-    now_village: x.now_village ?? '',
-    now_specific_place: x.now_specific_place ?? '',
-    now_street_number: x.now_street_number ?? '',
-    now_home_number: x.now_home_number ?? '',
-
-    duty_type: x.duty_type ?? '',
-    now_job: x.now_job ?? '',
-    organ: x.organ ?? '',
-
-    phone_number: x.phone_number ?? '',
-    note: x.note ?? '',
-
-    // resource fields
-    resource_code: x.resource_code ?? '',
-    resource_phone: x.resource_phone ?? '',
-    resource_id: x.resource_id ?? null,
+  /* ===== Rules ===== */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+    selectRequired: (label) => (v) => !!v || t('{label} الزامی است', { label }),
+    number: (v) => !v || /^[0-9]+$/.test(v) || t('فقط اعداد مجاز است'),
   };
-  return { ...base, draft: { ...base } };
-}
 
-/* Diff -> only edited keys + always requireds if any */
-const EDITABLE_KEYS = [
-  'picture',
+  /* ===== Single editor row ===== */
+  const rows = ref([]);
+  let tmpId = 0;
+  const newTmpId = () => `tmp-${++tmpId}`;
+  function setBlankEditorRow() {
+    rows.value = [toRowModel({})];
+  }
 
-  'nickname',
-  'name',
-  'father_name',
+  /* ===== ALL data for FilterableTable ===== */
+  const rowsFT = computed(() => repo.Fasads || []);
 
-  'main_province',
-  'main_district',
-  'main_village',
+  /* ===== Headers (editor table) ===== */
+  const headers = computed(() => [
+    { title: t('تخلص'), key: 'nick_name' },
+    { title: t('نام'), key: 'name' },
+    { title: t('نام پدر'), key: 'father_name' },
 
-  'now_province',
-  'now_zone',
-  'now_district',
-  'now_village',
-  'now_specific_place',
-  'now_street_number',
-  'now_home_number',
+    { title: t('آدرس اصلی'), key: 'main_province' },
+    { title: t('آدرس فعلی'), key: 'now_province' },
 
-  'duty_type',
-  'now_job',
-  'organ',
+    { title: t('موقعیت مشخص فعلی'), key: 'specific_place' },
+    { title: t('شماره سرک'), key: 'street_number' },
+    { title: t('شماره خانه'), key: 'home_number' },
 
-  'phone_number',
-  'note',
+    { title: t('جبهه'), key: 'jabha' },
+    { title: t('نام تمویل‌کننده'), key: 'supplier_name' },
+    { title: t('مسئولیت'), key: 'responsibility' },
+    { title: t('ساحه فعالیت'), key: 'activity_zone' },
+    { title: t('تعداد دوستان'), key: 'friends_number' },
+    { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('فاصله ارتباط'), key: 'bond_distance' },
+    { title: t('دلیل آخرین بند'), key: 'last_band_reason' },
+    { title: t('محل بند'), key: 'band_place' },
+    { title: t('وظیفه فعلی'), key: 'now_job' },
 
-  'resource_code',
-  'resource_phone',
-  'resource_id',
-];
-const REQUIRED_ON_UPDATE = ['name'];
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
 
-function diffDraft(item) {
-  const d = item.draft || {};
-  const changed = {};
-  for (const k of EDITABLE_KEYS) {
-    const prev = item[k];
-    const next = d[k];
+    { title: t('عملیات'), key: 'actions', sortable: false },
+  ]);
 
-    if (next instanceof File) {
-      if (!(prev instanceof File)) changed[k] = next;
-      continue;
+  /* ===== Headers for FilterableTable ===== */
+  const headersFT = computed(() => [
+    { title: t('نام'), key: 'name' },
+    { title: t('نام پدر'), key: 'father_name' },
+    { title: t('تخلص'), key: 'nick_name' },
+
+    { title: t('ولایت اصلی'), key: 'main_province' },
+    { title: t('ولسوالی اصلی'), key: 'main_district' },
+    { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+
+    { title: t('ولایت فعلی'), key: 'now_province' },
+    { title: t('زون فعلی'), key: 'now_zone' },
+    { title: t('ولسوالی فعلی'), key: 'now_district' },
+    { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
+
+    { title: t('موقعیت مشخص فعلی'), key: 'specific_place' },
+    { title: t('شماره سرک'), key: 'street_number' },
+    { title: t('شماره خانه'), key: 'home_number' },
+
+    { title: t('جبهه'), key: 'jabha' },
+    { title: t('نام تمویل‌کننده'), key: 'supplier_name' },
+    { title: t('مسئولیت'), key: 'responsibility' },
+    { title: t('ساحه فعالیت'), key: 'activity_zone' },
+    { title: t('تعداد دوستان'), key: 'friends_number' },
+    { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('فاصله ارتباط'), key: 'bond_distance' },
+    { title: t('دلیل آخرین بند'), key: 'last_band_reason' },
+    { title: t('محل بند'), key: 'band_place' },
+    { title: t('وظیفه فعلی'), key: 'now_job' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
+  ]);
+
+  /* ===== Top filter groups (Fasad style) ===== */
+  const topGroups = computed(() => [
+    { title: t('مشخصات'), keys: ['name', 'nick_name', 'father_name'] },
+    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+    { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
+    { title: t('موقعیت/خانه'), keys: ['specific_place', 'street_number', 'home_number'] },
+    { title: t('شبکه/تماس'), keys: ['friends_number', 'phone_number', 'bond_distance'] },
+    {
+      title: t('فعالیت/جبهه'),
+      keys: ['jabha', 'supplier_name', 'responsibility', 'activity_zone', 'now_job'],
+    },
+    { title: t('سوابق'), keys: ['last_band_reason', 'band_place'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+  ]);
+
+  /* ===== Resources dropdown -> code/phone + set resource_id ===== */
+  const resources = computed(() => repo.resourcecode || []);
+  function onResourceCodeChange(item) {
+    const code = item.draft.resource_code;
+    const found = resources.value.find((r) => r.code_number === code);
+    item.draft.resource_phone = found?.phone_number ?? '';
+    item.draft.resource_id = found?.id ?? null;
+  }
+
+  /* ===== Row model & diff ===== */
+  function toRowModel(x = {}) {
+    const base = {
+      id: x.id ?? null,
+      idOrTmp: x.id ?? newTmpId(),
+      loading: false,
+
+      nick_name: x.nick_name ?? '',
+      name: x.name ?? '',
+      father_name: x.father_name ?? '',
+
+      main_province: x.main_province ?? '',
+      main_district: x.main_district ?? '',
+      main_village: x.main_village ?? '',
+
+      now_province: x.now_province ?? '',
+      now_zone: x.now_zone ?? '',
+      now_district: x.now_district ?? '',
+      now_village: x.now_village ?? '',
+      specific_place: x.specific_place ?? '',
+      street_number: x.street_number ?? '',
+      home_number: x.home_number ?? '',
+
+      jabha: x.jabha ?? '',
+      supplier_name: x.supplier_name ?? '',
+      responsibility: x.responsibility ?? '',
+      activity_zone: x.activity_zone ?? '',
+      friends_number: x.friends_number ?? '',
+      phone_number: x.phone_number ?? '',
+      bond_distance: x.bond_distance ?? '',
+      last_band_reason: x.last_band_reason ?? '',
+      band_place: x.band_place ?? '',
+      now_job: x.now_job ?? '',
+
+      resource_code: x.resource_code ?? '',
+      resource_phone: x.resource_phone ?? '',
+      resource_id: x.resource_id ?? null,
+    };
+    return { ...base, draft: { ...base } };
+  }
+
+  const EDITABLE_KEYS = [
+    'nick_name',
+    'name',
+    'father_name',
+    'main_province',
+    'main_district',
+    'main_village',
+    'now_province',
+    'now_zone',
+    'now_district',
+    'now_village',
+    'specific_place',
+    'street_number',
+    'home_number',
+    'jabha',
+    'supplier_name',
+    'responsibility',
+    'activity_zone',
+    'friends_number',
+    'phone_number',
+    'bond_distance',
+    'last_band_reason',
+    'band_place',
+    'now_job',
+    'resource_code',
+    'resource_phone',
+    'resource_id',
+  ];
+  const REQUIRED_ON_UPDATE = ['name'];
+
+  function diffDraft(item) {
+    const d = item.draft || {};
+    const changed = {};
+    for (const k of EDITABLE_KEYS) {
+      if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
     }
-    if ((next ?? '') !== (prev ?? '')) changed[k] = next;
+    for (const k of REQUIRED_ON_UPDATE) {
+      if (d[k] !== undefined) changed[k] = d[k];
+    }
+    return changed;
   }
-  for (const k of REQUIRED_ON_UPDATE) {
-    if (d[k] !== undefined) changed[k] = d[k];
+
+  function toFormDataSelective(obj) {
+    const fd = new FormData();
+    Object.entries(obj || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
   }
-  return changed;
-}
 
-function toFormDataSelective(obj) {
-  const fd = new FormData();
-  Object.entries(obj || {}).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
-  });
-  return fd;
-}
+  async function hardResetFormValidation() {
+    editorValid.value = false;
+    itemErrors.value = {};
+    await nextTick();
+    editorForm.value?.resetValidation?.();
+    formKey.value++;
+    await nextTick();
+  }
 
-/* Hydrate + Fetch */
-function hydrate() {
-  rows.value = (repo.Mujahedinos || []).map(toRowModel);
-}
-async function fetch() {
-  await repo.FetchMujahedinosData?.({
-    page: repo.page || 1,
-    itemsPerPage: repo.itemsPerPage || 50,
-    search: repo.Search || '',
-  });
-  hydrate();
-}
-
-/* Add row */
-function addBlankRow() {
-  const newRow = toRowModel({});
-  rows.value = [...rows.value, newRow];
-  const per = repo.itemsPerPage || 50;
-  repo.page = Math.max(1, Math.ceil(rows.value.length / per));
-}
-
-/* Save / Delete */
-async function save(item) {
-  item.loading = true;
-  try {
-    if (!item.id) {
-      const fd = toFormDataSelective(item.draft);
-      const created = await repo.CreateMujahedino?.(fd);
-      if (created?.id) {
-        const model = toRowModel(created);
-        model.idOrTmp = item.idOrTmp;
-        Object.assign(item, model);
-        item.draft = { ...model };
-      } else {
-        await fetch();
-      }
+  /* ===== Save / Delete ===== */
+  async function save(item) {
+    if (!item.draft?.name?.trim()) {
+      showErrorMessage(t('نام الزامی است'));
       return;
     }
+    item.loading = true;
+    clearItemErrors(item);
 
-    const changed = diffDraft(item);
-    if (Object.keys(changed).length === 0) return;
+    try {
+      // CREATE
+      if (!item.id) {
+        const fd = toFormDataSelective(item.draft);
+        const created = await repo.CreateFasad?.(fd);
+        if (!created?.id) {
+          await fetchAll();
+          setBlankEditorRow();
+          editorForm.value?.resetValidation?.();
+        } else {
+          await fetchAll();
+          setBlankEditorRow();
+          editorForm.value?.resetValidation?.();
+        }
+        return;
+      }
 
-    const fd = toFormDataSelective(changed);
-    const updated = await repo.UpdateMujahedino?.(item.id, fd);
-    if (updated?.id) {
-      const model = toRowModel(updated);
-      model.idOrTmp = item.idOrTmp;
-      Object.assign(item, model);
-      item.draft = { ...model };
+      // UPDATE
+      const changed = diffDraft(item);
+      if (Object.keys(changed).length === 0) {
+        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
+        return;
+      }
+      const fd = toFormDataSelective(changed);
+      const updated = await repo.UpdateFasad?.(item.id, fd);
+      if (updated?.id) {
+        await fetchAll();
+        setBlankEditorRow();
+        editorForm.value?.resetValidation?.();
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      if (error?.response?.data?.errors) {
+        setItemErrors(item, error.response.data.errors);
+        showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
+      } else {
+        showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته')));
+      }
+    } finally {
+      item.loading = false;
     }
-  } finally {
-    item.loading = false;
   }
-}
 
-async function del(item) {
-  if (!item.id) {
-    rows.value = rows.value.filter((r) => r.idOrTmp !== item.idOrTmp);
-    return;
+  // VALIDATED SUBMIT
+  async function onSubmit(item) {
+    const form = editorForm.value;
+    if (!form) return;
+    const { valid } = await form.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+    await save(item);
   }
-  if (!confirm(t('آیا مطمئن هستید؟'))) return;
-  await repo.DeleteMujahedino?.(item.id);
-  await fetch();
-}
 
-/* init */
-onMounted(async () => {
-  await Promise.allSettled([repo.GetResourceCode?.()]);
-  await fetch();
-});
+  function scrollToFirstInvalid() {
+    const root = editorCard.value?.$el || editorCard.value || document;
+    const first = root.querySelector(
+      '.v-input--error, [aria-invalid="true"], .v-messages__message'
+    );
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  async function del(item) {
+    if (!item.id) {
+      setBlankEditorRow();
+      return;
+    }
+    if (!confirm(t('آیا مطمئن هستید؟'))) return;
+    try {
+      await repo.DeleteFasad?.(item.id);
+      await fetchAll();
+      setBlankEditorRow();
+    } catch (e) {
+      console.error('Delete error:', e);
+      showErrorMessage(t('خطا در حذف') + ': ' + (e?.message || t('خطای ناشناخته')));
+    }
+  }
+
+  function clearEditor(item) {
+    try {
+      if (item && item.idOrTmp && itemErrors.value[item.idOrTmp])
+        delete itemErrors.value[item.idOrTmp];
+      setBlankEditorRow();
+      showErrorMessage(t('ورودی‌ها پاک شد'));
+    } catch (e) {
+      console.error('clearEditor error:', e);
+    }
+  }
+
+  /* ===== Peek / Fetch ===== */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loading.value = true;
+    try {
+      await repo.FetchFasadData?.(id);
+      // repo.Fasad may be an object or an array; normalize to a single object
+      detail.value = Array.isArray(repo.Fasad) ? repo.Fasad[0] || null : repo.Fasad || null;
+    } catch (error) {
+      console.error('Fetch one error:', error);
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      loading.value = false;
+    }
+  }
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
+
+  /* ===== Fetch ALL (no pagination) ===== */
+  async function fetchAll() {
+    try {
+      await (repo.FetchFasadsData?.({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search || '',
+      }) ?? Promise.resolve());
+    } catch (e) {
+      console.error('fetchAll error', e);
+    }
+  }
+
+  /* ===== Start edit from FilterableTable ===== */
+  async function startEdit(row) {
+    try {
+      const id = row?.id;
+      if (!id) return;
+      await repo.FetchFasadData?.(id);
+      const single = Array.isArray(repo.Fasad) ? repo.Fasad[0] : repo.Fasad || row;
+      rows.value = [toRowModel(single || row)];
+      await nextTick();
+      const el = editorCard.value?.$el || editorCard.value;
+      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      console.error('startEdit error', e);
+      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
+    }
+  }
+
+  /* ===== Init ===== */
+  onMounted(async () => {
+    await Promise.allSettled([repo.GetResourceCode?.()]);
+    await fetchAll();
+    setBlankEditorRow();
+  });
+
+  onBeforeUnmount(() => {
+    // reserved for cleanup if we later add previews/files
+  });
 </script>
 
 <style scoped>
-table th { white-space: nowrap; }
-.custom-table :deep(.v-data-table__thead th) {
-  background: rgb(var(--v-theme-primary));
-  color: #fff;
-  font-weight: 400;
-}
+  /* Prevent header wrap */
+  table th {
+    white-space: nowrap;
+  }
 
-/* layout like Fasad */
-.addr-group { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 2px; }
-.text-group { display: grid; width: 140px; gap: 2px; }
-.text-group-note { display: grid; width: 380px; gap: 2px; }
+  /* Colored table header */
+  .custom-table :deep(.v-data-table__thead th) {
+    background: rgb(var(--v-theme-primary));
+    color: #fff;
+    font-weight: 400;
+  }
 
-.flex { display: flex; }
-.items-center { align-items: center; }
-.gap-1 { gap: 4px; }
+  /* Layout helpers (Fasad style) */
+  .tablebody {
+    display: flex !important;
+    gap: 2px !important;
+  }
+  .flex {
+    display: flex;
+  }
+  .items-center {
+    align-items: center;
+  }
+  .gap-1 {
+    gap: 4px;
+  }
 
-.tablebody { display: flex !important; gap: 2px !important; }
+  /* Grouped inputs */
+  .addr-group4 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 4px;
+  }
+  .addr-group3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
+    gap: 4px;
+  }
+  .text-group {
+    display: grid;
+    width: 140px;
+    gap: 2px;
+  }
+  .text-group-note {
+    display: grid;
+    width: 380px;
+    gap: 2px;
+  }
 
-/* compact spacing like Fasad */
-:deep(.v-field-label),
-:deep(.v-label),
-:deep(input::placeholder) { font-size: 12px !important; line-height: 1.2 !important; color: #555 !important; }
-:deep(.v-field__input) { min-height: 26px !important; padding: 2px 6px !important; font-size: 12px !important; line-height: 1.2 !important; }
-
-/* picture cell */
-.pic-cell { display: grid; gap: 4px; width: 220px; }
-.pic-input :deep(.v-input__control) { min-width: 200px; }
+  /* Compact inputs + labels */
+  :deep(.v-field-label),
+  :deep(.v-label),
+  :deep(input::placeholder) {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    color: #555 !important;
+  }
+  :deep(.v-field__input) {
+    min-height: 26px !important;
+    padding: 2px 6px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+  }
+  .addr-group3,
+  .addr-group4,
+  .text-group,
+  .text-group-note {
+    margin: -16px !important;
+    padding: -10px !important;
+    row-gap: -6px !important;
+    column-gap: 2px !important;
+    gap: -10px !important;
+  }
 </style>

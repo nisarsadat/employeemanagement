@@ -37,10 +37,7 @@ class ZoneEmployee extends Model
         });
     }
 
-    public function informations()
-    {
-        return $this->hasMany(Information::class);
-    }
+
 
     public function documents()
     {

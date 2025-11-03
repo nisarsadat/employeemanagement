@@ -105,13 +105,14 @@
     {
       title: t('Dashboard'),
       icon: 'mdi-view-dashboard-outline',
-      path: '/Dashboard',
+      path: '/dashboards',
     },
     {
       title: t('نقشه'),
       icon: 'mdi-map',
-      path: '/maps',
+      path: '/map-afg',
     },
+    
     // {
     //     title: t("expenses"),
     //     icon: "mdi-cash-minus",

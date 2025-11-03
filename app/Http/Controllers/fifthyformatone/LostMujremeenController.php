@@ -2,81 +2,68 @@
 
 namespace App\Http\Controllers\fifthyformatone;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\fifthyformatone\StoreRobbersRequest;
-use App\Http\Requests\fifthyformatone\UpdateRobbersRequest;
-use App\Http\Resources\fifthyformatone\RobbersResource;
-use App\Models\fifthyformatone\Robbers;
+use App\Models\fifthyformatone\LostMujremeen;
+use App\Http\Resources\fifthyformatone\LostMujremeenResource;
+use App\Http\Requests\fifthyformatone\StoreLostMujremeenRequest;
+use App\Http\Requests\fifthyformatone\UpdateLostMujremeenRequest;
+use Illuminate\Http\Request;
 
-class RobbersController extends Controller
+class LostMujremeenController extends Controller
 {
-    /** GET /robbers */
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
         $search  = $request->input('search');
 
-        $q = Robbers::query()
+        $q = LostMujremeen::query()
             ->with(['resource:id,name,code_number,phone_number'])
             ->latest();
 
         if ($search) {
-            $q->where(function ($w) use ($search) {
-                $w->where('name', 'like', "%{$search}%")
-                  ->orWhere('nickname', 'like', "%{$search}%")
-                  ->orWhere('father_name', 'like', "%{$search}%")
-                  ->orWhere('phone_number', 'like', "%{$search}%")
-                  ->orWhere('now_province', 'like', "%{$search}%")
-                  ->orWhere('main_province', 'like', "%{$search}%")
-                  ->orWhere('now_district', 'like', "%{$search}%");
+            $q->where(function ($qq) use ($search) {
+                $qq->where('name', 'like', "%{$search}%")
+                   ->orWhere('father_name', 'like', "%{$search}%")
+                   ->orWhere('now_province', 'like', "%{$search}%")
+                   ->orWhere('jorm', 'like', "%{$search}%");
             });
         }
 
-        return RobbersResource::collection($q->paginate($perPage));
+        return LostMujremeenResource::collection($q->paginate($perPage));
     }
 
-    /** POST /robbers */
-    public function store(StoreRobbersRequest $request)
+    public function store(StoreLostMujremeenRequest $request)
     {
-        $data = $request->validated();
-
-        $item = Robbers::create($data)
+        $item = LostMujremeen::create($request->validated())
             ->load(['resource:id,name,code_number,phone_number']);
 
-        return RobbersResource::make($item);
+        return LostMujremeenResource::make($item);
     }
 
-    /** GET /robbers/{robber} */
-    public function show(Robbers $robber)
+    public function show(LostMujremeen $lostMujremeen)
     {
-        $robber->load(['resource:id,name,code_number,phone_number']);
-        return RobbersResource::make($robber);
+        $lostMujremeen->load(['resource:id,name,code_number,phone_number']);
+        return LostMujremeenResource::make($lostMujremeen);
     }
 
-    /** PUT /robbers/{robber} */
-    public function update(UpdateRobbersRequest $request, Robbers $robber)
+    public function update(UpdateLostMujremeenRequest $request, LostMujremeen $lostMujremeen)
     {
-        $data = $request->validated();
+        $lostMujremeen->update($request->validated());
+        $lostMujremeen->load(['resource:id,name,code_number,phone_number']);
 
-        $robber->update($data);
-        $robber->load(['resource:id,name,code_number,phone_number']);
-
-        return RobbersResource::make($robber);
+        return LostMujremeenResource::make($lostMujremeen);
     }
 
-    /** DELETE /robbers/{robber} */
-    public function destroy(Robbers $robber)
+    public function destroy(LostMujremeen $lostMujremeen)
     {
-        $robber->delete();
+        $lostMujremeen->delete();
         return response()->noContent();
     }
 
-    /** POST /robbers/bulk-delete { "ids": [1,2,3] } */
     public function bulkDelete(Request $request)
     {
-        $ids = $request->input('ids', []);
-        Robbers::destroy($ids);
+        $ids = (array) $request->input('ids', []);
+        LostMujremeen::destroy($ids);
         return response()->noContent();
     }
 }
