@@ -39,6 +39,7 @@ return new class extends Migration {
 
             // Other
             $table->integer('lost_quantity')->nullable();
+            $table->string('Province_addr')->nullable();
 
             // Resource link + note
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();

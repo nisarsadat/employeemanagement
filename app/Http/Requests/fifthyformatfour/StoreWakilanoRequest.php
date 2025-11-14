@@ -39,6 +39,7 @@ class StoreWakilanoRequest extends FormRequest
             'home_quantity'      => ['nullable','integer'],
             'phone_number'       => ['nullable','string'],
             'history_form'       => ['nullable','string'],
+            'Province_addr'         => ['nullable','string'],
 
             'resource_id'        => ['nullable','integer','exists:resources,id'],
             'note'               => ['nullable','string'],

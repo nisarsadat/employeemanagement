@@ -19,6 +19,7 @@ class Fasad extends Model
         'main_village',
         'now_province',
         'now_zone',
+        'Province_addr',
         'now_district',
         'now_village',
         'specific_place',

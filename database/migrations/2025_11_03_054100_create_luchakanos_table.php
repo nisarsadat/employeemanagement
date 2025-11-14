@@ -39,6 +39,7 @@ return new class extends Migration
             // History / Notes
             $table->longText('history_jorm')->nullable();
             $table->longText('note')->nullable();
+            $table->string('Province_addr')->nullable();
 
             // Relation with Resource
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();

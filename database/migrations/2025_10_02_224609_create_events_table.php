@@ -20,8 +20,8 @@ return new class extends Migration {
                 $table->string('event_specific_type')->nullable();
                 $table->string('target_person')->nullable();
                 $table->string('criminal')->nullable();
-                $table->string('event_date')->nullable()->change();
-                $table->string('event_hour')->nullable()->change();
+                $table->string('event_date')->nullable();
+                $table->string('event_hour')->nullable();
 
                 $table->string('event_zone')->nullable();
                 $table->string('event_hawza')->nullable();
@@ -34,6 +34,8 @@ return new class extends Migration {
                 $table->text('talks')->nullable();
                 $table->string('coordinates')->nullable();
                 $table->text('note')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
 
                 $table->timestamps();

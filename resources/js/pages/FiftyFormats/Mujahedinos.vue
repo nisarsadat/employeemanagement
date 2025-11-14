@@ -295,6 +295,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Resource code (autocomplete) + phone (readonly) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -473,6 +485,7 @@
     { title: t('دلیل آخرین بند'), key: 'last_band_reason' },
     { title: t('محل بند'), key: 'band_place' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -509,6 +522,7 @@
     { title: t('دلیل آخرین بند'), key: 'last_band_reason' },
     { title: t('محل بند'), key: 'band_place' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -564,6 +578,7 @@
       jabha: x.jabha ?? '',
       supplier_name: x.supplier_name ?? '',
       responsibility: x.responsibility ?? '',
+      Province_addr: x.Province_addr ?? '',
       activity_zone: x.activity_zone ?? '',
       friends_number: x.friends_number ?? '',
       phone_number: x.phone_number ?? '',
@@ -588,6 +603,7 @@
     'main_village',
     'now_province',
     'now_zone',
+      'Province_addr',
     'now_district',
     'now_village',
     'specific_place',

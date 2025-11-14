@@ -51,6 +51,8 @@ return new class extends Migration {
             $table->text('suspect_tools')->nullable();
 
             $table->text('notes')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             $table->timestamps();
         });

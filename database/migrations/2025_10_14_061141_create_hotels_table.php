@@ -31,6 +31,8 @@ return new class extends Migration {
             // Other
             $table->string('employee_quantity')->nullable();
             $table->text('note')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             // Link to resources
             $table->foreignId('resource_id')

@@ -174,6 +174,18 @@
               hide-details
             />
           </template>
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
 
           <!-- RESOURCE (id select -> phone auto) -->
           <template #item.resource_id="{ item }">
@@ -341,6 +353,7 @@
     { title: t('علایم شک'), key: 'shak_symbols' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('منبع'), key: 'resource_id' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -364,6 +377,7 @@
     { title: t('علایم شک'), key: 'shak_symbols' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -406,6 +420,7 @@
       shak_symbols: x.shak_symbols ?? '',
 
       note: x.note ?? '',
+      Province_addr: x.Province_addr ?? '',
 
       resource_id: x.resource_id ?? null,
       resource_code: x.resource_code ?? '',
@@ -428,6 +443,7 @@
     'note',
     'resource_id',
     'resource_code',
+      'Province_addr',
     'resource_phone',
   ];
   const REQUIRED_ON_UPDATE = ['province', 'district'];

@@ -27,6 +27,7 @@ class RobbersResource extends JsonResource
             'now_specific_place'  => $model->now_specific_place,
             'now_street_number'   => $model->now_street_number,
             'now_home_number'     => $model->now_home_number,
+            'Province_addr'               => $this->Province_addr,
 
             'old_job'             => $model->old_job,
             'now_job'             => $model->now_job,

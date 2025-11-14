@@ -30,6 +30,7 @@ class WorkShopResource extends JsonResource
 
             'workers_quantity'     => $this->workers_quantity,
             'note'                 => $this->note,
+            'Province_addr'               => $this->Province_addr,
 
             'resource_id'          => $this->resource_id,
             // Flattened from related Resource

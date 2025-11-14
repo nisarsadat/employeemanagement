@@ -36,6 +36,8 @@ class StoreDeplomaticPlaceRequest extends FormRequest
 
             'guard_quantity'        => ['nullable','integer'],
             'coordinates'           => ['nullable','string'],
+            'Province_addr'                      => ['nullable','string'],
+
 
             'resource_id'           => ['nullable','integer','exists:resources,id'],
             'note'                  => ['nullable','string'],

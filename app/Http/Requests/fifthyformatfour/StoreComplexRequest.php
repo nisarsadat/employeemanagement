@@ -35,6 +35,8 @@ class StoreComplexRequest extends FormRequest
             'responsible_country'    => ['nullable','string'],
 
             'guard_quantity'         => ['nullable','integer'],
+            'Province_addr'                      => ['nullable','string'],
+
 
             'resource_id'            => ['nullable','integer','exists:resources,id'],
             'note'                   => ['nullable','string'],

@@ -58,6 +58,8 @@ class ResourceRequest extends FormRequest
             'coordinates' => ['nullable','string'],
             'resedint_code' => ['nullable' , 'string'],
             'note' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
+
         ];
 
         if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {

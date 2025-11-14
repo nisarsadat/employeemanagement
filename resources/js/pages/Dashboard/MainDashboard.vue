@@ -1,5 +1,5 @@
 <template>
-  <AppBar :title="t('حساب مالي')" @toggle-drawer="drawer = !drawer">
+  <AppBar :title="t('دشبورد')" @toggle-drawer="drawer = !drawer">
     <template #actions>
       <v-btn icon />
     </template>
@@ -39,7 +39,7 @@
                 <v-tab value="type">{{ t('تسلیم شوی بندیان') }}</v-tab>
               </v-tabs>
 
-              <v-window v-model="accountsTab">
+              <v-window v-model="accountsTab" v-if="auth.can('PeopleDashboard.view')">
                 <v-window-item value="list">
                   <officeemployeedashboard />
                 </v-window-item>
@@ -67,7 +67,7 @@
                 <v-tab value="expense">{{ t('واقعات') }}</v-tab>
               </v-tabs>
 
-              <v-window v-model="cashflowTab">
+              <v-window v-model="cashflowTab" v-if="auth.can('InfoEnevtDashboard.view')">
                 <v-window-item value="income">
                   <InfoDashboard />
                 </v-window-item>
@@ -93,10 +93,9 @@
                 <v-tab value="accountssss">{{ t('د ۱۰ دریم') }}</v-tab>
                 <v-tab value="accountsss">{{ t('د ۱۰ څلورم') }}</v-tab>
                 <v-tab value="accountss">{{ t('د ۱۰ پنڅم') }}</v-tab>
-                <v-tab value="accounts">{{ t('د ۱۰ ښپژم') }}</v-tab>
               </v-tabs>
 
-              <v-window v-model="oilTab">
+              <v-window v-model="oilTab" v-if="auth.can('FifthyFormatDashboard.view')">
                 <v-window-item value="income">
                   <FirstTen />
                 </v-window-item>
@@ -107,13 +106,10 @@
                   <ThirdTen />
                 </v-window-item>
                 <v-window-item value="accountsss">
-                  <OilIndex />
+                  <FourthTen />
                 </v-window-item>
                 <v-window-item value="accountss">
-                  <OilIndex />
-                </v-window-item>
-                <v-window-item value="accounts">
-                  <OilIndex />
+                  <FifthTen />
                 </v-window-item>
               </v-window>
             </v-card>
@@ -134,7 +130,7 @@
               </v-tabs>
 
               <!-- bind to reportTab (fixed) -->
-              <v-window v-model="reportTab">
+              <v-window v-model="reportTab" v-if="auth.can('FininaceDashboard.view')">
                 <v-window-item value="oilreport">
                   <OilReport />
                 </v-window-item>
@@ -166,6 +162,11 @@
   import FirstTen from './FifthyFormat/Firstten.vue';
   import SecondTen from './FifthyFormat/SecondTen.vue';
   import ThirdTen from './FifthyFormat/ThirdTen.vue';
+  import FourthTen from './FifthyFormat/FourthTen.vue';
+  import FifthTen from './FifthyFormat/FifthTen.vue';
+
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 

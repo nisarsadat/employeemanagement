@@ -21,6 +21,7 @@ class MashkokPeople extends Model
 
         'now_province',
         'now_zone',
+        'Province_addr',
         'now_districts',     // kept as written in your note
         'now_village',
         'now_specific_place',

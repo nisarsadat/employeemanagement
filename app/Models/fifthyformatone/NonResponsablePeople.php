@@ -25,6 +25,7 @@ class NonResponsablePeople extends Model
         'now_street_number',
         'now_home_number',
         'friends_quantity',
+        'Province_addr',
         'supplier',
         'phone_number',
         'history_jorm',

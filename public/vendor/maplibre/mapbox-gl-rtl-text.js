@@ -446,6 +446,7 @@ function stringToUTF8Array(str, outU8Array, outIdx, maxBytesToWrite) {
 function stringToUTF8(str, outPtr, maxBytesToWrite) {
     return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
 }
+
 function lengthBytesUTF8(str) {
     var len = 0;
     for (var i = 0; i < str.length; ++i) {

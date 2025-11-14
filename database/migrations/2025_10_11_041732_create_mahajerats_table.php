@@ -34,6 +34,8 @@ return new class extends Migration {
             $table->string('male_amount')->nullable();
             $table->string('female_amount')->nullable();
             $table->string('phone_number')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             // relation to resources (resource_code/phone come from here)
             $table->foreignId('resource_id')

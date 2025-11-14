@@ -30,6 +30,7 @@ class UpdateCheckpointRequest extends FormRequest
             'specefic_place'    => ['sometimes','nullable','string'],
 
             'coordinates'       => ['sometimes','nullable','string'],
+            'Province_addr'         => ['sometimes','nullable','string'],
 
             'resource_id'       => ['sometimes','nullable','integer','exists:resources,id'],
             'note'              => ['sometimes','nullable','string'],

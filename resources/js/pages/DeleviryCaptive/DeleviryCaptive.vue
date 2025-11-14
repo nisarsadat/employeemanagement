@@ -533,15 +533,38 @@
               :error-messages="getErrorMessages(item, 'notes')"
             />
           </template>
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
 
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
               <!-- submit through v-form -->
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
+              <v-btn
+                class="bg-primary"
+                v-if="auth.can('delevirycaptive.create')"
+                variant="outlined"
+                type="submit"
+                :loading="item.loading"
+              >
                 {{ t('ثبت دیتا') }}
               </v-btn>
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+              <v-btn
+                class="bg-error"
+                v-if="auth.can('delevirycaptive.delete')"
+                variant="outlined"
+                @click="del(item)"
+              >
                 {{ t('حذف دیتا') }}
               </v-btn>
               <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
@@ -635,6 +658,9 @@
   import PeekButton from '@/components/PeekButton.vue';
   import DateInput from '../../components/DateInput.vue';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
 
   const repo = useDatabaseRepository();
 
@@ -744,6 +770,7 @@
       phone_number: x.phone_number ?? '',
       captive_halat: x.captive_halat ?? '',
       suspect_tools: x.suspect_tools ?? '',
+      Province_addr: x.Province_addr ?? '',
 
       existingDocs: Array.isArray(x.documents) ? x.documents : [],
       notes: x.notes ?? '',
@@ -784,6 +811,7 @@
     { title: t('وسایل و شواهد گرفته شده'), key: 'suspect_tools' },
     { title: t('شواهد دستگیری زندانی'), key: 'documents' },
     { title: t('ملاحظات'), key: 'notes' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('عمل'), key: 'actions', sortable: false },
   ]);
 
@@ -825,6 +853,7 @@
     { title: t('وسایل و شواهد گرفته شده'), key: 'suspect_tools' },
 
     { title: t('ملاحظات'), key: 'notes' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
   ]);
 
   /* Group bar for FilterableTable */
@@ -938,6 +967,7 @@
       'phone_number',
       'captive_halat',
       'suspect_tools',
+      'Province_addr',
 
       'notes',
     ];

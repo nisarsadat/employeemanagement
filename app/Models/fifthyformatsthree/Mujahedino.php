@@ -21,6 +21,7 @@ class Mujahedino extends Model
 
         'now_province',
         'now_zone',
+        'Province_addr',
         'now_district',
         'now_village',
         'now_specific_place',

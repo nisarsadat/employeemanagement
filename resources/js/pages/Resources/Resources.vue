@@ -441,14 +441,35 @@
               hide-details
             />
           </template>
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
 
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
+              <v-btn
+                class="bg-primary"
+                v-if="auth.can('resources.create')"
+                variant="outlined"
+                type="submit"
+                :loading="item.loading"
+              >
                 {{ t('ثبت دیتا') }}
               </v-btn>
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+              <v-btn
+                class="bg-error"
+                v-if="auth.can('resources.delete')"
+                variant="outlined"
+                @click="del(item)"
+              >
                 {{ t('حذف دیتا') }}
               </v-btn>
               <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
@@ -543,6 +564,9 @@
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import DateInput from '../../components/DateInput.vue';
 
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
+
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
 
@@ -598,6 +622,7 @@
 
       // jobs
       old_job: x.old_job ?? '',
+      Province_addr: x.Province_addr ?? '',
       now_job: x.now_job ?? '',
       job_place: x.job_place ?? '',
 
@@ -655,6 +680,7 @@
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('کوردینات'), key: 'coordinates' },
     { title: t('نوت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('عمل'), key: 'actions', sortable: false },
   ]);
 
@@ -700,6 +726,7 @@
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('کوردینات'), key: 'coordinates' },
     { title: t('نوت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
   ]);
 
   /* top groups for FilterableTable */
@@ -773,6 +800,7 @@
       'resource_activity_type',
       'office_employee_id',
       'resedint_code',
+      'Province_addr',
       'resource_cover',
       'language',
       'nation',

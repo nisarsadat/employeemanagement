@@ -394,14 +394,36 @@
               :error-messages="getErrorMessages(item, 'note')"
             />
           </template>
-
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
+              <v-btn
+                class="bg-primary"
+                v-if="auth.can('events.create')"
+                variant="outlined"
+                type="submit"
+                :loading="item.loading"
+              >
                 {{ t('ذخیره دیتا') }}
               </v-btn>
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+              <v-btn
+                class="bg-error"
+                v-if="auth.can('events.delete')"
+                variant="outlined"
+                @click="del(item)"
+              >
                 {{ t('حذف دیتا') }}
               </v-btn>
               <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
@@ -446,7 +468,6 @@
       :enableEdit="true"
       :enablePeek="true"
       :dateKeys="['event_date', 'event_hour']"
-
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
@@ -469,6 +490,9 @@
   import PeekButton from '@/components/PeekButton.vue';
   import DateInput from '../../components/DateInput.vue';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
 
   const repo = useDatabaseRepository();
 
@@ -569,6 +593,7 @@
       tafseel: x.tafseel ?? '',
       talks: x.talks ?? '',
       note: x.note ?? '',
+      Province_addr: x.Province_addr ?? '',
 
       /* docs */
       existingDocs: Array.isArray(x.documents) ? x.documents : [],
@@ -599,6 +624,8 @@
     { title: t('شواهد مربوط به واقعه'), key: 'documents' },
     { title: t('وضاحت'), key: 'talks' },
     { title: t('ملاحظات'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
     { title: t('عمل'), key: 'actions', sortable: false },
   ]);
 
@@ -622,6 +649,7 @@
     { title: t('تفصیل'), key: 'tafseel' },
     { title: t('وضاحت'), key: 'talks' },
     { title: t('ملاحظات'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
   ]);
 
   const topGroups = computed(() => [
@@ -689,6 +717,7 @@
       'coordinates',
       'talafat_jani',
       'talafat_mali',
+      'Province_addr',
       'tafseel',
       'talks',
       'note',

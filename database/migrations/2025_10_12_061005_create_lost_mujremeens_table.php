@@ -38,6 +38,8 @@ return new class extends Migration {
             $table->string('phone_number')->nullable();
 
             $table->text('note')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             $table->foreignId('resource_id')
                 ->nullable()

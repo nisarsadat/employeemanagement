@@ -21,14 +21,14 @@
   "zoom": 1,
   "bearing": 0,
   "pitch": 0,
-  "sprite": "/sprites/sprite",
-  "glyphs": "/fonts/{fontstack}/{range}.pbf",
   "sources": {
     "openmaptiles": {
       "type": "vector",
-      "url": "pmtiles://http://localhost/employeemanagement/public/pmtiles/afghanistan.pmtiles"
+      "url": "pmtiles://pmtiles-range/afghanistan.pmtiles"
     }
   },
+  "sprite": "/styles/icons/sprite",
+  "glyphs": "/fonts/{fontstack}/{range}.pbf",
   "layers": [
     {
       "id": "background",

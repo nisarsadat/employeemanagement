@@ -14,6 +14,7 @@ class EntryExit extends Model
         'name',
         'entry_way','way_type','province','zone','district','village',
         'specific_place','cordinate','amnayaty_poste','amnayaty_ishala',
+        'Province_addr',
         'where_went','where_come',
         'notes','resource_id',
     ];

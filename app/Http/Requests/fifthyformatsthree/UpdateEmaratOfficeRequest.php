@@ -25,6 +25,7 @@ class UpdateEmaratOfficeRequest extends FormRequest
             'guard_quantity'  => ['nullable','string'],
             'note'            => ['nullable','string'],
             'resource_id'     => ['nullable','integer','exists:resources,id'],
+            'Province_addr' => ['nullable','string'],
 
             // If you want to enforce at least one change:
             // 'sometimes' on fields isn't necessary since all are optional on update.

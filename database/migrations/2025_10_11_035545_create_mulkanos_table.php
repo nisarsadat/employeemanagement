@@ -40,6 +40,8 @@ return new class extends Migration {
             $table->string('phone_number')->nullable();
             $table->string('jorm_history')->nullable();
             $table->string('tanzim')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             // relation to resources (code/phone come from this, not stored here)
             $table->foreignId('resource_id')->nullable()

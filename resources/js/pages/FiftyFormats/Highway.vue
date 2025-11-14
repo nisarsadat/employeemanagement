@@ -122,6 +122,16 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
           <!-- Resource (code → phone → id) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -266,6 +276,7 @@
       loading: false,
 
       high_way_name: x.high_way_name ?? '',
+      Province_addr: x.Province_addr ?? '',
       province: x.province ?? '',
       zone: x.zone ?? '',
       district: x.district ?? '',
@@ -322,6 +333,7 @@
     { title: t('موقعیت مشخص'), key: 'specific_place' },
 
     { title: t('مختصات'), key: 'coordinates' }, // <-- before note
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -339,6 +351,7 @@
     { title: t('قریه'), key: 'village' },
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('مختصات'), key: 'coordinates' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -394,6 +407,7 @@
       'province',
       'zone',
       'district',
+      'Province_addr',
       'village',
       'specific_place',
       'coordinates',
@@ -625,6 +639,4 @@
   .pic-overlay :deep(.v-btn) {
     color: #fff;
   }
-
-
 </style>

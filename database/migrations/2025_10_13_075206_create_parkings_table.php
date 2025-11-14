@@ -29,6 +29,8 @@ return new class extends Migration {
             $table->string('daily_cars_parking_quantity')->nullable();
 
             $table->text('note')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             $table->foreignId('resource_id')
                 ->nullable()

@@ -30,6 +30,7 @@ class DamagePlacesResource extends JsonResource
             'masool_f_name'    => $this->masool_f_name,
             'masool_position'  => $this->masool_position,
             'masool_phone'     => $this->masool_phone,
+            'Province_addr'               => $this->Province_addr,
             'note'             => $this->note,
 
             // FK

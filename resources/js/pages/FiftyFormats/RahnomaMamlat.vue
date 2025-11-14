@@ -173,6 +173,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Resource (code -> phone -> id) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -337,6 +349,7 @@
     { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -362,6 +375,7 @@
     { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -410,6 +424,7 @@
       specific_place: x.specific_place ?? '',
       coordinates: x.coordinates ?? '',
 
+      Province_addr: x.Province_addr ?? '',
       note: x.note ?? '',
 
       resource_code: x.resource_code ?? '',
@@ -430,6 +445,7 @@
     'district',
     'village',
     'specific_place',
+      'Province_addr',
     'coordinates',
     'note',
     'resource_code',

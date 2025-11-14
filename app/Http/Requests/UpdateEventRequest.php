@@ -31,6 +31,7 @@ class UpdateEventRequest extends FormRequest
             'talks'                 => 'sometimes|nullable|string',
             'coordinates'           => 'sometimes|nullable|string',
             'note'                  => 'sometimes|nullable|string',
+            'Province_addr' => ['nullable','string'],
 
             'documents.*'           => 'sometimes|file',
         ];

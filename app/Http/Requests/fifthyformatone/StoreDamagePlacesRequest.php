@@ -29,6 +29,7 @@ class StoreDamagePlacesRequest extends FormRequest
             'masool_position'  => ['nullable','string','max:255'],
             'masool_phone'     => ['nullable','string','max:255'],
             'note'             => ['nullable','string'],
+            'Province_addr'             => ['nullable','string'],
             'resource_id'      => ['nullable','integer','exists:resources,id'],
         ];
     }

@@ -13,6 +13,8 @@ class Company extends Model
         'male_employee_quantity_inner','female_employee_quantity_inner',
         'male_employee_quantity_out','female_employee_quantity_out','guard_quantity',
         'resource_id','note',
+        'Province_addr',
+
     ];
 
     public function resource()

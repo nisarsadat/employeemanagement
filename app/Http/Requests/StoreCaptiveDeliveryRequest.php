@@ -48,6 +48,7 @@ class StoreCaptiveDeliveryRequest extends FormRequest
             'suspect_tools' => ['nullable','string'],
 
             'notes' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             // multiple docs on create
             'documents'   => ['sometimes','array'],

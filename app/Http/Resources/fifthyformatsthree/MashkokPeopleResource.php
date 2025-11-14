@@ -33,6 +33,7 @@ class MashkokPeopleResource extends JsonResource
             'now_job'            => $this->now_job,
             'phone_number'       => $this->phone_number,
             'mushkokyat_points'  => $this->mushkokyat_points,
+            'Province_addr'               => $this->Province_addr,
 
             'note'               => $this->note,
             'resource_id'        => $this->resource_id,

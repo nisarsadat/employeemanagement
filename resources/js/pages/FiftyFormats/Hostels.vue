@@ -178,6 +178,18 @@
             </div>
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Specific place + coordinates -->
           <template #item.specific_place="{ item }">
             <v-text-field
@@ -380,6 +392,7 @@
     { title: t('مختصات'), key: 'coordenates' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -406,6 +419,7 @@
     { title: t('قریه/ناحیه'), key: 'village' },
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('مختصات'), key: 'coordenates' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت'), key: 'note' },
 
@@ -449,6 +463,7 @@
       hostel_type: x.hostel_type ?? '',
       people_quantity: x.people_quantity ?? '',
       people_type: x.people_type ?? '',
+      Province_addr: x.Province_addr ?? '',
 
       responsible_name: x.responsible_name ?? '',
       responsible_f_name: x.responsible_f_name ?? '',
@@ -474,6 +489,7 @@
   const EDITABLE_KEYS = [
     'picture',
     'hostel_name',
+      'Province_addr',
     'hostel_type',
     'people_quantity',
     'people_type',

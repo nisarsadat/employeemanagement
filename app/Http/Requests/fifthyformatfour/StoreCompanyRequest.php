@@ -34,6 +34,8 @@ class StoreCompanyRequest extends FormRequest
             'male_employee_quantity_out'         => ['nullable','integer'],
             'female_employee_quantity_out'       => ['nullable','integer'],
             'guard_quantity'                     => ['nullable','integer'],
+            'Province_addr'                      => ['nullable','string'],
+
 
             'resource_id'                        => ['nullable','integer','exists:resources,id'],
             'note'                               => ['nullable','string'],

@@ -14,27 +14,28 @@ class UpdateSarafyanoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes','required','string','max:255'],
+            'name' => ['sometimes','required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
 
-            'sarafi_name' => ['nullable','string','max:255'],
-            'sarafi_type' => ['nullable','string','max:255'],
-            'father_name' => ['nullable','string','max:255'],
-            'position' => ['nullable','string','max:255'],
-            'phone_number' => ['nullable','string','max:255'],
+            'sarafi_name' => ['nullable','string'],
+            'sarafi_type' => ['nullable','string'],
+            'father_name' => ['nullable','string'],
+            'position' => ['nullable','string'],
+            'phone_number' => ['nullable','string'],
 
-            'province' => ['nullable','string','max:255'],
-            'zone' => ['nullable','string','max:255'],
-            'district' => ['nullable','string','max:255'],
-            'village' => ['nullable','string','max:255'],
-            'specific_place' => ['nullable','string','max:255'],
-            'market_name' => ['nullable','string','max:255'],
-            'shop_number' => ['nullable','string','max:255'],
-            'cordinate' => ['nullable','string','max:255'],
+            'province' => ['nullable','string'],
+            'zone' => ['nullable','string'],
+            'district' => ['nullable','string'],
+            'village' => ['nullable','string'],
+            'specific_place' => ['nullable','string'],
+            'market_name' => ['nullable','string'],
+            'shop_number' => ['nullable','string'],
+            'cordinate' => ['nullable','string'],
 
-            'provinces_hawala' => ['nullable','string','max:255'],
-            'countries_hawala' => ['nullable','string','max:255'],
-            'employee_quantity' => ['nullable','string','max:255'],
+            'provinces_hawala' => ['nullable','string'],
+            'countries_hawala' => ['nullable','string'],
+            'employee_quantity' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'notes' => ['nullable','string'],
         ];

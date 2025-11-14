@@ -30,6 +30,7 @@ class HeistResource extends JsonResource
             'done_roberies'   => $this->done_roberies,
             'gun_type'        => $this->gun_type,
             'note'            => $this->note,
+            'Province_addr'               => $this->Province_addr,
 
             'resource_id'     => $this->resource_id,
             'resource'        => $this->whenLoaded('resource', function () {

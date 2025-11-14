@@ -21,6 +21,7 @@ class Hotel extends Model
 
         'province',
         'zone',
+        'Province_addr',
         'district',
         'village',
         'specific_place',

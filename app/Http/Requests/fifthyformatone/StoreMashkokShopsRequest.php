@@ -26,6 +26,7 @@ class StoreMashkokShopsRequest extends FormRequest
 
             'shop_type'      => ['nullable','string','max:255'],
             'mashkok_type'   => ['nullable','string','max:255'],
+            'Province_addr'             => ['nullable','string'],
 
             'note'           => ['nullable','string'],
             'resource_id'    => ['nullable','integer','exists:resources,id'],

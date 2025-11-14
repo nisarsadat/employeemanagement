@@ -30,6 +30,7 @@ class OfficeEmployee extends Model
         'father_name',
         'grand_father_name',
         'nick_name',
+        'Province_addr',
         'code_number',
 
         // Rank/Levels & background

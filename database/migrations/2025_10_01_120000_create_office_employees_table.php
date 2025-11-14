@@ -65,6 +65,7 @@ return new class extends Migration {
 
             // Contact & misc
             $table->string('phone_number')->nullable();
+            $table->string('Province_addr')->nullable();
 
             // Coordinates (e.g. "34.53,69.17" or "lat,long")
             $table->string('coordinates')->nullable()

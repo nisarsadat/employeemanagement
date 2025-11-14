@@ -29,6 +29,7 @@ class Captive extends Model
         'band_distince',
         'now_activity',
         'phone_number',
+        'Province_addr',
         'note',
         'resource_id',
     ];

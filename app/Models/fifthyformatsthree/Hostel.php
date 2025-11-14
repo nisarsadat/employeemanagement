@@ -17,6 +17,7 @@ class Hostel extends Model
         'people_type',
 
         'responsible_name',
+        'Province_addr',
         'responsible_f_name',
         'responsible_position',
         'responsible_phone',

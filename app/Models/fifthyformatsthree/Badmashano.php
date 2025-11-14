@@ -23,6 +23,7 @@ class Badmashano extends Model
         'now_zone',
         'now_district',
         'now_village',
+        'Province_addr',
         'now_specific_place',
         'now_street_number',
         'now_home_number',

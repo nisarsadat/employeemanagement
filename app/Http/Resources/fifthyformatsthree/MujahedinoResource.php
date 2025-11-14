@@ -33,6 +33,7 @@ class MujahedinoResource extends JsonResource
             'organ' => $this->organ,
             'phone_number' => $this->phone_number,
             'note' => $this->note,
+            'Province_addr'               => $this->Province_addr,
 
             'resource_id' => $this->resource_id,
             'resource_code' => $resource?->code_number,

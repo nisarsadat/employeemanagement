@@ -11,6 +11,7 @@ class Pump extends Model
         'responsible_name','responsible_f_name','responsible_possition','responsible_phone',
         'province','zone','district','village','specefic_place',
         'coordinates','employee_quantity','guard_quantity',
+        'Province_addr',
         'resource_id','note',
     ];
 

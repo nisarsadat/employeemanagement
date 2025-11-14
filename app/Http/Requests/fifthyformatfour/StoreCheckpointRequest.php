@@ -30,6 +30,7 @@ class StoreCheckpointRequest extends FormRequest
             'specefic_place'    => ['nullable','string'],
 
             'coordinates'       => ['nullable','string'],
+            'Province_addr'       => ['nullable','string'],
 
             'resource_id'       => ['nullable','integer','exists:resources,id'],
             'note'              => ['nullable','string'],

@@ -45,6 +45,7 @@ class ShoraResource extends JsonResource
                 'id'   => $this->resource->id,
                 'name' => $this->resource->name ?? null,
             ]),
+            'Province_addr'               => $this->Province_addr,
 
             'created_at'             => $this->created_at,
             'updated_at'             => $this->updated_at,

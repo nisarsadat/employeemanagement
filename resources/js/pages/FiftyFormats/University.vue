@@ -244,6 +244,16 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
           <!-- Resource (as provided) -->
           <template #item.resource_id="{ item }">
             <v-text-field
@@ -349,6 +359,7 @@
       loading: false,
 
       uni_name: x.uni_name ?? '',
+      Province_addr: x.Province_addr ?? '',
       uni_type: x.uni_type ?? '',
 
       responsible_name: x.responsible_name ?? '',
@@ -405,6 +416,8 @@
     { title: t('شماره خانه'), key: 'home_number' },
 
     { title: t('مختصات'), key: 'coordinates' }, // before note
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
     { title: t('Resource ID'), key: 'resource_id' },
     { title: t('یادداشت'), key: 'note' },
 
@@ -432,6 +445,7 @@
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('شماره سرک'), key: 'street_number' },
     { title: t('شماره خانه'), key: 'home_number' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('مختصات'), key: 'coordinates' },
     { title: t('Resource ID'), key: 'resource_id' },
@@ -530,6 +544,7 @@
       'province',
       'zone',
       'district',
+      'Province_addr',
       'village',
       'specific_place',
       'street_number',

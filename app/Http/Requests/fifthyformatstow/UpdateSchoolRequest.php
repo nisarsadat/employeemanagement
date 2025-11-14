@@ -33,6 +33,7 @@ class UpdateSchoolRequest extends FormRequest
             'village'        => ['nullable','string'],
             'street_number'  => ['nullable','string'],
             'coordinates'    => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'note'         => ['nullable','string'],
             'resource_id'  => ['nullable','integer','exists:resources,id'],

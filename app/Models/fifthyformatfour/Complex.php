@@ -11,6 +11,7 @@ class Complex extends Model
         'complex_name','activity_type','activity_place','supplier',
         'enter_male_quantity','outer_male_quantity','enter_femal_quantity','outer_femal_quantity',
         'responsible_name','responsible_f_name','responsible_phone','responsible_country',
+        'Province_addr',
         'guard_quantity','resource_id','note',
     ];
 

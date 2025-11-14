@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\fifthyformats;
+namespace App\Http\Controllers\fifthyFormats;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;

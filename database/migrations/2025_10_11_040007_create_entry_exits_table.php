@@ -26,6 +26,8 @@ return new class extends Migration {
             $table->string('amnayaty_ishala')->nullable();
             $table->string('where_went')->nullable();
             $table->string('where_come')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             // relation to resources (resource_code/phone are derived from this)
             $table->foreignId('resource_id')

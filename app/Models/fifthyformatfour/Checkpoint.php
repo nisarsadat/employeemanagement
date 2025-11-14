@@ -14,6 +14,7 @@ class Checkpoint extends Model
         'province','zone','district','village','specefic_place',
         'coordinates',
         'resource_id','note',
+        'Province_addr'
     ];
 
     public function resource()

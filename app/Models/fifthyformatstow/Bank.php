@@ -25,6 +25,7 @@ class Bank extends Model
         'district',
         'village',
         'specific_place',
+        'Province_addr',
         'coordinates',
 
         'guard_quantity',

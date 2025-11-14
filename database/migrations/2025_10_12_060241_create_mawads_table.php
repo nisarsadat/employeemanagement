@@ -38,6 +38,8 @@ return new class extends Migration {
             $table->text('history_form')->nullable();
             $table->string('supplier')->nullable();
             $table->text('note')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             $table->foreignId('resource_id')->nullable()
                   ->constrained('resources')

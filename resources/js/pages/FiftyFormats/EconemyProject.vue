@@ -209,6 +209,16 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
           <!-- Resource (code → phone → id) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -353,6 +363,7 @@
 
       responsiable_name: x.responsiable_name ?? '',
       responsiable_f_name: x.responsiable_f_name ?? '',
+      Province_addr: x.Province_addr ?? '',
       responsible_possition: x.responsible_possition ?? '',
       responsible_phone: x.responsible_phone ?? '',
 
@@ -428,7 +439,7 @@
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
-    // { title: t('Resource ID'), key: 'resource_id' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت'), key: 'note' },
 
@@ -459,7 +470,7 @@
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
-    // { title: t('Resource ID'), key: 'resource_id' }, // usually hidden in list
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت'), key: 'note' },
   ]);
@@ -525,6 +536,7 @@
       'zone',
       'district',
       'village',
+      'Province_addr',
       'specefic_place',
       'amnyatee_khala',
       'employee_quantity',

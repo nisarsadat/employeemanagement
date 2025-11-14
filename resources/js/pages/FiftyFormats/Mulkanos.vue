@@ -338,6 +338,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Resource -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -554,6 +566,7 @@
 
     { title: t('سابقه جرم'), key: 'jorm_history' },
     { title: t('تنظیم'), key: 'tanzim' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -595,6 +608,7 @@
 
     { title: t('سابقه جرم'), key: 'jorm_history' },
     { title: t('تنظیم'), key: 'tanzim' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -655,6 +669,7 @@
       now_zone: x.now_zone ?? '',
       now_district: x.now_district ?? '',
       now_village: x.now_village ?? '',
+      Province_addr: x.Province_addr ?? '',
 
       specific_place: x.specific_place ?? '',
       street_number: x.street_number ?? '',
@@ -702,6 +717,7 @@
     'street_amount',
     'old_job',
     'new_job',
+      'Province_addr',
     'agent_quantity',
     'home_quantity',
     'phone_number',

@@ -47,6 +47,8 @@ class UpdateMasjidRequest extends FormRequest
 
             'resource_id'                   => ['sometimes','nullable','integer','exists:resources,id'],
             'note'                          => ['sometimes','nullable','string'],
+            'Province_addr'         => ['sometimes','nullable','string'],
+
         ];
     }
 }

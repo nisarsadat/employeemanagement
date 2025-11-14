@@ -34,6 +34,7 @@ class UpdateCaptiveRequest extends FormRequest
             'band_distince' => ['nullable','string'],
             'now_activity' => ['nullable','string'],
             'phone_number' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
             'note' => ['nullable','string'],
         ];
     }

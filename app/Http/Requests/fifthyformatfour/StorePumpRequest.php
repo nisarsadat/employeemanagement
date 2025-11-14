@@ -29,6 +29,7 @@ class StorePumpRequest extends FormRequest
             'coordinates'          => ['nullable','string'],
             'employee_quantity'    => ['nullable','integer'],
             'guard_quantity'       => ['nullable','integer'],
+            'Province_addr'         => ['nullable','string'],
 
             'resource_id'          => ['nullable','integer','exists:resources,id'],
             'note'                 => ['nullable','string'],

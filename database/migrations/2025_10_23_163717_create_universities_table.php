@@ -37,6 +37,8 @@ return new class extends Migration {
 
             // Coordinates / notes
             $table->string('coordinates')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             // Resource link
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();

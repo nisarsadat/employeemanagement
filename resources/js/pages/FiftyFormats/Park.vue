@@ -229,6 +229,16 @@
             />
           </template> -->
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
           <!-- Notes -->
           <template #item.notes="{ item }">
             <v-textarea
@@ -328,6 +338,7 @@
       dayly_clientele: x.dayly_clientele ?? '',
 
       responsible_name: x.responsible_name ?? '',
+      Province_addr: x.Province_addr ?? '',
       responsible_f_name: x.responsible_f_name ?? '',
       responsible_phone: x.responsible_phone ?? '',
       responsible_possition: x.responsible_possition ?? '',
@@ -402,6 +413,7 @@
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
     // { title: t('Resource ID'), key: 'resource_id' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت‌ها'), key: 'notes' },
 
@@ -432,6 +444,7 @@
     { title: t('تعداد کارمندان'), key: 'employee_quantity' },
 
     { title: t('یادداشت‌ها'), key: 'notes' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
   ]);
 
   const topGroups = computed(() => [
@@ -492,6 +505,7 @@
       'responsible_possition',
       'province',
       'zone',
+      'Province_addr',
       'village',
       'specefic_place',
       'coordinates',

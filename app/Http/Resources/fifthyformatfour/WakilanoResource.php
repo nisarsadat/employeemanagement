@@ -44,6 +44,7 @@ class WakilanoResource extends JsonResource
                 'id'   => $this->resource->id,
                 'name' => $this->resource->name ?? null,
             ]),
+            'Province_addr'               => $this->Province_addr,
 
             'note'                => $this->note,
             'created_at'          => $this->created_at,

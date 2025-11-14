@@ -12,6 +12,7 @@ class EconemyProject extends Model
         'responsiable_name','responsiable_f_name','responsible_possition','responsible_phone',
         'province','zone','district','village','specefic_place',
         'amnyatee_khala','employee_quantity','gaurd_quantity',
+        'Province_addr',
         'resource_id','note',
     ];
 

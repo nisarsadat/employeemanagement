@@ -23,6 +23,7 @@ class Luchakano extends Model
         'now_village',
         'now_specific_place',
         'now_street_number',
+        'Province_addr',
         'now_home_number',
         'old_job',
         'job',

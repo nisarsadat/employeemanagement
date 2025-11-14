@@ -32,6 +32,7 @@ class SchoolResource extends JsonResource
             'village'                   => $this->village,
             'street_number'             => $this->street_number,
             'coordinates'               => $this->coordinates,
+            'Province_addr'               => $this->Province_addr,
 
             'note'                      => $this->note,
 

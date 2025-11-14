@@ -35,6 +35,7 @@ class UpdateLuchakanoRequest extends FormRequest
             'phone_number'       => ['nullable','string'],
             'history_jorm'       => ['nullable','string'],
             'note'               => ['nullable','string'],
+            'Province_addr'             => ['nullable','string'],
 
             'resource_code'      => ['nullable','string'],
             'resource_phone'     => ['nullable','string'],

@@ -180,6 +180,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- RESOURCE (id select -> phone/code auto) -->
           <template #item.resource_id="{ item }">
             <v-autocomplete
@@ -347,6 +359,7 @@ const headers = computed(() => [
 
   { title: t('منبع'), key: 'resource_id' },
   { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
   { title: t('عملیات'), key: 'actions', sortable: false },
 ]);
@@ -368,6 +381,7 @@ const headersFT = computed(() => [
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
   { title: t('یادداشت'), key: 'note' },
 ]);
@@ -397,6 +411,7 @@ function toRowModel(x = {}) {
 
     province: x.province ?? '',
     zone: x.zone ?? '',
+      Province_addr: x.Province_addr ?? '',
     district: x.district ?? '',
     village: x.village ?? '',
 
@@ -421,6 +436,7 @@ const EDITABLE_KEYS = [
   'province',
   'zone',
   'district',
+      'Province_addr',
   'village',
   'specific_place',
   'specific_dot',

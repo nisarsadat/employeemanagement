@@ -27,6 +27,7 @@ class StoreRahnomaMamlatRequest extends FormRequest
             'village'        => ['nullable','string'],
             'specific_place' => ['nullable','string'],
             'coordinates'    => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'note'         => ['nullable','string'],
             'resource_id'  => ['nullable','integer','exists:resources,id'],

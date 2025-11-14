@@ -25,6 +25,7 @@ class EventResource extends JsonResource
             'talks'                => $this->talks,
             'coordinates'          => $this->coordinates,
             'note'                 => $this->note,
+            'Province_addr'               => $this->Province_addr,
 
             'resource' => $this->whenLoaded('resource', function () {
                 if (!$this->resource) return null;

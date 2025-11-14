@@ -23,6 +23,7 @@ class Parking extends Model
         'province',
         'zone',
         'district',
+        'Province_addr',
         'village',
         'specific_place',
         'coordinates',

@@ -33,6 +33,7 @@ class EntryExitResource extends JsonResource
 
             'where_went'      => $this->where_went,
             'where_come'      => $this->where_come,
+            'Province_addr'               => $this->Province_addr,
 
             'notes'           => $this->notes,
 

@@ -17,6 +17,7 @@ class CarSalesCompany extends Model
         'responsible_f_name',
         'responsible_position',
         'responsible_phone',
+        'Province_addr',
 
         'province',
         'zone',

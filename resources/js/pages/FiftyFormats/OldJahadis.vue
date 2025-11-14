@@ -254,6 +254,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Resource code (autocomplete) + phone (readonly) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -423,6 +435,7 @@
     { title: t('تنظیم مربوطه'), key: 'tanzim' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -455,6 +468,7 @@
     { title: t('تعداد کارمندان'), key: 'employee_quantity' },
     { title: t('تمویل کننده'), key: 'supplier' },
     { title: t('تنظیم مربوطه'), key: 'tanzim' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت'), key: 'note' },
     { title: t('کود منبع'), key: 'resource_code' },
@@ -508,6 +522,7 @@
       now_village: x.now_village ?? '',
       now_specific_place: x.now_specific_place ?? '',
       now_street_number: x.now_street_number ?? '',
+      Province_addr: x.Province_addr ?? '',
       now_home_number: x.now_home_number ?? '',
 
       old_job: x.old_job ?? '',
@@ -540,6 +555,7 @@
     'now_specific_place',
     'now_street_number',
     'now_home_number',
+      'Province_addr',
     'old_job',
     'now_job',
     'organ',

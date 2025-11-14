@@ -242,6 +242,16 @@
             </div>
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
           <!-- Resource (code → phone → id) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -381,6 +391,7 @@
       shora_name: x.shora_name ?? '',
       shora_goal: x.shora_goal ?? '',
       people_quantity: x.people_quantity ?? '',
+      Province_addr: x.Province_addr ?? '',
       week_meeting_quantity: x.week_meeting_quantity ?? '',
       regester: x.regester ?? '',
       shora_meeting_place: x.shora_meeting_place ?? '',
@@ -461,6 +472,7 @@
     { title: t('طرفداری امارت'), key: 'emarat_tarfdary' },
 
     { title: t('آدرس شورا'), key: 'shora_province' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -495,6 +507,7 @@
     { title: t('ولایت'), key: 'shora_province' },
     { title: t('زون'), key: 'shora_zone' },
     { title: t('ولسوالی'), key: 'shora_district' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -554,6 +567,7 @@
       'note',
       'shora_name',
       'shora_goal',
+      'Province_addr',
       'people_quantity',
       'week_meeting_quantity',
       'regester',
@@ -699,7 +713,7 @@
 </script>
 
 <style scoped>
-    table th {
+  table th {
     white-space: nowrap;
   }
   .custom-table :deep(.v-data-table__thead th) {

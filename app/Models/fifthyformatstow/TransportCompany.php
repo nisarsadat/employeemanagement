@@ -23,6 +23,7 @@ class TransportCompany extends Model
         'village',
         'specific_place',
         'coordinate',
+        'Province_addr',
         'ways',
         'note',
         'resource_id', // <— ensure this is present

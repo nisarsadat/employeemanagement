@@ -174,6 +174,16 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
           <!-- Resource (code → phone → id) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -312,6 +322,7 @@
       father_name: x.father_name ?? '',
       job: x.job ?? '',
       jorm_type: x.jorm_type ?? '',
+      Province_addr: x.Province_addr ?? '',
       criminals_quantity: x.criminals_quantity ?? '',
       office: x.office ?? '',
 
@@ -376,7 +387,7 @@
     { title: t('مختصات'), key: 'coordinates' }, // before note
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
-    // { title: t('Resource ID'), key: 'resource_id' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('یادداشت'), key: 'note' },
     { title: t('عمل'), key: 'actions', sortable: false },
   ]);
@@ -395,6 +406,8 @@
     { title: t('قریه'), key: 'village' },
     { title: t('موقعیت مشخص'), key: 'specefic_place' },
     { title: t('مختصات'), key: 'coordinates' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
     { title: t('یادداشت'), key: 'note' },
@@ -456,6 +469,7 @@
       'specefic_place',
       'coordinates',
       'resource_id',
+      'Province_addr',
       'note',
     ];
     for (const k of keys) if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
@@ -586,7 +600,7 @@
 </script>
 
 <style scoped>
-    table th {
+  table th {
     white-space: nowrap;
   }
   .custom-table :deep(.v-data-table__thead th) {

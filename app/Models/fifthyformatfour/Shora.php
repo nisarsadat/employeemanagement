@@ -13,6 +13,7 @@ class Shora extends Model
         'supplier_name','supplier_job','supplier_phone',
         'emarat_tarfdary',
         'shora_province','shora_zone','shora_district',
+        'Province_addr',
         'resource_id',
     ];
 

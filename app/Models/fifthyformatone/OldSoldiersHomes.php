@@ -24,6 +24,7 @@ class OldSoldiersHomes extends Model
         'main_province',
         'old_job',
         'now_activity',
+        'Province_addr',
         'note',
         'resource_id',
     ];

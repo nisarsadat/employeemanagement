@@ -16,6 +16,7 @@ class Sarafyano extends Model
         'province','zone','district','village','specific_place',
         'market_name','shop_number','cordinate',
         'provinces_hawala','countries_hawala','employee_quantity',
+        'Province_addr',
         'notes','resource_id',
     ];
 

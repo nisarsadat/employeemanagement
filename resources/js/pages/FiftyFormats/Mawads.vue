@@ -253,6 +253,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Resource code (autocomplete) + phone (readonly) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -424,6 +436,7 @@
     { title: t('تاریخچه/فورم'), key: 'history_form' },
     { title: t('تمویل‌کننده'), key: 'supplier' },
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -458,6 +471,7 @@
     { title: t('تاریخچه/فورم'), key: 'history_form' },
     { title: t('تمویل‌کننده'), key: 'supplier' },
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -514,6 +528,7 @@
       coordinates: x.coordinates ?? '',
       mawad_sales_phone: x.mawad_sales_phone ?? '',
 
+      Province_addr: x.Province_addr ?? '',
       history_form: x.history_form ?? '',
       supplier: x.supplier ?? '',
       note: x.note ?? '',
@@ -532,6 +547,7 @@
     'father_name',
     'main_province',
     'main_district',
+      'Province_addr',
     'main_village',
     'now_province',
     'now_district',

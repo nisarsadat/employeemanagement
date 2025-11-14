@@ -31,6 +31,8 @@ return new class extends Migration {
             $table->string('now_job')->nullable();
             $table->string('guard_amount')->nullable();
             $table->string('phone_number')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             // relation to resources (code/phone derived from this)
             $table->foreignId('resource_id')

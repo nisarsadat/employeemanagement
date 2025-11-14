@@ -24,6 +24,7 @@ class Hosppital extends Model
         'female_quantity',
         'guard_quantity',
 
+        'Province_addr',
         'province',
         'zone',
         'district',

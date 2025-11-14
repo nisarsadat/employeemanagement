@@ -331,6 +331,17 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+
+            />
+          </template>
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
@@ -418,6 +429,7 @@
       activity_place: x.activity_place ?? '',
 
       enter_male_quantity: x.enter_male_quantity ?? '',
+      Province_addr: x.Province_addr ?? '',
       outer_male_quantity: x.outer_male_quantity ?? '',
       enter_female_quantity: x.enter_female_quantity ?? '',
       outer_female_quantity: x.outer_female_quantity ?? '',
@@ -505,6 +517,7 @@
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
 
     { title: t('مختصات'), key: 'coordinates' }, // <-- before note
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -541,6 +554,7 @@
     { title: t('نمبر خانه'), key: 'home_number' },
 
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('مختصات'), key: 'coordinates' },
 
@@ -642,6 +656,7 @@
       'district',
       'village',
       'specefic_place',
+      'Province_addr',
       'street_number',
       'home_number',
       'guard_quantity',

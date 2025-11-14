@@ -29,6 +29,7 @@ class StoreEconemyProjectRequest extends FormRequest
             'amnyatee_khala'        => ['nullable','string'],
             'employee_quantity'     => ['nullable','integer'],
             'gaurd_quantity'        => ['nullable','integer'],
+            'Province_addr'                      => ['nullable','string'],
 
             'resource_id'           => ['nullable','integer','exists:resources,id'],
             'note'                  => ['nullable','string'],

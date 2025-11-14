@@ -6,17 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+    use HasRoles;
+    use SoftDeletes; // keep enabled; controller will forceDelete()
+
+    protected $guard_name = 'web';
 
     protected $fillable = [
         'name',
         'username',
         'password',
-        'photo_path',
+        'image',
     ];
 
     protected $hidden = [
@@ -24,16 +29,8 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    // Laravel 10+: hash automatically
-    protected $casts = [
-        'password' => 'hashed',
-    ];
-
-    // Accessor: get public URL for picture
-    public function getPhotoUrlAttribute(): ?string
+    public function getImageUrlAttribute(): ?string
     {
-        return $this->photo_path
-            ? Storage::disk('public')->url($this->photo_path)
-            : null;
+        return $this->image ? asset('storage/'.$this->image) : null;
     }
 }

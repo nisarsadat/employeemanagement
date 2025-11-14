@@ -44,6 +44,7 @@ class InformationResource extends JsonResource
 
             'syasi_info_type'   => $this->syasi_info_type,
             'jenayee_info_type' => $this->jenayee_info_type,
+            'Province_addr'               => $this->Province_addr,
 
             'information_saved_date' => $this->information_saved_date,
             'information_saved_hour' => $this->information_saved_hour,

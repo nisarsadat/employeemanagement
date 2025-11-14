@@ -39,6 +39,7 @@ class UpdateInformationRequest extends FormRequest
             'lead_drirection' => ['sometimes','nullable','string'],
             'talks'           => ['sometimes','nullable','string'],
             'note'            => ['sometimes','nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'documents'   => ['nullable','array'],
             'documents.*' => ['file'],

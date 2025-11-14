@@ -38,7 +38,7 @@
                 <v-tab value="types">{{ t('د حساب ډولونه') }}</v-tab>
               </v-tabs>
 
-              <v-window v-model="accountsTab">
+              <v-window v-model="accountsTab" v-if="auth.can('finincalindex.view')">
                 <v-window-item value="list">
                   <AccountsIndex />
                 </v-window-item>
@@ -63,7 +63,7 @@
                 <v-tab value="expense">{{ t('مصارف') }}</v-tab>
               </v-tabs>
 
-              <v-window v-model="cashflowTab">
+              <v-window v-model="cashflowTab" v-if="auth.can('finincalindex.view')">
                 <v-window-item value="income">
                   <IncomesIndex />
                 </v-window-item>
@@ -89,7 +89,7 @@
                 <v-tab value="account">{{ t('د تیلو حسابونه') }}</v-tab>
               </v-tabs>
 
-              <v-window v-model="oilTab">
+              <v-window v-model="oilTab" v-if="auth.can('finincalindex.view')">
                 <v-window-item value="income">
                   <OilIncomeIndex />
                 </v-window-item>
@@ -118,7 +118,7 @@
               </v-tabs>
 
               <!-- bind to reportTab (fixed) -->
-              <v-window v-model="reportTab">
+              <v-window v-model="reportTab" v-if="auth.can('finincalindex.delete')">
                 <v-window-item value="oilreport">
                   <OilReport />
                 </v-window-item>
@@ -156,6 +156,9 @@
   // Reports
   import OilReport from './Report/OilReport.vue';
   import MoneyReport from './Report/MoneyReport.vue';
+
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
 
   const { t, locale } = useI18n();
   const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));

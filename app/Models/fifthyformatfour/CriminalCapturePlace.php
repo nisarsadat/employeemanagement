@@ -11,6 +11,7 @@ class CriminalCapturePlace extends Model
         'jorm_type','criminals_quantity','office',
         'province','zone','district','village','specefic_place',
         'coordinates',
+        'Province_addr',
         'resource_id','note',
     ];
 

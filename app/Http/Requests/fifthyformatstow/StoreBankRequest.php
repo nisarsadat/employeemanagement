@@ -33,6 +33,8 @@ class StoreBankRequest extends FormRequest
             'guard_quantity' => ['nullable','integer','min:0'],
             'note'           => ['nullable','string'],
             'resource_id'    => ['nullable','integer','exists:resources,id'],
+            'Province_addr' => ['nullable','string'],
+
         ];
     }
 }

@@ -14,22 +14,24 @@ class StoreClubsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required','string','max:255'],
+            'name' => ['required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
 
-            'club_name' => ['nullable','string','max:255'],
-            'club_type' => ['nullable','string','max:255'],
-            'father_name' => ['nullable','string','max:255'],
-            'position' => ['nullable','string','max:255'],
-            'phone_number' => ['nullable','string','max:255'],
+            'club_name' => ['nullable','string'],
+            'club_type' => ['nullable','string'],
+            'father_name' => ['nullable','string'],
+            'position' => ['nullable','string'],
+            'phone_number' => ['nullable','string'],
 
-            'province' => ['nullable','string','max:255'],
-            'zone' => ['nullable','string','max:255'],
-            'district' => ['nullable','string','max:255'],
-            'specific_place' => ['nullable','string','max:255'],
-            'cordinate' => ['nullable','string','max:255'],
-            'am_students' => ['nullable','string','max:255'],
-            'pm_students' => ['nullable','string','max:255'],
+            'province' => ['nullable','string'],
+            'zone' => ['nullable','string'],
+            'district' => ['nullable','string'],
+            'specific_place' => ['nullable','string'],
+            'cordinate' => ['nullable','string'],
+            'am_students' => ['nullable','string'],
+            'pm_students' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
+
         ];
     }
 }

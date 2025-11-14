@@ -37,6 +37,7 @@ class ClubsResource extends JsonResource
             // flattened from related resource
             'resource_code'         => $related?->code_number,
             'resource_phone_number' => $related?->phone_number,
+            'Province_addr'               => $this->Province_addr,
 
             // nested related
             'resource' => $this->when(

@@ -12,6 +12,7 @@ class University extends Model
         'male_teachers_quantity','female_teachers_quantity',
         'male_students_quantity','female_students_quantity',
         'province','zone','district','village','specific_place','street_number','home_number',
+        'Province_addr',
         'coordinates',
         'resource_id',
         'note',

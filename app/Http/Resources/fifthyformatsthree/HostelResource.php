@@ -30,6 +30,7 @@ class HostelResource extends JsonResource
             'village'            => $this->village,
             'specific_place'     => $this->specific_place,
             'coordenates'        => $this->coordenates,
+            'Province_addr'               => $this->Province_addr,
 
             'note'               => $this->note,
 

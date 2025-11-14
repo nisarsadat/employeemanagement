@@ -40,6 +40,8 @@ return new class extends Migration {
             $table->string('history_jorm')->nullable();
             $table->string('jorm_type')->nullable();
             $table->text('note')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             // Link to resources
             $table->foreignId('resource_id')

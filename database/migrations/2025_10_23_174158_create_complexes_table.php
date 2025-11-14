@@ -39,6 +39,7 @@ return new class extends Migration {
 
             // Security
             $table->integer('guard_quantity')->nullable();
+            $table->string('Province_addr')->nullable();
 
             // Link to Resource + optional note
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();

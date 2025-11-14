@@ -39,6 +39,7 @@ class BadmashanoResource extends JsonResource
             'history_jorm'      => $this->history_jorm,
             'jorm_type'         => $this->jorm_type,
             'note'              => $this->note,
+            'Province_addr'               => $this->Province_addr,
 
             'resource_id'       => $this->resource_id,
 

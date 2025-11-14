@@ -27,6 +27,8 @@ return new class extends Migration {
             $table->string('cordinate')->nullable();
             $table->string('am_students')->nullable();
             $table->string('pm_students')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             // relation to resources (code/phone derived from resource)
             $table->foreignId('resource_id')

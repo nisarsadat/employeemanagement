@@ -24,6 +24,7 @@ class School extends Model
         'female_students_quantity',
 
         'province',
+        'Province_addr',
         'zone',
         'district',
         'specific_place',

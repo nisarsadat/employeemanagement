@@ -23,6 +23,8 @@ return new class extends Migration {
             $table->string('shak_symbols')->nullable();
 
             $table->text('note')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             $table->foreignId('resource_id')
                   ->nullable()

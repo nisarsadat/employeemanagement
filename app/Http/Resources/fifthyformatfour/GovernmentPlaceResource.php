@@ -39,6 +39,8 @@ class GovernmentPlaceResource extends JsonResource
             ]),
 
             'note'                    => $this->note,
+            'Province_addr'               => $this->Province_addr,
+
             'created_at'              => $this->created_at,
             'updated_at'              => $this->updated_at,
         ];

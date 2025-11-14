@@ -26,6 +26,8 @@ return new class extends Migration {
             $table->string('now_activity')->nullable();
 
             $table->text('note')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             $table->foreignId('resource_id')
                   ->nullable()

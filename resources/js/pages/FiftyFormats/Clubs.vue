@@ -215,7 +215,18 @@
               hide-details
             />
           </template>
-
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Resource link -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -396,6 +407,7 @@
       club_type: x.club_type ?? '',
       father_name: x.father_name ?? '',
       position: x.position ?? '',
+      Province_addr: x.Province_addr ?? '',
       phone_number: x.phone_number ?? '',
 
       province: x.province ?? '',
@@ -443,6 +455,7 @@
     { title: t('مختصات'), key: 'cordinate' },
     { title: t('شاگردان صبح'), key: 'am_students' },
     { title: t('شاگردان عصر'), key: 'pm_students' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
     { title: t('عمل'), key: 'actions', sortable: false },
@@ -462,6 +475,7 @@
     { title: t('مختصات'), key: 'cordinate' },
     { title: t('شاگردان صبح'), key: 'am_students' },
     { title: t('شاگردان عصر'), key: 'pm_students' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
   ]);
@@ -486,6 +500,7 @@
     'phone_number',
     'province',
     'zone',
+      'Province_addr',
     'district',
     'specific_place',
     'cordinate',

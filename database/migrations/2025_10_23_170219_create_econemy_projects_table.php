@@ -32,6 +32,7 @@ return new class extends Migration {
             $table->string('amnyatee_khala')->nullable();
             $table->integer('employee_quantity')->nullable();
             $table->integer('gaurd_quantity')->nullable();
+            $table->string('Province_addr')->nullable();
 
             // Link to Resource + note
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();

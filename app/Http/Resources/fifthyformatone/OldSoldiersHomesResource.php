@@ -23,6 +23,7 @@ class OldSoldiersHomesResource extends JsonResource
             'street_number'   => $this->street_number,
             'home_number'     => $this->home_number,
             'coordinates'     => $this->coordinates,
+            'Province_addr'               => $this->Province_addr,
 
             'name'            => $this->name,
             'father_name'     => $this->father_name,

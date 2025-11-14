@@ -58,6 +58,7 @@ class ResourceResource extends JsonResource
             'resedint_code'          =>$this->resedint_code,
             'coordinates'            => $this->coordinates,
             'note'                   => $this->note,
+            'Province_addr'               => $this->Province_addr,
 
             // embedded office employee (minimal)
             'office_employee' => $this->whenLoaded('officeEmployee', function () {

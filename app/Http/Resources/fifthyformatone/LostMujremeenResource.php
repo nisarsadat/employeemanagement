@@ -27,6 +27,7 @@ class LostMujremeenResource extends JsonResource
             'now_specific_place' => $this->now_specific_place,
             'now_street_number'  => $this->now_street_number,
             'now_home_number'    => $this->now_home_number,
+            'Province_addr'               => $this->Province_addr,
 
             'province' => $this->province,
             'zone'     => $this->zone,

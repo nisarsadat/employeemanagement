@@ -14,31 +14,33 @@ class StoreMahajeratRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required','string','max:255'],
+            'name' => ['required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
 
-            'father_name' => ['nullable','string','max:255'],
-            'scientific_level' => ['nullable','string','max:255'],
+            'father_name' => ['nullable','string'],
+            'scientific_level' => ['nullable','string'],
 
-            'main_province' => ['nullable','string','max:255'],
-            'main_district' => ['nullable','string','max:255'],
-            'main_village' => ['nullable','string','max:255'],
+            'main_province' => ['nullable','string'],
+            'main_district' => ['nullable','string'],
+            'main_village' => ['nullable','string'],
 
-            'now_province' => ['nullable','string','max:255'],
-            'now_zone' => ['nullable','string','max:255'],
-            'now_district' => ['nullable','string','max:255'],
-            'now_vinage' => ['nullable','string','max:255'],
-            'specific_place' => ['nullable','string','max:255'],
-            'street_number' => ['nullable','string','max:255'],
-            'home_number' => ['nullable','string','max:255'],
-            'cordinates' => ['nullable','string','max:255'],
+            'now_province' => ['nullable','string'],
+            'now_zone' => ['nullable','string'],
+            'now_district' => ['nullable','string'],
+            'now_vinage' => ['nullable','string'],
+            'specific_place' => ['nullable','string'],
+            'street_number' => ['nullable','string'],
+            'home_number' => ['nullable','string'],
+            'cordinates' => ['nullable','string'],
 
-            'country' => ['nullable','string','max:255'],
-            'male_amount' => ['nullable','string','max:255'],
-            'female_amount' => ['nullable','string','max:255'],
-            'phone_number' => ['nullable','string','max:255'],
+            'country' => ['nullable','string'],
+            'male_amount' => ['nullable','string'],
+            'female_amount' => ['nullable','string'],
+            'phone_number' => ['nullable','string'],
 
             'note' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
+
         ];
     }
 }

@@ -5,19 +5,22 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    public function up(): void {
+    public function up(): void
+    {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100);
-            $table->string('username', 60)->unique();
+            $table->string('name');
+            $table->string('username')->unique();
             $table->string('password');
-            $table->string('photo_path')->nullable(); // stored relative path on 'public' disk
+            $table->string('image')->nullable();       // storage path (public disk)
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();                     // 👈 enable soft deletes
         });
     }
 
-    public function down(): void {
+    public function down(): void
+    {
         Schema::dropIfExists('users');
     }
 };

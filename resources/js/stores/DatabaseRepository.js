@@ -73,10 +73,8 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     resourcecode: reactive({}),
 
     // Others you used elsewhere
-    DeleviryCaptives: reactive([]),
-    DeleviryCaptive: reactive({}),
-    DeleviryCaptives: reactive([]),
-    DeleviryCaptive: reactive({}),
+    CaptiveDeliveries: reactive([]),
+    CaptiveDelivery: reactive({}),
 
     // options
     activityOptions: ['فعال', 'غیر فعال'],
@@ -135,22 +133,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       return `${y}-${m}-${day}`;
     },
 
-    // ---------------------- Resedints ----------------------
-    async GetResedints() {
-      this.loading = true;
-      try {
-        setContentType('application/json');
-        const { data } = await axios.get(`/resedints`);
-        this.resedints = data.data ?? data;
-      } catch (e) {
-        console.error(e);
-        this.error = e;
-        toast.error('د رزیډنټانو احیستل ناکام شو');
-      } finally {
-        this.loading = false;
-      }
-    },
-
+   
     // ---------------------- OfficeEmployee ----------------------
     async GetOfficeEmployee() {
       this.loading = true;
@@ -310,29 +293,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       }
     },
 
-    // ---------------------- Zone Employees ----------------------
-    async GetZoneEmployees() {
-      this.loading = true;
-      try {
-        const { data } = await axios.get(`/zone-employees`);
-        this.ZoneEmployees = data.data ?? data;
-      } finally {
-        this.loading = false;
-      }
-    },
-    async GetZoneEmployeesCode() {
-      this.loading = true;
-      try {
-        const { data } = await axios.get(`/zone-employees`);
-        this.ZoneEmployeesCode = data.data ?? data;
-      } finally {
-        this.loading = false;
-      }
-    },
-    // alias to match your component that calls FetchZoneEmployeesData
-    async FetchZoneEmployeesData({ page = 1, itemsPerPage = 100 } = {}) {
-      return this.GetZoneEmployees(page, itemsPerPage);
-    },
+    
 
     // ====================== EVENTS  ======================
     async FetchEventsData({ page, itemsPerPage }) {
@@ -631,6 +592,21 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         );
         const list = Array.isArray(data) ? data : data.data ?? data.items ?? [];
         this.CaptiveDeliveries = list;
+        this.totalItems = data?.meta?.total ?? data?.total ?? list.length;
+      } finally {
+        this.loading = false;
+      }
+    },
+        async FetchCaptiveDeliveryData({ page, itemsPerPage }) {
+      this.loading = true;
+      try {
+        const { data } = await axios.get(
+          `captive-deliveries?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
+            this.Search || ''
+          )}`
+        );
+        const list = Array.isArray(data) ? data : data.data ?? data.items ?? [];
+        this.CaptiveDelivery = list;
         this.totalItems = data?.meta?.total ?? data?.total ?? list.length;
       } finally {
         this.loading = false;

@@ -17,6 +17,7 @@ class HadoBusStop extends Model
         'responsible_name',
         'responsible_f_name',
         'responsible_position',
+        'Province_addr',
         'responsible_phone',
 
         'province',

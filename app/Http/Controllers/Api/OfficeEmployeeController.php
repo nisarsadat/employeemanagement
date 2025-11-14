@@ -72,19 +72,15 @@ class OfficeEmployeeController extends Controller
         );
     }
 
-    public function show(OfficeEmployee $officeEmployee)
+   public function show($id)
     {
-        return new OfficeEmployeeResource(
-            $officeEmployee
-                ->load(['documents'])
-                ->loadCount([
-                    'events',
-                    'resources',
-                    'informations',
-                    'documents',
-                ])
-        );
+        $officeEmployee = OfficeEmployee::with(['documents'])
+            ->withCount(['events', 'resources', 'informations', 'documents'])
+            ->findOrFail($id);
+
+        return new OfficeEmployeeResource($officeEmployee);
     }
+
 
     /**
      * ✅ NEW: quick counts for UI badges
@@ -146,15 +142,18 @@ class OfficeEmployeeController extends Controller
     /**
      * Update an existing office employee.
      */
-    public function update(UpdateOfficeEmployeeRequest $request, OfficeEmployee $officeEmployee)
+    public function update(UpdateOfficeEmployeeRequest $request, $id)
     {
         DB::beginTransaction();
 
         try {
-            // ✅ Update base fields
+            // Load the employee
+            $officeEmployee = OfficeEmployee::with(['documents'])->findOrFail($id);
+
+            // Update base fields
             $officeEmployee->update($request->validated());
 
-            // 🖼️ Optional: replace profile picture
+            // Optional: replace profile picture
             if ($request->hasFile('picture')) {
                 if ($officeEmployee->picture && str_starts_with($officeEmployee->picture, 'storage/')) {
                     $diskPath = str_replace('storage/', '', $officeEmployee->picture);
@@ -164,10 +163,10 @@ class OfficeEmployeeController extends Controller
                 $officeEmployee->update(['picture' => "storage/{$path}"]);
             }
 
-            // 📎 Handle new documents
+            // Handle new documents
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
-                    $path = $file->store("office_employees/{$officeEmployee->id}", 'public'); // ✅ fixed braces/spacing
+                    $path = $file->store("office_employees/{$officeEmployee->id}", 'public');
                     $officeEmployee->documents()->create([
                         'file_name'  => $file->getClientOriginalName(),
                         'file_path'  => $path,
@@ -179,8 +178,9 @@ class OfficeEmployeeController extends Controller
 
             DB::commit();
 
+            // Return fresh
             return new OfficeEmployeeResource(
-                $officeEmployee->load(['documents']) // ✅ load before return
+                $officeEmployee->load(['documents'])->loadCount(['events', 'resources', 'informations', 'documents'])
             );
 
         } catch (\Throwable $e) {
@@ -192,20 +192,23 @@ class OfficeEmployeeController extends Controller
         }
     }
 
+
     /**
      * Delete an office employee and their documents.
      */
-    public function destroy(OfficeEmployee $officeEmployee)
+    public function destroy($id)
     {
-        // 🗑️ Delete files from storage
+        $officeEmployee = OfficeEmployee::with('documents')->findOrFail($id);
+
+        // Delete files from storage
         foreach ($officeEmployee->documents as $doc) {
             Storage::disk('public')->delete($doc->file_path);
         }
 
-        // 🗑️ Delete DB records
+        // Delete DB records
         $officeEmployee->documents()->delete();
 
-        // 🖼️ Delete profile picture if present
+        // Delete profile picture if present
         if ($officeEmployee->picture && str_starts_with($officeEmployee->picture, 'storage/')) {
             $diskPath = str_replace('storage/', '', $officeEmployee->picture);
             Storage::disk('public')->delete($diskPath);
@@ -214,34 +217,7 @@ class OfficeEmployeeController extends Controller
         $officeEmployee->delete();
 
         return response()->json(['message' => 'Office employee deleted successfully']);
-    }
-        // -------------------------------------------------------------
-    // 🔹 List of ACTIVE office employees
-    // -------------------------------------------------------------
-    public function active(Request $request)
-    {
-        $query = OfficeEmployee::query()
-            ->where('activity', 'فعال')
-            ->with(['documents'])
-            ->withCount(['events', 'resources', 'informations', 'documents'])
-            ->orderByDesc('id');
-
-        // optional search and pagination
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                ->orWhere('code_number', 'like', "%{$search}%")
-                ->orWhere('phone_number', 'like', "%{$search}%");
-            });
-        }
-
-        $perPage = $request->input('perPage', 0);
-        if (!$perPage || strtolower($perPage) === 'all') {
-            return OfficeEmployeeResource::collection($query->get());
-        }
-
-        return OfficeEmployeeResource::collection($query->paginate($perPage));
-    }
+}
 
     // -------------------------------------------------------------
     // 🔹 List of NON-ACTIVE office employees

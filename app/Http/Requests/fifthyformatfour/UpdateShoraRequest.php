@@ -37,6 +37,8 @@ class UpdateShoraRequest extends FormRequest
             'shora_district'        => ['sometimes','nullable','string'],
 
             'resource_id'           => ['sometimes','nullable','integer','exists:resources,id'],
+            'Province_addr'         => ['sometimes','nullable','string'],
+
         ];
     }
 }

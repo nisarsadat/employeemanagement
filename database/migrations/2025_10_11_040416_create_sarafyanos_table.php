@@ -32,6 +32,8 @@ return new class extends Migration {
             $table->string('provinces_hawala')->nullable();
             $table->string('countries_hawala')->nullable();
             $table->string('employee_quantity')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             // relation to resources (code/phone derived from here)
             $table->foreignId('resource_id')

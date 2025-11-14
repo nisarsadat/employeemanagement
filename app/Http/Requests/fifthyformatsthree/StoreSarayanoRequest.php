@@ -28,6 +28,7 @@ class StoreSarayanoRequest extends FormRequest
 
             'employee_quantity' => ['nullable','string'],
             'note' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'resource_id' => ['nullable','integer','exists:resources,id'],
         ];

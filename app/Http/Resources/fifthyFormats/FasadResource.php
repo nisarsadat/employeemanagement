@@ -45,6 +45,7 @@ class FasadResource extends JsonResource
             'resource_code'    => $this->resource_code,
             'resource_phone'   => $this->resource_phone,
             'resource_id'      => $this->resource_id,
+            'Province_addr'               => $this->Province_addr,
 
             // Minimal embedded resource (when loaded)
             'resource' => $this->whenLoaded('resource', function () {

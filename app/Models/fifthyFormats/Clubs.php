@@ -15,6 +15,7 @@ class Clubs extends Model
         'club_name','club_type','father_name','position','phone_number',
         'province','zone','district','specific_place','cordinate',
         'am_students','pm_students',
+        'Province_addr',
         'resource_id',
     ];
 

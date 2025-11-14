@@ -29,6 +29,7 @@ class StoreHadoBusStopRequest extends FormRequest
             'specific_place' => ['nullable','string'],
             'street_number'  => ['nullable','string'],
             'coordinates'    => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'note'        => ['nullable','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],

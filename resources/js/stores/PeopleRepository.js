@@ -227,7 +227,7 @@ export let usePeopleRepository = defineStore("PeopleRepository", {
                 `users?page=${page}&perPage=${itemsPerPage}&search=${this.Search}`
             );
             this.Users = response.data.data;
-            this.totalItems = response.data.meta.total;
+            this.totalItems = response.data.data.total;
             this.loading = false;
         },
         async CreateUser(formData) {

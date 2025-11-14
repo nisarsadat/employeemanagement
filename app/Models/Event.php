@@ -24,6 +24,7 @@ class Event extends Model
         'talafat_jani',
         'talafat_mali',
         'tafseel',
+        'Province_addr',
         'talks',
         'coordinates',
         'note',

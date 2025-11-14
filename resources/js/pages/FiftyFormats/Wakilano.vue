@@ -264,6 +264,16 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
           <template #item.resource_id="{ item }">
             <v-text-field
               v-model="item.draft.resource_id"
@@ -397,6 +407,7 @@
       main_village: x.main_village ?? '',
       now_province: x.now_province ?? '',
       now_zone: x.now_zone ?? '',
+      Province_addr: x.Province_addr ?? '',
       now_district: x.now_district ?? '',
       now_village: x.now_village ?? '',
       now_specific_place: x.now_specific_place ?? '',
@@ -458,6 +469,7 @@
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('سابقه/فرم'), key: 'history_form' },
     { title: t('Resource ID'), key: 'resource_id' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('مختصات'), key: 'coordinates' }, // <-- before note
     { title: t('یادداشت'), key: 'note' },
@@ -492,6 +504,7 @@
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('سابقه/فرم'), key: 'history_form' },
     { title: t('Resource ID'), key: 'resource_id' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('مختصات'), key: 'coordinates' },
     { title: t('یادداشت'), key: 'note' },
@@ -572,6 +585,7 @@
       'now_job',
       'home_quantity',
       'phone_number',
+      'Province_addr',
       'history_form',
       'resource_id',
       'note',

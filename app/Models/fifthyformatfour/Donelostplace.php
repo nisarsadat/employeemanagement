@@ -13,6 +13,7 @@ class Donelostplace extends Model
         'now_province','now_district','now_village',
         'province','zone','district','village','specific_place','coordinates',
         'lost_quantity',
+        'Province_addr',
         'resource_id','note',
     ];
 

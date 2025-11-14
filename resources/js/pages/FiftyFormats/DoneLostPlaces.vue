@@ -217,6 +217,16 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
           <!-- Lost quantity -->
           <template #item.lost_quantity="{ item }">
             <v-text-field
@@ -381,6 +391,7 @@
       lost_person_phone: x.lost_person_phone ?? '',
       lost_person_job: x.lost_person_job ?? '',
 
+      Province_addr: x.Province_addr ?? '',
       main_province: x.main_province ?? '',
       main_district: x.main_district ?? '',
       main_village: x.main_village ?? '',
@@ -460,6 +471,7 @@
     { title: t('شماره منبع'), key: 'resource_phone_number' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('عمل'), key: 'actions', sortable: false },
   ]);
@@ -492,7 +504,7 @@
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
-    // { title: t('Resource ID'), key: 'resource_id' }, // usually hidden in the list
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت'), key: 'note' },
   ]);
@@ -553,6 +565,7 @@
       'main_province',
       'main_district',
       'main_village',
+      'Province_addr',
       'now_province',
       'now_district',
       'now_village',

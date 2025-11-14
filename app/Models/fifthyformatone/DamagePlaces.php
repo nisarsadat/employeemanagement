@@ -21,6 +21,7 @@ class DamagePlaces extends Model
         'tahdid_type',
         'percentage',
         'tahdid_place',
+        'Province_addr',
         'amnyat_khala',
         'cameesa_tafseel',
         'guard_quantity',

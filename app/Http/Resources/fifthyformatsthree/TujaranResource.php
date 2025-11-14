@@ -31,6 +31,7 @@ class TujaranResource extends JsonResource
             'old_job' => $this->old_job,
             'now_job' => $this->now_job,
             'organ'   => $this->organ,
+            'Province_addr'               => $this->Province_addr,
 
             'guard_guntity' => $this->guard_guntity,
             'phone_number'  => $this->phone_number,

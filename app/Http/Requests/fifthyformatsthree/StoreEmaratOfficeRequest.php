@@ -25,6 +25,8 @@ class StoreEmaratOfficeRequest extends FormRequest
             'guard_quantity'  => ['nullable','string'],
             'note'            => ['nullable','string'],
             'resource_id'     => ['nullable','integer','exists:resources,id'],
+            'Province_addr' => ['nullable','string'],
+
         ];
     }
 }

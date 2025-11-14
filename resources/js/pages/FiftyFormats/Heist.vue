@@ -291,6 +291,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Resource (like Fasad) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -511,6 +523,7 @@
 
       old_job: x.old_job ?? '',
       now_job: x.now_job ?? '',
+      Province_addr: x.Province_addr ?? '',
 
       phone_number: x.phone_number ?? '',
       done_roberies: x.done_roberies ?? '',
@@ -544,6 +557,8 @@
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('سرقت‌های انجام‌شده'), key: 'done_roberies' },
     { title: t('نوع سلاح'), key: 'gun_type' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
     { title: t('ملاحظات'), key: 'note' },
@@ -572,6 +587,7 @@
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('سرقت‌های انجام‌شده'), key: 'done_roبرies' },
     { title: t('نوع سلاح'), key: 'gun_type' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
     { title: t('ملاحظات'), key: 'note' },
@@ -633,6 +649,7 @@
       'phone_number',
       'done_roberies',
       'gun_type',
+      'Province_addr',
       'resource_code',
       'resource_phone_number',
       'resource_id',

@@ -39,6 +39,8 @@ class ParkResource extends JsonResource
             ]),
 
             'notes'                => $this->notes,
+            'Province_addr'               => $this->Province_addr,
+
             'created_at'           => $this->created_at,
             'updated_at'           => $this->updated_at,
         ];

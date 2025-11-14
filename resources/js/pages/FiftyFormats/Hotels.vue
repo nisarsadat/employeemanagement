@@ -174,6 +174,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Employees / Notes -->
           <template #item.employee_quantity="{ item }">
             <v-text-field
@@ -361,6 +373,7 @@
 
     { title: t('تعداد کارمندان'), key: 'employee_quantity' },
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -384,6 +397,7 @@
     { title: t('قریه/ناحیه'), key: 'village' },
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('مختصات'), key: 'cordenate' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('تعداد کارمندان'), key: 'employee_quantity' },
     { title: t('یادداشت'), key: 'note' },
@@ -429,6 +443,7 @@
       responsible_name: x.responsible_name ?? '',
       responsible_f_name: x.responsible_f_name ?? '',
       responsible_position: x.responsible_position ?? '',
+      Province_addr: x.Province_addr ?? '',
       responsible_phone: x.responsible_phone ?? '',
 
       province: x.province ?? '',
@@ -455,6 +470,7 @@
     'responsible_name',
     'responsible_f_name',
     'responsible_position',
+      'Province_addr',
     'responsible_phone',
     'province',
     'zone',

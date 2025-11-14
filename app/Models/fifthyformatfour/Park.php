@@ -10,6 +10,7 @@ class Park extends Model
         'park_name','park_type','dayly_clientele',
         'responsible_name','responsible_f_name','responsible_phone','responsible_possition',
         'province','zone','village','specefic_place','coordinates',
+        'Province_addr',
         'employee_quantity',
         'resource_id','notes',
     ];

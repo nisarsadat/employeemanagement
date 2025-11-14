@@ -43,6 +43,7 @@ class MulkanoResource extends JsonResource
             'phone_number'        => $this->phone_number,
             'jorm_history'        => $this->jorm_history,
             'tanzim'              => $this->tanzim,
+            'Province_addr'               => $this->Province_addr,
 
             'notes'               => $this->notes,
 

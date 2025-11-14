@@ -28,6 +28,7 @@ class OldJahadi extends Model
         'now_home_number',
 
         'old_job',
+        'Province_addr',
         'now_job',
         'employee_quantity',
         'supplier',

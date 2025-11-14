@@ -28,6 +28,7 @@ class CarSalesCompanyResource extends JsonResource
             'coordinates'                => $this->coordinates,
 
             'note'                       => $this->note,
+            'Province_addr'               => $this->Province_addr,
 
             'resource_id'                => $this->resource_id,
             // Flattened from related Resource

@@ -229,6 +229,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Note -->
           <template #item.note="{ item }">
             <v-text-field
@@ -407,6 +419,7 @@
     { title: t('تاریخچه/فورم'), key: 'history_form' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -435,6 +448,8 @@
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('تاریخچه/فورم'), key: 'history_form' },
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
   ]);
@@ -483,6 +498,7 @@
       main_district: x.main_district ?? '',
       main_village: x.main_village ?? '',
 
+      Province_addr: x.Province_addr ?? '',
       now_province: x.now_province ?? '',
       now_zone: x.now_zone ?? '',
       now_district: x.now_district ?? '',
@@ -516,6 +532,7 @@
     'now_province',
     'now_zone',
     'now_district',
+      'Province_addr',
     'now_village',
     'now_specific_place',
     'now_street_number',

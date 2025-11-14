@@ -38,6 +38,8 @@ return new class extends Migration {
             $table->integer('home_quantity')->nullable();
             $table->string('phone_number')->nullable();
             $table->string('history_form')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             // Link to resources
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();

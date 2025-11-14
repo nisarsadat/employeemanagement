@@ -44,9 +44,9 @@
       </v-tooltip>
 
       <!-- Dark / Light -->
-      <v-icon @click.stop="toggleTheme" flat fluid class="iconss">
+      <!-- <v-icon @click.stop="toggleTheme" flat fluid class="iconss">
         {{ darkMode ? 'mdi-weather-night' : 'mdi-weather-sunny' }}
-      </v-icon>
+      </v-icon> -->
 
       <!-- Language -->
       <v-menu transition="scale-transition">
@@ -77,7 +77,7 @@
       <v-icon @click="toggleFullscreen" flat fluid class="iconss"> mdi-crop-free </v-icon>
 
       <!-- Notifications -->
-      <v-icon flat fluid class="iconss"> mdi-bell-ring-outline </v-icon>
+      <!-- <v-icon flat fluid class="iconss"> mdi-bell-ring-outline </v-icon> -->
     </div>
   </v-app-bar>
 </template>

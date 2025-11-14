@@ -35,6 +35,7 @@ class StoreShoraRequest extends FormRequest
             'shora_province'        => ['nullable','string'],
             'shora_zone'            => ['nullable','string'],
             'shora_district'        => ['nullable','string'],
+            'Province_addr'         => ['nullable','string'],
 
             'resource_id'           => ['nullable','integer','exists:resources,id'],
         ];

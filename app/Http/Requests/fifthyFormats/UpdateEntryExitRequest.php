@@ -14,22 +14,24 @@ class UpdateEntryExitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes','required','string','max:255'],
+            'name' => ['sometimes','required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
 
-            'entry_way' => ['nullable','string','max:255'],
-            'way_type' => ['nullable','string','max:255'],
-            'province' => ['nullable','string','max:255'],
-            'zone' => ['nullable','string','max:255'],
-            'district' => ['nullable','string','max:255'],
-            'village' => ['nullable','string','max:255'],
-            'specific_place' => ['nullable','string','max:255'],
-            'cordinate' => ['nullable','string','max:255'],
-            'amnayaty_poste' => ['nullable','string','max:255'],
-            'amnayaty_ishala' => ['nullable','string','max:255'],
-            'where_went' => ['nullable','string','max:255'],
-            'where_come' => ['nullable','string','max:255'],
+            'entry_way' => ['nullable','string'],
+            'way_type' => ['nullable','string'],
+            'province' => ['nullable','string'],
+            'zone' => ['nullable','string'],
+            'district' => ['nullable','string'],
+            'village' => ['nullable','string'],
+            'specific_place' => ['nullable','string'],
+            'cordinate' => ['nullable','string'],
+            'amnayaty_poste' => ['nullable','string'],
+            'amnayaty_ishala' => ['nullable','string'],
+            'where_went' => ['nullable','string'],
+            'where_come' => ['nullable','string'],
             'notes' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
+
         ];
     }
 }

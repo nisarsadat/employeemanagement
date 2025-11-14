@@ -49,6 +49,8 @@ return new class extends Migration {
             // Common fields
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();
             $table->text('note')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             $table->timestamps();
         });

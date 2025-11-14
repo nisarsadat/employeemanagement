@@ -240,6 +240,16 @@
               readonly
             />
           </template>
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
           <!-- <template #item.resource_id="{ item }">
             <v-text-field
               v-model="item.draft.resource_id"
@@ -350,6 +360,7 @@
       market_activity_type: x.market_activity_type ?? '',
       daily_clientele: x.daily_clientele ?? '',
       shops_quantity: x.shops_quantity ?? '',
+      Province_addr: x.Province_addr ?? '',
 
       responsible_name: x.responsible_name ?? '',
       responsible_f_name: x.responsible_f_name ?? '',
@@ -424,6 +435,7 @@
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
 
     { title: t('مختصات'), key: 'coordinates' }, // <-- before note
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -455,6 +467,7 @@
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
 
     { title: t('مختصات'), key: 'coordinates' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -518,6 +531,7 @@
       'market_activity_type',
       'daily_clientele',
       'shops_quantity',
+      'Province_addr',
       'responsible_name',
       'responsible_f_name',
       'responsible_phone',

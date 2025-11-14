@@ -85,6 +85,7 @@ class Resource extends Model
         'halat_madani',
         'age',
         'elmi_level',
+        'Province_addr',
         'faculty',
         'specific_skills',
         'train',

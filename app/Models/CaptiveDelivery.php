@@ -25,6 +25,7 @@ class CaptiveDelivery extends Model
         'age',
         'tazkira',
         'criminal_history',
+        'Province_addr',
         'old_job',
         'new_job',
         'language',

@@ -1,225 +1,246 @@
+<!-- src/views/users/Index.vue -->
 <template>
-    <CreateUser v-if="PeopleRepository.createDailog" />
-    <v-container fluid class="mt-12 pl-6">
-        <AppBar
-            :title="t('User')"
-            :subtitle="t('Add a User')"
-            @toggle-drawer="drawer = !drawer"
-        >
-            <template #actions>
-                <v-btn icon></v-btn>
-            </template>
-        </AppBar>
-        <v-row class="d-flex align-center py-4">
-            <v-col cols="12" md="11">
-                <v-text-field
-                    v-model="search"
-                    :label="t('Search')"
-                    append-inner-icon="mdi-search-web"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    class="rounded"
-                ></v-text-field>
-            </v-col>
-            <v-col cols="12" md="1">
-                <v-btn color="primary" variant="flat" @click="createPopUp">
-                    <v-icon left>mdi-plus</v-icon>
-                    {{ t("Create User") }}
-                </v-btn>
-            </v-col>
-        </v-row>
-        <v-data-table-server
-            :dir="isRtl ? 'rtl' : 'ltr'"
-            v-model:page="PeopleRepository.page"
-            v-model:items-per-page="PeopleRepository.itemsPerPage"
-            :headers="headers"
-            :items="PeopleRepository.Users"
-            :items-length="PeopleRepository.totalItems"
-            :loading="PeopleRepository.loading"
-            :search="PeopleRepository.Search"
-            item-value="id"
-            item-key="id"
-            class="elevation-0 custom-table"
-            :items-per-page-text="t('ItemsPerPage')"
-            show-select
-            hover
-            @update:options="PeopleRepository.FetchUsersData"
-        >
-            <template v-slot:loading>
-                <v-skeleton-loader
-                    type="list-item, heading, divider, date-picker-options, date-picker-days, actions"
-                    class="elevation-1"
-                ></v-skeleton-loader>
-            </template>
-            <!-- <template v-slot:item.status="{ item }">
-                <v-chip
-                    :color="getStatusColor(item.status)"
-                    variant="outlined"
-                    size="small"
-                    class="text-capitalize"
-                >
-                    {{ item.status }}
-                </v-chip>
-            </template>
-            <template v-slot:item.balance="{ item }">
-                <span
-                    class="font-weight-bold"
-                    :class="getBalanceClass(item.balance)"
-                >
-                    {{ formatCurrency(item.balance, item.currency) }}
-                </span>
-            </template> -->
-            <template v-slot:item.photo="{ item }">
-                <v-avatar size="36" class="my-1">
-                    <v-img
-                        v-if="item.photo"
-                        :src="item.photo"
-                        cover
-                        :alt="item.name"
-                    ></v-img>
-                    <v-icon v-else size="20" color="grey">
-                        mdi-account-circle
-                    </v-icon>
-                </v-avatar>
-            </template>
-            <template v-slot:item.actions="{ item }">
-                <v-menu>
-                    <template v-slot:activator="{ props }">
-                        <v-btn
-                            icon
-                            variant="text"
-                            color="grey-darken-1"
-                            v-bind="props"
-                        >
-                            <v-icon>mdi-dots-vertical</v-icon>
-                        </v-btn>
-                    </template>
-                    <v-list density="compact">
-                        <v-list-item @click="editItem(item.id)">
-                            <template v-slot:prepend>
-                                <v-icon color="grey-darken-1"
-                                    >mdi-pencil-outline</v-icon
-                                >
-                            </template>
-                            <v-list-item-title>{{
-                                t("Edit")
-                            }}</v-list-item-title>
-                        </v-list-item>
-                        <v-list-item @click="deleteItem(item.id)">
-                            <template v-slot:prepend>
-                                <v-icon color="grey-darken-1"
-                                    >mdi-delete-outline</v-icon
-                                >
-                            </template>
-                            <v-list-item-title>{{
-                                t("Delete")
-                            }}</v-list-item-title>
-                        </v-list-item>
-                    </v-list>
-                </v-menu>
-            </template>
+  <!-- Dialogs -->
+  <CreateUser v-if="UsersRepository.createDialog" />
+  <UpdateUser
+    v-if="UsersRepository.updateDialog"
+    :key="UsersRepository.User.id || 'update-user'"
+  />
 
-            <template v-slot:no-data>
-                <v-alert
-                    type="info"
-                    color="primary"
-                    variant="tonal"
-                    class="ma-4"
-                >
-                    {{ t("No User found. Create your first User!") }}
-                </v-alert>
-            </template>
-        </v-data-table-server>
-    </v-container>
+  <v-container fluid class="mt-12 pl-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <AppBar :title="t('User')" :subtitle="t('Add a User')" @toggle-drawer="drawer = !drawer">
+      <template #actions><v-btn icon /></template>
+    </AppBar>
+
+    <!-- Search + Create -->
+    <v-row class="d-flex align-center py-4">
+      <v-col cols="12" md="11">
+        <v-text-field
+          v-model="search"
+          :label="t('Search')"
+          append-inner-icon="mdi-search-web"
+          density="compact"
+          hide-details
+          variant="underlined"
+          clearable
+          class="rounded"
+        />
+      </v-col>
+
+      <v-col cols="12" md="1" class="text-right">
+        <v-btn
+          v-if="auth.can('users.create')"
+          color="primary"
+          variant="flat"
+          @click="createPopUp"
+        >
+          <v-icon left>mdi-plus</v-icon>
+        </v-btn>
+      </v-col>
+    </v-row>
+
+    <!-- Users table -->
+    <v-data-table-server
+      v-model:page="UsersRepository.page"
+      v-model:items-per-page="UsersRepository.itemsPerPage"
+      :headers="headers"
+      :items="UsersRepository.Users || []"
+      :items-length="UsersRepository.totalItems || 0"
+      :loading="UsersRepository.loading"
+      :search="UsersRepository.Search"
+      item-value="id"
+      item-key="id"
+      class="elevation-0 custom-table"
+      :items-per-page-text="t('ItemsPerPage')"
+      show-select
+      hover
+      :dir="isRtl ? 'rtl' : 'ltr'"
+      @update:options="(opts) => UsersRepository.FetchUsersData(opts)"
+    >
+      <template #loading>
+        <v-skeleton-loader type="list-item, heading, divider, actions" />
+      </template>
+
+      <!-- Avatar cell -->
+      <template #item.image_url="{ item }">
+        <v-avatar size="36" class="my-1">
+          <v-img
+            v-if="item?.image_url || item?.raw?.image_url"
+            :src="item.image_url ?? item.raw?.image_url"
+            cover
+            :alt="item?.username ?? item?.raw?.username ?? 'avatar'"
+            class="clickable"
+            @click="openPreview(item.image_url ?? item.raw?.image_url)"
+          />
+          <v-icon v-else size="20" color="grey">mdi-account-circle</v-icon>
+        </v-avatar>
+      </template>
+
+      <!-- Roles as pretty chips -->
+      <template #item.roles="{ item }">
+        <div class="d-flex flex-wrap gap-1">
+          <v-chip
+            v-for="role in (Array.isArray(item.roles) ? item.roles : [])"
+            :key="role"
+            :color="stringToColor(role)"
+            variant="flat"
+            class="role-chip text-capitalize px-3"
+            size="small"
+          >
+            {{ role }}
+          </v-chip>
+        </div>
+      </template>
+
+      <!-- Actions -->
+      <template #item.actions="{ item }">
+        <v-menu>
+          <template #activator="{ props }">
+            <v-btn icon variant="text" color="grey-darken-1" v-bind="props">
+              <v-icon>mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+
+          <v-list density="compact">
+            <v-list-item
+              v-if="auth.can('users.update')"
+              :disabled="!rowId(item)"
+              @click="() => { const id = rowId(item); if (id) editItem(id); }"
+            >
+              <template #prepend>
+                <v-icon color="grey-darken-1">mdi-pencil-outline</v-icon>
+              </template>
+              <v-list-item-title>{{ t('Edit') }}</v-list-item-title>
+            </v-list-item>
+
+            <v-list-item
+              v-if="auth.can('users.delete')"
+              :disabled="!rowId(item)"
+              @click="() => { const id = rowId(item); if (id) deleteItem(id); }"
+            >
+              <template #prepend>
+                <v-icon color="grey-darken-1">mdi-delete-outline</v-icon>
+              </template>
+              <v-list-item-title>{{ t('Delete') }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </template>
+
+      <template #no-data>
+        <v-alert type="info" color="primary" variant="tonal" class="ma-4">
+          {{ t('No User found. Create your first User!') }}
+        </v-alert>
+      </template>
+    </v-data-table-server>
+  </v-container>
+
+  <!-- Image Preview Dialog -->
+  <v-dialog v-model="previewOpen" max-width="520">
+    <v-card rounded="xl">
+      <v-card-text class="pa-0">
+        <v-img :src="previewSrc" aspect-ratio="1" cover />
+      </v-card-text>
+      <v-card-actions class="justify-end">
+        <v-btn variant="text" @click="previewOpen = false">{{ t('Close') }}</v-btn>
+        <v-btn :href="previewSrc" target="_blank" variant="flat" color="primary">
+          {{ t('Open original') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import AppBar from "../../components/AppBar.vue";
-import { usePeopleRepository } from "../../stores/PeopleRepository";
-const PeopleRepository = usePeopleRepository();
-import CreateUser from "./CreateUser.vue";
-import { watch } from "vue";
-import { useI18n } from "vue-i18n";
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === "fa"); // Assuming 'fa' is the code for Dari
-watch(locale, (newLocale) => {
-    isRtl.value = newLocale === "fa";
-});
-const headers = [
-    {
-        title: t("Select"),
-        key: "data-table-select",
-        sortable: false,
-        align: "end",
-    },
-    { title: t("Photo"), key: "photo", sortable: true },
-    { title: t("UserName"), key: "name", sortable: true },
-    { title: t("Email"), key: "email", sortable: true, align: "end" },
-    { title: t("Status"), key: "status", sortable: true, align: "end" },
-    { title: t("Action"), key: "actions", sortable: false, align: "end" },
-];
+import { ref, watch, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import AppBar from '../../components/AppBar.vue'
+import CreateUser from './CreateUser.vue'
+import UpdateUser from './UpdateUser.vue'
+import { useUsersRepository } from '../../stores/UsersRepository'
+import { useLoginRepository } from '../../stores/LoginRepository'
 
-// const formatCurrency = (amount, currency) => {
-//     return `${currency.symbol} ${Math.abs(amount).toFixed(2)}`;
-// };
-// const getStatusColor = (status) => {
-//     return status === "active" ? "success" : "error";
-// };
-// const getBalanceClass = (balance) => {
-//     return balance < 0 ? "text-error" : "text-success";
-// };
+const UsersRepository = useUsersRepository()
+const auth = useLoginRepository()
+
+const drawer = ref(false)
+const { t, locale } = useI18n()
+const isRtl = ref(locale.value === 'fa')
+watch(locale, l => (isRtl.value = l === 'fa'))
+
+onMounted(() => {
+  UsersRepository.FetchUsersData()
+  UsersRepository.FetchRolesAll()
+})
+
+const headers = computed(() => [
+  { title: t('Select'), key: 'data-table-select', sortable: false, align: 'end' },
+  { title: t('photo'), key: 'image_url', sortable: false },
+  { title: t('UserName'), key: 'username', sortable: true },
+  { title: t('Role'), key: 'roles', sortable: false },
+  { title: t('Action'), key: 'actions', sortable: false, align: 'end' },
+])
+
+const search = computed({
+  get: () => UsersRepository.Search,
+  set: (val) => {
+    UsersRepository.Search = val || ''
+    UsersRepository.page = 1
+    UsersRepository.FetchUsersData()
+  },
+})
+
+/** ✅ Safely extract row id (datatable may wrap rows) */
+const rowId = (it) => it?.raw?.id ?? it?.id ?? null
+
 const createPopUp = () => {
-    PeopleRepository.createDailog = true;
-    console.log("Create account clicked");
-};
-
-const createPopUpTransfer = () => {
-    // MoneyAccountRepository.createDailogTransfer = true
-    console.log("Transfer clicked");
-};
-const editItem = (id) => {
-    console.log("Edit item:", id);
-};
+  UsersRepository.createDialog = true
+}
+const editItem = async (id) => {
+  await UsersRepository.startEdit(id)
+}
 const deleteItem = (id) => {
-    PeopleRepository.DeleteUser(id);
-    console.log("Delete item:", id);
-};
+  UsersRepository.DeleteUser(id)
+}
+
+/** 🔵 Unlimited role colors: deterministic HSL by role name */
+function stringToColor(str) {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const hue = Math.abs(hash) % 360              // 0..360
+  const sat = 65                                 // tweak if needed
+  const light = 55                               // tweak if needed
+  return `hsl(${hue}, ${sat}%, ${light}%)`
+}
+
+/** 🖼️ Image preview state */
+const previewSrc = ref(null)
+const previewOpen = ref(false)
+const openPreview = (src) => {
+  if (!src) return
+  previewSrc.value = src
+  previewOpen.value = true
+}
 </script>
 
 <style scoped>
 .v-data-table {
-    border-radius: 4px;
-    overflow: hidden;
+  border-radius: 4px;
+  overflow: hidden;
 }
 .v-data-table-header {
-    background-color: rgba(0, 0, 0, 0.02);
+  background-color: rgba(0, 0, 0, 0.02);
 }
 .v-data-table-header th {
-    font-weight: 600;
-    letter-spacing: 0.5px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
-@media (max-width: 960px) {
-    .v-col-md-8 {
-        margin-top: 16px;
-    }
+.clickable {
+  cursor: zoom-in;
 }
-.v-chip {
-    border-width: 1px;
-    font-weight: 500;
-}
-.text-success {
-    color: #4caf50;
-}
-.text-error {
-    color: #f44336;
-}
-.v-btn--icon {
-    transition: all 0.2s ease;
-}
-.v-btn--icon:hover {
-    transform: scale(1.1);
+.role-chip {
+  color: white; /* ensure readable text over vivid HSL */
 }
 </style>

@@ -287,6 +287,16 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
           <!-- Resource (code -> phone/id mapping like Fasad) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -438,6 +448,7 @@
 
       masjid_province: x.masjid_province ?? '',
       masjid_zone: x.masjid_zone ?? '',
+      Province_addr: x.Province_addr ?? '',
       masjid_district: x.masjid_district ?? '',
       masjid_village: x.masjid_village ?? '',
       masjid_specific_place: x.masjid_specific_place ?? '',
@@ -500,6 +511,7 @@
     { title: t('شماره سرک مسجد'), key: 'masjid_street_number' },
 
     { title: t('مختصات مسجد'), key: 'masjid_coordinates' }, // before note
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     // Resource (Fasad pattern)
     { title: t('کود منبع'), key: 'resource_code' },
@@ -540,6 +552,7 @@
     { title: t('شماره سرک مسجد'), key: 'masjid_street_number' },
 
     { title: t('مختصات مسجد'), key: 'masjid_coordinates' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     // Resource in list
     { title: t('کود منبع'), key: 'resource_code' },
@@ -640,6 +653,7 @@
       'masjid_province',
       'masjid_zone',
       'masjid_district',
+      'Province_addr',
       'masjid_village',
       'masjid_specific_place',
       'masjid_street_number',

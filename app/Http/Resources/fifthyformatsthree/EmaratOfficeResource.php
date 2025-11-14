@@ -25,6 +25,7 @@ class EmaratOfficeResource extends JsonResource
             'tahdid_mutawajeh'  => $this->tahdid_mutawajeh,
             'guard_quantity'    => $this->guard_quantity,
             'note'              => $this->note,
+            'Province_addr'               => $this->Province_addr,
 
             'resource_id'       => $this->resource_id,
             'resource_code'     => $resource?->code_number,

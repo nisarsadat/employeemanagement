@@ -31,6 +31,7 @@ class ParkingResource extends JsonResource
 
             'daily_cars_parking_quantity' => $this->daily_cars_parking_quantity,
             'note'                        => $this->note,
+            'Province_addr'               => $this->Province_addr,
 
             'resource_id'                 => $this->resource_id,
             'resource_code'               => $resource?->code_number,

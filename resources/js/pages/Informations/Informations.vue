@@ -346,6 +346,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Documents (same UX as your sample) -->
           <template #item.documents="{ item }">
             <div class="documents-inline">
@@ -426,11 +438,22 @@
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
+              <v-btn
+                class="bg-primary"
+                v-if="auth.can('informations.create')"
+                variant="outlined"
+                type="submit"
+                :loading="item.loading"
+              >
                 {{ t('ثبت دیتا') }}
               </v-btn>
 
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+              <v-btn
+                class="bg-error"
+                v-if="auth.can('informations.delete')"
+                variant="outlined"
+                @click="del(item)"
+              >
                 {{ t('حذف دیتا') }}
               </v-btn>
 
@@ -501,6 +524,9 @@
   import DateInput from '../../components/DateInput.vue';
   import { useI18n } from 'vue-i18n';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
 
   const { t, locale } = useI18n();
   const repo = useDatabaseRepository();
@@ -595,6 +621,7 @@
       /* texts */
       tafseel: x.tafseel ?? '',
       manager_comment: x.manager_comment ?? '',
+      Province_addr: x.Province_addr ?? '',
       lead_drirection: x.lead_drirection ?? '',
       talks: x.talks ?? '',
       note: x.note ?? '',
@@ -635,6 +662,7 @@
     { title: t('رهنمود/جهت‌دهی'), key: 'lead_drirection' },
     { title: t('گفت‌وگوها'), key: 'talks' },
     { title: t('ملاحظات'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('اسناد'), key: 'documents' },
     { title: t('عمل'), key: 'actions', sortable: false },
@@ -670,6 +698,7 @@
     { title: t('نظر مدیر'), key: 'manager_comment' },
     { title: t('رهنمود/جهت‌دهی'), key: 'lead_drirection' },
     { title: t('گفت‌وگوها'), key: 'talks' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('ملاحظات'), key: 'note', width: 400 },
   ]);
 
@@ -771,6 +800,7 @@
       'main_districts',
       'main_village',
       'now_province',
+      'Province_addr',
       'now_district',
       'now_village',
 

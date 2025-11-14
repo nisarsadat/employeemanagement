@@ -30,6 +30,8 @@ class UpdateParkRequest extends FormRequest
 
             'resource_id'           => ['sometimes','nullable','integer','exists:resources,id'],
             'notes'                 => ['sometimes','nullable','string'],
+            'Province_addr'         => ['sometimes','nullable','string'],
+
         ];
     }
 }

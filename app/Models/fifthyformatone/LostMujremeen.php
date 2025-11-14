@@ -21,6 +21,7 @@ class LostMujremeen extends Model
         'main_village',
 
         'now_province',
+        'Province_addr',
         'now_district',
         'now_village',
         'now_specific_place',

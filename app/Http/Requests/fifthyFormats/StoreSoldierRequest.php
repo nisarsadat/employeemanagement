@@ -14,25 +14,27 @@ class StoreSoldierRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required','string','max:255'],
+            'name' => ['required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
 
-            'father_name' => ['nullable','string','max:255'],
-            'main_province' => ['nullable','string','max:255'],
-            'main_district' => ['nullable','string','max:255'],
-            'main_village' => ['nullable','string','max:255'],
-            'now_province' => ['nullable','string','max:255'],
-            'now_zone' => ['nullable','string','max:255'],
-            'now_district' => ['nullable','string','max:255'],
-            'now_village' => ['nullable','string','max:255'],
-            'specific_place' => ['nullable','string','max:255'],
-            'street_number' => ['nullable','string','max:255'],
-            'home_number' => ['nullable','string','max:255'],
-            'old_job' => ['nullable','string','max:255'],
-            'now_job' => ['nullable','string','max:255'],
-            'guard_amount' => ['nullable','string','max:255'],
-            'phone_number' => ['nullable','string','max:255'],
+            'father_name' => ['nullable','string'],
+            'main_province' => ['nullable','string'],
+            'main_district' => ['nullable','string'],
+            'main_village' => ['nullable','string'],
+            'now_province' => ['nullable','string'],
+            'now_zone' => ['nullable','string'],
+            'now_district' => ['nullable','string'],
+            'now_village' => ['nullable','string'],
+            'specific_place' => ['nullable','string'],
+            'street_number' => ['nullable','string'],
+            'home_number' => ['nullable','string'],
+            'old_job' => ['nullable','string'],
+            'now_job' => ['nullable','string'],
+            'guard_amount' => ['nullable','string'],
+            'phone_number' => ['nullable','string'],
             'notes' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
+
         ];
     }
 }

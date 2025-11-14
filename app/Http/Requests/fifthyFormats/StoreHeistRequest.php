@@ -36,6 +36,8 @@ class StoreHeistRequest extends FormRequest
             'done_roberies' => ['nullable','string'],
             'gun_type' => ['nullable','string'],
             'note' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
+
         ];
     }
 }

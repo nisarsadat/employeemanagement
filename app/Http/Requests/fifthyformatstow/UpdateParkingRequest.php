@@ -29,6 +29,7 @@ class UpdateParkingRequest extends FormRequest
             'village'        => ['nullable','string'],
             'specific_place' => ['nullable','string'],
             'coordinates'    => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'daily_cars_parking_quantity' => ['nullable','string'],
             'note'          => ['nullable','string'],

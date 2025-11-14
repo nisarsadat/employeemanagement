@@ -28,6 +28,7 @@ class UpdateTransportCompanyRequest extends FormRequest
             'village'        => ['nullable','string'],
             'specific_place' => ['nullable','string'],
             'coordinate'     => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'ways'           => ['nullable','string'],
             'note'           => ['nullable','string'],

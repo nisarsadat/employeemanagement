@@ -17,6 +17,7 @@ class Mulkano extends Model
         'specific_place','street_number','home_number','guzar',
         'tafseel_sahi','street_amount','old_job','new_job',
         'agent_quantity','home_quantity','phone_number',
+        'Province_addr',
         'jorm_history','tanzim','notes','resource_id',
     ];
 

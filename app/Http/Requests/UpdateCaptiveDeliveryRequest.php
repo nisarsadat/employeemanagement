@@ -50,6 +50,7 @@ class UpdateCaptiveDeliveryRequest extends FormRequest
             'phone_number' => ['sometimes', 'nullable', 'string', 'max:255'],
             'captive_halat' => ['sometimes', 'nullable', 'string', 'max:255'],
             'suspect_tools' => ['sometimes', 'nullable', 'string'],
+            'Province_addr' => ['nullable','string'],
 
             'notes' => ['sometimes', 'nullable', 'string'],
 

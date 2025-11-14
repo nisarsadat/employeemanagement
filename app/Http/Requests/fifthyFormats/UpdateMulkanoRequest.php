@@ -43,6 +43,7 @@ class UpdateMulkanoRequest extends FormRequest
             'phone_number' => ['nullable','string'],
             'jorm_history' => ['nullable','string'],
             'tanzim' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'notes' => ['nullable','string'],
         ];

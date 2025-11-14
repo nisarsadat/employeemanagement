@@ -30,6 +30,8 @@ class StoreHostelRequest extends FormRequest
 
             'note'         => ['nullable','string'],
             'resource_id'  => ['nullable','integer','exists:resources,id'],
+            'Province_addr' => ['nullable','string'],
+
         ];
     }
 }

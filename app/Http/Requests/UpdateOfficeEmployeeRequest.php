@@ -63,6 +63,7 @@ class UpdateOfficeEmployeeRequest extends FormRequest
             'join_date'               => ['sometimes','nullable','date'],
             'left_date'               => ['sometimes','nullable','date'],
             'note'                    => ['sometimes','nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'documents'               => ['sometimes','array'],
             'documents.*'             => ['file','max:10240'],

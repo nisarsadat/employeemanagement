@@ -25,6 +25,7 @@ class Madrasa extends Model
         'male_teacher_quantity',
         'female_teacher_quantity',
         'male_students_quantity',
+        'Province_addr',
         'female_students_quantity',
 
         'province',

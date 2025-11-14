@@ -578,6 +578,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Documents -->
           <template #item.documents="{ item }">
             <div class="documents-inline">
@@ -660,11 +672,11 @@
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
+              <v-btn class="bg-primary" v-if="auth.can('officeemployee.create')" variant="outlined" type="submit" :loading="item.loading">
                 {{ t('ثبت دیتا') }}
               </v-btn>
 
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
+              <v-btn class="bg-error" v-if="auth.can('officeemployee.delete')" variant="outlined" @click="del(item)">
                 {{ t('حذف دیتا') }}
               </v-btn>
 
@@ -718,7 +730,7 @@
         :loading="loading"
         title-key="name"
         image-key="picture"
-        :fields="headers"
+        :fields="headersFT"
         :cols="3"
         dir="rtl"
         @fetch="fetchOne"
@@ -762,7 +774,8 @@
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useI18n } from 'vue-i18n';
   import DateInput from '../../components/DateInput.vue';
-
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const repo = useEmployeOfficeRepository();
   const editorForm = ref(null);
@@ -838,6 +851,7 @@
       main_village: x.main_village ?? '',
 
       now_province: x.now_province ?? '',
+      Province_addr: x.Province_addr ?? '',
       now_district: x.now_district ?? '',
       now_village: x.now_village ?? '',
       now_specific_place: x.now_specific_place ?? '',
@@ -942,6 +956,7 @@
     { title: t('تاریخ آمدن'), key: 'join_date' },
     { title: t('تاریخ رفتن'), key: 'left_date' },
     { title: t('ملاحظات'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('اسناد'), key: 'documents' },
     { title: t('عمل'), key: 'actions', sortable: false },
@@ -1000,6 +1015,7 @@
     { title: t('مختصات'), key: 'coordinates' },
     { title: t('تاریخ آمدن'), key: 'join_date' },
     { title: t('تاریخ رفتن'), key: 'left_date' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('ملاحظات'), key: 'note', width: 400 },
   ]);
 
@@ -1100,6 +1116,7 @@
       'now_street_number',
       'now_home_number',
       // job/org
+      'Province_addr',
       'specific_job',
       'qisem',
       'zone',
@@ -1418,7 +1435,6 @@
   onMounted(async () => {
     await fetchAll();
     setBlankEditorRow();
-
   });
 </script>
 

@@ -16,6 +16,7 @@ class Masjid extends Model
         'masjid_people_mazhab','masjid_homes_quantity',
         'masjid_province','masjid_zone','masjid_district','masjid_village',
         'masjid_specific_place','masjid_street_number','masjid_coordinates',
+        'Province_addr',
         'resource_id','note',
     ];
 

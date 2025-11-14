@@ -20,6 +20,7 @@ class WorkShop extends Model
         'responsible_phone',
 
         'province',
+        'Province_addr',
         'zone',
         'district',
         'village',

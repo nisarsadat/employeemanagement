@@ -31,6 +31,7 @@ class StoreEventRequest extends FormRequest
             'talks'                 => 'nullable|string',
             'coordinates'           => 'nullable|string',
             'note'                  => 'nullable|string',
+            'Province_addr' => ['nullable','string'],
 
             'documents.*'           => 'nullable|file',
         ];

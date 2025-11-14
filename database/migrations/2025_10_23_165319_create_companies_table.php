@@ -37,6 +37,7 @@ return new class extends Migration {
             $table->integer('male_employee_quantity_out')->nullable();
             $table->integer('female_employee_quantity_out')->nullable();
             $table->integer('guard_quantity')->nullable();
+            $table->string('Province_addr')->nullable();
 
             // Link to resources
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();

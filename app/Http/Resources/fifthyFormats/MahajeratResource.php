@@ -37,6 +37,7 @@ class MahajeratResource extends JsonResource
             'male_amount'       => $this->male_amount,
             'female_amount'     => $this->female_amount,
             'phone_number'      => $this->phone_number,
+            'Province_addr'               => $this->Province_addr,
 
             'note'              => $this->note,
 

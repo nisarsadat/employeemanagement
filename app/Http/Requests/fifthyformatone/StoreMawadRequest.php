@@ -36,6 +36,7 @@ class StoreMawadRequest extends FormRequest
             'history_form'      => ['nullable','string'],
             'supplier'          => ['nullable','string','max:255'],
             'note'              => ['nullable','string'],
+            'Province_addr'             => ['nullable','string'],
 
             'resource_id'       => ['nullable','integer','exists:resources,id'],
         ];

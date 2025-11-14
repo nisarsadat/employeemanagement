@@ -21,6 +21,7 @@ class Heist extends Model
         'now_district',
         'now_village',
         'specific_place',
+        'Province_addr',
         'street_number',
         'home_number',
         'coordinates',

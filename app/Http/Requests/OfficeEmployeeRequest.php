@@ -79,6 +79,7 @@ class OfficeEmployeeRequest extends FormRequest
             'join_date'               => ['nullable','date'],
             'left_date'               => ['nullable','date'],
             'note'                    => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             // Documents (handled elsewhere; allow multiple files)
             'documents'               => ['sometimes','array'],

@@ -316,6 +316,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Resource code + phone (and hidden resource_id) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -546,6 +558,7 @@
 
     { title: t('وظیفه قبلی'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -584,6 +597,7 @@
 
     { title: t('وظیفه قبلی'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -646,6 +660,7 @@
       now_job: x.now_job ?? '',
 
       resource_code: x.resource_code ?? '',
+      Province_addr: x.Province_addr ?? '',
       resource_phone_number: x.resource_phone_number ?? '',
       resource_id: x.resource_id ?? null,
 
@@ -666,6 +681,7 @@
       'main_district',
       'main_village',
       'now_province',
+      'Province_addr',
       'now_zone',
       'now_district',
       'now_village',

@@ -45,6 +45,8 @@ class UpdateFasadRequest extends FormRequest
             'resource_code'    => ['sometimes', 'nullable', 'string'],
             'resource_phone'   => ['sometimes', 'nullable', 'string'],
             'resource_id'      => ['sometimes', 'nullable', 'integer', 'exists:resources,id'],
+            'Province_addr' => ['nullable','string'],
+
 
             // 'picture'        => ['sometimes','nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],
         ];

@@ -29,6 +29,8 @@ return new class extends Migration {
             $table->string('phone_number')->nullable();
             $table->string('done_roberies')->nullable();
             $table->string('gun_type')->nullable();
+            $table->string('Province_addr')->nullable();
+
 
             // resource relation
             $table->foreignId('resource_id')

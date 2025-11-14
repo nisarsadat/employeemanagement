@@ -309,6 +309,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- RESOURCE (code autocomplete -> phone + id) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -486,6 +498,7 @@ const headers = computed(() => [
   { title: t('نوع تخلف'), key: 'takhalof_type' },
 
   { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
@@ -525,6 +538,7 @@ const headersFT = computed(() => [
   { title: t('نوع تخلف'), key: 'takhalof_type' },
 
   { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
@@ -588,6 +602,7 @@ function toRowModel(x = {}) {
     gun_type: x.gun_type ?? '',
     tanzim: x.tanzim ?? '',
     takhalof_type: x.takhalof_type ?? '',
+      Province_addr: x.Province_addr ?? '',
 
     // misc
     note: x.note ?? '',
@@ -609,6 +624,7 @@ const EDITABLE_KEYS = [
   'main_village',
   'now_province',
   'now_zone',
+      'Province_addr',
   'now_district',
   'now_village',
   'now_specific_place',

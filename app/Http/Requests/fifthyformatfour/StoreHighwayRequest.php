@@ -20,6 +20,8 @@ class StoreHighwayRequest extends FormRequest
             'coordinates'     => ['nullable','string'],
             'resource_id'     => ['nullable','integer','exists:resources,id'],
             'note'            => ['nullable','string'],
+            'Province_addr'         => ['nullable','string'],
+
         ];
     }
 }

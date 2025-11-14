@@ -40,6 +40,8 @@ class StoreSuperMarketRequest extends FormRequest
         'guard_quantity'       => ['nullable','integer'],
         'resource_id'          => ['nullable','integer','exists:resources,id'],
         'note'                 => ['nullable','string'],
+            'Province_addr'         => ['nullable','string'],
+
     ];
 
     }

@@ -258,6 +258,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Resource code (autocomplete) + phone (readonly) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -414,6 +426,7 @@
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('عملیات'), key: 'actions', sortable: false },
   ]);
@@ -441,6 +454,7 @@
     { title: t('نقاط مشکوکیت'), key: 'mushkokyat_points' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
   ]);
@@ -509,6 +523,7 @@
       now_home_number: x.now_home_number ?? '',
       coordinates: x.coordinates ?? '',
 
+      Province_addr: x.Province_addr ?? '',
       old_job: x.old_job ?? '',
       now_job: x.now_job ?? '',
       mushkokyat_points: x.mushkokyat_points ?? '',
@@ -543,6 +558,7 @@
     'now_province',
     'now_zone',
     'now_districts',
+      'Province_addr',
     'now_village',
     'now_specific_place',
     'now_street_number',

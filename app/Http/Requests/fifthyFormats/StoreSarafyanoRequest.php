@@ -37,6 +37,8 @@ class StoreSarafyanoRequest extends FormRequest
             'employee_quantity' => ['nullable','string','max:255'],
 
             'notes' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
+
         ];
     }
 }

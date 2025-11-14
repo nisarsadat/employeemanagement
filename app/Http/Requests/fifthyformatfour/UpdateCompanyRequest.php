@@ -34,6 +34,7 @@ class UpdateCompanyRequest extends FormRequest
             'male_employee_quantity_out'         => ['sometimes','nullable','integer'],
             'female_employee_quantity_out'       => ['sometimes','nullable','integer'],
             'guard_quantity'                     => ['sometimes','nullable','integer'],
+            'Province_addr'         => ['sometimes','nullable','string'],
 
             'resource_id'                        => ['sometimes','nullable','integer','exists:resources,id'],
             'note'                               => ['sometimes','nullable','string'],

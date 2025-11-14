@@ -38,6 +38,7 @@ class StoreMasjidRequest extends FormRequest
             'masjid_specific_place'         => ['nullable','string'],
             'masjid_street_number'          => ['nullable','string'],
             'masjid_coordinates'            => ['nullable','string'],
+            'Province_addr'         => ['nullable','string'],
 
             'resource_id'                   => ['nullable','integer','exists:resources,id'],
             'note'                          => ['nullable','string'],

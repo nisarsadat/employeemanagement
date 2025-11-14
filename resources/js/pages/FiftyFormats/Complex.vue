@@ -265,6 +265,17 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+
+            />
+          </template>
           <!-- Resource (code → phone → id) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -407,6 +418,7 @@
       home_number: x.home_number ?? '',
 
       complex_name: x.complex_name ?? '',
+      Province_addr: x.Province_addr ?? '',
       activity_type: x.activity_type ?? '',
       activity_place: x.activity_place ?? '',
       supplier: x.supplier ?? '',
@@ -487,6 +499,7 @@
     { title: t('نمبر خانه'), key: 'home_number' },
 
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -523,6 +536,7 @@
     { title: t('نمبر خانه'), key: 'home_number' },
 
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -618,6 +632,7 @@
       'responsible_f_name',
       'responsible_phone',
       'responsible_country',
+      'Province_addr',
       'guard_quantity',
       'resource_id',
       'note',

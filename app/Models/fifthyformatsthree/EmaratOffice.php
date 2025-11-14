@@ -20,6 +20,7 @@ class EmaratOffice extends Model
         'home_number',
         'coordenates',      // kept spelling as written
         'home_type',
+        'Province_addr',
         'responsible_office',
         'tahdid_mutawajeh', // kept as provided
         'guard_quantity',

@@ -14,6 +14,7 @@ class Highway extends Model
         'village',
         'specific_place',
         'coordinates',
+        'Province_addr',
         'resource_id',
         'note',
     ];

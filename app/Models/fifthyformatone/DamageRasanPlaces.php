@@ -21,6 +21,7 @@ class DamageRasanPlaces extends Model
         'tahdid_type',
         'percentage',
         'damage_place',
+        'Province_addr',
         'note',
         'resource_id',
     ];

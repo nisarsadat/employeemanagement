@@ -40,6 +40,7 @@ return new class extends Migration {
             $table->string('shora_province')->nullable();
             $table->string('shora_zone')->nullable();
             $table->string('shora_district')->nullable();
+            $table->string('Province_addr')->nullable();
 
             // Resource link
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();

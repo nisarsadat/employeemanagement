@@ -29,6 +29,7 @@ class Wakilano extends Model
         'home_quantity',
         'phone_number',
         'history_form',
+        'Province_addr',
         'resource_id',
         'note',
     ];

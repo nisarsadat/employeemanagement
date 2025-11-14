@@ -313,6 +313,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- Resource: code (autocomplete) + phone (readonly) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -528,6 +540,7 @@
       now_street_number: x.now_street_number ?? '',
       now_home_number: x.now_home_number ?? '',
 
+      Province_addr: x.Province_addr ?? '',
       province: x.province ?? '',
       zone: x.zone ?? '',
       district: x.district ?? '',
@@ -576,6 +589,7 @@
     { title: t('شماره تماس'), key: 'phone_number' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -608,6 +622,7 @@
     { title: t('تاریخچه جرم'), key: 'history_jorm' },
     { title: t('دلیل مفقودی'), key: 'lost_reason' },
     { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت'), key: 'note' },
 
@@ -669,6 +684,7 @@
     'now_specific_place',
     'now_street_number',
     'now_home_number',
+      'Province_addr',
     'province',
     'zone',
     'district',

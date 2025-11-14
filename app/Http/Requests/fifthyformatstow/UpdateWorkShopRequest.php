@@ -28,6 +28,7 @@ class UpdateWorkShopRequest extends FormRequest
             'village'        => ['nullable','string'],
             'specific_place' => ['nullable','string'],
             'coordinates'    => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'workers_quantity' => ['nullable','integer','min:0'],
             'note'             => ['nullable','string'],

@@ -45,6 +45,7 @@ class CaptiveDeliveryResource extends JsonResource
             'phone_number'         => $this->phone_number,
             'captive_halat'        => $this->captive_halat,
             'suspect_tools'        => $this->suspect_tools,
+            'Province_addr'               => $this->Province_addr,
 
             'notes'                => $this->notes,
 

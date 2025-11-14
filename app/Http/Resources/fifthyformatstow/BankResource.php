@@ -31,6 +31,7 @@ class BankResource extends JsonResource
 
             'guard_quantity'       => $this->guard_quantity,
             'note'                 => $this->note,
+            'Province_addr'               => $this->Province_addr,
 
             'resource_id'          => $this->resource_id,
             // Flattened from related Resource (derived)

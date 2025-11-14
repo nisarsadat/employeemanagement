@@ -33,6 +33,7 @@ class StoreTujaranRequest extends FormRequest
             'guard_guntity' => ['nullable','string'],
             'phone_number'  => ['nullable','string'],
             'people_type'   => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'note'        => ['nullable','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],

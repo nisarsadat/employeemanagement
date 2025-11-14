@@ -249,6 +249,16 @@
             />
           </template> -->
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+            />
+          </template>
           <!-- Note -->
           <template #item.note="{ item }">
             <v-textarea
@@ -350,6 +360,7 @@
       pump_name: x.pump_name ?? '',
       pump_type: x.pump_type ?? '',
       main_owner: x.main_owner ?? '',
+      Province_addr: x.Province_addr ?? '',
 
       responsible_name: x.responsible_name ?? '',
       responsible_f_name: x.responsible_f_name ?? '',
@@ -425,6 +436,7 @@
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
 
     { title: t('مختصات'), key: 'coordinates' }, // <-- before note
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -456,6 +468,7 @@
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
 
     { title: t('مختصات'), key: 'coordinates' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -528,6 +541,7 @@
       'coordinates',
       'employee_quantity',
       'guard_quantity',
+      'Province_addr',
       'resource_id',
       'note',
     ];
@@ -659,7 +673,7 @@
 </script>
 
 <style scoped>
-    table th {
+  table th {
     white-space: nowrap;
   }
   .custom-table :deep(.v-data-table__thead th) {

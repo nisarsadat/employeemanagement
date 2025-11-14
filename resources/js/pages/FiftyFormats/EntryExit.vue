@@ -19,7 +19,12 @@
           variant="outlined"
           @keyup.enter="fetchAll"
           clearable
-          @click:clear="() => { repo.Search = ''; fetchAll(); }"
+          @click:clear="
+            () => {
+              repo.Search = '';
+              fetchAll();
+            }
+          "
         />
       </v-col>
     </v-row>
@@ -84,10 +89,34 @@
           <!-- Location (4 cols) -->
           <template #item.province="{ item }">
             <div class="addr-group">
-              <v-text-field v-model="item.draft.province" density="compact" variant="outlined" :label="t('ولایت')" hide-details />
-              <v-text-field v-model="item.draft.zone" density="compact" variant="outlined" :label="t('زون')" hide-details />
-              <v-text-field v-model="item.draft.district" density="compact" variant="outlined" :label="t('ولسوالی')" hide-details />
-              <v-text-field v-model="item.draft.village" density="compact" variant="outlined" :label="t('قریه/ناحیه')" hide-details />
+              <v-text-field
+                v-model="item.draft.province"
+                density="compact"
+                variant="outlined"
+                :label="t('ولایت')"
+                hide-details
+              />
+              <v-text-field
+                v-model="item.draft.zone"
+                density="compact"
+                variant="outlined"
+                :label="t('زون')"
+                hide-details
+              />
+              <v-text-field
+                v-model="item.draft.district"
+                density="compact"
+                variant="outlined"
+                :label="t('ولسوالی')"
+                hide-details
+              />
+              <v-text-field
+                v-model="item.draft.village"
+                density="compact"
+                variant="outlined"
+                :label="t('قریه/ناحیه')"
+                hide-details
+              />
             </div>
           </template>
 
@@ -115,20 +144,48 @@
 
           <!-- Security -->
           <template #item.amnayaty_poste="{ item }">
-            <v-text-field v-model="item.draft.amnayaty_poste" class="text-group" density="compact" variant="outlined" :label="t('پُسته امنیتی')" hide-details />
+            <v-text-field
+              v-model="item.draft.amnayaty_poste"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('پُسته امنیتی')"
+              hide-details
+            />
           </template>
 
           <template #item.amnayaty_ishala="{ item }">
-            <v-text-field v-model="item.draft.amnayaty_ishala" class="text-group" density="compact" variant="outlined" :label="t('اشاره امنیتی')" hide-details />
+            <v-text-field
+              v-model="item.draft.amnayaty_ishala"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('اشاره امنیتی')"
+              hide-details
+            />
           </template>
 
           <!-- Movement -->
           <template #item.where_went="{ item }">
-            <v-text-field v-model="item.draft.where_went" class="text-group" density="compact" variant="outlined" :label="t('به کجا رفت')" hide-details />
+            <v-text-field
+              v-model="item.draft.where_went"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('به کجا رفت')"
+              hide-details
+            />
           </template>
 
           <template #item.where_come="{ item }">
-            <v-text-field v-model="item.draft.where_come" class="text-group" density="compact" variant="outlined" :label="t('از کجا آمد')" hide-details />
+            <v-text-field
+              v-model="item.draft.where_come"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('از کجا آمد')"
+              hide-details
+            />
           </template>
 
           <!-- Resource -->
@@ -148,6 +205,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <template #item.resource_phone_number="{ item }">
             <v-text-field
               v-model="item.draft.resource_phone_number"
@@ -237,402 +306,452 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, nextTick } from 'vue';
-import { useI18n } from 'vue-i18n';
-import AppBar from '@/components/AppBar.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import { useFasadRepository } from '@/stores/FasadRepository';
+  import { ref, onMounted, computed, watch, nextTick } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import AppBar from '@/components/AppBar.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import { useFasadRepository } from '@/stores/FasadRepository';
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
-const drawer = ref(false);
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const drawer = ref(false);
 
-const repo = useFasadRepository();
+  const repo = useFasadRepository();
 
-/* ===== Editor form + snackbar ===== */
-const editorForm = ref(null);
-const editorValid = ref(false);
-const formKey = ref(0);
-const showError = ref(false);
-const errorMessage = ref('');
-const editorCard = ref(null);
-function showErrorMessage(message) { errorMessage.value = message; showError.value = true; }
-
-/* ===== Errors per row ===== */
-const itemErrors = ref({});
-function setItemErrors(item, errors) { itemErrors.value[item.idOrTmp] = errors; }
-function clearItemErrors(item) { if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp]; }
-function hasError(item, field) { return !!(itemErrors.value[item.idOrTmp] && itemErrors.value[item.idOrTmp][field]); }
-function getErrorMessages(item, field) { return itemErrors.value[item.idOrTmp]?.[field] ?? []; }
-
-/* ===== Rules ===== */
-const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
-  number: (v) => !v || /^[0-9]+$/.test(v) || t('فقط اعداد مجاز است'),
-};
-
-/* ===== Single editor row ===== */
-const rows = ref([]);
-function setBlankEditorRow() { rows.value = [toRowModel({})]; }
-
-/* ===== ALL data for FilterableTable ===== */
-const rowsFT = computed(() => repo.EntryExits || []);
-
-/* ===== Headers (editor) ===== */
-const headers = computed(() => [
-  { title: t('نام'), key: 'name' },
-  { title: t('طریق ورود/خروج'), key: 'entry_way' },
-  { title: t('نوعه طریق'), key: 'way_type' },
-
-  { title: t('موقعیت'), key: 'province' }, // grouped (4: province, zone, district, village)
-  { title: t('موقعیت مشخص'), key: 'specific_place' },
-  { title: t('مختصات'), key: 'cordinate' },
-
-  { title: t('پُسته امنیتی'), key: 'amnayaty_poste' },
-  { title: t('اشاره امنیتی'), key: 'amnayaty_ishala' },
-
-  { title: t('به کجا رفت'), key: 'where_went' },
-  { title: t('از کجا آمد'), key: 'where_come' },
-
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone_number' },
-
-  { title: t('ملاحظات'), key: 'notes' },
-
-  { title: t('عملیات'), key: 'actions', sortable: false },
-]);
-
-/* ===== Headers for FilterableTable ===== */
-const headersFT = computed(() => [
-  { title: t('نام'), key: 'name' },
-  { title: t('طریق ورود/خروج'), key: 'entry_way' },
-  { title: t('نوعه طریق'), key: 'way_type' },
-
-  { title: t('ولایت'), key: 'province' },
-  { title: t('زون'), key: 'zone' },
-  { title: t('ولسوالی'), key: 'district' },
-  { title: t('قریه/ناحیه'), key: 'village' },
-
-  { title: t('موقعیت مشخص'), key: 'specific_place' },
-  { title: t('مختصات'), key: 'cordinate' },
-
-  { title: t('پُسته امنیتی'), key: 'amnayaty_poste' },
-  { title: t('اشاره امنیتی'), key: 'amnayaty_ishala' },
-
-  { title: t('به کجا رفت'), key: 'where_went' },
-  { title: t('از کجا آمد'), key: 'where_come' },
-
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone_number' },
-
-  { title: t('ملاحظات'), key: 'notes' },
-]);
-
-/* ===== Top filter groups (Fasad style) ===== */
-const topGroups = computed(() => [
-  { title: t('مشخصات'), keys: ['name','entry_way','way_type'] },
-  { title: t('موقعیت'), keys: ['province','zone','district','village','specific_place','cordinate'] },
-  { title: t('امنیتی'), keys: ['amnayaty_poste','amnayaty_ishala'] },
-  { title: t('رفت و آمد'), keys: ['where_went','where_come'] },
-  { title: t('منبع'), keys: ['resource_code','resource_phone_number'] },
-  { title: t('دیگر'), keys: ['notes'] },
-]);
-
-/* ===== Resources dropdown -> code/phone + set resource_id ===== */
-const resources = computed(() => repo.resourcecode || []);
-function onResourceCodeChange(item) {
-  const code = item.draft.resource_code;
-  const found = resources.value.find((r) => r.code_number === code);
-  item.draft.resource_phone_number = found?.phone_number ?? '';
-  item.draft.resource_id = found?.id ?? null;
-}
-
-/* ===== Row model & diff ===== */
-let tmpId = 0;
-const newTmpId = () => `tmp-${++tmpId}`;
-
-function toRowModel(x = {}) {
-  const r = x.resource || {};
-  const base = {
-    id: x.id ?? null,
-    idOrTmp: x.id ?? newTmpId(),
-
-    loading: false,
-
-    name: x.name ?? '',
-    entry_way: x.entry_way ?? '',
-    way_type: x.way_type ?? '',
-
-    province: x.province ?? '',
-    zone: x.zone ?? '',
-    district: x.district ?? '',
-    village: x.village ?? '',
-
-    specific_place: x.specific_place ?? '',
-    cordinate: x.cordinate ?? '',
-
-    amnayaty_poste: x.amnayaty_poste ?? '',
-    amnayaty_ishala: x.amnayaty_ishala ?? '',
-
-    where_went: x.where_went ?? '',
-    where_come: x.where_come ?? '',
-
-    resource_code: x.resource_code ?? r.code_number ?? '',
-    resource_phone_number: x.resource_phone_number ?? r.phone_number ?? '',
-    resource_id: x.resource_id ?? r.id ?? null,
-
-    notes: x.notes ?? '',
-  };
-  return { ...base, draft: { ...base } };
-}
-
-const EDITABLE_KEYS = [
-  'name', 'entry_way', 'way_type',
-  'province', 'zone', 'district', 'village',
-  'specific_place', 'cordinate',
-  'amnayaty_poste', 'amnayaty_ishala',
-  'where_went', 'where_come',
-  'resource_code', 'resource_phone_number', 'resource_id',
-  'notes',
-];
-const REQUIRED_ON_UPDATE = ['name'];
-
-function diffDraft(item) {
-  const d = item.draft || {};
-  const changed = {};
-  for (const k of EDITABLE_KEYS) if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-  for (const k of REQUIRED_ON_UPDATE) if (d[k] !== undefined) changed[k] = d[k];
-  return changed;
-}
-
-function toFormDataSelective(obj) {
-  const fd = new FormData();
-  Object.entries(obj || {}).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
-  });
-  return fd;
-}
-
-/* ===== Save / Submit / Delete ===== */
-async function save(item) {
-  if (!item.draft?.name?.trim()) {
-    showErrorMessage(t('نام الزامی است'));
-    return;
+  /* ===== Editor form + snackbar ===== */
+  const editorForm = ref(null);
+  const editorValid = ref(false);
+  const formKey = ref(0);
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const editorCard = ref(null);
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
   }
-  item.loading = true;
-  clearItemErrors(item);
 
-  try {
-    // CREATE
-    if (!item.id) {
-      const fd = toFormDataSelective(item.draft);
-      const created = await repo.CreateEntryExit?.(fd);
-      if (created && created.id) {
-        await fetchAll();
-        setBlankEditorRow();
-        editorForm.value?.resetValidation?.();
-      } else {
+  /* ===== Errors per row ===== */
+  const itemErrors = ref({});
+  function setItemErrors(item, errors) {
+    itemErrors.value[item.idOrTmp] = errors;
+  }
+  function clearItemErrors(item) {
+    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
+  }
+  function hasError(item, field) {
+    return !!(itemErrors.value[item.idOrTmp] && itemErrors.value[item.idOrTmp][field]);
+  }
+  function getErrorMessages(item, field) {
+    return itemErrors.value[item.idOrTmp]?.[field] ?? [];
+  }
+
+  /* ===== Rules ===== */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+    number: (v) => !v || /^[0-9]+$/.test(v) || t('فقط اعداد مجاز است'),
+  };
+
+  /* ===== Single editor row ===== */
+  const rows = ref([]);
+  function setBlankEditorRow() {
+    rows.value = [toRowModel({})];
+  }
+
+  /* ===== ALL data for FilterableTable ===== */
+  const rowsFT = computed(() => repo.EntryExits || []);
+
+  /* ===== Headers (editor) ===== */
+  const headers = computed(() => [
+    { title: t('نام'), key: 'name' },
+    { title: t('طریق ورود/خروج'), key: 'entry_way' },
+    { title: t('نوعه طریق'), key: 'way_type' },
+
+    { title: t('موقعیت'), key: 'province' }, // grouped (4: province, zone, district, village)
+    { title: t('موقعیت مشخص'), key: 'specific_place' },
+    { title: t('مختصات'), key: 'cordinate' },
+
+    { title: t('پُسته امنیتی'), key: 'amnayaty_poste' },
+    { title: t('اشاره امنیتی'), key: 'amnayaty_ishala' },
+
+    { title: t('به کجا رفت'), key: 'where_went' },
+    { title: t('از کجا آمد'), key: 'where_come' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone_number' },
+
+    { title: t('ملاحظات'), key: 'notes' },
+
+    { title: t('عملیات'), key: 'actions', sortable: false },
+  ]);
+
+  /* ===== Headers for FilterableTable ===== */
+  const headersFT = computed(() => [
+    { title: t('نام'), key: 'name' },
+    { title: t('طریق ورود/خروج'), key: 'entry_way' },
+    { title: t('نوعه طریق'), key: 'way_type' },
+
+    { title: t('ولایت'), key: 'province' },
+    { title: t('زون'), key: 'zone' },
+    { title: t('ولسوالی'), key: 'district' },
+    { title: t('قریه/ناحیه'), key: 'village' },
+
+    { title: t('موقعیت مشخص'), key: 'specific_place' },
+    { title: t('مختصات'), key: 'cordinate' },
+
+    { title: t('پُسته امنیتی'), key: 'amnayaty_poste' },
+    { title: t('اشاره امنیتی'), key: 'amnayaty_ishala' },
+
+    { title: t('به کجا رفت'), key: 'where_went' },
+    { title: t('از کجا آمد'), key: 'where_come' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone_number' },
+
+    { title: t('ملاحظات'), key: 'notes' },
+  ]);
+
+  /* ===== Top filter groups (Fasad style) ===== */
+  const topGroups = computed(() => [
+    { title: t('مشخصات'), keys: ['name', 'entry_way', 'way_type'] },
+    {
+      title: t('موقعیت'),
+      keys: ['province', 'zone', 'district', 'village', 'specific_place', 'cordinate'],
+    },
+    { title: t('امنیتی'), keys: ['amnayaty_poste', 'amnayaty_ishala'] },
+    { title: t('رفت و آمد'), keys: ['where_went', 'where_come'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone_number'] },
+    { title: t('دیگر'), keys: ['notes'] },
+  ]);
+
+  /* ===== Resources dropdown -> code/phone + set resource_id ===== */
+  const resources = computed(() => repo.resourcecode || []);
+  function onResourceCodeChange(item) {
+    const code = item.draft.resource_code;
+    const found = resources.value.find((r) => r.code_number === code);
+    item.draft.resource_phone_number = found?.phone_number ?? '';
+    item.draft.resource_id = found?.id ?? null;
+  }
+
+  /* ===== Row model & diff ===== */
+  let tmpId = 0;
+  const newTmpId = () => `tmp-${++tmpId}`;
+
+  function toRowModel(x = {}) {
+    const r = x.resource || {};
+    const base = {
+      id: x.id ?? null,
+      idOrTmp: x.id ?? newTmpId(),
+
+      loading: false,
+
+      name: x.name ?? '',
+      entry_way: x.entry_way ?? '',
+      way_type: x.way_type ?? '',
+
+      province: x.province ?? '',
+      zone: x.zone ?? '',
+      district: x.district ?? '',
+      village: x.village ?? '',
+
+      specific_place: x.specific_place ?? '',
+      cordinate: x.cordinate ?? '',
+
+      amnayaty_poste: x.amnayaty_poste ?? '',
+      amnayaty_ishala: x.amnayaty_ishala ?? '',
+
+      where_went: x.where_went ?? '',
+      Province_addr: x.Province_addr ?? '',
+      where_come: x.where_come ?? '',
+
+      resource_code: x.resource_code ?? r.code_number ?? '',
+      resource_phone_number: x.resource_phone_number ?? r.phone_number ?? '',
+      resource_id: x.resource_id ?? r.id ?? null,
+
+      notes: x.notes ?? '',
+    };
+    return { ...base, draft: { ...base } };
+  }
+
+  const EDITABLE_KEYS = [
+    'name',
+    'entry_way',
+    'way_type',
+    'province',
+    'zone',
+    'district',
+    'village',
+    'specific_place',
+    'cordinate',
+    'amnayaty_poste',
+    'amnayaty_ishala',
+      'Province_addr',
+    'where_went',
+    'where_come',
+    'resource_code',
+    'resource_phone_number',
+    'resource_id',
+    'notes',
+  ];
+  const REQUIRED_ON_UPDATE = ['name'];
+
+  function diffDraft(item) {
+    const d = item.draft || {};
+    const changed = {};
+    for (const k of EDITABLE_KEYS) if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
+    for (const k of REQUIRED_ON_UPDATE) if (d[k] !== undefined) changed[k] = d[k];
+    return changed;
+  }
+
+  function toFormDataSelective(obj) {
+    const fd = new FormData();
+    Object.entries(obj || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  /* ===== Save / Submit / Delete ===== */
+  async function save(item) {
+    if (!item.draft?.name?.trim()) {
+      showErrorMessage(t('نام الزامی است'));
+      return;
+    }
+    item.loading = true;
+    clearItemErrors(item);
+
+    try {
+      // CREATE
+      if (!item.id) {
+        const fd = toFormDataSelective(item.draft);
+        const created = await repo.CreateEntryExit?.(fd);
+        if (created && created.id) {
+          await fetchAll();
+          setBlankEditorRow();
+          editorForm.value?.resetValidation?.();
+        } else {
+          await fetchAll();
+          setBlankEditorRow();
+          editorForm.value?.resetValidation?.();
+        }
+        return;
+      }
+
+      // UPDATE
+      const changed = diffDraft(item);
+      if (Object.keys(changed).length === 0) {
+        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
+        return;
+      }
+      const fd = toFormDataSelective(changed);
+      const updated = await repo.UpdateEntryExit?.(item.id, fd);
+      if (updated && updated.id) {
         await fetchAll();
         setBlankEditorRow();
         editorForm.value?.resetValidation?.();
       }
-      return;
+    } catch (error) {
+      console.error('Save error:', error);
+      if (error?.response?.data?.errors) {
+        setItemErrors(item, error.response.data.errors);
+        showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
+      } else {
+        showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته')));
+      }
+    } finally {
+      item.loading = false;
     }
+  }
 
-    // UPDATE
-    const changed = diffDraft(item);
-    if (Object.keys(changed).length === 0) {
-      showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
+  async function onSubmit(item) {
+    const form = editorForm.value;
+    if (!form) return;
+    const { valid } = await form.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
       return;
     }
-    const fd = toFormDataSelective(changed);
-    const updated = await repo.UpdateEntryExit?.(item.id, fd);
-    if (updated && updated.id) {
+    await save(item);
+  }
+
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  async function del(item) {
+    if (!item.id) {
+      setBlankEditorRow();
+      return;
+    }
+    if (!confirm(t('آیا مطمئن هستید؟'))) return;
+    try {
+      await repo.DeleteEntryExit?.(item.id);
       await fetchAll();
       setBlankEditorRow();
-      editorForm.value?.resetValidation?.();
+    } catch (e) {
+      console.error('Delete error:', e);
+      showErrorMessage(t('خطا در حذف') + ': ' + (e?.message || t('خطای ناشناخته')));
     }
-  } catch (error) {
-    console.error('Save error:', error);
-    if (error?.response?.data?.errors) {
-      setItemErrors(item, error.response.data.errors);
-      showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
-    } else {
-      showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته')));
+  }
+
+  function clearEditor(item) {
+    try {
+      if (item && item.idOrTmp && itemErrors.value[item.idOrTmp]) {
+        delete itemErrors.value[item.idOrTmp];
+      }
+      setBlankEditorRow();
+      showErrorMessage(t('ورودی‌ها پاک شد'));
+    } catch (e) {
+      console.error('clearEditor error:', e);
     }
-  } finally {
-    item.loading = false;
   }
-}
 
-async function onSubmit(item) {
-  const form = editorForm.value;
-  if (!form) return;
-  const { valid } = await form.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
-  }
-  await save(item);
-}
+  /* ===== Peek / Fetch single ===== */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
 
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-    document.querySelector('.v-messages__message');
-  if (first) {
-    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = first.querySelector('input, textarea, .v-field__input');
-    if (input && typeof input.focus === 'function') input.focus();
+  async function fetchOne(id) {
+    loading.value = true;
+    try {
+      await repo.FetchEntryExitData?.(id);
+      detail.value = repo.EntryExit || [];
+    } catch (error) {
+      console.error('Fetch one error:', error);
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      loading.value = false;
+    }
   }
-}
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
 
-async function del(item) {
-  if (!item.id) {
-    setBlankEditorRow();
-    return;
+  /* ===== Fetch ALL (for FilterableTable) ===== */
+  const filters = ref({});
+  async function fetchAll() {
+    try {
+      await repo.FetchEntryExitsData?.({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search || '',
+      });
+    } catch (e) {
+      console.error('fetchAll error', e);
+    }
   }
-  if (!confirm(t('آیا مطمئن هستید؟'))) return;
-  try {
-    await repo.DeleteEntryExit?.(item.id);
+
+  /* ===== Start edit from FilterableTable ===== */
+  async function startEdit(row) {
+    try {
+      const id = row?.id;
+      if (!id) return;
+      await repo.FetchEntryExitData?.(id);
+      const single =
+        repo.EntryExit && Array.isArray(repo.EntryExit) ? repo.EntryExit[0] : repo.EntryExit || row;
+      rows.value = [toRowModel(single || row)];
+      await nextTick();
+      const el = editorCard.value?.$el || editorCard.value;
+      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      console.error('startEdit error', e);
+      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
+    }
+  }
+
+  /* ===== Init ===== */
+  onMounted(async () => {
+    await Promise.allSettled([repo.GetResourceCode?.()]);
     await fetchAll();
     setBlankEditorRow();
-  } catch (e) {
-    console.error('Delete error:', e);
-    showErrorMessage(t('خطا در حذف') + ': ' + (e?.message || t('خطای ناشناخته')));
-  }
-}
-
-function clearEditor(item) {
-  try {
-    if (item && item.idOrTmp && itemErrors.value[item.idOrTmp]) {
-      delete itemErrors.value[item.idOrTmp];
-    }
-    setBlankEditorRow();
-    showErrorMessage(t('ورودی‌ها پاک شد'));
-  } catch (e) {
-    console.error('clearEditor error:', e);
-  }
-}
-
-/* ===== Peek / Fetch single ===== */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loading = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loading.value = true;
-  try {
-    await repo.FetchEntryExitData?.(id);
-    detail.value = repo.EntryExit || [];
-  } catch (error) {
-    console.error('Fetch one error:', error);
-    showErrorMessage(t('خطا در دریافت اطلاعات'));
-  } finally {
-    loading.value = false;
-  }
-}
-function openPeek(payload) {
-  const row = payload?.raw ?? payload;
-  if (!row?.id) return;
-  expanded.value = true;
-  fetchOne(row.id);
-}
-
-/* ===== Fetch ALL (for FilterableTable) ===== */
-const filters = ref({});
-async function fetchAll() {
-  try {
-    await repo.FetchEntryExitsData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
-  } catch (e) {
-    console.error('fetchAll error', e);
-  }
-}
-
-/* ===== Start edit from FilterableTable ===== */
-async function startEdit(row) {
-  try {
-    const id = row?.id;
-    if (!id) return;
-    await repo.FetchEntryExitData?.(id);
-    const single = repo.EntryExit && Array.isArray(repo.EntryExit) ? repo.EntryExit[0] : repo.EntryExit || row;
-    rows.value = [toRowModel(single || row)];
-    await nextTick();
-    const el = editorCard.value?.$el || editorCard.value;
-    el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-  } catch (e) {
-    console.error('startEdit error', e);
-    showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
-  }
-}
-
-/* ===== Init ===== */
-onMounted(async () => {
-  await Promise.allSettled([repo.GetResourceCode?.()]);
-  await fetchAll();
-  setBlankEditorRow();
-});
+  });
 </script>
 
 <style scoped>
-/* Prevent header wrap */
-table th { white-space: nowrap; }
+  /* Prevent header wrap */
+  table th {
+    white-space: nowrap;
+  }
 
-/* Colored table header */
-.custom-table :deep(.v-data-table__thead th) {
-  background: rgb(var(--v-theme-primary));
-  color: #fff;
-  font-weight: 400;
-}
+  /* Colored table header */
+  .custom-table :deep(.v-data-table__thead th) {
+    background: rgb(var(--v-theme-primary));
+    color: #fff;
+    font-weight: 400;
+  }
 
-/* Layout helpers (Fasad style) */
-.tablebody { display: flex !important; gap: 2px !important; }
-.flex { display: flex; }
-.items-center { align-items: center; }
-.gap-1 { gap: 4px; }
+  /* Layout helpers (Fasad style) */
+  .tablebody {
+    display: flex !important;
+    gap: 2px !important;
+  }
+  .flex {
+    display: flex;
+  }
+  .items-center {
+    align-items: center;
+  }
+  .gap-1 {
+    gap: 4px;
+  }
 
-/* Grouped inputs */
-.addr-group {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 1fr));
-  gap: 2px;
-}
-.text-group { display: grid; width: 140px; gap: 2px; }
-.text-group-note { display: grid; width: 380px; gap: 2px; }
+  /* Grouped inputs */
+  .addr-group {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 2px;
+  }
+  .text-group {
+    display: grid;
+    width: 140px;
+    gap: 2px;
+  }
+  .text-group-note {
+    display: grid;
+    width: 380px;
+    gap: 2px;
+  }
 
-/* Compact inputs + labels */
-:deep(.v-field-label),
-:deep(.v-label),
-:deep(input::placeholder) {
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  color: #555 !important;
-}
-:deep(.v-field__input) {
-  min-height: 26px !important;
-  padding: 2px 6px !important;
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-}
+  /* Compact inputs + labels */
+  :deep(.v-field-label),
+  :deep(.v-label),
+  :deep(input::placeholder) {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    color: #555 !important;
+  }
+  :deep(.v-field__input) {
+    min-height: 26px !important;
+    padding: 2px 6px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+  }
 
-/* Tight spacing inside grouped blocks */
-.addr-group,
-.text-group,
-.text-group-note {
-  margin: -16px !important;
-  padding: -10px !important;
-  row-gap: -6px !important;
-  column-gap: 2px !important;
-  gap: -10px !important;
-}
+  /* Tight spacing inside grouped blocks */
+  .addr-group,
+  .text-group,
+  .text-group-note {
+    margin: -16px !important;
+    padding: -10px !important;
+    row-gap: -6px !important;
+    column-gap: 2px !important;
+    gap: -10px !important;
+  }
 </style>

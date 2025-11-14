@@ -37,6 +37,7 @@ class StoreLostMujremeenRequest extends FormRequest
             'lost_reason'  => ['nullable','string'],
 
             'phone_number' => ['nullable','string'],
+            'Province_addr'             => ['nullable','string'],
 
             'note'        => ['nullable','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],

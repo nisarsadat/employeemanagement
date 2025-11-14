@@ -296,6 +296,19 @@
               hide-details
             />
           </template>
+          
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
 
           <!-- Actions -->
           <template #item.actions="{ item }">
@@ -445,6 +458,7 @@
 
       country: x.country ?? '',
       male_amount: x.male_amount ?? '',
+      Province_addr: x.Province_addr ?? '',
       female_amount: x.female_amount ?? '',
       phone_number: x.phone_number ?? '',
 
@@ -491,6 +505,7 @@
     { title: t('مرد'), key: 'male_amount' },
     { title: t('زن'), key: 'female_amount' },
     { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -518,6 +533,7 @@
     { title: t('مرد'), key: 'male_amount' },
     { title: t('زن'), key: 'female_amount' },
     { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
     { title: t('ملاحظات'), key: 'note' },
@@ -547,6 +563,7 @@
     'main_province',
     'main_district',
     'main_village',
+      'Province_addr',
     'now_province',
     'now_zone',
     'now_district',

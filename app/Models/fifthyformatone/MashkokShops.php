@@ -20,6 +20,7 @@ class MashkokShops extends Model
         'coordinates',
 
         'name',
+        'Province_addr',
         'father_name',
         'main_province',
         'phone_numbers',

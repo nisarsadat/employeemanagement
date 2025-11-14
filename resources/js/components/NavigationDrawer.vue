@@ -5,219 +5,344 @@
     width="240"
     :dir="isRtl ? 'rtl' : 'ltr'"
     :color="$vuetify.theme.current.dark ? 'grey-darken-4' : 'bgproject'"
-    class="brright px-2"
+    class="brright px-2 d-flex flex-column"
   >
+    <!-- Top logo -->
     <div class="logo-container">
-      <v-list-item class="logo-container2">
-        <!-- <v-img src="/assets/apartment.png" class="rounded-lg" /> -->
-        <!-- Dynamically adjust the size -->
-      </v-list-item>
+      <v-list-item class="logo-container2" />
     </div>
+
+    <!-- Scrollable nav -->
     <div class="scrollable-content">
-      <!-- Main Navigation -->
-      <v-list class="">
-        <template v-for="item in navigationItems" :key="item.title">
-          <!-- Single Items -->
+      <v-list>
+        <template v-for="item in filteredNavigationItems" :key="item.title">
+          <!-- Single items -->
           <v-list-item
             v-if="!item.children"
-            :prepend-icon="item.icon"
-            :title="item.title"
-            :value="item.path"
-            :to="item.path"
-            :active="activeItem === item.path"
-            @click="setActive(item.path)"
+            :to="item.to"
             rounded="2"
             :dir="isRtl ? 'rtl' : 'ltr'"
+            :active="isActive(item)"
           >
-            <template v-slot:prepend>
+            <template #prepend>
               <div class="icon-bg">
-                <v-icon :icon="item.icon"></v-icon>
+                <v-icon :icon="item.icon" />
               </div>
             </template>
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
           </v-list-item>
 
-          <!-- Group Items -->
-          <v-list-group v-else :value="item.value">
-            <template v-slot:activator="{ props }">
+          <!-- Groups -->
+          <v-list-group
+            v-else
+            :value="isGroupOpen(item)"
+            v-if="item.children && item.children.length"
+          >
+            <template #activator="{ props }">
               <v-list-item
                 v-bind="props"
                 :append-icon="null"
-                :title="item.title"
-                :active="activeGroup === item.value"
-                @click="setActiveGroup(item)"
                 :class="{
-                  'bg-navigationActive': activeGroup === item.value,
-                  'text-white': activeGroup === item.value,
+                  'bg-navigationActive': isGroupOpen(item),
+                  'text-white': isGroupOpen(item),
                 }"
                 :dir="isRtl ? 'rtl' : 'ltr'"
               >
-                <template v-slot:prepend>
+                <template #prepend>
                   <div class="icon-bg">
-                    <v-icon :icon="item.icon"></v-icon>
+                    <v-icon :icon="item.icon" />
                   </div>
                 </template>
+                <v-list-item-title>{{ item.title }}</v-list-item-title>
               </v-list-item>
             </template>
 
             <v-list-item
               v-for="child in item.children"
               :key="child.title"
-              :title="child.title"
-              :value="child.path"
-              :to="child.path"
+              :to="child.to"
               prepend-icon="mdi-circle-medium"
-              :active="activeItem === child.path"
-              @click="setActive(child.path)"
+              :active="isActive(child)"
               :class="{
-                'bg-navigationActive': activeItem === child.path,
-                'text-white': activeItem === child.path,
+                'bg-navigationActive': isActive(child),
+                'text-white': isActive(child),
               }"
-            ></v-list-item>
+            >
+              <v-list-item-title>{{ child.title }}</v-list-item-title>
+            </v-list-item>
           </v-list-group>
         </template>
       </v-list>
     </div>
-    <!--
-        <div class="bordertop">
-            <v-list class="logoutPart">
-                <LogInOut />
-            </v-list>
-        </div> -->
+
+    <!-- Bottom profile block -->
+    <v-divider class="mt-2 mb-1" />
+
+    <v-menu v-model="profileMenu" location="top start" :dir="isRtl ? 'rtl' : 'ltr'" :close-on-content-click="true">
+      <template #activator="{ props }">
+        <v-list-item
+          v-bind="props"
+          class="profile-tile my-2"
+          rounded="lg"
+          role="button"
+        >
+          <template #prepend>
+            <v-avatar size="30" class="mr-3 br-1" v-if="avatarSrc">
+              <v-img :src="avatarSrc" alt="avatar" cover />
+            </v-avatar>
+            <v-avatar size="40" class="mr-3" v-else>
+              <span class="text-subtitle-1 font-weight-bold">{{ initials }}</span>
+            </v-avatar>
+          </template>
+
+          <v-list-item-title class="text-body-2 font-weight-medium">
+            {{ displayName }}
+          </v-list-item-title>
+          <v-list-item-subtitle class="text-caption text-grey-darken-1">
+            {{ usernameAt }}
+          </v-list-item-subtitle>
+        </v-list-item>
+      </template>
+
+      <v-card min-width="220" 
+      >
+        <v-list density="compact">
+          <v-list-item @click="onLogout" prepend-icon="mdi-logout-variant">
+            <v-list-item-title>{{ t('Logout') }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-card>
+    </v-menu>
   </v-navigation-drawer>
 </template>
 
 <script setup>
-  import { ref } from 'vue';
-  import { useTheme } from 'vuetify';
-  // import LogInOut from "./LogInOut.vue";
-  // const theme = useTheme();
-  const activeItem = ref('');
-  const activeGroup = ref('');
+  import { ref, watch, computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { watch, computed } from 'vue';
+  import { useRoute } from 'vue-router';
+
+  // Stores
+  import { useLoginRepository } from '@/stores/LoginRepository';
+  import { useUsersRepository } from '@/stores/UsersRepository';
+
+  const route = useRoute();
   const { locale, t } = useI18n();
-  const isRtl = ref(locale.value === 'fa'); // Assuming 'fa' is the code for Dari
 
-  watch(locale, (newLocale) => {
-    isRtl.value = newLocale === 'fa';
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
+
+  // repos
+  const auth = useLoginRepository();
+  const usersRepo = useUsersRepository(); // kept for future user actions if needed
+
+  // Ensure we have current user info (image/name/username) after reload
+  onMounted(async () => {
+    try {
+      // call a method that ensures we have /me loaded if missing
+      (await auth.ensureMe?.()) ?? auth.fetchUser?.();
+    } catch {}
   });
-  const navigationItems = computed(() => [
-    {
-      title: t('Dashboard'),
-      icon: 'mdi-view-dashboard-outline',
-      path: '/dashboards',
-    },
-    {
-      title: t('نقشه'),
-      icon: 'mdi-map',
-      path: '/map-afg',
-    },
-    
-    // {
-    //     title: t("expenses"),
-    //     icon: "mdi-cash-minus",
-    //     value: "Expense",
-    //     children: [
-    //         { title: t("expense"), path: "/expense" },
-    //         { title: t("expenseCategory"), path: "/ExpenseCategory" },
-    //     ],
-    // },
-    // {
-    //     title: t("MoneyAccount"),
-    //     icon: "mdi-cash-plus",
-    //     path: "/moneyAccount",
-    // },
-    // {
-    //     title: t("salary"),
-    //     icon: "mdi-cash",
-    //     path: "/Salary",
-    // },
+  // profile menu
+  const profileMenu = ref(false);
 
-    // {
-    //     title: t("reservation"),
-    //     icon: "mdi-sale-outline",
-    //     path: "/Reservission",
-    // },
-    // {
-    //     title: t("rentManagement"),
-    //     icon: "mdi-sale-outline",
-    //     path: "/Rent",
-    // },
-    // {
-    //     title: t("plaza"),
-    //     icon: "mdi-home-outline",
-    //     value: "Plaza",
-    //     children: [
-    //         { title: t("apartment"), path: "/apartment" },
-    //         { title: t("floor"), path: "/Floor" },
-    //         { title: t("flat"), path: "/Flat" },
-    //     ],
-    // },
-    { title: t(' خطی اطلاعات'), path: '/inlineinfo', icon: 'mdi-menu' },
-    { title: t('استفاده کوونکی'), path: '/users', icon: 'mdi-account' },
-    { title: t('  کارمندان'), path: '/officeemployee', icon: 'mdi-account-outline' },
-    // { title: t('تدابیری کارمندان'), path: '/zoneemployee', icon: 'mdi-account-outline' },
-    // { title: t('د رزیدینتانو په اره'), path: '/resedintemployee', icon: 'mdi-account-outline' },
-    // {
-    //   title: t('افراد'),
-    //   icon: 'mdi-account-outline',
-    //   value: 'people',
-    //   children: [
-    //     { title: t('استفاده کوونکی'), path: '/users' },
-    //     { title: t('د مدیریت کارمندان'), path: '/officeemployee' },
-    //     { title: t('تدابیری کارمندان'), path: '/zoneemployee' },
-    //     { title: t('د رزیدینتانو په اره'), path: '/resedintemployee' },
-    //   ],
-    // },
-    { title: t('منابع'), path: '/resources', icon: 'mdi-pen' },
-    { title: t('اطلاعات'), path: '/informations', icon: 'mdi-book' },
-    { title: t('پیښي'), path: '/events', icon: 'mdi-book-outline' },
-    { title: t('تسلیم شوی بندیان'), path: '/delevirycaptive', icon: 'mdi-lock' },
-    // {
-    //   title: t('دیتابیس'),
-    //   icon: 'mdi-cog-outline',
-    //   value: 'settings',
-    //   children: [
-    //     { title: t('منابع'), path: '/resources' },
-    //     { title: t('اطلاعات'), path: '/informations' },
-    //     { title: t('پیښي'), path: '/events' },
-    //     { title: t('تسلیم شوی بندیان'), path: '/delevirycaptive' },
-    //   ],
-    // },
-    {
-      title: t('پنڅوس فارمټ '),
-      icon: 'mdi-view-dashboard-outline',
-      path: '/fifthyformatsroute',
-    },
-    {
-      title: t('بخش حساب مالی'),
-      icon: 'mdi-view-dashboard-outline',
-      path: '/finincalindex',
-    },
-    // {
-    //   title: t('reports'),
-    //   icon: 'mdi-graph',
-    //   value: 'Report',
-    //   children: [
-    //     { title: t('reservation'), path: '/ReservationReport' },
-    //     { title: t('Account'), path: '/AccountSummary' },
-    //     { title: t('Customer'), path: '/CustomerReport' },
-    //     { title: t('MonthlyIncome'), path: '/MonthlyIncome' },
-    //   ],
-    // },
-  ]);
+  // derive profile display
+  // handle { user: {...} } or flat {...}
+  const userObj = computed(() => {
+    const u = auth.user;
+    if (!u) return null;
+    return u.name ? u : u.user ?? null;
+  });
+  const displayName = computed(
+    () =>
+      userObj.value?.name ??
+      userObj.value?.username ?? // fallback if no name set
+      t('Guest')
+  );
+  const usernameAt = computed(() => {
+    const uname = userObj.value?.username;
+    return uname ? `@${uname}` : '@—';
+  });
+  const avatarSrc = computed(() => {
+    // API during login gave "image" (relative path) but not "image_url"
+    const imgUrl = userObj.value?.image_url;
+    const imgRel = userObj.value?.image; // e.g. "avatars/xxx.png"
+    // If only relative exists, let <v-img> resolve it (or prefix yourself if needed)
+    return imgUrl || (imgRel ? `/storage/${imgRel}` : null);
+  });
+  const initials = computed(() => {
+    const n = (userObj.value?.name || '').trim();
+    if (!n) return '😊';
+    const parts = n.split(/\s+/).slice(0, 2);
+    return parts.map((p) => p[0]?.toUpperCase() || '').join('');
+  });
 
-  const setActive = (path) => {
-    activeItem.value = path;
+  // Helper to build named route targets that all live under /app
+  const toName = (name) => ({ name });
+
+  /**
+   * Permission helpers
+   * - item.perm: single permission required
+   * - item.anyPerms: at least one of these permissions
+   * - item.allPerms: must have all of these permissions
+   * If none provided, visible by default.
+   */
+  const canView = (item) => {
+    if (!item) return false;
+    // Single perm
+    if (item.perm && !auth.can(item.perm)) return false;
+    // All-perms
+    if (Array.isArray(item.allPerms) && item.allPerms.length) {
+      for (const p of item.allPerms) if (!auth.can(p)) return false;
+    }
+    // Any-perms
+    if (Array.isArray(item.anyPerms) && item.anyPerms.length) {
+      const ok = item.anyPerms.some((p) => auth.can(p));
+      if (!ok) return false;
+    }
+    return true;
   };
 
-  const setActiveGroup = (group) => {
-    activeGroup.value = group;
+  const withPerms = (node) => ({ ...node }); // placeholder if you want to transform
+
+  // Base menu (add your permission keys here)
+  const navigationItems = computed(() =>
+    [
+      {
+        title: t('Dashboard'),
+        icon: 'mdi-view-dashboard-outline',
+        to: toName('Dashboard'),
+        perm: 'dashboards.view',
+      },
+
+      { title: t('نقشه'), icon: 'mdi-map', to: { path: '/app/map-afg' }, perm: 'map-afg.view' },
+
+      {
+        title: t('فعال و غیر فعال'),
+        icon: 'mdi-check',
+        to: { path: '/app/activeandinactiveemployees' },
+        perm: 'activeandinactiveemployees.view',
+      },
+
+      {
+        title: t(' خطی اطلاعات'),
+        icon: 'mdi-menu',
+        to: { path: '/app/inlineinfo' },
+        perm: 'inlineinfo.view',
+      },
+
+      {
+        title: t('استفاده کوونکی'),
+        icon: 'mdi-account',
+        to: { path: '/app/users' },
+        perm: 'users.view',
+      },
+
+      {
+        title: t('  کارمندان'),
+        icon: 'mdi-account-outline',
+        to: { path: '/app/officeemployee' },
+        perm: 'officeemployee.view',
+      },
+
+      {
+        title: t('منابع'),
+        icon: 'mdi-pen',
+        to: { path: '/app/resources' },
+        perm: 'resources.view',
+      },
+
+      {
+        title: t('اطلاعات'),
+        icon: 'mdi-book',
+        to: { path: '/app/informations' },
+        perm: 'informations.view',
+      },
+
+      {
+        title: t('پیښي'),
+        icon: 'mdi-book-outline',
+        to: { path: '/app/events' },
+        perm: 'events.view',
+      },
+
+      {
+        title: t('تسلیم شوی بندیان'),
+        icon: 'mdi-lock',
+        to: { path: '/app/delevirycaptive' },
+        perm: 'captives.view',
+      },
+
+      {
+        title: t('پنڅوس فارمټ '),
+        icon: 'mdi-view-dashboard-outline',
+        to: { path: '/app/fifthyformatsroute' },
+        perm: 'fifthyformatsroute.view',
+      },
+
+      {
+        title: t('بخش حساب مالی'),
+        icon: 'mdi-cash-multiple',
+        to: { path: '/app/finincalindex' },
+        perm: 'finincalindex.view',
+      },
+
+      { title: t('نقش ها'), icon: 'mdi-home', to: { path: '/app/roles' }, perm: 'roles.view' },
+
+      // Example of a grouped section with child-level permissions
+      // {
+      //   title: t('Management'),
+      //   icon: 'mdi-cog-outline',
+      //   anyPerms: ['users.view', 'roles.view', 'permissions.view'],
+      //   children: [
+      //     { title: t('Users'), icon: 'mdi-account', to: { path: '/app/users' }, perm: 'users.view' },
+      //     { title: t('Roles'), icon: 'mdi-shield-key-outline', to: { path: '/app/roles' }, perm: 'roles.view' },
+      //     { title: t('Permissions'), icon: 'mdi-lock-check-outline', to: { path: '/app/permissions' }, perm: 'permissions.view' },
+      //   ],
+      // },
+    ].map(withPerms)
+  );
+
+  /**
+   * Filter items by permissions (and trim children accordingly).
+   * Groups are shown only if at least one child is visible AND the group itself passes canView().
+   */
+  const filteredNavigationItems = computed(() => {
+    const result = [];
+    for (const item of navigationItems.value) {
+      // If single node (no children)
+      if (!item.children) {
+        if (canView(item)) result.push(item);
+        continue;
+      }
+      // Group node
+      if (!canView(item)) continue;
+      const visibleChildren = item.children.filter((c) => canView(c));
+      if (visibleChildren.length) {
+        result.push({ ...item, children: visibleChildren });
+      }
+    }
+    return result;
+  });
+
+  // Active helpers
+  const isActive = (item) => {
+    if (item.to?.name) return route.name === item.to.name;
+    if (item.to?.path) return route.path === item.to.path;
+    return false;
+  };
+  const isGroupOpen = (groupItem) => {
+    if (!groupItem.children?.length) return false;
+    return groupItem.children.some(isActive);
+  };
+
+  // Actions
+  const onLogout = async () => {
+    profileMenu.value = false;
+    await auth.Logout();
   };
 </script>
 
 <style scoped>
-  /* Only added this new class for icon background */
   .icon-bg {
     background-color: white;
     color: black;
@@ -231,71 +356,27 @@
     margin-right: 16px;
   }
   [dir='rtl'] .icon-bg {
-    background-color: white;
-    color: black;
-    width: 35px;
-    height: 33px;
-    border-radius: 9px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 8px rgba(24, 23, 23, 0.25);
     margin-left: 16px;
+    margin-right: 0;
   }
-  /* Rest of your existing styles remain exactly the same */
+
   .scrollable-content {
-    height: calc(90vh - 130px);
+    height: calc(105vh - 200px);
     overflow-y: auto;
   }
   .scrollable-content::-webkit-scrollbar {
     width: 0px;
   }
 
-  .scrollable-content::-webkit-scrollbar-track {
-    background-color: #f8f8f8 !important;
-  }
-
-  .scrollable-content::-webkit-scrollbar-thumb {
-    background-color: #f8f8f8 !important;
-    border-radius: 4px;
-  }
-
-  .scrollable-content::-webkit-scrollbar-thumb:hover {
-    background-color: #f8f8f8 !important;
-  }
-
-  .v-navigation-drawer {
-    transition: background-color 0.2s ease;
-  }
-
   .v-list .v-list-item:hover {
-    background-color: rgba(var(--v-theme-primary));
     border-radius: 9px !important;
   }
-
   .v-list-item--active {
-    background-color: rgb(var(--v-theme-primary), 10) !important;
     border-radius: 9px !important;
   }
 
-  .v-list-item--active .v-list-item-title,
-  .v-list-item--active .v-icon {
-    border-radius: 9px !important;
-  }
   .brright {
     border-left: none !important;
-  }
-
-  .logoutPart {
-    display: flex;
-    flex-direction: column;
-    justify-content: end;
-  }
-
-  .bordertop {
-    border-top: 2px solid gray !important;
-    margin-right: -12px;
-    margin-left: -12px;
   }
   .logo-container {
     margin: 0 auto;
@@ -305,5 +386,16 @@
   }
   .logo-container2 {
     margin: 0 auto;
+  }
+
+  /* Profile tile */
+  .profile-tile {
+    transition: background-color 0.2s ease;
+  }
+  .profile-tile:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+  }
+  :deep(.v-avatar) {
+    background: var(--v-theme-surface);
   }
 </style>

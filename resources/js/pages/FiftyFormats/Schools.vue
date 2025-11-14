@@ -217,6 +217,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- NOTE -->
           <template #item.note="{ item }">
             <v-text-field
@@ -380,6 +392,7 @@
     { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -408,6 +421,7 @@
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('شماره سرک'), key: 'street_number' },
     { title: t('مختصات'), key: 'coordinates' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت'), key: 'note' },
     { title: t('کود منبع'), key: 'resource_code' },
@@ -449,6 +463,7 @@
       principle_f_name: x.principle_f_name ?? '',
       principle_phone: x.principle_phone ?? '',
 
+      Province_addr: x.Province_addr ?? '',
       male_teachers_quantity: x.male_teachers_quantity ?? '',
       female_teachers_quantity: x.female_teachers_quantity ?? '',
       male_students_quantity: x.male_students_quantity ?? '',
@@ -481,6 +496,7 @@
     'female_teachers_quantity',
     'male_students_quantity',
     'female_students_quantity',
+      'Province_addr',
     'province',
     'zone',
     'district',

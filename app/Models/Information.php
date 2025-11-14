@@ -18,6 +18,7 @@ class Information extends Model
         'nick_name',
         'father_name',
         'grand_father_name',
+        'Province_addr',
 
         'main_province',
         'main_districts',

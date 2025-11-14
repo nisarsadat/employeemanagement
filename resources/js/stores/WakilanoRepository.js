@@ -530,7 +530,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       try {
         setContentType('application/json');
         const { data: res } = await axios.get(
-          `done-lost-places?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
+          `donelostplaces?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
             this.Search || ''
           )}`
         );
@@ -549,7 +549,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async FetchDoneLostPlaceData(id) {
       try {
         setContentType('application/json');
-        const { data } = await axios.get(`/done-lost-places/${id}`);
+        const { data } = await axios.get(`/donelostplaces/${id}`);
         this.DoneLostPlace = data?.data ?? {};
       } catch (e) {
         console.error(e);
@@ -560,7 +560,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async CreateDoneLostPlace(formData) {
       try {
         setContentType(null);
-        const res = await axios.post(`/done-lost-places`, formData);
+        const res = await axios.post(`/donelostplaces`, formData);
         const saved = res.data?.data ?? res.data;
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
@@ -577,10 +577,10 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         if (data instanceof FormData) {
           data.append('_method', 'PUT');
           setContentType(null);
-          res = await axios.post(`/done-lost-places/${id}`, data);
+          res = await axios.post(`/donelostplaces/${id}`, data);
         } else {
           setContentType('application/json');
-          res = await axios.put(`/done-lost-places/${id}`, data);
+          res = await axios.put(`/donelostplaces/${id}`, data);
         }
         toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
@@ -593,7 +593,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
     async DeleteDoneLostPlace(id) {
       try {
-        await axios.delete(`/done-lost-places/${id}`);
+        await axios.delete(`/donelostplaces/${id}`);
         toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
@@ -608,7 +608,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       try {
         setContentType('application/json');
         const { data: res } = await axios.get(
-          `econemy-projects?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
+          `econemyprojects?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
             this.Search || ''
           )}`
         );
@@ -627,7 +627,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async FetchEconemyProjectData(id) {
       try {
         setContentType('application/json');
-        const { data } = await axios.get(`/econemy-projects/${id}`);
+        const { data } = await axios.get(`/econemyprojects/${id}`);
         this.EconemyProject = data?.data ?? {};
       } catch (e) {
         console.error(e);
@@ -638,7 +638,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async CreateEconemyProject(formData) {
       try {
         setContentType(null);
-        const res = await axios.post(`/econemy-projects`, formData);
+        const res = await axios.post(`/econemyprojects`, formData);
         const saved = res.data?.data ?? res.data;
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
@@ -655,10 +655,10 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         if (data instanceof FormData) {
           data.append('_method', 'PUT');
           setContentType(null);
-          res = await axios.post(`/econemy-projects/${id}`, data);
+          res = await axios.post(`/econemyprojects/${id}`, data);
         } else {
           setContentType('application/json');
-          res = await axios.put(`/econemy-projects/${id}`, data);
+          res = await axios.put(`/econemyprojects/${id}`, data);
         }
         toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
@@ -671,7 +671,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
     async DeleteEconemyProject(id) {
       try {
-        await axios.delete(`/econemy-projects/${id}`);
+        await axios.delete(`/econemyprojects/${id}`);
         toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
@@ -686,7 +686,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       try {
         setContentType('application/json');
         const { data: res } = await axios.get(
-          `criminal-capture-places?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
+          `criminalcaptureplaces?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
             this.Search || ''
           )}`
         );
@@ -705,7 +705,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async FetchCriminalCapturePlaceData(id) {
       try {
         setContentType('application/json');
-        const { data } = await axios.get(`/criminal-capture-places/${id}`);
+        const { data } = await axios.get(`/criminalcaptureplaces/${id}`);
         this.CriminalCapturePlace = data?.data ?? {};
       } catch (e) {
         console.error(e);
@@ -716,7 +716,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async CreateCriminalCapturePlace(formData) {
       try {
         setContentType(null);
-        const res = await axios.post(`/criminal-capture-places`, formData);
+        const res = await axios.post(`/criminalcaptureplaces`, formData);
         const saved = res.data?.data ?? res.data;
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
@@ -733,10 +733,10 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         if (data instanceof FormData) {
           data.append('_method', 'PUT');
           setContentType(null);
-          res = await axios.post(`/criminal-capture-places/${id}`, data);
+          res = await axios.post(`/criminalcaptureplaces/${id}`, data);
         } else {
           setContentType('application/json');
-          res = await axios.put(`/criminal-capture-places/${id}`, data);
+          res = await axios.put(`/criminalcaptureplaces/${id}`, data);
         }
         toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
@@ -749,7 +749,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
     async DeleteCriminalCapturePlace(id) {
       try {
-        await axios.delete(`/criminal-capture-places/${id}`);
+        await axios.delete(`/criminalcaptureplaces/${id}`);
         toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
@@ -920,7 +920,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       try {
         setContentType('application/json');
         const { data: res } = await axios.get(
-          `deplomatic-places?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
+          `deplomaticplaces?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
             this.Search || ''
           )}`
         );
@@ -939,7 +939,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async FetchDeplomaticPlaceData(id) {
       try {
         setContentType('application/json');
-        const { data } = await axios.get(`/deplomatic-places/${id}`);
+        const { data } = await axios.get(`/deplomaticplaces/${id}`);
         this.DeplomaticPlace = data?.data ?? {};
       } catch (e) {
         console.error(e);
@@ -950,7 +950,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async CreateDeplomaticPlace(formData) {
       try {
         setContentType(null);
-        const res = await axios.post(`/deplomatic-places`, formData);
+        const res = await axios.post(`/deplomaticplaces`, formData);
         const saved = res.data?.data ?? res.data;
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
@@ -967,10 +967,10 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         if (data instanceof FormData) {
           data.append('_method', 'PUT');
           setContentType(null);
-          res = await axios.post(`/deplomatic-places/${id}`, data);
+          res = await axios.post(`/deplomaticplaces/${id}`, data);
         } else {
           setContentType('application/json');
-          res = await axios.put(`/deplomatic-places/${id}`, data);
+          res = await axios.put(`/deplomaticplaces/${id}`, data);
         }
         toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
@@ -983,7 +983,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
     async DeleteDeplomaticPlace(id) {
       try {
-        await axios.delete(`/deplomatic-places/${id}`);
+        await axios.delete(`/deplomaticplaces/${id}`);
         toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
@@ -1154,7 +1154,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       try {
         setContentType('application/json');
         const { data: res } = await axios.get(
-          `government-places?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
+          `governmentplaces?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
             this.Search || ''
           )}`
         );
@@ -1173,7 +1173,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async FetchGovernmentPlaceData(id) {
       try {
         setContentType('application/json');
-        const { data } = await axios.get(`/government-places/${id}`);
+        const { data } = await axios.get(`/governmentplaces/${id}`);
         this.GovernmentPlace = data?.data ?? {};
       } catch (e) {
         console.error(e);
@@ -1184,7 +1184,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async CreateGovernmentPlace(formData) {
       try {
         setContentType(null);
-        const res = await axios.post(`/government-places`, formData);
+        const res = await axios.post(`/governmentplaces`, formData);
         const saved = res.data?.data ?? res.data;
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
@@ -1201,10 +1201,10 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         if (data instanceof FormData) {
           data.append('_method', 'PUT');
           setContentType(null);
-          res = await axios.post(`/government-places/${id}`, data);
+          res = await axios.post(`/governmentplaces/${id}`, data);
         } else {
           setContentType('application/json');
-          res = await axios.put(`/government-places/${id}`, data);
+          res = await axios.put(`/governmentplaces/${id}`, data);
         }
         toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
@@ -1217,7 +1217,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
     async DeleteGovernmentPlace(id) {
       try {
-        await axios.delete(`/government-places/${id}`);
+        await axios.delete(`/governmentplaces/${id}`);
         toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
@@ -1232,7 +1232,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       try {
         setContentType('application/json');
         const { data: res } = await axios.get(
-          `super-markets?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
+          `supermarkets?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
             this.Search || ''
           )}`
         );
@@ -1251,7 +1251,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async FetchSuperMarketData(id) {
       try {
         setContentType('application/json');
-        const { data } = await axios.get(`/super-markets/${id}`);
+        const { data } = await axios.get(`/supermarkets/${id}`);
         this.SuperMarket = data?.data ?? {};
       } catch (e) {
         console.error(e);
@@ -1262,7 +1262,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     async CreateSuperMarket(formData) {
       try {
         setContentType(null);
-        const res = await axios.post(`/super-markets`, formData);
+        const res = await axios.post(`/supermarkets`, formData);
         const saved = res.data?.data ?? res.data;
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
@@ -1279,10 +1279,10 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         if (data instanceof FormData) {
           data.append('_method', 'PUT');
           setContentType(null);
-          res = await axios.post(`/super-markets/${id}`, data);
+          res = await axios.post(`/supermarkets/${id}`, data);
         } else {
           setContentType('application/json');
-          res = await axios.put(`/super-markets/${id}`, data);
+          res = await axios.put(`/supermarkets/${id}`, data);
         }
         toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
@@ -1295,7 +1295,7 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
     async DeleteSuperMarket(id) {
       try {
-        await axios.delete(`/super-markets/${id}`);
+        await axios.delete(`/supermarkets/${id}`);
         toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);

@@ -255,6 +255,18 @@
             />
           </template>
 
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
           <!-- RESOURCE (id select -> phone auto) -->
           <template #item.resource_id="{ item }">
             <v-autocomplete
@@ -427,6 +439,7 @@
     { title: t('شماره مسوول'), key: 'masool_phone' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('منبع'), key: 'resource_id' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -456,6 +469,7 @@
     { title: t('نام پدر مسوول'), key: 'masool_f_name' },
     { title: t('وظیفه مسوول'), key: 'masool_position' },
     { title: t('شماره مسوول'), key: 'masool_phone' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -514,6 +528,7 @@
       masool_position: x.masool_position ?? '',
       masool_phone: x.masool_phone ?? '',
 
+      Province_addr: x.Province_addr ?? '',
       note: x.note ?? '',
 
       resource_id: x.resource_id ?? null,
@@ -541,6 +556,7 @@
     'masool_f_name',
     'masool_position',
     'masool_phone',
+      'Province_addr',
     'note',
     'resource_id',
     'resource_code',

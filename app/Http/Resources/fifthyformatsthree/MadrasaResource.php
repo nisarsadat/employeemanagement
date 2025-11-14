@@ -35,6 +35,7 @@ class MadrasaResource extends JsonResource
             'specific_place' => $this->specific_place,
             'street_number' => $this->street_number,
             'coordinates' => $this->coordinates,
+            'Province_addr'               => $this->Province_addr,
 
             'note' => $this->note,
             'resource_id' => $this->resource_id,

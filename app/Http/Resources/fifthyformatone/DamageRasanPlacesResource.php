@@ -23,6 +23,7 @@ class DamageRasanPlacesResource extends JsonResource
             'tahdid_type'     => $this->tahdid_type,
             'percentage'      => $this->percentage,
             'damage_place'    => $this->damage_place,
+            'Province_addr'               => $this->Province_addr,
             'note'            => $this->note,
             'resource_id'     => $this->resource_id,
 

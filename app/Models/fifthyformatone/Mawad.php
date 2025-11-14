@@ -22,6 +22,7 @@ class Mawad extends Model
 
         'now_province',
         'now_district',
+        'Province_addr',
         'now_village',
 
         'province',

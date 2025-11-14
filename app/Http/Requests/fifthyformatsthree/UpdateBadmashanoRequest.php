@@ -34,6 +34,7 @@ class UpdateBadmashanoRequest extends FormRequest
             'friends_quantity' => ['nullable','string'],
             'supplier' => ['nullable','string'],
             'phone_number' => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
 
             'history_jorm' => ['nullable','string'],
             'jorm_type' => ['nullable','string'],

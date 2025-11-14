@@ -23,6 +23,7 @@ class Sarayano extends Model
         'zone',
         'district',
         'village',
+        'Province_addr',
         'specific_place',
         'cordenates',
 
