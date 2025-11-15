@@ -43,9 +43,8 @@
     <div class="coord-helper">
       <small>
         e.g.
-        <code>69.2075,34.5553</code> or
-        <code>Kabul</code> /
-        <code>کابل</code>
+        <code>69.2075,34.5553</code> / <code>69.2075 34.5553</code> /
+        <code>69.2075،34.5553</code> or just <code>35.03</code>
       </small>
     </div>
   </div>
@@ -135,25 +134,39 @@ async function loadGazetteer() {
       const rank =
         typeof it.zoom === 'number' ? it.zoom : rankByType(type)
 
+      const lon = Number(it.lon)
+      const lat = Number(it.lat)
+
+      const coordTokens = []
+      if (isFinite(lon) && isFinite(lat)) {
+        // full precision strings
+        coordTokens.push(String(lon), String(lat))
+        // rounded variants help prefix search like "71.35" / "35.03"
+        coordTokens.push(lon.toFixed(4), lat.toFixed(4))
+        coordTokens.push(lon.toFixed(3), lat.toFixed(3))
+        coordTokens.push(lon.toFixed(2), lat.toFixed(2))
+      }
+
       return {
         __k: it.id ?? `${type}:${idx}`,
         id: it.id ?? null,
         type,
         rank,
-        lon: Number(it.lon),
-        lat: Number(it.lat),
+        lon,
+        lat,
         zoom_hint:
           typeof it.zoom === 'number' ? Number(it.zoom) : null,
         name_local,
         name_en,
         aliases,
         admin_path,
-        // precomputed search bucket
+        // 🔥 precomputed search bucket (names + admin path + coordinates)
         _bag: [
           name_local,
           name_en,
           ...aliases,
-          ...admin_path
+          ...admin_path,
+          ...coordTokens
         ]
           .map(norm)
           .filter(Boolean)
@@ -171,9 +184,9 @@ function score(queryNorm, entry) {
   if (!queryNorm) return -1
   let best = -1
   for (const token of entry._bag) {
-    if (token === queryNorm) best = Math.max(best, 100)
-    else if (token.startsWith(queryNorm)) best = Math.max(best, 70)
-    else if (token.includes(queryNorm)) best = Math.max(best, 40)
+    if (token === queryNorm) best = Math.max(best, 120) // exact match (name or coord)
+    else if (token.startsWith(queryNorm)) best = Math.max(best, 90) // prefix (e.g. 35.03…)
+    else if (token.includes(queryNorm)) best = Math.max(best, 60) // contains (e.g. 45 inside 71.4587)
   }
   return best
 }
@@ -190,12 +203,29 @@ function run() {
     return
   }
 
-  // 🧭 coordinates search
-  const m = s.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/)
+  // 🧭 direct coordinate fly (two numbers)
+  // accepts "71.35,35.03", "71.35 35.03", "71.35،35.03"
+  const coordPattern =
+    /^(-?\d+(?:\.\d+)?)\s*[,، ]\s*(-?\d+(?:\.\d+)?)$/
+  const m = s.match(coordPattern)
   if (m) {
-    const lon = parseFloat(m[1])
-    const lat = parseFloat(m[2])
-    if (isFinite(lon) && isFinite(lat)) {
+    let a = parseFloat(m[1])
+    let b = parseFloat(m[2])
+
+    if (isFinite(a) && isFinite(b)) {
+      // small helper: Afghanistan-ish bbox
+      const inLon = (v) => v >= 60 && v <= 75
+      const inLat = (v) => v >= 29 && v <= 39
+
+      let lon = a
+      let lat = b
+
+      // if looks reversed, swap → works for "lat,lon" too
+      if (inLat(a) && inLon(b)) {
+        lon = b
+        lat = a
+      }
+
       const fake = {
         __k: 'coord',
         id: null,
@@ -208,6 +238,7 @@ function run() {
         name_en: '',
         admin_path: []
       }
+
       results.value = [
         {
           ...fake,
@@ -238,7 +269,7 @@ function run() {
       a.displayName.localeCompare(b.displayName, 'fa')
   )
 
-  results.value = cand.slice(0, 30)
+  results.value = cand.slice(0, 50)
 }
 
 function pickFirst() {

@@ -84,6 +84,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RbacController;
 
 use App\Http\Controllers\Api\ActiveInactiveOfficeEmployeeController as AE; // ✅ NEW
+use App\Http\Controllers\Api\MapPointController;
 use App\Models\OfficeEmployee;
 
 /*
@@ -283,4 +284,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('rbac/roles',        [RbacController::class, 'roles']);
     Route::get('rbac/permissions',  [RbacController::class, 'permissions']);
     Route::get('/auth/me',          [AuthController::class, 'me']);
+
+
+    Route::apiResource('map-points', MapPointController::class)
+        ->only(['index', 'store', 'destroy']);
+
 });
