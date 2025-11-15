@@ -19,6 +19,8 @@ class MapPoint extends Model
         'phone',
         'note',
         'picture_path',
+        'subject_type',
+        'subject_id',
     ];
 
     protected $appends = ['picture_url'];
@@ -28,6 +30,12 @@ class MapPoint extends Model
         return $this->picture_path
             ? asset('storage/' . $this->picture_path)
             : null;
+    }
+
+    public function subject()
+    {
+        // OfficeEmployee / School / etc.
+        return $this->morphTo();
     }
 }
 

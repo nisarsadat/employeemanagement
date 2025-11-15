@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/Api/MapPointController.php
 
 namespace App\Http\Controllers\Api;
 
@@ -9,14 +10,10 @@ use Illuminate\Support\Facades\Storage;
 
 class MapPointController extends Controller
 {
-    /**
-     * Get all points
-     */
     public function index()
     {
         $points = MapPoint::orderByDesc('id')->get();
 
-        // Append full URL for picture
         $points->transform(function ($p) {
             $p->picture_url = $p->picture_path 
                 ? asset('storage/' . $p->picture_path) 
@@ -27,9 +24,6 @@ class MapPointController extends Controller
         return response()->json($points);
     }
 
-    /**
-     * Store a new map point
-     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -39,18 +33,17 @@ class MapPointController extends Controller
             'coordinates'  => ['required', 'string', 'max:100'],
             'phone'        => ['nullable', 'string', 'max:50'],
             'note'         => ['nullable', 'string'],
-            'picture'      => ['nullable', 'image', 'max:4096'], // 4MB
+            'picture'      => ['nullable', 'image', 'max:4096'],
         ]);
 
-        // Save picture if exists
         if ($request->hasFile('picture')) {
             $data['picture_path'] = $request->file('picture')
                 ->store('map_points', 'public');
         }
 
+        // points created by clicking on map → subject_type/id stay null
         $point = MapPoint::create($data);
 
-        // Add picture URL in response
         $point->picture_url = $point->picture_path
             ? asset('storage/' . $point->picture_path)
             : null;
@@ -58,14 +51,10 @@ class MapPointController extends Controller
         return response()->json($point, 201);
     }
 
-    /**
-     * Delete a map point
-     */
     public function destroy($id)
     {
         $point = MapPoint::findOrFail($id);
 
-        // delete picture if exists
         if ($point->picture_path && Storage::disk('public')->exists($point->picture_path)) {
             Storage::disk('public')->delete($point->picture_path);
         }

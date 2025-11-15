@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasMapPoint;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,7 +11,7 @@ use Carbon\Carbon;
 class OfficeEmployee extends Model
 {
     use HasFactory;
-
+    use HasMapPoint;
     // ... top of the class
     public const ACTIVE   = 'فعال';
     public const INACTIVE = 'غیر فعال';

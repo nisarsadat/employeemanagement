@@ -21,9 +21,11 @@
   import { PMTiles, Protocol } from 'pmtiles';
   import PmtilesSearchMap from './PmtilesSearchMap.vue';
   import AddMapPointDialog from './AddMapPointDialog.vue';
-  import { useMapPointsRepository } from '../../stores/MapPointsRepository'; // adjust path if needed
+  import { useMapPointsRepository } from '../../stores/MapPointsRepository';
+  import { useMapBusStore } from '../../stores/MapBusStore';
 
   const mapPointsStore = useMapPointsRepository();
+  const mapBus = useMapBusStore();
 
   /* ---------- PNG icons ---------- */
   import provinceIcon from './province.png';
@@ -154,10 +156,40 @@
     return locationIcon;
   }
 
-  /* ---------- HTML bubble for selected place (search result) ---------- */
+  /* ---------- HTML bubble for selected place (search result / flyTo) ---------- */
   function createHighlightElement(feature) {
+    const props = feature?.properties || {};
+    const photoUrl = props.photoUrl || ''; // 👈 from MapBus
+
     const el = document.createElement('div');
 
+    // If we have a photo → show circular avatar marker
+    if (photoUrl) {
+      el.style.width = '24px';
+      el.style.height = '24px';
+      el.style.borderRadius = '50%';
+      el.style.overflow = 'hidden';
+      el.style.background = '#ffffff';
+      el.style.boxShadow = '0 0 0 2px #ffffff, 0 1px 4px rgba(0,0,0,0.35)';
+      el.style.cursor = 'pointer';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+      el.style.transform = 'translateY(-4px)';
+
+      const img = document.createElement('img');
+      img.src = photoUrl;
+      img.alt = props.title || 'person';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      img.style.pointerEvents = 'none';
+
+      el.appendChild(img);
+      return el;
+    }
+
+    // Otherwise: fallback to your old icon bubble
     el.style.width = '20px';
     el.style.height = '20px';
     el.style.borderRadius = '50%';
@@ -204,11 +236,9 @@
     return el;
   }
 
-  /* ---------- icon for DB points (person image circle) ---------- */
   function createDbMarkerElement(point) {
     const el = document.createElement('div');
 
-    // small circular avatar marker
     el.style.width = '20px';
     el.style.height = '19px';
     el.style.borderRadius = '50%';
@@ -229,15 +259,34 @@
 
     const origin = window.location.origin;
 
-    // Try full URL
-    let pictureUrl = point.picture_url || point.image_url || point.photo_url || null;
+    // ---- try all possible keys ----
+    let raw =
+      point.picture ||
+      point.picture_url ||
+      point.image_url ||
+      point.photo_url ||
+      point.photo ||
+      null;
 
-    // Try filename from backend
-    if (!pictureUrl && point.picture) {
-      pictureUrl = `${origin}/storage/map-points/${point.picture}`;
+    let pictureUrl = null;
+
+    if (raw) {
+      const pic = String(raw).trim();
+
+      if (pic.startsWith('http://') || pic.startsWith('https://')) {
+        pictureUrl = pic; // already full URL
+      } else {
+        const clean = pic.replace(/^\/+/, ''); // remove leading '/'
+        pictureUrl = `${origin}/${clean}`;
+      }
     }
 
-    // Fallback to default marker icon
+    console.log('DB marker photo', {
+      raw,
+      pictureUrl,
+      point,
+    });
+
     img.src = pictureUrl || locationIcon;
 
     el.appendChild(img);
@@ -474,6 +523,9 @@
     map.on('load', () => {
       updateAdminIcons();
       loadPoints(); // load DB markers after map ready
+
+      // ✅ if a flyTarget was set before opening the map, apply it now
+      applyFlyTarget(mapBus.flyTarget);
     });
 
     map.on('moveend', () => {
@@ -529,6 +581,31 @@
       .addTo(map);
   }
 
+  /* ---------- apply flyTarget from MapBusStore ---------- */
+  function applyFlyTarget(val) {
+    if (!val || !val.coords || !map) return;
+
+    const coords = typeof val.coords === 'string' ? parseCoordinates(val.coords) : val.coords;
+    if (!coords) return;
+
+    const [lng, lat] = coords;
+    const meta = val.meta || {};
+
+    flyTo({
+      lng,
+      lat,
+      zoom: meta.zoom || 16,
+      feature: {
+        type: meta.type || 'generic',
+        properties: {
+          title: meta.title,
+          subtitle: meta.subtitle,
+          photoUrl: meta.photoUrl || '', // 👈 add this
+        },
+      },
+    });
+  }
+
   /* ---------- handle saved point from dialog ---------- */
   function handlePointSaved(point) {
     dbPointsLocal.value.unshift(point);
@@ -550,6 +627,68 @@
       updateDbMarkers();
     },
     { deep: true }
+  );
+
+  // ===== React to global flyTo requests (from any module) =====
+  watch(
+    () => mapBus.flyTarget,
+    (val) => {
+      if (!val || !val.coords || !map) return;
+
+      const coords = typeof val.coords === 'string' ? parseCoordinates(val.coords) : val.coords;
+      if (!coords) return;
+
+      const [lng, lat] = coords;
+      const meta = val.meta || {};
+
+      // Always move the camera
+      map.flyTo({
+        center: [lng, lat],
+        zoom: meta.zoom || 16,
+        essential: true,
+        speed: 1,
+        curve: 1.3,
+      });
+
+      // For office employees we already have a DB marker with photo.
+      // → remove any old highlight marker and DO NOT create a new one.
+      const skipHighlight = meta.type === 'office_employee' || meta.disableHighlight === true;
+
+      if (skipHighlight) {
+        if (highlightMarker) {
+          highlightMarker.remove();
+          highlightMarker = null;
+        }
+        return;
+      }
+
+      // For everything else, show the highlight marker
+      const feature = {
+        type: meta.type || 'generic',
+        properties: {
+          title: meta.title,
+          subtitle: meta.subtitle,
+          photoUrl: meta.photoUrl || '',
+        },
+      };
+
+      flyTo({
+        lng,
+        lat,
+        zoom: meta.zoom || 16,
+        feature,
+      });
+    },
+    { deep: true }
+  );
+
+  // If you want map to reload markers after save/delete in any module
+  watch(
+    () => mapBus.reloadTs,
+    (ts) => {
+      if (!ts || !map) return;
+      loadPoints();
+    }
   );
 
   onBeforeUnmount(() => {

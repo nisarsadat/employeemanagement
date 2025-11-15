@@ -668,15 +668,34 @@
               </div>
             </div>
           </template>
-
+          <template #item.map="{ item }">
+            <FlyToMapButton
+              :coordinates="item.draft.coordinates || item.coordinates"
+              :title="item.draft.name"
+              :subtitle="item.draft.code_number"
+              type="office_employee"
+              :zoom="16"
+            />
+          </template>
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" v-if="auth.can('officeemployee.create')" variant="outlined" type="submit" :loading="item.loading">
+              <v-btn
+                class="bg-primary"
+                v-if="auth.can('officeemployee.create')"
+                variant="outlined"
+                type="submit"
+                :loading="item.loading"
+              >
                 {{ t('ثبت دیتا') }}
               </v-btn>
 
-              <v-btn class="bg-error" v-if="auth.can('officeemployee.delete')" variant="outlined" @click="del(item)">
+              <v-btn
+                class="bg-error"
+                v-if="auth.can('officeemployee.delete')"
+                variant="outlined"
+                @click="del(item)"
+              >
                 {{ t('حذف دیتا') }}
               </v-btn>
 
@@ -692,6 +711,7 @@
             </div>
           </template>
         </v-data-table>
+        <!-- inside <v-data-table> templates -->
 
         <!-- Image preview dialog -->
         <v-dialog v-model="previewOpen" max-width="520">
@@ -752,7 +772,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="office_employee"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -775,6 +807,7 @@
   import { useI18n } from 'vue-i18n';
   import DateInput from '../../components/DateInput.vue';
   import { useLoginRepository } from '../../stores/LoginRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const repo = useEmployeOfficeRepository();
@@ -1017,6 +1050,7 @@
     { title: t('تاریخ رفتن'), key: 'left_date' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('ملاحظات'), key: 'note', width: 400 },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [

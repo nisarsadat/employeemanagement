@@ -485,6 +485,7 @@ const router = createRouter({
         // Map
         {
           path: 'map-afg',
+          name: 'MapAfg',
           component: MapAfghanistan,
           meta: { requiresAuth: true, perm: permFor('map-afg') },
         },
