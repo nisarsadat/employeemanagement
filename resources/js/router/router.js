@@ -99,6 +99,7 @@ import NoAccess from '@/pages/NoAccess.vue'; // simple page if blocked
 
 // RBAC helpers
 import { firstAccessiblePath, canAccess, permFor } from '@/rbac';
+import FiftyFormatsReportPage from '../pages/reports/FiftyFormatsReportPage.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -147,14 +148,14 @@ const router = createRouter({
 
         // Users
         { path: 'users', component: User, meta: { requiresAuth: true, perm: permFor('users') } },
-        
+
         // People & resources
         {
           path: 'officeemployee',
           component: OfficeEmployeesPage,
           meta: { requiresAuth: true, perm: permFor('officeemployee') },
         },
-       
+
         {
           path: 'resources',
           component: Resources,
@@ -480,6 +481,10 @@ const router = createRouter({
           path: 'finincalindex',
           component: finincalIndex,
           meta: { requiresAuth: true, perm: permFor('finincalindex') },
+        },
+        {
+          path: 'fiftyformatreports',
+          component: FiftyFormatsReportPage,
         },
 
         // Map

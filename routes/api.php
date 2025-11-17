@@ -123,8 +123,9 @@ use App\Http\Controllers\RbacController;
 
 use App\Http\Controllers\Api\ActiveInactiveOfficeEmployeeController as AE; // ✅ NEW
 use App\Http\Controllers\Api\MapPointController;
+use App\Http\Controllers\Api\Reports\FiftyFormatsReportController as ReportsFiftyFormatsReportController;
 use App\Models\OfficeEmployee;
-
+use App\Http\Controllers\Reports\FiftyFormatsReportController;
 /*
 |--------------------------------------------------------------------------
 | Helper: protectResource(uri, module, Controller::class)
@@ -394,4 +395,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Map points (for your PMTiles map)
     Route::apiResource('map-points', MapPointController::class)
         ->only(['index', 'store', 'destroy']);
+
+    // reports 
+        // ---------------------- Reports (56 formats) ----------------------
+
+    Route::get('reports/fifty-formats', [ReportsFiftyFormatsReportController::class, 'index']);
+
+
 });

@@ -287,6 +287,7 @@
       },
 
       { title: t('نقش ها'), icon: 'mdi-home', to: { path: '/app/roles' }, perm: 'roles.view' },
+      { title: t(' راپورها'), icon: 'mdi-graph', to: { path: '/app/fiftyformatreports' }, perm: 'roles.view' },
 
       // Example of a grouped section with child-level permissions
       // {

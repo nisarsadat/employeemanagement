@@ -106,9 +106,13 @@ class OfficeEmployee extends Model
     // ---------- Relationships ----------
     public function resources()
     {
-        return $this->hasMany(Resource::class, 'office_employee_id');
+        return $this->hasMany(Resource::class, 'office_employee_id' );
     }
-
+    public function resource()
+        {
+            // assuming office_employees has a resource_id column
+            return $this->belongsTo(Resource::class, 'resource_id', 'id');
+        }
     public function informations()
     {
         return $this->hasMany(Information::class , 'office_employee_id');
