@@ -100,6 +100,8 @@ import NoAccess from '@/pages/NoAccess.vue'; // simple page if blocked
 // RBAC helpers
 import { firstAccessiblePath, canAccess, permFor } from '@/rbac';
 import FiftyFormatsReportPage from '../pages/reports/FiftyFormatsReportPage.vue';
+import OfficeEmployeesActivityReport from '../pages/reports/OfficeEmployeesActivityReport.vue';
+import OfficeEmployeeRelationPage from '../pages/reports/OfficeEmployeeRelationPage.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -485,6 +487,15 @@ const router = createRouter({
         {
           path: 'fiftyformatreports',
           component: FiftyFormatsReportPage,
+        },
+        {
+          path: 'officeemployeereports',
+          component: OfficeEmployeesActivityReport,
+        },
+        {
+          path: '/officeemployeerelations/:id/:relation',
+          component: OfficeEmployeeRelationPage,
+          name: 'office-employees-activity-report',
         },
 
         // Map

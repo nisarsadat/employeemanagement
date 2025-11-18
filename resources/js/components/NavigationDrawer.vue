@@ -43,8 +43,8 @@
                 v-bind="props"
                 :append-icon="null"
                 :class="{
-                  'bg-navigationActive': isGroupOpen(item),
-                  'text-white': isGroupOpen(item),
+                  'bg-gray': isGroupOpen(item),
+                  'text-primary': isGroupOpen(item),
                 }"
                 :dir="isRtl ? 'rtl' : 'ltr'"
               >
@@ -64,8 +64,8 @@
               prepend-icon="mdi-circle-medium"
               :active="isActive(child)"
               :class="{
-                'bg-navigationActive': isActive(child),
-                'text-white': isActive(child),
+                'bg-gray': isActive(child),
+                'text-primary': isActive(child),
               }"
             >
               <v-list-item-title>{{ child.title }}</v-list-item-title>
@@ -78,7 +78,12 @@
     <!-- Bottom profile block -->
     <v-divider class="mt-2 mb-1" />
 
-    <v-menu v-model="profileMenu" location="top start" :dir="isRtl ? 'rtl' : 'ltr'" :close-on-content-click="true">
+    <v-menu
+      v-model="profileMenu"
+      location="top start"
+      :dir="isRtl ? 'rtl' : 'ltr'"
+      :close-on-content-click="true"
+    >
       <template #activator="{ props }">
         <v-list-item
           v-bind="props"
@@ -104,8 +109,7 @@
         </v-list-item>
       </template>
 
-      <v-card min-width="220" 
-      >
+      <v-card min-width="220">
         <v-list density="compact">
           <v-list-item @click="onLogout" prepend-icon="mdi-logout-variant">
             <v-list-item-title>{{ t('Logout') }}</v-list-item-title>
@@ -142,6 +146,7 @@
       (await auth.ensureMe?.()) ?? auth.fetchUser?.();
     } catch {}
   });
+
   // profile menu
   const profileMenu = ref(false);
 
@@ -152,16 +157,19 @@
     if (!u) return null;
     return u.name ? u : u.user ?? null;
   });
+
   const displayName = computed(
     () =>
       userObj.value?.name ??
       userObj.value?.username ?? // fallback if no name set
       t('Guest')
   );
+
   const usernameAt = computed(() => {
     const uname = userObj.value?.username;
     return uname ? `@${uname}` : '@—';
   });
+
   const avatarSrc = computed(() => {
     // API during login gave "image" (relative path) but not "image_url"
     const imgUrl = userObj.value?.image_url;
@@ -169,6 +177,7 @@
     // If only relative exists, let <v-img> resolve it (or prefix yourself if needed)
     return imgUrl || (imgRel ? `/storage/${imgRel}` : null);
   });
+
   const initials = computed(() => {
     const n = (userObj.value?.name || '').trim();
     if (!n) return '😊';
@@ -214,7 +223,12 @@
         perm: 'dashboards.view',
       },
 
-      { title: t('نقشه'), icon: 'mdi-map', to: { path: '/app/map-afg' }, perm: 'map-afg.view' },
+      {
+        title: t('نقشه'),
+        icon: 'mdi-map',
+        to: { path: '/app/map-afg' },
+        perm: 'map-afg.view',
+      },
 
       {
         title: t('فعال و غیر فعال'),
@@ -287,19 +301,27 @@
       },
 
       { title: t('نقش ها'), icon: 'mdi-home', to: { path: '/app/roles' }, perm: 'roles.view' },
-      { title: t(' راپورها'), icon: 'mdi-graph', to: { path: '/app/fiftyformatreports' }, perm: 'roles.view' },
 
-      // Example of a grouped section with child-level permissions
-      // {
-      //   title: t('Management'),
-      //   icon: 'mdi-cog-outline',
-      //   anyPerms: ['users.view', 'roles.view', 'permissions.view'],
-      //   children: [
-      //     { title: t('Users'), icon: 'mdi-account', to: { path: '/app/users' }, perm: 'users.view' },
-      //     { title: t('Roles'), icon: 'mdi-shield-key-outline', to: { path: '/app/roles' }, perm: 'roles.view' },
-      //     { title: t('Permissions'), icon: 'mdi-lock-check-outline', to: { path: '/app/permissions' }, perm: 'permissions.view' },
-      //   ],
-      // },
+      // 🔹 Reports group (can have many report items)
+      {
+        title: t(' راپورها'),
+        icon: 'mdi-graph',
+        anyPerms: ['roles.view'], // group visible if user has at least one of these
+        children: [
+          {
+            title: t('  پنځوس فارمټ'),
+            icon: 'mdi-file-chart',
+            to: { path: '/app/fiftyformatreports' },
+            perm: 'roles.view',
+          },
+          {
+            title: t(' کارمندان'),
+            icon: 'mdi-cash',
+            to: { path: '/app/officeemployeereports' },
+            perm: 'roles.view',
+          },
+        ],
+      },
     ].map(withPerms)
   );
 
@@ -331,6 +353,7 @@
     if (item.to?.path) return route.path === item.to.path;
     return false;
   };
+
   const isGroupOpen = (groupItem) => {
     if (!groupItem.children?.length) return false;
     return groupItem.children.some(isActive);

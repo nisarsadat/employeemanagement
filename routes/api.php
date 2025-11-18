@@ -124,6 +124,7 @@ use App\Http\Controllers\RbacController;
 use App\Http\Controllers\Api\ActiveInactiveOfficeEmployeeController as AE; // ✅ NEW
 use App\Http\Controllers\Api\MapPointController;
 use App\Http\Controllers\Api\Reports\FiftyFormatsReportController as ReportsFiftyFormatsReportController;
+use App\Http\Controllers\Api\OfficeEmployeeControllerReport;
 use App\Models\OfficeEmployee;
 use App\Http\Controllers\Reports\FiftyFormatsReportController;
 /*
@@ -400,6 +401,17 @@ Route::middleware('auth:sanctum')->group(function () {
         // ---------------------- Reports (56 formats) ----------------------
 
     Route::get('reports/fifty-formats', [ReportsFiftyFormatsReportController::class, 'index']);
+
+    Route::get('office-employees-report/activity-report', [OfficeEmployeeControllerReport::class, 'activityReport']);
+
+    // in routes/api.php or similar:
+    Route::get(
+        'office-employees-report/{id}/{relation}',
+        [OfficeEmployeeControllerReport::class, 'employeeRelation']
+    );
+
+
+
 
 
 });
