@@ -42,6 +42,7 @@ return new class extends Migration {
             $table->string('resource_phone_number')->nullable();
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
+            $table->string('coordinates')->nullable();
 
 
             // relation to resources

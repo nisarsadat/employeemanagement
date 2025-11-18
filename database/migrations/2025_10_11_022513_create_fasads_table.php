@@ -46,6 +46,7 @@ return new class extends Migration {
             $table->string('resource_code')->nullable();
             $table->string('resource_phone')->nullable();
             $table->string('Province_addr')->nullable();
+            $table->string('coordinates')->nullable();
 
 
             // Link to existing resources table

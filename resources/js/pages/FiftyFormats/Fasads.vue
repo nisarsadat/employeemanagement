@@ -306,6 +306,16 @@
               :error-messages="getErrorMessages(item, 'Province_addr')"
             />
           </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('coordinates')"
+              hide-details
+            />
+          </template>
           <!-- Resource code (autocomplete) + phone (readonly) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -387,7 +397,19 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="fasads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -408,6 +430,7 @@
   import PeekButton from '../../components/PeekButton.vue';
   import FilterableTable from '../../components/FilterableTable.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -482,6 +505,8 @@
     { title: t('دلیل آخرین بند'), key: 'last_band_reason' },
     { title: t('محل بند'), key: 'band_place' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
+    { title: t('coordinates'), key: 'coordinates' },
+
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
@@ -520,9 +545,11 @@
     { title: t('محل بند'), key: 'band_place' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('coordinates'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* ===== Top filter groups (Fasad style) ===== */
@@ -587,6 +614,8 @@
       last_band_reason: x.last_band_reason ?? '',
       band_place: x.band_place ?? '',
       now_job: x.now_job ?? '',
+      coordinates: x.coordinates ?? '',
+      Procince_addr: x.Procince_addr ?? '',
 
       // resource
       resource_code: x.resource_code ?? '',
@@ -609,7 +638,8 @@
     'now_village',
     'specific_place',
     'street_number',
-      'Province_addr',
+    'Province_addr',
+    'coordinates',
     'home_number',
     'jabha',
     'supplier_name',

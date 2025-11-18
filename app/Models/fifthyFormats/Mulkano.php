@@ -18,6 +18,7 @@ class Mulkano extends Model
         'tafseel_sahi','street_amount','old_job','new_job',
         'agent_quantity','home_quantity','phone_number',
         'Province_addr',
+        'coordinates',
         'jorm_history','tanzim','notes','resource_id',
     ];
 

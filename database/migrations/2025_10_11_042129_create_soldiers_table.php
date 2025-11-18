@@ -32,6 +32,7 @@ return new class extends Migration {
             $table->string('guard_amount')->nullable();
             $table->string('phone_number')->nullable();
             $table->string('Province_addr')->nullable();
+            $table->string('coordinates')->nullable();
 
 
             // relation to resources (code/phone derived from this)

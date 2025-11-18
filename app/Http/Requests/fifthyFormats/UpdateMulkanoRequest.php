@@ -44,6 +44,7 @@ class UpdateMulkanoRequest extends FormRequest
             'jorm_history' => ['nullable','string'],
             'tanzim' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
+            'coordinates' => ['nullable','string'],
 
             'notes' => ['nullable','string'],
         ];

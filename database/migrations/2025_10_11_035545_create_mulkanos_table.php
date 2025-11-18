@@ -41,6 +41,7 @@ return new class extends Migration {
             $table->string('jorm_history')->nullable();
             $table->string('tanzim')->nullable();
             $table->string('Province_addr')->nullable();
+            $table->string('coordinates')->nullable();
 
 
             // relation to resources (code/phone come from this, not stored here)

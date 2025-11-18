@@ -367,6 +367,16 @@
               hide-details
             />
           </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('coordinates')"
+              hide-details
+            />
+          </template>
 
           <!-- Actions -->
           <template #item.actions="{ item }">
@@ -446,7 +456,19 @@
       class="mb-20 mx-2"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="saeen_fasad"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -467,6 +489,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const drawer = ref(false);
@@ -559,6 +582,7 @@
     { title: t('وظیفه قبلی'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('coordinates'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -598,6 +622,7 @@
     { title: t('وظیفه قبلی'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('coordinates'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -661,6 +686,7 @@
 
       resource_code: x.resource_code ?? '',
       Province_addr: x.Province_addr ?? '',
+      coordinates: x.coordinates ?? '',
       resource_phone_number: x.resource_phone_number ?? '',
       resource_id: x.resource_id ?? null,
 
@@ -682,6 +708,7 @@
       'main_village',
       'now_province',
       'Province_addr',
+      'coordinates',
       'now_zone',
       'now_district',
       'now_village',

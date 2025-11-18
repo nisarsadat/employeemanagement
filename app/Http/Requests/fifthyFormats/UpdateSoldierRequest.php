@@ -34,6 +34,7 @@ class UpdateSoldierRequest extends FormRequest
             'phone_number' => ['nullable','string'],
             'notes' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
+            'coordinates' => ['nullable','string'],
 
         ];
     }

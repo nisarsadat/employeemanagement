@@ -44,6 +44,7 @@ class MulkanoResource extends JsonResource
             'jorm_history'        => $this->jorm_history,
             'tanzim'              => $this->tanzim,
             'Province_addr'               => $this->Province_addr,
+            'coordinates'               => $this->coordinates,
 
             'notes'               => $this->notes,
 

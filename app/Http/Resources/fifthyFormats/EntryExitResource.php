@@ -8,10 +8,8 @@ class EntryExitResource extends JsonResource
 {
     public function toArray($request): array
     {
-        // mirror your CaptiveResource pattern
-        $related = $this->resource->relationLoaded('resource')
-            ? $this->resource->getRelation('resource')
-            : null;
+        // clean + safe way to access relation
+        $related = $this->whenLoaded('resource');
 
         return [
             'id'              => $this->id,
@@ -33,27 +31,26 @@ class EntryExitResource extends JsonResource
 
             'where_went'      => $this->where_went,
             'where_come'      => $this->where_come,
-            'Province_addr'               => $this->Province_addr,
+            'Province_addr'   => $this->Province_addr,
 
             'notes'           => $this->notes,
 
-            // relation ids
+            // relation id
             'resource_id'     => $this->resource_id,
 
-            // flattened from related resource
-            'resource_code'         => $related?->code_number,
-            'resource_phone_number' => $related?->phone_number,
+            // flattened from related resource, with fallback
+            'resource_code'         => optional($related)->code_number      ?? $this->resource_code,
+            'resource_phone_number' => optional($related)->phone_number     ?? $this->resource_phone_number,
 
-            // keep nested object too
-            'resource' => $this->when(
-                $related !== null,
-                fn () => [
+            // minimal nested resource
+            'resource' => $this->when($related, function () use ($related) {
+                return [
                     'id'           => $related->id,
                     'name'         => $related->name,
                     'code_number'  => $related->code_number,
                     'phone_number' => $related->phone_number,
-                ]
-            ),
+                ];
+            }),
 
             'created_at'      => $this->created_at,
             'updated_at'      => $this->updated_at,

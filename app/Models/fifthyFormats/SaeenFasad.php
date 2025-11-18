@@ -26,6 +26,7 @@ class SaeenFasad extends Model
         'street_number',
         'home_number',
         'Province_addr',
+        'coordinates',
         'responsiability',
         'activity_place',
         'friends_number',

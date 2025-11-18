@@ -361,7 +361,7 @@
   }
 
   .scrollable-content {
-    height: calc(105vh - 200px);
+    height: calc(100vh - 200px);
     overflow-y: auto;
   }
   .scrollable-content::-webkit-scrollbar {

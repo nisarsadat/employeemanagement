@@ -18,7 +18,9 @@ class EntryExitController extends Controller
         $rid     = $request->get('resource_id');
 
         $sortBy  = $request->get('sort_by', 'created_at');
-        $sortDir = in_array($request->get('sort_dir'), ['asc','desc'], true) ? $request->get('sort_dir') : 'desc';
+        $sortDir = in_array($request->get('sort_dir'), ['asc','desc'], true)
+            ? $request->get('sort_dir')
+            : 'desc';
 
         $q = EntryExit::query()->with([
             'resource' => fn($qr) => $qr->select('id','name','code_number','phone_number'),
@@ -46,45 +48,48 @@ class EntryExitController extends Controller
         return EntryExitResource::collection($q->paginate($perPage));
     }
 
-    public function show(EntryExit $entryexit)
+    public function show(EntryExit $entry_exit)
     {
-        $entryexit->load([
+        $entry_exit->load([
             'resource' => fn($qr) => $qr->select('id','name','code_number','phone_number'),
         ]);
 
-        return new EntryExitResource($entryexit);
+        return new EntryExitResource($entry_exit);
     }
 
     public function store(StoreEntryExitRequest $request)
     {
         $data = $request->validated();
 
-        $entryExit = EntryExit::create($data);
-        $entryExit->load([
+        $entry_exit = EntryExit::create($data);
+
+        $entry_exit->load([
             'resource' => fn($qr) => $qr->select('id','name','code_number','phone_number'),
         ]);
 
-        return (new EntryExitResource($entryExit))
+        return (new EntryExitResource($entry_exit))
             ->additional(['message' => 'Created'])
             ->response()
             ->setStatusCode(201);
     }
 
-    public function update(UpdateEntryExitRequest $request, EntryExit $entryexit)
+    public function update(UpdateEntryExitRequest $request, EntryExit $entry_exit)
     {
         $data = $request->validated();
 
-        $entryexit->update($data);
-        $entryexit->load([
+        $entry_exit->update($data);
+
+        $entry_exit->load([
             'resource' => fn($qr) => $qr->select('id','name','code_number','phone_number'),
         ]);
 
-        return new EntryExitResource($entryexit);
+        return new EntryExitResource($entry_exit);
     }
 
-    public function destroy(EntryExit $entryexit)
+    public function destroy(EntryExit $entry_exit)
     {
-        $entryexit->delete();
+        $entry_exit->delete();
+
         return response()->noContent();
     }
 }

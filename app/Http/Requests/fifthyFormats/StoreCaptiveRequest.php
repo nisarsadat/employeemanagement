@@ -35,6 +35,7 @@ class StoreCaptiveRequest extends FormRequest
             'now_activity' => ['nullable','string'],
             'phone_number' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
+            'coordinates' => ['nullable','string'],
             'note' => ['nullable','string'],
         ];
     }

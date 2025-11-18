@@ -543,7 +543,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="resources"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -563,6 +575,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import DateInput from '../../components/DateInput.vue';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   import { useLoginRepository } from '../../stores/LoginRepository';
   const auth = useLoginRepository();
@@ -727,6 +740,7 @@
     { title: t('کوردینات'), key: 'coordinates' },
     { title: t('نوت'), key: 'note' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* top groups for FilterableTable */

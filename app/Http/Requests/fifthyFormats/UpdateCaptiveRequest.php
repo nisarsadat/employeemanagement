@@ -36,6 +36,7 @@ class UpdateCaptiveRequest extends FormRequest
             'phone_number' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
             'note' => ['nullable','string'],
+            'coordinates' => ['nullable','string'],
         ];
     }
 }

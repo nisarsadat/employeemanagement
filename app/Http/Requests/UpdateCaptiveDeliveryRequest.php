@@ -51,6 +51,7 @@ class UpdateCaptiveDeliveryRequest extends FormRequest
             'captive_halat' => ['sometimes', 'nullable', 'string', 'max:255'],
             'suspect_tools' => ['sometimes', 'nullable', 'string'],
             'Province_addr' => ['nullable','string'],
+            'coordinates' => ['nullable','string'],
 
             'notes' => ['sometimes', 'nullable', 'string'],
 

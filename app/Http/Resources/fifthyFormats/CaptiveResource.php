@@ -35,6 +35,7 @@ class CaptiveResource extends JsonResource
             'phone_number'     => $this->phone_number,
             'note'             => $this->note,
             'Province_addr'               => $this->Province_addr,
+            'coordinates'               => $this->coordinates,
 
             // relation ids
             'resource_id' => $this->resource_id,

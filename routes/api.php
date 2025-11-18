@@ -26,38 +26,76 @@ use App\Http\Controllers\Api\ExpenseController;
 // ---------------------- Fifty Formats ----------------------
 // (56 formats)
 use App\Http\Controllers\fifthyFormats\{
-    FasadController, SaeenFasadController, HeistController, CaptiveController, MulkanoController,
-    EntryExitController, SarafyanoController, ClubsController, MahajeratController, SoldierController
+    FasadController,
+    SaeenFasadController,
+    HeistController,
+    CaptiveController,
+    MulkanoController,
+    EntryExitController,
+    SarafyanoController,
+    ClubsController,
+    MahajeratController,
+    SoldierController
 };
 
 // FIFTHY FORMAT ONE
 use App\Http\Controllers\fifthyformatone\{
-    MawadController, LostMujremeenController, OldSoldiersHomesController, RobbersController,
-    NonResponsablePeopleController, MashkokHomesController, DamagePlacesController,
-    DamageRasanPlacesController, MashkokShopsController, LuchakanoController
+    MawadController,
+    LostMujremeenController,
+    OldSoldiersHomesController,
+    RobbersController,
+    NonResponsablePeopleController,
+    MashkokHomesController,
+    DamagePlacesController,
+    DamageRasanPlacesController,
+    MashkokShopsController,
+    LuchakanoController
 };
 
 // FIFTHY FORMAT THREE
 use App\Http\Controllers\fifthyformatsthree\{
-    BadmashanoController, EmaratOfficeController, HostelController, HotelController,
-    MadrasaController, MashkokPeopleController, MujahedinoController,
-    OldJahadiController, SarayanoController, TujaranController
+    BadmashanoController,
+    EmaratOfficeController,
+    HostelController,
+    HotelController,
+    MadrasaController,
+    MashkokPeopleController,
+    MujahedinoController,
+    OldJahadiController,
+    SarayanoController,
+    TujaranController
 };
 
 // FIFTHY FORMAT TWO
 use App\Http\Controllers\fifthyformatstow\{
-    SchoolController, HadoBusStopController, TransportCompanyController, CarSalesCompanyController,
-    ParkingController, BankController, ApartmentController, RahnomaMamlatController,
-    HosppitalController, WorkShopController
+    SchoolController,
+    HadoBusStopController,
+    TransportCompanyController,
+    CarSalesCompanyController,
+    ParkingController,
+    BankController,
+    ApartmentController,
+    RahnomaMamlatController,
+    HosppitalController,
+    WorkShopController
 };
 
 // FIFTHY FORMAT FOUR
 use App\Http\Controllers\Api\fifthyformatfour\{
     CheckpointController,
-    MasjidController, HighwayController, CompanyController, DoneLostPlaceController,
-    EconemyProjectController, CriminalCapturePlaceController, PumpController,
-    ShoraController, GovernmentPlaceController, SuperMarketController,
-    ParkController, ComplexController, DeplomaticPlaceController,
+    MasjidController,
+    HighwayController,
+    CompanyController,
+    DoneLostPlaceController,
+    EconemyProjectController,
+    CriminalCapturePlaceController,
+    PumpController,
+    ShoraController,
+    GovernmentPlaceController,
+    SuperMarketController,
+    ParkController,
+    ComplexController,
+    DeplomaticPlaceController,
     UniversityController,
     WakilanoController
 };
@@ -155,11 +193,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ---------------------- Users ----------------------
-    Route::get  ('users',            [UserController::class, 'index']);
-    Route::post  ('users',            [UserController::class, 'store']);
-    Route::get   ('users/{user}',     [UserController::class, 'show']);    // 👈 {user}
+    Route::get   ('users',           [UserController::class, 'index']);
+    Route::post  ('users',           [UserController::class, 'store']);
+    Route::get   ('users/{user}',    [UserController::class, 'show']);    // 👈 {user}
     Route::match(['put','patch'], 'users/{user}', [UserController::class, 'update']); // 👈 {user}
-    Route::delete('users/{user}',     [UserController::class, 'destroy']); // 👈 {user}
+    Route::delete('users/{user}',    [UserController::class, 'destroy']); // 👈 {user}
 
     // ---------- Office Employees ----------
     // Special activity routes BEFORE the generic resource to avoid ambiguity
@@ -177,10 +215,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // informations (API) => module: informations_api
     protectResource('informations', 'informations_api', InformationController::class);
-    Route::get('informations/{information}/documents',              [InformationDocumentController::class, 'index']);
-    Route::post('informations/{information}/documents',             [InformationDocumentController::class, 'store']);
-    Route::delete('informations/{information}/documents/{document}',[InformationDocumentController::class, 'destroy']);
-    Route::get('informations/{information}/documents/zip',          [InformationDocumentController::class, 'downloadAll']);
+    Route::get   ('informations/{information}/documents',               [InformationDocumentController::class, 'index']);
+    Route::post  ('informations/{information}/documents',               [InformationDocumentController::class, 'store']);
+    Route::delete('informations/{information}/documents/{document}',    [InformationDocumentController::class, 'destroy']);
+    Route::get   ('informations/{information}/documents/zip',           [InformationDocumentController::class, 'downloadAll']);
 
     // events (API) => module: events_api
     protectResource('events', 'events_api', EventController::class);
@@ -188,20 +226,88 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // captive-deliveries => module: captive_deliveries
     protectResource('captive-deliveries', 'captive_deliveries', CaptiveDeliveryController::class);
-    Route::get('captive-deliveries/{captiveDelivery}/documents',            [CaptiveDeliveryDocumentController::class, 'index']);
-    Route::post('captive-deliveries/{captiveDelivery}/documents',           [CaptiveDeliveryDocumentController::class, 'store']);
-    Route::delete('captive-deliveries/{captiveDelivery}/documents/{document}', [CaptiveDeliveryDocumentController::class, 'destroy']);
-    Route::get('captive-deliveries/{captiveDelivery}/documents/zip',        [CaptiveDeliveryDocumentController::class, 'downloadAll']);
+    Route::get   ('captive-deliveries/{captiveDelivery}/documents',              [CaptiveDeliveryDocumentController::class, 'index']);
+    Route::post  ('captive-deliveries/{captiveDelivery}/documents',              [CaptiveDeliveryDocumentController::class, 'store']);
+    Route::delete('captive-deliveries/{captiveDelivery}/documents/{document}',   [CaptiveDeliveryDocumentController::class, 'destroy']);
+    Route::get   ('captive-deliveries/{captiveDelivery}/documents/zip',          [CaptiveDeliveryDocumentController::class, 'downloadAll']);
+
+       // ---------------------- Fifty Formats (NO PREFIX, apiResource) ----------------------
+
+    // Main Fifty Formats (10)
+    Route::apiResource('fasads', FasadController::class);
+    Route::apiResource('saeen-fasads', SaeenFasadController::class);
+    Route::apiResource('heists', HeistController::class);
+    Route::apiResource('captives', CaptiveController::class);
+    Route::apiResource('mulkanos', MulkanoController::class);
+    Route::apiResource('entry-exits', EntryExitController::class);
+    Route::apiResource('sarafyanos', SarafyanoController::class);
+    Route::apiResource('clubs', ClubsController::class);
+    Route::apiResource('mahajerats', MahajeratController::class);
+    Route::apiResource('soldiers', SoldierController::class);
+
+    // Fifthy Format One (10)
+    Route::apiResource('mawads', MawadController::class);
+    Route::apiResource('lost-mujremeens', LostMujremeenController::class);
+    Route::apiResource('old-soldiers-homes', OldSoldiersHomesController::class);
+    Route::apiResource('robbers', RobbersController::class);
+    Route::apiResource('non-responsable-people', NonResponsablePeopleController::class);
+    Route::apiResource('mashkok-homes', MashkokHomesController::class);
+    Route::apiResource('damage-places', DamagePlacesController::class);
+    Route::apiResource('damage-rasan-places', DamageRasanPlacesController::class);
+    Route::apiResource('mashkok-shops', MashkokShopsController::class);
+    Route::apiResource('luchakanos', LuchakanoController::class);
+
+    // Fifthy Format Two (10)
+    Route::apiResource('schools', SchoolController::class);
+    Route::apiResource('hado-bus-stops', HadoBusStopController::class);
+    Route::apiResource('transport-companies', TransportCompanyController::class);
+    Route::apiResource('car-sales-companies', CarSalesCompanyController::class);
+    Route::apiResource('parkings', ParkingController::class);
+    Route::apiResource('banks', BankController::class);
+    Route::apiResource('apartments', ApartmentController::class);
+    Route::apiResource('rahnoma-mamlat', RahnomaMamlatController::class);
+    Route::apiResource('hosppitals', HosppitalController::class); // keep typo name if DB/table uses it
+    Route::apiResource('work-shops', WorkShopController::class);
+
+    // Fifthy Format Three (10)
+    Route::apiResource('badmashanos', BadmashanoController::class);
+    Route::apiResource('emarat-offices', EmaratOfficeController::class);
+    Route::apiResource('hostels', HostelController::class);
+    Route::apiResource('hotels', HotelController::class);
+    Route::apiResource('madrasas', MadrasaController::class);
+    Route::apiResource('mashkok-people', MashkokPeopleController::class);
+    Route::apiResource('mujahedinos', MujahedinoController::class);
+    Route::apiResource('old-jahadis', OldJahadiController::class);
+    Route::apiResource('sarayanos', SarayanoController::class);
+    Route::apiResource('tujarans', TujaranController::class);
+
+    // Fifthy Format Four (16)
+    Route::apiResource('checkpoints', CheckpointController::class);
+    Route::apiResource('masjids', MasjidController::class);
+    Route::apiResource('highways', HighwayController::class);
+    Route::apiResource('companies', CompanyController::class);
+    Route::apiResource('done-lost-places', DoneLostPlaceController::class);
+    Route::apiResource('econemy-projects', EconemyProjectController::class);
+    Route::apiResource('criminal-capture-places', CriminalCapturePlaceController::class);
+    Route::apiResource('pumps', PumpController::class);
+    Route::apiResource('shoras', ShoraController::class);
+    Route::apiResource('government-places', GovernmentPlaceController::class);
+    Route::apiResource('super-markets', SuperMarketController::class);
+    Route::apiResource('parks', ParkController::class);
+    Route::apiResource('complexes', ComplexController::class);
+    Route::apiResource('deplomatic-places', DeplomaticPlaceController::class);
+    Route::apiResource('universities', UniversityController::class);
+    Route::apiResource('wakilanos', WakilanoController::class);
 
     // ---------------------- Finance ----------------------
     protectResource('account-types', 'account_types', AccountTypeController::class);
     protectResource('accounts',      'accounts',      AccountController::class);
 
-    Route::get('incomes',   [IncomeController::class, 'index']);
-    Route::post('incomes',  [IncomeController::class, 'store']);
+    Route::get ('incomes',   [IncomeController::class, 'index']);
+    Route::post('incomes',   [IncomeController::class, 'store']);
 
-    Route::get('expenses',  [ExpenseController::class, 'index']);
-    Route::post('expenses', [ExpenseController::class, 'store']);
+    Route::get ('expenses',  [ExpenseController::class, 'index']);
+    Route::post('expenses',  [ExpenseController::class, 'store']);
 
     // Oil
     protectResource('oil-accounts', 'oil_accounts',  OilAccountController::class);
@@ -285,8 +391,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('rbac/permissions',  [RbacController::class, 'permissions']);
     Route::get('/auth/me',          [AuthController::class, 'me']);
 
-
+    // Map points (for your PMTiles map)
     Route::apiResource('map-points', MapPointController::class)
         ->only(['index', 'store', 'destroy']);
-
 });

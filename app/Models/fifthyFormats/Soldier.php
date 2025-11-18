@@ -18,7 +18,7 @@ class Soldier extends Model
         'specific_place','street_number','home_number',
         'Province_addr',
         'old_job','now_job','guard_amount','phone_number',
-        'notes','resource_id',
+        'notes','resource_id', 'coordinates'
     ];
 
     public function resource()

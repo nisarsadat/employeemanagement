@@ -320,17 +320,17 @@
             />
           </template>
 
-          <!-- NEW: coordenates -->
-          <template #item.coordenates="{ item }">
+          <!-- NEW: coordinates -->
+          <template #item.coordinates="{ item }">
             <v-text-field
-              v-model="item.draft.coordenates"
+              v-model="item.draft.coordinates"
               class="text-group"
               density="compact"
               variant="outlined"
               :label="t('کوردینات محل دستگیری')"
               hide-details
-              :error="hasError(item, 'coordenates')"
-              :error-messages="getErrorMessages(item, 'coordenates')"
+              :error="hasError(item, 'coordinates')"
+              :error-messages="getErrorMessages(item, 'coordinates')"
             />
           </template>
 
@@ -638,7 +638,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="deleviry_captive"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -658,6 +670,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import DateInput from '../../components/DateInput.vue';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   import { useLoginRepository } from '../../stores/LoginRepository';
   const auth = useLoginRepository();
@@ -762,7 +775,7 @@
       scientific_level: x.scientific_level ?? '',
 
       captive_place: x.captive_place ?? '',
-      coordenates: x.coordenates ?? '',
+      coordinates: x.coordinates ?? '',
       captive_marja: x.captive_marja ?? '',
       captive_date: x.captive_date ?? '',
       captive_hour: x.captive_hour ?? '',
@@ -801,7 +814,7 @@
     { title: t('آدرس اصلی'), key: 'main_add' },
     { title: t('آدرس فعلی'), key: 'now_add' },
     { title: t('محل دستگیری'), key: 'captive_place' },
-    { title: t('کوردینات محل دستگیری'), key: 'coordenates' },
+    { title: t('کوردینات محل دستگیری'), key: 'coordinates' },
     { title: t('مرجع دستگیری'), key: 'captive_marja' },
     { title: t('تاریخ دستگیری'), key: 'captive_date' },
     { title: t('ساعت دستگیری'), key: 'captive_hour' },
@@ -842,7 +855,7 @@
     { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
 
     { title: t('محل دستگیری'), key: 'captive_place' },
-    { title: t('کوردینات محل دستگیری'), key: 'coordenates' },
+    { title: t('کوردینات محل دستگیری'), key: 'coordinates' },
     { title: t('مرجع دستگیری'), key: 'captive_marja' },
     { title: t('تاریخ دستگیری'), key: 'captive_date' },
     { title: t('ساعت دستگیری'), key: 'captive_hour' },
@@ -854,6 +867,7 @@
 
     { title: t('ملاحظات'), key: 'notes' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* Group bar for FilterableTable */
@@ -866,7 +880,7 @@
     { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
     {
       title: t('جزئیات دستگیری'),
-      keys: ['captive_place', 'coordenates', 'captive_marja', 'captive_date', 'captive_hour'],
+      keys: ['captive_place', 'coordinates', 'captive_marja', 'captive_date', 'captive_hour'],
     },
     {
       title: t('مظنون/تماس'),
@@ -959,7 +973,7 @@
       'scientific_level',
 
       'captive_place',
-      'coordenates',
+      'coordinates',
       'captive_marja',
       'captive_date',
       'captive_hour',

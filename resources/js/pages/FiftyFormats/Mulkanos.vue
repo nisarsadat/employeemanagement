@@ -350,6 +350,17 @@
               :error-messages="getErrorMessages(item, 'Province_addr')"
             />
           </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('coordinates')"
+              hide-details
+            />
+          </template>
+
           <!-- Resource -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -460,7 +471,19 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mulkanos"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -479,6 +502,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -567,6 +591,7 @@
     { title: t('سابقه جرم'), key: 'jorm_history' },
     { title: t('تنظیم'), key: 'tanzim' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('coordinates'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -609,6 +634,7 @@
     { title: t('سابقه جرم'), key: 'jorm_history' },
     { title: t('تنظیم'), key: 'tanzim' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('coordinates'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -670,6 +696,7 @@
       now_district: x.now_district ?? '',
       now_village: x.now_village ?? '',
       Province_addr: x.Province_addr ?? '',
+      coordinates: x.coordinates ?? '',
 
       specific_place: x.specific_place ?? '',
       street_number: x.street_number ?? '',
@@ -717,7 +744,8 @@
     'street_amount',
     'old_job',
     'new_job',
-      'Province_addr',
+    'Province_addr',
+    'coordinates',
     'agent_quantity',
     'home_quantity',
     'phone_number',

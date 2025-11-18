@@ -29,7 +29,7 @@
       </v-col>
     </v-row>
 
-    <!-- Single-row validated editor -->
+    <!-- Single-row validated editor (no footer/pagination) -->
     <v-form
       ref="editorForm"
       v-model="editorValid"
@@ -86,7 +86,7 @@
             />
           </template>
 
-          <!-- Location (4 cols) -->
+          <!-- Location (grouped) -->
           <template #item.province="{ item }">
             <div class="addr-group">
               <v-text-field
@@ -188,6 +188,20 @@
             />
           </template>
 
+          <!-- Province addr -->
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
+              hide-details
+              :error="hasError(item, 'Province_addr')"
+              :error-messages="getErrorMessages(item, 'Province_addr')"
+            />
+          </template>
+
           <!-- Resource -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -205,18 +219,6 @@
             />
           </template>
 
-          <template #item.Province_addr="{ item }">
-            <v-text-field
-              v-model="item.draft.Province_addr"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت مربوطه')"
-              hide-details
-              :error="hasError(item, 'Province_addr')"
-              :error-messages="getErrorMessages(item, 'Province_addr')"
-            />
-          </template>
           <template #item.resource_phone_number="{ item }">
             <v-text-field
               v-model="item.draft.resource_phone_number"
@@ -275,7 +277,7 @@
         title-key="name"
         :fields="headers"
         :cols="3"
-        dir="rtl"
+        :dir="isRtl ? 'rtl' : 'ltr'"
         @fetch="fetchOne"
       />
     </v-container>
@@ -293,13 +295,27 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- map column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.cordinate"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="entry_exit"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
-        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+        <v-btn variant="text" @click="showError = false">
+          {{ t('بستن') }}
+        </v-btn>
       </template>
     </v-snackbar>
   </v-container>
@@ -312,6 +328,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -355,6 +372,9 @@
 
   /* ===== Single editor row ===== */
   const rows = ref([]);
+  let tmpId = 0;
+  const newTmpId = () => `tmp-${++tmpId}`;
+
   function setBlankEditorRow() {
     rows.value = [toRowModel({})];
   }
@@ -362,28 +382,23 @@
   /* ===== ALL data for FilterableTable ===== */
   const rowsFT = computed(() => repo.EntryExits || []);
 
-  /* ===== Headers (editor) ===== */
+  /* ===== Headers (editor table) ===== */
   const headers = computed(() => [
     { title: t('نام'), key: 'name' },
     { title: t('طریق ورود/خروج'), key: 'entry_way' },
     { title: t('نوعه طریق'), key: 'way_type' },
-
-    { title: t('موقعیت'), key: 'province' }, // grouped (4: province, zone, district, village)
+    { title: t('موقعیت'), key: 'province' },
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('مختصات'), key: 'cordinate' },
-
     { title: t('پُسته امنیتی'), key: 'amnayaty_poste' },
     { title: t('اشاره امنیتی'), key: 'amnayaty_ishala' },
-
     { title: t('به کجا رفت'), key: 'where_went' },
     { title: t('از کجا آمد'), key: 'where_come' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
-
     { title: t('ملاحظات'), key: 'notes' },
-
+    { title: t('cordinate'), key: 'cordinate' },
     { title: t('عملیات'), key: 'actions', sortable: false },
   ]);
 
@@ -392,26 +407,23 @@
     { title: t('نام'), key: 'name' },
     { title: t('طریق ورود/خروج'), key: 'entry_way' },
     { title: t('نوعه طریق'), key: 'way_type' },
-
     { title: t('ولایت'), key: 'province' },
     { title: t('زون'), key: 'zone' },
     { title: t('ولسوالی'), key: 'district' },
     { title: t('قریه/ناحیه'), key: 'village' },
-
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('مختصات'), key: 'cordinate' },
-
     { title: t('پُسته امنیتی'), key: 'amnayaty_poste' },
     { title: t('اشاره امنیتی'), key: 'amnayaty_ishala' },
-
     { title: t('به کجا رفت'), key: 'where_went' },
     { title: t('از کجا آمد'), key: 'where_come' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
-
     { title: t('ملاحظات'), key: 'notes' },
+    { title: t('cordinate'), key: 'cordinate' },
+    { title: t('نقشه'), key: 'map', sortable: false },
+
   ]);
 
   /* ===== Top filter groups (Fasad style) ===== */
@@ -437,15 +449,11 @@
   }
 
   /* ===== Row model & diff ===== */
-  let tmpId = 0;
-  const newTmpId = () => `tmp-${++tmpId}`;
-
   function toRowModel(x = {}) {
     const r = x.resource || {};
     const base = {
       id: x.id ?? null,
       idOrTmp: x.id ?? newTmpId(),
-
       loading: false,
 
       name: x.name ?? '',
@@ -456,7 +464,6 @@
       zone: x.zone ?? '',
       district: x.district ?? '',
       village: x.village ?? '',
-
       specific_place: x.specific_place ?? '',
       cordinate: x.cordinate ?? '',
 
@@ -464,8 +471,8 @@
       amnayaty_ishala: x.amnayaty_ishala ?? '',
 
       where_went: x.where_went ?? '',
-      Province_addr: x.Province_addr ?? '',
       where_come: x.where_come ?? '',
+      Province_addr: x.Province_addr ?? '',
 
       resource_code: x.resource_code ?? r.code_number ?? '',
       resource_phone_number: x.resource_phone_number ?? r.phone_number ?? '',
@@ -488,9 +495,9 @@
     'cordinate',
     'amnayaty_poste',
     'amnayaty_ishala',
-      'Province_addr',
     'where_went',
     'where_come',
+    'Province_addr',
     'resource_code',
     'resource_phone_number',
     'resource_id',
@@ -501,8 +508,12 @@
   function diffDraft(item) {
     const d = item.draft || {};
     const changed = {};
-    for (const k of EDITABLE_KEYS) if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    for (const k of REQUIRED_ON_UPDATE) if (d[k] !== undefined) changed[k] = d[k];
+    for (const k of EDITABLE_KEYS) {
+      if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
+    }
+    for (const k of REQUIRED_ON_UPDATE) {
+      if (d[k] !== undefined) changed[k] = d[k];
+    }
     return changed;
   }
 
@@ -515,7 +526,16 @@
     return fd;
   }
 
-  /* ===== Save / Submit / Delete ===== */
+  async function hardResetFormValidation() {
+    editorValid.value = false;
+    itemErrors.value = {};
+    await nextTick();
+    editorForm.value?.resetValidation?.();
+    formKey.value++;
+    await nextTick();
+  }
+
+  /* ===== Save / Delete ===== */
   async function save(item) {
     if (!item.draft?.name?.trim()) {
       showErrorMessage(t('نام الزامی است'));
@@ -523,7 +543,6 @@
     }
     item.loading = true;
     clearItemErrors(item);
-
     try {
       // CREATE
       if (!item.id) {
@@ -540,7 +559,6 @@
         }
         return;
       }
-
       // UPDATE
       const changed = diffDraft(item);
       if (Object.keys(changed).length === 0) {
@@ -567,6 +585,7 @@
     }
   }
 
+  // VALIDATED SUBMIT
   async function onSubmit(item) {
     const form = editorForm.value;
     if (!form) return;
@@ -619,7 +638,7 @@
     }
   }
 
-  /* ===== Peek / Fetch single ===== */
+  /* ===== Peek / Fetch ===== */
   const expanded = ref(false);
   const selectedId = ref(null);
   const loading = ref(false);
@@ -644,7 +663,7 @@
     fetchOne(row.id);
   }
 
-  /* ===== Fetch ALL (for FilterableTable) ===== */
+  /* ===== Fetch ALL (no pagination) ===== */
   const filters = ref({});
   async function fetchAll() {
     try {
@@ -661,12 +680,18 @@
   /* ===== Start edit from FilterableTable ===== */
   async function startEdit(row) {
     try {
-      const id = row?.id;
+      const cleanRow = row?.raw ?? row;
+      const id = cleanRow?.id;
       if (!id) return;
+
+      // Try to fetch fresh data, but fall back to row if API returns nulls
       await repo.FetchEntryExitData?.(id);
-      const single =
-        repo.EntryExit && Array.isArray(repo.EntryExit) ? repo.EntryExit[0] : repo.EntryExit || row;
-      rows.value = [toRowModel(single || row)];
+      let source = repo.EntryExit || cleanRow;
+      if (!source || source.id == null) {
+        source = cleanRow;
+      }
+
+      rows.value = [toRowModel(source)];
       await nextTick();
       const el = editorCard.value?.$el || editorCard.value;
       el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
@@ -750,8 +775,6 @@
   .text-group-note {
     margin: -16px !important;
     padding: -10px !important;
-    row-gap: -6px !important;
-    column-gap: 2px !important;
     gap: -10px !important;
   }
 </style>

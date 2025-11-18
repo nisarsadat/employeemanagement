@@ -39,6 +39,7 @@ class SaeenFasadResource extends JsonResource
             'resource_phone_number'   => $this->resource_phone_number,
             'note'                    => $this->note,
             'Province_addr'               => $this->Province_addr,
+            'coordinates'               => $this->coordinates,
 
             'resource_id'             => $this->resource_id,
             'resource'                => $this->whenLoaded('resource', fn () => [

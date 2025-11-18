@@ -40,13 +40,13 @@
     <div v-if="q && !results.length" class="no-results">
       No results found
     </div>
-    <div class="coord-helper">
+    <!-- <div class="coord-helper">
       <small>
         e.g.
         <code>69.2075,34.5553</code> / <code>69.2075 34.5553</code> /
         <code>69.2075،34.5553</code> or just <code>35.03</code>
       </small>
-    </div>
+    </div> -->
   </div>
 </template>
 

@@ -61,13 +61,10 @@
 
 <template>
   <v-btn
-    size="small"
     color="primary"
-    variant="outlined"
     :disabled="!hasCoords"
     @click="handleClick"
   >
     <v-icon start>mdi-map-marker</v-icon>
-    {{ t('دیدن در نقشه') }}
   </v-btn>
 </template>

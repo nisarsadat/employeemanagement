@@ -46,7 +46,7 @@ class ResourceController extends Controller
 
     public function show($id)
     {
-        $row = Resource::with(['officeEmployee:id,name,code_number,father_name,nickname'])
+        $row = Resource::with(['officeEmployee:id,name,code_number,father_name,nick_name'])
             ->findOrFail($id);
 
         return new ResourceResource($row);

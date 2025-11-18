@@ -45,6 +45,7 @@ class UpdateSaeenFasadRequest extends FormRequest
             'resource_phone_number' => ['nullable','string'],
             'note' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
+            'coordinates' => ['nullable','string'],
 
         ];
     }

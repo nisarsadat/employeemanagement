@@ -67,7 +67,7 @@ class ResourceResource extends JsonResource
                     'name'        => $this->officeEmployee->name,
                     'code_number' => $this->officeEmployee->code_number,
                     'father_name' => $this->officeEmployee->father_name,
-                    'nickname'    => $this->officeEmployee->nickname,
+                    'nick_name'    => $this->officeEmployee->nickname,
                 ];
             }),
         ];

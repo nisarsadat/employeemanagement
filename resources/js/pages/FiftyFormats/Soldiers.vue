@@ -268,6 +268,17 @@
               :error-messages="getErrorMessages(item, 'Province_addr')"
             />
           </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('coordinates')"
+              hide-details
+            />
+          </template>
+
           <!-- Notes -->
           <template #item.notes="{ item }">
             <v-text-field
@@ -322,7 +333,19 @@
         @edit="startEdit"
         @peek="openPeek"
         class="mb-20 mx-2"
-      />
+      >
+        <!-- ✅ custom cell for the 'map' column -->
+        <template #cell-map="{ row }">
+          <FlyToMapButton
+            :coordinates="row.coordinates"
+            :title="row.name"
+            :subtitle="row.code_number"
+            type="fasads"
+            :photo-url="row.picture"
+            :zoom="16"
+          />
+        </template>
+      </FilterableTable>
     </v-container>
 
     <!-- Error Snackbar -->
@@ -346,6 +369,7 @@
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const drawer = ref(false);
@@ -430,6 +454,7 @@
       old_job: x.old_job ?? '',
       now_job: x.now_job ?? '',
       guard_amount: x.guard_amount ?? '',
+      coordinates: x.coordinates ?? '',
       phone_number: x.phone_number ?? '',
 
       resource_code: x.resource_code ?? r.code_number ?? '',
@@ -473,6 +498,7 @@
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('coordinates'), key: 'coordinates' },
     { title: t('ملاحظات'), key: 'notes' },
     { title: t('عمل'), key: 'actions', sortable: false },
   ]);
@@ -497,7 +523,9 @@
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
+    { title: t('coordinates'), key: 'coordinates' },
     { title: t('ملاحظات'), key: 'notes' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -527,9 +555,10 @@
     'old_job',
     'now_job',
     'guard_amount',
-      'Province_addr',
+    'Province_addr',
     'phone_number',
     'resource_code',
+    'coordinates',
     'resource_phone_number',
     'resource_id',
     'notes',

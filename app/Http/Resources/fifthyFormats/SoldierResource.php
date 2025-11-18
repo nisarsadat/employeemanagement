@@ -41,6 +41,7 @@ class SoldierResource extends JsonResource
             // relation id
             'resource_id'      => $this->resource_id,
             'Province_addr'               => $this->Province_addr,
+            'coordinates'               => $this->coordinates,
 
             // flattened from related resource
             'resource_code'         => $related?->code_number,

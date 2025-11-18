@@ -38,6 +38,7 @@ class Fasad extends Model
         'resource_code',
         'resource_phone',
         'resource_id',
+        'coordinates',
     ];
 
     /** Fasad belongs to one Resource (existing table/model). */

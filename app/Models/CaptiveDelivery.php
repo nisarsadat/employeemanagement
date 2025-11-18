@@ -39,6 +39,7 @@ class CaptiveDelivery extends Model
         'captive_halat',
         'suspect_tools',
         'notes',
+        'coordinates'
     ];
 
     public function documents(): HasMany

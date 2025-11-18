@@ -296,7 +296,7 @@
               hide-details
             />
           </template>
-          
+
           <template #item.Province_addr="{ item }">
             <v-text-field
               v-model="item.draft.Province_addr"
@@ -350,7 +350,19 @@
         @edit="startEdit"
         @peek="openPeek"
         class="mb-20 mx-2"
-      />
+      >
+        <!-- ✅ custom cell for the 'map' column -->
+        <template #cell-map="{ row }">
+          <FlyToMapButton
+            :coordinates="row.cordinates"
+            :title="row.name"
+            :subtitle="row.code_number"
+            type="fasads"
+            :photo-url="row.picture"
+            :zoom="16"
+          />
+        </template>
+      </FilterableTable>
     </v-container>
 
     <!-- Error Snackbar -->
@@ -374,6 +386,7 @@
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const drawer = ref(false);
@@ -537,6 +550,8 @@
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
     { title: t('ملاحظات'), key: 'note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
+
   ]);
 
   const topGroups = computed(() => [
@@ -563,7 +578,7 @@
     'main_province',
     'main_district',
     'main_village',
-      'Province_addr',
+    'Province_addr',
     'now_province',
     'now_zone',
     'now_district',
@@ -788,7 +803,7 @@
     font-size: 12px !important;
     line-height: 1.2 !important;
   }
-    /* Tight spacing inside grouped blocks */
+  /* Tight spacing inside grouped blocks */
   .addr-group,
   .addr-group1,
   .text-group,

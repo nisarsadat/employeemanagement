@@ -312,7 +312,19 @@
         @edit="startEdit"
         @peek="openPeek"
         class="mb-20 mx-2"
-      />
+      >
+        <!-- ✅ custom cell for the 'map' column -->
+        <template #cell-map="{ row }">
+          <FlyToMapButton
+            :coordinates="row.cordinate"
+            :title="row.name"
+            :subtitle="row.code_number"
+            type="fasads"
+            :photo-url="row.picture"
+            :zoom="16"
+          />
+        </template>
+      </FilterableTable>
     </v-container>
 
     <!-- Error Snackbar -->
@@ -337,6 +349,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const drawer = ref(false);
@@ -478,6 +491,8 @@
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
+    { title: t('نقشه'), key: 'map', sortable: false },
+
   ]);
 
   const topGroups = computed(() => [
@@ -500,7 +515,7 @@
     'phone_number',
     'province',
     'zone',
-      'Province_addr',
+    'Province_addr',
     'district',
     'specific_place',
     'cordinate',
@@ -738,7 +753,7 @@
     font-size: 12px !important;
     line-height: 1.2 !important;
   }
-    /* Tight spacing inside grouped blocks */
+  /* Tight spacing inside grouped blocks */
   .addr-group,
   .text-group,
   .text-group-note {

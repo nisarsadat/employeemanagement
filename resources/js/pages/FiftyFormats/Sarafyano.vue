@@ -327,7 +327,19 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.cordinate"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="fasads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -346,6 +358,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -451,6 +464,7 @@
     { title: t('شماره منبع'), key: 'resource_phone_number' },
 
     { title: t('ملاحظات'), key: 'notes' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* ===== Top filter groups (Fasad style) ===== */
@@ -524,7 +538,7 @@
 
   const EDITABLE_KEYS = [
     'name',
-      'Province_addr',
+    'Province_addr',
     'sarafi_name',
     'sarafi_type',
     'father_name',

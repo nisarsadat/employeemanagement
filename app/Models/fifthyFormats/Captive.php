@@ -30,6 +30,7 @@ class Captive extends Model
         'now_activity',
         'phone_number',
         'Province_addr',
+        'coordinates',
         'note',
         'resource_id',
     ];

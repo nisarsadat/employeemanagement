@@ -329,6 +329,16 @@
               :error-messages="getErrorMessages(item, 'Province_addr')"
             />
           </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('coordinates')"
+              hide-details
+            />
+          </template>
 
           <!-- Documents -->
           <template #item.documents="{ item }">
@@ -491,7 +501,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="captives"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -510,6 +532,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -600,6 +623,7 @@
       band_distince: x.band_distince ?? '',
       now_activity: x.now_activity ?? '',
       Province_addr: x.Province_addr ?? '',
+      coordinates: x.coordinates ?? '',
 
       // Resource mapping
       resource_code: x.resource_code ?? r.code_number ?? '',
@@ -659,6 +683,7 @@
     // Note & province
     { title: t('ملاحظات'), key: 'note' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('coordinates'), key: 'coordinates' },
 
     // Documents
     { title: t('اسناد'), key: 'documents' },
@@ -690,6 +715,7 @@
 
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('coordinates'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -744,6 +770,7 @@
       'now_activity',
       'phone_number',
       'Province_addr',
+      'coordinates',
       'resource_code',
       'resource_phone_number',
       'resource_id',
