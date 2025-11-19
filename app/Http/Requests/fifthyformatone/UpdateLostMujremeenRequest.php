@@ -39,7 +39,8 @@ class UpdateLostMujremeenRequest extends FormRequest
             'phone_number' => ['nullable','string'],
 
             'note'        => ['nullable','string'],
-            'Province_addr'             => ['nullable','string'],
+            'Province_addr' => ['nullable','string'],
+            'coordinates' => ['nullable','string'],
 
             'resource_id' => ['nullable','integer','exists:resources,id'],
         ];

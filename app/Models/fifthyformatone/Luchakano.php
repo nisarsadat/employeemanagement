@@ -26,6 +26,7 @@ class Luchakano extends Model
         'Province_addr',
         'now_home_number',
         'old_job',
+        'coordinates',
         'job',
         'gun_type',
         'phone_number',

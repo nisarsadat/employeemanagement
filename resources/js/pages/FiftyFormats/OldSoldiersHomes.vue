@@ -291,7 +291,19 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mawads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -314,6 +326,7 @@
 
   // Adjust if your store name differs
   import { useMawadRepository } from '@/stores/MawadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const drawer = ref(false);
@@ -407,6 +420,7 @@
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* ===== Top filter groups (Fasad style) ===== */
@@ -488,7 +502,7 @@
     'main_province',
     'old_job',
     'now_activity',
-      'Province_addr',
+    'Province_addr',
     'note',
     'resource_id',
     'resource_code',
@@ -682,7 +696,7 @@
     try {
       const id = row?.id;
       if (!id) return;
-      await repo.FetchOldSoldiersHome?.(id);
+      await repo.FetchOldSoldiersHomeData?.(id);
       const single =
         repo.OldSoldiersHome && Array.isArray(repo.OldSoldiersHome)
           ? repo.OldSoldiersHome[0]

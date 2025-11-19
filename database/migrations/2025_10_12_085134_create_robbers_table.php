@@ -31,6 +31,7 @@ return new class extends Migration {
             $table->string('supplier')->nullable();
             $table->string('phone_number')->nullable();
             $table->text('history_form')->nullable();
+            $table->text('coordinates')->nullable();
 
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();

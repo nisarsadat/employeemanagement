@@ -32,6 +32,7 @@ class UpdateRobbersRequest extends FormRequest
             'supplier'           => ['nullable','string','max:255'],
             'phone_number'       => ['nullable','string','max:100'],
             'history_form'       => ['nullable','string'],
+            'coordinates'       => ['nullable','string'],
             'Province_addr'             => ['nullable','string'],
 
             'note'               => ['nullable','string'],

@@ -304,8 +304,22 @@
       :rtl="true"
       class="mb-20 mx-2"
       :enableEdit="true"
+      :enablePeek="true"
       @edit="startEdit"
-    />
+      @peek="openPeek"
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="schools"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -323,6 +337,8 @@
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useSchoolRepository } from '@/stores/SchoolRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
+  import PeekButton from '@/components/PeekButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -426,6 +442,7 @@
     { title: t('یادداشت'), key: 'note' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -496,7 +513,7 @@
     'female_teachers_quantity',
     'male_students_quantity',
     'female_students_quantity',
-      'Province_addr',
+    'Province_addr',
     'province',
     'zone',
     'district',
@@ -683,7 +700,7 @@
     font-size: 12px !important;
     line-height: 1.2 !important;
   }
-  
+
   /* Tight spacing inside grouped blocks */
   .addr-group,
   .addr-group1,

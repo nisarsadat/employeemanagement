@@ -271,7 +271,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('parkings', ParkingController::class);
     Route::apiResource('banks', BankController::class);
     Route::apiResource('apartments', ApartmentController::class);
-    Route::apiResource('rahnoma-mamlat', RahnomaMamlatController::class);
+    Route::apiResource('rahnoma-mamlats', RahnomaMamlatController::class);
     Route::apiResource('hosppitals', HosppitalController::class); // keep typo name if DB/table uses it
     Route::apiResource('work-shops', WorkShopController::class);
 

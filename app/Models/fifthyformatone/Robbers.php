@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Models\fifthyformatone;
@@ -33,6 +34,7 @@ class Robbers extends Model
         'supplier',
         'phone_number',
         'history_form',
+        'coordinates',
 
         'note',
         'resource_id',

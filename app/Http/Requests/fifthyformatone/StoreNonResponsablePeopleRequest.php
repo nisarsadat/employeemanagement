@@ -35,6 +35,7 @@ class StoreNonResponsablePeopleRequest extends FormRequest
             'tanzim'             => ['nullable','string','max:255'],
             'takhalof_type'      => ['nullable','string','max:255'],
             'note'               => ['nullable','string'],
+            'coordinates'               => ['nullable','string'],
             'Province_addr'             => ['nullable','string'],
 
             'resource_id'        => ['nullable','integer','exists:resources,id'],

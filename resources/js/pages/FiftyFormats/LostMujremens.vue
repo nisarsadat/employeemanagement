@@ -353,6 +353,16 @@
               readonly
             />
           </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مختصات')"
+              hide-details
+            />
+          </template>
 
           <!-- Actions -->
           <template #item.actions="{ item }">
@@ -432,7 +442,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="lost-mujremeen"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -453,6 +475,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useMawadRepository } from '@/stores/MawadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const drawer = ref(false);
@@ -552,6 +575,7 @@
       phone_number: x.phone_number ?? '',
 
       note: x.note ?? '',
+      coordinates: x.coordinates ?? '',
 
       resource_code: x.resource_code ?? '',
       resource_phone: x.resource_phone ?? '',
@@ -593,6 +617,7 @@
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('عملیات'), key: 'actions', sortable: false },
   ]);
@@ -625,9 +650,11 @@
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* ===== Top filter groups ===== */
@@ -648,7 +675,7 @@
     { title: t('موقعیت عمومی'), keys: ['province', 'zone', 'district'] },
     {
       title: t('اطلاعات'),
-      keys: ['old_job', 'jorm', 'history_jorm', 'lost_reason', 'phone_number'],
+      keys: ['old_job', 'jorm', 'history_jorm', 'lost_reason', 'phone_number', 'coordinates'],
     },
     { title: t('دیگر'), keys: ['note'] },
     { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
@@ -684,11 +711,12 @@
     'now_specific_place',
     'now_street_number',
     'now_home_number',
-      'Province_addr',
+    'Province_addr',
     'province',
     'zone',
     'district',
     'old_job',
+    'coordinates',
     'jorm',
     'history_jorm',
     'lost_reason',

@@ -41,6 +41,7 @@ class LostMujremeen extends Model
 
         'note',
         'resource_id',
+        'coordinates',
     ];
 
     public function resource()

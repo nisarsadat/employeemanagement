@@ -46,6 +46,7 @@ class LostMujremeenResource extends JsonResource
             // Flattened from Resource
             'resource_code'   => $res?->code_number,
             'resource_phone'  => $res?->phone_number,
+            'coordinates'  => $res?->coordinates,
 
             // Minimal embedded resource (when eager loaded)
             'resource' => $this->whenLoaded('resource', function () use ($res) {

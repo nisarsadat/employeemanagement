@@ -346,7 +346,19 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mawads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -365,6 +377,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useMawadRepository } from '@/stores/MawadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -475,6 +488,7 @@
     { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* ===== Top filter groups ===== */
@@ -556,7 +570,7 @@
     'masool_f_name',
     'masool_position',
     'masool_phone',
-      'Province_addr',
+    'Province_addr',
     'note',
     'resource_id',
     'resource_code',

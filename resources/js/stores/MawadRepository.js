@@ -731,7 +731,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
       }
     },
 
-    async UpdateDamagePlacse(id, data) {
+    async UpdateDamagePlace(id, data) {
       try {
         let res;
         if (data instanceof FormData) {

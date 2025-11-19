@@ -34,6 +34,7 @@ class RobbersResource extends JsonResource
             'supplier'            => $model->supplier,
             'phone_number'        => $model->phone_number,
             'history_form'        => $model->history_form,
+            'coordinates'        => $model->coordinates,
 
             'note'                => $model->note,
 

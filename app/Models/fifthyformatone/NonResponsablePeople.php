@@ -37,6 +37,7 @@ class NonResponsablePeople extends Model
         'takhalof_type',
         'note',
         'resource_id',
+        'coordinates',
     ];
 
     public function resource()

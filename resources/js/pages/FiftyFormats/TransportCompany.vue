@@ -270,7 +270,19 @@
       class="mb-20 mx-2"
       :enableEdit="true"
       @edit="startEdit"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinate"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mawads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -288,6 +300,7 @@
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useSchoolRepository } from '@/stores/SchoolRepository'; // unchanged per your request
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -383,6 +396,7 @@
     { title: t('یادداشت'), key: 'note' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -446,7 +460,7 @@
     'village',
     'specific_place',
     'coordinate',
-      'Province_addr',
+    'Province_addr',
     'ways',
     'note',
     'resource_code',

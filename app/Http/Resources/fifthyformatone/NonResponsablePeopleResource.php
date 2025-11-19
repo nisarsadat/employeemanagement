@@ -41,6 +41,7 @@ class NonResponsablePeopleResource extends JsonResource
             'takhalof_type'        => $this->takhalof_type,
             'note'                 => $this->note,
             'resource_id'          => $this->resource_id,
+            'coordinates'          => $this->coordinates,
 
             // Resource info (flattened)
             'resource_code'        => $res->code_number ?? null,

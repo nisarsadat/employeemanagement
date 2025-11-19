@@ -219,6 +219,16 @@
               hide-details
             />
           </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مختصات')"
+              hide-details
+            />
+          </template>
 
           <!-- HISTORY / NOTE -->
           <template #item.history_jorm="{ item }">
@@ -335,7 +345,19 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mawads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -354,6 +376,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useMawadRepository } from '@/stores/MawadRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -418,6 +441,7 @@
     { title: t('وظیفه فعلی'), key: 'job' },
     { title: t('نوع اسلحه'), key: 'gun_type' },
     { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('سابقه جرم'), key: 'history_jorm' },
     { title: t('یادداشت'), key: 'note' },
@@ -459,6 +483,8 @@
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('مختصات'), key: 'coordinates' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* ===== Top filter groups ===== */
@@ -509,6 +535,7 @@
       now_specific_place: x.now_specific_place ?? '',
       now_street_number: x.now_street_number ?? '',
       now_home_number: x.now_home_number ?? '',
+      coordinates: x.coordinates ?? '',
 
       old_job: x.old_job ?? '',
       job: x.job ?? '',
@@ -534,13 +561,14 @@
     'main_district',
     'main_village',
     'now_province',
-      'Province_addr',
+    'Province_addr',
     'now_zone',
     'now_district',
     'now_village',
     'now_specific_place',
     'now_street_number',
     'now_home_number',
+    'coordinates',
     'old_job',
     'job',
     'gun_type',
