@@ -102,7 +102,8 @@ import { firstAccessiblePath, canAccess, permFor } from '@/rbac';
 import FiftyFormatsReportPage from '../pages/reports/FiftyFormatsReportPage.vue';
 import OfficeEmployeesActivityReport from '../pages/reports/OfficeEmployeesActivityReport.vue';
 import OfficeEmployeeRelationPage from '../pages/reports/OfficeEmployeeRelationPage.vue';
-
+import EventReport from '../pages/reports/EventActivityReport.vue';
+import InformationActivityReport from '../pages/reports/InformationActivityReport.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -497,7 +498,13 @@ const router = createRouter({
           component: OfficeEmployeeRelationPage,
           name: 'office-employees-activity-report',
         },
-
+        {
+          path: 'eventreports',
+          component: EventReport,
+        },        {
+          path: 'informationreports',
+          component: InformationActivityReport,
+        },
         // Map
         {
           path: 'map-afg',

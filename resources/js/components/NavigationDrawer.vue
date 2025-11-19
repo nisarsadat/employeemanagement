@@ -85,12 +85,7 @@
       :close-on-content-click="true"
     >
       <template #activator="{ props }">
-        <v-list-item
-          v-bind="props"
-          class="profile-tile my-2"
-          rounded="lg"
-          role="button"
-        >
+        <v-list-item v-bind="props" class="profile-tile my-2" rounded="lg" role="button">
           <template #prepend>
             <v-avatar size="30" class="mr-3 br-1" v-if="avatarSrc">
               <v-img :src="avatarSrc" alt="avatar" cover />
@@ -318,6 +313,17 @@
             title: t(' کارمندان'),
             icon: 'mdi-cash',
             to: { path: '/app/officeemployeereports' },
+            perm: 'roles.view',
+          },
+          {
+            title: t(' واقعات'),
+            icon: 'mdi-cash',
+            to: { path: '/app/eventreports' },
+            perm: 'roles.view',
+          },{
+            title: t('اطلاعات'),
+            icon: 'mdi-cash',
+            to: { path: '/app/informationreports' },
             perm: 'roles.view',
           },
         ],

@@ -122,11 +122,15 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RbacController;
 
 use App\Http\Controllers\Api\ActiveInactiveOfficeEmployeeController as AE; // ✅ NEW
+use App\Http\Controllers\Api\EventControllerReport;
+use App\Http\Controllers\Api\EventReportController;
 use App\Http\Controllers\Api\MapPointController;
 use App\Http\Controllers\Api\Reports\FiftyFormatsReportController as ReportsFiftyFormatsReportController;
 use App\Http\Controllers\Api\OfficeEmployeeControllerReport;
 use App\Models\OfficeEmployee;
 use App\Http\Controllers\Reports\FiftyFormatsReportController;
+use App\Http\Controllers\Api\InformationReportController;
+
 /*
 |--------------------------------------------------------------------------
 | Helper: protectResource(uri, module, Controller::class)
@@ -410,6 +414,15 @@ Route::middleware('auth:sanctum')->group(function () {
         [OfficeEmployeeControllerReport::class, 'employeeRelation']
     );
 
+
+    Route::prefix('events-report')->group(function () {
+        Route::get('/', [EventControllerReport::class, 'index']);
+        Route::get('/counts', [EventControllerReport::class, 'counts']);
+        Route::get('/activity-report', [EventControllerReport::class, 'activityReport']);
+        Route::get('/{id}', [EventControllerReport::class, 'show']);
+    });
+
+    Route::get('information-report/activity-report', [InformationReportController::class, 'activityReport']);
 
 
 
