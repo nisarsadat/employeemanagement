@@ -22,9 +22,9 @@ class EventController extends Controller
             $s = $request->search;
             $q->where(function ($qq) use ($s) {
                 $qq->where('event_type', 'like', "%{$s}%")
-                   ->orWhere('event_specific_type', 'like', "%{$s}%")
-                   ->orWhere('target_person', 'like', "%{$s}%")
-                   ->orWhere('criminal', 'like', "%{$s}%");
+                    ->orWhere('event_specific_type', 'like', "%{$s}%")
+                    ->orWhere('target_person', 'like', "%{$s}%")
+                    ->orWhere('criminal', 'like', "%{$s}%");
             });
         });
 
@@ -32,7 +32,9 @@ class EventController extends Controller
         $page    = $request->integer('page');
 
         if ($perPage && $perPage > 0 && $page && $page > 0) {
-            return EventResource::collection($query->paginate($perPage, ['*'], 'page', $page));
+            return EventResource::collection(
+                $query->paginate($perPage, ['*'], 'page', $page)
+            );
         }
 
         return EventResource::collection($query->get());
@@ -41,12 +43,14 @@ class EventController extends Controller
     public function store(StoreEventRequest $request)
     {
         DB::beginTransaction();
+
         try {
             $event = Event::create($request->validated());
 
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("events/{$event->id}", 'public');
+
                     $event->documents()->create([
                         'file_name'  => $file->getClientOriginalName(),
                         'file_path'  => $path,
@@ -58,13 +62,16 @@ class EventController extends Controller
 
             DB::commit();
 
-            return new EventResource($event->load([
+            $event->load([
                 'resource',
                 'officeEmployee',
                 'documents',
-            ]));
+            ]);
+
+            return new EventResource($event);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return response()->json([
                 'message' => 'Event creation failed',
                 'error'   => $e->getMessage(),
@@ -72,24 +79,30 @@ class EventController extends Controller
         }
     }
 
-    public function show(Event $event)
+    public function show($id)
     {
-        return new EventResource($event->load([
+        $event = Event::with([
             'resource',
             'officeEmployee',
             'documents',
-        ]));
+        ])->findOrFail($id);
+
+        return new EventResource($event);
     }
 
-    public function update(UpdateEventRequest $request, Event $event)
+    public function update(UpdateEventRequest $request, $id)
     {
         DB::beginTransaction();
+
         try {
+            $event = Event::with('documents')->findOrFail($id);
+
             $event->update($request->validated());
 
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("events/{$event->id}", 'public');
+
                     $event->documents()->create([
                         'file_name'  => $file->getClientOriginalName(),
                         'file_path'  => $path,
@@ -101,13 +114,16 @@ class EventController extends Controller
 
             DB::commit();
 
-            return new EventResource($event->load([
+            $event->load([
                 'resource',
                 'officeEmployee',
                 'documents',
-            ]));
+            ]);
+
+            return new EventResource($event);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return response()->json([
                 'message' => 'Event update failed',
                 'error'   => $e->getMessage(),
@@ -115,8 +131,10 @@ class EventController extends Controller
         }
     }
 
-    public function destroy(Event $event)
+    public function destroy($id)
     {
+        $event = Event::with('documents')->findOrFail($id);
+
         foreach ($event->documents as $doc) {
             Storage::disk('public')->delete($doc->file_path);
         }
@@ -124,6 +142,8 @@ class EventController extends Controller
         $event->documents()->delete();
         $event->delete();
 
-        return response()->json(['message' => 'Event deleted successfully']);
+        return response()->json([
+            'message' => 'Event deleted successfully',
+        ]);
     }
 }

@@ -8,6 +8,10 @@ class EventResource extends JsonResource
 {
     public function toArray($request)
     {
+        $resource       = $this->whenLoaded('resource');
+        $officeEmployee = $this->whenLoaded('officeEmployee');
+        $documents      = $this->whenLoaded('documents');
+
         return [
             'id'                   => $this->id,
             'event_type'           => $this->event_type,
@@ -25,29 +29,52 @@ class EventResource extends JsonResource
             'talks'                => $this->talks,
             'coordinates'          => $this->coordinates,
             'note'                 => $this->note,
-            'Province_addr'               => $this->Province_addr,
+            'Province_addr'        => $this->Province_addr,
 
-            'resource' => $this->whenLoaded('resource', function () {
-                if (!$this->resource) return null;
+            // Flattened FK / helper fields
+            'resource_id'               => $this->resource_id,
+            'resource_code'             => $resource ? $resource->code_number ?? null : null,
+            'resource_phone'            => $resource ? $resource->phone_number ?? null : null,
+
+            'office_employee_id'        => $this->office_employee_id,
+            'office_employee_code'      => $officeEmployee ? $officeEmployee->code_number ?? null : null,
+            'office_employee_phone'     => $officeEmployee ? $officeEmployee->phone_number ?? null : null,
+
+            // Embedded resource
+            'resource' => $this->when($resource, function () use ($resource) {
                 return [
-                    'id'           => $this->resource->id,
-                    'name'         => $this->resource->name ?? $this->resource->full_name ?? null,
-                    'father_name'  => $this->resource->father_name ?? null,
-                    'code_number'  => $this->resource->code_number ?? null,
+                    'id'           => $resource->id,
+                    'name'         => $resource->name ?? $resource->full_name ?? null,
+                    'father_name'  => $resource->father_name ?? null,
+                    'code_number'  => $resource->code_number ?? null,
+                    'phone_number' => $resource->phone_number ?? null,
                 ];
             }),
 
-            'office_employee' => $this->whenLoaded('officeEmployee', function () {
-                if (!$this->officeEmployee) return null;
+            // Embedded office employee
+            'office_employee' => $this->when($officeEmployee, function () use ($officeEmployee) {
                 return [
-                    'id'           => $this->officeEmployee->id,
-                    'name'         => $this->officeEmployee->name ?? $this->officeEmployee->employee_name ?? null,
-                    'father_name'  => $this->officeEmployee->father_name ?? null,
-                    'code_number'  => $this->officeEmployee->code_number ?? null,
+                    'id'           => $officeEmployee->id,
+                    'name'         => $officeEmployee->name ?? $officeEmployee->employee_name ?? null,
+                    'father_name'  => $officeEmployee->father_name ?? null,
+                    'code_number'  => $officeEmployee->code_number ?? null,
+                    'phone_number' => $officeEmployee->phone_number ?? null,
                 ];
             }),
 
-            'documents' => $this->whenLoaded('documents'),
+            // Documents
+            'documents' => $this->when($documents, function () use ($documents) {
+                return $documents->map(function ($doc) {
+                    return [
+                        'id'         => $doc->id,
+                        'file_name'  => $doc->file_name,
+                        'file_path'  => $doc->file_path,
+                        'mime_type'  => $doc->mime_type,
+                        'size_bytes' => $doc->size_bytes,
+                        'created_at' => $doc->created_at,
+                    ];
+                });
+            }),
         ];
     }
 }

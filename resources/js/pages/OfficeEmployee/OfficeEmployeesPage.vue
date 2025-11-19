@@ -68,7 +68,7 @@
               </v-btn>
               <div v-else class="pic-thumb" :title="t('گزینه ها')">
                 <v-avatar size="32">
-                  <v-img :src="item.previewUrl || item.picture" :alt="t('عکس')" cover />
+                  <v-img :src="normalizePicture(item.previewUrl || item.picture)" />
                 </v-avatar>
                 <div class="pic-overlay">
                   <v-btn
@@ -1381,15 +1381,31 @@
   async function fetchOne(id) {
     loading.value = true;
     try {
-      await repo.FetchEmployeeData(id);
-      detail.value = repo.Employee || [];
-    } catch (error) {
-      console.error('Fetch one error:', error);
-      showErrorMessage(t('خطا در دریافت اطلاعات کارمند'));
+      if (typeof repo.FetchEmployeeData === 'function') {
+        await repo.FetchEmployeeData(id);
+
+        const raw =
+          repo.Employee && Array.isArray(repo.Employee) ? repo.Employee[0] : repo.Employee;
+
+        // 🔥 FIX: Convert relative picture path to full URL
+        if (raw && raw.picture && !raw.picture.startsWith('http')) {
+          raw.picture = `${import.meta.env.VITE_APP_API_URL}/${raw.picture}`;
+        }
+
+        detail.value = raw || {};
+      } else {
+        await fetchAll();
+        const list = repo.Employees || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } catch (e) {
+      console.error('Fetch one employee error:', e);
+      showErrorMessage(t('خطا در دریافت معلومات کارمند'));
     } finally {
       loading.value = false;
     }
   }
+
   function openPeek(payload) {
     const row = payload?.raw ?? payload;
     if (!row?.id) return;
@@ -1433,6 +1449,13 @@
       showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
     }
   }
+  function normalizePicture(src) {
+    if (!src) return null;
+    if (src.startsWith('http')) return src;
+    if (src.startsWith('/')) return src;
+    return '/' + src; // 🔥 add leading slash
+  }
+
   function hawzaItems(item) {
     const z = item?.draft?.zone || null;
     // If zone is chosen → show only that zone’s hawzas

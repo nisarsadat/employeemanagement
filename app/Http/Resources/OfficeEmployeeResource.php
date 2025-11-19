@@ -11,8 +11,11 @@ class OfficeEmployeeResource extends JsonResource
     {
         return [
             'id'                      => $this->id,
-            'picture'                 => $this->picture,
-
+            'picture' => $this->picture
+                            ? (str_starts_with($this->picture, 'http')
+                                ? $this->picture              
+                                : url($this->picture))        
+                            : null,
             'name'                    => $this->name,
             'father_name'             => $this->father_name,
             'grand_father_name'       => $this->grand_father_name,
