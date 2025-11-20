@@ -39,6 +39,7 @@ class StoreBadmashanoRequest extends FormRequest
             'jorm_type' => ['nullable','string'],
             'note' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
+            'coordinates' => ['nullable','string'],
 
         ];
     }

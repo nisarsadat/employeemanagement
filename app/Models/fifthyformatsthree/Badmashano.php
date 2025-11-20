@@ -37,6 +37,7 @@ class Badmashano extends Model
         'history_jorm',
         'jorm_type',
         'note',
+        'coordinates',
 
         'resource_id',
     ];

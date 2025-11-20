@@ -273,6 +273,16 @@
               :error-messages="getErrorMessages(item, 'Province_addr')"
             />
           </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مختصات')"
+              hide-details
+            />
+          </template>
 
           <!-- Resource (code → phone → id) -->
           <template #item.resource_code="{ item }">
@@ -352,7 +362,19 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mawads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -371,6 +393,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -433,6 +456,7 @@
     { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
     { title: t('شماره سرک فعلی'), key: 'now_street_number' },
     { title: t('شماره خانه فعلی'), key: 'now_home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('وظیفه قبلی'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'job' },
@@ -480,9 +504,11 @@
     { title: t('نوع جرم'), key: 'jorm_type' },
     { title: t('یادداشت'), key: 'note' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* ===== Top filter groups (Fasad style) ===== */
@@ -490,7 +516,7 @@
     { title: t('مشخصات'), keys: ['name', 'nickname', 'father_name'] },
     { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
     { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
-    { title: t('موقعیت'), keys: ['now_specific_place', 'now_street_number', 'now_home_number'] },
+    { title: t('موقعیت'), keys: ['now_specific_place', 'now_street_number', 'now_home_number' , 'coordinates'] },
     { title: t('وظیفه/تماس'), keys: ['old_job', 'job', 'phone_number'] },
     {
       title: t('سایر'),
@@ -550,6 +576,7 @@
       resource_code: x.resource_code ?? '',
       Province_addr: x.Province_addr ?? '',
       resource_phone: x.resource_phone ?? '',
+      coordinates: x.coordinates ?? '',
       resource_id: x.resource_id ?? null,
     };
     return { ...base, draft: { ...base } };
@@ -580,6 +607,7 @@
     'note',
     'resource_code',
     'resource_phone',
+    'coordinates',
     'resource_id',
   ];
   const REQUIRED_ON_UPDATE = ['name'];

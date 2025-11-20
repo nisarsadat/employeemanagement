@@ -41,6 +41,7 @@ return new class extends Migration {
             $table->string('jorm_type')->nullable();
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
+            $table->string('coordinates')->nullable();
 
 
             // Link to resources

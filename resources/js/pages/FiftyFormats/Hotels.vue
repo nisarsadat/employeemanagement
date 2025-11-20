@@ -286,7 +286,19 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.cordenate"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mawads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -307,6 +319,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -404,6 +417,8 @@
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('نقشه'), key: 'map', sortable: false },
+
   ]);
 
   /* ===== Top filter groups ===== */
@@ -470,7 +485,7 @@
     'responsible_name',
     'responsible_f_name',
     'responsible_position',
-      'Province_addr',
+    'Province_addr',
     'responsible_phone',
     'province',
     'zone',
@@ -747,7 +762,7 @@
     font-size: 12px !important;
     line-height: 1.2 !important;
   }
-  
+
   /* Tight spacing inside grouped blocks */
   .addr-group,
   .addr-group1,

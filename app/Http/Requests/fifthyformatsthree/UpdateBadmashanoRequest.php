@@ -39,6 +39,8 @@ class UpdateBadmashanoRequest extends FormRequest
             'history_jorm' => ['nullable','string'],
             'jorm_type' => ['nullable','string'],
             'note' => ['nullable','string'],
+            'coordinates' => ['nullable','string'],
+
         ];
     }
 }

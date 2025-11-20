@@ -46,6 +46,7 @@ class BadmashanoResource extends JsonResource
             // Flattened fields from related Resource
             'resource_code'     => $resource?->code_number,
             'resource_phone'    => $resource?->phone_number,
+            'coordinates'    => $resource?->coordinates,
 
             // Minimal embedded resource (when eager-loaded)
             'resource' => $this->whenLoaded('resource', function () use ($resource) {

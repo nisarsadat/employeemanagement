@@ -646,9 +646,41 @@
         center: [lng, lat],
         zoom: meta.zoom || 16,
         essential: true,
-        speed: 1,
+        speed: 1.3,
         curve: 1.3,
       });
+
+      // ✅ NEW: persist this routed person/place as a DB point,
+      // so it always appears on the map (for this session)
+      const coordStr =
+        typeof val.coords === 'string'
+          ? val.coords
+          : `${lng.toFixed(6)},${lat.toFixed(6)}`;
+
+      // build a simple key so we don't duplicate the same coord+title
+      const mapKey = `${coordStr}::${meta.title || meta.name || ''}`;
+
+      const existing = (dbPointsLocal.value || []).find(
+        (p) => p._mapKey === mapKey
+      );
+
+      const basePoint = {
+        _mapKey: mapKey, // internal only
+        id: meta.id ?? null,
+        name: meta.name || meta.title || '',
+        father_name: meta.father_name || '',
+        code_number: meta.code_number || '',
+        phone: meta.phone || '',
+        note: meta.note || meta.subtitle || '',
+        picture: meta.photoUrl || meta.picture || '',
+        coordinates: coordStr,
+      };
+
+      if (existing) {
+        Object.assign(existing, basePoint);
+      } else {
+        dbPointsLocal.value.push(basePoint);
+      }
 
       // For office employees we already have a DB marker with photo.
       // → remove any old highlight marker and DO NOT create a new one.
