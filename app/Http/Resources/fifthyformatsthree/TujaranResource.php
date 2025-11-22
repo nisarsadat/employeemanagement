@@ -38,6 +38,7 @@ class TujaranResource extends JsonResource
             'people_type'   => $this->people_type,
 
             'note'        => $this->note,
+            'coordinates'        => $this->coordinates,
             'resource_id' => $this->resource_id,
 
             // Flattened fields from Resource

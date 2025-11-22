@@ -293,6 +293,16 @@
               readonly
             />
           </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مختصات')"
+              hide-details
+            />
+          </template>
 
           <!-- Actions -->
           <template #item.actions="{ item }">
@@ -344,7 +354,19 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+     >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mawads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -363,6 +385,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -436,6 +459,7 @@
 
     { title: t('یادداشت'), key: 'note' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -469,10 +493,12 @@
     { title: t('تمویل کننده'), key: 'supplier' },
     { title: t('تنظیم مربوطه'), key: 'tanzim' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('یادداشت'), key: 'note' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* ===== Top filter groups ===== */
@@ -533,6 +559,7 @@
       supplier: x.supplier ?? '',
       tanzim: x.tanzim ?? '',
       note: x.note ?? '',
+      coordinates: x.coordinates ?? '',
 
       resource_code: x.resource_code ?? '',
       resource_phone: x.resource_phone ?? '',
@@ -555,7 +582,7 @@
     'now_specific_place',
     'now_street_number',
     'now_home_number',
-      'Province_addr',
+    'Province_addr',
     'old_job',
     'now_job',
     'organ',
@@ -566,6 +593,7 @@
     'resource_code',
     'resource_phone',
     'resource_id',
+    'coordinates',
   ];
   const REQUIRED_ON_UPDATE = ['name'];
 

@@ -8,43 +8,59 @@ class EconemyProjectResource extends JsonResource
 {
     public function toArray($request): array
     {
+        // ✅ Safe access to relation (doesn't hit DB again if not loaded)
+        $resource = $this->getRelationValue('resource');
+
         return [
-            'id'                    => $this->id,
-            'coordinates'           => $this->coordinates,
+            'id'              => $this->id,
+            'coordinates'     => $this->coordinates,
 
-            'name'                  => $this->name,
-            'type'                  => $this->type,
+            // Base info
+            'name'            => $this->name,
+            'type'            => $this->type,
 
+            // Responsible person
             'responsiable_name'     => $this->responsiable_name,
             'responsiable_f_name'   => $this->responsiable_f_name,
             'responsible_possition' => $this->responsible_possition,
             'responsible_phone'     => $this->responsible_phone,
 
-            'province'              => $this->province,
-            'zone'                  => $this->zone,
-            'district'              => $this->district,
-            'village'               => $this->village,
-            'specefic_place'        => $this->specefic_place,
+            // Address
+            'province'        => $this->province,
+            'zone'            => $this->zone,
+            'district'        => $this->district,
+            'village'         => $this->village,
+            'specefic_place'  => $this->specefic_place,
 
-            'amnyatee_khala'        => $this->amnyatee_khala,
-            'employee_quantity'     => $this->employee_quantity,
-            'gaurd_quantity'        => $this->gaurd_quantity,
+            // Stats
+            'amnyatee_khala'    => $this->amnyatee_khala,
+            'employee_quantity' => $this->employee_quantity,
+            'gaurd_quantity'    => $this->gaurd_quantity,
 
-            // Flatten from Resource
-            'resource_code'         => $this->resource->code_number ?? null,
-            'resource_phone'        => $this->resource->phone_number ?? null,
+            // 🔗 Resource linkage (flattened)
+            'resource_id'          => $this->resource_id,
+            'resource_code'        => $resource?->code_number,
+            'resource_phone_number'=> $resource?->phone_number,
 
-            'resource_id'           => $this->resource_id,
-            'resource'              => $this->whenLoaded('resource', fn () => [
-                'id'   => $this->resource->id,
-                'name' => $this->resource->name ?? null,
-            ]),
+            // Minimal embedded resource (for detail / peek views)
+            'resource' => $this->whenLoaded('resource', function () use ($resource) {
+                if (! $resource) {
+                    return null;
+                }
 
-            'note'                  => $this->note,
-            'Province_addr'               => $this->Province_addr,
+                return [
+                    'id'           => $resource->id,
+                    'name'         => $resource->name ?? null,
+                    'code_number'  => $resource->code_number ?? null,
+                    'phone_number' => $resource->phone_number ?? null,
+                ];
+            }),
 
-            'created_at'            => $this->created_at,
-            'updated_at'            => $this->updated_at,
+            'note'           => $this->note,
+            'Province_addr'  => $this->Province_addr,
+
+            'created_at'     => $this->created_at,
+            'updated_at'     => $this->updated_at,
         ];
     }
 }

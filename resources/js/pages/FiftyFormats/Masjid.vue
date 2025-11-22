@@ -297,7 +297,8 @@
               hide-details
             />
           </template>
-          <!-- Resource (code -> phone/id mapping like Fasad) -->
+
+          <!-- Resource (code -> phone/id mapping like Mawad) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
               v-model="item.draft.resource_code"
@@ -361,7 +362,22 @@
       </v-card>
     </v-form>
 
-    <!-- FilterableTable (list/peek/edit) -->
+    <!-- ✅ PeekButton like Mawad -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="detailLoading"
+        title-key="masjid_name"
+        :fields="headers"
+        :cols="3"
+        dir="rtl"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
+    <!-- FilterableTable (list/peek/edit + map) -->
     <FilterableTable
       :headers="headersFT"
       :rows="rowsFT"
@@ -377,7 +393,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ FlyToMapButton cell like Mawad -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.masjid_coordinates"
+          :title="row.masjid_name"
+          :subtitle="row.responsible_name"
+          type="masjids"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="4500">
@@ -399,6 +427,8 @@
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
   const { t, locale } = useI18n();
@@ -557,6 +587,9 @@
     // Resource in list
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+
+    // Map column like Mawad
+    { title: t('نقشه'), key: 'map', sortable: false },
 
     { title: t('یادداشت'), key: 'note' },
   ]);
@@ -738,6 +771,26 @@
     showOkMessage(t('ورودی‌ها پاک شد'));
   }
 
+  /* ===== Peek / Fetch like Mawad ===== */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const detailLoading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    if (!id) return;
+    detailLoading.value = true;
+    try {
+      await repo.FetchMasjidData?.(id);
+      detail.value = repo.Masjid || [];
+      selectedId.value = id;
+    } catch (e) {
+      showErrorMessage(t('خطا در دریافت معلومات'));
+    } finally {
+      detailLoading.value = false;
+    }
+  }
+
   /* ===== FilterableTable actions ===== */
   async function startEdit(row) {
     try {
@@ -763,8 +816,12 @@
       showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
     }
   }
-  function openPeek(row) {
-    /* optional */
+
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    expanded.value = true;
+    fetchOne(row.id);
   }
 
   /* ===== Fetch & init ===== */
@@ -837,15 +894,7 @@
     line-height: 1.2 !important;
   }
 
-  /* remove negative gaps that break layout */
   .addr-group,
-  .text-group,
-  .text-group-note {
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  .addr-group,
-  .addr-group1,
   .text-group,
   .text-group-note {
     margin: -16px !important;

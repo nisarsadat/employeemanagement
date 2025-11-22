@@ -258,9 +258,9 @@
             />
           </template>
 
-          <template #item.resource_phone_number="{ item }">
+          <template #item.resource_phone="{ item }">
             <v-text-field
-              v-model="item.draft.resource_phone_number"
+              v-model="item.draft.resource_phone"
               class="text-group"
               density="compact"
               variant="outlined"
@@ -269,20 +269,6 @@
               readonly
             />
           </template>
-
-          <!-- Resource id (persisted) -->
-          <!-- <template #item.resource_id="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_id"
-              class="text-group"
-              density="compact"
-              type="number"
-              variant="outlined"
-              :label="t('Resource ID')"
-              hide-details
-              readonly
-            />
-          </template> -->
 
           <!-- Note -->
           <template #item.note="{ item }">
@@ -328,6 +314,21 @@
     </v-form>
   </v-container>
 
+  <!-- ✅ PeekButton (same pattern as Mawads) -->
+  <v-container fluid>
+    <PeekButton
+      v-model="expanded"
+      :id="selectedId"
+      :item="detail"
+      :loading="loading"
+      title-key="place_name"
+      :fields="headersFT"
+      :cols="3"
+      dir="rtl"
+      @fetch="fetchOne"
+    />
+  </v-container>
+
   <!-- FilterableTable -->
   <v-container fluid>
     <FilterableTable
@@ -345,7 +346,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column (FlyToMapButton) -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="done-lost-places"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
   </v-container>
 
   <!-- Error Snackbar -->
@@ -367,6 +380,8 @@
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
   const { t, locale } = useI18n();
@@ -411,7 +426,7 @@
 
       // Resource UI fields
       resource_code: x.resource_code ?? x.resource?.code_number ?? '',
-      resource_phone_number: x.resource_phone_number ?? x.resource?.phone_number ?? '',
+      resource_phone: x.resource_phone ?? x.resource?.phone_number ?? '',
       resource_id: x.resource_id ?? x.resource?.id ?? null,
 
       note: x.note ?? '',
@@ -445,7 +460,7 @@
   function onResourceCodeChange(item) {
     const code = item.draft.resource_code;
     const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone_number = found?.phone_number ?? '';
+    item.draft.resource_phone = found?.phone_number ?? '';
     item.draft.resource_id = found?.id ?? null;
   }
 
@@ -468,7 +483,7 @@
     { title: t('تعداد موارد'), key: 'lost_quantity' },
 
     { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone_number' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('یادداشت'), key: 'note' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
@@ -503,10 +518,11 @@
     { title: t('تعداد موارد'), key: 'lost_quantity' },
 
     { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone_number' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -519,7 +535,7 @@
     { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
     { title: t('آدرس محل'), keys: ['province', 'zone', 'district', 'village', 'specific_place'] },
     { title: t('آمار'), keys: ['lost_quantity'] },
-    { title: t('منبع'), keys: ['resource_code', 'resource_phone_number', 'resource_id'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone', 'resource_id'] },
     { title: t('سایر'), keys: ['note'] },
   ]);
 
@@ -692,6 +708,34 @@
     showOkMessage(t('ورودی‌ها پاک شد'));
   }
 
+  /* ✅ Peek / Fetch one (same style as Mawads) */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    if (!id) return;
+    loading.value = true;
+    try {
+      await repo.FetchDoneLostPlaceData?.(id);
+      detail.value = repo.DoneLostPlace || {};
+    } catch (e) {
+      console.error('fetchOne error', e);
+      showErrorMessage(t('خطا در دریافت معلومات جزییات'));
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
+
   /* Load dataset for FilterableTable only */
   async function fetchAll() {
     await Promise.allSettled([
@@ -782,7 +826,7 @@
     gap: -10px !important;
   }
 
-  /* picture hover tools */
+  /* picture hover tools (kept for consistency if you add picture later) */
   .pic-wrap {
     position: relative;
     display: inline-flex;

@@ -36,6 +36,7 @@ class OldJahadiResource extends JsonResource
             'Province_addr'               => $this->Province_addr,
 
             'note' => $this->note,
+            'coordinates' => $this->coordinates,
             'resource_id' => $this->resource_id,
             'resource_code' => $resource?->code_number,
             'resource_phone' => $resource?->phone_number,

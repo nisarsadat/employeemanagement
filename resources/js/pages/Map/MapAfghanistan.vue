@@ -741,7 +741,7 @@
 </script>
 
 <style scoped>
-  .map-wrap {
+  .map-wrap { 
     position: relative;
   }
 

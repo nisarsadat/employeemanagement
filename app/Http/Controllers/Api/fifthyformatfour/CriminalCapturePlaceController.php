@@ -19,21 +19,24 @@ class CriminalCapturePlaceController extends Controller
 
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
-                $q->where('name','like',"%$s%")
-                  ->orWhere('father_name','like',"%$s%")
-                  ->orWhere('office','like',"%$s%")
-                  ->orWhere('village','like',"%$s%");
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('father_name', 'like', "%{$s}%")
+                  ->orWhere('office', 'like', "%{$s}%")
+                  ->orWhere('village', 'like', "%{$s}%");
             });
         }
 
         $perPage = $request->query('perPage');
         $page    = $request->query('page');
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+
+        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         // Fallback → return ALL when missing/invalid
         if ($perPageInt === false || $pageInt === false) {
-            return CriminalCapturePlaceResource::collection($query->orderByDesc('id')->get());
+            return CriminalCapturePlaceResource::collection(
+                $query->orderByDesc('id')->get()
+            );
         }
 
         $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
@@ -44,12 +47,14 @@ class CriminalCapturePlaceController extends Controller
     {
         $row = CriminalCapturePlace::create($request->validated());
         $row->load(['resource:id,name,code_number,phone_number']);
+
         return new CriminalCapturePlaceResource($row);
     }
 
     public function show(CriminalCapturePlace $criminalCapturePlace)
     {
         $criminalCapturePlace->load(['resource:id,name,code_number,phone_number']);
+
         return new CriminalCapturePlaceResource($criminalCapturePlace);
     }
 
@@ -57,12 +62,14 @@ class CriminalCapturePlaceController extends Controller
     {
         $criminalCapturePlace->update($request->validated());
         $criminalCapturePlace->load(['resource:id,name,code_number,phone_number']);
+
         return new CriminalCapturePlaceResource($criminalCapturePlace);
     }
 
     public function destroy(CriminalCapturePlace $criminalCapturePlace)
     {
         $criminalCapturePlace->delete();
+
         return response()->json(['message' => 'Deleted']);
     }
 }

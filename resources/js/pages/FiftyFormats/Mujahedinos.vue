@@ -1,8 +1,8 @@
 <template>
   <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
     <AppBar
-      :title="t('فسادها')"
-      :subtitle="t('اضافه کردن یک ریکارډ جدید فساد')"
+      :title="t('مجاهدینو')"
+      :subtitle="t('اضافه کردن یک ریکارډ جدید مجاهدینو')"
       @toggle-drawer="drawer = !drawer"
     >
       <template #actions><v-btn icon /></template>
@@ -29,7 +29,7 @@
       </v-col>
     </v-row>
 
-    <!-- Single-row validated editor -->
+    <!-- Single-row validated editor (Fasad style) -->
     <v-form
       ref="editorForm"
       v-model="editorValid"
@@ -49,9 +49,9 @@
           hide-default-footer
         >
           <!-- Identity -->
-          <template #item.nick_name="{ item }">
+          <template #item.nickname="{ item }">
             <v-text-field
-              v-model="item.draft.nick_name"
+              v-model="item.draft.nickname"
               class="text-group pr-2"
               density="compact"
               variant="outlined"
@@ -148,9 +148,9 @@
           </template>
 
           <!-- Current place details -->
-          <template #item.specific_place="{ item }">
+          <template #item.now_specific_place="{ item }">
             <v-text-field
-              v-model="item.draft.specific_place"
+              v-model="item.draft.now_specific_place"
               density="compact"
               variant="outlined"
               class="text-group-note"
@@ -159,127 +159,36 @@
             />
           </template>
 
-          <template #item.street_number="{ item }">
+          <template #item.now_street_number="{ item }">
             <v-text-field
-              v-model="item.draft.street_number"
+              v-model="item.draft.now_street_number"
               density="compact"
               variant="outlined"
               class="text-group"
-              :label="t('شماره سرک')"
+              :label="t('شماره سرک فعلی')"
               hide-details
             />
           </template>
 
-          <template #item.home_number="{ item }">
+          <template #item.now_home_number="{ item }">
             <v-text-field
-              v-model="item.draft.home_number"
+              v-model="item.draft.now_home_number"
               density="compact"
               variant="outlined"
               class="text-group"
-              :label="t('شماره خانه')"
+              :label="t('شماره خانه فعلی')"
               hide-details
             />
           </template>
 
-          <!-- Job / social / contact -->
-          <template #item.jabha="{ item }">
+          <!-- Duty / job / organ -->
+          <template #item.duty_type="{ item }">
             <v-text-field
-              v-model="item.draft.jabha"
+              v-model="item.draft.duty_type"
               class="text-group"
               density="compact"
               variant="outlined"
-              :label="t('جبهه')"
-              hide-details
-            />
-          </template>
-
-          <template #item.supplier_name="{ item }">
-            <v-text-field
-              v-model="item.draft.supplier_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام تمویل‌کننده')"
-              hide-details
-            />
-          </template>
-
-          <template #item.responsibility="{ item }">
-            <v-text-field
-              v-model="item.draft.responsibility"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مسئولیت')"
-              hide-details
-            />
-          </template>
-
-          <template #item.activity_zone="{ item }">
-            <v-text-field
-              v-model="item.draft.activity_zone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('ساحه فعالیت')"
-              hide-details
-            />
-          </template>
-
-          <template #item.friends_number="{ item }">
-            <v-text-field
-              v-model="item.draft.friends_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('تعداد دوستان')"
-              hide-details
-            />
-          </template>
-
-          <template #item.phone_number="{ item }">
-            <v-text-field
-              v-model="item.draft.phone_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره تماس')"
-              :rules="[rules.number]"
-              hide-details
-              :error="hasError(item, 'phone_number')"
-              :error-messages="getErrorMessages(item, 'phone_number')"
-            />
-          </template>
-
-          <template #item.bond_distance="{ item }">
-            <v-text-field
-              v-model="item.draft.bond_distance"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('فاصله ارتباط')"
-              hide-details
-            />
-          </template>
-
-          <template #item.last_band_reason="{ item }">
-            <v-text-field
-              v-model="item.draft.last_band_reason"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('دلیل آخرین بند/ارتباط')"
-              hide-details
-            />
-          </template>
-
-          <template #item.band_place="{ item }">
-            <v-text-field
-              v-model="item.draft.band_place"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('محل بند/ارتباط')"
+              :label="t('نوع وظیفه')"
               hide-details
             />
           </template>
@@ -295,6 +204,32 @@
             />
           </template>
 
+          <template #item.organ="{ item }">
+            <v-text-field
+              v-model="item.draft.organ"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('اداره/ارگان')"
+              hide-details
+            />
+          </template>
+
+          <!-- Contact / province addr / note -->
+          <template #item.phone_number="{ item }">
+            <v-text-field
+              v-model="item.draft.phone_number"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('شماره تماس')"
+              :rules="[rules.number]"
+              hide-details
+              :error="hasError(item, 'phone_number')"
+              :error-messages="getErrorMessages(item, 'phone_number')"
+            />
+          </template>
+
           <template #item.Province_addr="{ item }">
             <v-text-field
               v-model="item.draft.Province_addr"
@@ -307,6 +242,18 @@
               :error-messages="getErrorMessages(item, 'Province_addr')"
             />
           </template>
+
+          <template #item.note="{ item }">
+            <v-text-field
+              v-model="item.draft.note"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('یادداشت')"
+              hide-details
+            />
+          </template>
+
           <!-- Resource code (autocomplete) + phone (readonly) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -333,6 +280,16 @@
               :label="t('شماره منبع')"
               hide-details
               readonly
+            />
+          </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مختصات')"
+              hide-details
             />
           </template>
 
@@ -388,7 +345,19 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mujahedino"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -405,17 +374,18 @@
 <script setup>
   import { ref, onMounted, computed, watch, nextTick, onBeforeUnmount } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import AppBar from '../../components/AppBar.vue';
-  import PeekButton from '../../components/PeekButton.vue';
-  import FilterableTable from '../../components/FilterableTable.vue';
-  import { useFasadRepository } from '@/stores/FasadRepository';
+  import AppBar from '@/components/AppBar.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (l) => (isRtl.value = l === 'fa'));
-  const drawer = ref(false);
 
-  const repo = useFasadRepository();
+  const drawer = ref(false);
+  const repo = useBadmashanoRepository();
 
   /* ===== Editor form + snackbar ===== */
   const editorForm = ref(null);
@@ -432,7 +402,7 @@
   /* ===== Errors per row ===== */
   const itemErrors = ref({});
   function setItemErrors(item, errors) {
-    itemErrors.value[item.idOrTmp] = errors;
+    itemErrors.value[item.idOrTmp] = errors || {};
   }
   function clearItemErrors(item) {
     if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
@@ -460,35 +430,32 @@
   }
 
   /* ===== ALL data for FilterableTable ===== */
-  const rowsFT = computed(() => repo.Fasads || []);
+  const rowsFT = computed(() => (Array.isArray(repo.Mujahedinos) ? repo.Mujahedinos : []));
 
   /* ===== Headers (editor table) ===== */
   const headers = computed(() => [
-    { title: t('تخلص'), key: 'nick_name' },
+    { title: t('تخلص'), key: 'nickname' },
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
 
     { title: t('آدرس اصلی'), key: 'main_province' },
     { title: t('آدرس فعلی'), key: 'now_province' },
 
-    { title: t('موقعیت مشخص فعلی'), key: 'specific_place' },
-    { title: t('شماره سرک'), key: 'street_number' },
-    { title: t('شماره خانه'), key: 'home_number' },
+    { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
+    { title: t('شماره سرک فعلی'), key: 'now_street_number' },
+    { title: t('شماره خانه فعلی'), key: 'now_home_number' },
 
-    { title: t('جبهه'), key: 'jabha' },
-    { title: t('نام تمویل‌کننده'), key: 'supplier_name' },
-    { title: t('مسئولیت'), key: 'responsibility' },
-    { title: t('ساحه فعالیت'), key: 'activity_zone' },
-    { title: t('تعداد دوستان'), key: 'friends_number' },
-    { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('فاصله ارتباط'), key: 'bond_distance' },
-    { title: t('دلیل آخرین بند'), key: 'last_band_reason' },
-    { title: t('محل بند'), key: 'band_place' },
+    { title: t('نوع وظیفه'), key: 'duty_type' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
+    { title: t('اداره/ارگان'), key: 'organ' },
+
+    { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('یادداشت'), key: 'note' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('عملیات'), key: 'actions', sortable: false },
   ]);
@@ -497,7 +464,7 @@
   const headersFT = computed(() => [
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
-    { title: t('تخلص'), key: 'nick_name' },
+    { title: t('تخلص'), key: 'nickname' },
 
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_district' },
@@ -508,42 +475,40 @@
     { title: t('ولسوالی فعلی'), key: 'now_district' },
     { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
 
-    { title: t('موقعیت مشخص فعلی'), key: 'specific_place' },
-    { title: t('شماره سرک'), key: 'street_number' },
-    { title: t('شماره خانه'), key: 'home_number' },
+    { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
+    { title: t('شماره سرک فعلی'), key: 'now_street_number' },
+    { title: t('شماره خانه فعلی'), key: 'now_home_number' },
 
-    { title: t('جبهه'), key: 'jabha' },
-    { title: t('نام تمویل‌کننده'), key: 'supplier_name' },
-    { title: t('مسئولیت'), key: 'responsibility' },
-    { title: t('ساحه فعالیت'), key: 'activity_zone' },
-    { title: t('تعداد دوستان'), key: 'friends_number' },
-    { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('فاصله ارتباط'), key: 'bond_distance' },
-    { title: t('دلیل آخرین بند'), key: 'last_band_reason' },
-    { title: t('محل بند'), key: 'band_place' },
+    { title: t('نوع وظیفه'), key: 'duty_type' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
+    { title: t('اداره/ارگان'), key: 'organ' },
+
+    { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('یادداشت'), key: 'note' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
-  /* ===== Top filter groups (Fasad style) ===== */
+  /* ===== Top filter groups ===== */
+  const filters = ref({});
   const topGroups = computed(() => [
-    { title: t('مشخصات'), keys: ['name', 'nick_name', 'father_name'] },
+    { title: t('مشخصات'), keys: ['name', 'nickname', 'father_name'] },
     { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
     { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
-    { title: t('موقعیت/خانه'), keys: ['specific_place', 'street_number', 'home_number'] },
-    { title: t('شبکه/تماس'), keys: ['friends_number', 'phone_number', 'bond_distance'] },
     {
-      title: t('فعالیت/جبهه'),
-      keys: ['jabha', 'supplier_name', 'responsibility', 'activity_zone', 'now_job'],
+      title: t('موقعیت/خانه'),
+      keys: ['now_specific_place', 'now_street_number', 'now_home_number'],
     },
-    { title: t('سوابق'), keys: ['last_band_reason', 'band_place'] },
+    { title: t('وظیفه/اداره'), keys: ['duty_type', 'now_job', 'organ'] },
+    { title: t('تماس/سایر'), keys: ['phone_number', 'Province_addr', 'note'] },
     { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
   ]);
 
-  /* ===== Resources dropdown -> code/phone + set resource_id ===== */
+  /* ===== Resources dropdown (code/phone + resource_id) ===== */
   const resources = computed(() => repo.resourcecode || []);
   function onResourceCodeChange(item) {
     const code = item.draft.resource_code;
@@ -559,7 +524,7 @@
       idOrTmp: x.id ?? newTmpId(),
       loading: false,
 
-      nick_name: x.nick_name ?? '',
+      nickname: x.nickname ?? '',
       name: x.name ?? '',
       father_name: x.father_name ?? '',
 
@@ -569,33 +534,29 @@
 
       now_province: x.now_province ?? '',
       now_zone: x.now_zone ?? '',
+      Province_addr: x.Province_addr ?? '',
       now_district: x.now_district ?? '',
       now_village: x.now_village ?? '',
-      specific_place: x.specific_place ?? '',
-      street_number: x.street_number ?? '',
-      home_number: x.home_number ?? '',
+      now_specific_place: x.now_specific_place ?? '',
+      now_street_number: x.now_street_number ?? '',
+      now_home_number: x.now_home_number ?? '',
 
-      jabha: x.jabha ?? '',
-      supplier_name: x.supplier_name ?? '',
-      responsibility: x.responsibility ?? '',
-      Province_addr: x.Province_addr ?? '',
-      activity_zone: x.activity_zone ?? '',
-      friends_number: x.friends_number ?? '',
-      phone_number: x.phone_number ?? '',
-      bond_distance: x.bond_distance ?? '',
-      last_band_reason: x.last_band_reason ?? '',
-      band_place: x.band_place ?? '',
+      duty_type: x.duty_type ?? '',
       now_job: x.now_job ?? '',
+      organ: x.organ ?? '',
+      phone_number: x.phone_number ?? '',
+      note: x.note ?? '',
+      coordinates: x.coordinates ?? '',
 
-      resource_code: x.resource_code ?? '',
-      resource_phone: x.resource_phone ?? '',
-      resource_id: x.resource_id ?? null,
+      resource_code: x.resource_code ?? x.resource?.code_number ?? '',
+      resource_phone: x.resource_phone ?? x.resource?.phone_number ?? '',
+      resource_id: x.resource_id ?? x.resource_id ?? null,
     };
     return { ...base, draft: { ...base } };
   }
 
   const EDITABLE_KEYS = [
-    'nick_name',
+    'nickname',
     'name',
     'father_name',
     'main_province',
@@ -603,22 +564,18 @@
     'main_village',
     'now_province',
     'now_zone',
-      'Province_addr',
+    'Province_addr',
     'now_district',
     'now_village',
-    'specific_place',
-    'street_number',
-    'home_number',
-    'jabha',
-    'supplier_name',
-    'responsibility',
-    'activity_zone',
-    'friends_number',
-    'phone_number',
-    'bond_distance',
-    'last_band_reason',
-    'band_place',
+    'now_specific_place',
+    'now_street_number',
+    'now_home_number',
+    'duty_type',
     'now_job',
+    'organ',
+    'phone_number',
+    'note',
+    'coordinates',
     'resource_code',
     'resource_phone',
     'resource_id',
@@ -668,7 +625,7 @@
       // CREATE
       if (!item.id) {
         const fd = toFormDataSelective(item.draft);
-        const created = await repo.CreateFasad?.(fd);
+        const created = await repo.CreateMujahedino?.(fd);
         if (!created?.id) {
           await fetchAll();
           setBlankEditorRow();
@@ -688,7 +645,7 @@
         return;
       }
       const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateFasad?.(item.id, fd);
+      const updated = await repo.UpdateMujahedino?.(item.id, fd);
       if (updated?.id) {
         await fetchAll();
         setBlankEditorRow();
@@ -740,7 +697,7 @@
     }
     if (!confirm(t('آیا مطمئن هستید؟'))) return;
     try {
-      await repo.DeleteFasad?.(item.id);
+      await repo.DeleteMujahedino?.(item.id);
       await fetchAll();
       setBlankEditorRow();
     } catch (e) {
@@ -760,7 +717,7 @@
     }
   }
 
-  /* ===== Peek / Fetch ===== */
+  /* ===== Peek / Fetch one ===== */
   const expanded = ref(false);
   const selectedId = ref(null);
   const loading = ref(false);
@@ -769,9 +726,10 @@
   async function fetchOne(id) {
     loading.value = true;
     try {
-      await repo.FetchFasadData?.(id);
-      // repo.Fasad may be an object or an array; normalize to a single object
-      detail.value = Array.isArray(repo.Fasad) ? repo.Fasad[0] || null : repo.Fasad || null;
+      await repo.FetchMujahedinoData?.(id);
+      detail.value = Array.isArray(repo.Mujahedino)
+        ? repo.Mujahedino[0] || null
+        : repo.Mujahedino || null;
     } catch (error) {
       console.error('Fetch one error:', error);
       showErrorMessage(t('خطا در دریافت اطلاعات'));
@@ -790,7 +748,7 @@
   /* ===== Fetch ALL (no pagination) ===== */
   async function fetchAll() {
     try {
-      await (repo.FetchFasadsData?.({
+      await (repo.FetchMujahedinosData?.({
         page: 1,
         itemsPerPage: 100000,
         search: repo.Search || '',
@@ -805,8 +763,8 @@
     try {
       const id = row?.id;
       if (!id) return;
-      await repo.FetchFasadData?.(id);
-      const single = Array.isArray(repo.Fasad) ? repo.Fasad[0] : repo.Fasad || row;
+      await repo.FetchMujahedinoData?.(id);
+      const single = Array.isArray(repo.Mujahedino) ? repo.Mujahedino[0] : repo.Mujahedino || row;
       rows.value = [toRowModel(single || row)];
       await nextTick();
       const el = editorCard.value?.$el || editorCard.value;

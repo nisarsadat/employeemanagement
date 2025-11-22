@@ -254,16 +254,33 @@
               hide-details
             />
           </template>
-          <!-- Resource (as provided) -->
-          <template #item.resource_id="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_id"
+
+          <!-- Resource code + phone (like Mawad) -->
+          <template #item.resource_code="{ item }">
+            <v-autocomplete
+              v-model="item.draft.resource_code"
+              :items="resources"
+              item-title="code_number"
+              item-value="code_number"
               class="text-group"
               density="compact"
-              type="number"
               variant="outlined"
-              :label="t('Resource ID')"
+              :label="t('کود منبع')"
               hide-details
+              clearable
+              @update:model-value="onResourceCodeChange(item)"
+            />
+          </template>
+
+          <template #item.resource_phone="{ item }">
+            <v-text-field
+              v-model="item.draft.resource_phone"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('شماره منبع')"
+              hide-details
+              readonly
             />
           </template>
 
@@ -303,7 +320,21 @@
       </v-card>
     </v-form>
 
-    <!-- FilterableTable (list/peek/edit) -->
+    <!-- Peek + FilterableTable -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="detailLoading"
+        title-key="uni_name"
+        :fields="headers"
+        :cols="3"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
     <FilterableTable
       :headers="headersFT"
       :rows="rowsFT"
@@ -319,7 +350,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- FlyToMapButton cell (like Mawad) -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.uni_name"
+          :subtitle="row.province"
+          type="universities"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="4500">
@@ -341,6 +384,8 @@
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
   const { t, locale } = useI18n();
@@ -381,7 +426,11 @@
       home_number: x.home_number ?? '',
 
       coordinates: x.coordinates ?? '',
+      // 🔹 New front fields (same pattern as Mawad)
+      resource_code: x.resource_code ?? '',
+      resource_phone: x.resource_phone ?? '',
       resource_id: x.resource_id ?? '',
+
       note: x.note ?? '',
     };
     return { ...base, draft: { ...base } };
@@ -418,7 +467,9 @@
     { title: t('مختصات'), key: 'coordinates' }, // before note
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
-    { title: t('Resource ID'), key: 'resource_id' },
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
+
     { title: t('یادداشت'), key: 'note' },
 
     { title: t('عمل'), key: 'actions', sortable: false },
@@ -445,11 +496,15 @@
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('شماره سرک'), key: 'street_number' },
     { title: t('شماره خانه'), key: 'home_number' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('مختصات'), key: 'coordinates' },
-    { title: t('Resource ID'), key: 'resource_id' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
     { title: t('یادداشت'), key: 'note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -479,8 +534,20 @@
         'home_number',
       ],
     },
-    { title: t('سایر'), keys: ['coordinates', 'resource_id', 'note'] },
+    {
+      title: t('سایر'),
+      keys: ['coordinates', 'resource_code', 'resource_phone', 'note'],
+    },
   ]);
+
+  /* ===== Resources dropdown -> code/phone + set resource_id (like Mawad) ===== */
+  const resources = computed(() => repo.resourcecode || []);
+  function onResourceCodeChange(item) {
+    const code = item.draft.resource_code;
+    const found = resources.value.find((r) => r.code_number === code);
+    item.draft.resource_phone = found?.phone_number ?? '';
+    item.draft.resource_id = found?.id ?? null;
+  }
 
   /* ===== Form + rules ===== */
   const editorForm = ref(null);
@@ -526,7 +593,7 @@
     return { valid };
   }
 
-  /* ===== Diff + payload ===== */
+  /* ===== Diff + payload (only extended keys list) ===== */
   function diffDraft(item) {
     const d = item.draft || {};
     const changed = {};
@@ -550,6 +617,8 @@
       'street_number',
       'home_number',
       'coordinates',
+      'resource_code',
+      'resource_phone',
       'resource_id',
       'note',
     ];
@@ -566,7 +635,7 @@
     return fd;
   }
 
-  /* ===== CRUD ===== */
+  /* ===== CRUD (unchanged logic) ===== */
   async function onSubmit(item) {
     if (!item?.draft?.uni_name?.trim()) {
       showErrorMessage(t('نام دانشگاه الزامی است'));
@@ -631,6 +700,25 @@
     showOkMessage(t('ورودی‌ها پاک شد'));
   }
 
+  /* ===== Peek state (like Mawad) ===== */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const detailLoading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    detailLoading.value = true;
+    try {
+      await repo.FetchUniversityData?.(id);
+      detail.value = repo.University || [];
+      selectedId.value = id;
+    } catch (e) {
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      detailLoading.value = false;
+    }
+  }
+
   /* ===== FilterableTable actions ===== */
   async function startEdit(row) {
     try {
@@ -658,8 +746,12 @@
       showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
     }
   }
+
   function openPeek(row) {
-    /* your Peek handler if needed */
+    const r = row?.raw ?? row;
+    if (!r?.id) return;
+    expanded.value = true;
+    fetchOne(r.id);
   }
 
   /* ===== Fetch & init ===== */
@@ -671,6 +763,10 @@
     });
   }
   onMounted(async () => {
+    // if you have a resource-code endpoint (same as Mawad)
+    if (typeof repo.GetResourceCode === 'function') {
+      await repo.GetResourceCode();
+    }
     await fetchAll();
     setBlankEditorRow();
   });

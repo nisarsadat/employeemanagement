@@ -36,6 +36,7 @@ return new class extends Migration {
             $table->string('tanzim')->nullable();
 
             $table->text('note')->nullable();
+            $table->text('coordinates')->nullable();
             $table->string('Province_addr')->nullable();
 
 

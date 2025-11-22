@@ -252,7 +252,7 @@
             />
           </template>
 
-          <!-- History & resource -->
+          <!-- History & resource (with resource code/phone logic like Mawad) -->
           <template #item.history_form="{ item }">
             <v-text-field
               v-model="item.draft.history_form"
@@ -264,16 +264,37 @@
             />
           </template>
 
-          <template #item.Province_addr="{ item }">
-            <v-text-field
-              v-model="item.draft.Province_addr"
-              class="text-group-note"
+          <!-- ✅ Resource code autocomplete -->
+          <template #item.resource_code="{ item }">
+            <v-autocomplete
+              v-model="item.draft.resource_code"
+              :items="resources"
+              item-title="code_number"
+              item-value="code_number"
+              class="text-group"
               density="compact"
               variant="outlined"
-              :label="t('ولایت مربوطه')"
+              :label="t('کود منبع')"
               hide-details
+              clearable
+              @update:model-value="onResourceCodeChange(item)"
             />
           </template>
+
+          <!-- ✅ Resource phone readonly -->
+          <template #item.resource_phone="{ item }">
+            <v-text-field
+              v-model="item.draft.resource_phone"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('شماره منبع')"
+              hide-details
+              readonly
+            />
+          </template>
+
+          <!-- Existing resource_id input (kept as requested) -->
           <template #item.resource_id="{ item }">
             <v-text-field
               v-model="item.draft.resource_id"
@@ -282,6 +303,17 @@
               type="number"
               variant="outlined"
               :label="t('Resource ID')"
+              hide-details
+            />
+          </template>
+
+          <template #item.Province_addr="{ item }">
+            <v-text-field
+              v-model="item.draft.Province_addr"
+              class="text-group-note"
+              density="compact"
+              variant="outlined"
+              :label="t('ولایت مربوطه')"
               hide-details
             />
           </template>
@@ -315,12 +347,7 @@
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
-              <v-btn
-                class="bg-primary"
-                variant="outlined"
-                :loading="item.loading"
-                @click="onSubmit(item)"
-              >
+              <v-btn class="bg-primary" variant="outlined" :loading="item.loading" type="submit">
                 {{ t('ثبت دیتا') }}
               </v-btn>
               <v-btn class="bg-error" variant="outlined" @click="del(item)">
@@ -340,40 +367,67 @@
         </v-data-table>
       </v-card>
     </v-form>
+
+    <!-- ✅ PeekButton like Mawad -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loading"
+        title-key="name"
+        :fields="headers"
+        :cols="3"
+        dir="rtl"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
+    <!-- ✅ FilterableTable -->
+    <v-container fluid>
+      <FilterableTable
+        :headers="headersFT"
+        :rows="rowsFT"
+        :filters="filters"
+        @update:filters="(v) => (filters = { ...v })"
+        :top-groups="topGroups"
+        :showIndex="true"
+        :rtl="true"
+        :enableEdit="true"
+        :enablePeek="true"
+        :autoDetectDates="false"
+        :dateKeys="[]"
+        @edit="startEdit"
+        @peek="openPeek"
+        class="mb-20 mx-2"
+      >
+        <!-- ✅ custom cell for the 'map' column -->
+        <template #cell-map="{ row }">
+          <FlyToMapButton
+            :coordinates="row.coordinates"
+            :title="row.name"
+            :subtitle="row.phone_number"
+            type="wakilanos"
+            :photo-url="row.picture"
+            :zoom="16"
+          />
+        </template>
+      </FilterableTable>
+    </v-container>
+
+    <!-- Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="4500">
+      {{ errorMessage }}
+      <template #actions>
+        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+      </template>
+    </v-snackbar>
+
+    <!-- Success Snackbar -->
+    <v-snackbar v-model="showOk" color="primary" timeout="3000">
+      {{ okMessage }}
+    </v-snackbar>
   </v-container>
-
-  <!-- FilterableTable -->
-  <v-container fluid>
-    <FilterableTable
-      :headers="headersFT"
-      :rows="rowsFT"
-      :filters="filters"
-      @update:filters="(v) => (filters = { ...v })"
-      :top-groups="topGroups"
-      :showIndex="true"
-      :rtl="true"
-      :enableEdit="true"
-      :enablePeek="true"
-      :autoDetectDates="false"
-      :dateKeys="[]"
-      @edit="startEdit"
-      @peek="openPeek"
-      class="mb-20 mx-2"
-    />
-  </v-container>
-
-  <!-- Error Snackbar -->
-  <v-snackbar v-model="showError" color="error" timeout="4500">
-    {{ errorMessage }}
-    <template #actions>
-      <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
-    </template>
-  </v-snackbar>
-
-  <!-- Success Snackbar -->
-  <v-snackbar v-model="showOk" color="primary" timeout="3000">
-    {{ okMessage }}
-  </v-snackbar>
 </template>
 
 <script setup>
@@ -381,6 +435,8 @@
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
   const { t, locale } = useI18n();
@@ -421,6 +477,9 @@
       phone_number: x.phone_number ?? '',
       history_form: x.history_form ?? '',
       resource_id: x.resource_id ?? '',
+      // ✅ new fields for Mawad-style logic
+      resource_code: x.resource_code ?? '',
+      resource_phone: x.resource_phone ?? '',
       note: x.note ?? '',
     };
     return { ...base, draft: { ...base } };
@@ -468,7 +527,10 @@
 
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('سابقه/فرم'), key: 'history_form' },
-    { title: t('Resource ID'), key: 'resource_id' },
+
+    // ✅ resource block like Mawad
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('مختصات'), key: 'coordinates' }, // <-- before note
@@ -503,11 +565,14 @@
 
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('سابقه/فرم'), key: 'history_form' },
-    { title: t('Resource ID'), key: 'resource_id' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('مختصات'), key: 'coordinates' },
     { title: t('یادداشت'), key: 'note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -530,7 +595,11 @@
     { title: t('وظایف/خانه'), keys: ['old_job', 'now_job', 'home_quantity'] },
     {
       title: t('ارتباط/سایر'),
-      keys: ['phone_number', 'history_form', 'resource_id', 'coordinates', 'note'],
+      keys: ['phone_number', 'history_form', 'coordinates', 'note'],
+    },
+    {
+      title: t('منبع'),
+      keys: ['resource_code', 'resource_phone', 'resource_id', 'Province_addr'],
     },
   ]);
 
@@ -588,6 +657,8 @@
       'Province_addr',
       'history_form',
       'resource_id',
+      'resource_code',
+      'resource_phone',
       'note',
     ];
     for (const k of keys) if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
@@ -674,7 +745,7 @@
         setBlankEditorRow();
       }
     } catch (e) {
-      console.error('Save error:', e);
+      console.error('Save error', e);
       showErrorMessage(t('خطا در ذخیره داده'));
     } finally {
       item.loading = false;
@@ -693,7 +764,7 @@
       showOkMessage(t('ریکارد حذف شد'));
       setBlankEditorRow();
     } catch (e) {
-      console.error('Delete error:', e);
+      console.error('Delete error', e);
       showErrorMessage(t('خطا در حذف'));
     }
   }
@@ -710,8 +781,48 @@
     ]);
   }
 
+  /* ✅ Resource dropdown logic (like Mawad) */
+  const resources = computed(() => repo.resourcecode || []);
+  function onResourceCodeChange(item) {
+    const code = item.draft.resource_code;
+    const found = resources.value.find((r) => r.code_number === code);
+    item.draft.resource_phone = found?.phone_number ?? '';
+    item.draft.resource_id = found?.id ?? null;
+  }
+
+  /* ✅ Peek / Fetch one (for PeekButton) */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    if (!id) return;
+    loading.value = true;
+    try {
+      await repo.FetchWakilanoData?.(id);
+      detail.value = repo.Wakilano || [];
+      selectedId.value = id;
+    } catch (error) {
+      console.error('Fetch one error:', error);
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
+
   onMounted(async () => {
-    await fetchAll();
+    await Promise.allSettled([
+      fetchAll(),
+      repo.GetResourceCode?.(), // ✅ like Mawad, to populate resource dropdown
+    ]);
     setBlankEditorRow();
   });
 </script>

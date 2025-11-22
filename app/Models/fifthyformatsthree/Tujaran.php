@@ -40,6 +40,7 @@ class Tujaran extends Model
         'people_type',
 
         'note',
+        'coordinates',
         'resource_id',
     ];
 

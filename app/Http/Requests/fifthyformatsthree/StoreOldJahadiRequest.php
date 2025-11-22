@@ -35,6 +35,7 @@ class StoreOldJahadiRequest extends FormRequest
             'Province_addr' => ['nullable','string'],
 
             'note' => ['nullable','string'],
+            'coordinates' => ['nullable','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
         ];
     }

@@ -219,6 +219,7 @@
               hide-details
             />
           </template>
+
           <!-- Resource (code → phone → id) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -246,18 +247,6 @@
               readonly
             />
           </template>
-          <!-- <template #item.resource_id="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_id"
-              class="text-group"
-              density="compact"
-              type="number"
-              variant="outlined"
-              :label="t('Resource ID')"
-              hide-details
-              readonly
-            />
-          </template> -->
 
           <!-- Note -->
           <template #item.note="{ item }">
@@ -303,6 +292,21 @@
     </v-form>
   </v-container>
 
+  <!-- ✅ PeekButton same pattern as Mawads -->
+  <v-container fluid>
+    <PeekButton
+      v-model="expanded"
+      :id="selectedId"
+      :item="detail"
+      :loading="loading"
+      title-key="name"
+      :fields="headersFT"
+      :cols="3"
+      dir="rtl"
+      @fetch="fetchOne"
+    />
+  </v-container>
+
   <!-- FilterableTable -->
   <v-container fluid>
     <FilterableTable
@@ -320,7 +324,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ map cell like Mawads -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.responsiable_name || row.resource_code"
+          type="econemy-projects"
+          :photo-url="null"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
   </v-container>
 
   <!-- Snackbars -->
@@ -340,6 +356,8 @@
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
   const { t, locale } = useI18n();
@@ -473,6 +491,7 @@
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -626,7 +645,7 @@
         setBlankEditorRow();
       }
     } catch (e) {
-      console.error('Save error:', e);
+      console.error('Save error', e);
       showErrorMessage(t('خطا در ذخیره داده'));
     } finally {
       item.loading = false;
@@ -644,13 +663,41 @@
       showOkMessage(t('ریکارد حذف شد'));
       setBlankEditorRow();
     } catch (e) {
-      console.error('Delete error:', e);
+      console.error('Delete error', e);
       showErrorMessage(t('خطا در حذف'));
     }
   }
   function clearRow() {
     setBlankEditorRow();
     showOkMessage(t('ورودی‌ها پاک شد'));
+  }
+
+  /* ✅ Peek / Fetch one for PeekButton */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    if (!id) return;
+    loading.value = true;
+    try {
+      await repo.FetchEconemyProjectData?.(id);
+      detail.value = repo.EconemyProject || {};
+    } catch (e) {
+      console.error('fetchOne error', e);
+      showErrorMessage(t('خطا در دریافت معلومات جزییات'));
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
   }
 
   /* Load dataset for FilterableTable only */

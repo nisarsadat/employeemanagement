@@ -24,11 +24,11 @@ class MashkokPeopleController extends Controller
         if ($search !== '') {
             $q->where(function ($w) use ($search) {
                 $w->where('name', 'like', "%{$search}%")
-                  ->orWhere('father_name', 'like', "%{$search}%")
-                  ->orWhere('phone_number', 'like', "%{$search}%")
-                  ->orWhere('now_province', 'like', "%{$search}%")
-                  ->orWhere('now_districts', 'like', "%{$search}%")
-                  ->orWhere('now_village', 'like', "%{$search}%");
+                    ->orWhere('father_name', 'like', "%{$search}%")
+                    ->orWhere('phone_number', 'like', "%{$search}%")
+                    ->orWhere('now_province', 'like', "%{$search}%")
+                    ->orWhere('now_districts', 'like', "%{$search}%")
+                    ->orWhere('now_village', 'like', "%{$search}%");
             });
         }
 
@@ -50,17 +50,23 @@ class MashkokPeopleController extends Controller
 
         return MashkokPeopleResource::make($item)
             ->additional(['message' => 'Created'])
-            ->response()->setStatusCode(201);
+            ->response()
+            ->setStatusCode(201);
     }
 
-    public function show(MashkokPeople $mashkokPeople)
+    // ✅ load by ID instead of implicit binding
+    public function show($id)
     {
-        $mashkokPeople->load(['resource:id,name,code_number,phone_number']);
+        $mashkokPeople = MashkokPeople::with(['resource:id,name,code_number,phone_number'])
+            ->findOrFail($id);
+
         return MashkokPeopleResource::make($mashkokPeople);
     }
 
-    public function update(UpdateMashkokPeopleRequest $request, MashkokPeople $mashkokPeople)
+    // ✅ also load by ID here (so we are consistent and avoid binding issues)
+    public function update(UpdateMashkokPeopleRequest $request, $id)
     {
+        $mashkokPeople = MashkokPeople::findOrFail($id);
         $data = $request->validated();
 
         // Handle picture replacement safely
@@ -70,6 +76,7 @@ class MashkokPeopleController extends Controller
             if ($old && str_starts_with($old, 'storage/')) {
                 Storage::disk('public')->delete(str_replace('storage/', '', $old));
             }
+
             $path = $request->file('picture')->store('uploads/mashkok_people', 'public');
             $data['picture'] = "storage/{$path}";
         } else {
@@ -80,17 +87,23 @@ class MashkokPeopleController extends Controller
         $mashkokPeople->fill($data)->save();
 
         $mashkokPeople->load(['resource:id,name,code_number,phone_number']);
-        return MashkokPeopleResource::make($mashkokPeople);
+
+        return MashkokPeopleResource::make($mashkokPeople)
+            ->additional(['message' => 'Updated']);
     }
 
-    public function destroy(MashkokPeople $mashkokPeople)
+    // ✅ also use $id + findOrFail for destroy
+    public function destroy($id)
     {
+        $mashkokPeople = MashkokPeople::findOrFail($id);
+
         // delete stored picture if applicable
         if ($mashkokPeople->picture && str_starts_with($mashkokPeople->picture, 'storage/')) {
             Storage::disk('public')->delete(str_replace('storage/', '', $mashkokPeople->picture));
         }
 
         $mashkokPeople->delete();
+
         return response()->json(['message' => 'Deleted']);
     }
 
@@ -111,6 +124,6 @@ class MashkokPeopleController extends Controller
 
         MashkokPeople::destroy($ids);
 
-        return response()->noContent();
+        return response()->json(['message' => 'Deleted']);
     }
 }

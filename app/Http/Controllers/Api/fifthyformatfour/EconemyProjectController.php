@@ -17,40 +17,51 @@ class EconemyProjectController extends Controller
         $query = EconemyProject::query()
             ->with(['resource:id,name,code_number,phone_number']);
 
+        // 🔍 Search
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
-                $q->where('name','like',"%$s%")
-                  ->orWhere('responsiable_name','like',"%$s%")
-                  ->orWhere('province','like',"%$s%")
-                  ->orWhere('district','like',"%$s%");
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('responsiable_name', 'like', "%{$s}%")
+                  ->orWhere('province', 'like', "%{$s}%")
+                  ->orWhere('district', 'like', "%{$s}%");
             });
         }
 
-        $perPage = $request->query('perPage');
-        $page    = $request->query('page');
+        // 📄 Pagination (supports itemsPerPage from Vue + perPage fallback)
+        $perPageRaw = $request->query('itemsPerPage', $request->query('perPage'));
+        $pageRaw    = $request->query('page');
 
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        $perPageInt = filter_var($perPageRaw, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($pageRaw,    FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
-        // Fallback → return ALL when missing/invalid
+        // If no valid pagination → return ALL (for your 100000 pattern)
         if ($perPageInt === false || $pageInt === false) {
-            return EconemyProjectResource::collection($query->orderByDesc('id')->get());
+            $rows = $query->orderByDesc('id')->get();
+            return EconemyProjectResource::collection($rows);
         }
 
-        $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
+        // Normal paginated response
+        $rows = $query
+            ->orderByDesc('id')
+            ->paginate($perPageInt, ['*'], 'page', $pageInt);
+
         return EconemyProjectResource::collection($rows);
     }
 
     public function store(StoreEconemyProjectRequest $request)
     {
         $row = EconemyProject::create($request->validated());
+
+        // eager-load minimal resource for frontend
         $row->load(['resource:id,name,code_number,phone_number']);
+
         return new EconemyProjectResource($row);
     }
 
     public function show(EconemyProject $econemyProject)
     {
         $econemyProject->load(['resource:id,name,code_number,phone_number']);
+
         return new EconemyProjectResource($econemyProject);
     }
 
@@ -58,12 +69,16 @@ class EconemyProjectController extends Controller
     {
         $econemyProject->update($request->validated());
         $econemyProject->load(['resource:id,name,code_number,phone_number']);
+
         return new EconemyProjectResource($econemyProject);
     }
 
     public function destroy(EconemyProject $econemyProject)
     {
         $econemyProject->delete();
-        return response()->json(['message' => 'Deleted']);
+
+        return response()->json([
+            'message' => 'Deleted',
+        ]);
     }
 }

@@ -270,6 +270,7 @@
               :error-messages="getErrorMessages(item, 'Province_addr')"
             />
           </template>
+
           <!-- Resource code (autocomplete) + phone (readonly) -->
           <template #item.resource_code="{ item }">
             <v-autocomplete
@@ -314,7 +315,9 @@
           </template>
 
           <template #no-data>
-            <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
+            <div class="py-8 text-medium-emphasis">
+              {{ t('یک سطر ویرایش/ایجاد آماده است') }}
+            </div>
           </template>
         </v-data-table>
       </v-card>
@@ -328,10 +331,27 @@
           <v-img :src="previewSrc" :alt="t('پیش نمایش')" max-width="480" max-height="420" cover />
         </v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn color="primary" variant="flat" @click="previewOpen = false">{{ t('بستن') }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="previewOpen = false">
+            {{ t('بستن') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- ✅ PeekButton for details -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loading"
+        title-key="name"
+        :fields="headers"
+        :cols="3"
+        dir="rtl"
+        @fetch="fetchOne"
+      />
+    </v-container>
 
     <!-- Filterable Table -->
     <FilterableTable
@@ -344,9 +364,22 @@
       :rtl="true"
       class="mb-20 mx-2"
       :enableEdit="true"
-      :enablePeek="false"
+      :enablePeek="true"
       @edit="startEdit"
-    />
+      @peek="openPeek"
+    >
+      <!-- ✅ Map button cell -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.phone_number"
+          type="badmashano"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -363,6 +396,8 @@
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 
   const { t, locale } = useI18n();
@@ -457,6 +492,7 @@
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* ===== Filterable data ===== */
@@ -558,7 +594,7 @@
     'now_province',
     'now_zone',
     'now_districts',
-      'Province_addr',
+    'Province_addr',
     'now_village',
     'now_specific_place',
     'now_street_number',
@@ -633,7 +669,9 @@
         setItemErrors(item, error.response.data.errors);
         showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
       } else {
-        showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته')));
+        showErrorMessage(
+          t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته'))
+        );
       }
     } finally {
       item.loading = false;
@@ -681,6 +719,35 @@
     }
   }
 
+  /* ===== Peek / Fetch one ===== */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loading.value = true;
+    try {
+      await repo.FetchMashkokPeopleData?.(id);
+      detail.value = Array.isArray(repo.MashkokPeople)
+        ? repo.MashkokPeople[0] || null
+        : repo.MashkokPeople || null;
+    } catch (error) {
+      console.error('Fetch one error:', error);
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
+
   /* ===== Fetch / Start edit ===== */
   async function fetchAll() {
     try {
@@ -693,15 +760,25 @@
       console.error('fetchAll error', e);
     }
   }
+
   async function startEdit(row) {
     try {
       const id = row?.id;
       if (!id) return;
+
       await repo.FetchMashkokPeopleData?.(id);
-      const single = Array.isArray(repo.MashkokPeople)
-        ? repo.MashkokPeople[0]
-        : repo.MashkokPeople || row;
-      rows.value = [toRowModel(single || row)];
+
+      // ✅ Always keep a real id – merge row + API item
+      const apiItem = Array.isArray(repo.MashkokPeople)
+        ? repo.MashkokPeople[0] || {}
+        : repo.MashkokPeople || {};
+
+      const merged = {
+        ...apiItem,
+        id: row.id, // force correct id from table row
+      };
+
+      rows.value = [toRowModel(merged)];
       await nextTick();
       const el = editorCard.value?.$el || editorCard.value;
       el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });

@@ -143,7 +143,7 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       try {
         setContentType('application/json');
         const { data } = await axios.get(`/schools/${id}`);
-        this.Schools = data?.data ?? {};
+        this.School = data?.data ?? {};
       } catch (e) {
         console.error(e);
         this.error = e;

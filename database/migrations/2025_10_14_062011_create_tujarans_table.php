@@ -38,6 +38,7 @@ return new class extends Migration {
             $table->string('people_type')->nullable();
 
             $table->text('note')->nullable();
+            $table->text('coordinates')->nullable();
             $table->string('Province_addr')->nullable();
 
 

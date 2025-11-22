@@ -10,9 +10,14 @@ class MashkokPeopleResource extends JsonResource
     {
         $res = $this->resource->getRelationValue('resource');
 
+        // ✅ make picture usable in SPA (absolute URL if picture exists)
+        $pictureUrl = $this->picture
+            ? url($this->picture)   // e.g. http://your-app.test/storage/...
+            : null;
+
         return [
             'id'                 => $this->id,
-            'picture'            => $this->picture,
+            'picture'            => $pictureUrl,
             'name'               => $this->name,
             'father_name'        => $this->father_name,
 
@@ -33,7 +38,7 @@ class MashkokPeopleResource extends JsonResource
             'now_job'            => $this->now_job,
             'phone_number'       => $this->phone_number,
             'mushkokyat_points'  => $this->mushkokyat_points,
-            'Province_addr'               => $this->Province_addr,
+            'Province_addr'      => $this->Province_addr,
 
             'note'               => $this->note,
             'resource_id'        => $this->resource_id,

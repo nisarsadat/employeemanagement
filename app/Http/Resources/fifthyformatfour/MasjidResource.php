@@ -8,53 +8,60 @@ class MasjidResource extends JsonResource
 {
     public function toArray($request): array
     {
+        /** @var \App\Models\fifthyformatfour\Masjid $model */
+        $model = $this->resource; // underlying Eloquent model
+
         return [
-            'id'                            => $this->id,
+            'id'                            => $model->id,
 
-            'masjid_name'                   => $this->masjid_name,
-            'masjid_type'                   => $this->masjid_type,
+            'masjid_name'                   => $model->masjid_name,
+            'masjid_type'                   => $model->masjid_type,
 
-            'responsible_name'              => $this->responsible_name,
-            'responsible_f_name'            => $this->responsible_f_name,
-            'responsible_position'          => $this->responsible_position,
-            'responsible_mazhab'            => $this->responsible_mazhab,
-            'responsible_old_job'           => $this->responsible_old_job,
-            'responsible_now_job'           => $this->responsible_now_job,
-            'responsible_tarfdary'          => $this->responsible_tarfdary,
+            'responsible_name'              => $model->responsible_name,
+            'responsible_f_name'            => $model->responsible_f_name,
+            'responsible_position'          => $model->responsible_position,
+            'responsible_mazhab'            => $model->responsible_mazhab,
+            'responsible_old_job'           => $model->responsible_old_job,
+            'responsible_now_job'           => $model->responsible_now_job,
+            'responsible_tarfdary'          => $model->responsible_tarfdary,
 
-            'responsible_main_province'     => $this->responsible_main_province,
-            'responsible_main_district'     => $this->responsible_main_district,
-            'responsible_main_village'      => $this->responsible_main_village,
-            'responsible_now_province'      => $this->responsible_now_province,
-            'responsible_now_district'      => $this->responsible_now_district,
-            'responsible_now_village'       => $this->responsible_now_village,
+            'responsible_main_province'     => $model->responsible_main_province,
+            'responsible_main_district'     => $model->responsible_main_district,
+            'responsible_main_village'      => $model->responsible_main_village,
+            'responsible_now_province'      => $model->responsible_now_province,
+            'responsible_now_district'      => $model->responsible_now_district,
+            'responsible_now_village'       => $model->responsible_now_village,
 
-            'masjid_people_mazhab'          => $this->masjid_people_mazhab,
-            'masjid_homes_quantity'         => $this->masjid_homes_quantity,
+            'masjid_people_mazhab'          => $model->masjid_people_mazhab,
+            'masjid_homes_quantity'         => $model->masjid_homes_quantity,
 
-            'masjid_province'               => $this->masjid_province,
-            'masjid_zone'                   => $this->masjid_zone,
-            'masjid_district'               => $this->masjid_district,
-            'masjid_village'                => $this->masjid_village,
-            'masjid_specific_place'         => $this->masjid_specific_place,
-            'masjid_street_number'          => $this->masjid_street_number,
-            'masjid_coordinates'            => $this->masjid_coordinates,
+            'masjid_province'               => $model->masjid_province,
+            'masjid_zone'                   => $model->masjid_zone,
+            'masjid_district'               => $model->masjid_district,
+            'masjid_village'                => $model->masjid_village,
+            'masjid_specific_place'         => $model->masjid_specific_place,
+            'masjid_street_number'          => $model->masjid_street_number,
+            'masjid_coordinates'            => $model->masjid_coordinates,
 
-            // Flatten from Resource
-            'resource_code'                 => $this->resource->code_number ?? null,
-            'resource_phone'                => $this->resource->phone_number ?? null,
+            // 🔹 Flattened from related Resource (same style as Mawad)
+            'resource_code'                 => optional($model->resource)->code_number,
+            'resource_phone'                => optional($model->resource)->phone_number,
 
-            'resource_id'                   => $this->resource_id,
-            'resource'                      => $this->whenLoaded('resource', fn () => [
-                'id'   => $this->resource->id,
-                'name' => $this->resource->name ?? null,
-            ]),
+            'resource_id'                   => $model->resource_id,
 
-            'note'                          => $this->note,
-            'Province_addr'               => $this->Province_addr,
+            // Minimal nested resource, same pattern
+            'resource'                      => $this->whenLoaded('resource', function () use ($model) {
+                return [
+                    'id'   => optional($model->resource)->id,
+                    'name' => optional($model->resource)->name,
+                ];
+            }),
 
-            'created_at'                    => $this->created_at,
-            'updated_at'                    => $this->updated_at,
+            'note'                          => $model->note,
+            'Province_addr'                 => $model->Province_addr,
+
+            'created_at'                    => $model->created_at,
+            'updated_at'                    => $model->updated_at,
         ];
     }
 }

@@ -279,6 +279,16 @@
               readonly
             />
           </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مختصات')"
+              hide-details
+            />
+          </template>
 
           <!-- Actions -->
           <template #item.actions="{ item }">
@@ -330,7 +340,19 @@
       :enablePeek="true"
       @edit="startEdit"
       @peek="openPeek"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mawads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
 
     <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -349,6 +371,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -434,6 +457,7 @@
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('عملیات'), key: 'actions', sortable: false },
   ]);
@@ -465,9 +489,12 @@
 
     { title: t('یادداشت'), key: 'note' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
+    { title: t('نقشه'), key: 'map', sortable: false },
+
   ]);
 
   /* ===== Top filter groups (Fasad style) ===== */
@@ -523,6 +550,7 @@
 
       // note
       note: x.note ?? '',
+      coordinates: x.coordinates ?? '',
 
       // resource
       resource_code: x.resource_code ?? '',
@@ -539,7 +567,7 @@
     'main_district',
     'main_village',
     'now_province',
-      'Province_addr',
+    'Province_addr',
     'now_zone',
     'now_district',
     'now_village',
@@ -553,6 +581,7 @@
     'phone_number',
     'people_type',
     'note',
+    'coordinates',
     'resource_code',
     'resource_phone',
     'resource_id',

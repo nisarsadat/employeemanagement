@@ -8,40 +8,52 @@ class CriminalCapturePlaceResource extends JsonResource
 {
     public function toArray($request): array
     {
+        // ✅ Safe access to relation
+        $resource = $this->getRelationValue('resource');
+
         return [
-            'id'                  => $this->id,
+            'id'                 => $this->id,
 
-            'name'                => $this->name,
-            'father_name'         => $this->father_name,
-            'job'                 => $this->job,
+            'name'               => $this->name,
+            'father_name'        => $this->father_name,
+            'job'                => $this->job,
 
-            'jorm_type'           => $this->joom_type,
-            'criminals_quantity'  => $this->criminals_quantity,
-            'office'              => $this->office,
+            'jorm_type'          => $this->jorm_type,
+            'criminals_quantity' => $this->criminals_quantity,
+            'office'             => $this->office,
 
-            'province'            => $this->province,
-            'zone'                => $this->zone,
-            'district'            => $this->district,
-            'village'             => $this->village,
-            'specefic_place'      => $this->specefic_place,
+            'province'           => $this->province,
+            'zone'               => $this->zone,
+            'district'           => $this->district,
+            'village'            => $this->village,
+            'specefic_place'     => $this->specefic_place,
 
-            'coordinates'         => $this->coordinates,
+            'coordinates'        => $this->coordinates,
+            'Province_addr'      => $this->Province_addr,
 
-            // Flatten from Resource
-            'resource_code'       => $this->resource->code_number ?? null,
-            'resource_phone'      => $this->resource->phone_number ?? null,
+            // 🔗 Resource flatten
+            'resource_id'            => $this->resource_id,
+            'resource_code'          => $resource?->code_number,
+            'resource_phone_number'  => $resource?->phone_number,
 
-            'resource_id'         => $this->resource_id,
-            'resource'            => $this->whenLoaded('resource', fn () => [
-                'id'   => $this->resource->id,
-                'name' => $this->resource->name ?? null,
-            ]),
+            // Minimal embedded resource for peek/detail views
+            'resource' => $this->whenLoaded('resource', function () use ($resource) {
+                if (! $resource) {
+                    return null;
+                }
 
-            'note'                => $this->note,
-            'Province_addr'               => $this->Province_addr,
+                return [
+                    'id'           => $resource->id,
+                    'name'         => $resource->name ?? null,
+                    'code_number'  => $resource->code_number ?? null,
+                    'phone_number' => $resource->phone_number ?? null,
+                ];
+            }),
 
-            'created_at'          => $this->created_at,
-            'updated_at'          => $this->updated_at,
+            'note'              => $this->note,
+
+            'created_at'        => $this->created_at,
+            'updated_at'        => $this->updated_at,
         ];
     }
 }

@@ -8,47 +8,54 @@ class UniversityResource extends JsonResource
 {
     public function toArray($request): array
     {
+        /** @var \App\Models\fifthyformatfour\University $model */
+        $model = $this->resource; // the underlying Eloquent model
+
         return [
-            'id'                         => $this->id,
+            'id'                         => $model->id,
 
-            'uni_name'                   => $this->uni_name,
-            'uni_type'                   => $this->uni_type,
+            'uni_name'                   => $model->uni_name,
+            'uni_type'                   => $model->uni_type,
 
-            'responsible_name'           => $this->responsible_name,
-            'responsible_f_name'         => $this->responsible_f_name,
-            'responsible_position'       => $this->responsible_position,
-            'responsible_phone'          => $this->responsible_phone,
+            'responsible_name'           => $model->responsible_name,
+            'responsible_f_name'         => $model->responsible_f_name,
+            'responsible_position'       => $model->responsible_position,
+            'responsible_phone'          => $model->responsible_phone,
 
-            'male_teachers_quantity'     => $this->male_teachers_quantity,
-            'female_teachers_quantity'   => $this->female_teachers_quantity,
-            'male_students_quantity'     => $this->male_students_quantity,
-            'female_students_quantity'   => $this->female_students_quantity,
+            'male_teachers_quantity'     => $model->male_teachers_quantity,
+            'female_teachers_quantity'   => $model->female_teachers_quantity,
+            'male_students_quantity'     => $model->male_students_quantity,
+            'female_students_quantity'   => $model->female_students_quantity,
 
-            'province'                   => $this->province,
-            'zone'                       => $this->zone,
-            'district'                   => $this->district,
-            'village'                    => $this->village,
-            'specific_place'             => $this->specific_place,
-            'street_number'              => $this->street_number,
-            'home_number'                => $this->home_number,
+            'province'                   => $model->province,
+            'zone'                       => $model->zone,
+            'district'                   => $model->district,
+            'village'                    => $model->village,
+            'specific_place'             => $model->specific_place,
+            'street_number'              => $model->street_number,
+            'home_number'                => $model->home_number,
 
-            'coordinates'                => $this->coordinates,
+            'coordinates'                => $model->coordinates,
+            'Province_addr'              => $model->Province_addr,
 
-            // Flatten from related Resource
-            'resource_code'              => $this->resource->code_number ?? null,
-            'resource_phone'             => $this->resource->phone_number ?? null,
+            'note'                       => $model->note,
 
-            'resource_id'                => $this->resource_id,
-            'resource'                   => $this->whenLoaded('resource', fn () => [
-                'id'   => $this->resource->id,
-                'name' => $this->resource->name ?? null,
-            ]),
+            // 🔹 Flattened from relation (exactly like Mawad)
+            'resource_code'              => optional($model->resource)->code_number,
+            'resource_phone'             => optional($model->resource)->phone_number,
 
-            'note'                       => $this->note,
-            'Province_addr'               => $this->Province_addr,
+            'resource_id'                => $model->resource_id,
 
-            'created_at'                 => $this->created_at,
-            'updated_at'                 => $this->updated_at,
+            // Keep nested minimal resource, same style as Mawad
+            'resource'                   => $this->whenLoaded('resource', function () use ($model) {
+                return [
+                    'id'   => optional($model->resource)->id,
+                    'name' => optional($model->resource)->name,
+                ];
+            }),
+
+            'created_at'                 => $model->created_at,
+            'updated_at'                 => $model->updated_at,
         ];
     }
 }

@@ -1,6 +1,10 @@
 <template>
   <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar :title="t('شرکت')" :subtitle="t('ایجاد/ویرایش شرکت')" @toggle-drawer="drawer = !drawer">
+    <AppBar
+      :title="t('شرکت')"
+      :subtitle="t('ایجاد/ویرایش شرکت')"
+      @toggle-drawer="drawer = !drawer"
+    >
       <template #actions><v-btn icon /></template>
     </AppBar>
 
@@ -299,6 +303,7 @@
               rows="2"
             />
           </template>
+
           <template #item.Province_addr="{ item }">
             <v-text-field
               v-model="item.draft.Province_addr"
@@ -309,6 +314,7 @@
               hide-details
             />
           </template>
+
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="flex items-center gap-1">
@@ -339,8 +345,20 @@
     </v-form>
   </v-container>
 
-  <!-- FilterableTable -->
+  <!-- Peek + FilterableTable -->
   <v-container fluid>
+    <PeekButton
+      v-model="expanded"
+      :id="selectedId"
+      :item="detail"
+      :loading="loading"
+      title-key="com_name"
+      :fields="headers"
+      :cols="3"
+      dir="rtl"
+      @fetch="fetchOne"
+    />
+
     <FilterableTable
       :headers="headersFT"
       :rows="rowsFT"
@@ -356,7 +374,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.com_coordinates"
+          :title="row.com_name"
+          :subtitle="row.main_owner"
+          type="companies"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
   </v-container>
 
   <!-- Snackbars -->
@@ -376,6 +406,8 @@
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
   const { t, locale } = useI18n();
@@ -502,6 +534,7 @@
 
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('یادداشت'), key: 'note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -670,7 +703,7 @@
         setBlankEditorRow();
       }
     } catch (e) {
-      console.error('Save error:', e);
+      console.error('Save error', e);
       showErrorMessage(t('خطا در ذخیره داده'));
     } finally {
       item.loading = false;
@@ -688,13 +721,41 @@
       showOkMessage(t('ریکارد حذف شد'));
       setBlankEditorRow();
     } catch (e) {
-      console.error('Delete error:', e);
+      console.error('Delete error', e);
       showErrorMessage(t('خطا در حذف'));
     }
   }
   function clearRow() {
     setBlankEditorRow();
     showOkMessage(t('ورودی‌ها پاک شد'));
+  }
+
+  /* Peek / Fetch one for PeekButton */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    if (!id) return;
+    loading.value = true;
+    try {
+      await repo.FetchCompanyData?.(id);
+      detail.value = repo.Company || [];
+    } catch (error) {
+      console.error('Fetch one error:', error);
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
   }
 
   /* Load dataset for FilterableTable only */

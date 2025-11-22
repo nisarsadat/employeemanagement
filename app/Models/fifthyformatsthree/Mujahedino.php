@@ -33,6 +33,7 @@ class Mujahedino extends Model
         'organ',
         'phone_number',
         'note',
+        'coordinates',
         'resource_id',
     ];
 

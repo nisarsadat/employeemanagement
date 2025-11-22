@@ -8,31 +8,41 @@ class HighwayResource extends JsonResource
 {
     public function toArray($request): array
     {
+        /** @var \App\Models\fifthyformatfour\Highway $model */
+        $model = $this->resource;
+
         return [
-            'id'              => $this->id,
-            'high_way_name'   => $this->high_way_name,
-            'province'        => $this->province,
-            'zone'            => $this->zone,
-            'district'        => $this->district,
-            'village'         => $this->village,
-            'specific_place'  => $this->specific_place,
-            'coordinates'     => $this->coordinates,
+            'id'             => $model->id,
+            'high_way_name'  => $model->high_way_name,
 
-            // Flattened Resource fields
-            'resource_code'   => $this->resource->code_number ?? null,
-            'resource_phone'  => $this->resource->phone_number ?? null,
+            'province'       => $model->province,
+            'zone'           => $model->zone,
+            'district'       => $model->district,
+            'village'        => $model->village,
+            'specific_place' => $model->specific_place,
+            'coordinates'    => $model->coordinates,
 
-            'resource_id'     => $this->resource_id,
-            'resource'        => $this->whenLoaded('resource', fn () => [
-                'id'   => $this->resource->id,
-                'name' => $this->resource->name ?? null,
-            ]),
+            // ✅ Flattened Resource fields (Fasad/Mawad style)
+            'resource_code'  => optional($model->resource)->code_number,
+            'resource_phone' => optional($model->resource)->phone_number,
 
-            'note'            => $this->note,
-            'Province_addr'               => $this->Province_addr,
+            'resource_id'    => $model->resource_id,
 
-            'created_at'      => $this->created_at,
-            'updated_at'      => $this->updated_at,
+            // ✅ Minimal embedded resource (when loaded)
+            'resource'       => $this->whenLoaded('resource', function () use ($model) {
+                return [
+                    'id'   => optional($model->resource)->id,
+                    'name' => optional($model->resource)->name,
+                    'code_number'  => optional($model->resource)->code_number,
+                    'phone_number' => optional($model->resource)->phone_number,
+                ];
+            }),
+
+            'note'           => $model->note,
+            'Province_addr'  => $model->Province_addr,
+
+            'created_at'     => $model->created_at,
+            'updated_at'     => $model->updated_at,
         ];
     }
 }
