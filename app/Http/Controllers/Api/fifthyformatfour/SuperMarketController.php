@@ -46,7 +46,7 @@ class SuperMarketController extends Controller
 
     public function show(SuperMarket $supermarket)
     {
-        $supermarket->load(['resource:id,name,code_number,phone_number']);
+        $supermarket->load('resource');
         return new SuperMarketResource($supermarket);
     }
 

@@ -36,6 +36,7 @@ class UpdateComplexRequest extends FormRequest
 
             'guard_quantity'         => ['sometimes','nullable','integer'],
             'Province_addr'         => ['sometimes','nullable','string'],
+            'coordinates'         => ['sometimes','nullable','string'],
 
             'resource_id'            => ['sometimes','nullable','integer','exists:resources,id'],
             'note'                   => ['sometimes','nullable','string'],

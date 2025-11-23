@@ -250,7 +250,16 @@
               hide-details
             />
           </template>
-
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مختصات')"
+              hide-details
+            />
+          </template>
           <!-- Security -->
           <template #item.guard_quantity="{ item }">
             <v-text-field
@@ -273,7 +282,6 @@
               variant="outlined"
               :label="t('ولایت مربوطه')"
               hide-details
-
             />
           </template>
           <!-- Resource (code → phone → id) -->
@@ -356,7 +364,20 @@
       </v-card>
     </v-form>
   </v-container>
-
+  <!-- Peek + FilterableTable -->
+  <v-container fluid>
+    <PeekButton
+      v-model="expanded"
+      :id="selectedId"
+      :item="detail"
+      :loading="loading"
+      title-key="name"
+      :fields="headers"
+      :cols="3"
+      dir="rtl"
+      @fetch="fetchOne"
+    />
+  </v-container>
   <!-- FilterableTable -->
   <v-container fluid>
     <FilterableTable
@@ -374,7 +395,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="complexes"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
   </v-container>
 
   <!-- Snackbars -->
@@ -393,6 +426,8 @@
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
+  import PeekButton from '@/components/PeekButton.vue';
 
   const { t, locale } = useI18n();
   const drawer = ref(false);
@@ -434,6 +469,7 @@
       responsible_country: x.responsible_country ?? '',
 
       guard_quantity: x.guard_quantity ?? '',
+      coordinates: x.coordinates ?? '',
 
       // Resource UI fields
       resource_code: x.resource_code ?? x.resource?.code_number ?? '',
@@ -497,6 +533,7 @@
     { title: t('موقعیت مشخص'), key: 'specefic_place' },
     { title: t('نمبر سرک'), key: 'street_number' },
     { title: t('نمبر خانه'), key: 'home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
@@ -534,6 +571,7 @@
     { title: t('موقعیت مشخص'), key: 'specefic_place' },
     { title: t('نمبر سرک'), key: 'street_number' },
     { title: t('نمبر خانه'), key: 'home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
@@ -542,6 +580,7 @@
     { title: t('شماره منبع'), key: 'resource_phone_number' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -634,6 +673,7 @@
       'responsible_country',
       'Province_addr',
       'guard_quantity',
+      'coordinates',
       'resource_id',
       'note',
     ];
@@ -745,6 +785,30 @@
     setBlankEditorRow();
     showOkMessage(t('ورودی‌ها پاک شد'));
   }
+  /* ===== Peek / Fetch ===== */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loading.value = true;
+    try {
+      await repo.FetchComplexData?.(id);
+      detail.value = repo.Complex || [];
+    } catch (error) {
+      console.error('Fetch one error:', error);
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      loading.value = false;
+    }
+  }
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
 
   /* Load dataset for FilterableTable only */
   async function fetchAll() {
@@ -761,7 +825,7 @@
 </script>
 
 <style scoped>
-    table th {
+  table th {
     white-space: nowrap;
   }
   .custom-table :deep(.v-data-table__thead th) {
@@ -771,7 +835,7 @@
   }
   .addr-group {
     display: grid;
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
     gap: 2px;
   }
   .text-group {

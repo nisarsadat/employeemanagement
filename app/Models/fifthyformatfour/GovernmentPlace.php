@@ -2,6 +2,7 @@
 
 namespace App\Models\fifthyformatfour;
 
+use App\Models\Resource;
 use Illuminate\Database\Eloquent\Model;
 
 class GovernmentPlace extends Model
@@ -17,6 +18,6 @@ class GovernmentPlace extends Model
 
     public function resource()
     {
-        return $this->belongsTo(\App\Models\Resource::class);
+        return $this->belongsTo(Resource::class , 'resource_id' , 'id');
     }
 }

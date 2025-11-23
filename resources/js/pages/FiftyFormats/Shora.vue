@@ -268,9 +268,9 @@
               @update:model-value="onResourceCodeChange(item)"
             />
           </template>
-          <template #item.resource_phone_number="{ item }">
+          <template #item.resource_phone="{ item }">
             <v-text-field
-              v-model="item.draft.resource_phone_number"
+              v-model="item.draft.resource_phone"
               class="text-group"
               density="compact"
               variant="outlined"
@@ -305,6 +305,16 @@
               rows="2"
             />
           </template>
+          <template #item.coordinates="{ item }">
+            <v-text-field
+              v-model="item.draft.coordinates"
+              class="text-group"
+              density="compact"
+              variant="outlined"
+              :label="t('مختصات')"
+              hide-details
+            />
+          </template>
 
           <!-- Actions -->
           <template #item.actions="{ item }">
@@ -332,6 +342,20 @@
       </v-card>
     </v-form>
   </v-container>
+  <!-- Peek + FilterableTable -->
+  <v-container fluid>
+    <PeekButton
+      v-model="expanded"
+      :id="selectedId"
+      :item="detail"
+      :loading="loading"
+      title-key="name"
+      :fields="headers"
+      :cols="3"
+      dir="rtl"
+      @fetch="fetchOne"
+    />
+  </v-container>
 
   <!-- FilterableTable -->
   <v-container fluid>
@@ -350,7 +374,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mawads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
   </v-container>
 
   <!-- Snackbars -->
@@ -369,6 +405,8 @@
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
+  import PeekButton from '@/components/PeekButton.vue';
 
   const { t, locale } = useI18n();
   const drawer = ref(false);
@@ -410,10 +448,11 @@
       shora_province: x.shora_province ?? '',
       shora_zone: x.shora_zone ?? '',
       shora_district: x.shora_district ?? '',
+      coordinates: x.coordinates ?? '',
 
       // Resource UI fields
       resource_code: x.resource_code ?? x.resource?.code_number ?? '',
-      resource_phone_number: x.resource_phone_number ?? x.resource?.phone_number ?? '',
+      resource_phone: x.resource_phone ?? x.resource?.phone_number ?? '',
       resource_id: x.resource_id ?? x.resource?.id ?? null,
     };
     return { ...base, draft: { ...base } };
@@ -445,7 +484,7 @@
   function onResourceCodeChange(item) {
     const code = item.draft.resource_code;
     const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone_number = found?.phone_number ?? '';
+    item.draft.resource_phone = found?.phone_number ?? '';
     item.draft.resource_id = found?.id ?? null;
   }
 
@@ -470,12 +509,13 @@
     { title: t('شماره تمویل‌کننده'), key: 'supplier_phone' },
 
     { title: t('طرفداری امارت'), key: 'emarat_tarfdary' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('آدرس شورا'), key: 'shora_province' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone_number' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
     // { title: t('Resource ID'), key: 'resource_id' },
 
     { title: t('یادداشت'), key: 'note' },
@@ -503,6 +543,7 @@
     { title: t('شماره تمویل‌کننده'), key: 'supplier_phone' },
 
     { title: t('طرفداری امارت'), key: 'emarat_tarfdary' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('ولایت'), key: 'shora_province' },
     { title: t('زون'), key: 'shora_zone' },
@@ -510,9 +551,10 @@
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone_number' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -528,7 +570,7 @@
     { title: t('تمویل‌کننده'), keys: ['supplier_name', 'supplier_job', 'supplier_phone'] },
     { title: t('سایر'), keys: ['emarat_tarfdary'] },
     { title: t('آدرس شورا'), keys: ['shora_province', 'shora_zone', 'shora_district'] },
-    { title: t('منبع'), keys: ['resource_code', 'resource_phone_number', 'resource_id'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone', 'resource_id'] },
   ]);
 
   const editorCard = ref(null);
@@ -581,6 +623,7 @@
       'supplier_phone',
       'emarat_tarfdary',
       'shora_province',
+      'coordinates',
       'shora_zone',
       'shora_district',
       'resource_id',
@@ -595,6 +638,30 @@
       fd.append(k, v);
     });
     return fd;
+  }
+  /* ===== Peek / Fetch ===== */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loading.value = true;
+    try {
+      await repo.FetchShoraData?.(id);
+      detail.value = repo.Shora || [];
+    } catch (error) {
+      console.error('Fetch one error:', error);
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      loading.value = false;
+    }
+  }
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    expanded.value = true;
+    fetchOne(row.id);
   }
 
   /* Validation */

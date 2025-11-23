@@ -49,8 +49,8 @@ class CheckpointController extends Controller
 
     public function show(Checkpoint $checkpoint)
     {
-        $checkpoint->load(['resource:id,name,code_number,phone_number']);
-        return new CheckpointResource($checkpoint);
+        $checkpoint->load('resource');
+        return CheckpointResource::make($checkpoint);
     }
 
     public function update(UpdateCheckpointRequest $request, Checkpoint $checkpoint)

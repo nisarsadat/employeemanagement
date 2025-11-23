@@ -8,49 +8,55 @@ class ComplexResource extends JsonResource
 {
     public function toArray($request): array
     {
+        $model = $this->resource; // the underlying Eloquent model
+
         return [
-            'id'                     => $this->id,
+            'id'                     => $model->id,
 
-            'province'               => $this->province,
-            'zone'                   => $this->zone,
-            'district'               => $this->district,
-            'village'                => $this->village,
-            'specefic_place'         => $this->specefic_place,
-            'street_number'          => $this->street_number,
-            'home_number'            => $this->home_number,
+            'province'               => $model->province,
+            'zone'                   => $model->zone,
+            'district'               => $model->district,
+            'village'                => $model->village,
+            'specefic_place'         => $model->specefic_place,
+            'street_number'          => $model->street_number,
+            'home_number'            => $model->home_number,
 
-            'complex_name'           => $this->complex_name,
-            'activity_type'          => $this->activity_type,
-            'activity_place'         => $this->activity_place,
-            'supplier'               => $this->supplier,
+            'complex_name'           => $model->complex_name,
+            'activity_type'          => $model->activity_type,
+            'activity_place'         => $model->activity_place,
+            'supplier'               => $model->supplier,
 
-            'enter_male_quantity'    => $this->enter_male_quantity,
-            'outer_male_quantity'    => $this->outer_male_quantity,
-            'enter_femal_quantity'   => $this->enter_femal_quantity,
-            'outer_femal_quantity'   => $this->outer_femal_quantity,
+            'enter_male_quantity'    => $model->enter_male_quantity,
+            'outer_male_quantity'    => $model->outer_male_quantity,
+            'enter_femal_quantity'   => $model->enter_femal_quantity,
+            'outer_femal_quantity'   => $model->outer_femal_quantity,
 
-            'responsible_name'       => $this->responsible_name,
-            'responsible_f_name'     => $this->responsible_f_name,
-            'responsible_phone'      => $this->responsible_phone,
-            'responsible_country'    => $this->responsible_country,
+            'responsible_name'       => $model->responsible_name,
+            'responsible_f_name'     => $model->responsible_f_name,
+            'responsible_phone'      => $model->responsible_phone,
+            'responsible_country'    => $model->responsible_country,
 
-            'guard_quantity'         => $this->guard_quantity,
+            'guard_quantity'         => $model->guard_quantity,
+            'coordinates'       => $model->coordinates,
 
-            // Flatten from Resource
-            'resource_code'          => $this->resource->code_number ?? null,
-            'resource_phone'         => $this->resource->phone_number ?? null,
+           // Flattened from relation (match Fasad style)
+            'resource_code'     => optional($model->resource)->code_number,
+            'resource_phone'    => optional($model->resource)->phone_number,
 
-            'resource_id'            => $this->resource_id,
-            'resource'               => $this->whenLoaded('resource', fn () => [
-                'id'   => $this->resource->id,
-                'name' => $this->resource->name ?? null,
-            ]),
+            'resource_id'       => $model->resource_id,
 
-            'note'                   => $this->note,
-            'Province_addr'               => $this->Province_addr,
+            // Keep nested (match Fasad style)
+            'resource'          => $this->whenLoaded('resource', function () use ($model) {
+                return [
+                    'id'   => optional($model->resource)->id,
+                    'name' => optional($model->resource)->name,
+                ];
+            }),
+            'note'                   => $model->note,
+            'Province_addr'               => $model->Province_addr,
 
-            'created_at'             => $this->created_at,
-            'updated_at'             => $this->updated_at,
+            'created_at'             => $model->created_at,
+            'updated_at'             => $model->updated_at,
         ];
     }
 }

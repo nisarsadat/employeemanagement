@@ -62,6 +62,10 @@ export const ROUTE_CANDIDATES = [
   { slug: 'expense_oils', path: '/app/expense_oils', perm: 'expense_oils.view' },
   { slug: 'oil_reports', path: '/app/oil_reports', perm: 'oil_reports.view' },
   { slug: 'finance_reports', path: '/app/finance_reports', perm: 'finance_reports.view' },
+  { slug: 'fiftyformatreports', path: '/app/fiftyformatreports', perm: 'fiftyformatreports.view' },
+  { slug: 'officeemployeereports', path: '/app/officeemployeereports', perm: 'officeemployeereports.view' },
+  { slug: 'eventreports', path: '/app/eventreports', perm: 'eventreports.view' },
+  { slug: 'informationreports', path: '/app/informationreports', perm: 'informationreports.view' },
 
   // ---- 56 Formats (Base, One, Two, Three, Four) ----
   // I will generate these automatically in the next message if you confirm

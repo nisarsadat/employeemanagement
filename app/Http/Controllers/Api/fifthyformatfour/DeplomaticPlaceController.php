@@ -48,7 +48,7 @@ class DeplomaticPlaceController extends Controller
 
     public function show(DeplomaticPlace $deplomaticplace)
     {
-        $deplomaticplace->load(['resource:id,name,code_number,phone_number']);
+        $deplomaticplace->load('resource');
         return new DeplomaticPlaceResource($deplomaticplace);
     }
 

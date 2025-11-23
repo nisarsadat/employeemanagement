@@ -48,7 +48,7 @@ class ComplexController extends Controller
 
     public function show(Complex $complex)
     {
-        $complex->load(['resource:id,name,code_number,phone_number']);
+        $complex->load('resource');
         return new ComplexResource($complex);
     }
 

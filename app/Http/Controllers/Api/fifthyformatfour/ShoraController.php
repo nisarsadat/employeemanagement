@@ -50,9 +50,10 @@ class ShoraController extends Controller
 
     public function show(Shora $shora)
     {
-        $shora->load(['resource:id,name,code_number,phone_number']);
-        return new ShoraResource($shora);
+        $shora->load('resource');
+        return ShoraResource::make($shora);
     }
+
 
     public function update(UpdateShoraRequest $request, Shora $shora)
     {

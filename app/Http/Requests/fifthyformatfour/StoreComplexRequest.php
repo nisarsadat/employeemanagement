@@ -33,6 +33,7 @@ class StoreComplexRequest extends FormRequest
             'responsible_f_name'     => ['nullable','string'],
             'responsible_phone'      => ['nullable','string'],
             'responsible_country'    => ['nullable','string'],
+            'coordinates'    => ['nullable','string'],
 
             'guard_quantity'         => ['nullable','integer'],
             'Province_addr'                      => ['nullable','string'],

@@ -26,7 +26,7 @@ class MawadResource extends JsonResource
             'now_province'      => $model->now_province,
             'now_district'      => $model->now_district,
             'now_village'       => $model->now_village,
-            'Province_addr'               => $this->Province_addr,
+            'Province_addr'     => $model->Province_addr,
 
             // Extra location
             'province'          => $model->province,

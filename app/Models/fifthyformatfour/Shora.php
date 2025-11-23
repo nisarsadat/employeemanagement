@@ -14,6 +14,7 @@ class Shora extends Model
         'emarat_tarfdary',
         'shora_province','shora_zone','shora_district',
         'Province_addr',
+        'coordinates',
         'resource_id',
     ];
 

@@ -46,11 +46,17 @@ class PumpController extends Controller
         return new PumpResource($row);
     }
 
+    // public function show(Pump $pump)
+    // {
+    //     $pump->load(['resource:id,name,code_number,phone_number']);
+    //     return new PumpResource($pump);
+    // }
     public function show(Pump $pump)
     {
-        $pump->load(['resource:id,name,code_number,phone_number']);
-        return new PumpResource($pump);
+        $pump->load('resource');
+        return PumpResource::make($pump);
     }
+
 
     public function update(UpdatePumpRequest $request, Pump $pump)
     {

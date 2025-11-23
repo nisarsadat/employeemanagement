@@ -8,38 +8,44 @@ class SuperMarketResource extends JsonResource
 {
     public function toArray($request): array
     {
+        $model = $this->resource; // the underlying Eloquent model
+
         return [
-            'id'                   => $this->id,
-            'supermarket_name'     => $this->supermarket_name,
-            'market_activity_type' => $this->market_activity_type,
-            'daily_clientele'      => $this->daily_clientele,
-            'shops_quantity'       => $this->shops_quantity,
-            'responsible_name'     => $this->responsible_name,
-            'responsible_f_name'   => $this->responsible_f_name,
-            'responsible_phone'    => $this->responsible_phone,
-            'province'             => $this->province,
-            'zone'                 => $this->zone,
-            'district'             => $this->district,
-            'village'              => $this->village,
-            'specefic_place'       => $this->specefic_place,
-            'coordinates'          => $this->coordinates,
-            'employee_quantity'    => $this->employee_quantity,
-            'guard_quantity'       => $this->guard_quantity,
+            'id'                   => $model->id,
+            'supermarket_name'     => $model->supermarket_name,
+            'market_activity_type' => $model->market_activity_type,
+            'daily_clientele'      => $model->daily_clientele,
+            'shops_quantity'       => $model->shops_quantity,
+            'responsible_name'     => $model->responsible_name,
+            'responsible_f_name'   => $model->responsible_f_name,
+            'responsible_phone'    => $model->responsible_phone,
+            'province'             => $model->province,
+            'zone'                 => $model->zone,
+            'district'             => $model->district,
+            'village'              => $model->village,
+            'specefic_place'       => $model->specefic_place,
+            'coordinates'          => $model->coordinates,
+            'employee_quantity'    => $model->employee_quantity,
+            'guard_quantity'       => $model->guard_quantity,
 
-            // Resource flatten
-            'resource_code'        => $this->resource->code_number ?? null,
-            'resource_phone'       => $this->resource->phone_number ?? null,
-            'resource_id'          => $this->resource_id,
-            'resource'             => $this->whenLoaded('resource', fn () => [
-                'id'   => $this->resource->id,
-                'name' => $this->resource->name ?? null,
-            ]),
+            // Flattened from relation (match Fasad style)
+            'resource_code'     => optional($model->resource)->code_number,
+            'resource_phone'    => optional($model->resource)->phone_number,
 
-            'note'                 => $this->note,
-            'Province_addr'               => $this->Province_addr,
+            'resource_id'       => $model->resource_id,
 
-            'created_at'           => $this->created_at,
-            'updated_at'           => $this->updated_at,
+            // Keep nested (match Fasad style)
+            'resource'          => $this->whenLoaded('resource', function () use ($model) {
+                return [
+                    'id'   => optional($model->resource)->id,
+                    'name' => optional($model->resource)->name,
+                ];
+            }),
+            'note'                 => $model->note,
+            'Province_addr'               => $model->Province_addr,
+
+            'created_at'           => $model->created_at,
+            'updated_at'           => $model->updated_at,
         ];
     }
 }

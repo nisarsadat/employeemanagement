@@ -8,47 +8,54 @@ class ShoraResource extends JsonResource
 {
     public function toArray($request): array
     {
+        $model = $this->resource; // the underlying Eloquent model
+
         return [
-            'id'                     => $this->id,
+            'id'                     => $model->id,
 
-            'shora_village'          => $this->shora_village,
-            'note'                   => $this->note,
+            'shora_village'          => $model->shora_village,
+            'note'                   => $model->note,
 
-            'shora_name'             => $this->shora_name,
-            'shora_goal'             => $this->shora_goal,
-            'people_quantity'        => $this->people_quantity,
-            'week_meeting_quantity'  => $this->week_meeting_quantity,
-            'regester'               => $this->regester,
-            'shora_meeting_place'    => $this->shora_meeting_place,
+            'shora_name'             => $model->shora_name,
+            'shora_goal'             => $model->shora_goal,
+            'people_quantity'        => $model->people_quantity,
+            'week_meeting_quantity'  => $model->week_meeting_quantity,
+            'regester'               => $model->regester,
+            'shora_meeting_place'    => $model->shora_meeting_place,
 
-            'responsible_name'       => $this->responsible_name,
-            'responsible_f_name'     => $this->responsible_f_name,
-            'responsible_job'        => $this->responsible_job,
-            'responsible_phone'      => $this->responsible_phone,
+            'responsible_name'       => $model->responsible_name,
+            'responsible_f_name'     => $model->responsible_f_name,
+            'responsible_job'        => $model->responsible_job,
+            'responsible_phone'      => $model->responsible_phone,
 
-            'supplier_name'          => $this->supplier_name,
-            'supplier_job'           => $this->supplier_job,
-            'supplier_phone'         => $this->supplier_phone,
+            'supplier_name'          => $model->supplier_name,
+            'supplier_job'           => $model->supplier_job,
+            'supplier_phone'         => $model->supplier_phone,
 
-            'emarat_tarfdary'        => $this->emarat_tarfdary,
+            'emarat_tarfdary'        => $model->emarat_tarfdary,
 
-            'shora_province'         => $this->shora_province,
-            'shora_zone'             => $this->shora_zone,
-            'shora_district'         => $this->shora_district,
+            'shora_province'         => $model->shora_province,
+            'shora_zone'             => $model->shora_zone,
+            'shora_district'         => $model->shora_district,
+            'coordinates'         => $model->coordinates,
 
-            // Flatten from related Resource
-            'resource_code'          => $this->resource->code_number ?? null,
-            'resource_phone'         => $this->resource->phone_number ?? null,
+            // Flattened from relation (match Fasad style)
+            'resource_code'     => optional($model->resource)->code_number,
+            'resource_phone'    => optional($model->resource)->phone_number,
 
-            'resource_id'            => $this->resource_id,
-            'resource'               => $this->whenLoaded('resource', fn () => [
-                'id'   => $this->resource->id,
-                'name' => $this->resource->name ?? null,
-            ]),
-            'Province_addr'               => $this->Province_addr,
+            'resource_id'       => $model->resource_id,
 
-            'created_at'             => $this->created_at,
-            'updated_at'             => $this->updated_at,
+            // Keep nested (match Fasad style)
+            'resource'          => $this->whenLoaded('resource', function () use ($model) {
+                return [
+                    'id'   => optional($model->resource)->id,
+                    'name' => optional($model->resource)->name,
+                ];
+            }),
+            'Province_addr'               => $model->Province_addr,
+
+            'created_at'             => $model->created_at,
+            'updated_at'             => $model->updated_at,
         ];
     }
 }

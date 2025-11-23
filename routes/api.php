@@ -297,11 +297,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('criminal-capture-places', CriminalCapturePlaceController::class);
     Route::apiResource('pumps', PumpController::class);
     Route::apiResource('shoras', ShoraController::class);
-    Route::apiResource('government-places', GovernmentPlaceController::class);
-    Route::apiResource('super-markets', SuperMarketController::class);
+    Route::apiResource('governmentplaces', GovernmentPlaceController::class);
+    Route::apiResource('supermarkets', SuperMarketController::class);
     Route::apiResource('parks', ParkController::class);
     Route::apiResource('complexes', ComplexController::class);
-    Route::apiResource('deplomatic-places', DeplomaticPlaceController::class);
+    Route::apiResource('deplomaticplaces', DeplomaticPlaceController::class);
     Route::apiResource('universities', UniversityController::class);
     Route::apiResource('wakilanos', WakilanoController::class);
 

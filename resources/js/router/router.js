@@ -485,13 +485,18 @@ const router = createRouter({
           component: finincalIndex,
           meta: { requiresAuth: true, perm: permFor('finincalindex') },
         },
+        // reports
         {
           path: 'fiftyformatreports',
           component: FiftyFormatsReportPage,
+          meta: { requiresAuth: true, perm: permFor('fiftyformatreports') },
+
         },
         {
           path: 'officeemployeereports',
           component: OfficeEmployeesActivityReport,
+          meta: { requiresAuth: true, perm: permFor('officeemployeereports') },
+
         },
         {
           path: '/officeemployeerelations/:id/:relation',
@@ -501,9 +506,13 @@ const router = createRouter({
         {
           path: 'eventreports',
           component: EventReport,
+          meta: { requiresAuth: true, perm: permFor('eventreports') },
+
         },        {
           path: 'informationreports',
           component: InformationActivityReport,
+          meta: { requiresAuth: true, perm: permFor('informationreports') },
+
         },
         // Map
         {

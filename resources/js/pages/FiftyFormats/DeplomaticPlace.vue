@@ -293,9 +293,9 @@
               @update:model-value="onResourceCodeChange(item)"
             />
           </template>
-          <template #item.resource_phone_number="{ item }">
+          <template #item.resource_phone="{ item }">
             <v-text-field
-              v-model="item.draft.resource_phone_number"
+              v-model="item.draft.resource_phone"
               class="text-group"
               density="compact"
               variant="outlined"
@@ -339,7 +339,6 @@
               variant="outlined"
               :label="t('ولایت مربوطه')"
               hide-details
-
             />
           </template>
           <!-- Actions -->
@@ -371,7 +370,20 @@
       </v-card>
     </v-form>
   </v-container>
-
+  <!-- Peek + FilterableTable -->
+  <v-container fluid>
+    <PeekButton
+      v-model="expanded"
+      :id="selectedId"
+      :item="detail"
+      :loading="loading"
+      title-key="name"
+      :fields="headers"
+      :cols="3"
+      dir="rtl"
+      @fetch="fetchOne"
+    />
+  </v-container>
   <!-- FilterableTable -->
   <v-container fluid>
     <FilterableTable
@@ -389,7 +401,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="mawads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
   </v-container>
 
   <!-- Snackbars -->
@@ -408,6 +432,8 @@
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
+  import PeekButton from '@/components/PeekButton.vue';
 
   const { t, locale } = useI18n();
   const drawer = ref(false);
@@ -453,7 +479,7 @@
 
       // Resource UI fields
       resource_code: x.resource_code ?? x.resource?.code_number ?? '',
-      resource_phone_number: x.resource_phone_number ?? x.resource?.phone_number ?? '',
+      resource_phone: x.resource_phone ?? x.resource?.phone_number ?? '',
       resource_id: x.resource_id ?? x.resource?.id ?? null,
 
       note: x.note ?? '',
@@ -487,7 +513,7 @@
   function onResourceCodeChange(item) {
     const code = item.draft.resource_code;
     const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone_number = found?.phone_number ?? '';
+    item.draft.resource_phone = found?.phone_number ?? '';
     item.draft.resource_id = found?.id ?? null;
   }
 
@@ -520,7 +546,7 @@
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone_number' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
     // { title: t('Resource ID'), key: 'resource_id' },
 
     { title: t('یادداشت'), key: 'note' },
@@ -559,9 +585,10 @@
     { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone_number' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -601,7 +628,7 @@
       ],
     },
     { title: t('امنیت'), keys: ['guard_quantity'] },
-    { title: t('منبع'), keys: ['resource_code', 'resource_phone_number', 'resource_id'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone', 'resource_id'] },
     { title: t('سایر'), keys: ['note'] },
   ]);
 
@@ -703,7 +730,30 @@
       if (input && typeof input.focus === 'function') input.focus();
     }
   }
+  /* ===== Peek / Fetch ===== */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
 
+  async function fetchOne(id) {
+    loading.value = true;
+    try {
+      await repo.FetchDeplomaticPlaceData?.(id);
+      detail.value = repo.DeplomaticPlace || [];
+    } catch (error) {
+      console.error('Fetch one error:', error);
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      loading.value = false;
+    }
+  }
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
   /* Save / Delete / Clear */
   async function onSubmit(item) {
     if (!item?.draft?.deplomatic_place_name?.trim()) {
@@ -789,7 +839,7 @@
 </script>
 
 <style scoped>
-   table th {
+  table th {
     white-space: nowrap;
   }
   .custom-table :deep(.v-data-table__thead th) {
@@ -799,7 +849,7 @@
   }
   .addr-group {
     display: grid;
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
     gap: 2px;
   }
   .text-group {

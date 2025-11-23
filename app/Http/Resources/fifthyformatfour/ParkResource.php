@@ -8,41 +8,47 @@ class ParkResource extends JsonResource
 {
     public function toArray($request): array
     {
+        $model = $this->resource; // the underlying Eloquent model
+
         return [
-            'id'                   => $this->id,
+            'id'                   => $model->id,
 
-            'park_name'            => $this->park_name,
-            'park_type'            => $this->park_type,
-            'dayly_clientele'      => $this->dayly_clientele,
+            'park_name'            => $model->park_name,
+            'park_type'            => $model->park_type,
+            'dayly_clientele'      => $model->dayly_clientele,
 
-            'responsible_name'     => $this->responsible_name,
-            'responsible_f_name'   => $this->responsible_f_name,
-            'responsible_phone'    => $this->responsible_phone,
-            'responsible_possition'=> $this->responsible_possition,
+            'responsible_name'     => $model->responsible_name,
+            'responsible_f_name'   => $model->responsible_f_name,
+            'responsible_phone'    => $model->responsible_phone,
+            'responsible_possition'=> $model->responsible_possition,
 
-            'province'             => $this->province,
-            'zone'                 => $this->zone,
-            'village'              => $this->village,
-            'specefic_place'       => $this->specefic_place,
-            'coordinates'          => $this->coordinates,
+            'province'             => $model->province,
+            'zone'                 => $model->zone,
+            'village'              => $model->village,
+            'specefic_place'       => $model->specefic_place,
+            'coordinates'          => $model->coordinates,
 
-            'employee_quantity'    => $this->employee_quantity,
+            'employee_quantity'    => $model->employee_quantity,
+            // Flattened from relation (match Fasad style)
+            'resource_code'     => optional($model->resource)->code_number,
+            'resource_phone'    => optional($model->resource)->phone_number,
 
-            // Flatten from related Resource
-            'resource_code'        => $this->resource->code_number ?? null,
-            'resource_phone'       => $this->resource->phone_number ?? null,
+            'resource_id'       => $model->resource_id,
 
-            'resource_id'          => $this->resource_id,
-            'resource'             => $this->whenLoaded('resource', fn () => [
-                'id'   => $this->resource->id,
-                'name' => $this->resource->name ?? null,
-            ]),
+            // Keep nested (match Fasad style)
+            'resource'          => $this->whenLoaded('resource', function () use ($model) {
+                return [
+                    'id'   => optional($model->resource)->id,
+                    'name' => optional($model->resource)->name,
+                ];
+            }),
 
-            'notes'                => $this->notes,
-            'Province_addr'               => $this->Province_addr,
 
-            'created_at'           => $this->created_at,
-            'updated_at'           => $this->updated_at,
+            'notes'                => $model->notes,
+            'Province_addr'               => $model->Province_addr,
+
+            'created_at'           => $model->created_at,
+            'updated_at'           => $model->updated_at,
         ];
     }
 }

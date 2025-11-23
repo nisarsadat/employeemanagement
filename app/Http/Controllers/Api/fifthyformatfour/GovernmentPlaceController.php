@@ -12,56 +12,85 @@ use Illuminate\Http\Request;
 
 class GovernmentPlaceController extends Controller
 {
+    /**
+     * GET /government-places
+     */
     public function index(Request $request)
     {
-        $query = GovernmentPlace::query()
-            ->with(['resource:id,name,code_number,phone_number']);
+        $perPage = (int) $request->input('perPage', 10);
+        $search  = trim((string) $request->input('search', ''));
 
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('government_place_name','like',"%$s%")
-                  ->orWhere('province','like',"%$s%")
-                  ->orWhere('village','like',"%$s%");
+        $q = GovernmentPlace::query()
+            ->with(['resource:id,name,code_number,phone_number'])
+            ->latest('id');
+
+        if ($search !== '') {
+            $q->where(function (Builder $w) use ($search) {
+                $w->where('government_place_name', 'like', "%{$search}%")
+                  ->orWhere('province', 'like', "%{$search}%")
+                  ->orWhere('district', 'like', "%{$search}%")
+                  ->orWhere('village', 'like', "%{$search}%");
             });
         }
 
-        $perPage = $request->query('perPage');
-        $page    = $request->query('page');
-
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
-
-        if ($perPageInt === false || $pageInt === false) {
-            return GovernmentPlaceResource::collection($query->orderByDesc('id')->get());
-        }
-
-        $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
-        return GovernmentPlaceResource::collection($rows);
+        return GovernmentPlaceResource::collection($q->paginate($perPage));
     }
 
+    /**
+     * POST /government-places
+     */
     public function store(StoreGovernmentPlaceRequest $request)
     {
-        $row = GovernmentPlace::create($request->validated());
+        $data = $request->validated();
+
+        $row = GovernmentPlace::create($data);
         $row->load(['resource:id,name,code_number,phone_number']);
-        return new GovernmentPlaceResource($row);
+
+        return GovernmentPlaceResource::make($row);
     }
 
+    /**
+     * GET /government-places/{governmentplace}
+     */
     public function show(GovernmentPlace $governmentplace)
     {
         $governmentplace->load(['resource:id,name,code_number,phone_number']);
-        return new GovernmentPlaceResource($governmentplace);
+
+        return GovernmentPlaceResource::make($governmentplace);
     }
 
+    /**
+     * PUT /government-places/{governmentplace}
+     */
     public function update(UpdateGovernmentPlaceRequest $request, GovernmentPlace $governmentplace)
     {
-        $governmentplace->update($request->validated());
+        $data = $request->validated();
+
+        $governmentplace->update($data);
         $governmentplace->load(['resource:id,name,code_number,phone_number']);
-        return new GovernmentPlaceResource($governmentplace);
+
+        return GovernmentPlaceResource::make($governmentplace);
     }
 
+    /**
+     * DELETE /government-places/{governmentplace}
+     */
     public function destroy(GovernmentPlace $governmentplace)
     {
         $governmentplace->delete();
-        return response()->json(['message' => 'Deleted']);
+
+        return response()->noContent();
+    }
+
+    /**
+     * Optional bulk delete (if you need it)
+     * POST /government-places/bulk-delete  with { "ids": [1,2,3] }
+     */
+    public function bulkDelete(Request $request)
+    {
+        $ids = (array) $request->input('ids', []);
+        GovernmentPlace::destroy($ids);
+
+        return response()->noContent();
     }
 }

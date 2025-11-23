@@ -55,6 +55,9 @@ return [
         'expense_oils',
         'oil_reports',
         'finance_reports',
+        'officeemployeereports',
+        'eventreports',
+        'informationreports',
 
         // ---- 56 Formats (match your API resource names / page slugs) ----
         // Base
@@ -78,6 +81,8 @@ return [
         'wakilanos','universities','masjids','highways','companies','donelostplaces',
         'econemyprojects','criminalcaptureplaces','pumps','shoras','checkpoints',
         'governmentplaces','supermarkets','parks','complexes','deplomaticplaces',
+        //reports
+        'fiftyformatreports'
     ],
 
     // Optional role bundles

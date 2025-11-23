@@ -46,7 +46,7 @@ class ParkController extends Controller
 
     public function show(Park $park)
     {
-        $park->load(['resource:id,name,code_number,phone_number']);
+        $park->load('resource');
         return new ParkResource($park);
     }
 

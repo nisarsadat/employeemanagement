@@ -237,9 +237,9 @@
               hide-details
             />
           </template>
-          <template #item.resource_phone_number="{ item }">
+          <template #item.resource_phone="{ item }">
             <v-text-field
-              v-model="item.draft.resource_phone_number"
+              v-model="item.draft.resource_phone"
               class="text-group"
               density="compact"
               variant="outlined"
@@ -302,6 +302,20 @@
       </v-card>
     </v-form>
   </v-container>
+  <!-- Peek + FilterableTable -->
+  <v-container fluid>
+    <PeekButton
+      v-model="expanded"
+      :id="selectedId"
+      :item="detail"
+      :loading="loading"
+      title-key="name"
+      :fields="headers"
+      :cols="3"
+      dir="rtl"
+      @fetch="fetchOne"
+    />
+  </v-container>
 
   <!-- FilterableTable -->
   <v-container fluid>
@@ -320,7 +334,19 @@
       @edit="startEdit"
       @peek="openPeek"
       class="mb-20 mx-2"
-    />
+    >
+      <!-- ✅ custom cell for the 'map' column -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.code_number"
+          type="g-p"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+    </FilterableTable>
   </v-container>
 
   <!-- Snackbars -->
@@ -339,6 +365,8 @@
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import FlyToMapButton from '../../components/FlyToMapButton.vue';
+  import PeekButton from '@/components/PeekButton.vue';
 
   const { t, locale } = useI18n();
   const drawer = ref(false);
@@ -377,7 +405,7 @@
 
       // Resource UI fields
       resource_code: x.resource_code ?? x.resource?.code_number ?? '',
-      resource_phone_number: x.resource_phone_number ?? x.resource?.phone_number ?? '',
+      resource_phone: x.resource_phone ?? x.resource?.phone_number ?? '',
       resource_id: x.resource_id ?? x.resource?.id ?? null,
 
       note: x.note ?? '',
@@ -411,7 +439,7 @@
   function onResourceCodeChange(item) {
     const code = item.draft.resource_code;
     const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone_number = found?.phone_number ?? '';
+    item.draft.resource_phone = found?.phone_number ?? '';
     item.draft.resource_id = found?.id ?? null;
   }
 
@@ -436,7 +464,7 @@
     { title: t('مختصات'), key: 'coordinates' }, // <-- before note
 
     { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone_number' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('یادداشت'), key: 'note' },
@@ -468,9 +496,10 @@
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone_number' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('یادداشت'), key: 'note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -486,7 +515,7 @@
     },
     { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village', 'specefic_place'] },
     { title: t('امنیت/تفصیل'), keys: ['tafseel', 'amnyatee_khala', 'guard_quantity'] },
-    { title: t('منبع'), keys: ['resource_code', 'resource_phone_number', 'resource_id'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone', 'resource_id'] },
     { title: t('سایر'), keys: ['note'] },
   ]);
 
@@ -651,6 +680,30 @@
   function clearRow() {
     setBlankEditorRow();
     showOkMessage(t('ورودی‌ها پاک شد'));
+  }
+  /* ===== Peek / Fetch ===== */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loading = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loading.value = true;
+    try {
+      await repo.FetchGovernmentPlaceData?.(id);
+      detail.value = repo.GovernmentPlace || [];
+    } catch (error) {
+      console.error('Fetch one error:', error);
+      showErrorMessage(t('خطا در دریافت اطلاعات'));
+    } finally {
+      loading.value = false;
+    }
+  }
+  function openPeek(payload) {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    expanded.value = true;
+    fetchOne(row.id);
   }
 
   /* Load dataset for FilterableTable only */

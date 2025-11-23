@@ -301,30 +301,29 @@
       {
         title: t(' راپورها'),
         icon: 'mdi-graph',
-        anyPerms: ['roles.view'], // group visible if user has at least one of these
         children: [
           {
             title: t('  پنځوس فارمټ'),
             icon: 'mdi-file-chart',
             to: { path: '/app/fiftyformatreports' },
-            perm: 'roles.view',
+            perm: 'fiftyformatreports.view',
           },
           {
             title: t(' کارمندان'),
             icon: 'mdi-cash',
             to: { path: '/app/officeemployeereports' },
-            perm: 'roles.view',
+            perm: 'officeemployeereports.view',
           },
           {
             title: t(' واقعات'),
             icon: 'mdi-cash',
             to: { path: '/app/eventreports' },
-            perm: 'roles.view',
+            perm: 'eventreports.view',
           },{
             title: t('اطلاعات'),
             icon: 'mdi-cash',
             to: { path: '/app/informationreports' },
-            perm: 'roles.view',
+            perm: 'informationreports.view',
           },
         ],
       },

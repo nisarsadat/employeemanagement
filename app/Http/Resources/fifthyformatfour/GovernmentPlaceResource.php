@@ -8,41 +8,48 @@ class GovernmentPlaceResource extends JsonResource
 {
     public function toArray($request): array
     {
+        $model = $this->resource; // the underlying Eloquent model
+
         return [
-            'id'                      => $this->id,
-            'government_place_name'   => $this->government_place_name,
-            'daily_clientele'         => $this->daily_clientele,
+            'id'                      => $model->id,
+            'government_place_name'   => $model->government_place_name,
+            'daily_clientele'         => $model->daily_clientele,
 
-            'responsible_name'        => $this->responsible_name,
-            'responsible_f_name'      => $this->responsible_f_name,
-            'responsible_possition'   => $this->responsible_possition,
-            'responsible_phone'       => $this->responsible_phone,
+            'responsible_name'        => $model->responsible_name,
+            'responsible_f_name'      => $model->responsible_f_name,
+            'responsible_possition'   => $model->responsible_possition,
+            'responsible_phone'       => $model->responsible_phone,
 
-            'province'                => $this->province,
-            'zone'                    => $this->zone,
-            'district'                => $this->district,
-            'village'                 => $this->village,
-            'specefic_place'          => $this->specefic_place,
-            'coordinates'             => $this->coordinates,
+            'province'                => $model->province,
+            'zone'                    => $model->zone,
+            'district'                => $model->district,
+            'village'                 => $model->village,
+            'specefic_place'          => $model->specefic_place,
+            'coordinates'             => $model->coordinates,
 
-            'tafseel'                 => $this->tafseel,
-            'amnyatee_khala'          => $this->amnyatee_khala,
-            'guard_quantity'          => $this->guard_quantity,
+            'tafseel'                 => $model->tafseel,
+            'amnyatee_khala'          => $model->amnyatee_khala,
+            'guard_quantity'          => $model->guard_quantity,
 
-            'resource_code'           => $this->resource->code_number ?? null,
-            'resource_phone'          => $this->resource->phone_number ?? null,
+            // Flattened from relation (match Fasad style)
+            'resource_code'     => optional($model->resource)->code_number,
+            'resource_phone'    => optional($model->resource)->phone_number,
 
-            'resource_id'             => $this->resource_id,
-            'resource'                => $this->whenLoaded('resource', fn () => [
-                'id'   => $this->resource->id,
-                'name' => $this->resource->name ?? null,
-            ]),
+            'resource_id'       => $model->resource_id,
 
-            'note'                    => $this->note,
-            'Province_addr'               => $this->Province_addr,
+            // Keep nested (match Fasad style)
+            'resource'          => $this->whenLoaded('resource', function () use ($model) {
+                return [
+                    'id'   => optional($model->resource)->id,
+                    'name' => optional($model->resource)->name,
+                ];
+            }),
 
-            'created_at'              => $this->created_at,
-            'updated_at'              => $this->updated_at,
+            'note'                    => $model->note,
+            'Province_addr'               => $model->Province_addr,
+
+            'created_at'              => $model->created_at,
+            'updated_at'              => $model->updated_at,
         ];
     }
 }
