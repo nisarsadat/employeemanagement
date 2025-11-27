@@ -66,7 +66,7 @@
                 {{ model.status || t('نامشخص') }}
               </v-chip>
               <v-chip variant="outlined" class="bg-black" size="small">
-                {{ model.code_number || t('بدون کد') }} کود نمبر
+                {{ model.code_number || t('بدون کود') }} کود نمبر
               </v-chip>
             </v-col>
           </v-row>
@@ -330,7 +330,7 @@
     },
     {
       key: 'tazkira',
-      label: t('تذکره'),
+      label: t('شماره تذکره'),
       value: model.value?.tazkira || '—',
       icon: 'mdi-card-account-details',
     },

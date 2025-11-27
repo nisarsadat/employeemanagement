@@ -36,7 +36,7 @@
             <!-- office_employee_id -->
             <v-col cols="12" md="4">
               <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('کود کارمند دفتر') }}</v-card-subtitle>
+                <v-card-subtitle class="field-label">{{ t('کود کارمند') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
                 <v-autocomplete
@@ -295,7 +295,7 @@
 
             <v-col cols="12" md="6">
               <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('وضاحت') }}</v-card-subtitle>
+                <v-card-subtitle class="field-label">{{ t('صحبت های انجام شده') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
                 <v-textarea

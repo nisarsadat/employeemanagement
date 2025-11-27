@@ -37,7 +37,7 @@ export default createVuetify({
         colors: {
           background: '#F8F9FA',  // Light gray background
           surface: '#FFFFFF',     // White surfaces
-          primary: '##08989f',     // Deep green (Material Green 800)
+          primary: '#08989f',     // Deep green (Material Green 800)
           navi: '#c7edef',     // Deep green (Material Green 800)
           blackicon: '#000',     // Deep green (Material Green 800)
           'primary-darken-1': '#1B5E20',  // Darker green

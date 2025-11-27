@@ -17,8 +17,8 @@
           density="comfortable"
           color="primary"
         >
-          <v-tab value="active">{{ t('فعال') }}</v-tab>
-          <v-tab value="inactive">{{ t('غیر فعال') }}</v-tab>
+          <v-tab value="active">{{ t('کارمند های فعال') }}</v-tab>
+          <v-tab value="inactive">{{ t('کارمند های غیر فعال') }}</v-tab>
         </v-tabs>
 
         <v-window v-model="tab">

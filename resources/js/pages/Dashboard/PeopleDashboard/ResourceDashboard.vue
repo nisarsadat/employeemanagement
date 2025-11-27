@@ -7,13 +7,13 @@
     <v-row class="mb-2">
       <v-col cols="12" class="d-flex flex-wrap ga-2">
         <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('day')">
-          {{ t('ورځ') }}
+          {{ t('روز') }}
         </v-btn>
         <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('month')">
-          {{ t('میاشت') }}
+          {{ t('ماه') }}
         </v-btn>
         <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('year')">
-          {{ t('کال') }}
+          {{ t('سال') }}
         </v-btn>
       </v-col>
     </v-row>
@@ -33,7 +33,7 @@
       <v-col cols="12" md="3">
         <v-text-field
           v-model.trim="repo.From"
-          :label="t('له نېټې')"
+          :label="t('از تاریخ')"
           placeholder="2025-07-01"
           density="compact"
           variant="outlined"
@@ -44,7 +44,7 @@
       <v-col cols="12" md="3">
         <v-text-field
           v-model.trim="repo.To"
-          :label="t('تر نېټې')"
+          :label="t('تا تاریخ')"
           placeholder="2025-10-31"
           density="compact"
           variant="outlined"
@@ -56,7 +56,7 @@
         <v-select
           v-model="repo.GroupBy"
           :items="groupByItems"
-          :label="t('ډول بندي')"
+          :label="t('نوع بندی')"
           density="compact"
           variant="outlined"
         />
@@ -69,7 +69,7 @@
         <v-card class="rounded-2xl gradient-cyan" elevation="3">
           <v-card-text class="d-flex align-center justify-space-between">
             <div>
-              <div class="text-caption text-high">{{ t('نوي سرچينې') }}</div>
+              <div class="text-caption text-high">{{ t('نوع منبع') }}</div>
               <div class="text-h4 font-weight-bold mt-1">{{ cards.new_resources ?? '—' }}</div>
             </div>
             <v-icon size="48">mdi-account-plus</v-icon>
@@ -81,7 +81,7 @@
         <v-card class="rounded-2xl gradient-teal" elevation="3">
           <v-card-text class="d-flex align-center justify-space-between">
             <div>
-              <div class="text-caption text-high">{{ t('فعاله کارکوونکي') }}</div>
+              <div class="text-caption text-high">{{ t('کارمندان فعال') }}</div>
               <div class="text-h4 font-weight-bold mt-1">{{ cards.active_employees ?? '—' }}</div>
             </div>
             <v-icon size="48">mdi-account-group</v-icon>
@@ -93,7 +93,7 @@
         <v-card class="rounded-2xl gradient-purple" elevation="3">
           <v-card-text class="d-flex align-center justify-space-between">
             <div>
-              <div class="text-caption text-high">{{ t('لېږدول شوي بنديان') }}</div>
+              <div class="text-caption text-high">{{ t('زندانی های تسلیم شده') }}</div>
               <div class="text-h4 font-weight-bold mt-1">{{ cards.captive_deliveries ?? '—' }}</div>
             </div>
             <v-icon size="48">mdi-handcuffs</v-icon>
@@ -107,7 +107,7 @@
       <v-col cols="12">
         <v-card elevation="3" class="rounded-2xl">
           <v-card-title class="text-subtitle-2 px-4 pt-3">
-            {{ t('سرچينې د وخت له مخې ') }}
+            {{ t('منابع از روی وقت') }}
           </v-card-title>
           <v-card-text class="pt-0">
             <div ref="roseRef" style="width: 100%; height: 520px"></div>
@@ -139,9 +139,9 @@ const direction = computed(() =>
 
 /* ---------- group by items (translated) ---------- */
 const groupByItems = computed(() => [
-  { title: t('مياشت'), value: 'month' },
-  { title: t('اونۍ'),  value: 'week'  },
-  { title: t('ورځ'),   value: 'day'   },
+  { title: t('ماه'), value: 'month' },
+  { title: t('هفته'),  value: 'week'  },
+  { title: t('روز'),   value: 'day'   },
 ])
 
 /* ---------- cards ---------- */
@@ -276,7 +276,7 @@ async function setRoseFromApi() {
     })
     .filter((s) => s.name)
 
-  const safeSlices = slices.length ? slices : [{ name: t('ډاټا نشته'), value: 0 }]
+  const safeSlices = slices.length ? slices : [{ name: t('دیتا موجود نیست'), value: 0 }]
 
   ensureRoseChart()
   if (roseChart) {

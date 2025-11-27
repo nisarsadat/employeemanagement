@@ -111,7 +111,7 @@
           <v-col cols="12" md="2">
             <v-text-field
               v-model.trim="repo.ProvinceAddr"
-              :label="t('اساس ولایت (Province_addr)')"
+              :label="t('اساس ولایت ')"
               density="compact"
               variant="outlined"
               clearable
@@ -208,7 +208,8 @@
               v-model="repo.Period"
               density="compact"
               variant="outlined"
-              class="w-100"
+              color="red"
+              class="w-100 bg-primary"
               divided
             >
               <v-btn value="daily" size="small">{{ t('ورځنی') }}</v-btn>
@@ -324,11 +325,7 @@
       <v-divider />
 
       <v-expansion-panels v-model="openPanels" multiple class="pa-2">
-        <v-expansion-panel
-          v-for="(group, idx) in repo.rows"
-          :key="idx"
-          class="mb-2"
-        >
+        <v-expansion-panel v-for="(group, idx) in repo.rows" :key="idx" class="mb-2">
           <v-expansion-panel-title class="py-3">
             <template #default="{ expanded }">
               <div class="d-flex flex-column w-100">
@@ -430,24 +427,14 @@
               </template>
 
               <template #item.talafat_jani="{ item }">
-                <v-chip
-                  v-if="item.talafat_jani"
-                  size="small"
-                  variant="tonal"
-                  color="warning"
-                >
+                <v-chip v-if="item.talafat_jani" size="small" variant="tonal" color="warning">
                   {{ item.talafat_jani }}
                 </v-chip>
                 <span v-else>-</span>
               </template>
 
               <template #item.talafat_mali="{ item }">
-                <v-chip
-                  v-if="item.talafat_mali"
-                  size="small"
-                  variant="tonal"
-                  color="secondary"
-                >
+                <v-chip v-if="item.talafat_mali" size="small" variant="tonal" color="secondary">
                   {{ item.talafat_mali }}
                 </v-chip>
                 <span v-else>-</span>
@@ -498,9 +485,7 @@
       class="text-center py-8"
       rounded="lg"
     >
-      <v-icon size="64" color="grey-lighten-1" class="mb-4">
-        mdi-database-remove-outline
-      </v-icon>
+      <v-icon size="64" color="grey-lighten-1" class="mb-4"> mdi-database-remove-outline </v-icon>
       <div class="text-h6 text-grey mb-2">
         {{ t('هیڅ نتیجه ونه موندل شوه') }}
       </div>
@@ -515,149 +500,147 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import AppBar from '@/components/AppBar.vue'
-import DateInput from '@/components/DateInput.vue'
-import { useCalendar } from '../../../composables/useCalendar'
-import { useEventsReportRepository } from '@/stores/EventsReportRepository'
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import AppBar from '@/components/AppBar.vue';
+  import DateInput from '@/components/DateInput.vue';
+  import { useCalendar } from '../../../composables/useCalendar';
+  import { useEventsReportRepository } from '@/stores/EventsReportRepository';
 
-const { t, locale } = useI18n()
-const { calendar, formatForDisplay } = useCalendar()
+  const { t, locale } = useI18n();
+  const { calendar, formatForDisplay } = useCalendar();
 
-const isRtl = computed(() =>
-  ['fa', 'ps', 'prs', 'fa-AF'].includes(locale.value),
-)
+  const isRtl = computed(() => ['fa', 'ps', 'prs', 'fa-AF'].includes(locale.value));
 
-const drawer = ref(false)
-const repo = useEventsReportRepository()
-const openPanels = ref([])
+  const drawer = ref(false);
+  const repo = useEventsReportRepository();
+  const openPanels = ref([]);
 
-const criminalItems = [
-  { title: t('ټول'), value: 'all' },
-  { title: t('یوازې د مجرم لرونکې'), value: 'yes' },
-  { title: t('یوازې بې مجرمه'), value: 'no' },
-]
+  const criminalItems = [
+    { title: t('ټول'), value: 'all' },
+    { title: t('یوازې د مجرم لرونکې'), value: 'yes' },
+    { title: t('یوازې بې مجرمه'), value: 'no' },
+  ];
 
-const headers = computed(() => [
-  { title: t('نېټه'), value: 'event_date', width: '9%' },
-  { title: t('ساعت'), value: 'event_hour', width: '6%' },
-  { title: t('ډول'), value: 'event_type', width: '10%' },
-  { title: t('مشخص ډول'), value: 'event_specific_type', width: '12%' },
-  { title: t('زون'), value: 'event_zone', width: '8%' },
-  { title: t('حوزه'), value: 'event_hawza', width: '8%' },
-  { title: t('هدف شخص/اداره'), value: 'target_person', width: '14%' },
-  { title: t('مجرم'), value: 'criminal', width: '8%' },
-  { title: t('انساني تلفات'), value: 'talafat_jani', width: '10%' },
-  { title: t('مالي تلفات'), value: 'talafat_mali', width: '10%' },
-  { title: t('کارمند'), value: 'employee', width: '15%' },
-  { title: t('منبع'), value: 'resource', width: '15%' },
-  {
-    title: t('ورځې له پیښې وروسته'),
-    value: 'days_since_event',
-    width: '8%',
-    align: 'center',
-  },
-])
+  const headers = computed(() => [
+    { title: t('نېټه'), value: 'event_date', width: '9%' },
+    { title: t('ساعت'), value: 'event_hour', width: '6%' },
+    { title: t('ډول'), value: 'event_type', width: '10%' },
+    { title: t('مشخص ډول'), value: 'event_specific_type', width: '12%' },
+    { title: t('زون'), value: 'event_zone', width: '8%' },
+    { title: t('حوزه'), value: 'event_hawza', width: '8%' },
+    { title: t('هدف شخص/اداره'), value: 'target_person', width: '14%' },
+    { title: t('مجرم'), value: 'criminal', width: '8%' },
+    { title: t('انساني تلفات'), value: 'talafat_jani', width: '10%' },
+    { title: t('مالي تلفات'), value: 'talafat_mali', width: '10%' },
+    { title: t('کارمند'), value: 'employee', width: '15%' },
+    { title: t('منبع'), value: 'resource', width: '15%' },
+    {
+      title: t('ورځې له پیښې وروسته'),
+      value: 'days_since_event',
+      width: '8%',
+      align: 'center',
+    },
+  ]);
 
-const summaryExists = computed(() => !!Object.keys(repo.summary || {}).length)
+  const summaryExists = computed(() => !!Object.keys(repo.summary || {}).length);
 
-const allTimeModel = computed({
-  get() {
-    return !!repo.ignoreDates
-  },
-  set(val) {
-    repo.setAllTime(val)
-  },
-})
+  const allTimeModel = computed({
+    get() {
+      return !!repo.ignoreDates;
+    },
+    set(val) {
+      repo.setAllTime(val);
+    },
+  });
 
-function daysColor(days) {
-  if (days == null) return 'grey'
-  if (days <= 7) return 'success'
-  if (days <= 30) return 'warning'
-  return 'error'
-}
-
-function getDaysIcon(days) {
-  if (days <= 7) return 'mdi-timer-outline'
-  if (days <= 30) return 'mdi-timer-sand-empty'
-  return 'mdi-timer-off-outline'
-}
-
-function formatDate(dateString) {
-  if (!dateString) return ''
-  if (typeof formatForDisplay === 'function') {
-    try {
-      return formatForDisplay(dateString)
-    } catch {
-      // ignore
-    }
+  function daysColor(days) {
+    if (days == null) return 'grey';
+    if (days <= 7) return 'success';
+    if (days <= 30) return 'warning';
+    return 'error';
   }
-  const d = new Date(dateString)
-  if (Number.isNaN(d.getTime())) return dateString
-  return d.toLocaleDateString('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-  })
-}
 
-function resetFilters() {
-  repo.Search = ''
-  repo.ProvinceAddr = ''
-  repo.Zone = ''
-  repo.Hawza = ''
-  repo.EventType = ''
-  repo.EventSpecificType = ''
-  repo.TargetPerson = ''
-  repo.Criminal = 'all'
-  repo.OfficeEmployeeId = ''
-  repo.ResourceId = ''
-  repo.Period = 'all'
-  repo.From = ''
-  repo.To = ''
-  repo.ignoreDates = 1
-  openPanels.value = []
-  repo.fetchReport()
-}
+  function getDaysIcon(days) {
+    if (days <= 7) return 'mdi-timer-outline';
+    if (days <= 30) return 'mdi-timer-sand-empty';
+    return 'mdi-timer-off-outline';
+  }
 
-onMounted(() => {
-  repo.fetchReport()
-})
+  function formatDate(dateString) {
+    if (!dateString) return '';
+    if (typeof formatForDisplay === 'function') {
+      try {
+        return formatForDisplay(dateString);
+      } catch {
+        // ignore
+      }
+    }
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return dateString;
+    return d.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+    });
+  }
 
-watch(
-  () => [repo.ProvinceAddr, repo.Zone, repo.Hawza, repo.EventType, repo.Criminal],
-  () => {
-    openPanels.value = []
-  },
-)
+  function resetFilters() {
+    repo.Search = '';
+    repo.ProvinceAddr = '';
+    repo.Zone = '';
+    repo.Hawza = '';
+    repo.EventType = '';
+    repo.EventSpecificType = '';
+    repo.TargetPerson = '';
+    repo.Criminal = 'all';
+    repo.OfficeEmployeeId = '';
+    repo.ResourceId = '';
+    repo.Period = 'all';
+    repo.From = '';
+    repo.To = '';
+    repo.ignoreDates = 1;
+    openPanels.value = [];
+    repo.fetchReport();
+  }
+
+  onMounted(() => {
+    repo.fetchReport();
+  });
+
+  watch(
+    () => [repo.ProvinceAddr, repo.Zone, repo.Hawza, repo.EventType, repo.Criminal],
+    () => {
+      openPanels.value = [];
+    }
+  );
 </script>
 
 <style scoped>
-.summary-card {
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
+  .summary-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
 
-.summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-}
+  .summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
 
-.v-expansion-panel {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
-}
+  .v-expansion-panel {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+  }
 
-:deep(.v-data-table) {
-  border-radius: 8px;
-}
+  :deep(.v-data-table) {
+    border-radius: 8px;
+  }
 
-:deep(.v-data-table-header) {
-  background-color: rgba(0, 0, 0, 0.02);
-}
+  :deep(.v-data-table-header) {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
 
-.cursor-pointer {
-  cursor: pointer;
-}
+  .cursor-pointer {
+    cursor: pointer;
+  }
 </style>

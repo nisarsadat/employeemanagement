@@ -1,11 +1,5 @@
 <template>
   <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar
-      :title="t('د پنځه شپېته بڼو عمومي ډشبورډ')"
-      :subtitle="t('یو مخ — کارتونه، ګرافونه، جدول')"
-      @toggle-drawer="() => {}"
-    />
-
     <!-- Filters -->
     <v-row class="mb-4" align="end">
       <v-col cols="12" md="3">
@@ -14,7 +8,7 @@
           :items="formatOptions"
           item-title="label"
           item-value="key"
-          :label="t('بڼه/فورمټ')"
+          :label="t('فارمت')"
           density="compact"
           variant="outlined"
           clearable
@@ -34,7 +28,7 @@
       <v-col cols="12" md="3">
         <v-text-field
           v-model.trim="repo.From"
-          :label="t('له نېټې')"
+          :label="t('از تاریخ')"
           placeholder="2025-10-01"
           density="compact"
           variant="outlined"
@@ -44,7 +38,7 @@
       <v-col cols="12" md="3">
         <v-text-field
           v-model.trim="repo.To"
-          :label="t('تر نېټې')"
+          :label="t('تا تاریخ')"
           placeholder="2025-10-31"
           density="compact"
           variant="outlined"
@@ -55,7 +49,7 @@
       <v-col cols="12" md="9">
         <v-text-field
           v-model.trim="repo.Search"
-          :label="t('לټون')"
+          :label="t('جستجو')"
           prepend-inner-icon="mdi-magnify"
           density="compact"
           variant="outlined"
@@ -67,13 +61,13 @@
       <!-- Granularity -->
       <v-col cols="12" md="3" class="text-md-right granularity">
         <v-btn variant="flat" color="primary" class="mr-2" :class="btnClass('daily')" @click="quickRange('daily')">
-          {{ t('ورځنی') }}
+          {{ t('روزانه') }}
         </v-btn>
         <v-btn variant="flat" color="primary" class="mr-2" :class="btnClass('monthly')" @click="quickRange('monthly')">
-          {{ t('میاشتنی') }}
+          {{ t('ماهانه') }}
         </v-btn>
         <v-btn variant="flat" color="primary" :class="btnClass('yearly')" @click="quickRange('yearly')">
-          {{ t('کلنی') }}
+          {{ t('سالانه') }}
         </v-btn>
       </v-col>
     </v-row>
@@ -84,7 +78,7 @@
         <v-card class="pa-4 h-100 soft-card" elevation="1">
           <div class="text-overline text-primary">{{ c.label }}</div>
           <div class="text-h5 font-weight-bold mt-1">{{ c.total }}</div>
-          <div class="text-caption text-medium-emphasis">{{ t('ټول ریکارډونه') }}</div>
+          <div class="text-caption text-medium-emphasis">{{ t('تمام ریکارد ها') }}</div>
         </v-card>
       </v-col>
     </v-row>
@@ -94,7 +88,7 @@
       <v-col cols="12" md="8">
         <v-card class="pa-3 soft-card" elevation="1">
           <div class="d-flex align-center justify-space-between mb-2">
-            <div class="text-subtitle-1 font-weight-medium">{{ t('وختي لړۍ') }}</div>
+            <div class="text-subtitle-1 font-weight-medium">{{ t('پروسه زمانی') }}</div>
             <v-chip density="compact" variant="flat">{{ granularityLabel }}</v-chip>
           </div>
           <apexchart type="bar" height="340" :options="stackedOptions" :series="stackedSeries" />
@@ -105,7 +99,7 @@
       <v-col cols="12" md="4">
         <v-card class="pa-3 soft-card" elevation="1">
           <div class="text-subtitle-1 font-weight-medium mb-2">
-            {{ t('ترکیب د بڼو له مخې') }}
+            {{ t('ترکیب از لحاظ صفحات') }}
           </div>
           <apexchart type="polarArea" height="340" :options="polarOptions" :series="polarSeries" />
         </v-card>
@@ -117,7 +111,7 @@
       <v-col cols="12" md="7">
         <v-card class="pa-3 soft-card" elevation="1">
           <div class="d-flex align-center justify-space-between mb-2">
-            <div class="text-subtitle-1 font-weight-medium">{{ t('لومړي سرچينې') }}</div>
+            <div class="text-subtitle-1 font-weight-medium">{{ t('منابع برتر') }}</div>
             <v-select
               v-model="repo.formatKey"
               :items="formatOptions"
@@ -138,7 +132,7 @@
 
       <v-col cols="12" md="5">
         <v-card class="pa-3 soft-card" elevation="1">
-          <div class="text-subtitle-1 font-weight-medium mb-2">{{ t('وروستي ریکارډونه') }}</div>
+          <div class="text-subtitle-1 font-weight-medium mb-2">{{ t('ریکارد های اخیر') }}</div>
           <v-data-table
             :headers="recentHeaders"
             :items="repo.recent"
@@ -173,21 +167,21 @@ watch(locale, l => { isRtl.value = (l === 'fa') })
 
 /* Formats (match backend keys) */
 const formatOptions = [
-  { key: 'captive', label: t('وسپارل شوي بندیان') },
-  { key: 'clubs', label: t('کلپونه') },
+  { key: 'captive', label: t('زندانی های تسلیم شده') },
+  { key: 'clubs', label: t('جا های ورشی') },
   { key: 'entry_exit', label: t('داخل/خروج') },
   { key: 'fasad', label: t('فساد') },
-  { key: 'heist', label: t('د غلا پېښې') },
-  { key: 'mahajerat', label: t('מهاجرتونه') },
-  { key: 'mulkano', label: t('ملکانو') },
-  { key: 'saeen_fasad', label: t('ساین فساد') },
-  { key: 'sarafyano', label: t('صرافیانو') },
-  { key: 'soldier', label: t('سرتیري') },
+  { key: 'heist', label: t('دزدی') },
+  { key: 'mahajerat', label: t('مهاجرت ها') },
+  { key: 'mulkano', label: t('ملک ها') },
+  { key: 'saeen_fasad', label: t('ساعین فساد') },
+  { key: 'sarafyano', label: t('صرافی ها') },
+  { key: 'soldier', label: t('سرباز ها') },
 ]
 
 const granularityLabel = computed(() => ({
-  daily: t('ورځنی'), monthly: t('میاشتنی'), yearly: t('کلنی')
-}[repo.granularity] || t('ورځنی')))
+  daily: t('روزانه'), monthly: t('ماهانه'), yearly: t('سالانه')
+}[repo.granularity] || t('روزانه')))
 
 function endOfTodayISO() {
   const d = new Date(); d.setHours(23,59,59,999); return d.toISOString().slice(0,10)
@@ -271,7 +265,7 @@ const stackedOptions = computed(() => ({
   legend: { position: isRtl.value ? 'left' : 'right' },
   grid: { borderColor: 'rgba(0,0,0,0.08)', strokeDashArray: 4 },
   tooltip: { shared: true, intersect: false },
-  noData: { text: t('ډاټا نشته') }
+  noData: { text: t('دیتا موجود نیست') }
 }))
 
 /* ===================== RIGHT: POLAR AREA (with NaN% guard) ===================== */
@@ -304,7 +298,7 @@ const polarOptions = computed(() => ({
     style: { fontSize: '12px' }
   },
   plotOptions: { polarArea: { rings: { strokeWidth: 0 }, spokes: { strokeWidth: 1 } } },
-  noData: { text: t('ډاټا نشته'), align: 'center' }
+  noData: { text: t('دیتا موجود نیست'), align: 'center' }
 }))
 
 /* ===================== BOTTOM: TOP RESOURCES BAR ===================== */
@@ -316,9 +310,9 @@ const barCats = computed(() => {
 })
 const barSeries = computed(() => {
   const b = repo.buckets || []
-  if (!b.length) return [{ name: t('ریکارډونه'), data: [] }]
+  if (!b.length) return [{ name: t('ریکارد ها'), data: [] }]
   const first = repo.formatKey ? b.find(x => x.key === repo.formatKey) || b[0] : b[0]
-  return [{ name: t('ریکارډونه'), data: (first.items || []).map(i => Number(i.count || 0)) }]
+  return [{ name: t('ریکارد ها'), data: (first.items || []).map(i => Number(i.count || 0)) }]
 })
 const barOptions = computed(() => ({
   chart: { toolbar: { show: false }, foreColor: 'inherit', fontFamily: 'Inter, Vazirmatn, system-ui' },
@@ -331,15 +325,15 @@ const barOptions = computed(() => ({
   xaxis: { categories: barCats.value, axisTicks: { show: false }, axisBorder: { show: false } },
   yaxis: { labels: { maxWidth: 220 } },
   tooltip: { y: { formatter: (v) => `${v}` } },
-  noData: { text: t('ډاټا نشته') }
+  noData: { text: t('دیتا موجود نیست') }
 }))
 
 /* ===================== TABLE ===================== */
 const recentHeaders = [
-  { key: 'type', title: t('ډول'), width: 110 },
-  { key: 'name', title: t('نوم') },
+  { key: 'type', title: t('نوع'), width: 110 },
+  { key: 'name', title: t('نام') },
   { key: 'zone', title: t('زون'), width: 120 },
-  { key: 'created_at', title: t('نېټه'), width: 140 },
+  { key: 'created_at', title: t('تاریخ'), width: 140 },
 ]
 function formatDate(iso) { return iso ? String(iso).slice(0, 10) : '' }
 </script>

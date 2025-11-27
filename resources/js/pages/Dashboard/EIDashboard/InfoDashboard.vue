@@ -156,9 +156,9 @@ onUnmounted(() => {
     <!-- Range buttons -->
     <v-row class="mb-3">
       <v-col cols="12" class="d-flex flex-wrap ga-2">
-        <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('day')">{{ t('ورځ') }}</v-btn>
-        <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('month')">{{ t('میاشت') }}</v-btn>
-        <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('year')">{{ t('کال') }}</v-btn>
+        <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('day')">{{ t('روز') }}</v-btn>
+        <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('month')">{{ t('ماه') }}</v-btn>
+        <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('year')">{{ t('سال') }}</v-btn>
       </v-col>
     </v-row>
 
@@ -176,13 +176,13 @@ onUnmounted(() => {
     <v-row class="mt-2">
       <v-col cols="12" md="7">
         <v-card elevation="3" class="pa-2 rounded-2xl">
-          <div class="text-subtitle-2 px-2 pt-2">{{ t('مالومات د وخت په اوږدو کې') }}</div>
+          <div class="text-subtitle-2 px-2 pt-2">{{ t('اطلاعات در آستانه وقت') }}</div>
           <div ref="lineRef" style="height:380px;"></div>
         </v-card>
       </v-col>
       <v-col cols="12" md="5">
         <v-card elevation="3" class="pa-2 rounded-2xl">
-          <div class="text-subtitle-2 px-2 pt-2">{{ t('ترکیب د ولایت له مخې') }}</div>
+          <div class="text-subtitle-2 px-2 pt-2">{{ t('ترکیب از روی ولایت') }}</div>
           <div ref="pieRef" style="height:380px;"></div>
         </v-card>
       </v-col>
@@ -192,16 +192,16 @@ onUnmounted(() => {
     <v-row class="mt-3" :dir="direction">
       <v-col cols="12">
         <v-card elevation="3" class="rounded-2xl">
-          <v-card-title class="text-subtitle-2">{{ t('وروستي مالومات') }}</v-card-title>
+          <v-card-title class="text-subtitle-2">{{ t('اطلاعات اخیر') }}</v-card-title>
           <v-data-table
             :items="infoRows"
             :headers="[
               { title: t('نوم'), key: 'name' },
-              { title: t('کنیه'), key: 'nick_name' },
+              { title: t('نام مستعار'), key: 'nick_name' },
               { title: t('ولایت'), key: 'province' },
               { title: t('ولسوالي'), key: 'district' },
               { title: t('درجه'), key: 'degree' },
-              { title: t(' نېټه'), key: 'saved_date_fmt' }
+              { title: t(' تاریخ'), key: 'saved_date_fmt' }
             ]"
             density="compact"
             hide-default-footer

@@ -7,13 +7,13 @@
     <v-row class="mb-2">
       <v-col cols="12" class="d-flex flex-wrap ga-2">
         <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('day')">
-          {{ t('ورځ') }}
+          {{ t('روز') }}
         </v-btn>
         <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('month')">
-          {{ t('میاشت') }}
+          {{ t('ماه') }}
         </v-btn>
         <v-btn class="rounded-xl" variant="flat" color="primary" @click="setRange('year')">
-          {{ t('کال') }}
+          {{ t('سال') }}
         </v-btn>
       </v-col>
     </v-row>
@@ -33,7 +33,7 @@
       <v-col cols="12" md="3">
         <v-text-field
           v-model.trim="repo.From"
-          :label="t('له نېټې')"
+          :label="t(' از تاریخ')"
           placeholder="2025-10-01"
           density="compact"
           variant="outlined"
@@ -44,7 +44,7 @@
       <v-col cols="12" md="3">
         <v-text-field
           v-model.trim="repo.To"
-          :label="t('تر نېټې')"
+          :label="t('تا تاریخ')"
           placeholder="2025-10-31"
           density="compact"
           variant="outlined"
@@ -74,7 +74,7 @@
     <!-- Manual refresh -->
     <v-row>
       <v-col>
-        <v-btn color="primary" class="rounded-xl" @click="loadAll">{{ t('تازه کول') }}</v-btn>
+        <v-btn color="primary" class="rounded-xl" @click="loadAll">{{ t('دریافت مجدد') }}</v-btn>
       </v-col>
     </v-row>
 
@@ -84,7 +84,7 @@
         <v-card class="glass-soft rounded-2xl gradient-teal" :elevation="3">
           <v-card-text class="d-flex align-center justify-space-between">
             <div>
-              <div class="text-caption text-high">{{ t('فعاله کارکوونکي') }}</div>
+              <div class="text-caption text-high">{{ t(' کارمندان فعال') }}</div>
               <div class="text-h4 font-weight-bold mt-1">{{ cards.active_employees ?? '—' }}</div>
             </div>
             <v-icon size="48">mdi-account-group</v-icon>
@@ -96,7 +96,7 @@
         <v-card class="glass-soft rounded-2xl gradient-cyan" :elevation="3">
           <v-card-text class="d-flex align-center justify-space-between">
             <div>
-              <div class="text-caption text-high">{{ t('نوي سرچينې') }}</div>
+              <div class="text-caption text-high">{{ t(' منابع جدید') }}</div>
               <div class="text-h4 font-weight-bold mt-1">{{ cards.new_resources ?? '—' }}</div>
             </div>
             <v-icon size="48">mdi-account-plus</v-icon>
@@ -108,7 +108,7 @@
         <v-card class="glass-soft rounded-2xl gradient-purple" :elevation="3">
           <v-card-text class="d-flex align-center justify-space-between">
             <div>
-              <div class="text-caption text-high">{{ t('لېږدول شوي بنديان') }}</div>
+              <div class="text-caption text-high">{{ t('زندانی های تسلیم شده') }}</div>
               <div class="text-h4 font-weight-bold mt-1">{{ cards.captive_deliveries ?? '—' }}</div>
             </div>
             <v-icon size="48">mdi-handcuffs</v-icon>
@@ -123,7 +123,7 @@
         <v-card class="glass-soft rounded-2xl" :elevation="2">
           <v-card-text>
             <ChartBox
-              :title="t('کارکوونکي د زون له مخې')"
+              :title="t('کارمندان از روی زون')"
               color="indigo-lighten-4"
               :option="optEmployeesByZone"
               height="360px"
@@ -136,8 +136,7 @@
         <v-card class="glass-soft rounded-2xl" :elevation="2">
           <v-card-text>
             <RandomNamePie
-              :title="t('کارکوونکي د زون له مخې (سلنه)')"
-              :subtitle="t('حقيقي معلومات')"
+              :title="t('کارمندان از روی زون به فیصدی)')"
               :labels="pieLabels"
               :values="pieValues"
               color="indigo-lighten-4"
@@ -155,7 +154,7 @@
         <v-card class="glass-soft rounded-2xl" :elevation="2">
           <v-card-text>
             <ChartBox
-              :title="t('هغه کارکوونکي چې پېښې لري (زون)')"
+              :title="t('کارمندان که واقعات دارند از روی زون')"
               color="deep-purple-lighten-4"
               :option="optEmployeesWithEvents"
               height="360px"
@@ -170,7 +169,7 @@
       <v-col cols="12">
         <v-card class="glass-soft rounded-2xl" :elevation="2">
           <v-card-title class="text-subtitle-1 font-weight-bold">
-            {{ t('فعالتياوې د کارکوونکي له مخې') }}
+            {{ t('فعالیت ها از لحاظ کارمندان') }}
           </v-card-title>
 
           <v-card-subtitle class="pb-6">
@@ -180,7 +179,7 @@
               size="small"
               @click="switchGroup('events')"
             >
-              {{ t('پېښې') }}
+              {{ t('واقعات') }}
             </v-btn>
             <v-btn
               class="rounded-xl"
@@ -188,7 +187,7 @@
               size="small"
               @click="switchGroup('informations')"
             >
-              {{ t('مالومات') }}
+              {{ t('اطلاعات') }}
             </v-btn>
           </v-card-subtitle>
 
@@ -212,7 +211,7 @@
 
             <template #item.zone="{ item }">
               <v-chip size="small" color="primary" variant="tonal">
-                {{ (item?.raw ?? item)?.zone || t('نامعلوم') }}
+                {{ (item?.raw ?? item)?.zone || t('نامشخص') }}
               </v-chip>
             </template>
 

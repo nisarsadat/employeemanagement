@@ -1,12 +1,6 @@
 <!-- src/views/dashboard/FifthyFormatOneDashboard.vue -->
 <template>
   <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar
-      :title="t('د پنځه-یو بڼو ډشبورډ (fifthyformatone)')"
-      :subtitle="t('یو مخ — کارتونه، ګرافونه، جدول')"
-      @toggle-drawer="() => {}"
-    />
-
     <!-- Filters -->
     <v-row class="mb-4" align="end">
       <v-col cols="12" md="3">
@@ -15,7 +9,7 @@
           :items="formatOptions"
           item-title="label"
           item-value="key"
-          :label="t('بڼه/فورمټ')"
+          :label="t('فارمت')"
           density="compact"
           variant="outlined"
           clearable
@@ -37,7 +31,7 @@
       <v-col cols="12" md="3">
         <v-date-input
           v-model="fromModel"
-          :label="t('له نېټې')"
+          :label="t('از تاریخ')"
           color="primary"
           density="compact"
           variant="outlined"
@@ -54,7 +48,7 @@
       <v-col cols="12" md="3">
         <v-date-input
           v-model="toModel"
-          :label="t('تر نېټې')"
+          :label="t('تا تاریخ')"
           color="primary"
           density="compact"
           variant="outlined"
@@ -70,7 +64,7 @@
       <v-col cols="12" md="9">
         <v-text-field
           v-model.trim="repo.Search"
-          :label="t('لټون')"
+          :label="t('جستجو')"
           prepend-inner-icon="mdi-magnify"
           density="compact"
           variant="outlined"
@@ -88,7 +82,7 @@
           :class="btnClass('daily')"
           @click="quickRange('daily')"
         >
-          {{ t('ورځنی') }}
+          {{ t('روزانه') }}
         </v-btn>
         <v-btn
           variant="flat"
@@ -97,7 +91,7 @@
           :class="btnClass('monthly')"
           @click="quickRange('monthly')"
         >
-          {{ t('میاشتنی') }}
+          {{ t('ماهانه') }}
         </v-btn>
         <v-btn
           variant="flat"
@@ -105,7 +99,7 @@
           :class="btnClass('yearly')"
           @click="quickRange('yearly')"
         >
-          {{ t('کلنی') }}
+          {{ t('سالانه') }}
         </v-btn>
       </v-col>
     </v-row>
@@ -116,7 +110,7 @@
         <v-card class="pa-4 h-100 soft-card" elevation="1">
           <div class="text-overline text-primary">{{ c.label }}</div>
           <div class="text-h5 font-weight-bold mt-1">{{ c.total }}</div>
-          <div class="text-caption text-medium-emphasis">{{ t('ټول ریکارډونه') }}</div>
+          <div class="text-caption text-medium-emphasis">{{ t('تمام ریکارد ها') }}</div>
         </v-card>
       </v-col>
     </v-row>
@@ -126,7 +120,7 @@
       <v-col cols="12" md="8">
         <v-card class="pa-3 soft-card" elevation="1">
           <div class="d-flex align-center justify-space-between mb-2">
-            <div class="text-subtitle-1 font-weight-medium">{{ t('وختي لړۍ') }}</div>
+            <div class="text-subtitle-1 font-weight-medium">{{ t('دوره زمانی') }}</div>
             <v-chip density="compact" variant="flat">{{ granularityLabel }}</v-chip>
           </div>
           <v-chart :option="areaOption" autoresize style="height: 360px" />
@@ -137,13 +131,13 @@
       <v-col cols="12" md="4">
         <v-card class="pa-3 soft-card" elevation="1">
           <div class="text-subtitle-1 font-weight-medium mb-2">
-            {{ t('ترکیب د بڼو له مخې') }}
+            {{ t('ترکیب از روی صفحات') }}
           </div>
           <div class="relative">
             <v-chart :option="donutOption" autoresize style="height: 360px" />
             <div class="donut-center" v-if="donutTotal > 0">
               <div class="donut-total">{{ donutTotal }}</div>
-              <div class="text-caption text-medium-emphasis">{{ t('ټول') }}</div>
+              <div class="text-caption text-medium-emphasis">{{ t('همه') }}</div>
             </div>
           </div>
         </v-card>
@@ -155,13 +149,13 @@
       <v-col cols="12" md="7">
         <v-card class="pa-3 soft-card" elevation="1">
           <div class="d-flex align-center justify-space-between mb-2">
-            <div class="text-subtitle-1 font-weight-medium">{{ t('لومړي سرچينې') }}</div>
+            <div class="text-subtitle-1 font-weight-medium">{{ t('منابع برتر') }}</div>
             <v-select
               v-model="repo.formatKey"
               :items="formatOptions"
               item-title="label"
               item-value="key"
-              :label="t('فورمټ فلټر')"
+              :label="t('فیلتر فارمت')"
               class="mt-1"
               density="compact"
               variant="outlined"
@@ -176,7 +170,7 @@
 
       <v-col cols="12" md="5">
         <v-card class="pa-3 soft-card" elevation="1">
-          <div class="text-subtitle-1 font-weight-medium mb-2">{{ t('وروستي ریکارډونه') }}</div>
+          <div class="text-subtitle-1 font-weight-medium mb-2">{{ t('ریکارد های اخیر') }}</div>
           <v-data-table
             :headers="recentHeaders"
             :items="repo.recent"
@@ -234,15 +228,15 @@
 
   /* Formats (match backend keys) */
   const formatOptions = [
-    { key: 'damage_places', label: t('د تاوان ځایونه') },
-    { key: 'damage_rasan_places', label: t('د تاوان رسېدو ځایونه') },
-    { key: 'lost_mujremeen', label: t('ورک مجرمین') },
-    { key: 'luchakano', label: t('لوچکان') },
-    { key: 'mashkok_homes', label: t('مشکوک کورونه') },
-    { key: 'mashkok_shops', label: t('مشکوک دوکانونه') },
-    { key: 'mawad', label: t('مواد') },
-    { key: 'non_responsable_people', label: t('غير مسؤل کسان') },
-    { key: 'old_soldiers_homes', label: t('د پخوانیو عسکرو کورونه') },
+    { key: 'damage_places', label: t('جا های متضرر ') },
+    { key: 'damage_rasan_places', label: t('جا های متضرر شده') },
+    { key: 'lost_mujremeen', label: t('مجرم های گم شده') },
+    { key: 'luchakano', label: t('لوچک ها') },
+    { key: 'mashkok_homes', label: t('جای های مشکوک') },
+    { key: 'mashkok_shops', label: t('دوکان های مشکوک') },
+    { key: 'mawad', label: t('مواد مخدره') },
+    { key: 'non_responsable_people', label: t('افراد غیر مسول') },
+    { key: 'old_soldiers_homes', label: t('خانه های عساکر سابق دولتی') },
   ];
 
   /* ===== Date helpers (ISO <-> Date; formatting by selected calendar) ===== */
@@ -339,10 +333,10 @@
   const granularityLabel = computed(
     () =>
       ({
-        daily: t('ورځنی'),
-        monthly: t('میاشتنی'),
-        yearly: t('کلنی'),
-      }[repo.granularity] || t('ورځنی'))
+        daily: t('روزانه'),
+        monthly: t('ماهانه'),
+        yearly: t('سالانه'),
+      }[repo.granularity] || t('روزانه'))
   );
 
   /* Quick ranges (stick to ISO; UI syncs via watchers) */
@@ -473,7 +467,7 @@
   });
 
   /* ===== Donut option ===== */
-  const donutLabels = computed(() => (repo.cards || []).map((c) => c?.label || t('بې‌نوم')));
+  const donutLabels = computed(() => (repo.cards || []).map((c) => c?.label || t('بی نام')));
   const donutSeries = computed(() =>
     (repo.cards || []).map((c) => Number(c?.total ?? 0)).filter((v) => Number.isFinite(v) && v >= 0)
   );
@@ -504,7 +498,7 @@
     return repo.formatKey ? b.find((x) => x.key === repo.formatKey) || b[0] : b[0];
   });
   const barCats = computed(() =>
-    (barBucket.value?.items || []).map((i) => `${i.code_number || '#'} — ${i.name || t('بې‌نوم')}`)
+    (barBucket.value?.items || []).map((i) => `${i.code_number || '#'} — ${i.name || t('بی نام')}`)
   );
   const barVals = computed(() => (barBucket.value?.items || []).map((i) => Number(i.count || 0)));
 
@@ -532,10 +526,10 @@
 
   /* Table headers */
   const recentHeaders = [
-    { key: 'type', title: t('ډول'), width: 140 },
-    { key: 'name', title: t('נوم') },
+    { key: 'type', title: t('نوع'), width: 140 },
+    { key: 'name', title: t('نام') },
     { key: 'zone', title: t('زون'), width: 140 },
-    { key: 'created_at', title: t('نېټه'), width: 160 },
+    { key: 'created_at', title: t('تاریخ'), width: 160 },
   ];
 
   /* Fetch on calendar change (so axis & hints rerender) */

@@ -12,7 +12,9 @@ import '@fontsource/amiri/400.css'
 import '@fontsource/amiri/700.css'
 import '@fontsource/scheherazade-new/400.css'
 import '@fontsource/scheherazade-new/700.css'
-
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.style.zoom = "75%"
+})
 // ✅ Date libs
 import dayjs from 'dayjs'
 import jalaliday from 'jalaliday'

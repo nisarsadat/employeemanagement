@@ -17,7 +17,7 @@
         <v-col cols="12" md="3">
           <v-date-input
             v-model="fromModel"
-            :label="t('له نېټې')"
+            :label="t('از تاریخ')"
             color="primary"
             density="compact"
             variant="outlined"
@@ -34,7 +34,7 @@
         <v-col cols="12" md="3">
           <v-date-input
             v-model="toModel"
-            :label="t('تر نېټې')"
+            :label="t('تا تاریخ')"
             color="primary"
             density="compact"
             variant="outlined"
@@ -51,7 +51,7 @@
           <v-select
             v-model="repo.granularity"
             :items="granOptions"
-            :label="t('مهال وېش')"
+            :label="t('تقسیم اوقات')"
             density="compact"
             variant="outlined"
           />
@@ -60,7 +60,7 @@
         <v-col cols="12" md="9">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('لټون')"
+            :label="t('جستجو')"
             prepend-inner-icon="mdi-magnify"
             density="compact"
             variant="outlined"
@@ -77,7 +77,7 @@
             :class="btnClass('daily')"
             @click="quickRange('daily')"
           >
-            {{ t('ورځنی') }}
+            {{ t('روزانه') }}
           </v-btn>
           <v-btn
             variant="flat"
@@ -86,7 +86,7 @@
             :class="btnClass('monthly')"
             @click="quickRange('monthly')"
           >
-            {{ t('میاشتنی') }}
+            {{ t('ماهانه') }}
           </v-btn>
           <v-btn
             variant="flat"
@@ -94,7 +94,7 @@
             :class="btnClass('yearly')"
             @click="quickRange('yearly')"
           >
-            {{ t('کلنی') }}
+            {{ t('سالانه') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -105,7 +105,7 @@
           <v-card class="pa-4 h-100 soft-card" elevation="1">
             <div class="text-overline text-primary">{{ c.label }}</div>
             <div class="text-h4 font-weight-bold mt-1">{{ c.total }}</div>
-            <div class="text-caption text-medium-emphasis">{{ t('ټول ریکارډونه') }}</div>
+            <div class="text-caption text-medium-emphasis">{{ t('تمامی ریکارد ها') }}</div>
           </v-card>
         </v-col>
       </v-row>
@@ -118,10 +118,10 @@
             <div class="d-flex align-center justify-space-between mb-3">
               <div>
                 <div class="text-subtitle-1 font-weight-medium">
-                  {{ t('د رجحان مقایسه (Dual Trend)') }}
+                  {{ t(' مقایسه') }}
                 </div>
                 <div class="text-caption text-medium-emphasis">
-                  {{ t('مهال وېش') }}: {{ granularityLabel }}
+                  {{ t('تقسیم اوقات') }}: {{ granularityLabel }}
                 </div>
               </div>
               <div class="d-flex align-center" style="gap: 8px; max-width: 520px; width: 100%">
@@ -130,7 +130,7 @@
                   :items="formatOptions"
                   item-title="label"
                   item-value="key"
-                  :label="t('اصلي فورمټ')"
+                  :label="t('فارمت اصلی')"
                   density="compact"
                   variant="outlined"
                   hide-details="auto"
@@ -159,13 +159,13 @@
         <v-col cols="12" md="4">
           <v-card class="pa-3 soft-card" elevation="1">
             <div class="text-subtitle-1 font-weight-medium mb-2">
-              {{ t('ترکیب د بڼو له مخې') }}
+              {{ t('ترکیب') }}
             </div>
             <div class="relative">
               <v-chart :option="donutOption" autoresize style="height: 380px" />
               <div class="donut-center" v-if="donutTotal > 0">
                 <div class="donut-total">{{ donutTotal }}</div>
-                <div class="text-caption text-medium-emphasis">{{ t('ټول') }}</div>
+                <div class="text-caption text-medium-emphasis">{{ t('همه') }}</div>
               </div>
             </div>
           </v-card>
@@ -178,13 +178,13 @@
         <v-col cols="12" md="6">
           <v-card class="pa-3 soft-card" elevation="1">
             <div class="d-flex align-center justify-space-between mb-1">
-              <div class="text-subtitle-1 font-weight-medium">{{ t('ټاپ زونونه') }}</div>
+              <div class="text-subtitle-1 font-weight-medium">{{ t('زون های برتر') }}</div>
               <v-select
                 v-model="selectedZonesFormat"
                 :items="formatOptions"
                 item-title="label"
                 item-value="key"
-                :label="t('فورمټ')"
+                :label="t('فارمت')"
                 density="compact"
                 variant="outlined"
                 clearable="false"
@@ -199,13 +199,13 @@
         <v-col cols="12" md="6">
           <v-card class="pa-3 soft-card" elevation="1">
             <div class="d-flex align-center justify-space-between mb-1">
-              <div class="text-subtitle-1 font-weight-medium">{{ t('ټاپ ولایتونه') }}</div>
+              <div class="text-subtitle-1 font-weight-medium">{{ t('ولایت های برتر') }}</div>
               <v-select
                 v-model="selectedProvFormat"
                 :items="formatOptions"
                 item-title="label"
                 item-value="key"
-                :label="t('فورمټ')"
+                :label="t('فارمت')"
                 density="compact"
                 variant="outlined"
                 clearable="false"
@@ -223,14 +223,14 @@
         <v-col cols="12" md="6">
           <v-card class="pa-3 soft-card" elevation="1">
             <div class="d-flex align-center justify-space-between mb-1">
-              <div class="text-subtitle-1 font-weight-medium">{{ t('کټګوري وېش (Breakdown)') }}</div>
+              <div class="text-subtitle-1 font-weight-medium">{{ t('تقسیم کتگوری ها') }}</div>
               <div class="d-flex align-center" style="gap: 8px">
                 <v-select
                   v-model="repo.selectedFormat"
                   :items="formatOptions"
                   item-title="label"
                   item-value="key"
-                  :label="t('فورمټ')"
+                  :label="t('فارمت')"
                   density="compact"
                   variant="outlined"
                   clearable="false"
@@ -240,7 +240,7 @@
                 <v-select
                   v-model="repo.selectedField"
                   :items="fieldOptions"
-                  :label="t('ډول/فیلډ')"
+                  :label="t('نوع')"
                   density="compact"
                   variant="outlined"
                   :disabled="!repo.selectedFormat"
@@ -259,14 +259,14 @@
           <v-card class="pa-3 soft-card" elevation="1">
             <div class="d-flex align-center justify-space-between mb-1">
               <div class="text-subtitle-1 font-weight-medium">
-                {{ t('لومړي سرچينې (Top resources)') }}
+                {{ t('منابع برتر') }}
               </div>
               <v-select
                 v-model="selectedBucketFormat"
                 :items="formatOptions"
                 item-title="label"
                 item-value="key"
-                :label="t('فورمټ فلټر')"
+                :label="t('فیلتر فارمت')"
                 density="compact"
                 variant="outlined"
                 clearable="false"
@@ -282,7 +282,7 @@
       <v-row class="mt-2">
         <v-col cols="12">
           <v-card class="pa-3 soft-card" elevation="1">
-            <div class="text-subtitle-1 font-weight-medium mb-2">{{ t('وروستي ریکارډونه') }}</div>
+            <div class="text-subtitle-1 font-weight-medium mb-2">{{ t('ریکارد های اخیر') }}</div>
             <v-data-table
               :headers="recentHeaders"
               :items="repo.recent"
@@ -300,9 +300,9 @@
                   | {{ t('جرم') }}: {{ item.extra.jorm_type }}
                 </span>
                 <span v-if="item.extra?.people_type">
-                  | {{ t('ټولګی') }}: {{ item.extra.people_type }}
+                  | {{ t('شخص') }}: {{ item.extra.people_type }}
                 </span>
-                <span v-if="item.extra?.type"> | {{ t('ډول') }}: {{ item.extra.type }} </span>
+                <span v-if="item.extra?.type"> | {{ t('نوع') }}: {{ item.extra.type }} </span>
               </template>
               <template #bottom></template>
             </v-data-table>
@@ -344,7 +344,7 @@
     import { ref, computed, onMounted, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
     import { useFifthyFormatThreeDashboardRepository } from '@/stores/FifthyFormatThreeDashboardRepository';
-    import { useCalendar } from '../../../../composables/useCalendar';
+    import { useCalendar } from '../../../../composables/useCalendar'
 
     const repo = useFifthyFormatThreeDashboardRepository();
     const { t, locale } = useI18n();
@@ -362,22 +362,22 @@
     ];
     const granularityLabel = computed(
       () =>
-        ({ daily: t('ورځنی'), monthly: t('میاشتنی'), yearly: t('کلنی') }[repo.granularity] ||
-        t('ورځنی'))
+        ({ daily: t('روزانه'), monthly: t('ماهانه'), yearly: t('سالانه') }[repo.granularity] ||
+        t('روزانه'))
     );
 
     /* Formats list (sync with backend keys & labels) */
     const formatOptions = [
-      { key: 'badmashano', label: t('بدماشانو') },
-      { key: 'emarat_office', label: t('دفتر امارت') },
-      { key: 'hostel', label: t('هاستل') },
-      { key: 'hotel', label: t('هوټل') },
-      { key: 'madrasa', label: t('مدرسه') },
-      { key: 'mashkok_people', label: t('مشکوک خلک') },
-      { key: 'mujahedino', label: t('مجاهدینو') },
-      { key: 'old_jahadi', label: t('پخواني جهادي') },
-      { key: 'sarayano', label: t('سرایانو') },
-      { key: 'tujaran', label: t('تجاران') },
+      { key: 'badmashano', label: t('بد ماش ها') },
+      { key: 'emarat_office', label: t('دوایر دولتیو امارتی') },
+      { key: 'hostel', label: t('خواب گاه ها') },
+      { key: 'hotel', label: t('هوتل ها و رستورانت ها') },
+      { key: 'madrasa', label: t('مدرسه ها') },
+      { key: 'mashkok_people', label: t('افراد مشکوک') },
+      { key: 'mujahedino', label: t('مجاهدین') },
+      { key: 'old_jahadi', label: t('افراد جهادی سابقه') },
+      { key: 'sarayano', label: t('سرای ها') },
+      { key: 'tujaran', label: t('تجار ها') },
     ];
 
     /* Defaults for dropdowns (always have a selected value) */
@@ -680,7 +680,7 @@
     });
     const resCats = computed(() =>
       (resourcesBucket.value?.items || []).map(
-        (i) => `${i.code_number || '#'} — ${i.name || t('بې‌نوم')}`
+        (i) => `${i.code_number || '#'} — ${i.name || t('بی نام')}`
       )
     );
     const resVals = computed(() =>
@@ -729,7 +729,7 @@
       yAxis: {
         type: 'category',
         axisTick: { show: false },
-        data: zonesItemsFlat.value.map((i) => i.zone || t('بې‌زون')),
+        data: zonesItemsFlat.value.map((i) => i.zone || t('واجد زون')),
       },
       series: [
         {
@@ -749,7 +749,7 @@
       yAxis: {
         type: 'category',
         axisTick: { show: false },
-        data: provincesItemsFlat.value.map((i) => i.province || t('بې‌ولایت')),
+        data: provincesItemsFlat.value.map((i) => i.province || t('واجد ولایت')),
       },
       series: [
         {
@@ -771,7 +771,7 @@
         legend: { bottom: 0, type: 'scroll' },
         series: [
           {
-            name: t('وېش'),
+            name: t('تقسیم'),
             type: 'pie',
             radius: ['48%', '78%'],
             padAngle: 2,
@@ -788,12 +788,12 @@
 
     /* Recent table */
     const recentHeaders = [
-      { key: 'label', title: t('فورمټ'), width: 140 },
-      { key: 'title', title: t('عنوان/نوم') },
+      { key: 'label', title: t('فارمت ها'), width: 140 },
+      { key: 'title', title: t('عنوان/نام') },
       { key: 'zone', title: t('زون'), width: 120 },
       { key: 'province', title: t('ولایت'), width: 120 },
-      { key: 'extra', title: t('نور'), width: 280 },
-      { key: 'created_at', title: t('نېټه'), width: 160 },
+      { key: 'extra', title: t('غیره'), width: 280 },
+      { key: 'created_at', title: t('تاریخ'), width: 160 },
     ];
   </script>
 

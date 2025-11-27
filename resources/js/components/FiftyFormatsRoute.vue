@@ -1,6 +1,6 @@
 <!-- src/views/fifthyFormats/FiftyFormatsRoute.vue -->
 <template>
-  <v-app :dir="direction">
+  <v-app dir="rtl">
     <div class="min-h-screen bg-grey-lighten-4">
       <!-- Container -->
       <section class="mx-auto px-3 px-sm-4 py-6 py-md-8" style="max-width: 1400px">
@@ -8,49 +8,58 @@
         <header class="mb-4 mb-md-6">
           <v-card flat color="transparent">
             <v-card-text class="pa-0">
-              <h1
-                class="text-h5 text-sm-h4 text-md-h3 font-weight-bold text-primary"
-                :class="direction === 'rtl' ? 'text-right' : 'text-left'"
-              >
-                {{ direction === 'rtl' ? t('پنځوس فورمې') : t('Fifty Formats') }}
-              </h1>
-              <p
-                class="text-body-2 text-sm-body-1 text-grey-darken-1 mt-1 mt-sm-2"
-                :class="direction === 'rtl' ? 'text-right' : 'text-left'"
-              >
-                {{
-                  direction === 'rtl'
-                    ? t(
-                        '.د هرې ماډل د مدیریت لپاره چټکې لینکونه. د موجودو ماډلونو د فلټر کولو لپاره د لټون په کارولو سره'
+              <div class="d-flex align-center flex-row-reverse">
+                <div class="icon-wrapper mr-2">
+                  <v-icon size="32" color="primary">
+                    mdi-view-grid-outline
+                  </v-icon>
+                </div>
+                <div class="flex-grow-1">
+                  <h1 class="text-h5 text-sm-h4 text-md-h3 font-weight-bold text-primary text-right">
+                    {{ t('پنجاه فورم‌ها') }}
+                  </h1>
+                  <p class="text-body-2 text-sm-body-1 text-grey-darken-1 mt-1 mt-sm-2 text-right">
+                    {{
+                      t(
+                        'لینک‌های سریع برای مدیریت هر فورم. برای فیلتر کردن فورم‌های موجود از جستجو استفاده کنید.'
                       )
-                    : t(
-                        'Quick links to manage each module. Use search to filter available modules.'
-                      )
-                }}
-              </p>
+                    }}
+                  </p>
+                </div>
+              </div>
             </v-card-text>
           </v-card>
         </header>
 
         <!-- Toolbar -->
-        <v-card class="mb-4 mb-md-6 pa-3 pa-sm-4" elevation="0" rounded="xl">
-          <v-row cols="6" class="ma-0">
+        <v-card class="mb-4 mb-md-6 pa-3 pa-sm-4" elevation="0" rounded="lg">
+          <div class="d-flex align-center justify-space-between flex-wrap">
             <!-- Search Section -->
-            <v-col cols="6" class="py-0 pb-3 pb-md-0">
-              <v-text-field
-                v-model="q"
-                density="compact"
-                :placeholder="direction === 'rtl' ? t('د ماډلونو لټون...') : t('Search modules...')"
-                :prepend-inner-icon="direction === 'rtl' ? undefined : 'mdi-magnify'"
-                :append-inner-icon="direction === 'rtl' ? 'mdi-magnify' : undefined"
-                variant="outlined"
-                hide-details
-                class="flex-grow-1 search-field"
-                style="min-width: 200px; max-width: 400px"
-                clearable
-              />
-            </v-col>
-          </v-row>
+            <v-text-field
+              v-model="q"
+              density="compact"
+              :placeholder="t('جستجوی فورم‌ها...')"
+              append-inner-icon="mdi-magnify"
+              variant="outlined"
+              hide-details
+              class="search-field"
+              style="min-width: 200px; max-width: 400px"
+              clearable
+            />
+            
+            <!-- Results Counter -->
+            <div class="text-caption text-sm-body-2 text-grey-darken-1 mt-2 mt-sm-0">
+              {{
+                t('نمایش {showing} از {total} فورم', {
+                  showing: filtered.length,
+                  total: original.length,
+                })
+              }}
+              <span v-if="q">
+                {{ t('برای «{query}»', { query: q }) }}
+              </span>
+            </div>
+          </div>
         </v-card>
 
         <!-- Grid of module cards (permission-guarded) -->
@@ -70,18 +79,14 @@
                 class="module-card fill-height"
                 elevation="2"
                 hover
-                :color="getCardColor(item)"
               >
-                <v-card-text class="pa-2 pa-sm-3">
-                  <div
-                    class="d-flex align-center gap-2 gap-sm-3"
-                    :class="direction === 'rtl' ? 'flex-row-reverse' : ''"
-                  >
+                <v-card-text class="pa-3 pa-sm-4">
+                  <div class="d-flex align-center gap-3 flex-row-reverse">
                     <!-- Icon -->
                     <div class="icon-wrapper flex-shrink-0">
                       <v-icon
-                        :size="smAndUp ? 28 : 24"
-                        :color="getIconColor(item)"
+                        :size="smAndUp ? 32 : 28"
+                        color="primary"
                         class="module-icon"
                       >
                         {{ getMaterialIcon(item.icon) }}
@@ -90,11 +95,9 @@
                     <!-- Label -->
                     <div class="flex-grow-1 min-w-0">
                       <h3
-                        class="text-body-2 text-sm-body-1 font-weight-bold line-clamp-2 mb-0"
-                        :class="direction === 'rtl' ? 'text-right' : 'text-left'"
-                        :style="{ color: getTextColor(item) }"
+                        class="text-body-2 text-sm-body-1 font-weight-bold line-clamp-2 mb-0 text-right"
                       >
-                        {{ direction === 'rtl' ? t(item.pashtoLabel) : t(item.label) }}
+                        {{ t(item.labelFa) }}
                       </h3>
                     </div>
                   </div>
@@ -110,23 +113,21 @@
           class="mt-6 mt-md-10 text-center pa-4 pa-sm-8"
           elevation="2"
           color="grey-lighten-3"
+          rounded="lg"
         >
           <v-card-text>
-            <v-icon :size="smAndUp ? 64 : 48" color="grey" class="mb-2 mb-sm-4"
-              >mdi-magnify-remove</v-icon
-            >
+            <v-icon :size="smAndUp ? 64 : 48" color="grey" class="mb-2 mb-sm-4">
+              mdi-magnify-remove
+            </v-icon>
             <h3 class="text-h6 text-sm-h5 text-grey-darken-2 mb-1 mb-sm-2">
-              {{ direction === 'rtl' ? t('هیڅ ماډل ونه موندل شو') : t('No modules found') }}
+              {{ t('هیچ فورمی پیدا نشد') }}
             </h3>
             <p class="text-body-2 text-sm-body-1 text-grey">
               {{
-                direction === 'rtl'
-                  ? t('د "{query}" لپاره هیڅ پایله ونه موندل شوه. خپل د لټون شرایط سم کړئ.', {
-                      query: q,
-                    })
-                  : t('No results found for "{query}". Try adjusting your search terms.', {
-                      query: q,
-                    })
+                t(
+                  'برای «{query}» هیچ نتیجه‌ای پیدا نشد. لطفاً واژه‌های جستجو را تغییر بدهید.',
+                  { query: q }
+                )
               }}
             </p>
             <v-btn
@@ -134,55 +135,11 @@
               color="primary"
               size="small"
               @click="q = ''"
-              :prepend-icon="direction === 'rtl' ? undefined : 'mdi-backspace'"
-              :append-icon="direction === 'rtl' ? 'mdi-backspace' : undefined"
+              append-icon="mdi-backspace"
             >
-              {{ direction === 'rtl' ? t('د لټون پاکول') : t('Clear Search') }}
+              {{ t('پاک کردن جستجو') }}
             </v-btn>
           </v-card-text>
-        </v-card>
-
-        <!-- Results counter -->
-        <v-card v-if="filtered.length > 0" class="mt-3 mt-sm-4" variant="flat" color="transparent">
-          <v-card-text class="text-center pa-1 pa-sm-2">
-            <span class="text-caption text-sm-body-2 text-grey">
-              {{
-                direction === 'rtl'
-                  ? t('د {total} ماډلونو څخه {showing} نمایشیږي', {
-                      showing: filtered.length,
-                      total: original.length,
-                    })
-                  : t('Showing {showing} of {total} modules', {
-                      showing: filtered.length,
-                      total: original.length,
-                    })
-              }}
-              <span v-if="q">
-                {{
-                  direction === 'rtl'
-                    ? t('د "{query}" لپاره', { query: q })
-                    : t('for "{query}"', { query: q })
-                }}
-              </span>
-            </span>
-          </v-card-text>
-        </v-card>
-
-        <!-- Language/Layout Toggle -->
-        <v-card class="mt-3 mt-sm-4" variant="flat" color="transparent">
-          <v-card-actions class="justify-center">
-            <v-btn
-              variant="outlined"
-              color="primary"
-              size="small"
-              @click="toggleDirection"
-              :prepend-icon="
-                direction === 'rtl' ? 'mdi-format-align-right' : 'mdi-format-align-left'
-              "
-            >
-              {{ direction === 'rtl' ? t('LTR ته بدلول') : t('Switch to RTL') }}
-            </v-btn>
-          </v-card-actions>
         </v-card>
       </section>
     </div>
@@ -200,585 +157,380 @@
   const { smAndUp } = useDisplay();
 
   const q = ref('');
-  const direction = ref('rtl'); // Default RTL for Pashto
 
-  // 🔒 ensure everything routes under the protected app shell
   const APP_BASE = '/app';
   const toPath = (item) => `${APP_BASE}${item.path}`;
 
-  /**
-   * Helper: check permission for card visibility
-   * Uses your rbac.php naming: `${module}.view`
-   */
   function canView(item) {
     const perm = item?.perm ? `${item.perm}.view` : null;
-    // if auth.can is not defined for any reason, fall back to true to avoid crashes
     if (!perm || typeof auth?.can !== 'function') return true;
     return auth.can(perm);
   }
 
-  /**
-   * Enhanced module data with `perm` matching config/rbac.php modules.
-   * (kept exact design/labels/paths/icons)
-   */
+  // 🔹 Module data — Dari labels as keys for t()
   const original = ref([
     // Base
     {
-      label: 'Fasad Format',
-      pashtoLabel: 'فساد فورمې',
+      labelFa: 'فورم‌های فساد',
       path: '/fasads',
       icon: '🧩',
-      color: 'blue-lighten-3',
       perm: 'fasads',
     },
     {
-      label: 'Saeen Fasad Format',
-      pashtoLabel: 'فساد ثاني فورمې',
+      labelFa: 'فورم‌های فساد ساعین',
       path: '/saeenfasad',
       icon: '🧠',
-      color: 'deep-purple-lighten-3',
       perm: 'saeen_fasads',
     },
     {
-      label: 'Heist Format',
-      pashtoLabel: 'سرقت فورمې',
+      labelFa: 'فورم‌های سرقت',
       path: '/heist',
-      icon: '🕵️',
-      color: 'red-lighten-3',
+      icon: '🐱‍👤',
       perm: 'heists',
     },
     {
-      label: 'Captive Format',
-      pashtoLabel: 'بندي فورمې',
+      labelFa: 'فورم‌های بندی‌ها',
       path: '/captives',
       icon: '🔒',
-      color: 'orange-lighten-3',
       perm: 'captives',
     },
     {
-      label: 'Mulkano Format',
-      pashtoLabel: 'ملکونو فورمې',
+      labelFa: 'فورم‌های ملک‌ها',
       path: '/mulkanos',
       icon: '🏠',
-      color: 'green-lighten-3',
       perm: 'mulkanos',
     },
     {
-      label: 'Entry/Exit Format',
-      pashtoLabel: 'ننوتل/وتل فورمې',
+      labelFa: 'فورم‌های دخول/خروج',
       path: '/entry-exits',
       icon: '➡️',
-      color: 'cyan-lighten-3',
       perm: 'entry_exits',
     },
     {
-      label: 'Sarafyano Format',
-      pashtoLabel: 'صرفی فورمې',
+      labelFa: 'فورم‌های صرافی‌ها',
       path: '/sarafyanos',
       icon: '💱',
-      color: 'amber-lighten-3',
       perm: 'sarafyanos',
     },
     {
-      label: 'Clubs Format',
-      pashtoLabel: 'کلبونو فورمې',
+      labelFa: 'فورم‌های کلب‌ها',
       path: '/clubs',
       icon: '🎯',
-      color: 'pink-lighten-3',
       perm: 'clubs',
     },
     {
-      label: 'Mahajerat Format',
-      pashtoLabel: 'کډوالۍ فورمې',
+      labelFa: 'فورم‌های مهاجرت',
       path: '/mahajerats',
       icon: '🧳',
-      color: 'teal-lighten-3',
       perm: 'mahajerats',
     },
     {
-      label: 'Soldier Format',
-      pashtoLabel: 'سرپي فورمې',
+      labelFa: 'فورم‌های سربازان',
       path: '/soldiers',
       icon: '🪖',
-      color: 'brown-lighten-3',
       perm: 'soldiers',
     },
 
     // One
     {
-      label: 'Mawads Format',
-      pashtoLabel: 'مخدره موادو فورمې',
+      labelFa: 'فورم‌های مواد مخدر',
       path: '/mawads',
       icon: '💊',
-      color: 'deep-orange-lighten-3',
       perm: 'mawads',
     },
     {
-      label: 'Lost Mujremeen Format',
-      pashtoLabel: 'ورک شوي مجرمين فورمې',
+      labelFa: 'فورم‌های مجرمین گمشده',
       path: '/lostmujremeens',
       icon: '🔍',
-      color: 'indigo-lighten-3',
       perm: 'lost_mujremeens',
     },
     {
-      label: 'Old Soldiers Homes Format',
-      pashtoLabel: 'زړو سرپيو کورونو فورمې',
+      labelFa: 'فورم‌های خانه‌های سربازان قدیمی',
       path: '/oldsoldiershomes',
       icon: '🏚️',
-      color: 'blue-grey-lighten-3',
       perm: 'old_soldiers_homes',
     },
     {
-      label: 'Robbers Format',
-      pashtoLabel: 'غلاګرو فورمې',
+      labelFa: 'فورم‌های دزدان',
       path: '/robbers',
       icon: '💰',
-      color: 'lime-lighten-3',
       perm: 'robbers',
     },
     {
-      label: 'None Resposable People Format',
-      pashtoLabel: 'غير مسول وسله وال فورمې',
+      labelFa: 'فورم‌های افراد مسلح غیرمسؤول',
       path: '/nonresponsablepeople',
       icon: '⚠️',
-      color: 'yellow-lighten-3',
       perm: 'non_responsable_people',
     },
     {
-      label: 'Mashkok Homes Format',
-      pashtoLabel: 'شبې کورونو فورمې',
+      labelFa: 'فورم‌های خانه‌های مشکوک',
       path: '/mashkokhomes',
       icon: '🏘️',
-      color: 'purple-lighten-3',
       perm: 'mashkok_homes',
     },
     {
-      label: 'Damage PLaces Format',
-      pashtoLabel: 'زخمي ځايونو فورمې',
+      labelFa: 'فورم‌های ساحات آسیب‌دیده',
       path: '/damageplaces',
       icon: '🏚️',
-      color: 'red-lighten-2',
       perm: 'damage_places',
     },
     {
-      label: 'Damage Rasan PLaces Format',
-      pashtoLabel: 'زخمي رسونکو ځايونو فورمې',
+      labelFa: 'فورم‌های ساحات رسانندهٔ آسیب',
       path: '/damagerasanplaces',
       icon: '💥',
-      color: 'deep-orange-lighten-2',
       perm: 'damage_rasan_places',
     },
     {
-      label: 'Mashkok Shops Format',
-      pashtoLabel: 'شبې پلورنځيو فورمې',
+      labelFa: 'فورم‌های دکان‌های مشکوک',
       path: '/mashkokshops',
       icon: '🏪',
-      color: 'amber-lighten-2',
       perm: 'mashkok_shops',
     },
     {
-      label: 'Luchakano Format',
-      pashtoLabel: 'لوچکانو فورمې',
+      labelFa: 'فورم‌های لوچک‌ها',
       path: '/luchakanos',
       icon: '👤',
-      color: 'pink-lighten-2',
       perm: 'luchakanos',
     },
 
     // Two
     {
-      label: 'Schools Format',
-      pashtoLabel: 'ښوونځيو فورمې',
+      labelFa: 'فورم‌های مکتب‌ها',
       path: '/schools',
       icon: '🏫',
-      color: 'light-blue-lighten-3',
       perm: 'schools',
     },
     {
-      label: 'Hado Bus Stops Format',
-      pashtoLabel: 'د بس درېدو ځايونو فورمې',
+      labelFa: 'فورم‌های ایستگاه‌های بس',
       path: '/hadobusstops',
       icon: '🚏',
-      color: 'cyan-lighten-2',
       perm: 'hado_bus_stops',
     },
     {
-      label: 'Transport Company Format',
-      pashtoLabel: 'د ترانسپورټ شرکتونو فورمې',
+      labelFa: 'فورم‌های شرکت‌های ترانسپورتی',
       path: '/transportcompanies',
       icon: '🚚',
-      color: 'teal-lighten-2',
       perm: 'transport_companies',
     },
     {
-      label: 'Car Sales Companies Format',
-      pashtoLabel: 'د موټر پلورنځيو فورمې',
+      labelFa: 'فورم‌های کمپنی‌های فروش موتر',
       path: '/carsalescompanies',
       icon: '🚗',
-      color: 'green-lighten-2',
       perm: 'car_sales_companies',
     },
     {
-      label: 'Parking Formats',
-      pashtoLabel: 'د پارکینګ فورمې',
+      labelFa: 'فورم‌های پارکینگ',
       path: '/parkings',
       icon: '🅿️',
-      color: 'blue-lighten-2',
       perm: 'parkings',
     },
     {
-      label: 'Banks Formats',
-      pashtoLabel: 'د بانکونو فورمې',
+      labelFa: 'فورم‌های بانک‌ها',
       path: '/banks',
       icon: '🏦',
-      color: 'indigo-lighten-2',
       perm: 'banks',
     },
     {
-      label: 'Apartments Formats',
-      pashtoLabel: 'د آپارتمانونو فورمې',
+      labelFa: 'فورم‌های آپارتمان‌ها',
       path: '/apartments',
       icon: '🏢',
-      color: 'purple-lighten-2',
       perm: 'apartments',
     },
     {
-      label: 'Rahnoma Mamlat Formats',
-      pashtoLabel: 'د رهنمای معاملاتو فورمې',
+      labelFa: 'فورم‌های رهنمای معاملات',
       path: '/rahnomamamlats',
       icon: '📋',
-      color: 'deep-purple-lighten-2',
       perm: 'rahnoma_mamlats',
     },
     {
-      label: 'Hosppitals Formats',
-      pashtoLabel: 'د روغتونونو فورمې',
+      labelFa: 'فورم‌های شفاخانه‌ها',
       path: '/hosppitals',
       icon: '🏥',
-      color: 'red-lighten-1',
       perm: 'hosppitals',
     },
     {
-      label: 'Work Shops Formats',
-      pashtoLabel: 'د کارخونو فورمې',
+      labelFa: 'فورم‌های کارگاه‌ها',
       path: '/workshops',
       icon: '🔧',
-      color: 'orange-lighten-2',
       perm: 'work_shops',
     },
 
     // Three
     {
-      label: 'Badmashano Format',
-      pashtoLabel: 'بدماشو فورمې',
+      labelFa: 'فورم‌های بدماش‌ها',
       path: '/badmashanos',
-      icon: '👊',
-      color: 'deep-orange-lighten-2',
+      icon: '✊',
       perm: 'badmashanos',
     },
     {
-      label: 'Sarayono Format',
-      pashtoLabel: 'سرایونو فورمې',
+      labelFa: 'فورم‌های سرای‌ها',
       path: '/sarayanos',
       icon: '🏭',
-      color: 'brown-lighten-2',
       perm: 'sarayanos',
     },
     {
-      label: 'Hotels Format',
-      pashtoLabel: 'هوټلونو فورمې',
+      labelFa: 'فورم‌های هوتل‌ها',
       path: '/hotels',
       icon: '🏨',
-      color: 'pink-lighten-2',
       perm: 'hotels',
     },
     {
-      label: 'Hostels Format',
-      pashtoLabel: 'هوسټلونو فورمې',
+      labelFa: 'فورم‌های هوسٹل‌ها',
       path: '/hostels',
       icon: '🛏️',
-      color: 'light-blue-lighten-2',
       perm: 'hostels',
     },
     {
-      label: 'Tujarans Format',
-      pashtoLabel: 'سوداګرو فورمې',
+      labelFa: 'فورم‌های تاجران',
       path: '/tujarans',
       icon: '👔',
-      color: 'cyan-lighten-2',
       perm: 'tujarans',
     },
     {
-      label: 'Mujahedinos Format',
-      pashtoLabel: 'مجاهدينو فورمې',
+      labelFa: 'فورم‌های مجاهدین',
       path: '/mujahedinos',
       icon: '🕌',
-      color: 'green-lighten-1',
       perm: 'mujahedinos',
     },
     {
-      label: 'Emaratoffices Format',
-      pashtoLabel: 'د امارت دفترونو فورمې',
+      labelFa: 'فورم‌های دفاتر امارت',
       path: '/emaratoffices',
       icon: '🏛️',
-      color: 'amber-lighten-1',
       perm: 'emarat_offices',
     },
     {
-      label: 'oldjahadis Format',
-      pashtoLabel: 'زړو جهادي قومندانانو فورمې',
+      labelFa: 'فورم‌های قومندانان جهادی قدیمی',
       path: '/oldjahadis',
       icon: '🎖️',
-      color: 'orange-lighten-1',
       perm: 'old_jahadis',
     },
     {
-      label: 'mashkokpeoples Format',
-      pashtoLabel: 'شبې خلکو فورمې',
+      labelFa: 'فورم‌های افراد مشکوک',
       path: '/mashkokpeoples',
       icon: '🕵️‍♂️',
-      color: 'purple-lighten-2',
       perm: 'mashkok_people',
     },
     {
-      label: 'madrasas Format',
-      pashtoLabel: 'ديني مدرسو فورمې',
+      labelFa: 'فورم‌های مدارس دینی',
       path: '/madrasas',
       icon: '📖',
-      color: 'teal-lighten-1',
       perm: 'madrasas',
     },
 
     // Four
     {
-      label: 'wakilanos Format',
-      pashtoLabel: 'وکیلانو فورمې',
+      labelFa: 'فورم‌های وکیلان',
       path: '/wakilanos',
       icon: '⚖️',
-      color: 'blue-grey-lighten-2',
       perm: 'wakilanos',
     },
     {
-      label: 'universities Format',
-      pashtoLabel: 'پوهنتونونو فورمې',
+      labelFa: 'فورم‌های پوهنتون‌ها',
       path: '/universities',
       icon: '🎓',
-      color: 'deep-purple-lighten-2',
       perm: 'universities',
     },
     {
-      label: 'masjids Format',
-      pashtoLabel: 'جوماتونو فورمې',
+      labelFa: 'فورم‌های مسجدها',
       path: '/masjids',
       icon: '🕌',
-      color: 'green-lighten-2',
       perm: 'masjids',
     },
     {
-      label: 'highways Format',
-      pashtoLabel: 'لویو لارو فورمې',
+      labelFa: 'فورم‌های شاهراه‌ها',
       path: '/highways',
       icon: '🛣️',
-      color: 'grey-lighten-1',
       perm: 'highways',
     },
     {
-      label: 'companies Format',
-      pashtoLabel: 'شرکتونو فورمې',
+      labelFa: 'فورم‌های شرکت‌ها',
       path: '/companies',
       icon: '🏢',
-      color: 'indigo-lighten-2',
       perm: 'companies',
     },
     {
-      label: 'donelostplaces Format',
-      pashtoLabel: 'د غلا شویو ځايونو فورمې',
+      labelFa: 'فورم‌های ساحات دزدی شده',
       path: '/donelostplaces',
       icon: '🏚️',
-      color: 'red-lighten-2',
       perm: 'donelostplaces',
     },
     {
-      label: 'econemyprojects Format',
-      pashtoLabel: 'د اقتصادي پروژو فورمې',
+      labelFa: 'فورم‌های پروژه‌های اقتصادی',
       path: '/econemyprojects',
       icon: '📊',
-      color: 'light-green-lighten-2',
       perm: 'econemyprojects',
     },
     {
-      label: 'criminalcaptureplaces Format',
-      pashtoLabel: 'د مجرمینو د نیولو ځايونو فورمې',
+      labelFa: 'فورم‌های ساحات دستگیری مجرمین',
       path: '/criminalcaptureplaces',
       icon: '🚔',
-      color: 'deep-orange-lighten-2',
       perm: 'criminalcaptureplaces',
     },
     {
-      label: 'pumps Format',
-      pashtoLabel: 'پمپونو فورمې',
+      labelFa: 'فورم‌های پمپ‌ها',
       path: '/pumps',
       icon: '⛽',
-      color: 'orange-lighten-2',
       perm: 'pumps',
     },
     {
-      label: 'shoras Format',
-      pashtoLabel: 'شوراګانو فورمې',
+      labelFa: 'فورم‌های شوراها',
       path: '/shoras',
       icon: '👥',
-      color: 'cyan-lighten-2',
       perm: 'shoras',
     },
     {
-      label: 'checkpoints Format',
-      pashtoLabel: 'چک پوینټونو فورمې',
+      labelFa: 'فورم‌های چک‌پوینت‌ها',
       path: '/checkpoints',
       icon: '🛂',
-      color: 'amber-lighten-2',
       perm: 'checkpoints',
     },
     {
-      label: 'governmentplaces Format',
-      pashtoLabel: 'د حکومتي ځايونو فورمې',
+      labelFa: 'فورم‌های اماکن حکومتی',
       path: '/governmentplaces',
       icon: '🏛️',
-      color: 'blue-lighten-2',
       perm: 'governmentplaces',
     },
     {
-      label: 'supermarkets Format',
-      pashtoLabel: 'سوپر مارکیټونو فورمې',
+      labelFa: 'فورم‌های سوپرمارکت‌ها',
       path: '/supermarkets',
       icon: '🛒',
-      color: 'pink-lighten-2',
       perm: 'supermarkets',
     },
     {
-      label: 'parks Format',
-      pashtoLabel: 'پارکونو فورمې',
+      labelFa: 'فورم‌های پارک‌ها',
       path: '/parks',
       icon: '🌳',
-      color: 'light-green-lighten-2',
       perm: 'parks',
     },
     {
-      label: 'complexes Format',
-      pashtoLabel: 'مجتمعونو فورمې',
+      labelFa: 'فورم‌های مجتمع‌ها',
       path: '/complexes',
       icon: '🏬',
-      color: 'purple-lighten-2',
       perm: 'complexes',
     },
     {
-      label: 'deplomaticplaces Format',
-      pashtoLabel: ' د دیپلوماتیکو ځايونو فورمې',
+      labelFa: 'فورم‌های اماکن دیپلوماتیک',
       path: '/deplomaticplaces',
       icon: '🇺🇳',
-      color: 'teal-lighten-2',
       perm: 'deplomaticplaces',
     },
   ]);
 
   const items = ref([...original.value]);
 
-  /** Only show items the user can view */
   const visibleItems = computed(() => items.value.filter(canView));
 
-  /** Search within visible items */
   const filtered = computed(() => {
     const term = q.value?.trim().toLowerCase() || '';
     const base = visibleItems.value;
     if (!term) return base;
     return base.filter(
       (i) =>
-        i.label.toLowerCase().includes(term) ||
-        i.pashtoLabel?.toLowerCase().includes(term) ||
+        i.labelFa.toLowerCase().includes(term) ||
         i.path.toLowerCase().includes(term)
     );
   });
 
-  // Styling helpers (unchanged)
-  function getCardColor(item) {
-    return item.color || 'white';
-  }
-  function getIconColor(item) {
-    const m = {
-      'blue-lighten-3': 'blue-darken-3',
-      'deep-purple-lighten-3': 'deep-purple-darken-3',
-      'red-lighten-3': 'red-darken-3',
-      'orange-lighten-3': 'orange-darken-3',
-      'green-lighten-3': 'green-darken-3',
-      'cyan-lighten-3': 'cyan-darken-3',
-      'amber-lighten-3': 'amber-darken-3',
-      'pink-lighten-3': 'pink-darken-3',
-      'teal-lighten-3': 'teal-darken-3',
-      'brown-lighten-3': 'brown-darken-3',
-      'deep-orange-lighten-3': 'deep-orange-darken-3',
-      'indigo-lighten-3': 'indigo-darken-3',
-      'blue-grey-lighten-3': 'blue-grey-darken-3',
-      'lime-lighten-3': 'lime-darken-3',
-      'yellow-lighten-3': 'yellow-darken-3',
-      'purple-lighten-3': 'purple-darken-3',
-      'red-lighten-2': 'red-darken-4',
-      'deep-orange-lighten-2': 'deep-orange-darken-4',
-      'amber-lighten-2': 'amber-darken-4',
-      'pink-lighten-2': 'pink-darken-4',
-      'light-blue-lighten-3': 'light-blue-darken-3',
-      'cyan-lighten-2': 'cyan-darken-4',
-      'teal-lighten-2': 'teal-darken-4',
-      'green-lighten-2': 'green-darken-4',
-      'blue-lighten-2': 'blue-darken-4',
-      'indigo-lighten-2': 'indigo-darken-4',
-      'purple-lighten-2': 'purple-darken-4',
-      'deep-purple-lighten-2': 'deep-purple-darken-4',
-      'red-lighten-1': 'red-darken-4',
-      'orange-lighten-2': 'orange-darken-4',
-      'brown-lighten-2': 'brown-darken-4',
-      'light-green-lighten-2': 'light-green-darken-4',
-      'grey-lighten-1': 'grey-darken-4',
-    };
-    return m[item.color] || 'primary';
-  }
-  function getTextColor(item) {
-    const m = {
-      'blue-lighten-3': 'blue-darken-4',
-      'deep-purple-lighten-3': 'deep-purple-darken-4',
-      'red-lighten-3': 'red-darken-4',
-      'orange-lighten-3': 'orange-darken-4',
-      'green-lighten-3': 'green-darken-4',
-      'cyan-lighten-3': 'cyan-darken-4',
-      'amber-lighten-3': 'amber-darken-4',
-      'pink-lighten-3': 'pink-darken-4',
-      'teal-lighten-3': 'teal-darken-4',
-      'brown-lighten-3': 'brown-darken-4',
-      'deep-orange-lighten-3': 'deep-orange-darken-4',
-      'indigo-lighten-3': 'indigo-darken-4',
-      'blue-grey-lighten-3': 'blue-grey-darken-4',
-      'lime-lighten-3': 'lime-darken-4',
-      'yellow-lighten-3': 'yellow-darken-4',
-      'purple-lighten-3': 'purple-darken-4',
-      'red-lighten-2': 'red-darken-4',
-      'deep-orange-lighten-2': 'deep-orange-darken-4',
-      'amber-lighten-2': 'amber-darken-4',
-      'pink-lighten-2': 'pink-darken-4',
-      'light-blue-lighten-3': 'light-blue-darken-4',
-      'cyan-lighten-2': 'cyan-darken-4',
-      'teal-lighten-2': 'teal-darken-4',
-      'green-lighten-2': 'green-darken-4',
-      'blue-lighten-2': 'blue-darken-4',
-      'indigo-lighten-2': 'indigo-darken-4',
-      'purple-lighten-2': 'purple-darken-4',
-      'deep-purple-lighten-2': 'deep-purple-darken-4',
-      'red-lighten-1': 'red-darken-4',
-      'orange-lighten-2': 'orange-darken-4',
-      'brown-lighten-2': 'brown-darken-4',
-      'light-green-lighten-2': 'light-green-darken-4',
-      'grey-lighten-1': 'grey-darken-4',
-    };
-    return m[item.color] || 'primary';
-  }
   function getMaterialIcon(emojiIcon) {
     const m = {
       '🧩': 'mdi-puzzle',
@@ -835,23 +587,9 @@
     return m[emojiIcon] || 'mdi-cube';
   }
 
-  // Actions
-  function shuffle() {
-    // keep permission guard intact while shuffling:
-    const v = [...visibleItems.value];
-    items.value = [...v].sort(() => Math.random() - 0.5);
-  }
-  function resetOrder() {
-    items.value = [...original.value];
-  }
-  function toggleDirection() {
-    direction.value = direction.value === 'rtl' ? 'ltr' : 'rtl';
-    document.documentElement.setAttribute('dir', direction.value);
-    document.documentElement.setAttribute('lang', direction.value === 'rtl' ? 'ps' : 'en');
-  }
   onMounted(() => {
-    document.documentElement.setAttribute('dir', direction.value);
-    document.documentElement.setAttribute('lang', direction.value === 'rtl' ? 'ps' : 'en');
+    document.documentElement.setAttribute('dir', 'rtl');
+    document.documentElement.setAttribute('lang', 'fa');
   });
 </script>
 
@@ -859,25 +597,33 @@
   .module-card {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 12px;
-    min-height: 70px !important;
+    min-height: 80px !important;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    background: white;
+    border: 1px solid #e0e0e0;
   }
   .module-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
+    border-color: #2196f3;
   }
   .icon-wrapper {
-    transition: transform 0.3s ease;
+    transition: all 0.3s ease;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background-color: rgba(33, 150, 243, 0.1);
   }
   .module-card:hover .icon-wrapper {
     transform: scale(1.1);
-  }
-  .gap-2 {
-    gap: 8px;
+    background-color: rgba(33, 150, 243, 0.15);
   }
   .gap-3 {
     gap: 12px;
@@ -894,7 +640,7 @@
   }
   .v-card-text {
     flex: 0 0 auto;
-    padding: 12px !important;
+    padding: 16px !important;
   }
   .min-w-0 {
     min-width: 0;
@@ -908,43 +654,25 @@
   .text-right {
     text-align: right;
   }
-  .text-left {
-    text-align: left;
-  }
   [dir='rtl'] .flex-row-reverse {
     flex-direction: row-reverse;
-  }
-  [dir='rtl'] .justify-start {
-    justify-content: flex-start !important;
-  }
-  [dir='ltr'] .justify-start {
-    justify-content: flex-start !important;
-  }
-  [dir='rtl'] .justify-end {
-    justify-content: flex-end !important;
-  }
-  [dir='ltr'] .justify-end {
-    justify-content: flex-end !important;
   }
   @media (max-width: 600px) {
     .search-field {
       min-width: 180px !important;
     }
-    .action-btn {
-      font-size: 0.75rem;
-    }
     .module-card {
-      min-height: 65px !important;
+      min-height: 70px !important;
       border-radius: 10px;
+    }
+    .icon-wrapper {
+      width: 40px;
+      height: 40px;
     }
   }
   @media (max-width: 400px) {
     .search-field {
       min-width: 150px !important;
-    }
-    .action-btn {
-      font-size: 0.7rem;
-      padding: 0 12px;
     }
   }
   .text-body-2 {
@@ -954,13 +682,5 @@
   .text-body-1 {
     font-size: 1rem !important;
     font-weight: 600 !important;
-  }
-  @media (max-width: 960px) {
-    .justify-md-end {
-      justify-content: flex-start !important;
-    }
-    [dir='rtl'] .justify-md-end {
-      justify-content: flex-start !important;
-    }
   }
 </style>

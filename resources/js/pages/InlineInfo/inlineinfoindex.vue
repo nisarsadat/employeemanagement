@@ -1,5 +1,5 @@
 <template>
-  <AppBar :title="t('معلومات خطی')" @toggle-drawer="drawer = !drawer">
+  <AppBar :title="t('مرکز معلومات')" @toggle-drawer="drawer = !drawer">
     <template #actions>
       <v-btn icon></v-btn>
     </template>
@@ -12,7 +12,7 @@
       <v-col cols="12" md="8" lg="7" class="border-end">
         <v-tabs v-model="tab" fixed-tabs>
           <v-tab color="primary" value="resource">{{ t('اطلاعات') }}</v-tab>
-          <v-tab color="primary" value="event">{{ t('پیښي') }}</v-tab>
+          <v-tab color="primary" value="event">{{ t('واقعات') }}</v-tab>
         </v-tabs>
 
         <v-window v-model="tab"v-if="auth.can('inlineinfo.view')">

@@ -164,7 +164,7 @@
                 v-model="item.draft.main_village"
                 density="compact"
                 variant="outlined"
-                :label="t('قریه/ناحیه اصلی')"
+                :label="t('قریه/گذر اصلی')"
                 :rules="[rules.required]"
                 hide-details
                 :error="hasError(item, 'main_village')"
@@ -198,7 +198,7 @@
                 v-model="item.draft.now_village"
                 density="compact"
                 variant="outlined"
-                :label="t('قریه/ناحیه فعلی')"
+                :label="t('قریه/گذر فعلی')"
                 hide-details
                 :error="hasError(item, 'now_village')"
                 :error-messages="getErrorMessages(item, 'now_village')"
@@ -313,7 +313,7 @@
               class="text-group-note"
               density="compact"
               variant="outlined"
-              :label="t('رهنمود/جهت‌دهی')"
+              :label="t('رهنمود رهبریت')"
               hide-details
               :error="hasError(item, 'lead_drirection')"
               :error-messages="getErrorMessages(item, 'lead_drirection')"
@@ -326,7 +326,7 @@
               class="text-group-note"
               density="compact"
               variant="outlined"
-              :label="t('گفت‌وگوها')"
+              :label="t('گفتگو های انجام شده')"
               hide-details
               :error="hasError(item, 'talks')"
               :error-messages="getErrorMessages(item, 'talks')"
@@ -640,7 +640,7 @@
   /* ===== Headers (editor table) ===== */
   const headers = computed(() => [
     { title: t('کود منبع'), key: 'resource_id' },
-    { title: t('کود کارمند اداری'), key: 'office_employee_id' },
+    { title: t('کود کارمند'), key: 'office_employee_id' },
 
     { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },
@@ -659,8 +659,8 @@
 
     { title: t('تفصیل'), key: 'tafseel' },
     { title: t('نظر مدیر'), key: 'manager_comment' },
-    { title: t('رهنمود/جهت‌دهی'), key: 'lead_drirection' },
-    { title: t('گفت‌وگوها'), key: 'talks' },
+    { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
+    { title: t('گفتگوهای انجام شده'), key: 'talks' },
     { title: t('ملاحظات'), key: 'note' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
@@ -672,7 +672,7 @@
   const rowsFT = computed(() => toArray(repo.Informations));
   const headersFT = computed(() => [
     { title: t('کود منبع'), key: 'resource_id' },
-    { title: t('کود کارمند اداری'), key: 'office_employee_id' },
+    { title: t('کود کارمند'), key: 'office_employee_id' },
 
     { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },
@@ -696,7 +696,7 @@
 
     { title: t('تفصیل'), key: 'tafseel' },
     { title: t('نظر مدیر'), key: 'manager_comment' },
-    { title: t('رهنمود/جهت‌دهی'), key: 'lead_drirection' },
+    { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
     { title: t('گفت‌وگوها'), key: 'talks' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('ملاحظات'), key: 'note', width: 400 },

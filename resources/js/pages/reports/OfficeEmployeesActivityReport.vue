@@ -154,7 +154,7 @@
           <v-col cols="12" md="2">
             <v-text-field
               v-model.trim="repo.ProvinceAddr"
-              :label="t('اساس ولایت (Province_addr)')"
+              :label="t('اساس ولایت ')"
               density="compact"
               variant="outlined"
               clearable
@@ -164,7 +164,7 @@
           <v-col cols="12" md="3">
             <v-text-field
               v-model.trim="repo.NowProvince"
-              :label="t('اوسنی ولایت (now_province)')"
+              :label="t('اوسنی ولایت ')"
               density="compact"
               variant="outlined"
               clearable
@@ -207,7 +207,8 @@
               v-model="repo.Period"
               density="compact"
               variant="outlined"
-              class="w-100"
+              color="red"
+              class="w-100 bg-primary"
               divided
             >
               <v-btn value="daily" size="small">{{ t('ورځنی') }}</v-btn>
@@ -271,7 +272,6 @@
               @click="repo.exportCsv"
               :disabled="!repo.rows.length"
               class="bg-success"
-
             >
               <v-icon start size="small">mdi-file-delimited-outline</v-icon>
               {{ t('CSV / Excel') }}

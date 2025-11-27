@@ -36,7 +36,7 @@
 
           <template v-else>
             <div class="three-cols">
-              <!-- ستنه ۱: انځور + درې بټنونه د شمېرنو -->
+              <!-- ستنه ۱: انځور (نور د شمېرنو بټنونه نشته) -->
               <div class="col-left" :style="{ '--image-w': imageWidth, '--image-h': imageHeight }">
                 <div v-if="showBodyImage && hasImage" class="image-container">
                   <v-img :src="imageSrc" class="profile-image" cover>
@@ -46,23 +46,6 @@
                       </div>
                     </template>
                   </v-img>
-                </div>
-
-                <div class="counts-buttons">
-                  <v-btn block size="large" variant="outlined" class="count-btn">
-                    <span class="btn-label">د سرچینو شمېر:</span>
-                    <span class="btn-value">{{ resourceCount }}</span>
-                  </v-btn>
-
-                  <v-btn block size="large" variant="outlined" class="count-btn">
-                    <span class="btn-label">د پېښو شمېر:</span>
-                    <span class="btn-value">{{ eventCount }}</span>
-                  </v-btn>
-
-                  <v-btn block size="large" variant="outlined" class="count-btn">
-                    <span class="btn-label">د معلوماتو شمېر:</span>
-                    <span class="btn-value">{{ infoCount }}</span>
-                  </v-btn>
                 </div>
               </div>
 
@@ -190,17 +173,6 @@ function resolveImageUrl(src) {
 }
 const imageSrc = computed(() => resolveImageUrl(getByPath(props.item, props.imageKey)));
 
-/* counts */
-const resourceCount = computed(() =>
-  Number(props.item?.resources_count ?? props.item?.resources?.length ?? 0)
-);
-const eventCount = computed(() =>
-  Number(props.item?.events_count ?? props.item?.events?.length ?? 0)
-);
-const infoCount = computed(() =>
-  Number(props.item?.informations_count ?? props.item?.informations?.length ?? 0)
-);
-
 /* dates everywhere */
 const ISO_STRICT = /^\d{4}-\d{2}-\d{2}$/;
 function isDateKeyOrIso(key, val) {
@@ -250,18 +222,13 @@ async function imgB64(url) {
   });
 }
 
-/* Build 4-column rows: Label, Value, Label, Value */
+/* Build 4-column rows: Label, Value, Label, Value (نور شمېرنې نه اضافه کوو) */
 function tableBodyRowsFour() {
-  // Build pairs from fields
+  // Build pairs from fields only
   const pairs = (fieldsToShow.value || []).map((f) => ({
     label: f.title,
     value: displayValue(f.key),
   }));
-
-  // Add counts at the end
-  pairs.push({ label: 'د سرچینو شمېر', value: String(resourceCount.value || 0) });
-  pairs.push({ label: 'د پېښو شمېر', value: String(eventCount.value || 0) });
-  pairs.push({ label: ' د معلوماتو شمېر', value: String(infoCount.value || 0) });
 
   // Two pairs per row (4 cells)
   const body = [];
@@ -321,7 +288,7 @@ async function downloadPdf() {
       content.push({ image: img, width: 130, alignment: 'center', margin: [0, 0, 0, 10] });
     }
 
-    // څلور ستنې جدول: Label, Value, Label, Value
+    // څلور ستنې جدول: Label, Value, Label, Value (یوازې فیلډونه)
     content.push({
       table: {
         widths: ['auto', '*', 'auto', '*'],
@@ -400,7 +367,7 @@ async function downloadPdf() {
   gap: 16px;
 }
 
-/* چپ ستن: انځور + درې بټنونه */
+/* چپ ستن: انځور */
 .col-left {
   display: flex;
   flex-direction: column;
@@ -423,23 +390,6 @@ async function downloadPdf() {
   justify-content: center;
   background: #0d0c0c;
   border-radius: 8px;
-}
-
-.counts-buttons {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.count-btn {
-  justify-content: space-between;
-  font-weight: 700;
-}
-.count-btn .btn-label {
-  opacity: 0.9;
-}
-.count-btn .btn-value {
-  font-size: 16px;
 }
 
 /* ښي لور: دوه ستنې key:value */

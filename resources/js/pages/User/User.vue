@@ -17,7 +17,7 @@
       <v-col cols="12" md="11">
         <v-text-field
           v-model="search"
-          :label="t('Search')"
+          :label="t('جستجو')"
           append-inner-icon="mdi-search-web"
           density="compact"
           hide-details
@@ -110,7 +110,7 @@
               <template #prepend>
                 <v-icon color="grey-darken-1">mdi-pencil-outline</v-icon>
               </template>
-              <v-list-item-title>{{ t('Edit') }}</v-list-item-title>
+              <v-list-item-title>{{ t('ایدیت') }}</v-list-item-title>
             </v-list-item>
 
             <v-list-item
@@ -121,7 +121,7 @@
               <template #prepend>
                 <v-icon color="grey-darken-1">mdi-delete-outline</v-icon>
               </template>
-              <v-list-item-title>{{ t('Delete') }}</v-list-item-title>
+              <v-list-item-title>{{ t('دلیت') }}</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -129,7 +129,7 @@
 
       <template #no-data>
         <v-alert type="info" color="primary" variant="tonal" class="ma-4">
-          {{ t('No User found. Create your first User!') }}
+          {{ t('استفاده کننده دریافت نشد لطفا یکی را اضافه کنید!') }}
         </v-alert>
       </template>
     </v-data-table-server>
@@ -174,11 +174,11 @@ onMounted(() => {
 })
 
 const headers = computed(() => [
-  { title: t('Select'), key: 'data-table-select', sortable: false, align: 'end' },
-  { title: t('photo'), key: 'image_url', sortable: false },
-  { title: t('UserName'), key: 'username', sortable: true },
-  { title: t('Role'), key: 'roles', sortable: false },
-  { title: t('Action'), key: 'actions', sortable: false, align: 'end' },
+  { title: t('انتخاب'), key: 'data-table-select', sortable: false, align: 'end' },
+  { title: t('تصویر'), key: 'image_url', sortable: false },
+  { title: t('نام کاربر'), key: 'username', sortable: true },
+  { title: t('نقش'), key: 'roles', sortable: false },
+  { title: t('عملیات'), key: 'actions', sortable: false, align: 'end' },
 ])
 
 const search = computed({

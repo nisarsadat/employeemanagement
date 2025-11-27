@@ -54,16 +54,16 @@
         <v-row>
           <v-col cols="12" md="4">
             <div class="text-caption">{{ t('ټول داخل شوي تېل (L)') }}</div>
-            <div class="text-h6">{{ qtyExact(totals.income) }} افغانی</div>
+            <div class="text-h6">{{ qtyExact(totals.income) }} لیتر</div>
           </v-col>
           <v-col cols="12" md="4">
             <div class="text-caption">{{ t('ټول مصرف شوي تېل (L)') }}</div>
-            <div class="text-h6">{{ qtyExact(totals.expense) }} افغانی</div>
+            <div class="text-h6">{{ qtyExact(totals.expense) }} لیتر</div>
           </v-col>
           <v-col cols="12" md="4">
             <div class="text-caption">{{ t('خالص (L)') }}</div>
             <div class="text-h6" :class="totals.net >= 0 ? 'text-success' : 'text-error'">
-              {{ qtyExact(totals.net) }} افغانی
+              {{ qtyExact(totals.net) }} لیتر
             </div>
           </v-col>
         </v-row>

@@ -48,7 +48,9 @@ class ResourceResource extends JsonResource
             'train'              => $this->train,
 
             // misc
-            'resource_saved_date'    => $this->resource_saved_date,
+            'resource_saved_date' => $this->resource_saved_date
+                ? $this->resource_saved_date->format('Y-m-d')
+                : null,
             'resource_activity_type' => $this->resource_activity_type,
             'office_employee_id'     => $this->office_employee_id,
             'resource_cover'         => $this->resource_cover,

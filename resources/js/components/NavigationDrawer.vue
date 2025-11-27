@@ -20,12 +20,14 @@
           <v-list-item
             v-if="!item.children"
             :to="item.to"
-            rounded="2"
+            rounded="lg"
             :dir="isRtl ? 'rtl' : 'ltr'"
             :active="isActive(item)"
+            class="nav-item"
+            :class="{ 'nav-item-active': isActive(item) }"
           >
             <template #prepend>
-              <div class="icon-bg">
+              <div class="icon-bg" :class="{ 'icon-bg-active': isActive(item) }">
                 <v-icon :icon="item.icon" />
               </div>
             </template>
@@ -42,18 +44,26 @@
               <v-list-item
                 v-bind="props"
                 :append-icon="null"
+                class="nav-item"
                 :class="{
-                  'bg-gray': isGroupOpen(item),
-                  'text-primary': isGroupOpen(item),
+                  'nav-item-active': isGroupOpen(item),
+                  'group-open': isGroupOpen(item),
                 }"
                 :dir="isRtl ? 'rtl' : 'ltr'"
               >
                 <template #prepend>
-                  <div class="icon-bg">
+                  <div class="icon-bg" :class="{ 'icon-bg-active': isGroupOpen(item) }">
                     <v-icon :icon="item.icon" />
                   </div>
                 </template>
                 <v-list-item-title>{{ item.title }}</v-list-item-title>
+                <template #append>
+                  <v-icon 
+                    :icon="isGroupOpen(item) ? 'mdi-chevron-up' : 'mdi-chevron-down'" 
+                    size="small"
+                    class="group-chevron"
+                  />
+                </template>
               </v-list-item>
             </template>
 
@@ -61,13 +71,17 @@
               v-for="child in item.children"
               :key="child.title"
               :to="child.to"
-              prepend-icon="mdi-circle-medium"
-              :active="isActive(child)"
+              class="nav-child-item"
               :class="{
-                'bg-gray': isActive(child),
-                'text-primary': isActive(child),
+                'nav-child-active': isActive(child),
               }"
+              :active="isActive(child)"
             >
+              <template #prepend>
+                <div class="child-indicator">
+                  <div class="child-dot" :class="{ 'child-dot-active': isActive(child) }"></div>
+                </div>
+              </template>
               <v-list-item-title>{{ child.title }}</v-list-item-title>
             </v-list-item>
           </v-list-group>
@@ -90,8 +104,8 @@
             <v-avatar size="30" class="mr-3 br-1" v-if="avatarSrc">
               <v-img :src="avatarSrc" alt="avatar" cover />
             </v-avatar>
-            <v-avatar size="40" class="mr-3" v-else>
-              <span class="text-subtitle-1 font-weight-bold">{{ initials }}</span>
+            <v-avatar size="40" class="mr-3 bg-primary bold" v-else>
+              <span class="text-subtitle-1 font-weight-bold ">{{ initials }}</span>
             </v-avatar>
           </template>
 
@@ -106,7 +120,7 @@
 
       <v-card min-width="220">
         <v-list density="compact">
-          <v-list-item @click="onLogout" prepend-icon="mdi-logout-variant">
+          <v-list-item @click="onLogout"  prepend-icon="mdi-logout-variant">
             <v-list-item-title>{{ t('Logout') }}</v-list-item-title>
           </v-list-item>
         </v-list>
@@ -212,7 +226,7 @@
   const navigationItems = computed(() =>
     [
       {
-        title: t('Dashboard'),
+        title: t('دشبورد'),
         icon: 'mdi-view-dashboard-outline',
         to: toName('Dashboard'),
         perm: 'dashboards.view',
@@ -233,14 +247,14 @@
       },
 
       {
-        title: t(' خطی اطلاعات'),
+        title: t('مرکز معلومات'),
         icon: 'mdi-menu',
         to: { path: '/app/inlineinfo' },
         perm: 'inlineinfo.view',
       },
 
       {
-        title: t('استفاده کوونکی'),
+        title: t('استفاده کننده ها'),
         icon: 'mdi-account',
         to: { path: '/app/users' },
         perm: 'users.view',
@@ -268,21 +282,21 @@
       },
 
       {
-        title: t('پیښي'),
+        title: t('واقعات'),
         icon: 'mdi-book-outline',
         to: { path: '/app/events' },
         perm: 'events.view',
       },
 
       {
-        title: t('تسلیم شوی بندیان'),
+        title: t('زندانی های تسلیم شده'),
         icon: 'mdi-lock',
         to: { path: '/app/delevirycaptive' },
         perm: 'captives.view',
       },
 
       {
-        title: t('پنڅوس فارمټ '),
+        title: t('۵۶ فارمت'),
         icon: 'mdi-view-dashboard-outline',
         to: { path: '/app/fifthyformatsroute' },
         perm: 'fifthyformatsroute.view',
@@ -303,7 +317,7 @@
         icon: 'mdi-graph',
         children: [
           {
-            title: t('  پنځوس فارمټ'),
+            title: t('۵۶ فارمت'),
             icon: 'mdi-file-chart',
             to: { path: '/app/fiftyformatreports' },
             perm: 'fiftyformatreports.view',
@@ -381,27 +395,121 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 8px rgba(24, 23, 23, 0.25);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-right: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   [dir='rtl'] .icon-bg {
     margin-left: 16px;
     margin-right: 0;
   }
 
+  .icon-bg-active {
+    background-color: rgb(var(--v-theme-primary));
+    color: white;
+    box-shadow: 0 4px 8px rgba(var(--v-theme-primary), 0.3);
+    transform: scale(1.05);
+  }
+
   .scrollable-content {
-    height: calc(100vh - 200px);
+    height: calc(99vh - 200px);
     overflow-y: auto;
   }
   .scrollable-content::-webkit-scrollbar {
     width: 0px;
   }
 
-  .v-list .v-list-item:hover {
-    border-radius: 9px !important;
+  /* Navigation item styles */
+  .nav-item {
+    margin: 2px 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
   }
-  .v-list-item--active {
-    border-radius: 9px !important;
+
+  .nav-item:hover {
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.1) 0%, rgba(var(--v-theme-primary), 0.05) 100%);
+    border-color: rgba(var(--v-theme-primary), 0.2);
+    transform: translateX(2px);
+  }
+
+  .nav-item-active {
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.15) 0%, rgba(var(--v-theme-primary), 0.08) 100%);
+    border-color: rgba(var(--v-theme-primary), 0.3);
+    box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.15);
+  }
+
+  .nav-item-active .v-list-item-title {
+    color: rgb(var(--v-theme-primary));
+    font-weight: 700;
+  }
+
+  /* Group styles */
+  .group-open {
+    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.08) 0%, rgba(var(--v-theme-primary), 0.04) 100%);
+  }
+
+  .group-chevron {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .nav-item-active .group-chevron {
+    color: rgb(var(--v-theme-primary));
+  }
+
+  /* Child item styles */
+  .nav-child-item {
+    margin: 2px 8px;
+    border-radius: 8px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    min-height: 40px;
+  }
+
+  .nav-child-item:hover {
+    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.08) 0%, rgba(var(--v-theme-primary), 0.04) 100%);
+    border-color: rgba(var(--v-theme-primary), 0.15);
+    transform: translateX(1px);
+  }
+
+  .nav-child-active {
+    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.12) 0%, rgba(var(--v-theme-primary), 0.06) 100%);
+    border-color: rgba(var(--v-theme-primary), 0.25);
+  }
+
+  .nav-child-active .v-list-item-title {
+    color: rgb(var(--v-theme-primary));
+    font-weight: 500;
+  }
+
+  .child-indicator {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+  }
+
+  [dir='rtl'] .child-indicator {
+    margin-left: 12px;
+    margin-right: 0;
+  }
+
+  .child-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .child-dot-active {
+    background-color: rgb(var(--v-theme-primary));
+    transform: scale(1.3);
+    box-shadow: 0 2px 4px rgba(var(--v-theme-primary), 0.3);
   }
 
   .brright {
@@ -426,5 +534,17 @@
   }
   :deep(.v-avatar) {
     background: var(--v-theme-surface);
+  }
+
+  /* Smooth transitions for all interactive elements */
+  .v-list-item {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Focus states for accessibility */
+  .nav-item:focus-within,
+  .nav-child-item:focus-within {
+    outline: 2px solid rgba(var(--v-theme-primary), 0.3);
+    outline-offset: 2px;
   }
 </style>

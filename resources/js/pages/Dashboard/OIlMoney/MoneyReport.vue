@@ -9,28 +9,28 @@
             variant="elevated"
             @click="setPeriod('daily')"
           >
-            {{ t('ورځنی راپور') }}
+            {{ t('راپور روزانه') }}
           </v-btn>
           <v-btn
             :color="active === 'weekly' ? 'primary' : undefined"
             variant="elevated"
             @click="setPeriod('weekly')"
           >
-            {{ t('اونیز راپور') }}
+            {{ t('راپور هفته وار') }}
           </v-btn>
           <v-btn
             :color="active === 'yearly' ? 'primary' : undefined"
             variant="elevated"
             @click="setPeriod('yearly')"
           >
-            {{ t('کلنی راپور') }}
+            {{ t('راپور سالانه') }}
           </v-btn>
         </div>
       </v-col>
 
       <v-col cols="12" md="7" class="text-md-right text-caption" :dir="isRtl ? 'rtl' : 'ltr'">
         <span v-if="repo.income.range.from && repo.income.range.to">
-          {{ t('له') }} <strong>{{ formatDateYMD(repo.income.range.from) }}</strong> {{ t('تر') }}
+          {{ t('از') }} <strong>{{ formatDateYMD(repo.income.range.from) }}</strong> {{ t('تا') }}
           <strong>{{ formatDateYMD(repo.income.range.to) }}</strong>
         </span>
       </v-col>
@@ -43,7 +43,7 @@
         <v-card elevation="2" class="pa-4">
           <div class="d-flex align-center justify-space-between">
             <div>
-              <div class="text-caption text-medium-emphasis">{{ t('ټول شته پیسې') }}</div>
+              <div class="text-caption text-medium-emphasis">{{ t('تمام پول موجودی') }}</div>
               <div class="text-h5 mt-1">{{ moneyExact(repo.accounts.total) }}افغانی</div>
             </div>
             <v-avatar size="40" color="success" variant="tonal">
@@ -51,7 +51,7 @@
             </v-avatar>
           </div>
           <div class="text-caption text-medium-emphasis mt-2" v-if="repo.accounts.as_of">
-            {{ t('د نیټې') }}: {{ formatDateYMD(repo.accounts.as_of) }}
+            {{ t('تا تاریخ') }}: {{ formatDateYMD(repo.accounts.as_of) }}
           </div>
         </v-card>
       </v-col>
@@ -61,7 +61,7 @@
         <v-card elevation="2" class="pa-4">
           <div class="d-flex align-center justify-space-between">
             <div>
-              <div class="text-caption text-medium-emphasis">{{ t('ټول مصرف (د دورې)') }}</div>
+              <div class="text-caption text-medium-emphasis">{{ t('تمام مصرف ها') }}</div>
               <div class="text-h5 mt-1 text-error">
                 {{ moneyExact(repo.expense.totals?.expense || 0) }}افغانی
               </div>
@@ -81,7 +81,7 @@
         <v-card elevation="2" class="pa-4">
           <div class="d-flex align-center justify-space-between">
             <div>
-              <div class="text-caption text-medium-emphasis">{{ t('ټول عاید (د دورې)') }}</div>
+              <div class="text-caption text-medium-emphasis">{{ t('تمام عایدات') }}</div>
               <div class="text-h5 mt-1 text-success">
                 {{ moneyExact(repo.income.totals?.income || 0) }}افغانی
               </div>
@@ -99,7 +99,7 @@
 
     <!-- Income Chart -->
     <v-card elevation="2" class="mb-4" :dir="isRtl ? 'rtl' : 'ltr'">
-      <v-card-title class="text-subtitle-1">{{ t('د عایداتو ګراف') }}</v-card-title>
+      <v-card-title class="text-subtitle-1">{{ t('گراف عایدات') }}</v-card-title>
       <v-divider />
       <v-card-text :dir="isRtl ? 'rtl' : 'ltr'">
         <div ref="incomeChartRef" style="height: 320px; width: 100%"></div>
@@ -108,7 +108,7 @@
 
     <!-- Expense Chart -->
     <v-card elevation="2" class="mb-4" :dir="isRtl ? 'rtl' : 'ltr'">
-      <v-card-title class="text-subtitle-1">{{ t('د لګښتونو ګراف') }}</v-card-title>
+      <v-card-title class="text-subtitle-1">{{ t('گراف های مصارف') }}</v-card-title>
       <v-divider />
       <v-card-text>
         <div ref="expenseChartRef" style="height: 320px; width: 100%"></div>
@@ -118,9 +118,9 @@
     <!-- Accounts Chart -->
     <v-card elevation="2" :dir="isRtl ? 'rtl' : 'ltr'">
       <v-card-title class="text-subtitle-1">
-        {{ t('د حسابونو اوسنی بیلانس') }}
+        {{ t('بیلانس فعلی حساب ها') }}
         <small class="text-medium-emphasis ms-2" v-if="repo.accounts.as_of">
-          ({{ t('د نیټې') }}: {{ formatDateYMD(repo.accounts.as_of) }})
+          ({{ t('از تاریخ') }}: {{ formatDateYMD(repo.accounts.as_of) }})
         </small>
       </v-card-title>
       <v-divider />
@@ -252,7 +252,7 @@ function renderExpense() {
         const p = Array.isArray(params) ? params[0] : params;
         const ts = p?.value?.[0];
         const val = p?.value?.[1];
-        return `${formatDateTS(ts)}<br/>${t('لګښت')}: ${moneyExact(val)}`;
+        return `${formatDateTS(ts)}<br/>${t('مصرف')}: ${moneyExact(val)}`;
       },
     },
     grid: { left: 40, right: 20, top: 30, bottom: 60 },
@@ -266,7 +266,7 @@ function renderExpense() {
       axisLabel: { formatter: (val) => numberExact(val) },
     },
     series: [
-      { name: t('لګښت'), type: 'line', smooth: true, areaStyle: {}, data },
+      { name: t('مصرف'), type: 'line', smooth: true, areaStyle: {}, data },
     ],
   });
 }

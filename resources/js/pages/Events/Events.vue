@@ -123,7 +123,7 @@
               class="text-group"
               density="compact"
               variant="outlined"
-              :label="t('هدف/مکان')"
+              :label="t('هدف کی بود/مکان بود؟')"
               hide-details
               clearable
               :error="hasError(item, 'target_person')"
@@ -138,7 +138,7 @@
               class="text-group"
               density="compact"
               variant="outlined"
-              :label="t('عامل/مرتکب')"
+              :label="t('کی جرم را انجام داده؟')"
               hide-details
               clearable
               :error="hasError(item, 'criminal')"
@@ -608,8 +608,8 @@ const headers = computed(() => [
   { title: t('کارمند دفتر'), key: 'office_employee_id' },
   { title: t('نوعیت واقعه'), key: 'event_type' },
   { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
-  { title: t('هدف/مکان'), key: 'target_person' },
-  { title: t('عامل/مرتکب'), key: 'criminal' },
+  { title: t('هدف کی بود؟/مکان بود؟'), key: 'target_person' },
+  { title: t('جرم را کی انجام داده؟'), key: 'criminal' },
   { title: t('تاریخ واقعه'), key: 'event_date' },
   { title: t('ساعت واقعه'), key: 'event_hour' },
   { title: t('زون'), key: 'event_zone' },
@@ -643,8 +643,8 @@ const headersFT = computed(() => [
   { title: t('کارمند دفتر'), key: 'office_employee_display' },
   { title: t('نوعیت واقعه'), key: 'event_type' },
   { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
-  { title: t('هدف/مکان'), key: 'target_person' },
-  { title: t('عامل/مرتکب'), key: 'criminal' },
+  { title: t('هدف کی بود؟/مکان بود؟'), key: 'target_person' },
+  { title: t('کی جرم را انجام داده؟'), key: 'criminal' },
   { title: t('تاریخ واقعه'), key: 'event_date' },
   { title: t('ساعت واقعه'), key: 'event_hour' },
   { title: t('زون'), key: 'event_zone' },

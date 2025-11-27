@@ -206,7 +206,7 @@
                 v-model="item.draft.new_job"
                 density="compact"
                 variant="outlined"
-                :label="t('وظیفه جدید')"
+                :label="t('وظیفه فعلی')"
                 hide-details
                 :error="hasError(item, 'new_job')"
                 :error-messages="getErrorMessages(item, 'new_job')"
@@ -266,7 +266,7 @@
                 density="compact"
                 variant="outlined"
                 hide-details
-                :label="t('قریه/ناحیه اصلی')"
+                :label="t('قریه/گذر اصلی')"
                 :error="hasError(item, 'main_village')"
                 :error-messages="getErrorMessages(item, 'main_village')"
               />
@@ -299,7 +299,7 @@
                 density="compact"
                 variant="outlined"
                 hide-details
-                :label="t('قریه/ناحیه فعلی')"
+                :label="t('قریه/گذر فعلی')"
                 :error="hasError(item, 'now_village')"
                 :error-messages="getErrorMessages(item, 'now_village')"
               />
@@ -848,11 +848,11 @@
 
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_district' },
-    { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+    { title: t('قریه/گذر اصلی'), key: 'main_village' },
 
     { title: t('ولایت فعلی'), key: 'now_province' },
     { title: t('ولسوالی فعلی'), key: 'now_district' },
-    { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
+    { title: t('قریه/گذر فعلی'), key: 'now_village' },
 
     { title: t('محل دستگیری'), key: 'captive_place' },
     { title: t('کوردینات محل دستگیری'), key: 'coordinates' },

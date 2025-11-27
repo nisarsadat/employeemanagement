@@ -1,11 +1,5 @@
 <template>
   <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar
-      :title="t('د پنځه-دو بڼو ډشبورډ (fifthyformatstow)')"
-      :subtitle="t('یو مخ — کارتونه، ګرافونه، جدول')"
-      @toggle-drawer="() => {}"
-    />
-
     <!-- Filters -->
     <v-row class="mb-4" align="end">
       <v-col cols="12" md="3">
@@ -14,7 +8,7 @@
           :items="formatOptions"
           item-title="label"
           item-value="key"
-          :label="t('بڼه/فورمټ')"
+          :label="t('فارمت')"
           density="compact"
           variant="outlined"
           clearable
@@ -36,7 +30,7 @@
       <v-col cols="12" md="3">
         <v-date-input
           v-model="fromModel"
-          :label="t('له نېټې')"
+          :label="t('از تاریخ')"
           color="primary"
           density="compact"
           variant="outlined"
@@ -53,7 +47,7 @@
       <v-col cols="12" md="3">
         <v-date-input
           v-model="toModel"
-          :label="t('تر نېټې')"
+          :label="t('تا تاریخ')"
           color="primary"
           density="compact"
           variant="outlined"
@@ -69,7 +63,7 @@
       <v-col cols="12" md="9">
         <v-text-field
           v-model.trim="repo.Search"
-          :label="t('لټون')"
+          :label="t('جستجو')"
           prepend-inner-icon="mdi-magnify"
           density="compact"
           variant="outlined"
@@ -80,14 +74,14 @@
 
       <!-- Granularity + All-time -->
       <v-col cols="12" md="3" class="text-md-right granularity">
-        <!-- <v-btn
+        <v-btn
           variant="flat"
           color="primary"
           class="mr-2"
           :class="btnClass('daily')"
           @click="quickRange('daily')"
         >
-          {{ t('ورځنی') }}
+          {{ t('روزانه') }}
         </v-btn>
         <v-btn
           variant="flat"
@@ -96,7 +90,7 @@
           :class="btnClass('monthly')"
           @click="quickRange('monthly')"
         >
-          {{ t('میاشتنی') }}
+          {{ t('ماهانه') }}
         </v-btn>
         <v-btn
           variant="flat"
@@ -104,11 +98,11 @@
           :class="btnClass('yearly')"
           @click="quickRange('yearly')"
         >
-          {{ t('کلنی') }}
-        </v-btn> -->
+          {{ t('سالانه') }}
+        </v-btn>
 
         <v-btn variant="tonal" class="ml-2" @click="clearRange">
-          {{ t('ټولې مودې') }}
+          {{ t('تمام مدت') }}
         </v-btn>
       </v-col>
     </v-row>
@@ -119,7 +113,7 @@
         <v-card class="pa-4 h-100 soft-card" elevation="1">
           <div class="text-overline text-primary">{{ c.label }}</div>
           <div class="text-h5 font-weight-bold mt-1">{{ c.total }}</div>
-          <div class="text-caption text-medium-emphasis">{{ t('ټول ریکارډونه') }}</div>
+          <div class="text-caption text-medium-emphasis">{{ t('تمامی ریکارد ها') }}</div>
         </v-card>
       </v-col>
     </v-row>
@@ -129,7 +123,7 @@
       <v-col cols="12" md="8">
         <v-card class="pa-3 soft-card" elevation="1">
           <div class="d-flex align-center justify-space-between mb-2">
-            <div class="text-subtitle-1 font-weight-medium">{{ t('وختي لړۍ (ستونونه + MA)') }}</div>
+            <div class="text-subtitle-1 font-weight-medium">{{ t('دوره زمانی') }}</div>
             <v-chip density="compact" variant="flat">{{ granularityLabel }}</v-chip>
           </div>
           <v-chart :option="columnOption" autoresize style="height: 360px" />
@@ -140,7 +134,7 @@
       <v-col cols="12" md="4">
         <v-card class="pa-3 soft-card" elevation="1">
           <div class="text-subtitle-1 font-weight-medium mb-2">
-            {{ t('ترکیب د بڼو له مخې (Treemap)') }}
+            {{ t('ترکیب از روی صفحات') }}
           </div>
           <v-chart :option="treemapOption" autoresize style="height: 360px" />
         </v-card>
@@ -152,13 +146,13 @@
       <v-col cols="12" md="7">
         <v-card class="pa-3 soft-card" elevation="1">
           <div class="d-flex align-center justify-space-between mb-2">
-            <div class="text-subtitle-1 font-weight-medium">{{ t('لومړي سرچينې') }}</div>
+            <div class="text-subtitle-1 font-weight-medium">{{ t('منابع برتر') }}</div>
             <v-select
               v-model="repo.formatKey"
               :items="formatOptions"
               item-title="label"
               item-value="key"
-              :label="t('فورمټ فلټر')"
+              :label="t('فیلتر فارمت')"
               class="mt-1"
               density="compact"
               variant="outlined"
@@ -175,7 +169,7 @@
 
       <v-col cols="12" md="5">
         <v-card class="pa-3 soft-card" elevation="1">
-          <div class="text-subtitle-1 font-weight-medium mb-2">{{ t('وروستي ریکارډونه') }}</div>
+          <div class="text-subtitle-1 font-weight-medium mb-2">{{ t('ریکارد های اخیر') }}</div>
           <v-data-table
             :headers="recentHeaders"
             :items="repo.recent"
@@ -239,16 +233,16 @@
 
   /* Formats (match backend keys) */
   const formatOptions = [
-    { key: 'apartment', label: t('اپارتمانونه') },
-    { key: 'bank', label: t('بانکونه') },
-    { key: 'car_sales_company', label: t('د موټرو د پلور شرکتونه') },
-    { key: 'hado_bus_stop', label: t('هادو بس تمځایونه') },
-    { key: 'hosppital', label: t('روغتونونه') },
-    { key: 'parking', label: t('پارکينګونه') },
+    { key: 'apartment', label: t('آپارتمنت ها') },
+    { key: 'bank', label: t('بانک ها') },
+    { key: 'car_sales_company', label: t('موتر فروشی') },
+    { key: 'hado_bus_stop', label: t('هده ها') },
+    { key: 'hosppital', label: t('شفاخانه ها') },
+    { key: 'parking', label: t('پارکینگ ها') },
     { key: 'rahnoma_mamlat', label: t('رهنما معاملات') },
-    { key: 'school', label: t('ښوونځي') },
-    { key: 'transport_company', label: t('ترانسپورتي شرکتونه') },
-    { key: 'workshop', label: t('ورکشاپونه') },
+    { key: 'school', label: t('مکاتب') },
+    { key: 'transport_company', label: t('شرکت های ترانسپورتی') },
+    { key: 'workshop', label: t('ورکشاپ ها') },
   ];
 
   /* ===== Date helpers (ISO <-> Date; calendar formatting) ===== */
@@ -334,8 +328,8 @@
 
   const granularityLabel = computed(
     () =>
-      ({ daily: t('ورځنی'), monthly: t('میاشتنی'), yearly: t('کلنی') }[repo.granularity] ||
-      t('ورځنی'))
+      ({ daily: t('روزانه'), monthly: t('ماهانه'), yearly: t('سالانه') }[repo.granularity] ||
+      t('روزانه'))
   );
 
   function endOfTodayISO() {
@@ -546,10 +540,10 @@
 
   /* Table headers */
   const recentHeaders = [
-    { key: 'type', title: t('ډول'), width: 160 },
-    { key: 'name', title: t('نوم') },
+    { key: 'type', title: t('نوع'), width: 160 },
+    { key: 'name', title: t('نام') },
     { key: 'zone', title: t('زون'), width: 140 },
-    { key: 'created_at', title: t('نېټه'), width: 160 },
+    { key: 'created_at', title: t('تاریخ'), width: 160 },
   ];
 
   /* Calendar re-render (no refetch needed) */

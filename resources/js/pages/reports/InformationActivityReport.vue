@@ -115,7 +115,7 @@
           <v-col cols="12" md="2">
             <v-text-field
               v-model.trim="repo.ProvinceAddr"
-              :label="t('اساس ولایت (Province_addr)')"
+              :label="t('اساس ولایت')"
               density="compact"
               variant="outlined"
               clearable
@@ -200,7 +200,8 @@
               v-model="repo.Period"
               density="compact"
               variant="outlined"
-              class="w-100"
+              color="red"
+              class="w-100 bg-primary"
               divided
             >
               <v-btn value="daily" size="small">{{ t('ورځنی') }}</v-btn>
@@ -316,11 +317,7 @@
       <v-divider />
 
       <v-expansion-panels v-model="openPanels" multiple class="pa-2">
-        <v-expansion-panel
-          v-for="(group, idx) in repo.rows"
-          :key="idx"
-          class="mb-2"
-        >
+        <v-expansion-panel v-for="(group, idx) in repo.rows" :key="idx" class="mb-2">
           <v-expansion-panel-title class="py-3">
             <template #default="{ expanded }">
               <div class="d-flex flex-column w-100">
@@ -381,10 +378,7 @@
               <template #item.name="{ item }">
                 <div class="text-body-2">
                   {{ item.name || '---' }}
-                  <span
-                    v-if="item.father_name"
-                    class="text-caption text-grey ms-1"
-                  >
+                  <span v-if="item.father_name" class="text-caption text-grey ms-1">
                     {{ t('د') }} {{ item.father_name }}
                   </span>
                 </div>
@@ -409,24 +403,14 @@
               </template>
 
               <template #item.syasi_info_type="{ item }">
-                <v-chip
-                  v-if="item.syasi_info_type"
-                  size="small"
-                  variant="tonal"
-                  color="info"
-                >
+                <v-chip v-if="item.syasi_info_type" size="small" variant="tonal" color="info">
                   {{ item.syasi_info_type }}
                 </v-chip>
                 <span v-else>-</span>
               </template>
 
               <template #item.jenayee_info_type="{ item }">
-                <v-chip
-                  v-if="item.jenayee_info_type"
-                  size="small"
-                  variant="tonal"
-                  color="error"
-                >
+                <v-chip v-if="item.jenayee_info_type" size="small" variant="tonal" color="error">
                   {{ item.jenayee_info_type }}
                 </v-chip>
                 <span v-else>-</span>
@@ -502,9 +486,7 @@
       class="text-center py-8"
       rounded="lg"
     >
-      <v-icon size="64" color="grey-lighten-1" class="mb-4">
-        mdi-database-remove-outline
-      </v-icon>
+      <v-icon size="64" color="grey-lighten-1" class="mb-4"> mdi-database-remove-outline </v-icon>
       <div class="text-h6 text-grey mb-2">
         {{ t('هیڅ نتیجه ونه موندل شوه') }}
       </div>
@@ -519,149 +501,147 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import AppBar from '@/components/AppBar.vue'
-import DateInput from '@/components/DateInput.vue'
-import { useCalendar } from '../../../composables/useCalendar'
-import { useInformationReportRepository } from '@/stores/InformationReportRepository'
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import AppBar from '@/components/AppBar.vue';
+  import DateInput from '@/components/DateInput.vue';
+  import { useCalendar } from '../../../composables/useCalendar';
+  import { useInformationReportRepository } from '@/stores/InformationReportRepository';
 
-const { t, locale } = useI18n()
-const { calendar, formatForDisplay } = useCalendar()
+  const { t, locale } = useI18n();
+  const { calendar, formatForDisplay } = useCalendar();
 
-const isRtl = computed(() =>
-  ['fa', 'ps', 'prs', 'fa-AF'].includes(locale.value),
-)
+  const isRtl = computed(() => ['fa', 'ps', 'prs', 'fa-AF'].includes(locale.value));
 
-const drawer = ref(false)
-const repo = useInformationReportRepository()
-const openPanels = ref([])
+  const drawer = ref(false);
+  const repo = useInformationReportRepository();
+  const openPanels = ref([]);
 
-const headers = computed(() => [
-  { title: t('نېټه'), value: 'information_saved_date', width: '8%' },
-  { title: t('ساعت'), value: 'information_saved_hour', width: '6%' },
-  { title: t('نوم'), value: 'name', width: '16%' },
-  { title: t('اساس ولایت / اصلي / اوسنی'), value: 'Province_addr', width: '18%' },
-  { title: t('سیاسي معلومات'), value: 'syasi_info_type', width: '10%' },
-  { title: t('جنایي معلومات'), value: 'jenayee_info_type', width: '10%' },
-  { title: t('درجه'), value: 'information_degree', width: '8%' },
-  { title: t('کارمند'), value: 'office_employee', width: '14%' },
-  { title: t('منبع'), value: 'resource', width: '14%' },
-  {
-    title: t('ورځې له ثبت وروسته'),
-    value: 'days_since_saved',
-    width: '8%',
-    align: 'center',
-  },
-  { title: t('تفصیل'), value: 'tafseel', width: '18%' },
-  { title: t('د مدیر تبصره'), value: 'manager_comment', width: '18%' },
-])
+  const headers = computed(() => [
+    { title: t('نېټه'), value: 'information_saved_date', width: '8%' },
+    { title: t('ساعت'), value: 'information_saved_hour', width: '6%' },
+    { title: t('نوم'), value: 'name', width: '16%' },
+    { title: t('اساس ولایت / اصلي / اوسنی'), value: 'Province_addr', width: '18%' },
+    { title: t('سیاسي معلومات'), value: 'syasi_info_type', width: '10%' },
+    { title: t('جنایي معلومات'), value: 'jenayee_info_type', width: '10%' },
+    { title: t('درجه'), value: 'information_degree', width: '8%' },
+    { title: t('کارمند'), value: 'office_employee', width: '14%' },
+    { title: t('منبع'), value: 'resource', width: '14%' },
+    {
+      title: t('ورځې له ثبت وروسته'),
+      value: 'days_since_saved',
+      width: '8%',
+      align: 'center',
+    },
+    { title: t('تفصیل'), value: 'tafseel', width: '18%' },
+    { title: t('د مدیر تبصره'), value: 'manager_comment', width: '18%' },
+  ]);
 
-const summaryExists = computed(() => !!Object.keys(repo.summary || {}).length)
+  const summaryExists = computed(() => !!Object.keys(repo.summary || {}).length);
 
-const allTimeModel = computed({
-  get() {
-    return !!repo.ignoreDates
-  },
-  set(val) {
-    repo.setAllTime(val)
-  },
-})
+  const allTimeModel = computed({
+    get() {
+      return !!repo.ignoreDates;
+    },
+    set(val) {
+      repo.setAllTime(val);
+    },
+  });
 
-function daysColor(days) {
-  if (days == null) return 'grey'
-  if (days <= 7) return 'success'
-  if (days <= 30) return 'warning'
-  return 'error'
-}
-
-function getDaysIcon(days) {
-  if (days <= 7) return 'mdi-timer-outline'
-  if (days <= 30) return 'mdi-timer-sand-empty'
-  return 'mdi-timer-off-outline'
-}
-
-function formatDate(dateString) {
-  if (!dateString) return ''
-  if (typeof formatForDisplay === 'function') {
-    try {
-      return formatForDisplay(dateString)
-    } catch {
-      // ignore
-    }
+  function daysColor(days) {
+    if (days == null) return 'grey';
+    if (days <= 7) return 'success';
+    if (days <= 30) return 'warning';
+    return 'error';
   }
-  const d = new Date(dateString)
-  if (Number.isNaN(d.getTime())) return dateString
-  return d.toLocaleDateString('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-  })
-}
 
-function shortText(text, len = 120) {
-  if (!text) return ''
-  if (text.length <= len) return text
-  return text.substring(0, len) + '...'
-}
+  function getDaysIcon(days) {
+    if (days <= 7) return 'mdi-timer-outline';
+    if (days <= 30) return 'mdi-timer-sand-empty';
+    return 'mdi-timer-off-outline';
+  }
 
-function resetFilters() {
-  repo.Search = ''
-  repo.ProvinceAddr = ''
-  repo.MainProvince = ''
-  repo.NowProvince = ''
-  repo.SyasiType = ''
-  repo.JenayeeType = ''
-  repo.InformationDegree = ''
-  repo.OfficeEmployeeId = ''
-  repo.ResourceId = ''
-  repo.Period = 'all'
-  repo.From = ''
-  repo.To = ''
-  repo.ignoreDates = 1
-  openPanels.value = []
-  repo.fetchReport()
-}
+  function formatDate(dateString) {
+    if (!dateString) return '';
+    if (typeof formatForDisplay === 'function') {
+      try {
+        return formatForDisplay(dateString);
+      } catch {
+        // ignore
+      }
+    }
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return dateString;
+    return d.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+    });
+  }
 
-onMounted(() => {
-  repo.fetchReport()
-})
+  function shortText(text, len = 120) {
+    if (!text) return '';
+    if (text.length <= len) return text;
+    return text.substring(0, len) + '...';
+  }
 
-watch(
-  () => [
-    repo.ProvinceAddr,
-    repo.MainProvince,
-    repo.NowProvince,
-    repo.SyasiType,
-    repo.JenayeeType,
-  ],
-  () => {
-    openPanels.value = []
-  },
-)
+  function resetFilters() {
+    repo.Search = '';
+    repo.ProvinceAddr = '';
+    repo.MainProvince = '';
+    repo.NowProvince = '';
+    repo.SyasiType = '';
+    repo.JenayeeType = '';
+    repo.InformationDegree = '';
+    repo.OfficeEmployeeId = '';
+    repo.ResourceId = '';
+    repo.Period = 'all';
+    repo.From = '';
+    repo.To = '';
+    repo.ignoreDates = 1;
+    openPanels.value = [];
+    repo.fetchReport();
+  }
+
+  onMounted(() => {
+    repo.fetchReport();
+  });
+
+  watch(
+    () => [
+      repo.ProvinceAddr,
+      repo.MainProvince,
+      repo.NowProvince,
+      repo.SyasiType,
+      repo.JenayeeType,
+    ],
+    () => {
+      openPanels.value = [];
+    }
+  );
 </script>
 
 <style scoped>
-.summary-card {
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
+  .summary-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
 
-.summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-}
+  .summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
 
-.v-expansion-panel {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
-}
+  .v-expansion-panel {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+  }
 
-:deep(.v-data-table) {
-  border-radius: 8px;
-}
+  :deep(.v-data-table) {
+    border-radius: 8px;
+  }
 
-:deep(.v-data-table-header) {
-  background-color: rgba(0, 0, 0, 0.02);
-}
+  :deep(.v-data-table-header) {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
 </style>

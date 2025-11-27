@@ -205,7 +205,7 @@
               class="text-group"
               density="compact"
               variant="outlined"
-              :label="t('دلګی/مشری')"
+              :label="t('دلګی مشر')"
               hide-details
             />
           </template>
@@ -215,7 +215,7 @@
               class="text-group"
               density="compact"
               variant="outlined"
-              :label="t('مواقف جهادی')"
+              :label="t('موقف جهادی')"
               :items="repo.getJahadiMawqafOptions()"
               hide-details
             />
@@ -285,7 +285,7 @@
                 density="compact"
                 :rules="[rules.required]"
                 variant="outlined"
-                :label="t('قریه/ناحیه اصلی')"
+                :label="t('قریه/گذر اصلی')"
                 hide-details
                 :error="hasError(item, 'main_village')"
                 :error-messages="getErrorMessages(item, 'main_village')"
@@ -315,7 +315,7 @@
                 density="compact"
                 variant="outlined"
                 hide-details
-                :label="t('قریه/ناحیه فعلی')"
+                :label="t('قریه/گذر فعلی')"
               />
             </div>
           </template>
@@ -468,7 +468,7 @@
               class="text-group"
               density="compact"
               variant="outlined"
-              :label="t('نظامی')"
+              :label="t('دروس نطامی')"
               hide-details
             />
           </template>
@@ -492,7 +492,7 @@
               density="compact"
               variant="outlined"
               type="number"
-              :label="t('سن')"
+              :label="t('عمر')"
               hide-details
             />
           </template>
@@ -503,7 +503,7 @@
               class="text-group"
               density="compact"
               variant="outlined"
-              :label="t('مهارت‌های مشخص')"
+              :label="t('مهارت‌های خاص')"
               hide-details
             />
           </template>
@@ -949,8 +949,8 @@
 
     // Background
     { title: t('سابقه جهاد'), key: 'history_jahad' },
-    { title: t('دلګی/مشری'), key: 'dilgay_mesher' },
-    { title: t('مواقف جهادی'), key: 'jahadi_mawaqaf' },
+    { title: t('دلګی مشر'), key: 'dilgay_mesher' },
+    { title: t('موقف جهادی'), key: 'jahadi_mawaqaf' },
     { title: t('مسئولیت جهاد'), key: 'jahad_time_responsibility' },
     { title: t('شماره تذکره'), key: 'tazkira' },
     { title: t('محل جهاد'), key: 'jahad_place' },

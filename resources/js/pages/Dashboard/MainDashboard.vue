@@ -17,10 +17,10 @@
           density="comfortable"
           color="primary"
         >
-          <v-tab value="accounts">{{ t('افرادو') }}</v-tab>
-          <v-tab value="cashflow">{{ t('اطلاعات او واقعات') }}</v-tab>
-          <v-tab value="oil">{{ t('۵۰ فارمت') }}</v-tab>
-          <v-tab value="report">{{ t('مالی بخش') }}</v-tab>
+          <v-tab value="accounts">{{ t('افراد') }}</v-tab>
+          <v-tab value="cashflow">{{ t('اطلاعات و واقعات') }}</v-tab>
+          <v-tab value="oil">{{ t('۵۶ فارمت') }}</v-tab>
+          <v-tab value="report">{{ t('بخش مالی') }}</v-tab>
         </v-tabs>
 
         <v-window v-model="mainTab">
@@ -36,7 +36,7 @@
               >
                 <v-tab value="list">{{ t('کارمندان') }}</v-tab>
                 <v-tab value="types">{{ t('منابع') }}</v-tab>
-                <v-tab value="type">{{ t('تسلیم شوی بندیان') }}</v-tab>
+                <v-tab value="type">{{ t('زندانی های تسلیم شده') }}</v-tab>
               </v-tabs>
 
               <v-window v-model="accountsTab" v-if="auth.can('PeopleDashboard.view')">
@@ -88,11 +88,11 @@
                 color="primary"
                 density="comfortable"
               >
-                <v-tab value="income">{{ t('د ۱۰ اول') }}</v-tab>
-                <v-tab value="expense">{{ t('د ۱۰ دویم') }}</v-tab>
-                <v-tab value="accountssss">{{ t('د ۱۰ دریم') }}</v-tab>
-                <v-tab value="accountsss">{{ t('د ۱۰ څلورم') }}</v-tab>
-                <v-tab value="accountss">{{ t('د ۱۰ پنڅم') }}</v-tab>
+                <v-tab value="income">{{ t('۵۶ فارمت ') }}</v-tab>
+                <v-tab value="expense">{{ t('۵۶ فارمت') }}</v-tab>
+                <v-tab value="accountssss">{{ t('۵۶ فارمت') }}</v-tab>
+                <v-tab value="accountsss">{{ t('۵۶ فارمت') }}</v-tab>
+                <v-tab value="accountss">{{ t('۵۶ فارمت') }}</v-tab>
               </v-tabs>
 
               <v-window v-model="oilTab" v-if="auth.can('FifthyFormatDashboard.view')">
@@ -125,8 +125,8 @@
                 color="primary"
                 density="comfortable"
               >
-                <v-tab value="oilreport">{{ t('د تیلو ') }}</v-tab>
-                <v-tab value="moneyreport">{{ t('د پیسو ') }}</v-tab>
+                <v-tab value="oilreport">{{ t('بخش تیل') }}</v-tab>
+                <v-tab value="moneyreport">{{ t('بخش پول') }}</v-tab>
               </v-tabs>
 
               <!-- bind to reportTab (fixed) -->
