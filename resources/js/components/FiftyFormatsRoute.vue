@@ -10,15 +10,15 @@
             <v-card-text class="pa-0">
               <div class="d-flex align-center flex-row-reverse">
                 <div class="icon-wrapper mr-2">
-                  <v-icon size="32" color="primary">
-                    mdi-view-grid-outline
-                  </v-icon>
+                  <v-icon size="32" color="primary"> mdi-view-grid-outline </v-icon>
                 </div>
-                <div class="flex-grow-1">
-                  <h1 class="text-h5 text-sm-h4 text-md-h3 font-weight-bold text-primary text-right">
+                <div class="flex-grow-1 mx-6">
+                  <h1
+                    class="text-h5 text-sm-h4 text-md-h3 font-weight-bold text-primary text-right"
+                  >
                     {{ t('پنجاه فورم‌ها') }}
                   </h1>
-                  <p class="text-body-2 text-sm-body-1 text-grey-darken-1 mt-1 mt-sm-2 text-right">
+                  <p class="text-body-2 text-sm-body-1 text-grey mt-1 mt-sm-2 text-right">
                     {{
                       t(
                         'لینک‌های سریع برای مدیریت هر فورم. برای فیلتر کردن فورم‌های موجود از جستجو استفاده کنید.'
@@ -32,8 +32,24 @@
         </header>
 
         <!-- Toolbar -->
-        <v-card class="mb-4 mb-md-6 pa-3 pa-sm-4" elevation="0" rounded="lg">
-          <div class="d-flex align-center justify-space-between flex-wrap">
+        <v-card class="mb-4 mb-md-6 pa-4 pa-sm-5" elevation="2" rounded="xl">
+          <div class="d-flex align-center justify-space-between flex-wrap gap-3">
+            <!-- Results Counter -->
+            <div class="text-body-2 text-grey-darken-1 font-weight-medium ml-">
+              <span class="d-inline-flex align-center gap-1">
+                {{ t('نمایش') }}
+                <span class="text-primary font-weight-bold">{{ filtered.length }}</span>
+                {{ t('از') }}
+                <span class="text-primary font-weight-bold">{{ original.length }}</span>
+                {{ t('فورم') }}
+
+                <span v-if="q" class="d-inline-flex align-center gap-1 mr-2">
+                  {{ t('برای') }}
+                  <span class="text-secondary font-weight-bold">«{{ q }}»</span>
+                </span>
+              </span>
+            </div>
+
             <!-- Search Section -->
             <v-text-field
               v-model="q"
@@ -42,23 +58,13 @@
               append-inner-icon="mdi-magnify"
               variant="outlined"
               hide-details
-              class="search-field"
-              style="min-width: 200px; max-width: 400px"
               clearable
+              color="primary"
+              bg-color="grey-lighten-4"
+              class="search-field flex-grow-1"
+              style="min-width: 400px; max-width: 800px"
+              single-line
             />
-            
-            <!-- Results Counter -->
-            <div class="text-caption text-sm-body-2 text-grey-darken-1 mt-2 mt-sm-0">
-              {{
-                t('نمایش {showing} از {total} فورم', {
-                  showing: filtered.length,
-                  total: original.length,
-                })
-              }}
-              <span v-if="q">
-                {{ t('برای «{query}»', { query: q }) }}
-              </span>
-            </div>
           </div>
         </v-card>
 
@@ -75,30 +81,37 @@
             class="pa-1 pa-sm-2"
           >
             <router-link :to="toPath(item)" style="text-decoration: none">
-              <v-card
-                class="module-card fill-height"
-                elevation="2"
-                hover
-              >
+              <v-card class="module-card fill-height" elevation="2" hover>
                 <v-card-text class="pa-3 pa-sm-4">
                   <div class="d-flex align-center gap-3 flex-row-reverse">
                     <!-- Icon -->
                     <div class="icon-wrapper flex-shrink-0">
-                      <v-icon
-                        :size="smAndUp ? 32 : 28"
-                        color="primary"
-                        class="module-icon"
-                      >
+                      <v-icon :size="smAndUp ? 32 : 28" color="primary" class="module-icon">
                         {{ getMaterialIcon(item.icon) }}
                       </v-icon>
                     </div>
-                    <!-- Label -->
-                    <div class="flex-grow-1 min-w-0">
-                      <h3
-                        class="text-body-2 text-sm-body-1 font-weight-bold line-clamp-2 mb-0 text-right"
-                      >
+
+                    <!-- Label + count -->
+                    <div class="flex-grow-1 min-w-0 text-right">
+                      <h3 class="text-body-2 text-sm-body-1 font-weight-bold line-clamp-2 mb-0">
                         {{ t(item.labelFa) }}
                       </h3>
+
+                      <!-- 🔹 Always show a number (0+) -->
+                      <div class="text-caption text-grey-darken-1 mt-1">
+                        <template v-if="loadingCounts">
+                          <span class="text-grey-darken-1">
+                            {{ t('در حال بارگیری...') }}
+                          </span>
+                        </template>
+
+                        <template v-else>
+                          {{ t('ریکارد های موجود') }}:
+                          <span class="text-primary text-body-1 font-weight-bold mx-1">
+                            {{ displayCount(item.slug) }}
+                          </span>
+                        </template>
+                      </div>
                     </div>
                   </div>
                 </v-card-text>
@@ -124,10 +137,9 @@
             </h3>
             <p class="text-body-2 text-sm-body-1 text-grey">
               {{
-                t(
-                  'برای «{query}» هیچ نتیجه‌ای پیدا نشد. لطفاً واژه‌های جستجو را تغییر بدهید.',
-                  { query: q }
-                )
+                t('برای «{query}» هیچ نتیجه‌ای پیدا نشد. لطفاً واژه‌های جستجو را تغییر بدهید.', {
+                  query: q,
+                })
               }}
             </p>
             <v-btn
@@ -150,6 +162,7 @@
   import { ref, computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useDisplay } from 'vuetify';
+  import axios from 'axios';
   import { useLoginRepository } from '@/stores/LoginRepository';
 
   const auth = useLoginRepository();
@@ -157,6 +170,414 @@
   const { smAndUp } = useDisplay();
 
   const q = ref('');
+  const loadingCounts = ref(true);
+  // 🔹 56 formats list (names taken from routes/api.php)
+  const original = ref([
+    // ---------------------- Main Fifty Formats (10) ----------------------
+    {
+      slug: 'fasads',
+      labelFa: 'فورم‌های فساد',
+      path: '/fasads',
+      icon: '🧩',
+      perm: 'fasads',
+    },
+    {
+      slug: 'saeen-fasads',
+      labelFa: 'فورم‌های فساد ساعین',
+      path: '/saeen-fasads',
+      icon: '🧠',
+      perm: 'saeen_fasads',
+    },
+    {
+      slug: 'heists',
+      labelFa: 'فورم‌های سرقت',
+      path: '/heists',
+      icon: '🐱‍👤',
+      perm: 'heists',
+    },
+    {
+      slug: 'captives',
+      labelFa: 'فورم‌های بندی‌ها',
+      path: '/captives',
+      icon: '🔒',
+      perm: 'captives',
+    },
+    {
+      slug: 'mulkanos',
+      labelFa: 'فورم‌های ملک‌ها',
+      path: '/mulkanos',
+      icon: '🏠',
+      perm: 'mulkanos',
+    },
+    {
+      slug: 'entry-exits',
+      labelFa: 'فورم‌های دخول/خروج',
+      path: '/entry-exits',
+      icon: '➡️',
+      perm: 'entry_exits',
+    },
+    {
+      slug: 'sarafyanos',
+      labelFa: 'فورم‌های صرافی‌ها',
+      path: '/sarafyanos',
+      icon: '💱',
+      perm: 'sarafyanos',
+    },
+    {
+      slug: 'clubs',
+      labelFa: 'فورم‌های کلب‌ها',
+      path: '/clubs',
+      icon: '🎯',
+      perm: 'clubs',
+    },
+    {
+      slug: 'mahajerats',
+      labelFa: 'فورم‌های مهاجرت',
+      path: '/mahajerats',
+      icon: '🧳',
+      perm: 'mahajerats',
+    },
+    {
+      slug: 'soldiers',
+      labelFa: 'فورم‌های سربازان',
+      path: '/soldiers',
+      icon: '🪖',
+      perm: 'soldiers',
+    },
+
+    // ---------------------- Fifthy Format One (10) ----------------------
+    {
+      slug: 'mawads',
+      labelFa: 'فورم‌های مواد مخدر',
+      path: '/mawads',
+      icon: '💊',
+      perm: 'mawads',
+    },
+    {
+      slug: 'lost-mujremeens',
+      labelFa: 'فورم‌های مجرمین گمشده',
+      path: '/lost-mujremeens',
+      icon: '🔍',
+      perm: 'lost_mujremeens',
+    },
+    {
+      slug: 'old-soldiers-homes',
+      labelFa: 'فورم‌های خانه‌های سربازان قدیمی',
+      path: '/old-soldiers-homes',
+      icon: '🏚️',
+      perm: 'old_soldiers_homes',
+    },
+    {
+      slug: 'robbers',
+      labelFa: 'فورم‌های دزدان',
+      path: '/robbers',
+      icon: '💰',
+      perm: 'robbers',
+    },
+    {
+      slug: 'non-responsable-people',
+      labelFa: 'فورم‌های افراد مسلح غیرمسؤول',
+      path: '/non-responsable-people',
+      icon: '⚠️',
+      perm: 'non_responsable_people',
+    },
+    {
+      slug: 'mashkok-homes',
+      labelFa: 'فورم‌های خانه‌های مشکوک',
+      path: '/mashkok-homes',
+      icon: '🏘️',
+      perm: 'mashkok_homes',
+    },
+    {
+      slug: 'damage-places',
+      labelFa: 'فورم‌های ساحات آسیب‌دیده',
+      path: '/damage-places',
+      icon: '🏚️',
+      perm: 'damage_places',
+    },
+    {
+      slug: 'damage-rasan-places',
+      labelFa: 'فورم‌های ساحات رسانندهٔ آسیب',
+      path: '/damage-rasan-places',
+      icon: '💥',
+      perm: 'damage_rasan_places',
+    },
+    {
+      slug: 'mashkok-shops',
+      labelFa: 'فورم‌های دکان‌های مشکوک',
+      path: '/mashkok-shops',
+      icon: '🏪',
+      perm: 'mashkok_shops',
+    },
+    {
+      slug: 'luchakanos',
+      labelFa: 'فورم‌های لوچک‌ها',
+      path: '/luchakanos',
+      icon: '👤',
+      perm: 'luchakanos',
+    },
+
+    // ---------------------- Fifthy Format Two (10) ----------------------
+    {
+      slug: 'schools',
+      labelFa: 'فورم‌های مکتب‌ها',
+      path: '/schools',
+      icon: '🏫',
+      perm: 'schools',
+    },
+    {
+      slug: 'hado-bus-stops',
+      labelFa: 'فورم‌های ایستگاه‌های بس',
+      path: '/hado-bus-stops',
+      icon: '🚏',
+      perm: 'hado_bus_stops',
+    },
+    {
+      slug: 'transport-companies',
+      labelFa: 'فورم‌های شرکت‌های ترانسپورتی',
+      path: '/transport-companies',
+      icon: '🚚',
+      perm: 'transport_companies',
+    },
+    {
+      slug: 'car-sales-companies',
+      labelFa: 'فورم‌های کمپنی‌های فروش موتر',
+      path: '/car-sales-companies',
+      icon: '🚗',
+      perm: 'car_sales_companies',
+    },
+    {
+      slug: 'parkings',
+      labelFa: 'فورم‌های پارکینگ',
+      path: '/parkings',
+      icon: '🅿️',
+      perm: 'parkings',
+    },
+    {
+      slug: 'banks',
+      labelFa: 'فورم‌های بانک‌ها',
+      path: '/banks',
+      icon: '🏦',
+      perm: 'banks',
+    },
+    {
+      slug: 'apartments',
+      labelFa: 'فورم‌های آپارتمان‌ها',
+      path: '/apartments',
+      icon: '🏢',
+      perm: 'apartments',
+    },
+    {
+      slug: 'rahnoma-mamlats',
+      labelFa: 'فورم‌های رهنمای معاملات',
+      path: '/rahnoma-mamlats',
+      icon: '📋',
+      perm: 'rahnoma_mamlats',
+    },
+    {
+      slug: 'hosppitals',
+      labelFa: 'فورم‌های شفاخانه‌ها',
+      path: '/hosppitals',
+      icon: '🏥',
+      perm: 'hosppitals',
+    },
+    {
+      slug: 'work-shops',
+      labelFa: 'فورم‌های کارگاه‌ها',
+      path: '/work-shops',
+      icon: '🔧',
+      perm: 'work_shops',
+    },
+
+    // ---------------------- Fifthy Format Three (10) ----------------------
+    {
+      slug: 'badmashanos',
+      labelFa: 'فورم‌های بدماش‌ها',
+      path: '/badmashanos',
+      icon: '✊',
+      perm: 'badmashanos',
+    },
+    {
+      slug: 'emarat-offices',
+      labelFa: 'فورم‌های دفاتر امارت',
+      path: '/emarat-offices',
+      icon: '🏛️',
+      perm: 'emarat_offices',
+    },
+    {
+      slug: 'hostels',
+      labelFa: 'فورم‌های هوسٹل‌ها',
+      path: '/hostels',
+      icon: '🛏️',
+      perm: 'hostels',
+    },
+    {
+      slug: 'hotels',
+      labelFa: 'فورم‌های هوتل‌ها',
+      path: '/hotels',
+      icon: '🏨',
+      perm: 'hotels',
+    },
+    {
+      slug: 'madrasas',
+      labelFa: 'فورم‌های مدارس دینی',
+      path: '/madrasas',
+      icon: '📖',
+      perm: 'madrasas',
+    },
+    {
+      slug: 'mashkok-people',
+      labelFa: 'فورم‌های افراد مشکوک',
+      path: '/mashkok-people',
+      icon: '🕵️‍♂️',
+      perm: 'mashkok_people',
+    },
+    {
+      slug: 'mujahedinos',
+      labelFa: 'فورم‌های مجاهدین',
+      path: '/mujahedinos',
+      icon: '🕌',
+      perm: 'mujahedinos',
+    },
+    {
+      slug: 'old-jahadis',
+      labelFa: 'فورم‌های قومندانان جهادی قدیمی',
+      path: '/old-jahadis',
+      icon: '🎖️',
+      perm: 'old_jahadis',
+    },
+    {
+      slug: 'sarayanos',
+      labelFa: 'فورم‌های سرای‌ها',
+      path: '/sarayanos',
+      icon: '🏭',
+      perm: 'sarayanos',
+    },
+    {
+      slug: 'tujarans',
+      labelFa: 'فورم‌های تاجران',
+      path: '/tujarans',
+      icon: '👔',
+      perm: 'tujarans',
+    },
+
+    // ---------------------- Fifthy Format Four (16) ----------------------
+    {
+      slug: 'checkpoints',
+      labelFa: 'فورم‌های چک‌پوینت‌ها',
+      path: '/checkpoints',
+      icon: '🛂',
+      perm: 'checkpoints',
+    },
+    {
+      slug: 'masjids',
+      labelFa: 'فورم‌های مسجدها',
+      path: '/masjids',
+      icon: '🕌',
+      perm: 'masjids',
+    },
+    {
+      slug: 'highways',
+      labelFa: 'فورم‌های شاهراه‌ها',
+      path: '/highways',
+      icon: '🛣️',
+      perm: 'highways',
+    },
+    {
+      slug: 'companies',
+      labelFa: 'فورم‌های شرکت‌ها',
+      path: '/companies',
+      icon: '🏢',
+      perm: 'companies',
+    },
+    {
+      slug: 'done-lost-places',
+      labelFa: 'فورم‌های ساحات دزدی شده',
+      path: '/done-lost-places',
+      icon: '🏚️',
+      perm: 'donelostplaces',
+    },
+    {
+      slug: 'econemy-projects',
+      labelFa: 'فورم‌های پروژه‌های اقتصادی',
+      path: '/econemy-projects',
+      icon: '📊',
+      perm: 'econemyprojects',
+    },
+    {
+      slug: 'criminal-capture-places',
+      labelFa: 'فورم‌های ساحات دستگیری مجرمین',
+      path: '/criminal-capture-places',
+      icon: '🚔',
+      perm: 'criminalcaptureplaces',
+    },
+    {
+      slug: 'pumps',
+      labelFa: 'فورم‌های پمپ‌ها',
+      path: '/pumps',
+      icon: '⛽',
+      perm: 'pumps',
+    },
+    {
+      slug: 'shoras',
+      labelFa: 'فورم‌های شوراها',
+      path: '/shoras',
+      icon: '👥',
+      perm: 'shoras',
+    },
+    {
+      slug: 'governmentplaces',
+      labelFa: 'فورم‌های اماکن حکومتی',
+      path: '/governmentplaces',
+      icon: '🏛️',
+      perm: 'governmentplaces',
+    },
+    {
+      slug: 'supermarkets',
+      labelFa: 'فورم‌های سوپرمارکت‌ها',
+      path: '/supermarkets',
+      icon: '🛒',
+      perm: 'supermarkets',
+    },
+    {
+      slug: 'parks',
+      labelFa: 'فورم‌های پارک‌ها',
+      path: '/parks',
+      icon: '🌳',
+      perm: 'parks',
+    },
+    {
+      slug: 'complexes',
+      labelFa: 'فورم‌های مجتمع‌ها',
+      path: '/complexes',
+      icon: '🏬',
+      perm: 'complexes',
+    },
+    {
+      slug: 'deplomaticplaces',
+      labelFa: 'فورم‌های اماکن دیپلوماتیک',
+      path: '/deplomaticplaces',
+      icon: '🇺🇳',
+      perm: 'deplomaticplaces',
+    },
+    {
+      slug: 'universities',
+      labelFa: 'فورم‌های پوهنتون‌ها',
+      path: '/universities',
+      icon: '🎓',
+      perm: 'universities',
+    },
+    {
+      slug: 'wakilanos',
+      labelFa: 'فورم‌های وکیلان',
+      path: '/wakilanos',
+      icon: '⚖️',
+      perm: 'wakilanos',
+    },
+  ]);
+
+  // 👉 counts: all slugs start at 0 so UI always shows a number
+  const counts = ref(Object.fromEntries(original.value.map((item) => [item.slug, 0])));
 
   const APP_BASE = '/app';
   const toPath = (item) => `${APP_BASE}${item.path}`;
@@ -167,355 +588,6 @@
     return auth.can(perm);
   }
 
-  // 🔹 Module data — Dari labels as keys for t()
-  const original = ref([
-    // Base
-    {
-      labelFa: 'فورم‌های فساد',
-      path: '/fasads',
-      icon: '🧩',
-      perm: 'fasads',
-    },
-    {
-      labelFa: 'فورم‌های فساد ساعین',
-      path: '/saeenfasad',
-      icon: '🧠',
-      perm: 'saeen_fasads',
-    },
-    {
-      labelFa: 'فورم‌های سرقت',
-      path: '/heist',
-      icon: '🐱‍👤',
-      perm: 'heists',
-    },
-    {
-      labelFa: 'فورم‌های بندی‌ها',
-      path: '/captives',
-      icon: '🔒',
-      perm: 'captives',
-    },
-    {
-      labelFa: 'فورم‌های ملک‌ها',
-      path: '/mulkanos',
-      icon: '🏠',
-      perm: 'mulkanos',
-    },
-    {
-      labelFa: 'فورم‌های دخول/خروج',
-      path: '/entry-exits',
-      icon: '➡️',
-      perm: 'entry_exits',
-    },
-    {
-      labelFa: 'فورم‌های صرافی‌ها',
-      path: '/sarafyanos',
-      icon: '💱',
-      perm: 'sarafyanos',
-    },
-    {
-      labelFa: 'فورم‌های کلب‌ها',
-      path: '/clubs',
-      icon: '🎯',
-      perm: 'clubs',
-    },
-    {
-      labelFa: 'فورم‌های مهاجرت',
-      path: '/mahajerats',
-      icon: '🧳',
-      perm: 'mahajerats',
-    },
-    {
-      labelFa: 'فورم‌های سربازان',
-      path: '/soldiers',
-      icon: '🪖',
-      perm: 'soldiers',
-    },
-
-    // One
-    {
-      labelFa: 'فورم‌های مواد مخدر',
-      path: '/mawads',
-      icon: '💊',
-      perm: 'mawads',
-    },
-    {
-      labelFa: 'فورم‌های مجرمین گمشده',
-      path: '/lostmujremeens',
-      icon: '🔍',
-      perm: 'lost_mujremeens',
-    },
-    {
-      labelFa: 'فورم‌های خانه‌های سربازان قدیمی',
-      path: '/oldsoldiershomes',
-      icon: '🏚️',
-      perm: 'old_soldiers_homes',
-    },
-    {
-      labelFa: 'فورم‌های دزدان',
-      path: '/robbers',
-      icon: '💰',
-      perm: 'robbers',
-    },
-    {
-      labelFa: 'فورم‌های افراد مسلح غیرمسؤول',
-      path: '/nonresponsablepeople',
-      icon: '⚠️',
-      perm: 'non_responsable_people',
-    },
-    {
-      labelFa: 'فورم‌های خانه‌های مشکوک',
-      path: '/mashkokhomes',
-      icon: '🏘️',
-      perm: 'mashkok_homes',
-    },
-    {
-      labelFa: 'فورم‌های ساحات آسیب‌دیده',
-      path: '/damageplaces',
-      icon: '🏚️',
-      perm: 'damage_places',
-    },
-    {
-      labelFa: 'فورم‌های ساحات رسانندهٔ آسیب',
-      path: '/damagerasanplaces',
-      icon: '💥',
-      perm: 'damage_rasan_places',
-    },
-    {
-      labelFa: 'فورم‌های دکان‌های مشکوک',
-      path: '/mashkokshops',
-      icon: '🏪',
-      perm: 'mashkok_shops',
-    },
-    {
-      labelFa: 'فورم‌های لوچک‌ها',
-      path: '/luchakanos',
-      icon: '👤',
-      perm: 'luchakanos',
-    },
-
-    // Two
-    {
-      labelFa: 'فورم‌های مکتب‌ها',
-      path: '/schools',
-      icon: '🏫',
-      perm: 'schools',
-    },
-    {
-      labelFa: 'فورم‌های ایستگاه‌های بس',
-      path: '/hadobusstops',
-      icon: '🚏',
-      perm: 'hado_bus_stops',
-    },
-    {
-      labelFa: 'فورم‌های شرکت‌های ترانسپورتی',
-      path: '/transportcompanies',
-      icon: '🚚',
-      perm: 'transport_companies',
-    },
-    {
-      labelFa: 'فورم‌های کمپنی‌های فروش موتر',
-      path: '/carsalescompanies',
-      icon: '🚗',
-      perm: 'car_sales_companies',
-    },
-    {
-      labelFa: 'فورم‌های پارکینگ',
-      path: '/parkings',
-      icon: '🅿️',
-      perm: 'parkings',
-    },
-    {
-      labelFa: 'فورم‌های بانک‌ها',
-      path: '/banks',
-      icon: '🏦',
-      perm: 'banks',
-    },
-    {
-      labelFa: 'فورم‌های آپارتمان‌ها',
-      path: '/apartments',
-      icon: '🏢',
-      perm: 'apartments',
-    },
-    {
-      labelFa: 'فورم‌های رهنمای معاملات',
-      path: '/rahnomamamlats',
-      icon: '📋',
-      perm: 'rahnoma_mamlats',
-    },
-    {
-      labelFa: 'فورم‌های شفاخانه‌ها',
-      path: '/hosppitals',
-      icon: '🏥',
-      perm: 'hosppitals',
-    },
-    {
-      labelFa: 'فورم‌های کارگاه‌ها',
-      path: '/workshops',
-      icon: '🔧',
-      perm: 'work_shops',
-    },
-
-    // Three
-    {
-      labelFa: 'فورم‌های بدماش‌ها',
-      path: '/badmashanos',
-      icon: '✊',
-      perm: 'badmashanos',
-    },
-    {
-      labelFa: 'فورم‌های سرای‌ها',
-      path: '/sarayanos',
-      icon: '🏭',
-      perm: 'sarayanos',
-    },
-    {
-      labelFa: 'فورم‌های هوتل‌ها',
-      path: '/hotels',
-      icon: '🏨',
-      perm: 'hotels',
-    },
-    {
-      labelFa: 'فورم‌های هوسٹل‌ها',
-      path: '/hostels',
-      icon: '🛏️',
-      perm: 'hostels',
-    },
-    {
-      labelFa: 'فورم‌های تاجران',
-      path: '/tujarans',
-      icon: '👔',
-      perm: 'tujarans',
-    },
-    {
-      labelFa: 'فورم‌های مجاهدین',
-      path: '/mujahedinos',
-      icon: '🕌',
-      perm: 'mujahedinos',
-    },
-    {
-      labelFa: 'فورم‌های دفاتر امارت',
-      path: '/emaratoffices',
-      icon: '🏛️',
-      perm: 'emarat_offices',
-    },
-    {
-      labelFa: 'فورم‌های قومندانان جهادی قدیمی',
-      path: '/oldjahadis',
-      icon: '🎖️',
-      perm: 'old_jahadis',
-    },
-    {
-      labelFa: 'فورم‌های افراد مشکوک',
-      path: '/mashkokpeoples',
-      icon: '🕵️‍♂️',
-      perm: 'mashkok_people',
-    },
-    {
-      labelFa: 'فورم‌های مدارس دینی',
-      path: '/madrasas',
-      icon: '📖',
-      perm: 'madrasas',
-    },
-
-    // Four
-    {
-      labelFa: 'فورم‌های وکیلان',
-      path: '/wakilanos',
-      icon: '⚖️',
-      perm: 'wakilanos',
-    },
-    {
-      labelFa: 'فورم‌های پوهنتون‌ها',
-      path: '/universities',
-      icon: '🎓',
-      perm: 'universities',
-    },
-    {
-      labelFa: 'فورم‌های مسجدها',
-      path: '/masjids',
-      icon: '🕌',
-      perm: 'masjids',
-    },
-    {
-      labelFa: 'فورم‌های شاهراه‌ها',
-      path: '/highways',
-      icon: '🛣️',
-      perm: 'highways',
-    },
-    {
-      labelFa: 'فورم‌های شرکت‌ها',
-      path: '/companies',
-      icon: '🏢',
-      perm: 'companies',
-    },
-    {
-      labelFa: 'فورم‌های ساحات دزدی شده',
-      path: '/donelostplaces',
-      icon: '🏚️',
-      perm: 'donelostplaces',
-    },
-    {
-      labelFa: 'فورم‌های پروژه‌های اقتصادی',
-      path: '/econemyprojects',
-      icon: '📊',
-      perm: 'econemyprojects',
-    },
-    {
-      labelFa: 'فورم‌های ساحات دستگیری مجرمین',
-      path: '/criminalcaptureplaces',
-      icon: '🚔',
-      perm: 'criminalcaptureplaces',
-    },
-    {
-      labelFa: 'فورم‌های پمپ‌ها',
-      path: '/pumps',
-      icon: '⛽',
-      perm: 'pumps',
-    },
-    {
-      labelFa: 'فورم‌های شوراها',
-      path: '/shoras',
-      icon: '👥',
-      perm: 'shoras',
-    },
-    {
-      labelFa: 'فورم‌های چک‌پوینت‌ها',
-      path: '/checkpoints',
-      icon: '🛂',
-      perm: 'checkpoints',
-    },
-    {
-      labelFa: 'فورم‌های اماکن حکومتی',
-      path: '/governmentplaces',
-      icon: '🏛️',
-      perm: 'governmentplaces',
-    },
-    {
-      labelFa: 'فورم‌های سوپرمارکت‌ها',
-      path: '/supermarkets',
-      icon: '🛒',
-      perm: 'supermarkets',
-    },
-    {
-      labelFa: 'فورم‌های پارک‌ها',
-      path: '/parks',
-      icon: '🌳',
-      perm: 'parks',
-    },
-    {
-      labelFa: 'فورم‌های مجتمع‌ها',
-      path: '/complexes',
-      icon: '🏬',
-      perm: 'complexes',
-    },
-    {
-      labelFa: 'فورم‌های اماکن دیپلوماتیک',
-      path: '/deplomaticplaces',
-      icon: '🇺🇳',
-      perm: 'deplomaticplaces',
-    },
-  ]);
-
   const items = ref([...original.value]);
 
   const visibleItems = computed(() => items.value.filter(canView));
@@ -525,9 +597,7 @@
     const base = visibleItems.value;
     if (!term) return base;
     return base.filter(
-      (i) =>
-        i.labelFa.toLowerCase().includes(term) ||
-        i.path.toLowerCase().includes(term)
+      (i) => i.labelFa.toLowerCase().includes(term) || i.path.toLowerCase().includes(term)
     );
   });
 
@@ -561,7 +631,7 @@
       '📋': 'mdi-clipboard-text',
       '🏥': 'mdi-hospital',
       '🔧': 'mdi-wrench',
-      '👊': 'mdi-fist',
+      '✊': 'mdi-fist',
       '🏭': 'mdi-warehouse',
       '🏨': 'mdi-hotel',
       '🛏️': 'mdi-bed',
@@ -587,9 +657,35 @@
     return m[emojiIcon] || 'mdi-cube';
   }
 
+  // Always returns a number (0 if missing)
+  function displayCount(slug) {
+    return counts.value[slug] ?? 0;
+  }
+
+  async function fetchCounts() {
+    loadingCounts.value = true; // 🔹 start loading
+
+    try {
+      // If axios.defaults.baseURL = '/api', this hits /api/fifty-formats/counts
+      const { data } = await axios.get('/fifty-formats/counts');
+      if (data && typeof data === 'object') {
+        for (const [slug, value] of Object.entries(data)) {
+          if (Object.prototype.hasOwnProperty.call(counts.value, slug)) {
+            counts.value[slug] = value ?? 0;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load 56-format counts', error);
+    } finally {
+      loadingCounts.value = false; // 🔹 done loading (success or error)
+    }
+  }
+
   onMounted(() => {
     document.documentElement.setAttribute('dir', 'rtl');
     document.documentElement.setAttribute('lang', 'fa');
+    fetchCounts();
   });
 </script>
 

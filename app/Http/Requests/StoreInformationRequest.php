@@ -39,6 +39,7 @@ class StoreInformationRequest extends FormRequest
             'lead_drirection' => ['nullable','string'],
             'talks'           => ['nullable','string'],
             'note'            => ['nullable','string'],
+            'result'            => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
 
             'documents'   => ['nullable','array'],

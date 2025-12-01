@@ -18,8 +18,8 @@ class InformationController extends Controller
         $page    = $request->query('page');
         $perPage = $request->query('perPage', $request->query('per_page'));
 
-        $isValidPage    = is_numeric($page) && (int)$page > 0;
-        $isValidPerPage = is_numeric($perPage) && (int)$perPage > 0;
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
         $search = trim((string) $request->query('search', ''));
 
@@ -35,7 +35,7 @@ class InformationController extends Controller
             ->orderByDesc('id');
 
         if ($isValidPage && $isValidPerPage) {
-            $data = $q->paginate((int)$perPage, ['*'], 'page', (int)$page);
+            $data = $q->paginate((int) $perPage, ['*'], 'page', (int) $page);
             return InformationResource::collection($data);
         }
 
@@ -61,19 +61,26 @@ class InformationController extends Controller
             }
 
             $info->load(['resource', 'officeEmployee', 'documents']);
+
             return new InformationResource($info);
         });
     }
 
-    public function show(Information $information)
+    public function show($id)
     {
-        $information->load(['resource', 'officeEmployee', 'documents']);
+        // 🔹 Fetch by id + relations (no route model binding confusion)
+        $information = Information::with(['resource', 'officeEmployee', 'documents'])
+            ->findOrFail($id);
+
         return new InformationResource($information);
     }
 
-    public function update(UpdateInformationRequest $request, Information $information)
+    public function update(UpdateInformationRequest $request, $id)
     {
-        return DB::transaction(function () use ($request, $information) {
+        return DB::transaction(function () use ($request, $id) {
+            $information = Information::with(['resource', 'officeEmployee', 'documents'])
+                ->findOrFail($id);
+
             $information->update($request->validated());
 
             if ($request->hasFile('documents')) {
@@ -90,17 +97,21 @@ class InformationController extends Controller
             }
 
             $information->load(['resource', 'officeEmployee', 'documents']);
+
             return new InformationResource($information);
         });
     }
 
-    public function destroy(Information $information)
+    public function destroy($id)
     {
+        $information = Information::with('documents')->findOrFail($id);
+
         foreach ($information->documents as $doc) {
             Storage::disk('public')->delete($doc->file_path);
         }
 
         $information->delete();
+
         return response()->json(['message' => 'Deleted']);
     }
 }

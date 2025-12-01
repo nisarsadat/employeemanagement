@@ -58,8 +58,8 @@
                 </template>
                 <v-list-item-title>{{ item.title }}</v-list-item-title>
                 <template #append>
-                  <v-icon 
-                    :icon="isGroupOpen(item) ? 'mdi-chevron-up' : 'mdi-chevron-down'" 
+                  <v-icon
+                    :icon="isGroupOpen(item) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
                     size="small"
                     class="group-chevron"
                   />
@@ -105,7 +105,7 @@
               <v-img :src="avatarSrc" alt="avatar" cover />
             </v-avatar>
             <v-avatar size="40" class="mr-3 bg-primary bold" v-else>
-              <span class="text-subtitle-1 font-weight-bold ">{{ initials }}</span>
+              <span class="text-subtitle-1 font-weight-bold">{{ initials }}</span>
             </v-avatar>
           </template>
 
@@ -120,7 +120,7 @@
 
       <v-card min-width="220">
         <v-list density="compact">
-          <v-list-item @click="onLogout"  prepend-icon="mdi-logout-variant">
+          <v-list-item @click="onLogout" prepend-icon="mdi-logout-variant">
             <v-list-item-title>{{ t('Logout') }}</v-list-item-title>
           </v-list-item>
         </v-list>
@@ -247,7 +247,7 @@
       },
 
       {
-        title: t('مرکز معلومات'),
+        title: t('ارتباطی مرکز'),
         icon: 'mdi-menu',
         to: { path: '/app/inlineinfo' },
         perm: 'inlineinfo.view',
@@ -333,7 +333,8 @@
             icon: 'mdi-cash',
             to: { path: '/app/eventreports' },
             perm: 'eventreports.view',
-          },{
+          },
+          {
             title: t('اطلاعات'),
             icon: 'mdi-cash',
             to: { path: '/app/informationreports' },
@@ -428,14 +429,22 @@
 
   .nav-item:hover {
     border-radius: 12px !important;
-    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.1) 0%, rgba(var(--v-theme-primary), 0.05) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-primary), 0.1) 0%,
+      rgba(var(--v-theme-primary), 0.05) 100%
+    );
     border-color: rgba(var(--v-theme-primary), 0.2);
     transform: translateX(2px);
   }
 
   .nav-item-active {
     border-radius: 12px !important;
-    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.15) 0%, rgba(var(--v-theme-primary), 0.08) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-primary), 0.15) 0%,
+      rgba(var(--v-theme-primary), 0.08) 100%
+    );
     border-color: rgba(var(--v-theme-primary), 0.3);
     box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.15);
   }
@@ -447,7 +456,11 @@
 
   /* Group styles */
   .group-open {
-    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.08) 0%, rgba(var(--v-theme-primary), 0.04) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-primary), 0.08) 0%,
+      rgba(var(--v-theme-primary), 0.04) 100%
+    );
   }
 
   .group-chevron {
@@ -469,13 +482,21 @@
   }
 
   .nav-child-item:hover {
-    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.08) 0%, rgba(var(--v-theme-primary), 0.04) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-primary), 0.08) 0%,
+      rgba(var(--v-theme-primary), 0.04) 100%
+    );
     border-color: rgba(var(--v-theme-primary), 0.15);
     transform: translateX(1px);
   }
 
   .nav-child-active {
-    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.12) 0%, rgba(var(--v-theme-primary), 0.06) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-primary), 0.12) 0%,
+      rgba(var(--v-theme-primary), 0.06) 100%
+    );
     border-color: rgba(var(--v-theme-primary), 0.25);
   }
 

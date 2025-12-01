@@ -80,7 +80,7 @@
 
     <!-- KPI Cards (soft glass) -->
     <v-row>
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="4" :dir="direction">
         <v-card class="glass-soft rounded-2xl gradient-teal" :elevation="3">
           <v-card-text class="d-flex align-center justify-space-between">
             <div>
@@ -92,7 +92,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="4" :dir="direction">
         <v-card class="glass-soft rounded-2xl gradient-cyan" :elevation="3">
           <v-card-text class="d-flex align-center justify-space-between">
             <div>
@@ -104,7 +104,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="4" :dir="direction">
         <v-card class="glass-soft rounded-2xl gradient-purple" :elevation="3">
           <v-card-text class="d-flex align-center justify-space-between">
             <div>
@@ -136,7 +136,7 @@
         <v-card class="glass-soft rounded-2xl" :elevation="2">
           <v-card-text>
             <RandomNamePie
-              :title="t('کارمندان از روی زون به فیصدی)')"
+              :title="t('کارمندان از روی زون به فیصدی')"
               :labels="pieLabels"
               :values="pieValues"
               color="indigo-lighten-4"

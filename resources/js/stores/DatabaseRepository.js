@@ -79,8 +79,33 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     // options
     activityOptions: ['فعال', 'غیر فعال'],
     halatMadaniOptions: ['مجرد', 'متاهل'],
-    seyasiOptions: ['ساعین بالفساد', 'شر و فساد', 'ضد جاسوسی', 'جینایی'],
-    jenayeeOptions: ['جینایی'],
+    seyasiOptions: [
+      'ساعین بالفساد',
+      'شر و فساد',
+      ' جاسوسی',
+      'جعل او تزویر',
+      'انټرنټی جرایم',
+      'هدفی وژنه',
+      'د اصلحو قاچاق',
+      'د تورو پیسو سپینول چاپ او انتقال',
+      'رشوت او اختلاص',
+      'مشکوک',
+      'سیاسی احزاب',
+      'تبلیغاتی جګره',
+      'عیسویت او یهودیت',
+      'باجګیری',
+    ],
+    jenayeeOptions: [
+      'قتل',
+      'اختطاف',
+      'سرقت',
+      'نشه یی توکی',
+      'اخلاقی فساد',
+      'جعل او تزویر',
+      'اداری فساد',
+      'غیر مسول مسلح',
+      'غیر قانونی کرنه',
+    ],
     infoCategoryOptions: ['الف', 'ب', 'ج'],
 
     // selection
@@ -133,7 +158,6 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       return `${y}-${m}-${day}`;
     },
 
-   
     // ---------------------- OfficeEmployee ----------------------
     async GetOfficeEmployee() {
       this.loading = true;
@@ -292,8 +316,6 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         toast.error('منبع حذف کول ناکام شو بیا کوشش وکی');
       }
     },
-
-    
 
     // ====================== EVENTS  ======================
     async FetchEventsData({ page, itemsPerPage }) {
@@ -464,6 +486,18 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       }
     },
 
+    async FetchInformationData(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.get(`/informations/${id}`);
+        this.Information = data.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        this.Information = {};
+        toast.error('و دیتا احیستل نامامه وو');
+      }
+    },
     async CreateInformation(formData, onProgress) {
       try {
         // Let the browser set multipart boundary
@@ -597,7 +631,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         this.loading = false;
       }
     },
-        async FetchCaptiveDeliveryData({ page, itemsPerPage }) {
+    async FetchCaptiveDeliveryData({ page, itemsPerPage }) {
       this.loading = true;
       try {
         const { data } = await axios.get(

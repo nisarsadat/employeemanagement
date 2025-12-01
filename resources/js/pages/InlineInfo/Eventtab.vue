@@ -96,7 +96,9 @@
             <!-- target_person -->
             <v-col cols="12" md="4">
               <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('هدف کی بود/مکان بود') }}</v-card-subtitle>
+                <v-card-subtitle class="field-label">{{
+                  t('هدف کی بود/مکان بود')
+                }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
                 <v-text-field
@@ -112,7 +114,9 @@
             <!-- criminal -->
             <v-col cols="12" md="4">
               <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('کی جرم را انجام داده') }}</v-card-subtitle>
+                <v-card-subtitle class="field-label">{{
+                  t('کی جرم را انجام داده')
+                }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
                 <v-text-field
@@ -157,6 +161,21 @@
                   class="cell"
                   :rules="[rules.timeHM(t('ساعت واقعه'))]"
                   prepend-inner-icon="mdi-clock-outline"
+                />
+              </v-card-text> </v-col
+            ><v-col cols="12" md="4">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{ t('ولایت مربوطه') }}</v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <v-text-field
+                  v-model="draft.Province_addr"
+                  :label="t('ولایت مربوطه')"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  rounded="lg"
+                  class="cell"
                 />
               </v-card-text>
             </v-col>
@@ -212,20 +231,6 @@
                 prepend-inner-icon="mdi-map-marker-radius"
               />
             </v-col>
-
-            <!-- coordinates -->
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="draft.coordinates"
-                :label="t('کوردینات')"
-                variant="outlined"
-                density="compact"
-                rounded="lg"
-                class="cell"
-                clearable
-                prepend-inner-icon="mdi-crosshairs-gps"
-              />
-            </v-col>
           </v-row>
 
           <!-- Casualties -->
@@ -269,7 +274,24 @@
                 />
               </v-card-text>
             </v-col>
-
+            <!-- coordinates -->
+            <v-col cols="12" md="4">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{ t('کوردینات') }}</v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <v-text-field
+                  v-model="draft.coordinates"
+                  :label="t('کوردینات')"
+                  variant="outlined"
+                  density="compact"
+                  rounded="lg"
+                  class="cell"
+                  clearable
+                  prepend-inner-icon="mdi-crosshairs-gps"
+                />
+              </v-card-text>
+            </v-col>
             <!-- ghost to keep 3-up layout -->
             <v-col cols="12" md="4" class="ghost-col" />
           </v-row>
@@ -310,22 +332,6 @@
               </v-card-text>
             </v-col>
           </v-row>
-
-          <!-- Province -->
-          <v-row class="tight-grid">
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="draft.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                clearable
-                rounded="lg"
-                class="cell"
-              />
-            </v-col>
-          </v-row>
-
           <!-- Note -->
           <v-row class="tight-grid">
             <v-col cols="12">
@@ -433,243 +439,262 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useDatabaseRepository } from '../../stores/DatabaseRepository';
-import DateInput from '../../components/DateInput.vue';
+  import { ref, reactive, computed, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+  import DateInput from '../../components/DateInput.vue';
 
-const repo = useDatabaseRepository();
-const { t, locale } = useI18n();
+  const repo = useDatabaseRepository();
+  const { t, locale } = useI18n();
 
-const valid = ref(false);
-const submitting = ref(false);
-const progress = ref(0);
-const form = ref(null);
-const fileInput = ref(null);
+  const valid = ref(false);
+  const submitting = ref(false);
+  const progress = ref(0);
+  const form = ref(null);
+  const fileInput = ref(null);
 
-/* RTL handling */
-const RTL_LOCALES = ['fa', 'fa-AF', 'prs', 'ps', 'ar'];
-const isRtl = ref(RTL_LOCALES.includes(locale.value));
-watch(locale, (v) => {
-  isRtl.value = RTL_LOCALES.includes(v);
-});
+  /* RTL handling */
+  const RTL_LOCALES = ['fa', 'fa-AF', 'prs', 'ps', 'ar'];
+  const isRtl = ref(RTL_LOCALES.includes(locale.value));
+  watch(locale, (v) => {
+    isRtl.value = RTL_LOCALES.includes(v);
+  });
 
-/* helpers */
-const toArray = (v) => {
-  if (v && typeof v.then === 'function') return [];
-  if (Array.isArray(v)) return v;
-  if (Array.isArray(v?.data)) return v.data;
-  if (Array.isArray(v?.items)) return v.items;
-  if (v && typeof v === 'object') return Object.values(v);
-  return [];
-};
+  /* helpers */
+  const toArray = (v) => {
+    if (v && typeof v.then === 'function') return [];
+    if (Array.isArray(v)) return v;
+    if (Array.isArray(v?.data)) return v.data;
+    if (Array.isArray(v?.items)) return v.items;
+    if (v && typeof v === 'object') return Object.values(v);
+    return [];
+  };
 
-/* dropdown items (same names used in the editor) */
-const resourceCodeItems = computed(() => toArray(repo.resourcecode));
-const officeEmployeesCodeItems = computed(() => toArray(repo.officeemployeescode));
-const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
-const zoneEmployeesItems = computed(() => toArray(repo.ZoneEmployees));
-const janiTalafatItems = computed(() => toArray(repo.janiTalafatOptions));
-const maliTalafatItems = computed(() => toArray(repo.maliTalafatOptions));
+  /* dropdown items (same names used in the editor) */
+  const resourceCodeItems = computed(() => toArray(repo.resourcecode));
+  const officeEmployeesCodeItems = computed(() => toArray(repo.officeemployeescode));
+  const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
+  const zoneEmployeesItems = computed(() => toArray(repo.ZoneEmployees));
+  const janiTalafatItems = computed(() => toArray(repo.janiTalafatOptions));
+  const maliTalafatItems = computed(() => toArray(repo.maliTalafatOptions));
 
-/* fixed options — mirror the editor */
-const eventTypeOptions = ['سیاسی', 'جنایی', 'الهی'];
-const eventSpecificTypeOptions = ['قتل', 'چاودنه', 'ټکر', 'سرقت', 'مسلحانه برید'];
+  /* fixed options — mirror the editor */
+  const eventTypeOptions = ['سیاسی', 'جنایی', 'الهی'];
+  const eventSpecificTypeOptions = ['قتل', 'چاودنه', 'ټکر', 'سرقت', 'مسلحانه برید'];
 
-/* form model (EXACT keys as the editor) */
-const baseDraft = () => ({
-  resource_id: null,
-  office_employee_id: null,
+  /* form model (EXACT keys as the editor) */
+  const baseDraft = () => ({
+    resource_id: null,
+    office_employee_id: null,
 
-  event_type: '',
-  event_specific_type: '',
-  target_person: '',
-  criminal: '',
+    event_type: '',
+    event_specific_type: '',
+    target_person: '',
+    criminal: '',
 
-  event_date: '',
-  event_hour: '',
+    event_date: '',
+    event_hour: '',
 
-  event_zone: '',
-  event_hawza: '',
-  event_specific_place: '',
-  coordinates: '',
+    event_zone: '',
+    event_hawza: '',
+    event_specific_place: '',
+    coordinates: '',
 
-  talafat_jani: null,
-  talafat_mali: null,
+    talafat_jani: null,
+    talafat_mali: null,
 
-  tafseel: '',
-  talks: '',
-  Province_addr: '',
-  note: '',
+    tafseel: '',
+    talks: '',
+    Province_addr: '',
+    note: '',
 
-  _newDocs: [],
-});
-const draft = reactive(baseDraft());
+    _newDocs: [],
+  });
+  const draft = reactive(baseDraft());
 
-/* validation */
-const rules = {
-  required: (label) => (v) => (v && String(v).trim().length > 0) || `«${label}» ضروری است`,
-  selectRequired: (label) => (v) =>
-    (v !== null && v !== undefined && v !== '') || `لطفاً «${label}» را انتخاب کنید`,
-  dateYMD: (label) => (v) =>
-    !v || /^\d{4}-\d{2}-\d{2}$/.test(v) || `${label} باید به صورت YYYY-MM-DD باشد`,
-  timeHM: (label) => (v) => !v || /^\d{2}:\d{2}$/.test(v) || `${label} باید به صورت HH:MM باشد`,
-};
+  /* validation */
+  const rules = {
+    required: (label) => (v) => (v && String(v).trim().length > 0) || `«${label}» ضروری است`,
+    selectRequired: (label) => (v) =>
+      (v !== null && v !== undefined && v !== '') || `لطفاً «${label}» را انتخاب کنید`,
+    dateYMD: (label) => (v) =>
+      !v || /^\d{4}-\d{2}-\d{2}$/.test(v) || `${label} باید به صورت YYYY-MM-DD باشد`,
+    timeHM: (label) => (v) => !v || /^\d{2}:\d{2}$/.test(v) || `${label} باید به صورت HH:MM باشد`,
+  };
 
-/* files */
-function shortName(name = '') {
-  if (name.length <= 22) return name;
-  const dot = name.lastIndexOf('.');
-  if (dot === -1) return name.slice(0, 18) + '…';
-  const ext = name.slice(dot);
-  const base = name.slice(0, 18);
-  return `${base}…${ext}`;
-}
-function onFilesPicked(e) {
-  draft._newDocs = Array.from(e.target?.files || []);
-}
-function removeFile(index) {
-  draft._newDocs.splice(index, 1);
-}
-
-/* formdata */
-function appendFD(fd, k, v) {
-  if (v == null) return;
-  if (Array.isArray(v)) {
-    v.forEach((val) => appendFD(fd, k + '[]', val));
-    return;
+  /* files */
+  function shortName(name = '') {
+    if (name.length <= 22) return name;
+    const dot = name.lastIndexOf('.');
+    if (dot === -1) return name.slice(0, 18) + '…';
+    const ext = name.slice(dot);
+    const base = name.slice(0, 18);
+    return `${base}…${ext}`;
   }
-  if (typeof v === 'object') {
-    fd.append(k, v.id ?? v.value ?? JSON.stringify(v));
-    return;
+  function onFilesPicked(e) {
+    draft._newDocs = Array.from(e.target?.files || []);
   }
-  fd.append(k, v);
-}
-function toFormDataSelective(obj) {
-  const fd = new FormData();
-  for (const [k, v] of Object.entries(obj)) appendFD(fd, k, v);
-  return fd;
-}
-
-/* submit/reset (unchanged) */
-async function onCreate() {
-  const ok = await form.value?.validate();
-  if (!ok?.valid) {
-    requestAnimationFrame(() => {
-      const firstInvalid =
-        document.querySelector('[aria-invalid="true"]') ||
-        document.querySelector('.v-input--error');
-      firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      firstInvalid?.focus?.();
-    });
-    return;
+  function removeFile(index) {
+    draft._newDocs.splice(index, 1);
   }
 
-  submitting.value = true;
-  progress.value = 1;
-
-  const fd = toFormDataSelective({ ...draft });
-  (draft._newDocs || []).forEach((f) => fd.append('documents[]', f));
-
-  try {
-    const created = await repo
-      .CreateEvent(fd, (pct) => (progress.value = pct || progress.value))
-      .catch(() => null);
-    if (created?.id) onReset();
-  } finally {
-    submitting.value = false;
-    setTimeout(() => (progress.value = 0), 800);
+  /* formdata */
+  function appendFD(fd, k, v) {
+    if (v == null) return;
+    if (Array.isArray(v)) {
+      v.forEach((val) => appendFD(fd, k + '[]', val));
+      return;
+    }
+    if (typeof v === 'object') {
+      fd.append(k, v.id ?? v.value ?? JSON.stringify(v));
+      return;
+    }
+    fd.append(k, v);
   }
-}
-function onReset() {
-  Object.assign(draft, baseDraft());
-  form.value?.resetValidation();
-  if (fileInput.value) fileInput.value.value = '';
-}
+  function toFormDataSelective(obj) {
+    const fd = new FormData();
+    for (const [k, v] of Object.entries(obj)) appendFD(fd, k, v);
+    return fd;
+  }
 
-/* preload dropdowns (kept) */
-(async () => {
-  await Promise.all([
-    repo.GetResourceCode?.(),
-    repo.GetOfficeEmployeeCode?.(),
-    repo.GetOfficeEmployee?.(),
-    repo.GetZoneEmployees?.(),
-    repo.GetJaniTalafatOptions?.(),
-    repo.GetMaliTalafatOptions?.(),
-  ]).catch(() => {});
-})();
+  /* submit/reset (unchanged) */
+  async function onCreate() {
+    const ok = await form.value?.validate();
+    if (!ok?.valid) {
+      requestAnimationFrame(() => {
+        const firstInvalid =
+          document.querySelector('[aria-invalid="true"]') ||
+          document.querySelector('.v-input--error');
+        firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstInvalid?.focus?.();
+      });
+      return;
+    }
+
+    submitting.value = true;
+    progress.value = 1;
+
+    const fd = toFormDataSelective({ ...draft });
+    (draft._newDocs || []).forEach((f) => fd.append('documents[]', f));
+
+    try {
+      const created = await repo
+        .CreateEvent(fd, (pct) => (progress.value = pct || progress.value))
+        .catch(() => null);
+      if (created?.id) onReset();
+    } finally {
+      submitting.value = false;
+      setTimeout(() => (progress.value = 0), 800);
+    }
+  }
+  function onReset() {
+    Object.assign(draft, baseDraft());
+    form.value?.resetValidation();
+    if (fileInput.value) fileInput.value.value = '';
+  }
+
+  /* preload dropdowns (kept) */
+  (async () => {
+    await Promise.all([
+      repo.GetResourceCode?.(),
+      repo.GetOfficeEmployeeCode?.(),
+      repo.GetOfficeEmployee?.(),
+      repo.GetZoneEmployees?.(),
+      repo.GetJaniTalafatOptions?.(),
+      repo.GetMaliTalafatOptions?.(),
+    ]).catch(() => {});
+  })();
 </script>
 
 <style scoped>
-.form-card {
-  border-radius: 16px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-}
-.form-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1e293b;
-}
+  .form-card {
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  }
+  .form-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
 
-/* Inputs expand within their columns */
-.cell { width: 100%; }
+  /* Inputs expand within their columns */
+  .cell {
+    width: 100%;
+  }
 
-/* Labels */
-.field-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #475569;
-  opacity: 1;
-}
-.section-subtitle {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #334155;
-  opacity: 1;
-}
+  /* Labels */
+  .field-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+    opacity: 1;
+  }
+  .section-subtitle {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #334155;
+    opacity: 1;
+  }
 
-/* Docs row */
-.docs-field-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border: 1px dashed #9e9e9e;
-  border-radius: 8px;
-  padding: 6px 8px;
-}
-.hidden-file {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
+  /* Docs row */
+  .docs-field-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px dashed #9e9e9e;
+    border-radius: 8px;
+    padding: 6px 8px;
+  }
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
 
-/* Tight gutters */
-.tight-grid {
-  --v-gutter-x: 8px;
-  --v-gutter-y: 8px;
-}
+  /* Tight gutters */
+  .tight-grid {
+    --v-gutter-x: 8px;
+    --v-gutter-y: 8px;
+  }
 
-/* Compact paddings */
-:deep(.v-card-item) { padding: 4px 0 2px 0; }
-:deep(.v-card-text) { padding: 4px 0 0 0; }
+  /* Compact paddings */
+  :deep(.v-card-item) {
+    padding: 4px 0 2px 0;
+  }
+  :deep(.v-card-text) {
+    padding: 4px 0 0 0;
+  }
 
-/* RTL */
-:deep([dir='rtl'] .v-field__input) { direction: rtl; text-align: right; }
-:deep([dir='rtl'] .v-field-label),
-:deep([dir='rtl'] .v-label),
-:deep([dir='rtl'] .v-input__details) { text-align: right; }
-:deep(.v-field__input) {
-  padding-inline-start: 10px !important;
-  padding-inline-end: 10px !important;
-}
+  /* RTL */
+  :deep([dir='rtl'] .v-field__input) {
+    direction: rtl;
+    text-align: right;
+  }
+  :deep([dir='rtl'] .v-field-label),
+  :deep([dir='rtl'] .v-label),
+  :deep([dir='rtl'] .v-input__details) {
+    text-align: right;
+  }
+  :deep(.v-field__input) {
+    padding-inline-start: 10px !important;
+    padding-inline-end: 10px !important;
+  }
 
-/* Ghost column to preserve 3-up rhythm when a row has only 2 items */
-.ghost-col { visibility: hidden; min-height: 0; padding: 0; }
+  /* Ghost column to preserve 3-up rhythm when a row has only 2 items */
+  .ghost-col {
+    visibility: hidden;
+    min-height: 0;
+    padding: 0;
+  }
 
-@media (max-width: 960px) {
-  .form-card { padding: 16px; }
-  .form-title { font-size: 1.3rem; }
-}
+  @media (max-width: 960px) {
+    .form-card {
+      padding: 16px;
+    }
+    .form-title {
+      font-size: 1.3rem;
+    }
+  }
 </style>

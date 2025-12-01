@@ -40,6 +40,7 @@ class Information extends Model
         'lead_drirection',
         'talks',
         'note',
+        'result',
     ];
 
     // ✅ Casts (helps with month-based checks if you use information_saved_date)

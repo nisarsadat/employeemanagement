@@ -104,6 +104,7 @@ import OfficeEmployeesActivityReport from '../pages/reports/OfficeEmployeesActiv
 import OfficeEmployeeRelationPage from '../pages/reports/OfficeEmployeeRelationPage.vue';
 import EventReport from '../pages/reports/EventActivityReport.vue';
 import InformationActivityReport from '../pages/reports/InformationActivityReport.vue';
+import InformationsForm from '../pages/Informations/InformationsForm.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -177,6 +178,20 @@ const router = createRouter({
         {
           path: 'informations',
           component: Informations,
+          meta: { requiresAuth: true, perm: permFor('informations') },
+        },
+        {
+          path: 'informationform',
+          name: 'informationform.create',
+          component: InformationsForm,
+          meta: { requiresAuth: true, perm: permFor('informations') },
+        },
+
+        {
+          path: 'informationform/:id/:relation?',
+          name: 'informationform.edit',
+          component: InformationsForm,
+          props: true, // so you get `id` + `relation` as props
           meta: { requiresAuth: true, perm: permFor('informations') },
         },
 
@@ -490,13 +505,11 @@ const router = createRouter({
           path: 'fiftyformatreports',
           component: FiftyFormatsReportPage,
           meta: { requiresAuth: true, perm: permFor('fiftyformatreports') },
-
         },
         {
           path: 'officeemployeereports',
           component: OfficeEmployeesActivityReport,
           meta: { requiresAuth: true, perm: permFor('officeemployeereports') },
-
         },
         {
           path: '/officeemployeerelations/:id/:relation',
@@ -507,12 +520,11 @@ const router = createRouter({
           path: 'eventreports',
           component: EventReport,
           meta: { requiresAuth: true, perm: permFor('eventreports') },
-
-        },        {
+        },
+        {
           path: 'informationreports',
           component: InformationActivityReport,
           meta: { requiresAuth: true, perm: permFor('informationreports') },
-
         },
         // Map
         {

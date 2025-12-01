@@ -8,58 +8,83 @@ class InformationResource extends JsonResource
 {
     public function toArray($request)
     {
+        /** @var \App\Models\Information $info */
+        $info = $this->resource; // the Information model instance
+
+        // 🔹 Related models (can be null)
+        $resource       = $info ? $info->resource : null;
+        $officeEmployee = $info ? $info->officeEmployee : null;
+        $documents      = $info ? $info->documents : collect();
+
         return [
-            'id' => $this->id,
+            // --------------------------------------------------
+            // 🔹 IDs + flat codes
+            // --------------------------------------------------
+            'id'                 => $info ? $info->id : null,
+            'resource_id'        => $info ? $info->resource_id : null,
+            'office_employee_id' => $info ? $info->office_employee_id : null,
 
-            'resource' => $this->whenLoaded('resource', function () {
-                return [
-                    'id'          => $this->resource->id,
-                    'name'        => $this->resource->name,
-                    'code_number' => $this->resource->code_number,
-                    'father_name' => $this->resource->father_name,
-                ];
-            }),
+            'resource_code_number'        => $resource ? $resource->code_number : null,
+            'office_employee_code_number' => $officeEmployee ? $officeEmployee->code_number : null,
 
-            'office_employee' => $this->whenLoaded('officeEmployee', function () {
-                return [
-                    'id'          => $this->officeEmployee->id,
-                    'name'        => $this->officeEmployee->name,
-                    'code_number' => $this->officeEmployee->code_number,
-                    'father_name' => $this->officeEmployee->father_name,
-                ];
-            }),
+            // --------------------------------------------------
+            // 🔹 Nested RESOURCE (real related model)
+            // --------------------------------------------------
+            'resource' => $resource ? [
+                'id'          => $resource->id,
+                'name'        => $resource->name,
+                'code_number' => $resource->code_number,
+                'father_name' => $resource->father_name,
+            ] : null,
 
-            'name'              => $this->name,
-            'nick_name'         => $this->nick_name,
-            'father_name'       => $this->father_name,
-            'grand_father_name' => $this->grand_father_name,
+            // --------------------------------------------------
+            // 🔹 Nested OFFICE EMPLOYEE
+            // --------------------------------------------------
+            'office_employee' => $officeEmployee ? [
+                'id'          => $officeEmployee->id,
+                'name'        => $officeEmployee->name,
+                'code_number' => $officeEmployee->code_number,
+                'father_name' => $officeEmployee->father_name,
+            ] : null,
 
-            'main_province'  => $this->main_province,
-            'main_districts' => $this->main_districts,
-            'main_village'   => $this->main_village,
+            // --------------------------------------------------
+            // 🔹 Information own fields
+            // --------------------------------------------------
+            'name'              => $info ? $info->name : null,
+            'nick_name'         => $info ? $info->nick_name : null,
+            'father_name'       => $info ? $info->father_name : null,
+            'grand_father_name' => $info ? $info->grand_father_name : null,
 
-            'now_province' => $this->now_province,
-            'now_district' => $this->now_district,
-            'now_village'  => $this->now_village,
+            'main_province'  => $info ? $info->main_province : null,
+            'main_districts' => $info ? $info->main_districts : null,
+            'main_village'   => $info ? $info->main_village : null,
 
-            'syasi_info_type'   => $this->syasi_info_type,
-            'jenayee_info_type' => $this->jenayee_info_type,
-            'Province_addr'               => $this->Province_addr,
+            'now_province' => $info ? $info->now_province : null,
+            'now_district' => $info ? $info->now_district : null,
+            'now_village'  => $info ? $info->now_village : null,
 
-            'information_saved_date' => $this->information_saved_date,
-            'information_saved_hour' => $this->information_saved_hour,
-            'information_degree'     => $this->information_degree,
+            'syasi_info_type'   => $info ? $info->syasi_info_type : null,
+            'jenayee_info_type' => $info ? $info->jenayee_info_type : null,
+            'Province_addr'     => $info ? $info->Province_addr : null,
 
-            'tafseel'         => $this->tafseel,
-            'manager_comment' => $this->manager_comment,
-            'lead_drirection' => $this->lead_drirection,
-            'talks'           => $this->talks,
-            'note'            => $this->note,
+            'information_saved_date' => $info ? $info->information_saved_date : null,
+            'information_saved_hour' => $info ? $info->information_saved_hour : null,
+            'information_degree'     => $info ? $info->information_degree : null,
 
-            'documents' => InformationDocumentResource::collection($this->whenLoaded('documents')),
+            'tafseel'         => $info ? $info->tafseel : null,
+            'manager_comment' => $info ? $info->manager_comment : null,
+            'lead_drirection' => $info ? $info->lead_drirection : null,
+            'talks'           => $info ? $info->talks : null,
+            'note'            => $info ? $info->note : null,
+            'result'          => $info ? $info->result : null,
 
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            // --------------------------------------------------
+            // 🔹 Documents
+            // --------------------------------------------------
+            'documents' => InformationDocumentResource::collection($documents),
+
+            'created_at' => $info ? $info->created_at : null,
+            'updated_at' => $info ? $info->updated_at : null,
         ];
     }
 }
