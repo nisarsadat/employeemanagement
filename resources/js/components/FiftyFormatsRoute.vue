@@ -1,6 +1,6 @@
 <!-- src/views/fifthyFormats/FiftyFormatsRoute.vue -->
 <template>
-  <v-app dir="rtl">
+  <v-app dir="rtl" class="fontfamilyis">
     <div class="min-h-screen bg-grey-lighten-4">
       <!-- Container -->
       <section class="mx-auto px-3 px-sm-4 py-6 py-md-8" style="max-width: 1400px">
@@ -14,14 +14,14 @@
                 </div>
                 <div class="flex-grow-1 mx-6">
                   <h1
-                    class="text-h5 text-sm-h4 text-md-h3 font-weight-bold text-primary text-right"
+                    class="text-h5 text-sm-h4 text-md-h3 font-weight-bold text-primary text-right fontfamilyis"
                   >
                     {{ t('پنجاه فورم‌ها') }}
                   </h1>
-                  <p class="text-body-2 text-sm-body-1 text-grey mt-1 mt-sm-2 text-right">
+                  <p class="text-body-2 text-sm-body-1 text-grey mt-1 mt-sm-2 text-right fontfamilyis">
                     {{
                       t(
-                        'لینک‌های سریع برای مدیریت هر فورم. برای فیلتر کردن فورم‌های موجود از جستجو استفاده کنید.'
+                        'لینک‌های سریع برای مدیریت هر فورم. برای فیلتر کردن فورم‌های موجود از جستجو استفاده کنید'
                       )
                     }}
                   </p>
@@ -35,7 +35,7 @@
         <v-card class="mb-4 mb-md-6 pa-4 pa-sm-5" elevation="2" rounded="xl">
           <div class="d-flex align-center justify-space-between flex-wrap gap-3">
             <!-- Results Counter -->
-            <div class="text-body-2 text-grey-darken-1 font-weight-medium ml-">
+            <div class="text-body-2 text-grey-darken-1 font-weight-medium fontfamilyis">
               <span class="d-inline-flex align-center gap-1">
                 {{ t('نمایش') }}
                 <span class="text-primary font-weight-bold">{{ filtered.length }}</span>
@@ -61,7 +61,7 @@
               clearable
               color="primary"
               bg-color="grey-lighten-4"
-              class="search-field flex-grow-1"
+              class="search-field flex-grow-1 fontfamilyis"
               style="min-width: 400px; max-width: 800px"
               single-line
             />
@@ -69,7 +69,7 @@
         </v-card>
 
         <!-- Grid of module cards (permission-guarded) -->
-        <v-row dense class="ma-0">
+        <v-row dense class="ma-0 fontfamilyis">
           <v-col
             v-for="item in filtered"
             :key="item.path"
@@ -78,36 +78,36 @@
             md="4"
             lg="3"
             xl="2"
-            class="pa-1 pa-sm-2"
+            class="pa-1 pa-sm-2 fontfamilyis"
           >
             <router-link :to="toPath(item)" style="text-decoration: none">
-              <v-card class="module-card fill-height" elevation="2" hover>
-                <v-card-text class="pa-3 pa-sm-4">
-                  <div class="d-flex align-center gap-3 flex-row-reverse">
+              <v-card class="module-card fill-height fontfamilyis" elevation="2" hover>
+                <v-card-text class="pa-3 pa-sm-4 fontfamilyis">
+                  <div class="d-flex align-center gap-3 flex-row-reverse fontfamilyis">
                     <!-- Icon -->
-                    <div class="icon-wrapper flex-shrink-0">
+                    <div class="icon-wrapper flex-shrink-0 fontfamilyis">
                       <v-icon :size="smAndUp ? 32 : 28" color="primary" class="module-icon">
                         {{ getMaterialIcon(item.icon) }}
                       </v-icon>
                     </div>
 
                     <!-- Label + count -->
-                    <div class="flex-grow-1 min-w-0 text-right">
-                      <h3 class="text-body-2 text-sm-body-1 font-weight-bold line-clamp-2 mb-0">
+                    <div class="flex-grow-1 min-w-0 text-right fontfamilyis">
+                      <h3 class="text-body-2 text-sm-body-1 font-weight-bold line-clamp-2 mb-0 fontfamilyis">
                         {{ t(item.labelFa) }}
                       </h3>
 
                       <!-- 🔹 Always show a number (0+) -->
-                      <div class="text-caption text-grey-darken-1 mt-1">
+                      <div class="text-caption text-grey-darken-1 mt-1 fontfamilyis">
                         <template v-if="loadingCounts">
-                          <span class="text-grey-darken-1">
+                          <span class="text-grey-darken-1 fontfamilyis">
                             {{ t('در حال بارگیری...') }}
                           </span>
                         </template>
 
                         <template v-else>
                           {{ t('ریکارد های موجود') }}:
-                          <span class="text-primary text-body-1 font-weight-bold mx-1">
+                          <span class="text-primary text-body-1 font-weight-bold mx-1 fontfamilyis">
                             {{ displayCount(item.slug) }}
                           </span>
                         </template>
@@ -132,10 +132,10 @@
             <v-icon :size="smAndUp ? 64 : 48" color="grey" class="mb-2 mb-sm-4">
               mdi-magnify-remove
             </v-icon>
-            <h3 class="text-h6 text-sm-h5 text-grey-darken-2 mb-1 mb-sm-2">
+            <h3 class="text-h6 text-sm-h5 text-grey-darken-2 mb-1 mb-sm-2 fontfamilyis">
               {{ t('هیچ فورمی پیدا نشد') }}
             </h3>
-            <p class="text-body-2 text-sm-body-1 text-grey">
+            <p class="text-body-2 text-sm-body-1 text-grey fontfamilyis">
               {{
                 t('برای «{query}» هیچ نتیجه‌ای پیدا نشد. لطفاً واژه‌های جستجو را تغییر بدهید.', {
                   query: q,
@@ -778,5 +778,8 @@
   .text-body-1 {
     font-size: 1rem !important;
     font-weight: 600 !important;
+  }
+  .fontfamilyis {
+    font-family: var(--app-font) !important;
   }
 </style>

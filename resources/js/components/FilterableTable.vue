@@ -424,77 +424,8 @@
           </thead>
 
           <tbody class="divide-y divide-gray-100">
-            <tr
-              v-for="(row, i) in filteredRows"
-              :key="row?.[rowKey] ?? i"
-              class="hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-gray-50/30 transition-all duration-200 group/row print:hover:bg-transparent"
-              :class="[
-                i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30',
-                { 'print-hidden': printOnlySelected && !selectedSet.has(row[rowKey]) },
-              ]"
-            >
-              <!-- select checkbox cell -->
-              <td
-                v-if="selectable"
-                class="px-4 py-3 border-r border-gray-100 text-center align-top"
-                :class="{ 'print-col-hidden': printOnlyCols && !selectedCols.has(SELECT_KEY) }"
-              >
-                <div class="flex items-center justify-center">
-                  <input
-                    type="checkbox"
-                    :value="row[rowKey]"
-                    :checked="selectedSet.has(row[rowKey])"
-                    @change="toggleRow(row[rowKey], $event.target.checked)"
-                    class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer transition group-hover/row:border-blue-400"
-                  />
-                </div>
-              </td>
-
-              <!-- index cell -->
-              <td
-                v-if="showIndex"
-                class="px-4 py-3 border-r border-gray-100 text-center align-top text-sm font-medium text-gray-600"
-                :class="{ 'print-col-hidden': printOnlyCols && !selectedCols.has(INDEX_KEY) }"
-              >
-                <span
-                  class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 text-gray-700 font-bold"
-                >
-                  {{ i + 1 }}
-                </span>
-              </td>
-
-              <!-- Actions cell – now fully parent-controlled -->
-              <td v-if="showActions" class="px-4 py-3 text-center align-top print:hidden">
-                <slot name="actions" :item="row" />
-              </td>
-
-              <!-- data cells -->
-              <td
-                v-for="h in headers"
-                :key="'cell-' + colKey(h) + '-' + (row?.[rowKey] ?? i)"
-                class="px-4 py-3 border-r border-gray-100 align-top whitespace-pre-wrap break-words text-sm text-gray-800 text-center group-hover/row:text-gray-900 transition-colors duration-200"
-                :class="{ 'print-col-hidden': printOnlyCols && !isColKeySelected(hKey(h)) }"
-              >
-                <template v-if="$slots['cell-' + colKey(h)]">
-                  <slot :name="'cell-' + colKey(h)" :row="row" />
-                </template>
-
-                <!-- Formatted block -->
-                <template v-else>
-                  <div v-if="!isComposite(h)" class="font-medium">
-                    {{ displayValueByKey(h.key, row[h.key]) }}
-                  </div>
-                  <div v-else class="space-y-1.5">
-                    <div v-for="sub in h.key" :key="'v-' + sub" class="text-sm">
-                      {{ displayValueByKey(sub, row[sub]) }}
-                    </div>
-                  </div>
-                </template>
-              </td>
-            </tr>
-
-            <!-- Empty state -->
-            <tr v-if="filteredRows.length === 0">
+            <!-- Loading state -->
+            <tr v-if="loading">
               <td
                 :colspan="
                   (selectable ? 1 : 0) +
@@ -502,33 +433,126 @@
                   (showActions ? 1 : 0) +
                   headers.length
                 "
-                class="text-center py-12"
+                class="text-center py-16"
               >
                 <div class="flex flex-col items-center justify-center gap-4">
-                  <div
-                    class="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center"
-                  >
-                    <svg
-                      class="w-8 h-8 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                  <div class="flex items-center justify-center gap-2">
+                    <div class="w-3 h-3 bg-gray-400 rounded-full animate-[bounce_1.4s_infinite_-0.32s]"></div>
+                    <div class="w-3 h-3 bg-gray-400 rounded-full animate-[bounce_1.4s_infinite_-0.16s]"></div>
+                    <div class="w-3 h-3 bg-gray-400 rounded-full animate-[bounce_1.4s_infinite]"></div>
                   </div>
-                  <div class="text-gray-500 text-lg font-medium">نتیجه‌ای یافت نشد</div>
-                  <p class="text-gray-400 text-sm max-w-md text-center">
-                    با تغییر فیلترها یا جستجوی متفاوت، نتایج بیشتری مشاهده کنید.
-                  </p>
+                  <div class="text-gray-600 font-medium">در حال بارگذاری داده‌ها...</div>
                 </div>
               </td>
             </tr>
+
+            <!-- Data rows (only show when not loading) -->
+            <template v-else>
+              <tr
+                v-for="(row, i) in filteredRows"
+                :key="row?.[rowKey] ?? i"
+                :class="[
+                  'bg-gray-50 hover:bg-gray-100 transition-colors duration-200 group/row print:hover:bg-transparent',
+                  { 'print-hidden': printOnlySelected && !selectedSet.has(row[rowKey]) }
+                ]"
+              >
+                <!-- select checkbox cell -->
+                <td
+                  v-if="selectable"
+                  class="px-4 py-3 border-r border-gray-100 text-center align-top"
+                  :class="{ 'print-col-hidden': printOnlyCols && !selectedCols.has(SELECT_KEY) }"
+                >
+                  <div class="flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      :value="row[rowKey]"
+                      :checked="selectedSet.has(row[rowKey])"
+                      @change="toggleRow(row[rowKey], $event.target.checked)"
+                      class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer transition group-hover/row:border-blue-400"
+                    />
+                  </div>
+                </td>
+
+                <!-- index cell -->
+                <td
+                  v-if="showIndex"
+                  class="px-4 py-3 border-r border-gray-100 text-center align-top text-sm font-medium text-gray-600"
+                  :class="{ 'print-col-hidden': printOnlyCols && !selectedCols.has(INDEX_KEY) }"
+                >
+                  <span
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-black text-white font-bold"
+                  >
+                    {{ i + 1 }}
+                  </span>
+                </td>
+
+                <!-- Actions cell – now fully parent-controlled -->
+                <td v-if="showActions" class="px-4 py-3 text-center align-top print:hidden">
+                  <slot name="actions" :item="row" />
+                </td>
+
+                <!-- data cells -->
+                <td
+                  v-for="h in headers"
+                  :key="'cell-' + colKey(h) + '-' + (row?.[rowKey] ?? i)"
+                  class="px-4 py-3 border-r border-gray-100 align-top whitespace-pre-wrap break-words text-sm text-gray-800 text-center group-hover/row:text-gray-900 transition-colors duration-200"
+                  :class="{ 'print-col-hidden': printOnlyCols && !isColKeySelected(hKey(h)) }"
+                >
+                  <template v-if="$slots['cell-' + colKey(h)]">
+                    <slot :name="'cell-' + colKey(h)" :row="row" />
+                  </template>
+
+                  <!-- Formatted block -->
+                  <template v-else>
+                    <div v-if="!isComposite(h)" class="font-medium">
+                      {{ displayValueByKey(h.key, row[h.key]) }}
+                    </div>
+                    <div v-else class="space-y-1.5">
+                      <div v-for="sub in h.key" :key="'v-' + sub" class="text-sm">
+                        {{ displayValueByKey(sub, row[sub]) }}
+                      </div>
+                    </div>
+                  </template>
+                </td>
+              </tr>
+
+              <!-- Empty state -->
+              <tr v-if="filteredRows.length === 0">
+                <td
+                  :colspan="
+                    (selectable ? 1 : 0) +
+                    (showIndex ? 1 : 0) +
+                    (showActions ? 1 : 0) +
+                    headers.length
+                  "
+                  class="text-center py-12"
+                >
+                  <div class="flex flex-col items-center justify-center gap-4">
+                    <div
+                      class="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-8 h-8 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <div class="text-gray-500 text-lg font-medium">نتیجه‌ای یافت نشد</div>
+                    <p class="text-gray-400 text-sm max-w-md text-center">
+                      با تغییر فیلترها یا جستجوی متفاوت، نتایج بیشتری مشاهده کنید.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -563,6 +587,8 @@
     enableDelete: { type: Boolean, default: false },
     dateKeys: { type: Array, default: () => [] },
     autoDetectDates: { type: Boolean, default: true },
+    // Add loading prop
+    loading: { type: Boolean, default: false },
   });
 
   /* === Emits === */
@@ -1075,6 +1101,15 @@
 </script>
 
 <style>
+  @keyframes bounce {
+    0%, 80%, 100% {
+      transform: scale(0);
+    }
+    40% {
+      transform: scale(1);
+    }
+  }
+
   @media print {
     body * {
       visibility: hidden !important;

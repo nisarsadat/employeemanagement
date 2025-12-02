@@ -237,7 +237,7 @@
   .title-divider {
     height: 32px;
     align-self: center;
-    border-color: rgba(var(--v-theme-primary), 0.2) !important;
+    border-color: black;
   }
 
   .section-title {

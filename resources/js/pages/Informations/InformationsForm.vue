@@ -164,7 +164,7 @@
             </div>
             <v-divider />
             <v-row class="pa-3">
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <v-autocomplete
                   class="primary-select"
                   v-model="form.resource_id"
@@ -181,7 +181,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <v-autocomplete
                   class="primary-select"
                   v-model="form.office_employee_id"

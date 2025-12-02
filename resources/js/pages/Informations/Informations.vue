@@ -137,7 +137,6 @@
     </v-row>
 
     <!-- Peek -->
-
     <v-container fluid>
       <PeekButton
         v-model="expanded"
@@ -166,6 +165,38 @@
       :dateKeys="['information_saved_date']"
       class="mb-20 mx-2"
     >
+      <!-- RESOURCE -->
+      <template #cell-resource_code_number="{ row }">
+        <v-btn
+          v-if="row.resource_code_number"
+          color="primary"
+          variant="tonal"
+          size="default"
+          @click.stop="goToResource(row)"
+        >
+          <v-icon size="16" class="mr-1">mdi-account-search</v-icon>
+          {{ row.resource_code_number }}
+        </v-btn>
+
+        <span v-else class="text-grey">—</span>
+      </template>
+
+      <!-- OFFICE EMPLOYEE -->
+      <template #cell-office_employee_code_number="{ row }">
+        <v-btn
+          v-if="row.office_employee_code_number"
+          color="deep-purple"
+          variant="tonal"
+          size="default"
+          @click.stop="goToOfficeEmployee(row)"
+        >
+          <v-icon size="22" class="mr-1">mdi-account-badge</v-icon>
+          {{ row.office_employee_code_number }}
+        </v-btn>
+
+        <span v-else class="text-grey">—</span>
+      </template>
+
       <!-- Actions column: 2×2 small buttons with icon + text -->
       <template #actions="{ item }">
         <div class="actions-grid">
@@ -462,6 +493,7 @@
       deleteTarget.value = null;
     }
   }
+
   /* ===== Peek / Fetch one ===== */
   const filters = ref({});
   const expanded = ref(false);
@@ -493,15 +525,10 @@
     if (!row?.id) return;
 
     selectedId.value = row.id;
-
-    // First set expanded to true to open the panel
     expanded.value = true;
-
-    // Then fetch the data
     fetchOne(row.id);
   }
 
-  // Also add a watch for when detail changes to ensure it's available
   watch(
     detail,
     (newDetail) => {
@@ -533,6 +560,18 @@
     const row = payload?.raw ?? payload;
     if (!row?.id) return;
     router.push(`/app/informationform/${row.id}`);
+  }
+
+  // 🔹 Go to RESOURCE page (listing / main page)
+  function goToResource(_row) {
+    // change this path to your actual Resource page route if needed
+    router.push('/app/resources');
+  }
+
+  // 🔹 Go to OFFICE EMPLOYEE page (listing / main page)
+  function goToOfficeEmployee(_row) {
+    // change this path to your actual OfficeEmployee page route if needed
+    router.push('/app/officeemployee');
   }
 
   function clearSearch() {
@@ -641,11 +680,11 @@
   }
 
   .action-btn {
-    min-width: 58px !important; /* smaller width */
-    height: 22px !important; /* smaller height */
+    min-width: 58px !important;
+    height: 22px !important;
     font-size: 11px;
     line-height: 1;
-    padding-inline: 6px !important; /* tighter padding */
+    padding-inline: 6px !important;
     justify-content: center;
     text-wrap: nowrap;
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
@@ -681,4 +720,5 @@
     background: linear-gradient(135deg, #f97373, #ef4444);
     color: #fff !important;
   }
+  
 </style>
