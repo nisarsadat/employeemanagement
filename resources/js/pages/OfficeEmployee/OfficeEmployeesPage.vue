@@ -24,7 +24,7 @@
             @keyup.enter="fetchAll"
             clearable
             @click:clear="clearSearch"
-            class="bg-white"
+            class="bg-white search-field"
           />
         </v-col>
 
@@ -54,10 +54,10 @@
         <v-card class="stat-card">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-primary">
+              <div class="text-h5 font-weight-bold text-primary fontfamily">
                 {{ totalCount }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-caption text-medium-emphasis fontfamily">
                 {{ t('کل کارمندان') }}
               </div>
             </div>
@@ -73,10 +73,10 @@
         <v-card class="stat-card">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-green">
+              <div class="text-h5 font-weight-bold text-green fontfamily">
                 {{ withDocumentsCount }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-caption text-medium-emphasis fontfamily">
                 {{ t('دارای اسناد ضمیمه') }}
               </div>
             </div>
@@ -92,10 +92,10 @@
         <v-card class="stat-card">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-purple">
+              <div class="text-h5 font-weight-bold text-purple fontfamily">
                 {{ withPictureCount }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-caption text-medium-emphasis fontfamily">
                 {{ t('دارای عکس') }}
               </div>
             </div>
@@ -111,10 +111,10 @@
         <v-card class="stat-card">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-amber">
+              <div class="text-h5 font-weight-bold text-amber fontfamily">
                 {{ todayAddedCount }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-caption text-medium-emphasis fontfamily">
                 {{ t('امروز اضافه شده') }}
               </div>
             </div>
@@ -131,7 +131,7 @@
       <PeekButton
         v-model="expanded"
         :id="selectedId"
-        :item="detail"
+        :item="detailForPeek"
         :loading="loadingOne"
         title-key="name"
         image-key="picture"
@@ -161,79 +161,102 @@
     >
       <!-- 🖼 Picture cell -->
       <template #cell-picture="{ row }">
-        <v-avatar v-if="row.picture" size="36" class="cursor-pointer" @click="openPreview(row)">
-          <v-img :src="row.picture" />
-        </v-avatar>
-        <v-avatar v-else size="36" color="grey-lighten-2">
-          <v-icon size="20">mdi-account</v-icon>
+        <v-avatar size="36" class="cursor-pointer" @click="openPreview(row)">
+          <v-img v-if="getPhotoUrl(row)" :src="getPhotoUrl(row)" cover />
+          <v-icon v-else size="20">mdi-account</v-icon>
         </v-avatar>
       </template>
 
       <!-- 🗺 Map cell -->
       <template #cell-map="{ row }">
         <FlyToMapButton
-          :coordinates="row.coordinates"
-          :title="row.name"
-          :subtitle="row.code_number"
+          :coordinates="getRow(row).coordinates"
+          :title="getRow(row).name"
+          :subtitle="getRow(row).code_number"
           type="office_employee"
-          :photo-url="row.picture"
+          :photo-url="getPhotoUrl(row)"
           :zoom="16"
         />
       </template>
 
-      <!-- 🔢 Informations count cell (routing style like Informations page) -->
+      <!-- 🔢 Informations count -->
       <template #cell-informations_count="{ row }">
-        <v-btn
-          v-if="row.informations_count && row.informations_count > 0"
-          color="primary"
-          variant="tonal"
-          size="default"
-          class="text-none"
-          @click.stop="goEmployeeInformations(row)"
+        <v-tooltip
+          v-if="getRow(row).informations_count && getRow(row).informations_count > 0"
+          text="تعداد معلومات این کارمند، کلیک کنید تا به صفحه معلومات بروید"
+          location="top"
         >
-          <v-icon size="18" class="mr-1">mdi-file-document-multiple</v-icon>
-          {{ row.informations_count }}
-        </v-btn>
-        <span v-else class="text-grey">—</span>
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              color="primary"
+              variant="tonal"
+              size="default"
+              class="text-none"
+              @click.stop="goEmployeeInformations(row)"
+            >
+              <v-icon size="18" class="mr-1">mdi-file-document-multiple</v-icon>
+              {{ getRow(row).informations_count }}
+            </v-btn>
+          </template>
+        </v-tooltip>
+        <span v-else class="text-red">0</span>
       </template>
 
-      <!-- 🔢 Events count cell -->
+      <!-- 🔢 Events count -->
       <template #cell-events_count="{ row }">
-        <v-btn
-          v-if="row.events_count && row.events_count > 0"
-          color="deep-purple"
-          variant="tonal"
-          size="default"
-          class="text-none"
-          @click.stop="goEmployeeEvents(row)"
+        <v-tooltip
+          v-if="getRow(row).events_count && getRow(row).events_count > 0"
+          text="تعداد واقعات این کارمند، کلیک کنید تا به صفحه واقعات بروید"
+          location="top"
         >
-          <v-icon size="18" class="mr-1">mdi-calendar-alert</v-icon>
-          {{ row.events_count }}
-        </v-btn>
-        <span v-else class="text-grey">—</span>
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              color="deep-purple"
+              variant="tonal"
+              size="default"
+              class="text-none"
+              @click.stop="goEmployeeEvents(row)"
+            >
+              <v-icon size="18" class="mr-1">mdi-calendar-alert</v-icon>
+              {{ getRow(row).events_count }}
+            </v-btn>
+          </template>
+        </v-tooltip>
+        <span v-else class="text-red">0</span>
       </template>
 
-      <!-- 🔢 Resources count cell -->
+      <!-- 🔢 Resources count -->
       <template #cell-resources_count="{ row }">
-        <v-btn
-          v-if="row.resources_count && row.resources_count > 0"
-          color="teal"
-          variant="tonal"
-          size="default"
-          class="text-none"
-          @click.stop="goEmployeeResources(row)"
+        <v-tooltip
+          v-if="getRow(row).resources_count && getRow(row).resources_count > 0"
+          text="تعداد منابع این کارمند، کلیک کنید تا به صفحه منابع بروید"
+          location="top"
         >
-          <v-icon size="18" class="mr-1">mdi-database</v-icon>
-          {{ row.resources_count }}
-        </v-btn>
-        <span v-else class="text-grey">—</span>
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              color="teal"
+              variant="tonal"
+              size="default"
+              class="text-none"
+              @click.stop="goEmployeeResources(row)"
+            >
+              <v-icon size="18" class="mr-1">mdi-database</v-icon>
+              {{ getRow(row).resources_count }}
+            </v-btn>
+          </template>
+        </v-tooltip>
+        <span v-else class="text-red">0</span>
       </template>
-      <!-- ⚙️ ACTIONS: 4 buttons same style as Informations page -->
+
+      <!-- ⚙️ ACTIONS -->
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
           <!-- مشاهده -->
           <v-tooltip text="مشاهده کارمند" location="top">
-            <template v-slot:activator="{ props: tooltipProps }">
+            <template #activator="{ props: tooltipProps }">
               <v-icon size="small" v-bind="tooltipProps" @click.stop="openPeek(item)" color="blue">
                 mdi-eye
               </v-icon>
@@ -242,7 +265,7 @@
 
           <!-- ویرایش -->
           <v-tooltip text="تغییر جزیات کارمند" location="top">
-            <template v-slot:activator="{ props: tooltipProps }">
+            <template #activator="{ props: tooltipProps }">
               <v-icon
                 size="small"
                 v-bind="tooltipProps"
@@ -256,7 +279,7 @@
 
           <!-- دانلود اسناد -->
           <v-tooltip text="دانلود اسناد مربوط به کارمند" location="top">
-            <template v-slot:activator="{ props: tooltipProps }">
+            <template #activator="{ props: tooltipProps }">
               <v-icon
                 size="small"
                 v-bind="tooltipProps"
@@ -271,7 +294,7 @@
 
           <!-- حذف -->
           <v-tooltip text="حذف کارمند" location="top">
-            <template v-slot:activator="{ props: tooltipProps }">
+            <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-if="auth.can('officeemployee.delete')"
                 size="small"
@@ -288,18 +311,19 @@
     </FilterableTable>
 
     <!-- 🖼 BIG PREVIEW DIALOG -->
-    <v-dialog v-model="previewOpen" max-width="520">
-      <v-card>
+    <v-dialog v-model="previewOpen" max-width="520" :dir="isRtl ? 'rtl' : 'ltr'">
+      <v-card :dir="isRtl ? 'rtl' : 'ltr'">
         <v-toolbar
           density="compact"
           color="primary"
           :title="t('پیش نمایش عکس کارمند')"
           class="text-white"
+          :dir="isRtl ? 'rtl' : 'ltr'"
         />
-        <v-card-text class="d-flex justify-center">
+        <v-card-text class="d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
           <v-img :src="previewSrc" :alt="t('پیش نمایش')" max-width="480" max-height="420" cover />
         </v-card-text>
-        <v-card-actions class="justify-end">
+        <v-card-actions class="justify-end" :dir="isRtl ? 'rtl' : 'ltr'">
           <v-btn color="primary" variant="flat" @click="previewOpen = false">
             {{ t('بستن') }}
           </v-btn>
@@ -307,7 +331,7 @@
       </v-card>
     </v-dialog>
 
-    <!-- 🔁 Reusable Delete Confirm Dialog (same style as Informations) -->
+    <!-- 🔁 Reusable Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -350,7 +374,24 @@
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
 
-  /* ===== Helpers ===== */
+  /* ===== Helpers: unwrap + fix URL ===== */
+  function getRow(payload) {
+    return payload?.raw ?? payload;
+  }
+
+  function normalizeUrl(url) {
+    if (!url) return null;
+    // fix duplicate /storage/storage/
+    return url.replace('/storage/storage/', '/storage/');
+  }
+
+  function getPhotoUrl(payload) {
+    const row = getRow(payload);
+    if (!row) return null;
+    return normalizeUrl(row.picture || row.picture_url);
+  }
+
+  /* ===== Data & stats ===== */
   const rowsFT = computed(() => repo.Employees || []);
 
   const totalCount = computed(() => rowsFT.value.length);
@@ -359,7 +400,7 @@
     () => rowsFT.value.filter((r) => Array.isArray(r.documents) && r.documents.length > 0).length
   );
 
-  const withPictureCount = computed(() => rowsFT.value.filter((r) => !!r.picture).length);
+  const withPictureCount = computed(() => rowsFT.value.filter((r) => !!getPhotoUrl(r)).length);
 
   function isSameDate(dateValue, today) {
     if (!dateValue) return false;
@@ -462,6 +503,7 @@
         'jahadi_mawaqaf',
         'jahad_time_responsibility',
         'tazkira',
+        'dilgay_mesher',
       ],
     },
     { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
@@ -498,14 +540,14 @@
   const previewSrc = ref(null);
 
   function openPreview(rowPayload) {
-    const row = rowPayload?.raw ?? rowPayload;
-    if (!row?.picture) return;
-    previewSrc.value = row.picture;
+    const url = getPhotoUrl(rowPayload);
+    if (!url) return;
+    previewSrc.value = url;
     previewOpen.value = true;
   }
 
   function hasDocuments(payload) {
-    const row = payload?.raw ?? payload;
+    const row = getRow(payload);
     const docs = row?.documents;
     return Array.isArray(docs) && docs.length > 0;
   }
@@ -516,14 +558,22 @@
   const loadingOne = ref(false);
   const detail = ref(null);
 
+  const detailForPeek = computed(() => {
+    if (!detail.value) return null;
+    return {
+      ...detail.value,
+      picture: getPhotoUrl(detail.value),
+    };
+  });
+
   async function fetchOne(id) {
     if (!id) return;
     loadingOne.value = true;
     try {
       if (typeof repo.FetchEmployeeData === 'function') {
         await repo.FetchEmployeeData(id);
-
-        let raw = repo.Employee && Array.isArray(repo.Employee) ? repo.Employee[0] : repo.Employee;
+        const raw =
+          repo.Employee && Array.isArray(repo.Employee) ? repo.Employee[0] : repo.Employee;
         detail.value = raw || {};
       } else {
         await fetchAll();
@@ -539,7 +589,7 @@
   }
 
   function openPeek(payload) {
-    const row = payload?.raw ?? payload;
+    const row = getRow(payload);
     if (!row?.id) return;
     selectedId.value = row.id;
     expanded.value = true;
@@ -575,7 +625,7 @@
   }
 
   function startEdit(payload) {
-    const row = payload?.raw ?? payload;
+    const row = getRow(payload);
     const id = row?.id;
     if (!id) return;
     router.push(`/app/officeemployeeform/${id}`);
@@ -583,7 +633,7 @@
 
   // 🔗 Go to informations for this employee
   function goEmployeeInformations(rowPayload) {
-    const row = rowPayload?.raw ?? rowPayload;
+    const row = getRow(rowPayload);
     router.push({
       path: '/app/informations',
       query: { office_employee_id: row.id },
@@ -592,7 +642,7 @@
 
   // 🔗 Go to events for this employee
   function goEmployeeEvents(rowPayload) {
-    const row = rowPayload?.raw ?? rowPayload;
+    const row = getRow(rowPayload);
     router.push({
       path: '/app/events',
       query: { office_employee_id: row.id },
@@ -601,19 +651,37 @@
 
   // 🔗 Go to resources for this employee
   function goEmployeeResources(rowPayload) {
-    const row = rowPayload?.raw ?? rowPayload;
+    const row = getRow(rowPayload);
     router.push({
       path: '/app/resources',
       query: { office_employee_id: row.id },
     });
   }
 
-  /* ===== Delete using DeleteConfirmDialog (same pattern as Informations) ===== */
+  /* ===== Download documents ZIP ===== */
+  async function downloadEmployeeDocs(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+
+    try {
+      if (typeof repo.DownloadOfficeEmployeeZip === 'function') {
+        await repo.DownloadOfficeEmployeeZip(row.id);
+      } else {
+        console.warn('DownloadOfficeEmployeeZip not implemented on repo');
+        showErrorMessage(t('دانلود اسناد برای این کارمند هنوز تنظیم نشده است'));
+      }
+    } catch (e) {
+      console.error('downloadEmployeeDocs error', e);
+      showErrorMessage(t('خطا در دانلود اسناد کارمند'));
+    }
+  }
+
+  /* ===== Delete using DeleteConfirmDialog ===== */
   const deleteDialog = ref(false);
   const deleteTarget = ref(null);
 
   function openDeleteDialog(payload) {
-    const row = payload?.raw ?? payload;
+    const row = getRow(payload);
     if (!row?.id) return;
     deleteTarget.value = row;
     deleteDialog.value = true;
@@ -679,62 +747,15 @@
     color: #9c27b0 !important;
   }
 
+  /* 🔹 make search field height similar to large button */
+  .search-field :deep(.v-field) {
+    min-height: 48px;
+  }
+
   .cursor-pointer {
     cursor: pointer;
   }
-
-  .actions-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 6px;
-    min-width: 100px !important;
-  }
-
-  .actions-grid,
-  .stat-card,
-  .text-caption {
+  .fontfamily {
     font-family: var(--app-font) !important;
-  }
-
-  .action-btn {
-    min-width: 58px !important;
-    height: 22px !important;
-    font-size: 11px;
-    line-height: 1;
-    padding-inline: 6px !important;
-    justify-content: center;
-    text-wrap: nowrap;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
-    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-  }
-
-  .action-btn :deep(.v-btn__content) {
-    gap: 4px;
-  }
-
-  .action-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
-    filter: brightness(1.05);
-  }
-
-  .action-btn--view {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: #fff !important;
-  }
-
-  .action-btn--edit {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: #fff !important;
-  }
-
-  .action-btn--download {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: #fff !important;
-  }
-
-  .action-btn--delete {
-    background: linear-gradient(135deg, #f97373, #ef4444);
-    color: #fff !important;
   }
 </style>

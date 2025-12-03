@@ -165,85 +165,131 @@
       :dateKeys="['information_saved_date']"
       class="mb-20 mx-2"
     >
-      <!-- RESOURCE -->
+      <!-- RESOURCE: فقط کود + tooltip -->
       <template #cell-resource_code_number="{ row }">
-        <v-btn
-          v-if="row.resource_code_number"
-          color="primary"
-          variant="tonal"
-          size="default"
-          @click.stop="goToResource(row)"
-        >
-          <v-icon size="16" class="mr-1">mdi-account-search</v-icon>
-          {{ row.resource_code_number }}
-        </v-btn>
-
-        <span v-else class="text-grey">—</span>
-      </template>
-
-      <!-- OFFICE EMPLOYEE -->
-      <template #cell-office_employee_code_number="{ row }">
-        <v-btn
-          v-if="row.office_employee_code_number"
-          color="deep-purple"
-          variant="tonal"
-          size="default"
-          @click.stop="goToOfficeEmployee(row)"
-        >
-          <v-icon size="22" class="mr-1">mdi-account-badge</v-icon>
-          {{ row.office_employee_code_number }}
-        </v-btn>
-
-        <span v-else class="text-grey">—</span>
-      </template>
-
-      <!-- Actions column: 2×2 small buttons with icon + text -->
-      <template #actions="{ item }">
-        <div class="actions-grid">
-          <!-- مشاهده -->
-          <v-btn
-            class="action-btn action-btn--view"
-            variant="outlined"
-            size="x-small"
-            prepend-icon="mdi-eye"
-            @click.stop="openPeek(item)"
+        <div class="d-flex flex-column align-start">
+          <v-tooltip
+            v-if="row.resource_code_number"
+            text="برای رفتن به صفحه منابع کلیک کنید"
+            location="top"
           >
-            {{ t('مشاهده') }}
-          </v-btn>
+            <template #activator="{ props: tooltipProps }">
+              <v-btn
+                v-bind="tooltipProps"
+                color="primary"
+                variant="tonal"
+                class="text-none px-2 py-1"
+                @click.stop="goToResource(row)"
+              >
+                <v-icon start size="16">mdi-account-search</v-icon>
+                <span class="text-caption">
+                  {{ row.resource_code_number }}
+                </span>
+              </v-btn>
+            </template>
+          </v-tooltip>
+
+          <span
+            v-else
+            class="text-caption text-medium-emphasis"
+          >
+            —
+          </span>
+        </div>
+      </template>
+
+      <!-- OFFICE EMPLOYEE: فقط کود + tooltip -->
+      <template #cell-office_employee_code_number="{ row }">
+        <div class="d-flex flex-column align-start">
+          <v-tooltip
+            v-if="row.office_employee_code_number"
+            text="برای رفتن به صفحه کارمندان مدیریت کلیک کنید"
+            location="top"
+          >
+            <template #activator="{ props: tooltipProps }">
+              <v-btn
+                v-bind="tooltipProps"
+                color="deep-purple"
+                variant="tonal"
+                class="text-none px-2 py-1"
+                @click.stop="goToOfficeEmployee(row)"
+              >
+                <v-icon start size="16">mdi-account-badge</v-icon>
+                <span class="text-caption">
+                  {{ row.office_employee_code_number }}
+                </span>
+              </v-btn>
+            </template>
+          </v-tooltip>
+
+          <span
+            v-else
+            class="text-caption text-medium-emphasis"
+          >
+            —
+          </span>
+        </div>
+      </template>
+
+      <!-- Actions column: 4 icons like OfficeEmployee (show/edit/download/delete) -->
+      <template #actions="{ item }">
+        <div class="d-flex align-center ga-2">
+          <!-- مشاهده -->
+          <v-tooltip text="مشاهده اطلاع" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                size="small"
+                v-bind="tooltipProps"
+                color="blue"
+                @click.stop="openPeek(item)"
+              >
+                mdi-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
 
           <!-- ویرایش -->
-          <v-btn
-            class="action-btn action-btn--edit"
-            variant="outlined"
-            size="x-small"
-            prepend-icon="mdi-pencil"
-            @click.stop="startEdit(item)"
-          >
-            {{ t('ویرایش') }}
-          </v-btn>
+          <v-tooltip text="تغییر جزیات اطلاع" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                size="small"
+                v-bind="tooltipProps"
+                color="amber-darken-2"
+                @click.stop="startEdit(item)"
+              >
+                mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
 
           <!-- دانلود اسناد -->
-          <v-btn
-            class="action-btn action-btn--download"
-            variant="outlined"
-            size="x-small"
-            prepend-icon="mdi-paperclip"
-            :disabled="!hasDocuments(item)"
-            @click.stop="downloadDocuments(item)"
-          >
-            {{ t('دانلود') }}
-          </v-btn>
+          <v-tooltip text="دانلود اسناد مربوط به اطلاع" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                size="small"
+                v-bind="tooltipProps"
+                color="green-darken-2"
+                :disabled="!hasDocuments(item)"
+                @click.stop="downloadDocuments(item)"
+              >
+                mdi-paperclip
+              </v-icon>
+            </template>
+          </v-tooltip>
 
           <!-- حذف -->
-          <v-btn
-            class="action-btn action-btn--delete"
-            variant="outlined"
-            size="x-small"
-            prepend-icon="mdi-delete"
-            @click.stop="deleteRow(item)"
-          >
-            {{ t('حذف') }}
-          </v-btn>
+          <v-tooltip text="حذف اطلاع" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                size="small"
+                v-bind="tooltipProps"
+                color="red-darken-2"
+                @click.stop="openDeleteDialog(item)"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-tooltip>
         </div>
       </template>
     </FilterableTable>
@@ -269,456 +315,391 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, watch } from 'vue';
-  import { useRouter } from 'vue-router';
-  import AppBar from '../../components/AppBar.vue';
-  import PeekButton from '@/components/PeekButton.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
-  import { useI18n } from 'vue-i18n';
-  import { useDatabaseRepository } from '../../stores/DatabaseRepository';
-  import { useLoginRepository } from '../../stores/LoginRepository';
+import { ref, onMounted, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import AppBar from '../../components/AppBar.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import { useI18n } from 'vue-i18n';
+import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+import { useLoginRepository } from '../../stores/LoginRepository';
 
-  const auth = useLoginRepository();
-  const { t, locale } = useI18n();
-  const repo = useDatabaseRepository();
-  const router = useRouter();
+const auth = useLoginRepository();
+const { t, locale } = useI18n();
+const repo = useDatabaseRepository();
+const router = useRouter();
 
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const activeStat = ref(null);
+const showError = ref(false);
+const errorMessage = ref('');
+const activeStat = ref(null);
 
-  function showErrorMessage(message) {
-    errorMessage.value = message;
-    showError.value = true;
-  }
+function showErrorMessage(message) {
+  errorMessage.value = message;
+  showError.value = true;
+}
 
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (newLocale) => {
-    isRtl.value = newLocale === 'fa';
-  });
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (newLocale) => {
+  isRtl.value = newLocale === 'fa';
+});
 
-  /* ===== Data sources to arrays ===== */
-  const toArray = (v) => {
-    if (v && typeof v.then === 'function') return [];
-    if (Array.isArray(v)) return v;
-    if (Array.isArray(v?.data)) return v.data;
-    if (Array.isArray(v?.items)) return v.items;
-    if (v && typeof v === 'object') return Object.values(v);
-    return [];
-  };
+/* ===== helper to unwrap row/raw ===== */
+function getRow(payload) {
+  return payload?.raw ?? payload;
+}
 
-  /* ===== Stats Calculations ===== */
-  const allRows = computed(() => toArray(repo.Informations));
-  const totalCount = computed(() => allRows.value.length);
+/* ===== Data sources to arrays ===== */
+const toArray = (v) => {
+  if (v && typeof v.then === 'function') return [];
+  if (Array.isArray(v)) return v;
+  if (Array.isArray(v?.data)) return v.data;
+  if (Array.isArray(v?.items)) return v.items;
+  if (v && typeof v === 'object') return Object.values(v);
+  return [];
+};
 
-  const todayCount = computed(() => {
+/* ===== Stats Calculations ===== */
+const allRows = computed(() => toArray(repo.Informations));
+const totalCount = computed(() => allRows.value.length);
+
+const todayCount = computed(() => {
+  const today = new Date().toISOString().split('T')[0];
+  return allRows.value.filter((item) => item.information_saved_date === today).length;
+});
+
+const withDocumentsCount = computed(() => {
+  return allRows.value.filter(
+    (item) => item.documents && Array.isArray(item.documents) && item.documents.length > 0
+  ).length;
+});
+
+const politicalCount = computed(() => {
+  return allRows.value.filter(
+    (item) => item.syasi_info_type && item.syasi_info_type !== '' && item.syasi_info_type !== null
+  ).length;
+});
+
+/* ===== Filtered Rows based on active stat ===== */
+const filteredRows = computed(() => {
+  let rows = allRows.value;
+
+  if (activeStat.value === 'today') {
     const today = new Date().toISOString().split('T')[0];
-    return allRows.value.filter((item) => item.information_saved_date === today).length;
-  });
-
-  const withDocumentsCount = computed(() => {
-    return allRows.value.filter(
+    rows = rows.filter((item) => item.information_saved_date === today);
+  } else if (activeStat.value === 'docs') {
+    rows = rows.filter(
       (item) => item.documents && Array.isArray(item.documents) && item.documents.length > 0
-    ).length;
-  });
+    );
+  } else if (activeStat.value === 'political') {
+    rows = rows.filter(
+      (item) =>
+        item.syasi_info_type && item.syasi_info_type !== '' && item.syasi_info_type !== null
+    );
+  }
+  return rows;
+});
 
-  const politicalCount = computed(() => {
-    return allRows.value.filter(
-      (item) => item.syasi_info_type && item.syasi_info_type !== '' && item.syasi_info_type !== null
-    ).length;
-  });
+function filterByStat(stat) {
+  if (activeStat.value === stat) {
+    activeStat.value = null;
+  } else {
+    activeStat.value = stat;
+  }
+}
 
-  /* ===== Filtered Rows based on active stat ===== */
-  const filteredRows = computed(() => {
-    let rows = allRows.value;
+/* ===== Headers for FilterableTable ===== */
+const headersFT = computed(() => [
+  { title: t('کود منبع'), key: 'resource_code_number' },
+  { title: t('کود کارمند'), key: 'office_employee_code_number' },
+  { title: t('نام'), key: 'name' },
+  { title: t('نام مستعار'), key: 'nick_name' },
+  { title: t('نام پدر'), key: 'father_name' },
+  { title: t('نام پدرکلان'), key: 'grand_father_name' },
+  { title: t('ولایت اصلی'), key: 'main_province' },
+  { title: t('ولسوالی اصلی'), key: 'main_districts' },
+  { title: t('قریه اصلی'), key: 'main_village' },
+  { title: t('ولایت فعلی'), key: 'now_province' },
+  { title: t('ولسوالی فعلی'), key: 'now_district' },
+  { title: t('قریه فعلی'), key: 'now_village' },
+  { title: t('ولایت مربوطه'), key: 'Province_addr' },
+  { title: t('سیاسی'), key: 'syasi_info_type' },
+  { title: t('جنایی'), key: 'jenayee_info_type' },
+  { title: t('تاریخ اطلاع'), key: 'information_saved_date' },
+  { title: t('ساعت اطلاع'), key: 'information_saved_hour' },
+  { title: t('درجه موثقیت اطلاع'), key: 'information_degree' },
+  { title: t('تفصیل'), key: 'tafseel' },
+  { title: t('نظر مدیر'), key: 'manager_comment' },
+  { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
+  { title: t('گفت‌وگوها'), key: 'talks' },
+  { title: t('نتیجه'), key: 'result' },
+  { title: t('ملاحظات'), key: 'note', width: 400 },
+]);
 
-    if (activeStat.value === 'today') {
-      const today = new Date().toISOString().split('T')[0];
-      rows = rows.filter((item) => item.information_saved_date === today);
-    } else if (activeStat.value === 'docs') {
-      rows = rows.filter(
-        (item) => item.documents && Array.isArray(item.documents) && item.documents.length > 0
-      );
-    } else if (activeStat.value === 'political') {
-      rows = rows.filter(
-        (item) =>
-          item.syasi_info_type && item.syasi_info_type !== '' && item.syasi_info_type !== null
-      );
-    }
-    return rows;
-  });
+const topGroups = computed(() => [
+  {
+    title: t('کودها'),
+    keys: ['resource_id', 'office_employee_id'],
+  },
+  {
+    title: t('معرفت'),
+    keys: ['name', 'nick_name', 'father_name', 'grand_father_name'],
+  },
+  {
+    title: t('آدرس اصلی'),
+    keys: ['main_province', 'main_districts', 'main_village'],
+  },
+  {
+    title: t('آدرس فعلی'),
+    keys: ['now_province', 'now_district', 'now_village'],
+  },
+  {
+    title: t('نوع و زمان اطلاع'),
+    keys: [
+      'syasi_info_type',
+      'jenayee_info_type',
+      'information_saved_date',
+      'information_saved_hour',
+      'information_degree',
+    ],
+  },
+  {
+    title: t('متن‌ها'),
+    keys: ['tafseel', 'manager_comment', 'lead_drirection', 'talks', 'note', 'result'],
+  },
+]);
 
-  function filterByStat(stat) {
-    if (activeStat.value === stat) {
-      activeStat.value = null;
+/* ===== Download helpers ===== */
+function hasDocuments(payload) {
+  const row = getRow(payload);
+  const docs = row?.documents;
+  return Array.isArray(docs) && docs.length > 0;
+}
+
+async function downloadDocuments(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+
+  const name = row.name || row.code_number || `information_${row.id}`;
+
+  try {
+    if (typeof repo.DownloadInformationZip === 'function') {
+      await repo.DownloadInformationZip(row.id, name);
     } else {
-      activeStat.value = stat;
+      console.warn('Download method for Informations not implemented on repo');
+      showErrorMessage(t('دانلود اسناد برای این اطلاع هنوز تنظیم نشده است'));
     }
+  } catch (e) {
+    console.error('downloadDocuments error', e);
+    showErrorMessage(t('خطا در دانلود اسناد'));
+  }
+}
+
+/* ===== DELETE with reusable 3-step dialog ===== */
+const deleteDialog = ref(false);
+const deleteTarget = ref(null);
+
+function openDeleteDialog(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  deleteTarget.value = row;
+  deleteDialog.value = true;
+}
+
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value;
+  if (!row?.id) {
+    deleteDialog.value = false;
+    deleteTarget.value = null;
+    return;
   }
 
-  /* ===== Headers for FilterableTable ===== */
-  const headersFT = computed(() => [
-    { title: t('کود منبع'), key: 'resource_code_number' },
-    { title: t('کود کارمند'), key: 'office_employee_code_number' },
-    { title: t('نام'), key: 'name' },
-    { title: t('نام مستعار'), key: 'nick_name' },
-    { title: t('نام پدر'), key: 'father_name' },
-    { title: t('نام پدرکلان'), key: 'grand_father_name' },
-    { title: t('ولایت اصلی'), key: 'main_province' },
-    { title: t('ولسوالی اصلی'), key: 'main_districts' },
-    { title: t('قریه اصلی'), key: 'main_village' },
-    { title: t('ولایت فعلی'), key: 'now_province' },
-    { title: t('ولسوالی فعلی'), key: 'now_district' },
-    { title: t('قریه فعلی'), key: 'now_village' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-    { title: t('سیاسی'), key: 'syasi_info_type' },
-    { title: t('جنایی'), key: 'jenayee_info_type' },
-    { title: t('تاریخ اطلاع'), key: 'information_saved_date' },
-    { title: t('ساعت اطلاع'), key: 'information_saved_hour' },
-    { title: t('درجه موثقیت اطلاع'), key: 'information_degree' },
-    { title: t('تفصیل'), key: 'tafseel' },
-    { title: t('نظر مدیر'), key: 'manager_comment' },
-    { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
-    { title: t('گفت‌وگوها'), key: 'talks' },
-    { title: t('نتیجه'), key: 'result' },
-    { title: t('ملاحظات'), key: 'note', width: 400 },
-  ]);
-
-  const topGroups = computed(() => [
-    {
-      title: t('کودها'),
-      keys: ['resource_id', 'office_employee_id'],
-    },
-    {
-      title: t('معرفت'),
-      keys: ['name', 'nick_name', 'father_name', 'grand_father_name'],
-    },
-    {
-      title: t('آدرس اصلی'),
-      keys: ['main_province', 'main_districts', 'main_village'],
-    },
-    {
-      title: t('آدرس فعلی'),
-      keys: ['now_province', 'now_district', 'now_village'],
-    },
-    {
-      title: t('نوع و زمان اطلاع'),
-      keys: [
-        'syasi_info_type',
-        'jenayee_info_type',
-        'information_saved_date',
-        'information_saved_hour',
-        'information_degree',
-      ],
-    },
-    {
-      title: t('متن‌ها'),
-      keys: ['tafseel', 'manager_comment', 'lead_drirection', 'talks', 'note', 'result'],
-    },
-  ]);
-
-  /* ===== Download helpers ===== */
-  function hasDocuments(payload) {
-    const row = payload?.raw ?? payload;
-    const docs = row?.documents;
-    return Array.isArray(docs) && docs.length > 0;
-  }
-
-  async function downloadDocuments(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-
-    const name = row.name || row.code_number || `information_${row.id}`;
-
-    try {
-      if (typeof repo.DownloadInformationZip === 'function') {
-        await repo.DownloadInformationZip(row.id, name);
-      } else if (typeof repo.DownloadInformationZip === 'function') {
-        await repo.DownloadInformationZip(row.id);
-      } else {
-        console.warn('Download method for Informations not implemented on repo');
-        showErrorMessage(t('دانلود اسناد برای این اطلاع هنوز تنظیم نشده است'));
-      }
-    } catch (e) {
-      console.error('downloadDocuments error', e);
-      showErrorMessage(t('خطا در دانلود اسناد'));
-    }
-  }
-
-  /* ===== DELETE with reusable 3-step dialog ===== */
-  const deleteDialog = ref(false);
-  const deleteTarget = ref(null);
-
-  function openDeleteDialog(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-    deleteTarget.value = row;
-    deleteDialog.value = true;
-  }
-
-  function deleteInformation(row) {
-    openDeleteDialog(row);
-  }
-
-  function deleteRow(payload) {
-    openDeleteDialog(payload);
-  }
-
-  async function handleDeleteConfirmed(target) {
-    const row = target || deleteTarget.value;
-    if (!row?.id) {
-      deleteDialog.value = false;
-      deleteTarget.value = null;
+  try {
+    if (typeof repo.DeleteInformation === 'function') {
+      await repo.DeleteInformation(row.id);
+    } else {
+      console.warn('DeleteInformation not implemented on repo');
+      showErrorMessage(t('حذف برای این اطلاع هنوز تنظیم نشده است'));
       return;
     }
 
-    try {
-      if (typeof repo.DeleteInformation === 'function') {
-        await repo.DeleteInformation(row.id);
-      } else if (typeof repo.DeleteInformation === 'function') {
-        await repo.DeleteInformation(row.id);
-      } else {
-        console.warn('DeleteInformation* not implemented on repo');
-        showErrorMessage(t('حذف برای این اطلاع هنوز تنظیم نشده است'));
-        return;
-      }
-
-      await fetchAll();
-    } catch (e) {
-      console.error('handleDeleteConfirmed error', e);
-      showErrorMessage(t('خطا در حذف اطلاع'));
-    } finally {
-      deleteDialog.value = false;
-      deleteTarget.value = null;
-    }
-  }
-
-  /* ===== Peek / Fetch one ===== */
-  const filters = ref({});
-  const expanded = ref(false);
-  const selectedId = ref(null);
-  const loading = ref(false);
-  const detail = ref(null);
-
-  async function fetchOne(id) {
-    loading.value = true;
-    try {
-      if (typeof repo.FetchInformationData === 'function') {
-        await repo.FetchInformationData(id);
-        detail.value =
-          (repo.Information && Array.isArray(repo.Information)
-            ? repo.Information[0]
-            : repo.Information) || {};
-      } else {
-        await fetchAll();
-        const list = allRows.value || [];
-        detail.value = list.find((r) => r.id === id) || {};
-      }
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  function openPeek(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-
-    selectedId.value = row.id;
-    expanded.value = true;
-    fetchOne(row.id);
-  }
-
-  watch(
-    detail,
-    (newDetail) => {
-      console.log('Detail updated:', newDetail);
-    },
-    { deep: true }
-  );
-
-  /* ===== List Fetch ===== */
-  async function fetchAll() {
-    try {
-      await repo.FetchInformationsData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search,
-      });
-    } catch (e) {
-      console.error('fetchAll error', e);
-      showErrorMessage(t('خطا در دریافت معلومات'));
-    }
-  }
-
-  /* ===== Navigation ===== */
-  function goCreate() {
-    router.push('/app/informationform');
-  }
-
-  function startEdit(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-    router.push(`/app/informationform/${row.id}`);
-  }
-
-  // 🔹 Go to RESOURCE page (listing / main page)
-  function goToResource(_row) {
-    // change this path to your actual Resource page route if needed
-    router.push('/app/resources');
-  }
-
-  // 🔹 Go to OFFICE EMPLOYEE page (listing / main page)
-  function goToOfficeEmployee(_row) {
-    // change this path to your actual OfficeEmployee page route if needed
-    router.push('/app/officeemployee');
-  }
-
-  function clearSearch() {
-    repo.Search = '';
-    fetchAll();
-  }
-
-  /* ===== Init ===== */
-  onMounted(async () => {
-    await Promise.allSettled([repo.GetOfficeEmployee?.(), repo.GetResource?.()]);
     await fetchAll();
-  });
+  } catch (e) {
+    console.error('handleDeleteConfirmed error', e);
+    showErrorMessage(t('خطا در حذف اطلاع'));
+  } finally {
+    deleteDialog.value = false;
+    deleteTarget.value = null;
+  }
+}
+
+/* ===== Peek / Fetch one ===== */
+const filters = ref({});
+const expanded = ref(false);
+const selectedId = ref(null);
+const loading = ref(false);
+const detail = ref(null);
+
+async function fetchOne(id) {
+  loading.value = true;
+  try {
+    if (typeof repo.FetchInformationData === 'function') {
+      await repo.FetchInformationData(id);
+      detail.value =
+        (repo.Information && Array.isArray(repo.Information)
+          ? repo.Information[0]
+          : repo.Information) || {};
+    } else {
+      await fetchAll();
+      const list = allRows.value || [];
+      detail.value = list.find((r) => r.id === id) || {};
+    }
+  } finally {
+    loading.value = false;
+  }
+}
+
+function openPeek(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+
+  selectedId.value = row.id;
+  expanded.value = true;
+  fetchOne(row.id);
+}
+
+watch(
+  detail,
+  (newDetail) => {
+    console.log('Detail updated:', newDetail);
+  },
+  { deep: true }
+);
+
+/* ===== List Fetch ===== */
+async function fetchAll() {
+  try {
+    await repo.FetchInformationsData?.({
+      page: 1,
+      itemsPerPage: 100000,
+      search: repo.Search,
+    });
+  } catch (e) {
+    console.error('fetchAll error', e);
+    showErrorMessage(t('خطا در دریافت معلومات'));
+  }
+}
+
+/* ===== Navigation ===== */
+function goCreate() {
+  router.push('/app/informationform');
+}
+
+function startEdit(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push(`/app/informationform/${row.id}`);
+}
+
+// 🔹 Go to RESOURCE page (listing / main page)
+function goToResource(_row) {
+  router.push('/app/resources');
+}
+
+// 🔹 Go to OFFICE EMPLOYEE page (listing / main page)
+function goToOfficeEmployee(_row) {
+  router.push('/app/officeemployee');
+}
+
+function clearSearch() {
+  repo.Search = '';
+  fetchAll();
+}
+
+/* ===== Init ===== */
+onMounted(async () => {
+  await Promise.allSettled([repo.GetOfficeEmployee?.(), repo.GetResource?.()]);
+  await fetchAll();
+});
 </script>
 
 <style scoped>
-  .stat-card {
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    border: 2px solid transparent;
-    height: 100px;
-    font-family: var(--app-font) !important;
-  }
+.stat-card {
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+  height: 100px;
+  font-family: var(--app-font) !important;
+}
 
-  .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
-  }
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
 
-  .stat-card.active-stat {
-    border-color: currentColor;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 240, 240, 0.9) 100%);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
-  }
+.stat-card.active-stat {
+  border-color: currentColor;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 240, 240, 0.9) 100%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+}
 
-  .stat-card.active-stat .v-avatar {
-    background: rgba(255, 255, 255, 0.9) !important;
-  }
+.stat-card.active-stat .v-avatar {
+  background: rgba(255, 255, 255, 0.9) !important;
+}
 
-  .cursor-pointer {
-    cursor: pointer;
-  }
+.cursor-pointer {
+  cursor: pointer;
+}
 
-  .text-green {
-    color: #4caf50 !important;
-  }
+.text-green {
+  color: #4caf50 !important;
+}
 
-  .text-amber {
-    color: #ff9800 !important;
-  }
+.text-amber {
+  color: #ff9800 !important;
+}
 
-  .text-purple {
-    color: #9c27b0 !important;
-  }
+.text-purple {
+  color: #9c27b0 !important;
+}
 
-  table th {
-    white-space: nowrap;
-  }
+table th {
+  white-space: nowrap;
+}
 
-  :deep(.v-field-label),
-  :deep(.v-label),
-  :deep(input::placeholder) {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    color: #555 !important;
-  }
+:deep(.v-field-label),
+:deep(.v-label),
+:deep(input::placeholder) {
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  color: #555 !important;
+}
 
-  :deep(.v-field__input) {
-    min-height: 26px !important;
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-  }
+:deep(.v-field__input) {
+  min-height: 26px !important;
+  padding: 2px 6px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
 
-  :deep(.v-data-table) {
-    border-radius: 8px;
-  }
+:deep(.v-data-table) {
+  border-radius: 8px;
+}
 
-  :deep(.v-data-table__wrapper) {
-    border-radius: 8px;
-  }
+:deep(.v-data-table__wrapper) {
+  border-radius: 8px;
+}
 
-  :deep(.v-data-table__tr:hover) {
-    background-color: rgba(33, 150, 243, 0.04) !important;
-  }
+:deep(.v-data-table__tr:hover) {
+  background-color: rgba(33, 150, 243, 0.04) !important;
+}
 
-  :deep(.v-btn--icon) {
-    transition: all 0.2s ease;
-  }
+:deep(.v-btn--icon) {
+  transition: all 0.2s ease;
+}
 
-  :deep(.v-btn--icon:hover) {
-    transform: scale(1.1);
-  }
-
-  .actions-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 6px;
-    min-width: 100px !important;
-  }
-
-  .actions-grid,
-  .stat-card,
-  .text-caption {
-    font-family: var(--app-font) !important;
-  }
-
-  .action-btn {
-    min-width: 58px !important;
-    height: 22px !important;
-    font-size: 11px;
-    line-height: 1;
-    padding-inline: 6px !important;
-    justify-content: center;
-    text-wrap: nowrap;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
-    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-  }
-
-  .action-btn :deep(.v-btn__content) {
-    gap: 4px;
-  }
-
-  .action-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
-    filter: brightness(1.05);
-  }
-
-  .action-btn--view {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: #fff !important;
-  }
-
-  .action-btn--edit {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: #fff !important;
-  }
-
-  .action-btn--download {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: #fff !important;
-  }
-
-  .action-btn--delete {
-    background: linear-gradient(135deg, #f97373, #ef4444);
-    color: #fff !important;
-  }
-  
+:deep(.v-btn--icon:hover) {
+  transform: scale(1.1);
+}
 </style>

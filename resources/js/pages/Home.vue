@@ -1,6 +1,10 @@
 <template>
   <v-app flat fluid class="rounded-xl bg-white">
-    <v-layout flat fluid>
+    <v-layout
+      flat
+      fluid
+      class="no-scroll-layout"
+    >
       <NavigationDrawer
         v-if="employeerepository.drawerVisible"
         :location="location"
@@ -10,7 +14,10 @@
         :rail="employeerepository.rail"
         color="bgproject"
       />
-      <v-main class="thepage h-ful scrollabl-content-home rounded-xl bg-bgproject">
+
+      <v-main
+        class="thepage h-ful scrollabl-content-home rounded-xl bg-bgproject scroll-area scroll-hidden"
+      >
         <router-view />
       </v-main>
     </v-layout>
@@ -25,6 +32,7 @@ import { useEmployeOfficeRepository } from "@/stores/EmployeeRepository";
 
 const employeerepository = useEmployeOfficeRepository();
 const { locale } = useI18n();
+
 const isRtl = ref(locale.value === "fa");
 watch(locale, (l) => (isRtl.value = l === "fa"));
 

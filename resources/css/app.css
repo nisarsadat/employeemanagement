@@ -3,38 +3,70 @@
 @tailwind utilities;
 
 /* ---- Fonts (loaded once for whole project) ---- */
-@import "@fontsource/amiri/400.css";
-@import "@fontsource/amiri/700.css";
-@import "@fontsource/scheherazade-new/400.css";
-@import "@fontsource/scheherazade-new/700.css";
+@import '@fontsource/amiri/400.css';
+@import '@fontsource/amiri/700.css';
+@import '@fontsource/scheherazade-new/400.css';
+@import '@fontsource/scheherazade-new/700.css';
 
 /* 🌐 Global font + compact scale */
 :root {
-  --app-font: "Amiri","Scheherazade New",ui-sans-serif,-apple-system,
-              BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,
-              "Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
+  --app-font: 'Amiri', 'Scheherazade New', ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', sans-serif;
 
   --v-font-family: var(--app-font); /* Vuetify will read this */
 }
 
 /* Apply to the whole app */
-html, body, #app { font-family: var(--app-font); }
+html,
+body,
+#app {
+  font-family: var(--app-font);
+}
 
 /* Make sure Vuetify uses it too */
-.v-application { font-family: var(--app-font) !important; }
+.v-application {
+  font-family: var(--app-font) !important;
+}
+/* Prevent whole layout from scrolling */
+.no-scroll-layout {
+  overflow: hidden !important;
+}
 
+/* Drawer stays fixed, never scrolls */
+.drawer-fixed {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden !important;
+}
+
+/* Main content scrollable */
+.scroll-area {
+  height: 100vh;
+  overflow-y: auto !important;
+}
+
+/* Hide scrollbar but keep scrolling */
+.scroll-hidden::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.scroll-hidden {
+  scrollbar-width: none; /* Firefox */
+}
 
 /* 🌈 Table variables */
 .v-data-table {
   --primary-color: #08989f;
   --table-header-bg: #c7edef; /* light header background */
-  --table-body-bg: #f3f4f6;   /* light gray (Tailwind gray-100) */
+  --table-body-bg: #f3f4f6; /* light gray (Tailwind gray-100) */
 }
 
 /* 🌓 Dark mode table header and body */
 .v-theme--dark .v-data-table {
   --table-header-bg: #0f2f34; /* dark teal header */
-  --table-body-bg: #2b2b2b;   /* subtle dark gray body */
+  --table-body-bg: #2b2b2b; /* subtle dark gray body */
   /* optional softer border color */
   /* --primary-color: #56c8cf; */
 }
@@ -59,7 +91,7 @@ html, body, #app { font-family: var(--app-font); }
 }
 
 /* RTL border */
-[dir="rtl"] .v-data-table__tr:not(:has(th)) {
+[dir='rtl'] .v-data-table__tr:not(:has(th)) {
   box-shadow: inset -4px 0 0 0 var(--primary-color);
   border-bottom: 1px solid white !important;
 }
@@ -71,7 +103,7 @@ html, body, #app { font-family: var(--app-font); }
   border-bottom: 1px solid white !important;
 }
 
-[dir="rtl"] .v-data-table__thead tr {
+[dir='rtl'] .v-data-table__thead tr {
   background-color: var(--table-header-bg) !important;
   box-shadow: inset -4px 0 0 0 var(--primary-color);
   border-bottom: 1px solid white !important;
@@ -101,7 +133,7 @@ html, body, #app { font-family: var(--app-font); }
   overflow-y: hidden !important;
 }
 
-[dir="rtl"] div.v-navigation-drawer__content {
+[dir='rtl'] div.v-navigation-drawer__content {
   flex: 0 1 auto;
   height: 100%;
   max-width: 140%;
@@ -119,7 +151,7 @@ html, body, #app { font-family: var(--app-font); }
   padding-bottom: 12px;
 }
 
-[dir="rtl"] .v-data-table__td {
+[dir='rtl'] .v-data-table__td {
   padding-top: -12px;
   padding-bottom: -12px;
 }
@@ -132,7 +164,7 @@ div.v-data-table-footer {
   padding: 14px 24px;
 }
 
-[dir="rtl"] div.v-data-table-footer {
+[dir='rtl'] div.v-data-table-footer {
   display: flex;
   flex-direction: row-reverse;
   direction: ltr;
@@ -140,8 +172,8 @@ div.v-data-table-footer {
 }
 
 /* 🌐 RTL fixes for Vuetify labels */
-[dir="rtl"] .v-field-label,
-[dir="rtl"] .v-label {
+[dir='rtl'] .v-field-label,
+[dir='rtl'] .v-label {
   right: 12px !important;
   left: auto !important;
   text-align: right !important;
@@ -149,52 +181,52 @@ div.v-data-table-footer {
   direction: rtl !important;
 }
 
-[dir="rtl"] .v-field__input {
+[dir='rtl'] .v-field__input {
   text-align: right !important;
   direction: rtl !important;
 }
 
-[dir="rtl"] input::placeholder {
+[dir='rtl'] input::placeholder {
   text-align: right !important;
   direction: rtl !important;
 }
 
-[dir="rtl"] .v-field--variant-outlined .v-field-label {
+[dir='rtl'] .v-field--variant-outlined .v-field-label {
   transform-origin: right top !important;
 }
 
-[dir="rtl"] .v-field--variant-outlined {
+[dir='rtl'] .v-field--variant-outlined {
   padding-right: 12px !important;
   padding-left: 0 !important;
 }
 
-  .pic-overlay {
-    position: absolute;
-    inset: -6px -16px auto auto;
-    display: none;
-    gap: 2px;
-    background: rgba(0, 0, 0, 0.55);
-    padding: 6px;
-    border-radius: 8px;
-    transform: translateY(-20%);
-    white-space: nowrap;
-  }
+.pic-overlay {
+  position: absolute;
+  inset: -6px -16px auto auto;
+  display: none;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 6px;
+  border-radius: 8px;
+  transform: translateY(-20%);
+  white-space: nowrap;
+}
 
-  .pic-thumb:hover .pic-overlay {
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 8px;
-  }
+.pic-thumb:hover .pic-overlay {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+}
 
-  .pic-overlay :deep(.v-btn) {
-    color: #fff;
-  }
-  
-  /* image overlay */
-  .hidden-file {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
-  }
+.pic-overlay :deep(.v-btn) {
+  color: #fff;
+}
+
+/* image overlay */
+.hidden-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}

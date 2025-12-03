@@ -105,6 +105,7 @@ import OfficeEmployeeRelationPage from '../pages/reports/OfficeEmployeeRelationP
 import EventReport from '../pages/reports/EventActivityReport.vue';
 import InformationActivityReport from '../pages/reports/InformationActivityReport.vue';
 import InformationsForm from '../pages/Informations/InformationsForm.vue';
+import OfficeEmployeeForm from '../pages/OfficeEmployee/OfficeEmployeeForm.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -157,6 +158,12 @@ const router = createRouter({
         {
           path: 'officeemployee',
           component: OfficeEmployeesPage,
+          meta: { requiresAuth: true, perm: permFor('officeemployee') },
+        },
+        {
+          path: 'officeemployeeform/:id?',
+          name: 'officeemployeeform',
+          component: OfficeEmployeeForm,
           meta: { requiresAuth: true, perm: permFor('officeemployee') },
         },
 

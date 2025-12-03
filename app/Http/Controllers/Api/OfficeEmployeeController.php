@@ -46,7 +46,7 @@ class OfficeEmployeeController extends Controller
                        ->orWhere('phone_number', 'like', "%{$search}%");
                 });
             })
-            // ✅ NEW: filter by activity (accepts both Dari and English)
+            // ✅ filter by activity (accepts both Dari and English)
             ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
                 $activeVals   = ['active', OfficeEmployee::ACTIVE];     // 'active' | 'فعال'
                 $inactiveVals = ['inactive', OfficeEmployee::INACTIVE]; // 'inactive' | 'غیر فعال'
@@ -72,7 +72,7 @@ class OfficeEmployeeController extends Controller
         );
     }
 
-   public function show($id)
+    public function show($id)
     {
         $officeEmployee = OfficeEmployee::with(['documents'])
             ->withCount(['events', 'resources', 'informations', 'documents'])
@@ -80,7 +80,6 @@ class OfficeEmployeeController extends Controller
 
         return new OfficeEmployeeResource($officeEmployee);
     }
-
 
     /**
      * ✅ NEW: quick counts for UI badges
@@ -102,13 +101,16 @@ class OfficeEmployeeController extends Controller
         DB::beginTransaction();
 
         try {
-            // ✅ Create the employee
+            // ✅ Create the employee (without picture first)
             $employee = OfficeEmployee::create($request->validated());
 
             // 🖼️ Optional: handle profile picture
             if ($request->hasFile('picture')) {
+                // store as "uploads/office-employees/..."
                 $path = $request->file('picture')->store('uploads/office-employees', 'public');
-                $employee->update(['picture' => "storage/{$path}"]);
+
+                // ✅ store ONLY relative path (no "storage/" prefix)
+                $employee->update(['picture' => $path]);
             }
 
             // 📎 Handle document uploads
@@ -155,12 +157,15 @@ class OfficeEmployeeController extends Controller
 
             // Optional: replace profile picture
             if ($request->hasFile('picture')) {
-                if ($officeEmployee->picture && str_starts_with($officeEmployee->picture, 'storage/')) {
-                    $diskPath = str_replace('storage/', '', $officeEmployee->picture);
-                    Storage::disk('public')->delete($diskPath);
+                // delete old file if present (now stored as relative path)
+                if ($officeEmployee->picture) {
+                    Storage::disk('public')->delete($officeEmployee->picture);
                 }
+
                 $path = $request->file('picture')->store('uploads/office-employees', 'public');
-                $officeEmployee->update(['picture' => "storage/{$path}"]);
+
+                // ✅ store ONLY relative path (no "storage/" prefix)
+                $officeEmployee->update(['picture' => $path]);
             }
 
             // Handle new documents
@@ -192,7 +197,6 @@ class OfficeEmployeeController extends Controller
         }
     }
 
-
     /**
      * Delete an office employee and their documents.
      */
@@ -208,16 +212,15 @@ class OfficeEmployeeController extends Controller
         // Delete DB records
         $officeEmployee->documents()->delete();
 
-        // Delete profile picture if present
-        if ($officeEmployee->picture && str_starts_with($officeEmployee->picture, 'storage/')) {
-            $diskPath = str_replace('storage/', '', $officeEmployee->picture);
-            Storage::disk('public')->delete($diskPath);
+        // Delete profile picture if present (now relative path)
+        if ($officeEmployee->picture) {
+            Storage::disk('public')->delete($officeEmployee->picture);
         }
 
         $officeEmployee->delete();
 
         return response()->json(['message' => 'Office employee deleted successfully']);
-}
+    }
 
     // -------------------------------------------------------------
     // 🔹 List of NON-ACTIVE office employees
@@ -234,8 +237,8 @@ class OfficeEmployeeController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                ->orWhere('code_number', 'like', "%{$search}%")
-                ->orWhere('phone_number', 'like', "%{$search}%");
+                  ->orWhere('code_number', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$search}%");
             });
         }
 
@@ -246,5 +249,4 @@ class OfficeEmployeeController extends Controller
 
         return OfficeEmployeeResource::collection($query->paginate($perPage));
     }
-
 }

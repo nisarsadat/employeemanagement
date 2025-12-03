@@ -3,19 +3,10 @@
     <!-- APP BAR -->
     <AppBar
       :title="isEdit ? t('اصلاح اطلاع') : t('اضافه کردن اطلاع')"
-      :subtitle="
-        isEdit
-          ? t('ویرایش جزئیات یک اطلاع موجود')
-          : t('ثبت یک اطلاع جدید در سیستم')
-      "
+      :subtitle="isEdit ? t('ویرایش جزئیات یک اطلاع موجود') : t('ثبت یک اطلاع جدید در سیستم')"
     >
       <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none"
-          @click="goBack"
-        >
+        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
           {{ t('برگشت') }}
         </v-btn>
       </template>
@@ -55,7 +46,10 @@
                   {{ step1Complete ? 'mdi-check' : 'mdi-account-badge' }}
                 </v-icon>
               </div>
-              <span class="stepper-label text-caption" :class="{ 'is-complete-text': step1Complete }">
+              <span
+                class="stepper-label text-caption"
+                :class="{ 'is-complete-text': step1Complete }"
+              >
                 {{ t('هویت') }}
               </span>
             </div>
@@ -73,7 +67,10 @@
                   {{ step2Complete ? 'mdi-check' : 'mdi-home-city' }}
                 </v-icon>
               </div>
-              <span class="stepper-label text-caption" :class="{ 'is-complete-text': step2Complete }">
+              <span
+                class="stepper-label text-caption"
+                :class="{ 'is-complete-text': step2Complete }"
+              >
                 {{ t('آدرس‌ها') }}
               </span>
             </div>
@@ -91,7 +88,10 @@
                   {{ step3Complete ? 'mdi-check' : 'mdi-timer-sand' }}
                 </v-icon>
               </div>
-              <span class="stepper-label text-caption" :class="{ 'is-complete-text': step3Complete }">
+              <span
+                class="stepper-label text-caption"
+                :class="{ 'is-complete-text': step3Complete }"
+              >
                 {{ t('نوع اطلاع') }}
               </span>
             </div>
@@ -109,7 +109,10 @@
                   {{ step4Complete ? 'mdi-check' : 'mdi-paperclip' }}
                 </v-icon>
               </div>
-              <span class="stepper-label text-caption" :class="{ 'is-complete-text': step4Complete }">
+              <span
+                class="stepper-label text-caption"
+                :class="{ 'is-complete-text': step4Complete }"
+              >
                 {{ t('اسناد') }}
               </span>
             </div>
@@ -448,8 +451,6 @@
             </v-row>
 
             <v-row class="pa-3 pt-0">
-              
-
               <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.information_saved_hour"
@@ -583,11 +584,7 @@
                 </span>
               </div>
               <span class="section-subtitle text-caption">
-                {{
-                  t(
-                    'می‌توانید چندین فایل را اضافه کنید. برای حذف روی ضربدر کلیک کنید.'
-                  )
-                }}
+                {{ t('می‌توانید چندین فایل را اضافه کنید. برای حذف روی ضربدر کلیک کنید.') }}
               </span>
             </div>
             <v-divider />
@@ -643,12 +640,7 @@
                   >
                     <v-icon size="16" class="ml-1">mdi-plus</v-icon>
                     {{ shortName(f.name) }}
-                    <v-icon
-                      size="16"
-                      class="ml-1"
-                      title="حذف"
-                      @click.stop="removeNewDocAt(idx)"
-                    >
+                    <v-icon size="16" class="ml-1" title="حذف" @click.stop="removeNewDocAt(idx)">
                       mdi-close
                     </v-icon>
                   </v-chip>
@@ -667,12 +659,7 @@
                   >
                     <v-icon size="16" class="ml-1">mdi-file-eye</v-icon>
                     {{ shortName(d.original_name || d.file_name) }}
-                    <v-icon
-                      size="16"
-                      class="ml-1"
-                      title="حذف"
-                      @click.stop="markDocForRemoval(d)"
-                    >
+                    <v-icon size="16" class="ml-1" title="حذف" @click.stop="markDocForRemoval(d)">
                       mdi-close
                     </v-icon>
                   </v-chip>
@@ -730,686 +717,683 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
+  import { ref, computed, watch, onMounted, nextTick } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
 
-import AppBar from '../../components/AppBar.vue';
-import DateInput from '../../components/DateInput.vue';
-import { useDatabaseRepository } from '../../stores/DatabaseRepository';
-import { useLoginRepository } from '../../stores/LoginRepository';
+  import AppBar from '../../components/AppBar.vue';
+  import DateInput from '../../components/DateInput.vue';
+  import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+  import { useLoginRepository } from '../../stores/LoginRepository';
 
-const repo = useDatabaseRepository();
-const auth = useLoginRepository();
+  const repo = useDatabaseRepository();
+  const auth = useLoginRepository();
 
-const route = useRoute();
-const router = useRouter();
-const { t, locale } = useI18n();
+  const route = useRoute();
+  const router = useRouter();
+  const { t, locale } = useI18n();
 
-/* ===== Direction ===== */
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (newLocale) => {
-  isRtl.value = newLocale === 'fa';
-});
+  /* ===== Direction ===== */
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (newLocale) => {
+    isRtl.value = newLocale === 'fa';
+  });
 
-/* ===== ROUTE / MODE ===== */
-const idParam = computed(() => route.params.id);
-const isEdit = computed(() => !!idParam.value);
+  /* ===== ROUTE / MODE ===== */
+  const idParam = computed(() => route.params.id);
+  const isEdit = computed(() => !!idParam.value);
 
-/* ===== FORM / STATE ===== */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* ===== FORM / STATE ===== */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
 
-function showErrorMessage(message) {
-  errorMessage.value = message;
-  showError.value = true;
-}
-function showSuccessMessage(message) {
-  successMessage.value = message;
-  showSuccess.value = true;
-}
-
-/* ===== BACKEND ERRORS ===== */
-const backendErrors = ref({});
-function setBackendErrors(errors) {
-  backendErrors.value = errors || {};
-}
-function clearBackendErrors() {
-  backendErrors.value = {};
-}
-function hasError(field) {
-  return !!backendErrors.value?.[field];
-}
-function getErrorMessages(field) {
-  return backendErrors.value?.[field] ?? [];
-}
-
-/* ===== FORM MODEL ===== */
-const blankForm = () => ({
-  id: null,
-  resource_id: null,
-  office_employee_id: null,
-
-  name: '',
-  nick_name: '',
-  father_name: '',
-  grand_father_name: '',
-
-  main_province: '',
-  main_districts: '',
-  main_village: '',
-  now_province: '',
-  now_district: '',
-  now_village: '',
-  Province_addr: '',
-
-  syasi_info_type: '',
-  jenayee_info_type: '',
-
-  information_saved_date: repo.getCurrentDate ? repo.getCurrentDate() : '',
-  information_saved_hour: '',
-  information_degree: '',
-
-  tafseel: '',
-  manager_comment: '',
-  lead_drirection: '',
-  talks: '',
-  note: '',
-  result: '',
-
-  existingDocs: [],
-  _newDocs: [],
-  removed_document_ids: [],
-});
-
-const form = ref(blankForm());
-
-/* ===== OPTIONS HELPER ===== */
-const toArray = (v) => {
-  if (v && typeof v.then === 'function') return [];
-  if (Array.isArray(v)) return v;
-  if (Array.isArray(v?.data)) return v.data;
-  if (Array.isArray(v?.items)) return v.items;
-  if (v && typeof v === 'object') return Object.values(v);
-  return [];
-};
-
-const resourceItems = computed(() => toArray(repo.resource));
-const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
-const seyasiItems = computed(() => toArray(repo.seyasiOptions));
-const jenayeeItems = computed(() => toArray(repo.jenayeeOptions));
-
-/* ===== RULES ===== */
-const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
-  selectRequired: (label) => (v) => !!v || t('{label} الزامی است', { label }),
-};
-
-/* ===== DOCS ===== */
-const docsInput = ref(null);
-
-function triggerDocs() {
-  docsInput.value?.click();
-}
-
-function onPickDocs(e) {
-  const files = Array.from(e.target.files || []);
-  form.value._newDocs = files;
-  if (docsInput.value) {
-    docsInput.value.value = '';
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
   }
-}
-
-function removeNewDocAt(index) {
-  if (!Array.isArray(form.value._newDocs)) return;
-  form.value._newDocs.splice(index, 1);
-  if (docsInput.value) {
-    docsInput.value.value = '';
-  }
-}
-
-function shortName(name = '') {
-  if (name.length <= 18) return name;
-  const dot = name.lastIndexOf('.');
-  if (dot === -1) return name.slice(0, 15) + '…';
-  const ext = name.slice(dot);
-  const base = name.slice(0, 15);
-  return `${base}…${ext}`;
-}
-
-function openDoc(url) {
-  if (!url) return;
-  window.open(url, '_blank');
-}
-
-function markDocForRemoval(doc) {
-  if (!doc?.id) return;
-  if (!Array.isArray(form.value.removed_document_ids)) {
-    form.value.removed_document_ids = [];
-  }
-  if (!form.value.removed_document_ids.includes(doc.id)) {
-    form.value.removed_document_ids.push(doc.id);
-  }
-  form.value.existingDocs = (form.value.existingDocs || []).filter(
-    (d) => d.id !== doc.id,
-  );
-}
-
-/* ===== LOAD EDIT DATA ===== */
-function mapFromApi(x = {}) {
-  const base = blankForm();
-  base.id = x.id ?? null;
-
-  base.resource_id = x.resource_id ?? null;
-  base.office_employee_id = x.office_employee_id ?? null;
-
-  base.name = x.name ?? '';
-  base.nick_name = x.nick_name ?? '';
-  base.father_name = x.father_name ?? '';
-  base.grand_father_name = x.grand_father_name ?? '';
-
-  base.main_province = x.main_province ?? '';
-  base.main_districts = x.main_districts ?? '';
-  base.main_village = x.main_village ?? '';
-  base.now_province = x.now_province ?? '';
-  base.now_district = x.now_district ?? '';
-  base.now_village = x.now_village ?? '';
-  base.Province_addr = x.Province_addr ?? '';
-
-  base.syasi_info_type = x.syasi_info_type ?? '';
-  base.jenayee_info_type = x.jenayee_info_type ?? '';
-
-  base.information_saved_date = x.information_saved_date ?? '';
-  base.information_saved_hour = x.information_saved_hour ?? '';
-  base.information_degree = x.information_degree ?? '';
-
-  base.tafseel = x.tafseel ?? '';
-  base.manager_comment = x.manager_comment ?? '';
-  base.lead_drirection = x.lead_drirection ?? '';
-  base.talks = x.talks ?? '';
-  base.note = x.note ?? '';
-  base.result = x.result ?? '';
-
-  base.existingDocs = Array.isArray(x.documents) ? x.documents : [];
-
-  return base;
-}
-
-async function loadForEdit() {
-  if (!isEdit.value) {
-    form.value = blankForm();
-    return;
+  function showSuccessMessage(message) {
+    successMessage.value = message;
+    showSuccess.value = true;
   }
 
-  try {
-    if (typeof repo.FetchInformationData === 'function') {
-      await repo.FetchInformationData(idParam.value);
-      const raw = Array.isArray(repo.Information)
-        ? repo.Information[0]
-        : repo.Information || {};
-      const mapped = mapFromApi(raw);
-      form.value = { ...mapped, _newDocs: [], removed_document_ids: [] };
-    } else {
-      await repo.FetchInformationsData?.({
-        page: 1,
-        itemsPerPage: 100000,
-      });
-      const list = toArray(repo.Informations);
-      const found = list.find((r) => r.id == idParam.value) || {};
-      const mapped = mapFromApi(found);
-      form.value = { ...mapped, _newDocs: [], removed_document_ids: [] };
+  /* ===== BACKEND ERRORS ===== */
+  const backendErrors = ref({});
+  function setBackendErrors(errors) {
+    backendErrors.value = errors || {};
+  }
+  function clearBackendErrors() {
+    backendErrors.value = {};
+  }
+  function hasError(field) {
+    return !!backendErrors.value?.[field];
+  }
+  function getErrorMessages(field) {
+    return backendErrors.value?.[field] ?? [];
+  }
+
+  /* ===== FORM MODEL ===== */
+  const blankForm = () => ({
+    id: null,
+    resource_id: null,
+    office_employee_id: null,
+
+    name: '',
+    nick_name: '',
+    father_name: '',
+    grand_father_name: '',
+
+    main_province: '',
+    main_districts: '',
+    main_village: '',
+    now_province: '',
+    now_district: '',
+    now_village: '',
+    Province_addr: '',
+
+    syasi_info_type: '',
+    jenayee_info_type: '',
+
+    information_saved_date: repo.getCurrentDate ? repo.getCurrentDate() : '',
+    information_saved_hour: '',
+    information_degree: '',
+
+    tafseel: '',
+    manager_comment: '',
+    lead_drirection: '',
+    talks: '',
+    note: '',
+    result: '',
+
+    existingDocs: [],
+    _newDocs: [],
+    removed_document_ids: [],
+  });
+
+  const form = ref(blankForm());
+
+  /* ===== OPTIONS HELPER ===== */
+  const toArray = (v) => {
+    if (v && typeof v.then === 'function') return [];
+    if (Array.isArray(v)) return v;
+    if (Array.isArray(v?.data)) return v.data;
+    if (Array.isArray(v?.items)) return v.items;
+    if (v && typeof v === 'object') return Object.values(v);
+    return [];
+  };
+
+  const resourceItems = computed(() => toArray(repo.resource));
+  const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
+  const seyasiItems = computed(() => toArray(repo.seyasiOptions));
+  const jenayeeItems = computed(() => toArray(repo.jenayeeOptions));
+
+  /* ===== RULES ===== */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+    selectRequired: (label) => (v) => !!v || t('{label} الزامی است', { label }),
+  };
+
+  /* ===== DOCS ===== */
+  const docsInput = ref(null);
+
+  function triggerDocs() {
+    docsInput.value?.click();
+  }
+
+  function onPickDocs(e) {
+    const files = Array.from(e.target.files || []);
+    form.value._newDocs = files;
+    if (docsInput.value) {
+      docsInput.value.value = '';
     }
-  } catch (e) {
-    console.error('loadForEdit error', e);
-    showErrorMessage(t('خطا در دریافت معلومات'));
-  }
-}
-
-/* ===== FORM DATA BUILDERS ===== */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
-  });
-  return fd;
-}
-
-function buildCreateFormData() {
-  const payload = { ...form.value };
-  delete payload.existingDocs;
-  delete payload._newDocs;
-  delete payload.removed_document_ids;
-
-  const fd = toFormData(payload);
-  (form.value._newDocs || []).forEach((file) => {
-    fd.append('documents[]', file);
-  });
-  return fd;
-}
-
-function buildUpdateFormData() {
-  const payload = { ...form.value };
-  delete payload.existingDocs;
-  const removed = payload.removed_document_ids || [];
-  delete payload._newDocs;
-  delete payload.removed_document_ids;
-
-  const fd = toFormData(payload);
-
-  (form.value._newDocs || []).forEach((file) => {
-    fd.append('documents[]', file);
-  });
-
-  removed.forEach((id) => {
-    fd.append('removed_document_ids[]', id);
-  });
-
-  return fd;
-}
-
-/* ===== SUBMIT ===== */
-async function onSubmit() {
-  clearBackendErrors();
-
-  const f = formRef.value;
-  if (!f) return;
-
-  const { valid } = await f.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
   }
 
-  if (!form.value.name?.trim()) {
-    showErrorMessage(t('نام الزامی است'));
-    return;
+  function removeNewDocAt(index) {
+    if (!Array.isArray(form.value._newDocs)) return;
+    form.value._newDocs.splice(index, 1);
+    if (docsInput.value) {
+      docsInput.value.value = '';
+    }
   }
 
-  saving.value = true;
+  function shortName(name = '') {
+    if (name.length <= 18) return name;
+    const dot = name.lastIndexOf('.');
+    if (dot === -1) return name.slice(0, 15) + '…';
+    const ext = name.slice(dot);
+    const base = name.slice(0, 15);
+    return `${base}…${ext}`;
+  }
 
-  try {
+  function openDoc(url) {
+    if (!url) return;
+    window.open(url, '_blank');
+  }
+
+  function markDocForRemoval(doc) {
+    if (!doc?.id) return;
+    if (!Array.isArray(form.value.removed_document_ids)) {
+      form.value.removed_document_ids = [];
+    }
+    if (!form.value.removed_document_ids.includes(doc.id)) {
+      form.value.removed_document_ids.push(doc.id);
+    }
+    form.value.existingDocs = (form.value.existingDocs || []).filter((d) => d.id !== doc.id);
+  }
+
+  /* ===== LOAD EDIT DATA ===== */
+  function mapFromApi(x = {}) {
+    const base = blankForm();
+    base.id = x.id ?? null;
+
+    base.resource_id = x.resource_id ?? null;
+    base.office_employee_id = x.office_employee_id ?? null;
+
+    base.name = x.name ?? '';
+    base.nick_name = x.nick_name ?? '';
+    base.father_name = x.father_name ?? '';
+    base.grand_father_name = x.grand_father_name ?? '';
+
+    base.main_province = x.main_province ?? '';
+    base.main_districts = x.main_districts ?? '';
+    base.main_village = x.main_village ?? '';
+    base.now_province = x.now_province ?? '';
+    base.now_district = x.now_district ?? '';
+    base.now_village = x.now_village ?? '';
+    base.Province_addr = x.Province_addr ?? '';
+
+    base.syasi_info_type = x.syasi_info_type ?? '';
+    base.jenayee_info_type = x.jenayee_info_type ?? '';
+
+    base.information_saved_date = x.information_saved_date ?? '';
+    base.information_saved_hour = x.information_saved_hour ?? '';
+    base.information_degree = x.information_degree ?? '';
+
+    base.tafseel = x.tafseel ?? '';
+    base.manager_comment = x.manager_comment ?? '';
+    base.lead_drirection = x.lead_drirection ?? '';
+    base.talks = x.talks ?? '';
+    base.note = x.note ?? '';
+    base.result = x.result ?? '';
+
+    base.existingDocs = Array.isArray(x.documents) ? x.documents : [];
+
+    return base;
+  }
+
+  async function loadForEdit() {
     if (!isEdit.value) {
-      const fd = buildCreateFormData();
-      const created = await repo.CreateInformation(fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
+      form.value = blankForm();
+      return;
+    }
 
-      if (created?.id) {
-        showSuccessMessage(t('اطلاع موفقانه ثبت شد'));
-        resetForm();
+    try {
+      if (typeof repo.FetchInformationData === 'function') {
+        await repo.FetchInformationData(idParam.value);
+        const raw = Array.isArray(repo.Information) ? repo.Information[0] : repo.Information || {};
+        const mapped = mapFromApi(raw);
+        form.value = { ...mapped, _newDocs: [], removed_document_ids: [] };
       } else {
-        showErrorMessage(t('ثبت معلومات ناکام شد'));
+        await repo.FetchInformationsData?.({
+          page: 1,
+          itemsPerPage: 100000,
+        });
+        const list = toArray(repo.Informations);
+        const found = list.find((r) => r.id == idParam.value) || {};
+        const mapped = mapFromApi(found);
+        form.value = { ...mapped, _newDocs: [], removed_document_ids: [] };
       }
-    } else {
-      const fd = buildUpdateFormData();
-      const updated = await repo.UpdateInformation(form.value.id, fd).catch(
-        (e) => {
+    } catch (e) {
+      console.error('loadForEdit error', e);
+      showErrorMessage(t('خطا در دریافت معلومات'));
+    }
+  }
+
+  /* ===== FORM DATA BUILDERS ===== */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  function buildCreateFormData() {
+    const payload = { ...form.value };
+    delete payload.existingDocs;
+    delete payload._newDocs;
+    delete payload.removed_document_ids;
+
+    const fd = toFormData(payload);
+    (form.value._newDocs || []).forEach((file) => {
+      fd.append('documents[]', file);
+    });
+    return fd;
+  }
+
+  function buildUpdateFormData() {
+    const payload = { ...form.value };
+    delete payload.existingDocs;
+    const removed = payload.removed_document_ids || [];
+    delete payload._newDocs;
+    delete payload.removed_document_ids;
+
+    const fd = toFormData(payload);
+
+    (form.value._newDocs || []).forEach((file) => {
+      fd.append('documents[]', file);
+    });
+
+    removed.forEach((id) => {
+      fd.append('removed_document_ids[]', id);
+    });
+
+    return fd;
+  }
+
+  /* ===== SUBMIT ===== */
+  async function onSubmit() {
+    clearBackendErrors();
+
+    const f = formRef.value;
+    if (!f) return;
+
+    const { valid } = await f.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+
+    if (!form.value.name?.trim()) {
+      showErrorMessage(t('نام الزامی است'));
+      return;
+    }
+
+    saving.value = true;
+
+    try {
+      if (!isEdit.value) {
+        const fd = buildCreateFormData();
+        const created = await repo.CreateInformation(fd).catch((e) => {
           if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
           return null;
-        },
-      );
+        });
 
-      if (updated?.id) {
-        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-        await loadForEdit();
+        if (created?.id) {
+          showSuccessMessage(t('اطلاع موفقانه ثبت شد'));
+          resetForm();
+        } else {
+          showErrorMessage(t('ثبت معلومات ناکام شد'));
+        }
       } else {
-        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        const fd = buildUpdateFormData();
+        const updated = await repo.UpdateInformation(form.value.id, fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (updated?.id) {
+          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+          await loadForEdit();
+        } else {
+          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        }
       }
+    } catch (e) {
+      console.error('onSubmit error', e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      saving.value = false;
     }
-  } catch (e) {
-    console.error('onSubmit error', e);
-    showErrorMessage(t('خطا در ذخیره اطلاعات'));
-  } finally {
-    saving.value = false;
   }
-}
 
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-    document.querySelector('.v-messages__message');
-  if (first) {
-    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = first.querySelector('input, textarea, .v-field__input');
-    if (input && typeof input.focus === 'function') input.focus();
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
   }
-}
 
-/* ===== RESET & NAVIGATION ===== */
-function resetForm() {
-  form.value = blankForm();
-  formRef.value?.resetValidation?.();
-  clearBackendErrors();
-  showSuccessMessage(t('ورودی‌ها پاک شد'));
-}
+  /* ===== RESET & NAVIGATION ===== */
+  function resetForm() {
+    form.value = blankForm();
+    formRef.value?.resetValidation?.();
+    clearBackendErrors();
+    showSuccessMessage(t('ورودی‌ها پاک شد'));
+  }
 
-function goBack() {
-  router.back();
-}
+  function goBack() {
+    router.back();
+  }
 
-/* ===== INIT ===== */
-onMounted(async () => {
-  await Promise.allSettled([
-    repo.GetOfficeEmployee?.(),
-    repo.GetResource?.(),
-    repo.FetchInformationsData?.({
-      page: 1,
-      itemsPerPage: 1,
-    }),
-  ]);
+  /* ===== INIT ===== */
+  onMounted(async () => {
+    await Promise.allSettled([
+      repo.GetOfficeEmployee?.(),
+      repo.GetResource?.(),
+      repo.FetchInformationsData?.({
+        page: 1,
+        itemsPerPage: 1,
+      }),
+    ]);
 
-  await loadForEdit();
-});
+    await loadForEdit();
+  });
 
-/* ===== DISPLAY HELPERS ===== */
-const formatResource = (r) => {
-  if (!r) return '';
-  const code = r.code_number ? String(r.code_number) : '';
-  const nm = r.name ? String(r.name) : '';
-  const dad = r.father_name ? String(r.father_name) : '';
-  const id = r.id != null ? `#${r.id}` : '';
-  return [code, nm, dad, id].filter(Boolean).join(' — ');
-};
+  /* ===== DISPLAY HELPERS ===== */
+  const formatResource = (r) => {
+    if (!r) return '';
+    const code = r.code_number ? String(r.code_number) : '';
+    const nm = r.name ? String(r.name) : '';
+    const dad = r.father_name ? String(r.father_name) : '';
+    const id = r.id != null ? `#${r.id}` : '';
+    return [code, nm, dad, id].filter(Boolean).join(' — ');
+  };
 
-/* ===== STEPPER LOGIC ===== */
-const step1Complete = computed(() => !!form.value.name?.trim());
-const step2Complete = computed(
-  () =>
-    !!form.value.main_province?.trim() &&
-    !!form.value.main_districts?.trim() &&
-    !!form.value.main_village?.trim(),
-);
-const step3Complete = computed(() => !!form.value.information_saved_date);
-const step4Complete = computed(
-  () =>
-    (form.value._newDocs?.length || 0) > 0 ||
-    (form.value.existingDocs?.length || 0) > 0 ||
-    !!form.value.tafseel?.trim(),
-);
+  /* ===== STEPPER LOGIC ===== */
+  const step1Complete = computed(() => !!form.value.name?.trim());
+  const step2Complete = computed(
+    () =>
+      !!form.value.main_province?.trim() &&
+      !!form.value.main_districts?.trim() &&
+      !!form.value.main_village?.trim()
+  );
+  const step3Complete = computed(() => !!form.value.information_saved_date);
+  const step4Complete = computed(
+    () =>
+      (form.value._newDocs?.length || 0) > 0 ||
+      (form.value.existingDocs?.length || 0) > 0 ||
+      !!form.value.tafseel?.trim()
+  );
 
-const completedSteps = computed(
-  () =>
-    [step1Complete.value, step2Complete.value, step3Complete.value, step4Complete.value].filter(
-      Boolean,
-    ).length,
-);
+  const completedSteps = computed(
+    () =>
+      [step1Complete.value, step2Complete.value, step3Complete.value, step4Complete.value].filter(
+        Boolean
+      ).length
+  );
 
-const currentStep = computed(() => {
-  if (!step1Complete.value) return 1;
-  if (!step2Complete.value) return 2;
-  if (!step3Complete.value) return 3;
-  return 4;
-});
+  const currentStep = computed(() => {
+    if (!step1Complete.value) return 1;
+    if (!step2Complete.value) return 2;
+    if (!step3Complete.value) return 3;
+    return 4;
+  });
 
-const progressValue = computed(() => (completedSteps.value / 4) * 100);
+  const progressValue = computed(() => (completedSteps.value / 4) * 100);
 </script>
 
 <style scoped>
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
+  }
 
-/* Stepper */
-.stepper-shell {
-  max-width: 1150px;
-  margin-top: 10px;
-  margin-bottom: 6px;
-}
+  .stepper-shell {
+    position: absolute;
+    top: 80px; /* distance from top (AppBar) – adjust if needed */
+    left: 43%;
+    transform: translateX(-50%);
+    max-width: 1150px;
+    width: 100%;
+    z-index: 20;
+    margin: 0;
+    padding-bottom: 12px;
+  }
 
-.stepper-card {
-  border-radius: 14px;
-  padding: 10px 14px 12px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(33, 150, 243, 0.12);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  font-family: inherit;
-}
+  /* push the form card down so it starts under the stepper */
+  .form-shell {
+    max-width: 1150px;
+    margin-top: 140px; /* was 8px – increase so header is fully below stepper */
+    margin-bottom: 40px;
+  }
 
-.stepper-track-wrapper {
-  position: relative;
-  margin-top: 4px;
-}
+  .stepper-card {
+    border-radius: 14px;
+    padding: 10px 14px 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(33, 150, 243, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    font-family: inherit;
+  }
 
-.stepper-track {
-  opacity: 0.35;
-}
+  .stepper-track-wrapper {
+    position: relative;
+    margin-top: 4px;
+  }
 
-.stepper-dots {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-start: -7px;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-}
+  .stepper-track {
+    opacity: 0.35;
+  }
 
-.stepper-dot-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
+  .stepper-dots {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: -7px;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+  }
 
-.stepper-dot {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #e0e7f1;
-  border: 2px solid #b0bec5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto;
-  transition: all 0.2s ease;
-}
+  .stepper-dot-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
 
-.stepper-dot.is-active:not(.is-complete) {
-  background: #1976d2;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.18);
-}
+  .stepper-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #e0e7f1;
+    border: 2px solid #b0bec5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    transition: all 0.2s ease;
+  }
 
-.stepper-dot.is-complete {
-  background: #4caf50;
-  border-color: #4caf50;
-  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.18);
-}
+  .stepper-dot.is-active:not(.is-complete) {
+    background: #1976d2;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.18);
+  }
 
-.stepper-dot :deep(.v-icon) {
-  color: #fff !important;
-}
+  .stepper-dot.is-complete {
+    background: #4caf50;
+    border-color: #4caf50;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.18);
+  }
 
-.stepper-label {
-  color: #555;
-  font-family: inherit;
-  font-weight: 600;
-}
+  .stepper-dot :deep(.v-icon) {
+    color: #fff !important;
+  }
 
-.is-complete-text {
-  color: #2e7d32;
-}
+  .stepper-label {
+    color: #555;
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-.stepper-caption {
-  font-family: inherit;
-  font-weight: 600;
-}
+  .is-complete-text {
+    color: #2e7d32;
+  }
 
-/* Main form wrapper */
-.form-shell {
-  max-width: 1150px;
-  margin-top: 8px;
-  margin-bottom: 40px;
-}
+  .stepper-caption {
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-/* Card styling */
-.form-card {
-  border-radius: 18px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.04) !important;
-  font-family: inherit;
-}
+  /* Card styling */
+  .form-card {
+    border-radius: 18px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    font-family: inherit;
+  }
 
-/* Top avatar + chip */
-.header-avatar {
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.35);
-}
+  /* Top avatar + chip */
+  .header-avatar {
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.35);
+  }
 
-.header-title {
-  font-family: inherit;
-  font-weight: 700;
-}
+  .header-title {
+    font-family: inherit;
+    font-weight: 700;
+  }
 
-.header-subtitle {
-  font-family: inherit;
-  font-weight: 600;
-}
+  .header-subtitle {
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-/* Sections */
-.section-card {
-  background: #fafafa;
-  border-radius: 16px;
-  border: 1px solid #e0e0e0;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
-  font-family: inherit;
-}
+  /* Sections */
+  .section-card {
+    background: #fafafa;
+    border-radius: 16px;
+    border: 1px solid #e0e0e0;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+    font-family: inherit;
+  }
 
-.section-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  border-color: rgba(33, 150, 243, 0.35);
-  transform: translateY(-1px);
-}
+  .section-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border-color: rgba(33, 150, 243, 0.35);
+    transform: translateY(-1px);
+  }
 
-.section-header {
-  padding: 8px 14px;
-  background: #f7f7f9;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: inherit;
-}
+  .section-header {
+    padding: 8px 14px;
+    background: #f7f7f9;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: inherit;
+  }
 
-.docs-header {
-  background: #f3f6ff;
-}
+  .docs-header {
+    background: #f3f6ff;
+  }
 
-.section-subtitle {
-  color: #777;
-  font-family: inherit;
-  font-weight: 600;
-}
+  .section-subtitle {
+    color: #777;
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-.section-icon {
-  color: #1976d2;
-}
+  .section-icon {
+    color: #1976d2;
+  }
 
-.section-title {
-  font-family: inherit;
-  font-weight: 700;
-}
+  .section-title {
+    font-family: inherit;
+    font-weight: 700;
+  }
 
-/* DOCS */
-.hidden-file {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
+  /* DOCS */
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
 
-.docs-field-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-radius: 12px;
-  border: 1px dashed #b0bec5;
-  padding: 10px 12px;
-  background: linear-gradient(135deg, #f9fbff 0%, #f3f6ff 100%);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  font-family: inherit;
-}
+  .docs-field-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-radius: 12px;
+    border: 1px dashed #b0bec5;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #f9fbff 0%, #f3f6ff 100%);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    font-family: inherit;
+  }
 
-.chips-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding-top: 4px;
-  max-height: 92px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
+  .chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 4px;
+    max-height: 92px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
 
-.chip-existing {
-  background: #c8dae1 !important;
-  color: #000 !important;
-}
+  .chip-existing {
+    background: #c8dae1 !important;
+    color: #000 !important;
+  }
 
-.chip-outline {
-  background: #e3f2fd;
-}
+  .chip-outline {
+    background: #e3f2fd;
+  }
 
-.docs-counter-chip {
-  font-family: inherit;
-  font-weight: 600;
-}
+  .docs-counter-chip {
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-/* Form actions */
-.form-actions {
-  margin-top: 4px;
-}
+  /* Form actions */
+  .form-actions {
+    margin-top: 4px;
+  }
 
-/* Compact inputs */
-:deep(.v-field-label),
-:deep(.v-label),
-:deep(input::placeholder) {
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  color: #555 !important;
-  font-family: inherit !important;
-  font-weight: 600;
-}
+  /* Compact inputs */
+  :deep(.v-field-label),
+  :deep(.v-label),
+  :deep(input::placeholder) {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    color: #555 !important;
+    font-family: inherit !important;
+    font-weight: 600;
+  }
 
-:deep(.v-field__input) {
-  min-height: 30px !important;
-  padding: 3px 8px !important;
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  font-family: inherit !important;
-}
+  :deep(.v-field__input) {
+    min-height: 30px !important;
+    padding: 3px 8px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    font-family: inherit !important;
+  }
 
-/* Dropdown primary background */
-.primary-select :deep(.v-field) {
-  background-color: #e3f2fd !important;
-}
+  /* Dropdown primary background */
+  .primary-select :deep(.v-field) {
+    background-color: #e3f2fd !important;
+  }
 
-/* Buttons & chips font */
-:deep(.v-btn),
-:deep(.v-chip),
-:deep(.v-snackbar),
-:deep(.v-card-title),
-:deep(.v-card-subtitle),
-:deep(.v-list-item-title),
-:deep(.v-list-item-subtitle) {
-  font-family: inherit !important;
-}
+  /* Buttons & chips font */
+  :deep(.v-btn),
+  :deep(.v-chip),
+  :deep(.v-snackbar),
+  :deep(.v-card-title),
+  :deep(.v-card-subtitle),
+  :deep(.v-list-item-title),
+  :deep(.v-list-item-subtitle) {
+    font-family: inherit !important;
+  }
 
-/* Small gap helper */
-.gap-2 {
-  gap: 8px;
-}
+  /* Small gap helper */
+  .gap-2 {
+    gap: 8px;
+  }
 </style>

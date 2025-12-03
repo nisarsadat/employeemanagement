@@ -18,12 +18,22 @@ class OfficeEmployeeResource extends JsonResource
         return [
             'id'           => $this->id,
 
-            // 🔹 Picture (normalized URL if stored in disk)
-            'picture'      => $this->picture
+           // 🔹 Picture (normalized URL if stored in disk)
+            'picture' => $this->picture
                 ? (preg_match('#^https?://#', $this->picture)
                     ? $this->picture
-                    : Storage::url($this->picture))
+                    : (function ($path) {
+                        // ✅ if value in DB starts with "storage/", strip it ONCE
+                        if (str_starts_with($path, 'storage/')) {
+                            $path = substr($path, strlen('storage/'));
+                        }
+
+                        // now $path is like "uploads/office-employees/..." or "office_employees/5/..."
+                        return Storage::url($path); // → "/storage/uploads/..." (correct)
+                    })($this->picture)
+                )
                 : null,
+
 
             // 🔹 Identity
             'name'                => $this->name,
@@ -105,9 +115,7 @@ class OfficeEmployeeResource extends JsonResource
                 })->toArray();
             }, []),
 
-            // 🔹 Counters (resource / event / information)
-            // Make sure you use ->withCount(['resources','events','informations']) in the query,
-            // and that the relationship names on the model match these.
+            // 🔹 Counters
             'resources_count'    => $this->resources_count
                 ?? ($this->relationLoaded('resources') ? $this->resources->count() : 0),
 
