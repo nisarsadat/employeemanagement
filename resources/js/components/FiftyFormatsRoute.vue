@@ -1,5 +1,15 @@
 <!-- src/views/fifthyFormats/FiftyFormatsRoute.vue -->
 <template>
+  <AppBar
+    :title="t('پنجاه فورم‌ها')"
+    :subtitle="t('لینک‌های سریع پنجاه فورم')"
+    @toggle-drawer="drawer = !drawer"
+  >
+    <template #actions>
+      <v-btn icon></v-btn>
+    </template>
+  </AppBar>
+
   <v-app dir="rtl" class="fontfamilyis">
     <div class="min-h-screen bg-grey-lighten-4">
       <!-- Container -->
@@ -18,7 +28,9 @@
                   >
                     {{ t('پنجاه فورم‌ها') }}
                   </h1>
-                  <p class="text-body-2 text-sm-body-1 text-grey mt-1 mt-sm-2 text-right fontfamilyis">
+                  <p
+                    class="text-body-2 text-sm-body-1 text-grey mt-1 mt-sm-2 text-right fontfamilyis"
+                  >
                     {{
                       t(
                         'لینک‌های سریع برای مدیریت هر فورم. برای فیلتر کردن فورم‌های موجود از جستجو استفاده کنید'
@@ -93,7 +105,9 @@
 
                     <!-- Label + count -->
                     <div class="flex-grow-1 min-w-0 text-right fontfamilyis">
-                      <h3 class="text-body-2 text-sm-body-1 font-weight-bold line-clamp-2 mb-0 fontfamilyis">
+                      <h3
+                        class="text-body-2 text-sm-body-1 font-weight-bold line-clamp-2 mb-0 fontfamilyis"
+                      >
                         {{ t(item.labelFa) }}
                       </h3>
 
@@ -164,6 +178,9 @@
   import { useDisplay } from 'vuetify';
   import axios from 'axios';
   import { useLoginRepository } from '@/stores/LoginRepository';
+  import AppBar from '@/components/AppBar.vue';
+
+  const drawer = ref(false);
 
   const auth = useLoginRepository();
   const { t } = useI18n();

@@ -631,17 +631,16 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         this.loading = false;
       }
     },
-    async FetchCaptiveDeliveryData({ page, itemsPerPage }) {
+    async FetchCaptiveDeliveryData(id) {
       this.loading = true;
       try {
-        const { data } = await axios.get(
-          `captive-deliveries?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const list = Array.isArray(data) ? data : data.data ?? data.items ?? [];
-        this.CaptiveDelivery = list;
-        this.totalItems = data?.meta?.total ?? data?.total ?? list.length;
+        const { data } = await axios.get(`captive-deliveries/${id}`);
+
+        // 🔹 Support BOTH shapes: { data: {...} } OR {...}
+        const record = data?.data ?? data;
+
+        this.CaptiveDelivery = record; // 👈 store a SINGLE object
+        this.totalItems = 1;
       } finally {
         this.loading = false;
       }

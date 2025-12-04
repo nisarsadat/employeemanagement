@@ -8,6 +8,55 @@ class ResourceResource extends JsonResource
 {
     public function toArray($request): array
     {
+        // 🔢 Sum of all "56 formats" related to this resource
+        $fiftySixFormatsCount =
+              $this->fasads()->count()
+            + $this->saeenFasads()->count()
+            + $this->heists()->count()
+            + $this->captives()->count()
+            + $this->mulkanos()->count()
+            + $this->entryExits()->count()
+            + $this->sarafyanos()->count()
+            + $this->clubs()->count()
+            + $this->mahajerats()->count()
+            + $this->soldiers()->count()
+            + $this->mawads()->count()
+            + $this->lostmujremeens()->count()
+            + $this->oldSoldiersHomes()->count()
+            + $this->robbers()->count()
+            + $this->nonResponsablePeople()->count()
+            + $this->mashkokHomes()->count()
+            + $this->damagePlaces()->count()
+            + $this->damageRasanPlaces()->count()
+            + $this->mashkokShops()->count()
+            + $this->luchakano()->count()
+            + $this->workshops()->count()
+            + $this->hosppitals()->count()
+            + $this->rahnomaMamlats()->count()
+            + $this->apartments()->count()
+            + $this->banks()->count()
+            + $this->transportCompanies()->count()
+            + $this->hadoBusStops()->count()
+            + $this->carSalesCompanies()->count()
+            + $this->schools()->count()
+            + $this->parkings()->count()
+            + $this->wakilanos()->count()
+            + $this->universities()->count()
+            + $this->masjids()->count()
+            + $this->highways()->count()
+            + $this->companies()->count()
+            + $this->donelostplaces()->count()
+            + $this->econemyProjects()->count()
+            + $this->criminalCapturePlaces()->count()
+            + $this->pumps()->count()
+            + $this->shoras()->count()
+            + $this->checkpoints()->count()
+            + $this->governmentplaces()->count()
+            + $this->supermarkets()->count()
+            + $this->parks()->count()
+            + $this->complexes()->count()
+            + $this->deplomaticplaces()->count();
+
         return [
             'id'       => $this->id,
             'picture'  => $this->picture ? url($this->picture) : null,
@@ -57,10 +106,18 @@ class ResourceResource extends JsonResource
             'language'               => $this->language,
             'nation'                 => $this->nation,
             'phone_number'           => $this->phone_number,
-            'resedint_code'          =>$this->resedint_code,
+            'resedint_code'          => $this->resedint_code,
             'coordinates'            => $this->coordinates,
             'note'                   => $this->note,
-            'Province_addr'               => $this->Province_addr,
+            'Province_addr'          => $this->Province_addr,
+
+            // ✅ Counts
+            'events_count'           => $this->events()->count(),
+            // 🔁 if you have an informations() relation, this will work out of the box
+            'informations_count'     => method_exists($this, 'informations')
+                ? $this->informations()->count()
+                : 0,
+            'fifty_six_formats_count'=> $fiftySixFormatsCount,
 
             // embedded office employee (minimal)
             'office_employee' => $this->whenLoaded('officeEmployee', function () {
@@ -69,7 +126,7 @@ class ResourceResource extends JsonResource
                     'name'        => $this->officeEmployee->name,
                     'code_number' => $this->officeEmployee->code_number,
                     'father_name' => $this->officeEmployee->father_name,
-                    'nick_name'    => $this->officeEmployee->nickname,
+                    'nick_name'   => $this->officeEmployee->nickname,
                 ];
             }),
         ];

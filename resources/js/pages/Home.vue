@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <v-app flat fluid class="rounded-xl bg-white">
     <v-layout
       flat
@@ -37,4 +37,58 @@ const isRtl = ref(locale.value === "fa");
 watch(locale, (l) => (isRtl.value = l === "fa"));
 
 const location = computed(() => (locale.value === "fa" ? "right" : "left"));
+</script> -->
+<template>
+  <v-app flat fluid class="rounded-xl bg-white">
+    <v-layout
+      flat
+      fluid
+      class="no-scroll-layout"
+    >
+      <NavigationDrawer
+        v-if="employeerepository.drawerVisible"
+        :location="location"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+        class="bg-bgproject"
+        flat
+        :rail="employeerepository.rail"
+        color="bgproject"
+      />
+
+      <v-main
+        class="thepage h-ful scrollabl-content-home rounded-xl bg-bgproject scroll-area scroll-hidden"
+      >
+        <router-view />
+      </v-main>
+    </v-layout>
+  </v-app>
+</template>
+
+<script setup>
+import { ref, watch, computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";          // ✅
+import NavigationDrawer from "@/components/NavigationDrawer.vue";
+import { useEmployeOfficeRepository } from "@/stores/EmployeeRepository";
+
+const employeerepository = useEmployeOfficeRepository();
+const { locale } = useI18n();
+const route = useRoute();                       // ✅
+
+const isRtl = ref(locale.value === "fa");
+watch(locale, (l) => (isRtl.value = l === "fa"));
+
+const location = computed(() => (locale.value === "fa" ? "right" : "left"));
+
+// ✅ Hide drawer on *every* route (including first load / refresh)
+watch(
+  () => route.fullPath,
+  () => {
+    if (employeerepository.drawerVisible) {
+      employeerepository.drawerVisible = false;
+    }
+  },
+  { immediate: true } // ⬅️ this makes it run on refresh / first load
+);
 </script>
+

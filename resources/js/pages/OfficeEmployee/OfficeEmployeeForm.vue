@@ -1368,7 +1368,7 @@
 
         if (created?.id) {
           showSuccessMessage(t('کارمند موفقانه ثبت شد'));
-          router.push({ path: '/officeemployee' }).catch(() => {});
+          router.push({ path: '/app/officeemployee' }).catch(() => {});
         } else {
           showErrorMessage(t('ثبت معلومات ناکام شد'));
         }
@@ -1381,7 +1381,7 @@
 
         if (updated?.id) {
           showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-          router.push({ path: '/officeemployee' }).catch(() => {});
+          router.push({ path: '/app/officeemployee' }).catch(() => {});
         } else {
           showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
         }

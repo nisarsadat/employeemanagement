@@ -55,10 +55,10 @@
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-primary">
+              <div class="text-h5 font-weight-bold text-primary fontfamily">
                 {{ totalCount }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-caption text-medium-emphasis fontfamily">
                 {{ t('کل اطلاعات') }}
               </div>
             </div>
@@ -77,10 +77,10 @@
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-green">
+              <div class="text-h5 font-weight-bold text-green fontfamily">
                 {{ todayCount }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-caption text-medium-emphasis fontfamily">
                 {{ t('امروز ثبت شده') }}
               </div>
             </div>
@@ -99,10 +99,10 @@
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-amber">
+              <div class="text-h5 font-weight-bold text-amber fontfamily">
                 {{ withDocumentsCount }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-caption text-medium-emphasis fontfamily">
                 {{ t('دارای اسناد') }}
               </div>
             </div>
@@ -121,10 +121,10 @@
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-purple">
+              <div class="text-h5 font-weight-bold text-purple fontfamily">
                 {{ politicalCount }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-caption text-medium-emphasis fontfamily">
                 {{ t('اطلاعات سیاسی') }}
               </div>
             </div>
@@ -701,5 +701,10 @@ table th {
 
 :deep(.v-btn--icon:hover) {
   transform: scale(1.1);
+}
+.fontfamily
+{
+  font-family: var(--app-font) !important;
+
 }
 </style>

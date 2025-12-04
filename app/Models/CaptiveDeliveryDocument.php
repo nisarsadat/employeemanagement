@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CaptiveDeliveryDocument extends Model
 {
+    use HasFactory;
+
     protected $table = 'captive_delivery_documents';
 
     protected $fillable = [
@@ -17,8 +19,8 @@ class CaptiveDeliveryDocument extends Model
         'size_bytes',
     ];
 
-    public function captiveDelivery(): BelongsTo
+    public function captiveDelivery()
     {
-        return $this->belongsTo(CaptiveDelivery::class, 'captive_delivery_id');
+        return $this->belongsTo(CaptiveDelivery::class, 'captive_delivery_id', 'id');
     }
 }

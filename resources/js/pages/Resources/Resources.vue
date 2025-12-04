@@ -1,536 +1,167 @@
 <template>
-  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar
-      :title="t('منبع')"
-      :subtitle="t('یک منبع اضافه کنید')"
-      @toggle-drawer="drawer = !drawer"
-    >
+  <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- APP BAR -->
+    <AppBar :title="t('منابع')" :subtitle="t('فهرست و جستجو')">
       <template #actions>
-        <v-btn icon />
+        <v-btn icon></v-btn>
       </template>
     </AppBar>
 
-    <!-- Search -->
-    <v-row class="d-flex">
-      <v-col cols="12" md="9">
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('جستجو')"
-          density="compact"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          @keyup.enter="fetchAll"
-          clearable
-          @click:clear="
-            () => {
-              repo.Search = '';
-              fetchAll();
-            }
-          "
-        />
+    <!-- 🔍 Search + ➕ Create -->
+    <v-container class="pa-0">
+      <v-row class="align-center">
+        <!-- Search Field -->
+        <v-col cols="12" sm="8" md="9" lg="10">
+          <v-text-field
+            v-model.trim="repo.Search"
+            :label="t('جستجو در منابع...')"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            hide-details
+            @keyup.enter="fetchAll"
+            clearable
+            @click:clear="clearSearch"
+            class="bg-white search-field"
+          />
+        </v-col>
+
+        <!-- Create Button -->
+        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <v-btn
+            v-if="auth.can('resources.create')"
+            color="primary"
+            variant="flat"
+            size="large"
+            class="text-none"
+            rounded="lg"
+            block
+            prepend-icon="mdi-plus"
+            @click="goCreate"
+          >
+            {{ t('منبع جدید') }}
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
+
+    <!-- 📊 STATS CARDS -->
+    <v-row class="px-2 mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
+      <!-- Total resources (click = clear quick filter) -->
+      <v-col cols="12" md="3" lg="3">
+        <v-card
+          class="stat-card"
+          :class="{ 'stat-card-active': quickFilter === 'all' }"
+          @click="applyQuickFilter('all')"
+        >
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-primary fontfamily">
+                {{ totalCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('کل منابع') }}
+              </div>
+            </div>
+            <v-avatar color="primary" variant="tonal" size="48">
+              <v-icon color="primary">mdi-database</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- This week (employees added this week / last 7 days) -->
+      <v-col cols="12" md="3" lg="3">
+        <v-card
+          class="stat-card"
+          :class="{ 'stat-card-active': quickFilter === 'week' }"
+          @click="applyQuickFilter('week')"
+        >
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-green fontfamily">
+                {{ thisWeekCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('این هفته ثبت شده') }}
+              </div>
+            </div>
+            <v-avatar color="green" variant="tonal" size="48">
+              <v-icon color="green">mdi-calendar-week</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- This month (employees added this month) -->
+      <v-col cols="12" md="3" lg="3">
+        <v-card
+          class="stat-card"
+          :class="{ 'stat-card-active': quickFilter === 'month' }"
+          @click="applyQuickFilter('month')"
+        >
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-purple fontfamily">
+                {{ thisMonthCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('این ماه ثبت شده') }}
+              </div>
+            </div>
+            <v-avatar color="purple" variant="tonal" size="48">
+              <v-icon color="purple">mdi-calendar-month</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Today added -->
+      <v-col cols="12" md="3" lg="3">
+        <v-card
+          class="stat-card"
+          :class="{ 'stat-card-active': quickFilter === 'today' }"
+          @click="applyQuickFilter('today')"
+        >
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-amber fontfamily">
+                {{ todayAddedCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('امروز اضافه شده') }}
+              </div>
+            </div>
+            <v-avatar color="amber" variant="tonal" size="48">
+              <v-icon color="amber">mdi-calendar-today</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
 
-    <v-form
-      ref="editorForm"
-      v-model="editorValid"
-      lazy-validation
-      :key="formKey"
-      @submit.prevent="onSubmit(rows[0])"
-    >
-      <!-- Single-row editor (create/edit) — NO pagination/footers -->
-      <v-card class="tablebody" ref="editorCard">
-        <v-data-table
-          :headers="headers"
-          :items="rows"
-          :loading="repo.loading"
-          item-key="idOrTmp"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          class="elevation-2 custom-table"
-          density="comfortable"
-          hide-default-footer
-        >
-          <!-- Picture with view/edit overlay -->
-          <template #item.picture="{ item }">
-            <div class="pic-wrap">
-              <input
-                class="hidden-file"
-                type="file"
-                accept="image/*"
-                :id="`up-${item.idOrTmp}`"
-                @change="(e) => onPickFile(item, e.target.files?.[0] ?? null)"
-              />
-              <v-btn
-                v-if="!item.previewUrl && !item.picture"
-                color="primary"
-                variant="outlined"
-                icon
-                @click="triggerFile(item)"
-              >
-                <v-icon>mdi-plus</v-icon>
-              </v-btn>
-              <div v-else class="pic-thumb" :title="t('گزینه ها')">
-                <v-avatar size="32">
-                  <v-img :src="item.previewUrl || item.picture" :alt="t('تصویر')" cover />
-                </v-avatar>
-                <div class="pic-overlay">
-                  <v-btn
-                    size="small"
-                    color="secondary"
-                    variant="flat"
-                    @click.stop="triggerFile(item)"
-                  >
-                    <v-icon start>mdi-pencil</v-icon>{{ t('ویرایش') }}
-                  </v-btn>
-                  <v-btn
-                    size="small"
-                    color="secondary"
-                    variant="flat"
-                    @click.stop="openPreview(item.previewUrl || item.picture)"
-                  >
-                    <v-icon start>mdi-eye</v-icon>{{ t('نمایش') }}
-                  </v-btn>
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <!-- Introduction block -->
-          <template #item.introduction="{ item }">
-            <div class="introduction-group">
-              <v-text-field
-                v-model="item.draft.name"
-                density="compact"
-                variant="outlined"
-                :label="t('نام')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.father_name"
-                density="compact"
-                variant="outlined"
-                :label="t('نام پدر')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.grand_father_name"
-                density="compact"
-                variant="outlined"
-                :label="t('نام پدرکلان')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.nick_name"
-                density="compact"
-                variant="outlined"
-                :label="t('نام مستعار')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.code_number"
-                density="compact"
-                variant="outlined"
-                :label="t('کود نمبر')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.tazkira"
-                density="compact"
-                variant="outlined"
-                :label="t('تذکره نمبر')"
-                hide-details
-              />
-            </div>
-          </template>
-
-          <!-- Main address -->
-          <template #item.main_province="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.main_province"
-                density="compact"
-                variant="outlined"
-                :label="t('ولایت اصلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.main_district"
-                density="compact"
-                variant="outlined"
-                :label="t('ولسوالی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.main_village"
-                density="compact"
-                variant="outlined"
-                :label="t('قریه')"
-                hide-details
-              />
-            </div>
-          </template>
-
-          <!-- Current address (now_*) -->
-          <template #item.now_province="{ item }">
-            <div class="addr-group-6">
-              <v-text-field
-                v-model="item.draft.now_province"
-                density="compact"
-                variant="outlined"
-                :label="t('ولایت فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_district"
-                density="compact"
-                variant="outlined"
-                :label="t('ولسوالی فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_village"
-                density="compact"
-                variant="outlined"
-                :label="t('قریه فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_specific_place"
-                density="compact"
-                variant="outlined"
-                :label="t('موقعیت مشخص فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_street_number"
-                density="compact"
-                variant="outlined"
-                :label="t('شماره سرک')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_home_number"
-                density="compact"
-                variant="outlined"
-                :label="t('شماره خانه')"
-                hide-details
-              />
-            </div>
-          </template>
-
-          <!-- Jobs -->
-          <template #item.jobs="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.old_job"
-                density="compact"
-                variant="outlined"
-                :label="t('وظیفه سابقه')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_job"
-                density="compact"
-                variant="outlined"
-                :label="t('وظیفه فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.job_place"
-                density="compact"
-                variant="outlined"
-                :label="t('محل وظیفه')"
-                hide-details
-              />
-            </div>
-          </template>
-
-          <!-- Status, education -->
-          <template #item.activity="{ item }">
-            <v-autocomplete
-              v-model="item.draft.activity"
-              :items="repo.activityOptions"
-              class="text-group"
-              density="compact"
-              :label="t('فعالیت')"
-              variant="outlined"
-              hide-details
-            />
-          </template>
-
-          <template #item.halat_madani="{ item }">
-            <v-autocomplete
-              v-model="item.draft.halat_madani"
-              :items="repo.halatMadaniOptions"
-              class="text-group"
-              density="compact"
-              :label="t('حالت مدنی')"
-              variant="outlined"
-              hide-details
-            />
-          </template>
-
-          <template #item.age="{ item }">
-            <v-text-field
-              v-model="item.draft.age"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('عمر')"
-              hide-details
-            />
-          </template>
-
-          <template #item.elmi_level="{ item }">
-            <v-text-field
-              v-model="item.draft.elmi_level"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('رتبه علمی')"
-              hide-details
-            />
-          </template>
-
-          <template #item.faculty="{ item }">
-            <v-text-field
-              v-model="item.draft.faculty"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('فاکولته/دیپارتمنت')"
-              hide-details
-            />
-          </template>
-
-          <template #item.specific_skills="{ item }">
-            <v-text-field
-              v-model="item.draft.specific_skills"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مهارت‌های خاص')"
-              hide-details
-            />
-          </template>
-
-          <template #item.train="{ item }">
-            <v-text-field
-              v-model="item.draft.train"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('دوره/آموزش')"
-              hide-details
-            />
-          </template>
-
-          <!-- Dates & types -->
-          <template #item.resource_saved_date="{ item }">
-            <DateInput
-              v-model="item.draft.resource_saved_date"
-              class="text-group"
-              :rules="[rules.required]"
-              :label="t('تاریخ ثبت منبع')"
-            />
-          </template>
-          <!-- نوع فعالیت منبع -->
-          <template #item.resource_activity_type="{ item }">
-            <v-autocomplete
-              v-model="item.draft.resource_activity_type"
-              :items="resourceActivityTypeOptions"
-              item-title="label"
-              item-value="value"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نوع فعالیت منبع')"
-              hide-details
-              clearable
-            />
-          </template>
-
-          <!-- FK: office employee -->
-          <template #item.office_employee_id="{ item }">
-            <v-autocomplete
-              v-model="item.draft.office_employee_id"
-              :items="repo.officeemployees"
-              item-title="name"
-              item-value="id"
-              class="text-group"
-              density="compact"
-              :label="t('کارمند مربوطه')"
-              variant="outlined"
-              hide-details
-              clearable
-            />
-          </template>
-          <template #item.resedint_code="{ item }">
-            <v-text-field
-              v-model="item.draft.resedint_code"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t(' رزیدانت مربوطه کود')"
-              hide-details
-            />
-          </template>
-          <!-- Misc -->
-          <template #item.resource_cover="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_cover"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('پوشش منبع')"
-              hide-details
-            />
-          </template>
-
-          <template #item.language="{ item }">
-            <v-text-field
-              v-model="item.draft.language"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('زبان')"
-              hide-details
-            />
-          </template>
-
-          <template #item.nation="{ item }">
-            <v-text-field
-              v-model="item.draft.nation"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('قوم')"
-              hide-details
-            />
-          </template>
-
-          <template #item.phone_number="{ item }">
-            <v-text-field
-              v-model="item.draft.phone_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره تماس')"
-              hide-details
-            />
-          </template>
-
-          <template #item.coordinates="{ item }">
-            <v-text-field
-              v-model="item.draft.coordinates"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('کوردینات')"
-              hide-details
-            />
-          </template>
-
-          <template #item.note="{ item }">
-            <v-text-field
-              v-model="item.draft.note"
-              density="compact"
-              class="text-group-note"
-              variant="outlined"
-              :label="t('نوت')"
-              hide-details
-            />
-          </template>
-          <template #item.Province_addr="{ item }">
-            <v-text-field
-              v-model="item.draft.Province_addr"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت مربوطه')"
-              hide-details
-            />
-          </template>
-
-          <!-- Actions -->
-          <template #item.actions="{ item }">
-            <div class="flex items-center gap-1">
-              <v-btn
-                class="bg-primary"
-                v-if="auth.can('resources.create')"
-                variant="outlined"
-                type="submit"
-                :loading="item.loading"
-              >
-                {{ t('ثبت دیتا') }}
-              </v-btn>
-              <v-btn
-                class="bg-error"
-                v-if="auth.can('resources.delete')"
-                variant="outlined"
-                @click="del(item)"
-              >
-                {{ t('حذف دیتا') }}
-              </v-btn>
-              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
-                {{ t('پاک کردن ورودی‌ها') }}
-              </v-btn>
-            </div>
-          </template>
-
-          <template #no-data>
-            <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
-          </template>
-        </v-data-table>
-
-        <!-- Image preview dialog -->
-        <v-dialog v-model="previewOpen" max-width="520">
-          <v-card>
-            <v-toolbar
-              density="compact"
-              color="primary"
-              :title="t('پیش نمایش')"
-              class="text-white"
-            />
-            <v-card-text class="d-flex justify-center">
-              <v-img
-                :src="previewSrc"
-                :alt="t('پیش نمایش')"
-                max-width="480"
-                max-height="420"
-                cover
-              />
-            </v-card-text>
-            <v-card-actions class="justify-end">
-              <v-btn color="primary" variant="flat" @click="previewOpen = false">
-                {{ t('بستن') }}
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-card>
-    </v-form>
-
-    <!-- Peek drawer -->
+    <!-- 👁 Peek (side/details) -->
     <v-container fluid>
       <PeekButton
         v-model="expanded"
         :id="selectedId"
-        :item="detail"
-        :loading="loading"
+        :item="detailForPeek"
+        :loading="loadingOne"
         title-key="name"
         image-key="picture"
-        :fields="headers"
+        :fields="headersFT"
         :cols="3"
-        :dir="isRtl ? 'rtl' : 'ltr'"
+        dir="rtl"
         @fetch="fetchOne"
       />
     </v-container>
 
-    <!-- Filterable table -->
+    <!-- 📋 MAIN TABLE -->
     <FilterableTable
       :headers="headersFT"
-      :rows="rowsFT"
+      :rows="displayedRowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
@@ -544,161 +175,281 @@
       @peek="openPeek"
       class="mb-20 mx-2"
     >
-      <!-- ✅ custom cell for the 'map' column -->
+      <!-- 🖼 Picture cell -->
+      <template #cell-picture="{ row }">
+        <v-avatar size="36" class="cursor-pointer" @click="openPreview(row)">
+          <v-img v-if="getPhotoUrl(row)" :src="getPhotoUrl(row)" cover />
+          <v-icon v-else size="20">mdi-account</v-icon>
+        </v-avatar>
+      </template>
+
+      <!-- 👤 Office employee cell with route + tooltip -->
+      <template #cell-office_employee_id="{ row }">
+        <div v-if="getOfficeEmployee(row)" class="d-flex flex-column align-start">
+          <v-tooltip :text="t('برای رفتن به صفحه کارمندان لطفا کلیک کنید')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-btn
+                class="px-2 py-1 text-none"
+                color="primary"
+                size="default"
+                variant="tonal"
+                v-bind="tooltipProps"
+                @click.stop="goOfficeEmployee(row)"
+              >
+                <div class="d-flex flex-column align-start">
+                  <span class="text-body-2">
+                    {{ getOfficeEmployee(row).code_number || t('بدون کود') }}
+                  </span>
+                </div>
+              </v-btn>
+            </template>
+          </v-tooltip>
+        </div>
+        <span v-else class="text-xs text-grey">-</span>
+      </template>
+
+      <!-- 🗺 Map cell -->
       <template #cell-map="{ row }">
         <FlyToMapButton
-          :coordinates="row.coordinates"
-          :title="row.name"
-          :subtitle="row.code_number"
+          :coordinates="getRow(row).coordinates"
+          :title="getRow(row).name"
+          :subtitle="getRow(row).code_number"
           type="resources"
-          :photo-url="row.picture"
+          :photo-url="getPhotoUrl(row)"
           :zoom="16"
         />
       </template>
+
+      <!-- ⚙️ ACTIONS -->
+      <template #actions="{ item }">
+        <div class="d-flex align-center ga-2">
+          <!-- مشاهده -->
+          <v-tooltip text="مشاهده منبع" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon size="small" v-bind="tooltipProps" @click.stop="openPeek(item)" color="blue">
+                mdi-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- ویرایش -->
+          <v-tooltip text="تغییر جزیات منبع" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                size="small"
+                v-bind="tooltipProps"
+                @click.stop="startEdit(item)"
+                color="amber-darken-2"
+              >
+                mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- دانلود اسناد منبع -->
+          <v-tooltip text="دانلود اسناد مربوط به منبع" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                size="small"
+                v-bind="tooltipProps"
+                :disabled="!hasDocuments(item)"
+                @click.stop="downloadResourceDocs(item)"
+                color="green-darken-2"
+              >
+                mdi-paperclip
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- حذف -->
+          <v-tooltip text="حذف منبع" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-if="auth.can('resources.delete')"
+                size="small"
+                v-bind="tooltipProps"
+                @click.stop="openDeleteDialog(item)"
+                color="red-darken-2"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
     </FilterableTable>
 
-    <!-- Error Snackbar -->
+    <!-- 🖼 BIG PREVIEW DIALOG -->
+    <v-dialog v-model="previewOpen" max-width="520" :dir="isRtl ? 'rtl' : 'ltr'">
+      <v-card :dir="isRtl ? 'rtl' : 'ltr'">
+        <v-toolbar
+          density="compact"
+          color="primary"
+          :title="t('پیش نمایش عکس منبع')"
+          class="text-white"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+        />
+        <v-card-text class="d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
+          <v-img :src="previewSrc" :alt="t('پیش نمایش')" max-width="480" max-height="420" cover />
+        </v-card-text>
+        <v-card-actions class="justify-end" :dir="isRtl ? 'rtl' : 'ltr'">
+          <v-btn color="primary" variant="flat" @click="previewOpen = false">
+            {{ t('بستن') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- 🔁 Reusable Delete Confirm Dialog -->
+    <DeleteConfirmDialog
+      v-model="deleteDialog"
+      :target="deleteTarget"
+      :is-rtl="isRtl"
+      @confirm="handleDeleteConfirmed"
+    />
+
+    <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
-        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+        <v-btn variant="text" @click="showError = false">
+          {{ t('بستن') }}
+        </v-btn>
       </template>
     </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, watch, computed, nextTick } from 'vue';
+  import { ref, computed, watch, onMounted } from 'vue';
+  import { useRouter } from 'vue-router';
   import { useI18n } from 'vue-i18n';
-  import AppBar from '../../components/AppBar.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import PeekButton from '@/components/PeekButton.vue';
-  import { useDatabaseRepository } from '../../stores/DatabaseRepository';
-  import DateInput from '../../components/DateInput.vue';
-  import FlyToMapButton from '../../components/FlyToMapButton.vue';
 
+  import AppBar from '@/components/AppBar.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+
+  import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+
+  const router = useRouter();
+  const { t, locale } = useI18n();
+  const repo = useDatabaseRepository();
   const auth = useLoginRepository();
 
-  const repo = useDatabaseRepository();
-  const { t, locale } = useI18n();
-
-  /* UI / RTL */
-  const drawer = ref(false);
+  /* ===== RTL ===== */
   const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+  watch(locale, (n) => (isRtl.value = n === 'fa'));
 
-  /* Snackbar + preview */
-  const previewOpen = ref(false);
-  const previewSrc = ref(null);
-  const showError = ref(false);
-  const errorMessage = ref('');
-  function openPreview(src) {
-    previewSrc.value = src || null;
-    if (previewSrc.value) previewOpen.value = true;
-  }
-  function showErrorMessage(msg) {
-    errorMessage.value = msg;
-    showError.value = true;
+  /* ===== Helpers: unwrap + URL ===== */
+  function getRow(payload) {
+    return payload?.raw ?? payload;
   }
 
-  /* Single-row editor data */
-  const rows = ref([]); // always one editor row
-  function toRowModel(x = {}) {
-    const base = {
-      id: x.id ?? null,
-      idOrTmp: x.id ?? 'tmp-1',
-      picture: x.picture ?? null,
-      previewUrl: x.picture ?? null,
-      loading: false,
-
-      // intro
-      name: x.name ?? '',
-      father_name: x.father_name ?? '',
-      grand_father_name: x.grand_father_name ?? '',
-      nick_name: x.nick_name ?? '',
-      code_number: x.code_number ?? '',
-      tazkira: x.tazkira ?? '',
-
-      // main address
-      main_province: x.main_province ?? '',
-      main_district: x.main_district ?? '',
-      main_village: x.main_village ?? '',
-
-      // current address
-      now_province: x.now_province ?? '',
-      now_district: x.now_district ?? '',
-      now_village: x.now_village ?? '',
-      now_specific_place: x.now_specific_place ?? '',
-      now_street_number: x.now_street_number ?? '',
-      now_home_number: x.now_home_number ?? '',
-
-      // jobs
-      old_job: x.old_job ?? '',
-      Province_addr: x.Province_addr ?? '',
-      now_job: x.now_job ?? '',
-      job_place: x.job_place ?? '',
-
-      // status & education
-      activity: x.activity ?? '',
-      halat_madani: x.halat_madani ?? '',
-      age: x.age ?? '',
-      elmi_level: x.elmi_level ?? '',
-      faculty: x.faculty ?? '',
-      specific_skills: x.specific_skills ?? '',
-      train: x.train ?? '',
-
-      // misc
-      resource_saved_date: x.resource_saved_date ?? '',
-      resource_activity_type: x.resource_activity_type ?? '',
-      office_employee_id: x.office_employee_id ?? null,
-      resedint_code: x.resedint_code,
-      resource_cover: x.resource_cover ?? '',
-      language: x.language ?? '',
-      nation: x.nation ?? '',
-      phone_number: x.phone_number ?? '',
-      coordinates: x.coordinates ?? '',
-      note: x.note ?? '',
-    };
-    return { ...base, draft: { ...base, picture: null } };
-  }
-  function setBlankEditorRow() {
-    rows.value = [toRowModel({})];
+  function normalizeUrl(url) {
+    if (!url) return null;
+    // fix duplicate /storage/storage/
+    return url.replace('/storage/storage/', '/storage/');
   }
 
-  /* Full dataset for FilterableTable */
+  function getPhotoUrl(payload) {
+    const row = getRow(payload);
+    if (!row) return null;
+    return normalizeUrl(row.picture || row.picture_url);
+  }
+
+  function getOfficeEmployee(payload) {
+    const row = getRow(payload);
+    if (!row) return null;
+    // assuming nested relation: office_employee: { id, name, code_number }
+    return row.office_employee || null;
+  }
+
+  /* ===== Data for table ===== */
   const rowsFT = computed(() => repo.Resources || []);
 
-  /* Headers (editor table) */
-  const headers = computed(() => [
-    { title: t('تصویر'), key: 'picture', width: 120, sortable: false },
-    { title: t('معرفت'), key: 'introduction' },
-    { title: t('سکونت اصلی'), key: 'main_province' },
-    { title: t('سکونت فعلی'), key: 'now_province' },
-    { title: t('وظایف'), key: 'jobs' },
-    { title: t('فعالیت'), key: 'activity' },
-    { title: t('حالت مدنی'), key: 'halat_madani' },
-    { title: t('عمر'), key: 'age' },
-    { title: t('رتبه علمی'), key: 'elmi_level' },
-    { title: t('فاکولته/دیپارتمنت'), key: 'faculty' },
-    { title: t('مهارت‌های خاص'), key: 'specific_skills' },
-    { title: t('دوره/آموزش'), key: 'train' },
-    { title: t('تاریخ ثبت منبع'), key: 'resource_saved_date' },
-    { title: t('نوع فعالیت'), key: 'resource_activity_type' },
-    { title: t('کارمند مربوطه'), key: 'office_employee_id' },
-    { title: t(' رزیدنت مربوطه'), key: 'resedint_code' },
-    { title: t('پوشش منبع'), key: 'resource_cover' },
-    { title: t('زبان'), key: 'language' },
-    { title: t('قوم'), key: 'nation' },
-    { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('کوردینات'), key: 'coordinates' },
-    { title: t('نوت'), key: 'note' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-    { title: t('عمل'), key: 'actions', sortable: false },
-  ]);
+  /* ===== Date helpers ===== */
+  function isSameDate(dateValue, today) {
+    if (!dateValue) return false;
+    const d = new Date(dateValue);
+    if (Number.isNaN(d.getTime())) return false;
+    return (
+      d.getFullYear() === today.getFullYear() &&
+      d.getMonth() === today.getMonth() &&
+      d.getDate() === today.getDate()
+    );
+  }
 
-  /* Headers for FilterableTable */
+  function isWithinLastDays(dateValue, days) {
+    if (!dateValue) return false;
+    const d = new Date(dateValue);
+    if (Number.isNaN(d.getTime())) return false;
+    const today = new Date();
+    const diffMs = today.getTime() - d.getTime();
+    if (diffMs < 0) return false;
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    return diffDays <= days;
+  }
+
+  function isSameMonth(dateValue, today) {
+    if (!dateValue) return false;
+    const d = new Date(dateValue);
+    if (Number.isNaN(d.getTime())) return false;
+    return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth();
+  }
+
+  /* ===== Stats ===== */
+  const totalCount = computed(() => rowsFT.value.length);
+
+  const todayAddedCount = computed(() => {
+    const today = new Date();
+    return rowsFT.value.filter((r) => isSameDate(r.resource_saved_date || r.created_at, today))
+      .length;
+  });
+
+  // "This week" = last 7 days
+  const thisWeekCount = computed(
+    () =>
+      rowsFT.value.filter((r) => isWithinLastDays(r.resource_saved_date || r.created_at, 7)).length
+  );
+
+  // "This month" = same calendar month
+  const thisMonthCount = computed(() => {
+    const today = new Date();
+    return rowsFT.value.filter((r) => isSameMonth(r.resource_saved_date || r.created_at, today))
+      .length;
+  });
+
+  /* ===== Quick filter for stats cards ===== */
+  const quickFilter = ref('all'); // 'all' | 'today' | 'week' | 'month'
+
+  function applyQuickFilter(mode) {
+    quickFilter.value = mode;
+  }
+
+  const displayedRowsFT = computed(() => {
+    let data = rowsFT.value || [];
+    const today = new Date();
+
+    if (quickFilter.value === 'today') {
+      data = data.filter((r) => isSameDate(r.resource_saved_date || r.created_at, today));
+    } else if (quickFilter.value === 'week') {
+      data = data.filter((r) => isWithinLastDays(r.resource_saved_date || r.created_at, 7));
+    } else if (quickFilter.value === 'month') {
+      data = data.filter((r) => isSameMonth(r.resource_saved_date || r.created_at, today));
+    } else {
+      // 'all' – no extra filter
+    }
+
+    return data;
+  });
+
+  /* ===== Headers for FilterableTable ===== */
   const headersFT = computed(() => [
+    { title: t('تصویر'), key: 'picture', sortable: false },
+
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
@@ -731,8 +482,11 @@
 
     { title: t('تاریخ ثبت منبع'), key: 'resource_saved_date' },
     { title: t('نوع فعالیت منبع'), key: 'resource_activity_type' },
+
+    // FK: office employee
     { title: t('کارمند مربوطه'), key: 'office_employee_id' },
-    { title: t(' رزیدنت مربوطه'), key: 'resedint_code' },
+
+    { title: t('رزیدنت مربوطه'), key: 'resedint_code' },
     { title: t('پوشش منبع'), key: 'resource_cover' },
     { title: t('زبان'), key: 'language' },
     { title: t('قوم'), key: 'nation' },
@@ -740,10 +494,11 @@
     { title: t('کوردینات'), key: 'coordinates' },
     { title: t('نوت'), key: 'note' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
-  /* top groups for FilterableTable */
+  /* ===== Top filter groups ===== */
   const topGroups = computed(() => [
     {
       title: t('معرفت'),
@@ -764,217 +519,79 @@
     { title: t('وظایف'), keys: ['old_job', 'now_job', 'job_place'] },
   ]);
 
-  /* Image picker */
-  function triggerFile(item) {
-    const el = document.getElementById(`up-${item.idOrTmp}`);
-    if (el) el.click();
-  }
-  function onPickFile(item, file) {
-    item.draft.picture = file || null;
-    if (file) {
-      if (item._blobUrl) URL.revokeObjectURL(item._blobUrl);
-      item._blobUrl = URL.createObjectURL(file);
-      item.previewUrl = item._blobUrl;
-    } else {
-      item.previewUrl = item.picture || null;
-    }
+  const filters = ref({});
+
+  /* ===== Error Snackbar ===== */
+  const showError = ref(false);
+  const errorMessage = ref('');
+
+  function showErrorMessage(msg) {
+    errorMessage.value = msg;
+    showError.value = true;
   }
 
-  /* Diff + payload helpers */
-  function diffDraft(item) {
-    const d = item.draft || {};
-    const changed = {};
-    const keys = [
-      'name',
-      'father_name',
-      'grand_father_name',
-      'nick_name',
-      'code_number',
-      'tazkira',
-      'main_province',
-      'main_district',
-      'main_village',
-      'now_province',
-      'now_district',
-      'now_village',
-      'now_specific_place',
-      'now_street_number',
-      'now_home_number',
-      'old_job',
-      'now_job',
-      'job_place',
-      'activity',
-      'halat_madani',
-      'age',
-      'elmi_level',
-      'faculty',
-      'specific_skills',
-      'train',
-      'resource_saved_date',
-      'resource_activity_type',
-      'office_employee_id',
-      'resedint_code',
-      'Province_addr',
-      'resource_cover',
-      'language',
-      'nation',
-      'phone_number',
-      'coordinates',
-      'note',
-    ];
-    for (const k of keys) {
-      if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    }
-    const imageChanged = !!(d.picture && typeof d.picture === 'object');
-    if (imageChanged) {
-      changed.picture = d.picture;
-      changed.old_picture = item.picture;
-    }
-    return { changed, imageChanged };
-  }
-  function toFormDataSelective(obj) {
-    const fd = new FormData();
-    Object.entries(obj).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
-  const editorForm = ref(null);
-  const editorValid = ref(false);
-  const formKey = ref(0);
-  const itemErrors = ref({});
+  /* ===== Preview dialog ===== */
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
 
-  const rules = {
-    required: (v) => !!v || 'This field is required',
-    selectRequired: (label) => (v) => !!v || `${label} is required`,
-    min: (n) => (v) => (v && v.length >= n) || `Minimum ${n} characters`,
-    max: (n) => (v) => (v && v.length <= n) || `Maximum ${n} characters`,
-    number: (v) => !v || /^[0-9]+$/.test(v) || 'Only numbers allowed',
-  };
-
-  async function hardResetFormValidation() {
-    editorValid.value = false;
-    itemErrors.value = {};
-    await nextTick();
-    editorForm.value?.resetValidation?.();
-    formKey.value++;
-    await nextTick();
+  function openPreview(rowPayload) {
+    const url = getPhotoUrl(rowPayload);
+    if (!url) return;
+    previewSrc.value = url;
+    previewOpen.value = true;
   }
 
-  function scrollToFirstInvalid() {
-    const first =
-      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-      document.querySelector('.v-messages__message');
-
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input && typeof input.focus === 'function') input.focus();
-    }
+  function hasDocuments(payload) {
+    const row = getRow(payload);
+    const docs = row?.documents;
+    return Array.isArray(docs) && docs.length > 0;
   }
 
-  /* Save / Delete / Clear */
-  async function save(item) {
-    if (!item?.draft?.name?.trim()) {
-      showErrorMessage(t('نام الزامی است'));
-      return;
-    }
-    item.loading = true;
+  /* ===== Peek / single fetch ===== */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
+
+  const detailForPeek = computed(() => {
+    if (!detail.value) return null;
+    return {
+      ...detail.value,
+      picture: getPhotoUrl(detail.value),
+    };
+  });
+
+  async function fetchOne(id) {
+    if (!id) return;
+    loadingOne.value = true;
     try {
-      // CREATE
-      if (!item.id) {
-        const fd = toFormDataSelective(item.draft);
-        const created = await repo.CreateResource(fd).catch((e) => {
-          console.error('CreateResource error', e);
-          return null;
-        });
-        if (created?.id) {
-          showErrorMessage(t('منبع با موفقیت ایجاد شد'));
-          await fetchAll();
-          setBlankEditorRow();
-          editorForm.value?.resetValidation?.();
-        } else {
-          await fetchAll();
-          setBlankEditorRow();
-          editorForm.value?.resetValidation?.();
-        }
-        return;
-      }
-
-      // UPDATE
-      const { changed, imageChanged } = diffDraft(item);
-      if (Object.keys(changed).length === 0) {
-        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
-        return;
-      }
-      const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateResource(item.id, fd).catch((e) => {
-        console.error('UpdateResource error', e);
-        return null;
-      });
-      if (updated?.id) {
-        if (!imageChanged && item._blobUrl) {
-          URL.revokeObjectURL(item._blobUrl);
-          item._blobUrl = null;
-        }
-        showErrorMessage(t('منبع با موفقیت بروزرسانی شد'));
+      if (typeof repo.FetchResourceData === 'function') {
+        await repo.FetchResourceData(id);
+        const raw =
+          repo.Resource && Array.isArray(repo.Resource) ? repo.Resource[0] : repo.Resource;
+        detail.value = raw || {};
+      } else {
         await fetchAll();
-        setBlankEditorRow();
-        editorForm.value?.resetValidation?.();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
       }
+    } catch (e) {
+      console.error('FetchOne resource error:', e);
+      showErrorMessage(t('خطا در دریافت معلومات منبع'));
     } finally {
-      item.loading = false;
+      loadingOne.value = false;
     }
   }
 
-  async function onSubmit(item) {
-    const form = editorForm.value;
-    if (!form) return;
-    const { valid } = await form.validate();
-    if (!valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-    await save(item);
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
   }
 
-  async function del(item) {
-    if (!item.id) {
-      setBlankEditorRow();
-      return;
-    }
-    if (!confirm(t('آیا از حذف "{name}" مطمئن هستید؟', { name: item.name }))) return;
-
-    try {
-      await repo.DeleteResource(item.id);
-      await fetchAll();
-      showErrorMessage(t('منبع حذف شد'));
-      setBlankEditorRow();
-    } catch (e) {
-      console.error('DeleteResource error', e);
-      showErrorMessage(t('خطا در حذف منبع'));
-    }
-  }
-
-  function clearEditor(item) {
-    try {
-      if (item && item._blobUrl) {
-        URL.revokeObjectURL(item._blobUrl);
-        item._blobUrl = null;
-      }
-      const picEl = document.getElementById(`up-${item?.idOrTmp}`);
-      if (picEl) picEl.value = '';
-      setBlankEditorRow();
-      showErrorMessage(t('ورودی‌ها پاک شد'));
-    } catch (e) {
-      console.error('clearEditor error:', e);
-    }
-  }
-
-  /* Fetch ALL (for FilterableTable) */
+  /* ===== Fetch ALL ===== */
   async function fetchAll() {
     try {
       if (typeof repo.FetchResourcesData === 'function') {
@@ -986,180 +603,145 @@
       }
     } catch (e) {
       console.error('fetchAll error', e);
+      showErrorMessage(t('خطا در دریافت فهرست منابع'));
     }
   }
 
-  /* Start edit from FilterableTable */
-  const editorCard = ref(null);
-  async function startEdit(row) {
-    try {
-      const id = row?.id;
-      if (!id) return;
-      if (typeof repo.FetchResourceData === 'function') {
-        await repo.FetchResourceData(id);
-      } else if (typeof repo.FetchResourcesData === 'function') {
-        await repo.FetchResourcesData({ page: 1, itemsPerPage: 100000 });
-      }
-      const single =
-        (repo.Resource && Array.isArray(repo.Resource) ? repo.Resource[0] : repo.Resource) ||
-        (repo.Resources || []).find((r) => r.id === id) ||
-        row;
-
-      rows.value = [toRowModel(single)];
-      await nextTick();
-      const el = editorCard.value?.$el || editorCard.value;
-      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-    } catch (e) {
-      console.error('startEdit error', e);
-      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
-    }
+  function clearSearch() {
+    repo.Search = '';
+    fetchAll();
   }
 
-  /* ===== Peek state & methods ===== */
-  const expanded = ref(false);
-  const selectedId = ref(null);
-  const loading = ref(false);
-  const detail = ref(null);
-
-  async function fetchOne(id) {
-    loading.value = true;
-    try {
-      if (typeof repo.FetchResourceData === 'function') {
-        await repo.FetchResourceData(id);
-        detail.value =
-          (repo.Resource && Array.isArray(repo.Resource) ? repo.Resource[0] : repo.Resource) || {};
-      } else {
-        await fetchAll();
-        const list = repo.Resources || [];
-        detail.value = list.find((r) => r.id === id) || {};
-      }
-    } catch (e) {
-      console.error('Fetch one resource error:', e);
-      showErrorMessage(t('خطا در دریافت منبع'));
-    } finally {
-      loading.value = false;
-    }
+  /* ===== Navigation ===== */
+  function goCreate() {
+    router.push('/app/resourcesform');
   }
-  function openPeek(payload) {
-    const row = payload?.raw ?? payload;
+
+  function startEdit(payload) {
+    const row = getRow(payload);
+    const id = row?.id;
+    if (!id) return;
+    router.push(`/app/resourcesform/${id}`);
+  }
+
+  // 🔗 Go to office employee page from resource
+  function goOfficeEmployee(payload) {
+    const row = getRow(payload);
+    if (!row) return;
+    const empId = row.office_employee_id || row.office_employee?.id;
+    if (!empId) return;
+
+    router.push(`/app/officeemployeeform/${empId}`);
+  }
+
+  /* ===== Download documents ZIP ===== */
+  async function downloadResourceDocs(payload) {
+    const row = getRow(payload);
     if (!row?.id) return;
-    selectedId.value = row.id;
-    expanded.value = true;
-    fetchOne(row.id);
-  }
-  const resourceActivityTypeOptions = [
-    { label: 'ثابت', value: 'ثابت' },
-    { label: 'سیار', value: 'سیار' },
-    { label: 'اجنت', value: 'اجنت' },
-    { label: 'ریزیدنت', value: 'ریزیدنت' },
-    { label: 'نفوذی', value: 'نفوذی' },
-  ];
 
-  /* Init */
+    try {
+      if (typeof repo.DownloadResourceZip === 'function') {
+        await repo.DownloadResourceZip(row.id);
+      } else {
+        console.warn('DownloadResourceZip not implemented on repo');
+        showErrorMessage(t('دانلود اسناد برای این منبع هنوز تنظیم نشده است'));
+      }
+    } catch (e) {
+      console.error('downloadResourceDocs error', e);
+      showErrorMessage(t('خطا در دانلود اسناد منبع'));
+    }
+  }
+
+  /* ===== Delete using DeleteConfirmDialog ===== */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
+
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
+
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    if (!row?.id) {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
+    }
+
+    try {
+      if (typeof repo.DeleteResource === 'function') {
+        await repo.DeleteResource(row.id);
+      } else {
+        console.warn('DeleteResource not implemented on repo');
+        showErrorMessage(t('حذف برای این منبع هنوز تنظیم نشده است'));
+        return;
+      }
+
+      await fetchAll();
+    } catch (e) {
+      console.error('handleDeleteConfirmed error', e);
+      showErrorMessage(t('خطا در حذف منبع'));
+    } finally {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+    }
+  }
+
+  /* ===== Init ===== */
   onMounted(async () => {
-    await Promise.allSettled([repo.GetOfficeEmployee?.()]);
     await fetchAll();
-    setBlankEditorRow();
   });
 </script>
 
 <style scoped>
-  .custom-table :deep(.v-data-table__thead th) {
-    background: rgb(var(--v-theme-primary));
-    color: #fff;
-    font-weight: 400;
+  .stat-card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+    height: 100px;
+    font-family: var(--app-font) !important;
   }
 
-  /* group layouts */
-  .addr-group {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(250px, 1fr));
-    gap: 2px;
-  }
-  .addr-group-6 {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(220px, 1fr));
-    gap: 2px;
-  }
-  .introduction-group {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(220px, 1fr));
-    gap: 2px;
-  }
-  .text-group {
-    display: grid;
-    width: 250px;
-    gap: 2px;
-  }
-  .text-group-note {
-    display: grid;
-    width: 400px;
-    gap: 2px;
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
   }
 
-  .flex {
-    display: flex;
-  }
-  .items-center {
-    align-items: center;
-  }
-  .gap-1 {
-    gap: 4px;
+  .stat-card-active {
+    border-color: #1976d2 !important;
+    box-shadow: 0 0 0 1px rgba(25, 118, 210, 0.3);
   }
 
-  .tablebody {
-    display: flex !important;
-    gap: 2px !important;
+  .text-green {
+    color: #4caf50 !important;
   }
 
-  /* compact inputs */
-  :deep(.v-field-label),
-  :deep(.v-label),
-  :deep(input::placeholder) {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    color: #555 !important;
-  }
-  :deep(.v-field__input) {
-    min-height: 26px !important;
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
+  .text-amber {
+    color: #ff9800 !important;
   }
 
-  /* picture cell + overlay */
-  .hidden-file {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
+  .text-purple {
+    color: #9c27b0 !important;
   }
-  .pic-wrap {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
+
+  /* 🔹 make search field height similar to large button */
+  .search-field :deep(.v-field) {
+    min-height: 48px;
   }
-  .pic-thumb {
-    position: relative;
-    display: inline-flex;
+
+  .cursor-pointer {
     cursor: pointer;
   }
-  .pic-overlay {
-    position: absolute;
-    inset: -6px -6px auto auto;
-    display: none;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.55);
-    padding: 6px;
-    border-radius: 8px;
-    transform: translateY(-40%);
-    white-space: nowrap;
+
+  .fontfamily {
+    font-family: var(--app-font) !important;
   }
-  .pic-thumb:hover .pic-overlay {
-    display: inline-flex;
-  }
-  .pic-overlay :deep(.v-btn) {
-    color: #fff;
+
+  .text-grey {
+    color: #9e9e9e;
   }
 </style>

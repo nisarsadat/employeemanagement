@@ -106,6 +106,9 @@ import EventReport from '../pages/reports/EventActivityReport.vue';
 import InformationActivityReport from '../pages/reports/InformationActivityReport.vue';
 import InformationsForm from '../pages/Informations/InformationsForm.vue';
 import OfficeEmployeeForm from '../pages/OfficeEmployee/OfficeEmployeeForm.vue';
+import ResourcesForm from '../pages/Resources/ResourcesForm.vue';
+import EventsForm from '../pages/Events/EventsForm.vue';
+import DeleviryCaptiveForm from '../pages/DeleviryCaptive/DeleviryCaptiveForm.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -173,14 +176,45 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('resources') },
         },
         {
+          path: 'resourcesform',
+          name: 'resources.create',
+          component: ResourcesForm,
+          props: true,
+        },
+
+        // 🔹 RESOURCES EDIT
+        {
+          path: 'resourcesform/:id',
+          name: 'resources.edit',
+          component: ResourcesForm,
+          props: true,
+        },
+        {
           path: 'events',
           component: Events,
           meta: { requiresAuth: true, perm: permFor('events') },
         },
         {
+          path: '/app/eventsform',
+          name: 'EventsCreate',
+          component: EventsForm,
+        },
+        {
+          path: '/app/eventsform/:id',
+          name: 'EventsEdit',
+          component: EventsForm,
+          props: true,
+        },
+        {
           path: 'delevirycaptive',
           component: DeleviryCaptive,
           meta: { requiresAuth: true, perm: permFor('delevirycaptive') },
+        },
+        {
+          path: '/app/delevirycaptiveform/:id?',
+          name: 'DeleviryCaptiveForm',
+          component: DeleviryCaptiveForm,
+          props: true,
         },
         {
           path: 'informations',

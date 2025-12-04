@@ -1028,7 +1028,9 @@
         });
 
         if (created?.id) {
-          showSuccessMessage(t('اطلاع موفقانه ثبت شد'));
+          router
+            .push({ path: '/app/informations' })
+            .showSuccessMessage(t('اطلاع موفقانه ثبت شد'));
           resetForm();
         } else {
           showErrorMessage(t('ثبت معلومات ناکام شد'));
@@ -1041,7 +1043,9 @@
         });
 
         if (updated?.id) {
-          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+          router
+            .push({ path: '/app/informations' })
+            .showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
           await loadForEdit();
         } else {
           showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));

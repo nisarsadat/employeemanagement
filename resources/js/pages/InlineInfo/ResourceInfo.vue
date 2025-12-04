@@ -1,15 +1,19 @@
 <template>
-  <v-container fluid class="resource-container" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid class="resource-container fontfamily" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- Search Window -->
-    <v-card class="search-window mb-4" elevation="2" :dir="isRtl ? 'rtl' : 'ltr'">
-      <v-card-title class="bg-primary">
-        <v-icon icon="mdi-magnify" class="mr-2"></v-icon>
+    <v-card class="search-window mb-4" elevation="2" rounded="lg" :dir="isRtl ? 'rtl' : 'ltr'">
+      <v-card-title class="search-header gradient-bg d-flex">
+        <v-icon icon="mdi-magnify" class="mr-2 fontfamily"></v-icon>
         {{ t('جستجوی منبع') }}
+        <v-spacer></v-spacer>
+        <v-chip color="primary" variant="elevated" class="ml-2 fontfamily" size="default">
+          {{ t('تعداد') }}: {{ resourceItems.length }}
+        </v-chip>
       </v-card-title>
 
-      <v-card-text class="pa-4" :dir="isRtl ? 'rtl' : 'ltr'">
-        <v-row>
-          <v-col cols="12" md="8">
+      <v-card-text class="pa-4">
+        <v-row align="center" no-gutters>
+          <v-col cols="12" :dir="isRtl ? 'rtl' : 'ltr'">
             <v-autocomplete
               v-model="selectedId"
               :items="resourceItems"
@@ -18,210 +22,281 @@
               :label="t('نام یا کد منبع')"
               variant="outlined"
               density="compact"
-              prepend-inner-icon="mdi-account-search"
               :hint="selectedObj ? selectedObj.display : ''"
               persistent-hint
               hide-details="auto"
               color="primary"
+              bg-color="background"
+              :loading="loading"
+              class="search-field elevation-1 fontfamily"
               :dir="isRtl ? 'rtl' : 'ltr'"
               @update:search="onType"
-            />
-          </v-col>
+            >
+              <template #prepend-inner>
+                <v-icon :color="selectedId ? 'primary' : 'grey'" class="ml-1">
+                  mdi-account-search
+                </v-icon>
+              </template>
 
-          <v-col cols="12" md="4" class="text-center">
-            <v-chip color="primary" variant="flat" class="mt-2">
-              {{ t('تعداد') }}: {{ resourceItems.length }}
-            </v-chip>
+              <template #selection="{ item }">
+                <div class="d-flex align-center">
+                  <v-avatar size="24" color="primary-lighten-5" class="mr-2">
+                    <v-icon icon="mdi-account" size="14" color="primary"></v-icon>
+                  </v-avatar>
+                  <span class="text-truncate text-body-2 fontfamily">{{ item.title }}</span>
+                </div>
+              </template>
+            </v-autocomplete>
           </v-col>
         </v-row>
       </v-card-text>
     </v-card>
 
     <!-- Details Window -->
-    <v-card v-if="model" class="details-window" elevation="2" :dir="isRtl ? 'rtl' : 'ltr'">
-      <v-card-title class="bg-primary">
-        <v-icon icon="mdi-account-details" class="mr-2"></v-icon>
-        {{ t('مشخصات منبع') }}
-      </v-card-title>
-      <v-divider class="bg-white"></v-divider>
-      <!-- Header Info -->
-      <v-row class="mb-4 bg-primary" align="center">
-        <v-col cols="auto">
-          <v-avatar size="220" color="primary" class="mx-1">
-            <v-img :src="model.picture || placeholder" :alt="t('تصویر')" cover>
-              <template v-slot:error>
-                <v-icon icon="mdi-account" size="40" color="white"></v-icon>
-              </template>
-            </v-img>
-          </v-avatar>
-        </v-col>
+    <v-expand-transition>
+      <v-card
+        v-if="model"
+        class="details-window elevation-2"
+        rounded="lg"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+      >
+        <v-card-title class="details-header gradient-bg fontfamily">
+          <v-icon icon="mdi-account-details" class="mr-2"></v-icon>
+          {{ t('مشخصات منبع') }}
+          <v-spacer></v-spacer>
+          <v-chip :color="statusChipColor" size="default" class="status-chip fontfamily">
+            {{ model.activity || t('نامشخص') }}
+          </v-chip>
+        </v-card-title>
 
-        <v-col>
-          <v-row>
-            <v-col cols="12">
-              <h2 class="text-h6">{{ model.firstName }} {{ model.lastName }}</h2>
+        <v-card-text class="pa-4">
+          <!-- Header Info -->
+          <v-row align="center" class="mb-4">
+            <!-- Avatar + Code -->
+            <v-col cols="12" md="4" class="text-center">
+              <div class="avatar-container">
+                <v-avatar size="170" class="profile-avatar elevation-3 fontfamily">
+                  <v-img
+                    :src="model.picture || placeholder"
+                    :alt="t('تصویر')"
+                    cover
+                    class="avatar-image"
+                  >
+                    <template #error>
+                      <div class="avatar-fallback">
+                        <v-icon icon="mdi-account" size="42" color="white"></v-icon>
+                      </div>
+                    </template>
+                  </v-img>
+                </v-avatar>
+
+                <!-- Clickable code chip → Resources page -->
+                <v-chip
+                  color="primary"
+                  variant="flat"
+                  size="small"
+                  class="mt-2 code-chip fontfamily"
+                  @click="goToResources"
+                >
+                  <v-icon start size="default">mdi-identifier</v-icon>
+                  {{ t('کود نمبر') }}: {{ model.code_number || t('ندارد') }}
+                </v-chip>
+              </div>
             </v-col>
-            <v-col cols="12">
-              <v-chip :color="statusChipColor" size="small" class="mr-2">
-                {{ model.status || t('نامشخص') }}
-              </v-chip>
-              <v-chip variant="outlined" class="bg-black" size="small">
-                {{ model.code_number || t('بدون کود') }} کود نمبر
-              </v-chip>
+
+            <!-- Main info (Name / Father / Code) + Contacts -->
+            <v-col cols="12" md="8">
+              <div class="info-section">
+                <!-- Labels + values in one row -->
+                <div class="primary-info mb-3">
+                  <div class="info-row">
+                    <span class="info-label fontfamily">{{ t('نام') }}</span>
+                    <span class="info-value fontfamily">
+                      {{ model.name || t('بدون نام') }}
+                    </span>
+                  </div>
+
+                  <div class="info-row" v-if="model.father_name">
+                    <span class="info-label fontfamily">{{ t('نام پدر') }}</span>
+                    <span class="info-value fontfamily">
+                      {{ model.father_name }}
+                    </span>
+                  </div>
+
+                  <div class="info-row" v-if="model.code_number">
+                    <span class="info-label fontfamily">{{ t('کود نمبر') }}</span>
+                    <span class="info-value fontfamily">
+                      {{ model.code_number }}
+                    </span>
+                  </div>
+                </div>
+
+                <v-divider class="mb-3"></v-divider>
+
+                <!-- Contact info (only phone) -->
+                <div class="contact-info fontfamily">
+                  <v-list lines="two" density="compact" class="bg-transparent">
+                    <v-list-item>
+                      <template #prepend>
+                        <v-icon color="primary" class="mr-3" size="18">mdi-phone</v-icon>
+                      </template>
+                      <v-list-item-title class="font-weight-medium text-body-2 fontfamily">
+                        {{ t('شماره تماس') }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle class="text-body-2 fontfamily">
+                        {{ model.phone || t('شماره تماس موجود نیست') }}
+                      </v-list-item-subtitle>
+                    </v-list-item>
+                  </v-list>
+                </div>
+              </div>
             </v-col>
           </v-row>
-        </v-col>
-      </v-row>
 
-      <!-- Information Tabs -->
-      <v-tabs v-model="activeTab" color="primary" class="mb-4">
-        <v-tab value="personal">
-          <v-icon start icon="mdi-account"></v-icon>
-          {{ t('اطلاعات شخصی') }}
-        </v-tab>
-        <v-tab value="professional">
-          <v-icon start icon="mdi-briefcase"></v-icon>
-          {{ t('اطلاعات کاری') }}
-        </v-tab>
-      </v-tabs>
-
-      <v-window v-model="activeTab">
-        <!-- Personal Information -->
-        <v-window-item value="personal">
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-list lines="two" density="compact">
-                <v-list-subheader>{{ t('مشخصات هویتی') }}</v-list-subheader>
-                <v-list-item
-                  v-for="item in personalInfoItems"
-                  :key="item.key"
-                  :title="item.value"
-                  :subtitle="item.label"
-                >
-                  <template v-slot:prepend>
-                    <v-icon :icon="item.icon" color="primary"></v-icon>
-                  </template>
-                </v-list-item>
-              </v-list>
+          <!-- Action Cards -->
+          <v-row class="action-cards" dense>
+            <v-col cols="12" md="4">
+              <v-card
+                class="action-card elevation-1"
+                hover
+                @click="goToEvents"
+                :disabled="model.events_count === 0"
+              >
+                <v-card-text class="text-center pa-4">
+                  <v-icon color="primary" size="32" class="mb-2"> mdi-calendar-text </v-icon>
+                  <h3 class="text-body-2 font-weight-bold mb-1 fontfamily">
+                    {{ t('واقعات') }}
+                  </h3>
+                  <v-chip color="primary" variant="outlined" size="small" class="count-chip fontfamily">
+                    {{ model.events_count }}
+                  </v-chip>
+                  <v-btn
+                    color="primary"
+                    variant="text"
+                    class="mt-2 text-caption fontfamily"
+                    :disabled="model.events_count === 0"
+                  >
+                    {{ t('مشاهده') }}
+                    <v-icon end size="16">mdi-arrow-left</v-icon>
+                  </v-btn>
+                </v-card-text>
+              </v-card>
             </v-col>
 
-            <v-col cols="12" md="6">
-              <v-list lines="two" density="compact">
-                <v-list-subheader>{{ t('تحصیلات و مشخصات') }}</v-list-subheader>
-                <v-list-item
-                  v-for="item in educationInfoItems"
-                  :key="item.key"
-                  :title="item.value"
-                  :subtitle="item.label"
-                >
-                  <template v-slot:prepend>
-                    <v-icon :icon="item.icon" color="primary"></v-icon>
-                  </template>
-                </v-list-item>
-              </v-list>
+            <v-col cols="12" md="4">
+              <v-card
+                class="action-card elevation-1"
+                hover
+                @click="goToInformations"
+                :disabled="model.informations_count === 0"
+              >
+                <v-card-text class="text-center pa-4">
+                  <v-icon color="primary" size="32" class="mb-2"> mdi-information </v-icon>
+                  <h3 class="text-body-2 font-weight-bold mb-1 fontfamily">
+                    {{ t('اطلاعات') }}
+                  </h3>
+                  <v-chip color="primary" variant="outlined" size="small" class="count-chip fontfamily">
+                    {{ model.informations_count }}
+                  </v-chip>
+                  <v-btn
+                    color="primary"
+                    variant="text"
+                    class="mt-2 text-caption fontfamily"
+                    :disabled="model.informations_count === 0"
+                  >
+                    {{ t('مشاهده') }}
+                    <v-icon end size="16">mdi-arrow-left</v-icon>
+                  </v-btn>
+                </v-card-text>
+              </v-card>
             </v-col>
 
-            <v-col cols="12">
-              <v-list lines="two" density="compact">
-                <v-list-subheader>{{ t('آدرس') }}</v-list-subheader>
-                <v-list-item
-                  v-for="item in addressItems"
-                  :key="item.key"
-                  :title="item.value"
-                  :subtitle="item.label"
-                >
-                  <template v-slot:prepend>
-                    <v-icon :icon="item.icon" color="primary"></v-icon>
-                  </template>
-                </v-list-item>
-              </v-list>
-            </v-col>
-          </v-row>
-        </v-window-item>
-
-        <!-- Professional Information -->
-        <v-window-item value="professional">
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-list lines="two" density="compact">
-                <v-list-subheader>{{ t('سوابق شغلی') }}</v-list-subheader>
-                <v-list-item
-                  v-for="item in professionalInfoItems"
-                  :key="item.key"
-                  :title="item.value"
-                  :subtitle="item.label"
-                >
-                  <template v-slot:prepend>
-                    <v-icon :icon="item.icon" color="primary"></v-icon>
-                  </template>
-                </v-list-item>
-              </v-list>
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <v-list lines="two" density="compact">
-                <v-list-subheader>{{ t('فعالیت و تماس') }}</v-list-subheader>
-                <v-list-item
-                  v-for="item in activityInfoItems"
-                  :key="item.key"
-                  :title="item.value"
-                  :subtitle="item.label"
-                >
-                  <template v-slot:prepend>
-                    <v-icon :icon="item.icon" color="primary"></v-icon>
-                  </template>
-                </v-list-item>
-              </v-list>
-            </v-col>
-
-            <v-col cols="12">
-              <v-textarea
-                :model-value="model.notes || '—'"
-                :label="t('ملاحظات')"
-                variant="outlined"
-                disabled=""
-                rows="3"
-                readonly
-                auto-grow
-              ></v-textarea>
+            <v-col cols="12" md="4">
+              <v-card
+                class="action-card elevation-1"
+                hover
+                @click="goToFifthyFormats"
+                :disabled="model.fifty_six_formats_count === 0"
+              >
+                <v-card-text class="text-center pa-4">
+                  <v-icon color="primary" size="32" class="mb-2"> mdi-file-multiple </v-icon>
+                  <h3 class="text-body-2 font-weight-bold mb-1 fontfamily">
+                    {{ t('۵۶ فارمت') }}
+                  </h3>
+                  <v-chip color="primary" variant="outlined" size="small" class="count-chip fontfamily">
+                    {{ model.fifty_six_formats_count }}
+                  </v-chip>
+                  <v-btn
+                    color="primary"
+                    variant="text"
+                    class="mt-2 text-caption fontfamily"
+                    :disabled="model.fifty_six_formats_count === 0"
+                  >
+                    {{ t('مشاهده') }}
+                    <v-icon end size="16">mdi-arrow-left</v-icon>
+                  </v-btn>
+                </v-card-text>
+              </v-card>
             </v-col>
           </v-row>
-        </v-window-item>
-      </v-window>
-    </v-card>
+        </v-card-text>
+      </v-card>
+    </v-expand-transition>
 
     <!-- Empty State -->
-    <v-card v-else class="text-center py-8" variant="outlined">
-      <v-icon size="60" color="grey" class="mb-4">mdi-account-search</v-icon>
-      <h3 class="text-h6 text-grey">{{ t('منبعی انتخاب نشده') }}</h3>
-      <p class="text-grey">{{ t('لطفاً از باکس جستجو یک منبع انتخاب کنید') }}</p>
-    </v-card>
+    <v-fade-transition>
+      <v-card
+        v-if="!model"
+        class="empty-state elevation-1 text-center py-8"
+        variant="outlined"
+        rounded="lg"
+      >
+        <v-icon size="56" color="grey-lighten-1" class="mb-3"> mdi-account-search-outline </v-icon>
+        <h3 class="text-subtitle-1 text-grey mb-2 fontfamily">
+          {{ t('منبعی انتخاب نشده') }}
+        </h3>
+        <p class="text-body-2 text-grey-lighten-1 mb-4 fontfamily">
+          {{ t('لطفاً از باکس جستجو یک منبع انتخاب کنید') }}
+        </p>
+        <v-btn
+          color="primary"
+          variant="tonal"
+          rounded="lg"
+          size="default"
+          @click="$el.querySelector('.search-field input')?.focus()"
+        >
+          <v-icon start size="16" class="fontfamily">mdi-magnify</v-icon>
+          {{ t('جستجو را شروع کنید') }}
+        </v-btn>
+      </v-card>
+    </v-fade-transition>
   </v-container>
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
 
   const repo = useDatabaseRepository();
+  const router = useRouter();
   const { t, locale } = useI18n();
+
   const RTL_LOCALES = ['fa', 'fa-AF', 'prs', 'ps', 'ar'];
   const isRtl = ref(RTL_LOCALES.includes(locale.value));
   watch(locale, (v) => {
     isRtl.value = RTL_LOCALES.includes(v);
   });
+
   /* Local state */
   const selectedId = ref(null);
+  const selectedItemRaw = ref(null);
   const loading = ref(false);
   const searchText = ref('');
-  const activeTab = ref('personal');
-  // script
-  const selectedObj = computed(
-    () => resourceItems.value.find((i) => i.id === selectedId.value) || null
-  );
+  const placeholder = ''; // mdi-account used when no image
 
-  /* Utilities */
+  /* Helpers */
   const toArray = (v) => {
     if (v && typeof v.then === 'function') return [];
     if (Array.isArray(v)) return v;
@@ -231,7 +306,6 @@
     return [];
   };
 
-  /* Data list for autocomplete */
   const rawList = computed(() => toArray(repo.Resources || repo.resource));
 
   const resourceItems = computed(() =>
@@ -239,198 +313,50 @@
       id: r.id,
       display: r.code_number
         ? `${r.name || ''} — ${r.code_number}`
-        : r.name || r.nickname || r.tazkira || `#${r.id}`,
+        : r.name || r.nick_name || r.tazkira || `#${r.id}`,
       _raw: r,
     }))
   );
 
-  /* Selected resource */
-  const selectedItem = computed(
-    () => resourceItems.value.find((i) => i.id === selectedId.value)?._raw || null
+  const selectedObj = computed(
+    () => resourceItems.value.find((i) => i.id === selectedId.value) || null
   );
 
-  const model = computed(() => {
-    if (!selectedItem.value) return null;
-    const r = selectedItem.value;
+  watch(selectedId, (id) => {
+    const found = resourceItems.value.find((i) => i.id === id);
+    selectedItemRaw.value = found ? found._raw : null;
+  });
 
-    const [first, ...rest] = String(r.name || '')
-      .trim()
-      .split(/\s+/);
-    const last = rest.join(' ');
+  /* Normalized model for template */
+  const model = computed(() => {
+    if (!selectedItemRaw.value) return null;
+    const r = selectedItemRaw.value;
 
     return {
       id: r.id,
       picture: r.picture,
-      status: r.activity || r.halat_madani,
-
-      // Identity
       name: r.name || '',
-      firstName: first || r.name || '',
-      lastName: last || r.nickname || '',
-
-      // Personal info
       father_name: r.father_name || '',
-      grand_father_name: r.grand_father_name || '',
-      nickname: r.nickname || '',
       code_number: r.code_number || '',
-      tazkira: r.tazkira || '',
-      age: r.age || '',
-      halat_madani: r.halat_madani || '',
-      study_status: r.study_status || '',
-      language: r.language || '',
-      nation: r.nation || '',
-
-      // Address info
-      main_province: r.main_province || '',
-      main_district: r.main_district || '',
-      main_village: r.main_village || '',
-      now_province: r.now_province || '',
-      now_district: r.now_district || '',
-      now_village: r.now_village || '',
-      zone: r.zone || '',
-      hawza: r.hawza || '',
-      specific_place: r.specific_place || '',
-
-      // Professional info
-      old_job: r.old_job || '',
-      new_job: r.new_job || '',
-      job_place: r.job_place || '',
       activity: r.activity || '',
-      resource_activity_type: r.resource_activity_type || '',
-      resource_cover: r.resource_cover || '',
-      resource_saved_date: r.resource_saved_date || '',
-      project: r.project || '',
-      company: r.company || '',
-      resedint_id: r.resedint_id ?? '',
-      officeemployee_id: r.officeemployee_id ?? '',
-
-      // Contact info
       phone: r.phone_number || '',
-      notes: r.notes ?? r.note ?? '',
+      email: r.email || '',
+      events_count: r.events_count ?? 0,
+      informations_count: r.informations_count ?? 0,
+      fifty_six_formats_count: r.fifty_six_formats_count ?? 0,
     };
   });
 
-  /* Status computations */
+  /* Status chip color */
   const statusChipColor = computed(() => {
-    const s = (model.value?.status || '').toString().toLowerCase();
-    if (['active', 'on', 'salaried', 'working', 'valid'].some((k) => s.includes(k)))
-      return 'success';
-    if (['inactive', 'off', 'blocked', 'invalid'].some((k) => s.includes(k))) return 'error';
+    const s = (model.value?.activity || '').toString().toLowerCase();
+    if (['فعال', 'active', 'on', 'working', 'valid'].some((k) => s.includes(k))) return 'black';
+    if (['غیر فعال', 'inactive', 'off', 'blocked', 'invalid'].some((k) => s.includes(k)))
+      return 'error';
     return 'warning';
   });
 
-  /* Tab data computations */
-  const personalInfoItems = computed(() => [
-    { key: 'name', label: t('نام'), value: model.value?.name || '—', icon: 'mdi-account' },
-    {
-      key: 'father_name',
-      label: t('نام پدر'),
-      value: model.value?.father_name || '—',
-      icon: 'mdi-account-supervisor',
-    },
-    {
-      key: 'tazkira',
-      label: t('شماره تذکره'),
-      value: model.value?.tazkira || '—',
-      icon: 'mdi-card-account-details',
-    },
-    {
-      key: 'nickname',
-      label: t('نام مستعار'),
-      value: model.value?.nickname || '—',
-      icon: 'mdi-tag',
-    },
-  ]);
-
-  const educationInfoItems = computed(() => [
-    { key: 'age', label: t('عمر'), value: model.value?.age || '—', icon: 'mdi-cake' },
-    {
-      key: 'halat_madani',
-      label: t('حالت مدنی'),
-      value: model.value?.halat_madani || '—',
-      icon: 'mdi-heart',
-    },
-    {
-      key: 'study_status',
-      label: t('رتبه علمی'),
-      value: model.value?.study_status || '—',
-      icon: 'mdi-school',
-    },
-    {
-      key: 'nation',
-      label: t('قوم'),
-      value: model.value?.nation || '—',
-      icon: 'mdi-account-group',
-    },
-  ]);
-
-  const addressItems = computed(() => [
-    {
-      key: 'main_province',
-      label: t('ولایت اصلی'),
-      value: model.value?.main_province || '—',
-      icon: 'mdi-map',
-    },
-    {
-      key: 'main_district',
-      label: t('ولسوالی اصلی'),
-      value: model.value?.main_district || '—',
-      icon: 'mdi-map-outline',
-    },
-    {
-      key: 'now_province',
-      label: t('ولایت فعلی'),
-      value: model.value?.now_province || '—',
-      icon: 'mdi-map-marker',
-    },
-    {
-      key: 'now_district',
-      label: t('ولسوالی فعلی'),
-      value: model.value?.now_district || '—',
-      icon: 'mdi-map-marker-outline',
-    },
-  ]);
-
-  const professionalInfoItems = computed(() => [
-    {
-      key: 'old_job',
-      label: t('وظیفه سابقه'),
-      value: model.value?.old_job || '—',
-      icon: 'mdi-history',
-    },
-    {
-      key: 'new_job',
-      label: t('وظیفه فعلی'),
-      value: model.value?.new_job || '—',
-      icon: 'mdi-briefcase',
-    },
-    {
-      key: 'job_place',
-      label: t('محل وظیفه'),
-      value: model.value?.job_place || '—',
-      icon: 'mdi-office-building',
-    },
-    { key: 'company', label: t('شرکت'), value: model.value?.company || '—', icon: 'mdi-domain' },
-  ]);
-
-  const activityInfoItems = computed(() => [
-    { key: 'activity', label: t('فعالیت'), value: model.value?.activity || '—', icon: 'mdi-run' },
-    {
-      key: 'resource_activity_type',
-      label: t('نوع فعالیت'),
-      value: model.value?.resource_activity_type || '—',
-      icon: 'mdi-chart-bubble',
-    },
-    { key: 'phone', label: t('شماره تماس'), value: model.value?.phone || '—', icon: 'mdi-phone' },
-    {
-      key: 'resource_saved_date',
-      label: t('تاریخ ثبت'),
-      value: model.value?.resource_saved_date || '—',
-      icon: 'mdi-calendar',
-    },
-  ]);
-
-  /* Search functionality */
+  /* Search */
   let tmr = null;
   const onType = (val) => {
     searchText.value = val || '';
@@ -446,7 +372,40 @@
     }, 300);
   };
 
-  /* Prime initial data */
+  /* Navigation */
+  const goToEvents = () => {
+    if (!model.value) return;
+    router.push({
+      path: '/app/events',
+      query: { resource_id: model.value.id },
+    });
+  };
+
+  const goToInformations = () => {
+    if (!model.value) return;
+    router.push({
+      path: '/app/informations',
+      query: { resource_id: model.value.id },
+    });
+  };
+
+  const goToFifthyFormats = () => {
+    if (!model.value) return;
+    router.push({
+      path: '/app/fifthyformatsroute',
+      query: { resource_id: model.value.id },
+    });
+  };
+
+  const goToResources = () => {
+    if (!model.value) return;
+    router.push({
+      path: '/app/resources',
+      query: { id: model.value.id },
+    });
+  };
+
+  /* Initial load */
   (async () => {
     loading.value = true;
     try {
@@ -459,17 +418,221 @@
 
 <style scoped>
   .resource-container {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
+    padding: 16px;
+    font-size: 0.9rem;
   }
 
-  .search-window,
-  .details-window {
-    border-radius: 8px;
+  .search-window {
+    border-radius: 12px;
+    overflow: hidden;
   }
 
-  .bg-primary {
-    background-color: rgb(var(--v-theme-primary));
+  .search-header {
+    background: linear-gradient(
+      135deg,
+      rgb(var(--v-theme-primary)),
+      rgb(var(--v-theme-primary-darken-1))
+    );
     color: white;
+    padding: 12px 18px;
+    font-size: 0.95rem;
+  }
+
+  .gradient-bg {
+    background: linear-gradient(
+      135deg,
+      rgb(var(--v-theme-primary)),
+      rgb(var(--v-theme-primary-darken-1))
+    );
+  }
+
+  .search-field {
+    border-radius: 10px;
+    transition: all 0.2s ease;
+  }
+
+  .search-field:hover {
+    box-shadow: 0 2px 8px rgba(var(--v-theme-primary), 0.08);
+  }
+
+  .details-window {
+    border-radius: 12px;
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .details-header {
+    background: linear-gradient(
+      135deg,
+      rgb(var(--v-theme-primary)),
+      rgb(var(--v-theme-primary-darken-1))
+    );
+    color: white;
+    padding: 12px 18px;
+    font-size: 0.95rem;
+  }
+
+  .status-chip {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .avatar-container {
+    position: relative;
+  }
+
+  .profile-avatar {
+    border: 3px solid rgba(var(--v-theme-primary), 0.15);
+    transition: transform 0.2s ease;
+  }
+
+  .profile-avatar:hover {
+    transform: scale(1.03);
+  }
+
+  .avatar-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+      135deg,
+      rgb(var(--v-theme-primary)),
+      rgb(var(--v-theme-primary-lighten-1))
+    );
+  }
+
+  .code-chip {
+    font-weight: 600;
+    font-family: monospace;
+    cursor: pointer;
+  }
+
+  .info-section {
+    background: linear-gradient(
+      to bottom,
+      rgba(var(--v-theme-primary-lighten-5), 0.08),
+      transparent
+    );
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(var(--v-theme-primary), 0.08);
+  }
+
+  /* label + value block in a row */
+  .primary-info {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .info-row {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .info-label {
+    font-size: 0.75rem;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .info-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.9);
+  }
+
+  .contact-info {
+    background: white;
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  .action-cards {
+    margin-top: 4px;
+  }
+
+  .action-card {
+    border-radius: 12px;
+    height: 100%;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-top: 3px solid transparent;
+  }
+
+  .action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1) !important;
+    border-top-color: rgb(var(--v-theme-primary));
+  }
+
+  .count-chip {
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-width: 44px;
+  }
+
+  .empty-state {
+    border-radius: 12px;
+    border-style: dashed;
+    border-width: 2px;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 960px) {
+    .resource-container {
+      padding: 12px;
+    }
+
+    .search-header,
+    .details-header {
+      padding: 10px 14px;
+    }
+
+    .info-section {
+      padding: 12px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .profile-avatar {
+      width: 140px !important;
+      height: 140px !important;
+    }
+
+    .action-card {
+      margin-bottom: 10px;
+    }
+  }
+  .fontfamily {
+    font-family: var(--app-font) !important;
   }
 </style>

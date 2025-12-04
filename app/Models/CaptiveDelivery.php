@@ -2,35 +2,36 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CaptiveDelivery extends Model
 {
+    use HasFactory;
+
     protected $table = 'captive_deliveries';
 
     protected $fillable = [
-        'picture',
         'name',
         'father_name',
-        'nickname',
         'grand_father_name',
+        'nickname',
+        'tazkira',
+        'age',
+        'halat_madani',
+        'criminal_history',
+        'old_job',
+        'new_job',
+        'language',
+        'scientific_level',
         'main_province',
         'main_district',
         'main_village',
         'now_province',
         'now_district',
         'now_village',
-        'halat_madani',
-        'age',
-        'tazkira',
-        'criminal_history',
-        'Province_addr',
-        'old_job',
-        'new_job',
-        'language',
-        'scientific_level',
         'captive_place',
+        'coordinates',
         'captive_marja',
         'captive_date',
         'captive_hour',
@@ -39,11 +40,13 @@ class CaptiveDelivery extends Model
         'captive_halat',
         'suspect_tools',
         'notes',
-        'coordinates'
+        'Province_addr',
+        'picture',
     ];
 
-    public function documents(): HasMany
+    public function documents()
     {
-        return $this->hasMany(CaptiveDeliveryDocument::class, 'captive_delivery_id');
+        // ✅ THIS is the important part
+        return $this->hasMany(CaptiveDeliveryDocument::class, 'captive_delivery_id', 'id');
     }
 }
