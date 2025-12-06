@@ -1,328 +1,157 @@
+<!-- src/views/market/SuperMarketsIndex.vue -->
 <template>
-  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- APP BAR -->
     <AppBar
       :title="t('سوپرمارکیت')"
-      :subtitle="t('ایجاد/ویرایش SuperMarket')"
+      :subtitle="t('فهرست، جستجو و مدیریت سوپرمارکیت‌ها')"
       @toggle-drawer="drawer = !drawer"
     >
-      <template #actions><v-btn icon /></template>
+      <template #actions>
+        <v-btn icon />
+      </template>
     </AppBar>
 
-    <!-- Search -->
-    <v-row class="d-flex">
-      <v-col cols="12" md="9">
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('جستجو')"
-          density="compact"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          @keyup.enter="fetchAll()"
-          clearable
-          @click:clear="
-            () => {
-              repo.Search = '';
-              fetchAll();
-            }
-          "
-        />
-      </v-col>
-    </v-row>
+    <!-- 🔍 Search + ➕ Create -->
+    <v-container class="pa-0">
+      <v-row class="align-center">
+        <!-- Search Field -->
+        <v-col cols="12" sm="8" md="9" lg="10">
+          <v-text-field
+            v-model.trim="repo.Search"
+            :label="t('جستجو در سوپرمارکیت‌ها...')"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            hide-details
+            @keyup.enter="fetchAll"
+            clearable
+            @click:clear="clearSearch"
+            class="bg-white"
+          />
+        </v-col>
 
-    <!-- Single-row editor -->
-    <v-form
-      ref="editorForm"
-      v-model="editorValid"
-      lazy-validation
-      :key="formKey"
-      @submit.prevent="onSubmit(rows[0])"
-    >
-      <v-card class="tablebody" ref="editorCard">
-        <v-data-table
-          :headers="headers"
-          :items="rows"
-          :loading="repo.loading"
-          item-key="idOrTmp"
-          class="elevation-2 custom-table"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          density="comfortable"
-          hide-default-footer
-        >
-          <!-- Identity -->
-          <template #item.supermarket_name="{ item }">
-            <v-text-field
-              v-model="item.draft.supermarket_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام سوپرمارکیت')"
-              :rules="[rules.required]"
-              hide-details
-            />
-          </template>
-          <template #item.market_activity_type="{ item }">
-            <v-text-field
-              v-model="item.draft.market_activity_type"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نوع فعالیت')"
-              hide-details
-            />
-          </template>
-          <template #item.daily_clientele="{ item }">
-            <v-text-field
-              v-model="item.draft.daily_clientele"
-              class="text-group"
-              type="number"
-              density="compact"
-              variant="outlined"
-              :label="t('مراجعین روزانه')"
-              :rules="[rules.nonNegativeInt]"
-              hide-details
-            />
-          </template>
-          <template #item.shops_quantity="{ item }">
-            <v-text-field
-              v-model="item.draft.shops_quantity"
-              class="text-group"
-              type="number"
-              density="compact"
-              variant="outlined"
-              :label="t('تعداد دکان‌ها')"
-              :rules="[rules.nonNegativeInt]"
-              hide-details
-            />
-          </template>
+        <!-- Create Button -->
+        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            size="large"
+            class="text-none mx-4"
+            rounded="lg"
+            block
+            prepend-icon="mdi-plus"
+            @click="goCreate"
+          >
+            {{ t('اضافه سوپرمارکیت جدید') }}
+          </v-btn>
+        </v-col>
+      </v-row>
 
-          <!-- Responsible -->
-          <template #item.responsible_name="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مسؤول')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_f_name="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_f_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام پدر مسؤول')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره تماس مسؤول')"
-              :rules="[rules.phone]"
-              hide-details
-            />
-          </template>
-
-          <!-- Address -->
-          <template #item.province="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.province"
-                density="compact"
-                variant="outlined"
-                :label="t('ولایت')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.zone"
-                density="compact"
-                variant="outlined"
-                :label="t('زون')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.district"
-                density="compact"
-                variant="outlined"
-                :label="t('ولسوالی')"
-                hide-details
-              />
+      <!-- 📊 Filter Cards -->
+      <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- All -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'all' }"
+            @click="cardFilter = 'all'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-store</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('تمام سوپرمارکیت‌ها') }}</div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
+              </div>
             </div>
-          </template>
-          <template #item.village="{ item }">
-            <v-text-field
-              v-model="item.draft.village"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('قریه')"
-              hide-details
-            />
-          </template>
-          <template #item.specefic_place="{ item }">
-            <v-text-field
-              v-model="item.draft.specefic_place"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('موقعیت مشخص')"
-              hide-details
-            />
-          </template>
+          </v-card>
+        </v-col>
 
-          <!-- Staffing / Security -->
-          <template #item.employee_quantity="{ item }">
-            <v-text-field
-              v-model="item.draft.employee_quantity"
-              class="text-group"
-              type="number"
-              density="compact"
-              variant="outlined"
-              :label="t('تعداد کارمندان')"
-              :rules="[rules.nonNegativeInt]"
-              hide-details
-            />
-          </template>
-          <template #item.guard_quantity="{ item }">
-            <v-text-field
-              v-model="item.draft.guard_quantity"
-              class="text-group"
-              type="number"
-              density="compact"
-              variant="outlined"
-              :label="t('تعداد محافظ')"
-              :rules="[rules.nonNegativeInt]"
-              hide-details
-            />
-          </template>
-
-          <!-- Coordinates BEFORE note -->
-          <template #item.coordinates="{ item }">
-            <v-text-field
-              v-model="item.draft.coordinates"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مختصات')"
-              hide-details
-            />
-          </template>
-
-          <!-- Resource (code → phone → id) -->
-          <template #item.resource_code="{ item }">
-            <v-autocomplete
-              v-model="item.draft.resource_code"
-              :items="resources"
-              item-title="code_number"
-              item-value="code_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('کود منبع')"
-              hide-details
-              clearable
-              @update:model-value="onResourceCodeChange(item)"
-            />
-          </template>
-          <template #item.resource_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره منبع')"
-              hide-details
-              readonly
-            />
-          </template>
-          <template #item.Province_addr="{ item }">
-            <v-text-field
-              v-model="item.draft.Province_addr"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت مربوطه')"
-              hide-details
-            />
-          </template>
-          <!-- <template #item.resource_id="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_id"
-              class="text-group"
-              density="compact"
-              type="number"
-              variant="outlined"
-              :label="t('Resource ID')"
-              hide-details
-              readonly
-            />
-          </template> -->
-
-          <!-- Note -->
-          <template #item.note="{ item }">
-            <v-textarea
-              v-model="item.draft.note"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('یادداشت')"
-              hide-details
-              auto-grow
-              rows="2"
-            />
-          </template>
-
-          <!-- Actions -->
-          <template #item.actions="{ item }">
-            <div class="flex items-center gap-1">
-              <v-btn
-                class="bg-primary"
-                variant="outlined"
-                :loading="item.loading"
-                @click="onSubmit(item)"
-                >{{ t('ثبت دیتا') }}</v-btn
-              >
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">{{
-                t('حذف دیتا')
-              }}</v-btn>
-              <v-btn color="warning" variant="outlined" @click="clearRow()">{{
-                t('پاک کردن ورودی‌ها')
-              }}</v-btn>
+        <!-- With coordinates -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
+            @click="cardFilter = 'withCoordinates'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-map-marker-radius</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <template #no-data>
-            <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
-          </template>
-        </v-data-table>
-      </v-card>
-    </v-form>
-  </v-container>
-  <!-- Peek + FilterableTable -->
-  <v-container fluid>
-    <PeekButton
-      v-model="expanded"
-      :id="selectedId"
-      :item="detail"
-      :loading="loading"
-      title-key="name"
-      :fields="headers"
-      :cols="3"
-      dir="rtl"
-      @fetch="fetchOne"
-    />
-  </v-container>
+        <!-- With daily clientele -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withClients' }"
+            @click="cardFilter = 'withClients'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-account-group</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای مراجعین روزانه') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withClients }}</div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
 
-  <!-- FilterableTable -->
-  <v-container fluid>
+        <!-- With employees -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withEmployees' }"
+            @click="cardFilter = 'withEmployees'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-account-tie</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای کارمندان') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withEmployees }}</div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+
+    <!-- 👁 Peek drawer -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loadingOne"
+        title-key="supermarket_name"
+        image-key="picture"
+        :fields="headersFT"
+        :cols="3"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+        :auto-detect-dates="false"
+        :date-keys="[]"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
+    <!-- 📋 MAIN TABLE -->
     <FilterableTable
       :headers="headersFT"
-      :rows="rowsFT"
+      :rows="filteredRowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
@@ -331,151 +160,242 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      :dateKeys="[]"
-      @edit="startEdit"
-      @peek="openPeek"
       class="mb-20 mx-2"
+      @edit="goEdit"
+      @peek="openPeek"
     >
-      <!-- ✅ custom cell for the 'map' column -->
+      <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
+      <template #cell-resource_code="{ row }">
+        <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              v-if="row.resource_code"
+              variant="tonal"
+              color="primary"
+              append-icon="mdi-account"
+              size="default"
+              @click.stop="goToResource(row)"
+            >
+              {{ row.resource_code }}
+            </v-btn>
+            <span v-else>-</span>
+          </template>
+        </v-tooltip>
+      </template>
+      <!-- تصویر -->
+      <template #cell-picture="{ row }">
+        <div v-if="row.picture" class="pic-wrap">
+          <v-avatar size="32" class="cursor-pointer" @click.stop="openPreview(row.picture)">
+            <v-img :src="normalizePicture(row.picture)" :alt="row.supermarket_name" cover />
+          </v-avatar>
+        </div>
+        <div v-else class="pic-wrap">
+          <v-avatar size="32">
+            <v-icon size="20">mdi-store</v-icon>
+          </v-avatar>
+        </div>
+      </template>
+
+      <!-- 🗺 MAP CELL -->
       <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="row.coordinates"
-          :title="row.name"
-          :subtitle="row.code_number"
+          :title="row.supermarket_name"
+          :subtitle="row.province"
           type="s-p"
           :photo-url="row.picture"
           :zoom="16"
         />
       </template>
-    </FilterableTable>
-  </v-container>
 
-  <!-- Snackbars -->
-  <v-snackbar v-model="showError" color="error" timeout="4500">
-    {{ errorMessage }}
-    <template #actions
-      ><v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn></template
-    >
-  </v-snackbar>
-  <v-snackbar v-model="showOk" color="primary" timeout="3000">{{ okMessage }}</v-snackbar>
+      <!-- ⚙️ ACTIONS -->
+      <template #actions="{ item }">
+        <div class="d-flex align-center ga-2">
+          <!-- مشاهده -->
+          <v-tooltip :text="t('مشاهده سوپرمارکیت')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
+                mdi-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- ویرایش -->
+          <v-tooltip :text="t('ویرایش سوپرمارکیت')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="amber-darken-2"
+                @click.stop="goEdit(item)"
+              >
+                mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- حذف -->
+          <v-tooltip :text="t('حذف سوپرمارکیت')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="red-darken-2"
+                @click.stop="openDeleteDialog(item)"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
+    </FilterableTable>
+
+    <!-- 🖼 IMAGE PREVIEW DIALOG -->
+    <v-dialog v-model="previewOpen" max-width="520">
+      <v-card>
+        <v-toolbar
+          density="compact"
+          color="primary"
+          :title="t('پیش نمایش تصویر')"
+          class="text-white"
+        />
+        <v-card-text class="d-flex justify-center">
+          <v-img
+            v-if="previewSrc"
+            :src="previewSrc"
+            :alt="t('پیش نمایش')"
+            max-width="480"
+            max-height="420"
+            cover
+          />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn color="primary" variant="flat" @click="previewOpen = false">
+            {{ t('بستن') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- 🗑 Delete Confirm Dialog -->
+    <DeleteConfirmDialog
+      v-model="deleteDialog"
+      :target="deleteTarget"
+      :is-rtl="isRtl"
+      @confirm="handleDeleteConfirmed"
+    />
+
+    <!-- ❗ Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="5000">
+      {{ errorMessage }}
+      <template #actions>
+        <v-btn variant="text" @click="showError = false"> {{ t('بستن') }} </v-btn>
+      </template>
+    </v-snackbar>
+  </v-container>
 </template>
 
 <script setup>
-  import { ref, computed, watch, onMounted, nextTick } from 'vue';
+  import { ref, computed, onMounted, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
+
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
-  import { useWakilanoRepository } from '@/stores/WakilanoRepository';
-  import FlyToMapButton from '../../components/FlyToMapButton.vue';
   import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-  const { t, locale } = useI18n();
-  const drawer = ref(false);
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+  import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
   const repo = useWakilanoRepository();
+  const router = useRouter();
 
-  /* --- Single-row state --- */
-  const rows = ref([]);
-  function toRowModel(x = {}) {
-    const base = {
-      id: x.id ?? null,
-      idOrTmp: x.id ?? 'tmp-1',
-      loading: false,
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const drawer = ref(false);
 
-      supermarket_name: x.supermarket_name ?? '',
-      market_activity_type: x.market_activity_type ?? '',
-      daily_clientele: x.daily_clientele ?? '',
-      shops_quantity: x.shops_quantity ?? '',
-      Province_addr: x.Province_addr ?? '',
-
-      responsible_name: x.responsible_name ?? '',
-      responsible_f_name: x.responsible_f_name ?? '',
-      responsible_phone: x.responsible_phone ?? '',
-
-      province: x.province ?? '',
-      zone: x.zone ?? '',
-      district: x.district ?? '',
-      village: x.village ?? '',
-      specefic_place: x.specefic_place ?? '',
-      coordinates: x.coordinates ?? '',
-
-      employee_quantity: x.employee_quantity ?? '',
-      guard_quantity: x.guard_quantity ?? '',
-
-      // Resource UI fields
-      resource_code: x.resource_code ?? x.resource?.code_number ?? '',
-      resource_phone: x.resource_phone ?? x.resource?.phone_number ?? '',
-      resource_id: x.resource_id ?? x.resource?.id ?? null,
-
-      note: x.note ?? '',
-    };
-    return { ...base, draft: { ...base } };
-  }
-  function setBlankEditorRow() {
-    rows.value = [toRowModel({})];
-  }
-
-  /* FT dataset */
-  const rowsFT = computed(() => repo.SuperMarkets || []);
-  const filters = ref({});
-
-  /* Snackbars */
-  const showError = ref(false),
-    showOk = ref(false);
-  const errorMessage = ref(''),
-    okMessage = ref('');
-  function showErrorMessage(msg) {
-    errorMessage.value = msg || t('خطا رخ داد');
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
     showError.value = true;
+  };
+
+  /* rows from store */
+  const rowsFT = computed(() => {
+    const list = repo.SuperMarkets || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
+    return [];
+  });
+
+  /* 🔢 Filter cards state */
+  const cardFilter = ref('all');
+
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
+
+    const withCoordinates = rows.filter(
+      (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
+
+    const withClients = rows.filter((r) => {
+      if (!r) return false;
+      const val = r.daily_clientele;
+      if (val === undefined || val === null || val === '') return false;
+      return Number(val) > 0;
+    }).length;
+
+    const withEmployees = rows.filter((r) => {
+      if (!r) return false;
+      const val = r.employee_quantity;
+      if (val === undefined || val === null || val === '') return false;
+      return Number(val) > 0;
+    }).length;
+
+    return { total, withCoordinates, withClients, withEmployees };
+  });
+
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+    switch (cardFilter.value) {
+      case 'withCoordinates':
+        return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+      case 'withClients':
+        return base.filter((r) => {
+          if (!r) return false;
+          const val = r.daily_clientele;
+          if (val === undefined || val === null || val === '') return false;
+          return Number(val) > 0;
+        });
+      case 'withEmployees':
+        return base.filter((r) => {
+          if (!r) return false;
+          const val = r.employee_quantity;
+          if (val === undefined || val === null || val === '') return false;
+          return Number(val) > 0;
+        });
+      default:
+        return base;
+    }
+  });
+
+  /* 🔗 go to Resources page for this resource_code */
+  function goToResource(row) {
+    if (!row?.resource_code) return;
+    router.push(`/app/resources/${row.resource_code}`);
   }
-  function showOkMessage(msg) {
-    okMessage.value = msg || t('موفقیت‌آمیز');
-    showOk.value = true;
-  }
-
-  /* Resource dropdown */
-  const resources = computed(() => repo.resourcecode || []);
-  function onResourceCodeChange(item) {
-    const code = item.draft.resource_code;
-    const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone = found?.phone_number ?? '';
-    item.draft.resource_id = found?.id ?? null;
-  }
-
-  /* Headers — coordinates before note */
-  const headers = computed(() => [
-    { title: t('نام سوپرمارکیت'), key: 'supermarket_name' },
-    { title: t('نوع فعالیت'), key: 'market_activity_type' },
-    { title: t('مراجعین روزانه'), key: 'daily_clientele' },
-    { title: t('تعداد دکان‌ها'), key: 'shops_quantity' },
-
-    { title: t('مسؤول'), key: 'responsible_name' },
-    { title: t('نام پدر مسؤول'), key: 'responsible_f_name' },
-    { title: t('شماره تماس مسؤول'), key: 'responsible_phone' },
-
-    { title: t('آدرس (۱)'), key: 'province' },
-    { title: t('قریه'), key: 'village' },
-    { title: t('موقعیت مشخص'), key: 'specefic_place' },
-
-    { title: t('تعداد کارمندان'), key: 'employee_quantity' },
-    { title: t('تعداد محافظ'), key: 'guard_quantity' },
-
-    { title: t('مختصات'), key: 'coordinates' }, // <-- before note
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
-    // { title: t('Resource ID'), key: 'resource_id' },
-
-    { title: t('یادداشت'), key: 'note' },
-
-    { title: t('عمل'), key: 'actions', sortable: false },
-  ]);
-
-  /* FT headers */
+  /* TABLE HEADERS – list */
   const headersFT = computed(() => [
+    { title: t('تصویر'), key: 'picture', sortable: false },
+
     { title: t('نام سوپرمارکیت'), key: 'supermarket_name' },
     { title: t('نوع فعالیت'), key: 'market_activity_type' },
     { title: t('مراجعین روزانه'), key: 'daily_clientele' },
@@ -500,328 +420,231 @@
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
-    { title: t('یادداشت'), key: 'note' },
+    { title: t('یادداشت'), key: 'note', width: 300 },
+
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
+  /* TOP GROUPS */
   const topGroups = computed(() => [
     {
-      title: t('مشخصات'),
+      title: t('مشخصات سوپرمارکیت'),
       keys: [
         'supermarket_name',
         'market_activity_type',
         'daily_clientele',
         'shops_quantity',
-        'coordinates',
+        'employee_quantity',
+        'guard_quantity',
       ],
     },
-    { title: t('مسؤول'), keys: ['responsible_name', 'responsible_f_name', 'responsible_phone'] },
-    { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village', 'specefic_place'] },
-    { title: t('کارمندان/محافظ'), keys: ['employee_quantity', 'guard_quantity'] },
-    { title: t('منبع'), keys: ['resource_code', 'resource_phone', 'resource_id'] },
-    { title: t('سایر'), keys: ['note'] },
+    {
+      title: t('مسؤول'),
+      keys: ['responsible_name', 'responsible_f_name', 'responsible_phone'],
+    },
+    {
+      title: t('آدرس'),
+      keys: ['province', 'zone', 'district', 'village', 'specefic_place', 'coordinates'],
+    },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+    { title: t('دیگر'), keys: ['Province_addr', 'note'] },
   ]);
 
-  const editorCard = ref(null);
+  const filters = ref({});
 
-  /* Edit flow */
-  async function startEdit(row) {
-    try {
-      const id = row?.id;
-      if (!id) return;
-      if (typeof repo.FetchSuperMarketData === 'function') {
-        await repo.FetchSuperMarketData(id);
-      } else if (typeof repo.FetchSuperMarketsData === 'function') {
-        await repo.FetchSuperMarketsData({ page: 1, itemsPerPage: 100000 });
-      }
-      const single =
-        (repo.SuperMarket && Array.isArray(repo.SuperMarket)
-          ? repo.SuperMarket[0]
-          : repo.SuperMarket) ||
-        (repo.SuperMarkets || []).find((r) => r.id === id) ||
-        row;
-
-      rows.value = [toRowModel(single)];
-      await nextTick();
-      const el = editorCard.value?.$el || editorCard.value;
-      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-    } catch (e) {
-      console.error('startEdit error', e);
-      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
-    }
-  }
-
-  /* Diff + payload helpers (persisted keys only) */
-  function diffDraft(item) {
-    const d = item.draft || {};
-    const changed = {};
-    const keys = [
-      'supermarket_name',
-      'market_activity_type',
-      'daily_clientele',
-      'shops_quantity',
-      'Province_addr',
-      'responsible_name',
-      'responsible_f_name',
-      'responsible_phone',
-      'province',
-      'zone',
-      'district',
-      'village',
-      'specefic_place',
-      'coordinates',
-      'employee_quantity',
-      'guard_quantity',
-      'resource_id',
-      'note',
-    ];
-    for (const k of keys) if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    return { changed };
-  }
-  function toFormDataSelective(obj) {
-    const fd = new FormData();
-    Object.entries(obj || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
-
-  /* Validation */
-  const editorForm = ref(null);
-  const editorValid = ref(false);
-  const formKey = ref(0);
-  const rules = {
-    required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
-    nonNegativeInt: (v) =>
-      v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
-    phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
-  };
-  async function validateForm() {
-    const form = editorForm.value;
-    if (!form?.validate) return { valid: true };
-    const { valid } = await form.validate();
-    if (!valid) await nextTick().then(scrollToFirstInvalid);
-    return { valid };
-  }
-  function scrollToFirstInvalid() {
-    const first =
-      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-      document.querySelector('.v-messages__message');
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input && typeof input.focus === 'function') input.focus();
-    }
-  }
-  /* ===== Peek / Fetch ===== */
+  /* Peek */
   const expanded = ref(false);
   const selectedId = ref(null);
-  const loading = ref(false);
+  const loadingOne = ref(false);
   const detail = ref(null);
 
   async function fetchOne(id) {
-    loading.value = true;
+    loadingOne.value = true;
     try {
-      await repo.FetchSuperMarketData?.(id);
-      detail.value = repo.SuperMarket || [];
-    } catch (error) {
-      console.error('Fetch one error:', error);
-      showErrorMessage(t('خطا در دریافت اطلاعات'));
+      if (typeof repo.FetchSuperMarketData === 'function') {
+        await repo.FetchSuperMarketData(id);
+        const single = Array.isArray(repo.SuperMarket) ? repo.SuperMarket[0] : repo.SuperMarket;
+        detail.value = single || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات سوپرمارکیت'));
     } finally {
-      loading.value = false;
+      loadingOne.value = false;
     }
   }
+
+  const getRow = (s) => (s && s.raw ? s.raw : s);
+
   function openPeek(payload) {
-    const row = payload?.raw ?? payload;
+    const row = getRow(payload);
     if (!row?.id) return;
+    selectedId.value = row.id;
     expanded.value = true;
     fetchOne(row.id);
   }
 
-  /* Save / Delete / Clear */
-  async function onSubmit(item) {
-    if (!item?.draft?.supermarket_name?.trim()) {
-      showErrorMessage(t('نام سوپرمارکیت الزامی است'));
-      return;
-    }
-    const v = await validateForm();
-    if (!v.valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      return;
-    }
-    await save(item);
+  /* navigation */
+  function goCreate() {
+    router.push('/app/supermarketform');
   }
-  async function save(item) {
-    item.loading = true;
-    try {
-      if (!item.id) {
-        const fd = toFormDataSelective(item.draft);
-        const created = await repo.CreateSuperMarket?.(fd);
-        if (created?.id) {
-          showOkMessage(t('ریکارد ایجاد شد'));
-          await fetchAll();
-          setBlankEditorRow();
-        } else {
-          await fetchAll();
-          setBlankEditorRow();
-        }
-        return;
-      }
-      const { changed } = diffDraft(item);
-      if (Object.keys(changed).length === 0) {
-        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
-        return;
-      }
-      const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateSuperMarket?.(item.id, fd);
-      if (updated?.id) {
-        showOkMessage(t('ریکارد بروزرسانی شد'));
-        await fetchAll();
-        setBlankEditorRow();
-      }
-    } catch (e) {
-      console.error('Save error:', e);
-      showErrorMessage(t('خطا در ذخیره داده'));
-    } finally {
-      item.loading = false;
-    }
+
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/supermarketform/${row.id}`);
   }
-  async function del(item) {
-    if (!item.id) {
-      setBlankEditorRow();
-      return;
-    }
-    if (!confirm(t('آیا از حذف "{name}" مطمئن هستید؟', { name: item.supermarket_name || '' })))
-      return;
+
+  /* delete with dialog */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
+
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
+
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    deleteDialog.value = false;
+    if (!row?.id) return;
     try {
-      await repo.DeleteSuperMarket?.(item.id);
+      await repo.DeleteSuperMarket?.(row.id);
       await fetchAll();
-      showOkMessage(t('ریکارد حذف شد'));
-      setBlankEditorRow();
+      showErrorMessage(t('حذف شد'));
     } catch (e) {
-      console.error('Delete error:', e);
+      console.error(e);
       showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteTarget.value = null;
     }
   }
-  function clearRow() {
-    setBlankEditorRow();
-    showOkMessage(t('ورودی‌ها پاک شد'));
-  }
 
-  /* Load dataset for FilterableTable only */
+  /* fetch all */
   async function fetchAll() {
-    await Promise.allSettled([
-      repo.GetResourceCode?.(),
-      repo.FetchSuperMarketsData?.({ page: 1, itemsPerPage: 100000, search: repo.Search }),
-    ]);
+    try {
+      await repo.FetchSuperMarketsData?.({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search || '',
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست سوپرمارکیت‌ها'));
+    }
   }
 
+  function clearSearch() {
+    repo.Search = '';
+    fetchAll();
+  }
+
+  /* IMAGE PREVIEW helpers */
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
+
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
+
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+    clean = clean.replace(/\\\//g, '/');
+
+    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+    if (clean.startsWith('/')) return clean;
+
+    return '/' + clean.replace(/^\/+/, '');
+  }
+
+  function openPreview(src) {
+    const normalized = normalizePicture(src);
+    if (!normalized) return;
+    previewSrc.value = normalized;
+    previewOpen.value = true;
+  }
+
+  /* init */
   onMounted(async () => {
     await fetchAll();
-    setBlankEditorRow();
-    repo.GetResourceCode?.();
   });
 </script>
 
 <style scoped>
-  table th {
-    white-space: nowrap;
+  .ga-2 {
+    gap: 8px;
   }
-  .custom-table :deep(.v-data-table__thead th) {
-    background: rgb(var(--v-theme-primary));
-    color: #fff;
-    font-weight: 400;
+
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
   }
-  .addr-group {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(120px, 1fr));
-    gap: 2px;
-  }
-  .text-group {
-    display: grid;
-    width: 120px;
-    gap: 2px;
-  }
-  .text-group-note {
-    display: grid;
-    width: 400px;
-    gap: 2px;
-  }
-  .flex {
-    display: flex;
-  }
-  .items-center {
-    align-items: center;
-  }
-  .gap-1 {
-    gap: 4px;
-  }
-  .hidden-file {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
-  }
-  .pic-thumb {
-    display: inline-flex;
+
+  /* Stats cards */
+  .stat-card {
     cursor: pointer;
-    position: relative;
-  }
-  .tablebody {
-    display: flex !important;
-    gap: 2px !important;
-  }
-
-  :deep(.v-field-label),
-  :deep(.v-label),
-  :deep(input::placeholder) {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    color: #555 !important;
-  }
-  :deep(.v-field__input) {
-    min-height: 26px !important;
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+      background-color 0.2s ease;
   }
 
-  /* compact spacing in groups */
-  .addr-group,
-  .text-group,
-  .text-group-note {
-    margin: -16px !important;
-    padding: -10px !important;
-    row-gap: -6px !important;
-    column-gap: 2px !important;
-    gap: -10px !important;
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
   }
 
-  /* picture hover tools */
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+  }
+
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
+
+  .stat-card-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
+  }
+
+  /* picture */
   .pic-wrap {
     position: relative;
     display: inline-flex;
     align-items: center;
   }
-  .pic-overlay {
-    position: absolute;
-    inset: -6px -16px auto auto;
-    display: none;
-    gap: 2px;
-    background: rgba(0, 0, 0, 0.55);
-    padding: 6px;
-    border-radius: 8px;
-    transform: translateY(-20%);
-    white-space: nowrap;
-  }
-  .pic-thumb:hover .pic-overlay {
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 8px;
-  }
-  .pic-overlay :deep(.v-btn) {
-    color: #fff;
+  .cursor-pointer {
+    cursor: pointer;
   }
 </style>

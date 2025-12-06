@@ -151,7 +151,7 @@
         :auto-detect-dates="false"
         :date-keys="[]"
         @fetch=""
-      />fetchOne
+      />
     </v-container>
 
     <!-- 📋 MAIN TABLE -->

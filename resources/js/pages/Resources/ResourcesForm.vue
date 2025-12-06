@@ -6,12 +6,7 @@
       :subtitle="isEdit ? t('ویرایش جزئیات یک منبع موجود') : t('ثبت یک منبع جدید در سیستم')"
     >
       <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none"
-          @click="goBack"
-        >
+        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
           {{ t('برگشت') }}
         </v-btn>
       </template>
@@ -191,7 +186,9 @@
                       >
                         <v-img
                           v-if="form.previewUrl || form.picture_url || form.picture"
-                          :src="normalizePicture(form.previewUrl || form.picture_url || form.picture)"
+                          :src="
+                            normalizePicture(form.previewUrl || form.picture_url || form.picture)
+                          "
                           cover
                         />
                         <v-icon v-else size="36" color="grey"> mdi-account </v-icon>
@@ -210,7 +207,9 @@
                           color="secondary"
                           variant="flat"
                           v-if="form.previewUrl || form.picture_url || form.picture"
-                          @click.stop="openPreview(form.previewUrl || form.picture_url || form.picture)"
+                          @click.stop="
+                            openPreview(form.previewUrl || form.picture_url || form.picture)
+                          "
                         >
                           <v-icon start>mdi-eye</v-icon>{{ t('نمایش') }}
                         </v-btn>
@@ -570,6 +569,33 @@
                   :error-messages="getErrorMessages('halat_madani')"
                 />
               </v-col>
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.elmi_level"
+                  :label="t(' سطح علمی')"
+                  density="compact"
+                  variant="outlined"
+                  hide-details="auto"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.train"
+                  :label="t('دوره آموزش ')"
+                  density="compact"
+                  variant="outlined"
+                  hide-details="auto"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.faculty"
+                  :label="t('دیپارتمنت/ فاکولته')"
+                  density="compact"
+                  variant="outlined"
+                  hide-details="auto"
+                />
+              </v-col>
 
               <v-col cols="12" md="3">
                 <v-autocomplete
@@ -601,7 +627,7 @@
                 <v-autocomplete
                   v-model="form.office_employee_id"
                   :items="repo.officeemployees || []"
-                  item-title="name"
+                  item-title="code_number"
                   item-value="id"
                   :label="t('کارمند مربوطه')"
                   density="compact"
@@ -732,703 +758,709 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
+  import { ref, computed, watch, onMounted, nextTick } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
 
-import AppBar from '../../components/AppBar.vue';
-import DateInput from '../../components/DateInput.vue';
-import { useDatabaseRepository } from '../../stores/DatabaseRepository';
-import { useLoginRepository } from '../../stores/LoginRepository';
+  import AppBar from '../../components/AppBar.vue';
+  import DateInput from '../../components/DateInput.vue';
+  import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+  import { useLoginRepository } from '../../stores/LoginRepository';
 
-const repo = useDatabaseRepository();
-const auth = useLoginRepository();
-const route = useRoute();
-const router = useRouter();
-const { t, locale } = useI18n();
+  const repo = useDatabaseRepository();
+  const auth = useLoginRepository();
+  const route = useRoute();
+  const router = useRouter();
+  const { t, locale } = useI18n();
 
-/* ===== Direction ===== */
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (newLocale) => {
-  isRtl.value = newLocale === 'fa';
-});
+  /* ===== Direction ===== */
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (newLocale) => {
+    isRtl.value = newLocale === 'fa';
+  });
 
-/* ===== ROUTE / MODE ===== */
-const idParam = computed(() => route.params.id);
-const isEdit = computed(() => !!idParam.value);
+  /* ===== ROUTE / MODE ===== */
+  const idParam = computed(() => route.params.id);
+  const isEdit = computed(() => !!idParam.value);
 
-/* ===== FORM / STATE ===== */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* ===== FORM / STATE ===== */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
 
-const previewOpen = ref(false);
-const previewSrc = ref(null);
-const pictureInput = ref(null);
-const pictureFile = ref(null); // new image file
-const pictureChanged = ref(false); // track if user changed picture
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
+  const pictureInput = ref(null);
+  const pictureFile = ref(null); // new image file
+  const pictureChanged = ref(false); // track if user changed picture
 
-function showErrorMessage(message) {
-  errorMessage.value = message;
-  showError.value = true;
-}
-function showSuccessMessage(message) {
-  successMessage.value = message;
-  showSuccess.value = true;
-}
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
+  }
+  function showSuccessMessage(message) {
+    successMessage.value = message;
+    showSuccess.value = true;
+  }
 
-/* ===== BACKEND ERRORS ===== */
-const backendErrors = ref({});
-function setBackendErrors(errors) {
-  backendErrors.value = errors || {};
-}
-function clearBackendErrors() {
-  backendErrors.value = {};
-}
-function hasError(field) {
-  return !!backendErrors.value?.[field];
-}
-function getErrorMessages(field) {
-  return backendErrors.value?.[field] ?? [];
-}
+  /* ===== BACKEND ERRORS ===== */
+  const backendErrors = ref({});
+  function setBackendErrors(errors) {
+    backendErrors.value = errors || {};
+  }
+  function clearBackendErrors() {
+    backendErrors.value = {};
+  }
+  function hasError(field) {
+    return !!backendErrors.value?.[field];
+  }
+  function getErrorMessages(field) {
+    return backendErrors.value?.[field] ?? [];
+  }
 
-/* ===== FORM MODEL ===== */
-const blankForm = () => ({
-  id: null,
-  // media
-  picture: null,
-  picture_url: null,
-  previewUrl: null,
+  /* ===== FORM MODEL ===== */
+  const blankForm = () => ({
+    id: null,
+    // media
+    picture: null,
+    picture_url: null,
+    previewUrl: null,
 
-  // identity
-  name: '',
-  father_name: '',
-  grand_father_name: '',
-  nick_name: '',
-  code_number: '',
-  tazkira: '',
-  age: '',
-  phone_number: '',
-  language: '',
-  nation: '',
-  specific_skills: '',
+    // identity
+    name: '',
+    father_name: '',
+    grand_father_name: '',
+    nick_name: '',
+    code_number: '',
+    tazkira: '',
+    age: '',
+    phone_number: '',
+    language: '',
+    nation: '',
+    specific_skills: '',
 
-  // addresses
-  main_province: '',
-  main_district: '',
-  main_village: '',
-  now_province: '',
-  now_district: '',
-  now_village: '',
-  now_specific_place: '',
-  now_street_number: '',
-  now_home_number: '',
-  Province_addr: '',
-  coordinates: '',
+    // addresses
+    main_province: '',
+    main_district: '',
+    main_village: '',
+    now_province: '',
+    now_district: '',
+    now_village: '',
+    now_specific_place: '',
+    now_street_number: '',
+    now_home_number: '',
+    Province_addr: '',
+    coordinates: '',
+    train: '',
+    elmi_level: '',
+    faculty: '',
 
-  // jobs & status
-  old_job: '',
-  now_job: '',
-  job_place: '',
-  activity: '',
-  halat_madani: '',
-  resource_activity_type: '',
-  resource_cover: '',
-  office_employee_id: null,
-  resedint_code: '',
+    // jobs & status
+    old_job: '',
+    now_job: '',
+    job_place: '',
+    activity: '',
+    halat_madani: '',
+    resource_activity_type: '',
+    resource_cover: '',
+    office_employee_id: null,
+    resedint_code: '',
 
-  // date & note
-  resource_saved_date: '',
-  note: '',
-});
+    // date & note
+    resource_saved_date: '',
+    note: '',
+  });
 
-const form = ref(blankForm());
+  const form = ref(blankForm());
 
-/* ===== RULES ===== */
-const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
-  phone10: (v) => !v || /^[0-9]{10}$/.test(String(v)) || t('شماره تماس باید دقیقاً ۱۰ رقم باشد'),
-  ageRange: (v) => {
-    if (v === '' || v === null || v === undefined) return true;
-    const n = Number(v);
-    if (Number.isNaN(n)) return t('عمر باید عدد باشد');
-    if (n < 0 || n > 200) return t('عمر باید بین ۰ تا ۲۰۰ باشد');
-    return true;
-  },
-};
+  /* ===== RULES ===== */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+    phone10: (v) => !v || /^[0-9]{10}$/.test(String(v)) || t('شماره تماس باید دقیقاً ۱۰ رقم باشد'),
+    ageRange: (v) => {
+      if (v === '' || v === null || v === undefined) return true;
+      const n = Number(v);
+      if (Number.isNaN(n)) return t('عمر باید عدد باشد');
+      if (n < 0 || n > 200) return t('عمر باید بین ۰ تا ۲۰۰ باشد');
+      return true;
+    },
+  };
 
-/* ===== RESOURCE TYPE OPTIONS ===== */
-const resourceActivityTypeOptions = [
-  { label: 'ثابت', value: 'ثابت' },
-  { label: 'سیار', value: 'سیار' },
-  { label: 'اجنت', value: 'اجنت' },
-  { label: 'ریزیدنت', value: 'ریزیدنت' },
-  { label: 'نفوذی', value: 'نفوذی' },
-];
+  /* ===== RESOURCE TYPE OPTIONS ===== */
+  const resourceActivityTypeOptions = [
+    { label: 'ثابت', value: 'ثابت' },
+    { label: 'سیار', value: 'سیار' },
+    { label: 'اجنت', value: 'اجنت' },
+    { label: 'ریزیدنت', value: 'ریزیدنت' },
+    { label: 'نفوذی', value: 'نفوذی' },
+  ];
 
-/* ===== PICTURE ===== */
-function triggerPicture() {
-  pictureInput.value?.click();
-}
-function onPickPicture(e) {
-  const file = e.target.files?.[0] ?? null;
-  pictureFile.value = file;
-  pictureChanged.value = !!file;
+  /* ===== PICTURE ===== */
+  function triggerPicture() {
+    pictureInput.value?.click();
+  }
+  function onPickPicture(e) {
+    const file = e.target.files?.[0] ?? null;
+    pictureFile.value = file;
+    pictureChanged.value = !!file;
 
-  if (file) {
+    if (file) {
+      if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(form.value.previewUrl);
+      }
+      form.value.previewUrl = URL.createObjectURL(file);
+    } else {
+      form.value.previewUrl = form.value.picture_url || form.value.picture || null;
+    }
+    if (e.target) e.target.value = '';
+  }
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
+
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) {
+      return clean;
+    }
+
+    clean = clean.replace(/\\\//g, '/');
+
+    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+      return clean;
+    }
+
+    if (clean.startsWith('/')) {
+      return clean;
+    }
+
+    return '/' + clean.replace(/^\/+/, '');
+  }
+  function openPreview(src) {
+    const base = src || form.value.previewUrl || form.value.picture_url || form.value.picture;
+    const normalized = normalizePicture(base);
+    previewSrc.value = normalized;
+    if (previewSrc.value) previewOpen.value = true;
+  }
+
+  /* ===== MAP FROM API ===== */
+  function mapFromApi(payload = {}) {
+    const x = payload.data ?? payload;
+    const b = blankForm();
+
+    b.id = x.id ?? null;
+
+    const fullUrl = x.picture ?? null;
+    b.picture = x.picture ?? null;
+    b.picture_url = fullUrl;
+    b.previewUrl = fullUrl;
+
+    // identity
+    b.name = x.name ?? '';
+    b.father_name = x.father_name ?? '';
+    b.grand_father_name = x.grand_father_name ?? '';
+    b.nick_name = x.nick_name ?? '';
+    b.code_number = x.code_number ?? '';
+    b.tazkira = x.tazkira ?? '';
+    b.age = x.age ?? '';
+    b.phone_number = x.phone_number ?? '';
+    b.language = x.language ?? '';
+    b.nation = x.nation ?? '';
+    b.specific_skills = x.specific_skills ?? '';
+
+    // addresses
+    b.main_province = x.main_province ?? '';
+    b.main_district = x.main_district ?? '';
+    b.main_village = x.main_village ?? '';
+    b.now_province = x.now_province ?? '';
+    b.now_district = x.now_district ?? '';
+    b.now_village = x.now_village ?? '';
+    b.now_specific_place = x.now_specific_place ?? '';
+    b.now_street_number = x.now_street_number ?? '';
+    b.now_home_number = x.now_home_number ?? '';
+    b.Province_addr = x.Province_addr ?? '';
+    b.coordinates = x.coordinates ?? '';
+    b.elmi_level = x.elmi_level ?? '';
+    b.faculty = x.faculty ?? '';
+    b.train = x.train ?? '';
+
+    // jobs & status
+    b.old_job = x.old_job ?? '';
+    b.now_job = x.now_job ?? '';
+    b.job_place = x.job_place ?? '';
+    b.activity = x.activity ?? '';
+    b.halat_madani = x.halat_madani ?? '';
+    b.resource_activity_type = x.resource_activity_type ?? '';
+    b.resource_cover = x.resource_cover ?? '';
+    b.office_employee_id = x.office_employee_id ?? null;
+    b.resedint_code = x.resedint_code ?? '';
+
+    // date & note
+    b.resource_saved_date = x.resource_saved_date ?? '';
+    b.note = x.note ?? '';
+
+    return b;
+  }
+
+  /* ===== FORM DATA HELPERS ===== */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  function buildCreateFormData() {
+    const payload = { ...form.value };
+
+    delete payload.previewUrl;
+    delete payload.picture_url;
+
+    const fd = toFormData(payload);
+
+    if (pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+
+    return fd;
+  }
+
+  function buildUpdateFormData() {
+    const payload = { ...form.value };
+
+    delete payload.previewUrl;
+    delete payload.picture_url;
+
+    // we handle picture separately
+    const picturePath = payload.picture;
+    delete payload.picture;
+
+    const fd = toFormData(payload);
+
+    if (pictureChanged.value && pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+      if (picturePath && typeof picturePath === 'string') {
+        fd.append('old_picture', picturePath);
+      }
+    }
+
+    return fd;
+  }
+
+  /* ===== SUBMIT ===== */
+  async function onSubmit() {
+    clearBackendErrors();
+
+    const f = formRef.value;
+    if (!f) return;
+
+    const { valid } = await f.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+
+    if (!form.value.name?.trim()) {
+      showErrorMessage(t('نام الزامی است'));
+      return;
+    }
+
+    saving.value = true;
+
+    try {
+      if (!isEdit.value) {
+        const fd = buildCreateFormData();
+        const created = await repo.CreateResource(fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (created?.id) {
+          showSuccessMessage(t('منبع موفقانه ثبت شد'));
+          router.push({ path: '/app/resources' }).catch(() => {});
+        } else {
+          showErrorMessage(t('ثبت معلومات ناکام شد'));
+        }
+      } else {
+        const fd = buildUpdateFormData();
+        const updated = await repo.UpdateResource(form.value.id, fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (updated?.id) {
+          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+          router.push({ path: '/app/resources' }).catch(() => {});
+        } else {
+          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        }
+      }
+    } catch (e) {
+      console.error('onSubmit error', e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      saving.value = false;
+    }
+  }
+
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  /* ===== RESET & NAVIGATION ===== */
+  function resetForm() {
     if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(form.value.previewUrl);
     }
-    form.value.previewUrl = URL.createObjectURL(file);
-  } else {
-    form.value.previewUrl = form.value.picture_url || form.value.picture || null;
-  }
-  if (e.target) e.target.value = '';
-}
-function normalizePicture(src) {
-  if (!src) return null;
-  let clean = String(src).trim();
-
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) {
-    return clean;
-  }
-
-  clean = clean.replace(/\\\//g, '/');
-
-  if (clean.startsWith('http://') || clean.startsWith('https://')) {
-    return clean;
-  }
-
-  if (clean.startsWith('/')) {
-    return clean;
-  }
-
-  return '/' + clean.replace(/^\/+/, '');
-}
-function openPreview(src) {
-  const base = src || form.value.previewUrl || form.value.picture_url || form.value.picture;
-  const normalized = normalizePicture(base);
-  previewSrc.value = normalized;
-  if (previewSrc.value) previewOpen.value = true;
-}
-
-/* ===== MAP FROM API ===== */
-function mapFromApi(payload = {}) {
-  const x = payload.data ?? payload;
-  const b = blankForm();
-
-  b.id = x.id ?? null;
-
-  const fullUrl = x.picture ?? null;
-  b.picture = x.picture ?? null;
-  b.picture_url = fullUrl;
-  b.previewUrl = fullUrl;
-
-  // identity
-  b.name = x.name ?? '';
-  b.father_name = x.father_name ?? '';
-  b.grand_father_name = x.grand_father_name ?? '';
-  b.nick_name = x.nick_name ?? '';
-  b.code_number = x.code_number ?? '';
-  b.tazkira = x.tazkira ?? '';
-  b.age = x.age ?? '';
-  b.phone_number = x.phone_number ?? '';
-  b.language = x.language ?? '';
-  b.nation = x.nation ?? '';
-  b.specific_skills = x.specific_skills ?? '';
-
-  // addresses
-  b.main_province = x.main_province ?? '';
-  b.main_district = x.main_district ?? '';
-  b.main_village = x.main_village ?? '';
-  b.now_province = x.now_province ?? '';
-  b.now_district = x.now_district ?? '';
-  b.now_village = x.now_village ?? '';
-  b.now_specific_place = x.now_specific_place ?? '';
-  b.now_street_number = x.now_street_number ?? '';
-  b.now_home_number = x.now_home_number ?? '';
-  b.Province_addr = x.Province_addr ?? '';
-  b.coordinates = x.coordinates ?? '';
-
-  // jobs & status
-  b.old_job = x.old_job ?? '';
-  b.now_job = x.now_job ?? '';
-  b.job_place = x.job_place ?? '';
-  b.activity = x.activity ?? '';
-  b.halat_madani = x.halat_madani ?? '';
-  b.resource_activity_type = x.resource_activity_type ?? '';
-  b.resource_cover = x.resource_cover ?? '';
-  b.office_employee_id = x.office_employee_id ?? null;
-  b.resedint_code = x.resedint_code ?? '';
-
-  // date & note
-  b.resource_saved_date = x.resource_saved_date ?? '';
-  b.note = x.note ?? '';
-
-  return b;
-}
-
-/* ===== FORM DATA HELPERS ===== */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
-  });
-  return fd;
-}
-
-function buildCreateFormData() {
-  const payload = { ...form.value };
-
-  delete payload.previewUrl;
-  delete payload.picture_url;
-
-  const fd = toFormData(payload);
-
-  if (pictureFile.value) {
-    fd.append('picture', pictureFile.value);
-  }
-
-  return fd;
-}
-
-function buildUpdateFormData() {
-  const payload = { ...form.value };
-
-  delete payload.previewUrl;
-  delete payload.picture_url;
-
-  // we handle picture separately
-  const picturePath = payload.picture;
-  delete payload.picture;
-
-  const fd = toFormData(payload);
-
-  if (pictureChanged.value && pictureFile.value) {
-    fd.append('picture', pictureFile.value);
-    if (picturePath && typeof picturePath === 'string') {
-      fd.append('old_picture', picturePath);
-    }
-  }
-
-  return fd;
-}
-
-/* ===== SUBMIT ===== */
-async function onSubmit() {
-  clearBackendErrors();
-
-  const f = formRef.value;
-  if (!f) return;
-
-  const { valid } = await f.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
-  }
-
-  if (!form.value.name?.trim()) {
-    showErrorMessage(t('نام الزامی است'));
-    return;
-  }
-
-  saving.value = true;
-
-  try {
-    if (!isEdit.value) {
-      const fd = buildCreateFormData();
-      const created = await repo.CreateResource(fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
-
-      if (created?.id) {
-        showSuccessMessage(t('منبع موفقانه ثبت شد'));
-        router.push({ path: '/app/resources' }).catch(() => {});
-      } else {
-        showErrorMessage(t('ثبت معلومات ناکام شد'));
-      }
-    } else {
-      const fd = buildUpdateFormData();
-      const updated = await repo.UpdateResource(form.value.id, fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
-
-      if (updated?.id) {
-        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-        router.push({ path: '/app/resources' }).catch(() => {});
-      } else {
-        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-      }
-    }
-  } catch (e) {
-    console.error('onSubmit error', e);
-    showErrorMessage(t('خطا در ذخیره اطلاعات'));
-  } finally {
-    saving.value = false;
-  }
-}
-
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-    document.querySelector('.v-messages__message');
-  if (first) {
-    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = first.querySelector('input, textarea, .v-field__input');
-    if (input && typeof input.focus === 'function') input.focus();
-  }
-}
-
-/* ===== RESET & NAVIGATION ===== */
-function resetForm() {
-  if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-    URL.revokeObjectURL(form.value.previewUrl);
-  }
-  form.value = blankForm();
-  pictureFile.value = null;
-  pictureChanged.value = false;
-  formRef.value?.resetValidation?.();
-  clearBackendErrors();
-  showSuccessMessage(t('ورودی‌ها پاک شد'));
-}
-function goBack() {
-  router.back();
-}
-
-/* ===== LOAD FOR EDIT ===== */
-async function loadForEdit() {
-  if (!isEdit.value) {
     form.value = blankForm();
     pictureFile.value = null;
     pictureChanged.value = false;
-    return;
+    formRef.value?.resetValidation?.();
+    clearBackendErrors();
+    showSuccessMessage(t('ورودی‌ها پاک شد'));
+  }
+  function goBack() {
+    router.back();
   }
 
-  try {
-    if (typeof repo.FetchResourceData === 'function') {
-      await repo.FetchResourceData(idParam.value);
-      const raw = Array.isArray(repo.Resource) ? repo.Resource[0] : repo.Resource || {};
-      const mapped = mapFromApi(raw);
-      form.value = mapped;
+  /* ===== LOAD FOR EDIT ===== */
+  async function loadForEdit() {
+    if (!isEdit.value) {
+      form.value = blankForm();
       pictureFile.value = null;
       pictureChanged.value = false;
+      return;
     }
-  } catch (e) {
-    console.error('loadForEdit error', e);
-    showErrorMessage(t('خطا در دریافت معلومات منبع'));
+
+    try {
+      if (typeof repo.FetchResourceData === 'function') {
+        await repo.FetchResourceData(idParam.value);
+        const raw = Array.isArray(repo.Resource) ? repo.Resource[0] : repo.Resource || {};
+        const mapped = mapFromApi(raw);
+        form.value = mapped;
+        pictureFile.value = null;
+        pictureChanged.value = false;
+      }
+    } catch (e) {
+      console.error('loadForEdit error', e);
+      showErrorMessage(t('خطا در دریافت معلومات منبع'));
+    }
   }
-}
 
-/* ===== INIT ===== */
-onMounted(async () => {
-  await Promise.allSettled([repo.GetOfficeEmployee?.()]);
-  await loadForEdit();
-});
+  /* ===== INIT ===== */
+  onMounted(async () => {
+    await Promise.allSettled([repo.GetOfficeEmployee?.()]);
+    await loadForEdit();
+  });
 
-/* ===== STEPPER LOGIC ===== */
-const step1Complete = computed(() => !!form.value.name?.trim());
-const step2Complete = computed(
-  () =>
-    !!form.value.main_province?.trim() &&
-    !!form.value.main_district?.trim() &&
-    !!form.value.main_village?.trim()
-);
-const step3Complete = computed(
-  () =>
-    !!form.value.activity?.trim() ||
-    !!form.value.resource_activity_type?.trim() ||
-    !!form.value.old_job?.trim() ||
-    !!form.value.now_job?.trim()
-);
-const step4Complete = computed(
-  () => !!form.value.resource_saved_date?.trim() || !!form.value.note?.trim()
-);
+  /* ===== STEPPER LOGIC ===== */
+  const step1Complete = computed(() => !!form.value.name?.trim());
+  const step2Complete = computed(
+    () =>
+      !!form.value.main_province?.trim() &&
+      !!form.value.main_district?.trim() &&
+      !!form.value.main_village?.trim()
+  );
+  const step3Complete = computed(
+    () =>
+      !!form.value.activity?.trim() ||
+      !!form.value.resource_activity_type?.trim() ||
+      !!form.value.old_job?.trim() ||
+      !!form.value.now_job?.trim()
+  );
+  const step4Complete = computed(
+    () => !!form.value.resource_saved_date?.trim() || !!form.value.note?.trim()
+  );
 
-const completedSteps = computed(
-  () =>
-    [step1Complete.value, step2Complete.value, step3Complete.value, step4Complete.value].filter(
-      Boolean
-    ).length
-);
+  const completedSteps = computed(
+    () =>
+      [step1Complete.value, step2Complete.value, step3Complete.value, step4Complete.value].filter(
+        Boolean
+      ).length
+  );
 
-const currentStep = computed(() => {
-  if (!step1Complete.value) return 1;
-  if (!step2Complete.value) return 2;
-  if (!step3Complete.value) return 3;
-  return 4;
-});
+  const currentStep = computed(() => {
+    if (!step1Complete.value) return 1;
+    if (!step2Complete.value) return 2;
+    if (!step3Complete.value) return 3;
+    return 4;
+  });
 
-const progressValue = computed(() => (completedSteps.value / 4) * 100);
+  const progressValue = computed(() => (completedSteps.value / 4) * 100);
 </script>
 
 <style scoped>
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
-
-.stepper-shell {
-  position: absolute;
-  top: 80px;
-  left: 43%;
-  transform: translateX(-50%);
-  max-width: 1150px;
-  width: 100%;
-  z-index: 20;
-  margin: 0;
-  padding-bottom: 12px;
-}
-
-/* push the form card down so it starts under the stepper */
-.form-shell {
-  max-width: 1150px;
-  margin-top: 140px;
-  margin-bottom: 40px;
-}
-
-@media (max-width: 960px) {
-  .stepper-shell {
-    top: 64px;
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
   }
-}
 
-.stepper-card {
-  border-radius: 14px;
-  padding: 10px 14px 12px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(33, 150, 243, 0.12);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  font-family: inherit;
-}
+  .stepper-shell {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 90%;
+    width: 100%;
+    z-index: 20;
+    margin: 0;
+    padding-bottom: 12px;
+  }
 
-.stepper-track-wrapper {
-  position: relative;
-  margin-top: 4px;
-}
+  /* push the form card down so it starts under the stepper */
+  .form-shell {
+    max-width: 1150px;
+    margin-top: 140px;
+    margin-bottom: 40px;
+  }
 
-.stepper-track {
-  opacity: 0.35;
-}
+  @media (max-width: 960px) {
+    .stepper-shell {
+      top: 64px;
+    }
+  }
 
-.stepper-dots {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-start: -7px;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-}
+  .stepper-card {
+    border-radius: 14px;
+    padding: 10px 14px 12px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(33, 150, 243, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    font-family: inherit;
+  }
 
-.stepper-dot-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
+  .stepper-track-wrapper {
+    position: relative;
+    margin-top: 4px;
+  }
 
-.stepper-dot {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #e0e7f1;
-  border: 2px solid #b0bec5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto;
-  transition: all 0.2s ease;
-}
+  .stepper-track {
+    opacity: 0.35;
+  }
 
-.stepper-dot.is-active:not(.is-complete) {
-  background: #1976d2;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.18);
-}
+  .stepper-dots {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: -7px;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+  }
 
-.stepper-dot.is-complete {
-  background: #4caf50;
-  border-color: #4caf50;
-  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.18);
-}
+  .stepper-dot-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
 
-.stepper-dot :deep(.v-icon) {
-  color: #fff !important;
-}
+  .stepper-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #e0e7f1;
+    border: 2px solid #b0bec5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    transition: all 0.2s ease;
+  }
 
-.stepper-label {
-  color: #555;
-  font-family: inherit;
-  font-weight: 600;
-}
+  .stepper-dot.is-active:not(.is-complete) {
+    background: #1976d2;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.18);
+  }
 
-.is-complete-text {
-  color: #2e7d32;
-}
+  .stepper-dot.is-complete {
+    background: #4caf50;
+    border-color: #4caf50;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.18);
+  }
 
-.stepper-caption {
-  font-family: inherit;
-  font-weight: 600;
-}
+  .stepper-dot :deep(.v-icon) {
+    color: #fff !important;
+  }
 
-/* Card styling */
-.form-card {
-  border-radius: 18px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-  font-family: inherit;
-}
+  .stepper-label {
+    color: #555;
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-/* Top avatar */
-.header-avatar {
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.35);
-}
+  .is-complete-text {
+    color: #2e7d32;
+  }
 
-.header-title {
-  font-family: inherit;
-  font-weight: 700;
-}
+  .stepper-caption {
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-.header-subtitle {
-  font-family: inherit;
-  font-weight: 600;
-}
+  /* Card styling */
+  .form-card {
+    border-radius: 18px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    font-family: inherit;
+  }
 
-/* Sections */
-.section-card {
-  background: #fafafa;
-  border-radius: 16px;
-  border: 1px solid #e0e0e0;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
-  font-family: inherit;
-}
+  /* Top avatar */
+  .header-avatar {
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.35);
+  }
 
-.section-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  border-color: rgba(33, 150, 243, 0.35);
-  transform: translateY(-1px);
-}
+  .header-title {
+    font-family: inherit;
+    font-weight: 700;
+  }
 
-.section-header {
-  padding: 8px 14px;
-  background: #f7f7f9;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: inherit;
-}
+  .header-subtitle {
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-.docs-header {
-  background: #f3f6ff;
-}
+  /* Sections */
+  .section-card {
+    background: #fafafa;
+    border-radius: 16px;
+    border: 1px solid #e0e0e0;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+    font-family: inherit;
+  }
 
-.section-subtitle {
-  color: #777;
-  font-family: inherit;
-  font-weight: 600;
-}
+  .section-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border-color: rgba(33, 150, 243, 0.35);
+    transform: translateY(-1px);
+  }
 
-.section-icon {
-  color: #1976d2;
-}
+  .section-header {
+    padding: 8px 14px;
+    background: #f7f7f9;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: inherit;
+  }
 
-.section-title {
-  font-family: inherit;
-  font-weight: 700;
-}
+  .docs-header {
+    background: #f3f6ff;
+  }
 
-/* picture hover tools */
-.hidden-file {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
+  .section-subtitle {
+    color: #777;
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-.pic-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
+  .section-icon {
+    color: #1976d2;
+  }
 
-.pic-thumb {
-  display: inline-flex;
-  cursor: pointer;
-  position: relative;
-}
+  .section-title {
+    font-family: inherit;
+    font-weight: 700;
+  }
 
-.pic-overlay {
-  position: absolute;
-  inset: -6px -16px auto auto;
-  display: none;
-  gap: 2px;
-  background: rgba(0, 0, 0, 0.55);
-  padding: 6px;
-  border-radius: 8px;
-  transform: translateY(-20%);
-  white-space: nowrap;
-}
+  /* picture hover tools */
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
 
-.pic-thumb:hover .pic-overlay {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 8px;
-}
+  .pic-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
 
-.pic-overlay :deep(.v-btn) {
-  color: #fff;
-}
+  .pic-thumb {
+    display: inline-flex;
+    cursor: pointer;
+    position: relative;
+  }
 
-/* Form actions */
-.form-actions {
-  margin-top: 4px;
-}
+  .pic-overlay {
+    position: absolute;
+    inset: -6px -16px auto auto;
+    display: none;
+    gap: 2px;
+    background: rgba(0, 0, 0, 0.55);
+    padding: 6px;
+    border-radius: 8px;
+    transform: translateY(-20%);
+    white-space: nowrap;
+  }
 
-/* Compact inputs */
-:deep(.v-field-label),
-:deep(.v-label),
-:deep(input::placeholder) {
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  color: #555 !important;
-  font-family: inherit !important;
-  font-weight: 600;
-}
+  .pic-thumb:hover .pic-overlay {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
 
-:deep(.v-field__input) {
-  min-height: 30px !important;
-  padding: 3px 8px !important;
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  font-family: inherit !important;
-}
+  .pic-overlay :deep(.v-btn) {
+    color: #fff;
+  }
 
-/* Buttons & chips font */
-:deep(.v-btn),
-:deep(.v-chip),
-:deep(.v-snackbar),
-:deep(.v-card-title),
-:deep(.v-card-subtitle),
-:deep(.v-list-item-title),
-:deep(.v-list-item-subtitle) {
-  font-family: inherit !important;
-}
+  /* Form actions */
+  .form-actions {
+    margin-top: 4px;
+  }
 
-/* Small gap helper */
-.gap-2 {
-  gap: 8px;
-}
+  /* Compact inputs */
+  :deep(.v-field-label),
+  :deep(.v-label),
+  :deep(input::placeholder) {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    color: #555 !important;
+    font-family: inherit !important;
+    font-weight: 600;
+  }
+
+  :deep(.v-field__input) {
+    min-height: 30px !important;
+    padding: 3px 8px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    font-family: inherit !important;
+  }
+
+  /* Buttons & chips font */
+  :deep(.v-btn),
+  :deep(.v-chip),
+  :deep(.v-snackbar),
+  :deep(.v-card-title),
+  :deep(.v-card-subtitle),
+  :deep(.v-list-item-title),
+  :deep(.v-list-item-subtitle) {
+    font-family: inherit !important;
+  }
+
+  /* Small gap helper */
+  .gap-2 {
+    gap: 8px;
+  }
 </style>

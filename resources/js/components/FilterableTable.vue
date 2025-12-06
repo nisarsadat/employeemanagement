@@ -63,7 +63,10 @@
             />
           </svg>
           چاپ ستون‌های انتخابی
-          <span v-if="selectedColsCount > 0" class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full">
+          <span
+            v-if="selectedColsCount > 0"
+            class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full"
+          >
             {{ selectedColsCount }}
           </span>
         </span>
@@ -132,7 +135,7 @@
       class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-xl overflow-hidden table-zoom"
     >
       <!-- 👇 fixed height + vertical scroll -->
-      <div class="overflow-x-auto overflow-y-auto rounded-2xl max-h-[70vh]">
+      <div class="overflow-x-auto overflow-y-auto rounded-2xl max-h-[55vh]">
         <table class="min-w-full table-auto">
           <colgroup>
             <col v-if="selectable" style="width: 48px" />
@@ -228,15 +231,11 @@
                   class="px-2 py-2 text-center align-top"
                   :class="[
                     { 'print-col-hidden': printOnlyCols && !isColKeySelected(hKey(h)) },
-                    dropdownSet.has(hKey(h)) && showFilterFor(hKey(h))
-                      ? 'cursor-pointer'
-                      : ''
+                    dropdownSet.has(hKey(h)) && showFilterFor(hKey(h)) ? 'cursor-pointer' : '',
                   ]"
                   :ref="(el) => hKey(h) && (triggerRefs[hKey(h)] = el)"
                   @click="
-                    dropdownSet.has(hKey(h)) &&
-                      showFilterFor(hKey(h)) &&
-                      openDropdownAt(hKey(h))
+                    dropdownSet.has(hKey(h)) && showFilterFor(hKey(h)) && openDropdownAt(hKey(h))
                   "
                 >
                   <div class="cell-wrap space-y-1">
@@ -248,11 +247,7 @@
                       <!-- ❌ Filter icon removed – only the title is visible -->
 
                       <!-- Column checkbox for print columns -->
-                      <div
-                        v-if="!isComposite(h) && hKey(h)"
-                        class="print:hidden"
-                        @click.stop
-                      >
+                      <div v-if="!isComposite(h) && hKey(h)" class="print:hidden" @click.stop>
                         <input
                           type="checkbox"
                           class="w-3.5 h-3.5 rounded border-gray-200 text-indigo-600 focus:ring-2 focus:ring-indigo-500 cursor-pointer transition"
@@ -292,9 +287,7 @@
                         >
                           <div class="p-4">
                             <div class="flex items-center justify-between mb-3">
-                              <h3 class="text-sm font-bold text-gray-900">
-                                فیلتر: {{ h.title }}
-                              </h3>
+                              <h3 class="text-sm font-bold text-gray-900">فیلتر: {{ h.title }}</h3>
                               <button
                                 @click="closeDropdown"
                                 class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
@@ -474,9 +467,7 @@
                       class="w-2 h-2 rounded-full bg-gray-500 animate-[bounce_1.2s_infinite]"
                     ></span>
                   </div>
-                  <div class="text-gray-600 text-xs font-medium">
-                    در حال بارگذاری داده‌ها...
-                  </div>
+                  <div class="text-gray-600 text-xs font-medium">در حال بارگذاری داده‌ها...</div>
                 </div>
               </td>
             </tr>
@@ -491,8 +482,8 @@
                   {
                     'print-hidden': printOnlySelected && !selectedSet.has(getRowId(row, i)),
                     'bg-white': i % 2 === 0,
-                    'bg-slate-50': i % 2 !== 0
-                  }
+                    'bg-slate-50': i % 2 !== 0,
+                  },
                 ]"
               >
                 <!-- select checkbox cell -->
@@ -606,708 +597,765 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted, nextTick, useSlots } from 'vue';
-import { useCalendar } from '../../composables/useCalendar';
-import dayjs from 'dayjs';
+  import { computed, ref, watch, onMounted, onUnmounted, nextTick, useSlots } from 'vue';
+  import { useCalendar } from '../../composables/useCalendar';
+  import dayjs from 'dayjs';
 
-/* === Props === */
-const props = defineProps({
-  headers: { type: Array, required: true },
-  rows: { type: Array, default: () => [] },
-  filters: { type: Object, default: null },
-  rtl: { type: Boolean, default: true },
-  showIndex: { type: Boolean, default: true },
-  rowKey: { type: String, default: 'idOrTmp' },
-  dropdownKeys: { type: Array, default: () => [] },
-  optionsMap: { type: Object, default: null },
-  includeEmptyOption: { type: Boolean, default: true },
-  allLabel: { type: String, default: 'همه' },
-  topGroups: { type: Array, default: () => [] },
-  selectable: { type: Boolean, default: true },
-  enableEdit: { type: Boolean, default: false },
-  enablePeek: { type: Boolean, default: false },
-  enableDownload: { type: Boolean, default: false },
-  enableDelete: { type: Boolean, default: false },
-  dateKeys: { type: Array, default: () => [] },
-  autoDetectDates: { type: Boolean, default: true },
-  loading: { type: Boolean, default: false },
-});
-
-/* === Emits === */
-const emit = defineEmits(['update:filters']);
-
-/* === Calendar / dates === */
-const { formatDisplay } = useCalendar();
-
-function toAsciiDigits(s = '') {
-  const map = {
-    '۰': '0',
-  '۱': '1',
-  '۲': '2',
-  '۳': '3',
-  '۴': '4',
-  '۵': '5',
-  '۶': '6',
-  '۷': '7',
-  '۸': '8',
-  '۹': '9',
-  '٠': '0',
-  '١': '1',
-  '٢': '2',
-  '٣': '3',
-  '٤': '4',
-  '٥': '5',
-  '٦': '6',
-  '٧': '7',
-  '٨': '8',
-  '٩': '9',
-  };
-  return String(s).replace(/[۰-۹٠-٩]/g, (d) => map[d] ?? d);
-}
-
-function normalizeToIso(val) {
-  if (val == null) return '';
-  let s = toAsciiDigits(String(val).trim()).replace(/\./g, '-').replace(/\//g, '-');
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
-  m = s.match(/^(\d{4})\s+(\d{1,2})\s+(\d{1,2})$/);
-  if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
-  const d = dayjs(s);
-  return d.isValid() ? d.format('YYYY-MM-DD') : '';
-}
-
-function looksLikeDateKey(key = '') {
-  if (!key) return false;
-  const k = key.toLowerCase();
-  return /(date|dob|birth|joined|left|hired|apply|start|end|expiry|expire|issued|issue|event)/.test(
-    k
-  );
-}
-
-function looksLikeDateValue(val) {
-  if (val == null) return false;
-  if (typeof val === 'number') return false;
-  const s = toAsciiDigits(String(val).trim());
-  const m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
-  if (!m) return false;
-  const year = +m[1],
-    month = +m[2],
-    day = +m[3];
-  if (month < 1 || month > 12) return false;
-  if (day < 1 || day > 31) return false;
-  if (year < 1000 || year > 2200) return false;
-  return true;
-}
-
-function isDateCell(key, value) {
-  if (Array.isArray(props.dateKeys) && props.dateKeys.includes(key)) return true;
-  if (!props.autoDetectDates) return false;
-  return looksLikeDateKey(key) || looksLikeDateValue(value);
-}
-
-function displayValueByKey(key, rawValue) {
-  if (typeof rawValue === 'number') return rawValue;
-  if (typeof rawValue === 'string' && /^[0-9]+$/.test(toAsciiDigits(rawValue))) return rawValue;
-  if (!isDateCell(key, rawValue)) return rawValue;
-  const iso = normalizeToIso(rawValue);
-  return iso ? formatDisplay(iso) : rawValue;
-}
-
-/* === Computeds / maps === */
-const rows = computed(() => props.rows ?? []);
-const rtl = computed(() => props.rtl ?? true);
-const showIndex = computed(() => props.showIndex ?? true);
-const rowKey = computed(() => props.rowKey ?? 'idOrTmp');
-const includeEmptyOption = computed(() => props.includeEmptyOption ?? true);
-const selectable = computed(() => props.selectable !== false);
-
-/* helper: stable row id (fix selecting all when rowKey is missing/same) */
-function getRowId(row, index) {
-  const k = rowKey.value;
-  const v = k && row ? row[k] : undefined;
-  if (v === undefined || v === null || v === '') {
-    return `row-${index}`;
-  }
-  return v;
-}
-
-const autoOptions = computed(() => {
-  const map = {};
-  const add = (k) => {
-    const set = new Set();
-    rows.value.forEach((r) => {
-      const raw = r?.[k];
-      const disp = displayValueByKey(k, raw);
-      const v = (disp ?? '').toString().trim();
-      if (v) set.add(v);
-      else if (includeEmptyOption.value) set.add('');
-    });
-    map[k] = Array.from(set).sort((a, b) => a.localeCompare(b));
-  };
-  props.headers.forEach((h) => {
-    if (!isComposite(h)) {
-      if (h.key && !['picture', 'actions'].includes(h.key)) add(h.key);
-    }
+  /* === Props === */
+  const props = defineProps({
+    headers: { type: Array, required: true },
+    rows: { type: Array, default: () => [] },
+    filters: { type: Object, default: null },
+    rtl: { type: Boolean, default: true },
+    showIndex: { type: Boolean, default: true },
+    rowKey: { type: String, default: 'idOrTmp' },
+    dropdownKeys: { type: Array, default: () => [] },
+    optionsMap: { type: Object, default: null },
+    includeEmptyOption: { type: Boolean, default: true },
+    allLabel: { type: String, default: 'همه' },
+    topGroups: { type: Array, default: () => [] },
+    selectable: { type: Boolean, default: true },
+    enableEdit: { type: Boolean, default: false },
+    enablePeek: { type: Boolean, default: false },
+    enableDownload: { type: Boolean, default: false },
+    enableDelete: { type: Boolean, default: false },
+    dateKeys: { type: Array, default: () => [] },
+    autoDetectDates: { type: Boolean, default: true },
+    loading: { type: Boolean, default: false },
   });
-  return map;
-});
 
-const localFilters = ref({});
+  /* === Emits === */
+  const emit = defineEmits(['update:filters']);
 
-const filteredRows = computed(() => {
-  const f = localFilters.value || {};
-  return rows.value.filter((row) => {
-    for (const h of props.headers) {
+  /* === Calendar / dates === */
+  const { formatDisplay } = useCalendar();
+
+  function toAsciiDigits(s = '') {
+    const map = {
+      '۰': '0',
+      '۱': '1',
+      '۲': '2',
+      '۳': '3',
+      '۴': '4',
+      '۵': '5',
+      '۶': '6',
+      '۷': '7',
+      '۸': '8',
+      '۹': '9',
+      '٠': '0',
+      '١': '1',
+      '٢': '2',
+      '٣': '3',
+      '٤': '4',
+      '٥': '5',
+      '٦': '6',
+      '٧': '7',
+      '٨': '8',
+      '٩': '9',
+    };
+    return String(s).replace(/[۰-۹٠-٩]/g, (d) => map[d] ?? d);
+  }
+
+  function normalizeToIso(val) {
+    if (val == null) return '';
+    let s = toAsciiDigits(String(val).trim()).replace(/\./g, '-').replace(/\//g, '-');
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+    m = s.match(/^(\d{4})\s+(\d{1,2})\s+(\d{1,2})$/);
+    if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+    const d = dayjs(s);
+    return d.isValid() ? d.format('YYYY-MM-DD') : '';
+  }
+
+  function looksLikeDateKey(key = '') {
+    if (!key) return false;
+    const k = key.toLowerCase();
+    return /(date|dob|birth|joined|left|hired|apply|start|end|expiry|expire|issued|issue|event)/.test(
+      k
+    );
+  }
+
+  function looksLikeDateValue(val) {
+    if (val == null) return false;
+    if (typeof val === 'number') return false;
+    const s = toAsciiDigits(String(val).trim());
+    const m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+    if (!m) return false;
+    const year = +m[1],
+      month = +m[2],
+      day = +m[3];
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+    if (year < 1000 || year > 2200) return false;
+    return true;
+  }
+
+  function isDateCell(key, value) {
+    if (Array.isArray(props.dateKeys) && props.dateKeys.includes(key)) return true;
+    if (!props.autoDetectDates) return false;
+    return looksLikeDateKey(key) || looksLikeDateValue(value);
+  }
+
+  function displayValueByKey(key, rawValue) {
+    if (typeof rawValue === 'number') return rawValue;
+    if (typeof rawValue === 'string' && /^[0-9]+$/.test(toAsciiDigits(rawValue))) return rawValue;
+    if (!isDateCell(key, rawValue)) return rawValue;
+    const iso = normalizeToIso(rawValue);
+    return iso ? formatDisplay(iso) : rawValue;
+  }
+
+  /* === Computeds / maps === */
+  const rows = computed(() => props.rows ?? []);
+  const rtl = computed(() => props.rtl ?? true);
+  const showIndex = computed(() => props.showIndex ?? true);
+  const rowKey = computed(() => props.rowKey ?? 'idOrTmp');
+  const includeEmptyOption = computed(() => props.includeEmptyOption ?? true);
+  const selectable = computed(() => props.selectable !== false);
+
+  /* helper: stable row id (fix selecting all when rowKey is missing/same) */
+  function getRowId(row, index) {
+    const k = rowKey.value;
+    const v = k && row ? row[k] : undefined;
+    if (v === undefined || v === null || v === '') {
+      return `row-${index}`;
+    }
+    return v;
+  }
+
+  const autoOptions = computed(() => {
+    const map = {};
+    const add = (k) => {
+      const set = new Set();
+      rows.value.forEach((r) => {
+        const raw = r?.[k];
+        const disp = displayValueByKey(k, raw);
+        const v = (disp ?? '').toString().trim();
+        if (v) set.add(v);
+        else if (includeEmptyOption.value) set.add('');
+      });
+      map[k] = Array.from(set).sort((a, b) => a.localeCompare(b));
+    };
+    props.headers.forEach((h) => {
       if (!isComposite(h)) {
-        const k = h.key;
-        if (!k || k === 'actions' || k === 'picture') continue;
-        if (dropdownSet.value.has(k)) {
-          const selectedValues = f[k];
-          if (!selectedValues || selectedValues.length === 0) continue;
-          const rowDisplay = displayValueByKey(k, row?.[k]) || '';
-          if (!selectedValues.includes(rowDisplay)) return false;
+        if (h.key && !['picture', 'actions'].includes(h.key)) add(h.key);
+      }
+    });
+    return map;
+  });
+
+  const localFilters = ref({});
+
+  const filteredRows = computed(() => {
+    const f = localFilters.value || {};
+    return rows.value.filter((row) => {
+      for (const h of props.headers) {
+        if (!isComposite(h)) {
+          const k = h.key;
+          if (!k || k === 'actions' || k === 'picture') continue;
+          if (dropdownSet.value.has(k)) {
+            const selectedValues = f[k];
+            if (!selectedValues || selectedValues.length === 0) continue;
+            const rowDisplay = displayValueByKey(k, row?.[k]) || '';
+            if (!selectedValues.includes(rowDisplay)) return false;
+          }
         }
       }
+      return true;
+    });
+  });
+
+  /* === Texts === */
+  const allLabel = computed(() => props.allLabel ?? 'همه');
+  const indexLabel = 'ردیف';
+  const searchPlaceholder = 'جستجو…';
+  const noResults = 'نتیجه‌ای پیدا نشد';
+  const btnClear = 'پاک کردن';
+  const btnDone = 'انجام شد';
+  const footerHint = 'برای بستن انجام شد را بزنید ';
+  const placeholderEmpty = '(خالی)';
+
+  /* === Slots & Actions column === */
+  const slots = useSlots();
+  const showActions = computed(() => !!slots.actions);
+
+  /* === Selection (rows) === */
+  const selectedSet = ref(new Set());
+  const selectedCount = computed(() => selectedSet.value.size);
+
+  function toggleRow(id, checked) {
+    if (checked) selectedSet.value.add(id);
+    else selectedSet.value.delete(id);
+  }
+
+  /* === Active filters === */
+  const hasActiveFilters = computed(() => {
+    const filters = localFilters.value || {};
+    return Object.values(filters).some((arr) => Array.isArray(arr) && arr.length > 0);
+  });
+
+  function clearAllFilters() {
+    const empty = initEmptyFilters();
+    localFilters.value = empty;
+  }
+
+  /* === Column selection === */
+  const selectedCols = ref(new Set());
+  const selectedColsCount = computed(() => selectedCols.value.size);
+
+  const SELECT_KEY = '__SELECT__';
+  const INDEX_KEY = '__INDEX__';
+
+  function toggleCol(key, checked) {
+    if (!key) return;
+    checked ? selectedCols.value.add(key) : selectedCols.value.delete(key);
+  }
+
+  function isColKeySelected(key) {
+    return !printOnlyCols.value ? true : !!(key && selectedCols.value.has(key));
+  }
+
+  function groupHasAnySelected(firstKey) {
+    if (!printOnlyCols.value) return true;
+    if (!firstKey) return false;
+    const grp = groupByKey.value.get(firstKey);
+    if (!grp) return selectedCols.value.has(firstKey);
+    return (grp.keys || []).some((k) => selectedCols.value.has(k));
+  }
+
+  /* === Dropdown state === */
+  const openDropdown = ref(null);
+  const dropdownQuery = ref({});
+  const triggerRefs = ref({});
+  const panelEl = ref(null);
+  const overlayEl = ref(null);
+  const panelStyle = ref({ display: 'none' });
+
+  function openDropdownAt(key) {
+    if (!key) return;
+    if (openDropdown.value === key) {
+      closeDropdown();
+      return;
     }
-    return true;
-  });
-});
-
-/* === Texts === */
-const allLabel = computed(() => props.allLabel ?? 'همه');
-const indexLabel = 'ردیف';
-const searchPlaceholder = 'جستجو…';
-const noResults = 'نتیجه‌ای پیدا نشد';
-const btnClear = 'پاک کردن';
-const btnDone = 'انجام شد';
-const footerHint = 'برای بستن انجام شد را بزنید ';
-const placeholderEmpty = '(خالی)';
-
-/* === Slots & Actions column === */
-const slots = useSlots();
-const showActions = computed(() => !!slots.actions);
-
-/* === Selection (rows) === */
-const selectedSet = ref(new Set());
-const selectedCount = computed(() => selectedSet.value.size);
-
-function toggleRow(id, checked) {
-  if (checked) selectedSet.value.add(id);
-  else selectedSet.value.delete(id);
-}
-
-/* === Active filters === */
-const hasActiveFilters = computed(() => {
-  const filters = localFilters.value || {};
-  return Object.values(filters).some((arr) => Array.isArray(arr) && arr.length > 0);
-});
-
-function clearAllFilters() {
-  const empty = initEmptyFilters();
-  localFilters.value = empty;
-}
-
-/* === Column selection === */
-const selectedCols = ref(new Set());
-const selectedColsCount = computed(() => selectedCols.value.size);
-
-const SELECT_KEY = '__SELECT__';
-const INDEX_KEY = '__INDEX__';
-
-function toggleCol(key, checked) {
-  if (!key) return;
-  checked ? selectedCols.value.add(key) : selectedCols.value.delete(key);
-}
-
-function isColKeySelected(key) {
-  return !printOnlyCols.value ? true : !!(key && selectedCols.value.has(key));
-}
-
-function groupHasAnySelected(firstKey) {
-  if (!printOnlyCols.value) return true;
-  if (!firstKey) return false;
-  const grp = groupByKey.value.get(firstKey);
-  if (!grp) return selectedCols.value.has(firstKey);
-  return (grp.keys || []).some((k) => selectedCols.value.has(k));
-}
-
-/* === Dropdown state === */
-const openDropdown = ref(null);
-const dropdownQuery = ref({});
-const triggerRefs = ref({});
-const panelEl = ref(null);
-const overlayEl = ref(null);
-const panelStyle = ref({ display: 'none' });
-
-function openDropdownAt(key) {
-  if (!key) return;
-  if (openDropdown.value === key) {
-    closeDropdown();
-    return;
+    openDropdown.value = key;
+    if (dropdownQuery.value[key] == null) dropdownQuery.value[key] = '';
+    nextTick(() => positionPanelFor(key));
   }
-  openDropdown.value = key;
-  if (dropdownQuery.value[key] == null) dropdownQuery.value[key] = '';
-  nextTick(() => positionPanelFor(key));
-}
 
-function closeDropdown() {
-  openDropdown.value = null;
-  panelStyle.value = { display: 'none' };
-}
-
-function positionPanelFor(key) {
-  if (!key) return;
-  const trigger = triggerRefs.value[key];
-  if (!trigger || !overlayEl.value) return;
-  const rect = trigger.getBoundingClientRect();
-  const vw = window.innerWidth;
-  const gap = 8;
-  const isRTL = rtl.value;
-  const topPx = rect.top - gap;
-  const base = {
-    display: 'block',
-    position: 'absolute',
-    bottom: `calc(100vh - ${topPx}px)`,
-    maxHeight: '60vh',
-    minWidth: `${Math.max(rect.width, 320)}px`,
-  };
-  panelStyle.value = isRTL
-    ? { ...base, right: `${vw - rect.right}px`, left: '' }
-    : { ...base, left: `${rect.left}px`, right: '' };
-}
-
-function handleReposition() {
-  if (openDropdown.value) positionPanelFor(openDropdown.value);
-}
-
-/* === Header helpers === */
-const isComposite = (h) => Array.isArray(h?.key);
-const colKey = (h) => (isComposite(h) ? h.key.join('__') : h.key);
-const hKey = (h) => (isComposite(h) ? null : h.key);
-
-/* === Grouping === */
-const groupByKey = computed(() => {
-  const map = new Map();
-  (props.topGroups ?? []).forEach((g) => (g?.keys ?? []).forEach((k) => map.set(k, g)));
-  return map;
-});
-
-const groupedKeys = computed(() => new Set([...groupByKey.value.keys()]));
-
-function isFirstKeyOfGroup(key) {
-  if (!key) return false;
-  const grp = groupByKey.value.get(key);
-  if (!grp) return false;
-  for (const h of props.headers) {
-    const k = hKey(h);
-    if (k && (grp.keys || []).includes(k)) return k === key;
+  function closeDropdown() {
+    openDropdown.value = null;
+    panelStyle.value = { display: 'none' };
   }
-  return false;
-}
 
-function groupColspan(key) {
-  if (!key) return 1;
-  const grp = groupByKey.value.get(key);
-  if (!grp) return 1;
-  const keysInOrder = props.headers.map((h) => hKey(h)).filter(Boolean);
-  return (grp.keys || []).filter((k) => keysInOrder.includes(k)).length || 1;
-}
+  function positionPanelFor(key) {
+    if (!key) return;
+    const trigger = triggerRefs.value[key];
+    if (!trigger || !overlayEl.value) return;
+    const rect = trigger.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const gap = 8;
+    const isRTL = rtl.value;
+    const topPx = rect.top - gap;
+    const base = {
+      display: 'block',
+      position: 'absolute',
+      bottom: `calc(100vh - ${topPx}px)`,
+      maxHeight: '60vh',
+      minWidth: `${Math.max(rect.width, 320)}px`,
+    };
+    panelStyle.value = isRTL
+      ? { ...base, right: `${vw - rect.right}px`, left: '' }
+      : { ...base, left: `${rect.left}px`, right: '' };
+  }
 
-function coveredByGroupInRow1(key) {
-  if (!key) return false;
-  if (!groupedKeys.value.has(key)) return false;
-  return !isFirstKeyOfGroup(key);
-}
+  function handleReposition() {
+    if (openDropdown.value) positionPanelFor(openDropdown.value);
+  }
 
-/* === Dropdown keys === */
-const dropdownSet = computed(() => {
-  if (props.dropdownKeys && props.dropdownKeys.length) return new Set(props.dropdownKeys);
-  const set = new Set();
-  props.headers.forEach((h) => {
-    if (isComposite(h)) return;
-    if (h.key && !['picture', 'actions'].includes(h.key)) set.add(h.key);
+  /* === Header helpers === */
+  const isComposite = (h) => Array.isArray(h?.key);
+  const colKey = (h) => (isComposite(h) ? h.key.join('__') : h.key);
+  const hKey = (h) => (isComposite(h) ? null : h.key);
+
+  /* === Grouping === */
+  const groupByKey = computed(() => {
+    const map = new Map();
+    (props.topGroups ?? []).forEach((g) => (g?.keys ?? []).forEach((k) => map.set(k, g)));
+    return map;
   });
-  return set;
-});
 
-const showFilterFor = (_key) => true;
+  const groupedKeys = computed(() => new Set([...groupByKey.value.keys()]));
 
-/* === Filters === */
-function initEmptyFilters() {
-  const obj = {};
-  props.headers.forEach((h) => {
-    if (!isComposite(h) && h.key && dropdownSet.value.has(h.key)) obj[h.key] = [];
-  });
-  return obj;
-}
-
-function deepEqual(a, b) {
-  try {
-    return JSON.stringify(a) === JSON.stringify(b);
-  } catch {
+  function isFirstKeyOfGroup(key) {
+    if (!key) return false;
+    const grp = groupByKey.value.get(key);
+    if (!grp) return false;
+    for (const h of props.headers) {
+      const k = hKey(h);
+      if (k && (grp.keys || []).includes(k)) return k === key;
+    }
     return false;
   }
-}
 
-let updatingFromParent = false;
+  function groupColspan(key) {
+    if (!key) return 1;
+    const grp = groupByKey.value.get(key);
+    if (!grp) return 1;
+    const keysInOrder = props.headers.map((h) => hKey(h)).filter(Boolean);
+    return (grp.keys || []).filter((k) => keysInOrder.includes(k)).length || 1;
+  }
 
-watch(
-  () => props.filters,
-  (incoming) => {
-    updatingFromParent = true;
-    if (incoming && Object.keys(incoming).length) {
-      const normalized = {};
-      for (const k in incoming) {
-        const v = incoming[k];
-        normalized[k] = Array.isArray(v) ? v.slice() : v ? [v] : [];
-      }
-      if (!deepEqual(localFilters.value, normalized)) localFilters.value = normalized;
-    } else {
-      const empty = initEmptyFilters();
-      if (!deepEqual(localFilters.value, empty)) localFilters.value = empty;
+  function coveredByGroupInRow1(key) {
+    if (!key) return false;
+    if (!groupedKeys.value.has(key)) return false;
+    return !isFirstKeyOfGroup(key);
+  }
+
+  /* === Dropdown keys === */
+  const dropdownSet = computed(() => {
+    if (props.dropdownKeys && props.dropdownKeys.length) return new Set(props.dropdownKeys);
+    const set = new Set();
+    props.headers.forEach((h) => {
+      if (isComposite(h)) return;
+      if (h.key && !['picture', 'actions'].includes(h.key)) set.add(h.key);
+    });
+    return set;
+  });
+
+  const showFilterFor = (_key) => true;
+
+  /* === Filters === */
+  function initEmptyFilters() {
+    const obj = {};
+    props.headers.forEach((h) => {
+      if (!isComposite(h) && h.key && dropdownSet.value.has(h.key)) obj[h.key] = [];
+    });
+    return obj;
+  }
+
+  function deepEqual(a, b) {
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch {
+      return false;
     }
-    nextTick(() => {
-      updatingFromParent = false;
-    });
-  },
-  { immediate: true, deep: false }
-);
+  }
 
-watch(
-  localFilters,
-  (v) => {
-    if (updatingFromParent) return;
-    if (!deepEqual(v, props.filters)) emit('update:filters', JSON.parse(JSON.stringify(v)));
-  },
-  { deep: true, flush: 'post' }
-);
+  let updatingFromParent = false;
 
-function getOptions(key) {
-  if (!key) return [];
-  const custom = props.optionsMap?.[key];
-  if (Array.isArray(custom) && custom.length) return custom;
-  return autoOptions.value[key] || [];
-}
-
-function getFilteredOptions(key) {
-  if (!key) return [];
-  const q = (dropdownQuery.value[key] || '').toLowerCase();
-  const list = getOptions(key) || [];
-  if (!q) return list;
-  return list.filter((o) => ((o ?? '') + '').toLowerCase().includes(q));
-}
-
-function getFilteredOptionsCount(key) {
-  return (getFilteredOptions(key) || []).length;
-}
-
-function clearAll(key) {
-  if (!key) return;
-  localFilters.value = { ...localFilters.value, [key]: [] };
-}
-
-function countLabel(sel, tot) {
-  const t = Number(tot || 0);
-  return sel === 0 ? `0 از ${t} انتخاب شده` : `${sel} از ${t} انتخاب شده`;
-}
-
-/* === Column widths === */
-function colWidth(h) {
-  const w = h && h.width;
-  if (typeof w === 'number') return `${w}px`;
-  if (typeof w === 'string') return /^\d+$/.test(w) ? `${w}px` : w;
-  return null;
-}
-
-/* === Print flags === */
-const printOnlySelected = ref(false);
-const printOnlyCols = ref(false);
-
-function handleAfterPrint() {
-  printOnlySelected.value = false;
-  printOnlyCols.value = false;
-}
-
-async function printAll() {
-  printOnlySelected.value = false;
-  printOnlyCols.value = false;
-  await nextTick();
-  window.print();
-}
-
-async function printSelected() {
-  if (selectedSet.value.size === 0) return;
-  printOnlyCols.value = false;
-  printOnlySelected.value = true;
-  await nextTick();
-  window.print();
-}
-
-async function printSelectedColumns() {
-  if (selectedCols.value.size === 0) return;
-  printOnlySelected.value = false;
-  printOnlyCols.value = true;
-  await nextTick();
-  window.print();
-}
-
-function getPrintedFilterValue(key) {
-  if (!key) return allLabel.value;
-  const arr = localFilters.value?.[key];
-  if (!Array.isArray(arr) || arr.length === 0) return allLabel.value;
-  return arr.map((v) => (v === '' ? placeholderEmpty : String(v))).join('، ');
-}
-
-/* === Click outside dropdown === */
-function handleClickOutsideDoc(e) {
-  if (!openDropdown.value) return;
-  const t = e.target;
-  const key = openDropdown.value;
-  const trigger = triggerRefs.value[key];
-  const p = panelEl.value;
-
-  const panelContainsTarget = Array.isArray(p)
-    ? p.some((el) => el && typeof el.contains === 'function' && el.contains(t))
-    : !!(p && typeof p.contains === 'function' && p.contains(t));
-
-  const insideTrigger = !!(
-    trigger &&
-    typeof trigger.contains === 'function' &&
-    trigger.contains(t)
+  watch(
+    () => props.filters,
+    (incoming) => {
+      updatingFromParent = true;
+      if (incoming && Object.keys(incoming).length) {
+        const normalized = {};
+        for (const k in incoming) {
+          const v = incoming[k];
+          normalized[k] = Array.isArray(v) ? v.slice() : v ? [v] : [];
+        }
+        if (!deepEqual(localFilters.value, normalized)) localFilters.value = normalized;
+      } else {
+        const empty = initEmptyFilters();
+        if (!deepEqual(localFilters.value, empty)) localFilters.value = empty;
+      }
+      nextTick(() => {
+        updatingFromParent = false;
+      });
+    },
+    { immediate: true, deep: false }
   );
 
-  if (!panelContainsTarget && !insideTrigger) closeDropdown();
-}
-
-/* === PDF/Excel === */
-function headersFlatKeys() {
-  return props.headers
-    .filter((h) => !isComposite(h) && h.key && !['picture', 'actions'].includes(h.key))
-    .map((h) => ({ key: h.key, title: h.title ?? h.key }));
-}
-
-function escapeCsv(val) {
-  if (val == null) return '';
-  const s = String(val).replace(/\r?\n/g, ' ');
-  if (/[",;]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
-  return s;
-}
-
-function makeCsv(rowsToUse) {
-  const cols = headersFlatKeys();
-  const headerLine = cols.map((c) => escapeCsv(c.title)).join(',');
-  const dataLines = rowsToUse.map((r) =>
-    cols
-      .map((c) => {
-        const v = displayValueByKey(c.key, r[c.key]);
-        return escapeCsv(v);
-      })
-      .join(',')
+  watch(
+    localFilters,
+    (v) => {
+      if (updatingFromParent) return;
+      if (!deepEqual(v, props.filters)) emit('update:filters', JSON.parse(JSON.stringify(v)));
+    },
+    { deep: true, flush: 'post' }
   );
-  return [headerLine, ...dataLines].join('\n');
-}
 
-function downloadPdf() {
-  if (selectedCols.value.size > 0) {
-    printSelectedColumns();
-    return;
+  function getOptions(key) {
+    if (!key) return [];
+    const custom = props.optionsMap?.[key];
+    if (Array.isArray(custom) && custom.length) return custom;
+    return autoOptions.value[key] || [];
   }
-  if (selectedSet.value.size > 0) {
-    printSelected();
-    return;
+
+  function getFilteredOptions(key) {
+    if (!key) return [];
+    const q = (dropdownQuery.value[key] || '').toLowerCase();
+    const list = getOptions(key) || [];
+    if (!q) return list;
+    return list.filter((o) => ((o ?? '') + '').toLowerCase().includes(q));
   }
-  printAll();
-}
 
-function downloadExcel() {
-  const rowsToUse = [];
-  if (selectedSet.value.size > 0) {
-    filteredRows.value.forEach((r, idx) => {
-      const id = getRowId(r, idx);
-      if (selectedSet.value.has(id)) rowsToUse.push(r);
-    });
-  } else {
-    rowsToUse.push(...filteredRows.value);
+  function getFilteredOptionsCount(key) {
+    return (getFilteredOptions(key) || []).length;
   }
-  const csv = makeCsv(rowsToUse);
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-  a.href = url;
-  a.download = `table-export-${ts}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
 
-/* === Lifecycle === */
-onMounted(() => {
-  window.addEventListener('scroll', handleReposition, true);
-  window.addEventListener('resize', handleReposition);
-  document.addEventListener('click', handleClickOutsideDoc);
-  window.addEventListener('afterprint', handleAfterPrint);
-});
+  function clearAll(key) {
+    if (!key) return;
+    localFilters.value = { ...localFilters.value, [key]: [] };
+  }
 
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleReposition, true);
-  window.removeEventListener('resize', handleReposition);
-  document.removeEventListener('click', handleClickOutsideDoc);
-  window.removeEventListener('afterprint', handleAfterPrint);
-});
+  function countLabel(sel, tot) {
+    const t = Number(tot || 0);
+    return sel === 0 ? `0 از ${t} انتخاب شده` : `${sel} از ${t} انتخاب شده`;
+  }
+
+  /* === Column widths === */
+  function colWidth(h) {
+    const w = h && h.width;
+    if (typeof w === 'number') return `${w}px`;
+    if (typeof w === 'string') return /^\d+$/.test(w) ? `${w}px` : w;
+    return null;
+  }
+
+  /* === Print flags === */
+  const printOnlySelected = ref(false);
+  const printOnlyCols = ref(false);
+
+  function handleAfterPrint() {
+    printOnlySelected.value = false;
+    printOnlyCols.value = false;
+  }
+
+  async function printAll() {
+    printOnlySelected.value = false;
+    printOnlyCols.value = false;
+    await nextTick();
+    window.print();
+  }
+
+  async function printSelected() {
+    if (selectedSet.value.size === 0) return;
+    printOnlyCols.value = false;
+    printOnlySelected.value = true;
+    await nextTick();
+    window.print();
+  }
+
+  async function printSelectedColumns() {
+    if (selectedCols.value.size === 0) return;
+    printOnlySelected.value = false;
+    printOnlyCols.value = true;
+    await nextTick();
+    window.print();
+  }
+
+  function getPrintedFilterValue(key) {
+    if (!key) return allLabel.value;
+    const arr = localFilters.value?.[key];
+    if (!Array.isArray(arr) || arr.length === 0) return allLabel.value;
+    return arr.map((v) => (v === '' ? placeholderEmpty : String(v))).join('، ');
+  }
+
+  /* === Click outside dropdown === */
+  function handleClickOutsideDoc(e) {
+    if (!openDropdown.value) return;
+    const t = e.target;
+    const key = openDropdown.value;
+    const trigger = triggerRefs.value[key];
+    const p = panelEl.value;
+
+    const panelContainsTarget = Array.isArray(p)
+      ? p.some((el) => el && typeof el.contains === 'function' && el.contains(t))
+      : !!(p && typeof p.contains === 'function' && p.contains(t));
+
+    const insideTrigger = !!(
+      trigger &&
+      typeof trigger.contains === 'function' &&
+      trigger.contains(t)
+    );
+
+    if (!panelContainsTarget && !insideTrigger) closeDropdown();
+  }
+
+  /* === PDF/Excel === */
+  function headersFlatKeys() {
+    return props.headers
+      .filter((h) => !isComposite(h) && h.key && !['picture', 'actions'].includes(h.key))
+      .map((h) => ({ key: h.key, title: h.title ?? h.key }));
+  }
+
+  function escapeCsv(val) {
+    if (val == null) return '';
+    const s = String(val).replace(/\r?\n/g, ' ');
+    if (/[",;]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function makeCsv(rowsToUse) {
+    const cols = headersFlatKeys();
+    const headerLine = cols.map((c) => escapeCsv(c.title)).join(',');
+    const dataLines = rowsToUse.map((r) =>
+      cols
+        .map((c) => {
+          const v = displayValueByKey(c.key, r[c.key]);
+          return escapeCsv(v);
+        })
+        .join(',')
+    );
+    return [headerLine, ...dataLines].join('\n');
+  }
+
+  function downloadPdf() {
+    if (selectedCols.value.size > 0) {
+      printSelectedColumns();
+      return;
+    }
+    if (selectedSet.value.size > 0) {
+      printSelected();
+      return;
+    }
+    printAll();
+  }
+
+  function downloadExcel() {
+    const rowsToUse = [];
+    if (selectedSet.value.size > 0) {
+      filteredRows.value.forEach((r, idx) => {
+        const id = getRowId(r, idx);
+        if (selectedSet.value.has(id)) rowsToUse.push(r);
+      });
+    } else {
+      rowsToUse.push(...filteredRows.value);
+    }
+    const csv = makeCsv(rowsToUse);
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    a.href = url;
+    a.download = `table-export-${ts}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* === Lifecycle === */
+  onMounted(() => {
+    window.addEventListener('scroll', handleReposition, true);
+    window.addEventListener('resize', handleReposition);
+    document.addEventListener('click', handleClickOutsideDoc);
+    window.addEventListener('afterprint', handleAfterPrint);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('scroll', handleReposition, true);
+    window.removeEventListener('resize', handleReposition);
+    document.removeEventListener('click', handleClickOutsideDoc);
+    window.removeEventListener('afterprint', handleAfterPrint);
+  });
 </script>
 
 <style>
-@keyframes bounce {
-  0%,
-  80%,
-  100% {
-    transform: scale(0);
-  }
-  40% {
-    transform: scale(1);
-  }
-}
-
-/* Header color */
-.table-header {
-  background-color: #08989f;
-}
-
-/* ✅ header cells border color = header background */
-.table-header th {
-  background-color: #08989f;
-  border-color: #08989f !important;
-}
-
-/* ✅ no cell border for rows */
-tbody td {
-  border-color: transparent !important;
-}
-
-/* Print overrides */
-@media print {
-  body * {
-    visibility: hidden !important;
-  }
-  #print-this-table,
-  #print-this-table * {
-    visibility: visible !important;
+  @keyframes bounce {
+    0%,
+    80%,
+    100% {
+      transform: scale(0);
+    }
+    40% {
+      transform: scale(1);
+    }
   }
 
-  #print-this-table {
-    position: fixed;
-    inset: 0;
-    margin: 0;
-    padding: 8mm;
-    width: auto;
-    height: auto;
+  /* Header color */
+  .table-header {
+    background-color: #08989f;
+  }
+
+  /* ✅ header cells border color = header background */
+  .table-header th {
+    background-color: #08989f;
+    border-color: #08989f !important;
+  }
+
+  /* ✅ no cell border for rows */
+  tbody td {
+    border-color: transparent !important;
+  }
+
+  /* Print overrides */
+  @media print {
+    body * {
+      visibility: hidden !important;
+    }
+    #print-this-table,
+    #print-this-table * {
+      visibility: visible !important;
+    }
+
+    #print-this-table {
+      position: fixed;
+      inset: 0;
+      margin: 0;
+      padding: 8mm;
+      width: auto;
+      height: auto;
+      box-shadow: none !important;
+      background: white !important;
+      transform: scale(1) !important;
+    }
+
+    thead {
+      display: table-header-group;
+    }
+    tfoot {
+      display: table-footer-group;
+    }
+    tr,
+    img {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .print-hidden {
+      display: none !important;
+    }
+    .print-col-hidden {
+      display: none !important;
+    }
+  }
+
+  .cell-wrap {
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  button:disabled:hover {
+    opacity: 0.4;
+    transform: none !important;
     box-shadow: none !important;
-    background: white !important;
-    transform: scale(1) !important;
   }
 
-  thead {
-    display: table-header-group;
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 8px;
   }
-  tfoot {
-    display: table-footer-group;
+  .overflow-x-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
   }
-  tr,
-  img {
-    page-break-inside: avoid;
-    break-inside: avoid;
+  .overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
   }
-  body {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
   }
-
-  .print-hidden {
-    display: none !important;
-  }
-  .print-col-hidden {
-    display: none !important;
-  }
-}
-
-.cell-wrap {
-  word-break: break-word;
-  white-space: normal;
-}
-
-button:disabled:hover {
-  opacity: 0.4;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-.overflow-x-auto::-webkit-scrollbar {
-  height: 8px;
-}
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-.overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
-}
-/* ===========================
+  /* ===========================
    TABLE LAYOUT – remove gaps
    =========================== */
-#print-this-table table {
-  border-collapse: separate;
-  border-spacing: 0; /* 🔥 removes white gaps between header cells */
-}
+  #print-this-table table {
+    border-collapse: separate;
+    border-spacing: 0; /* 🔥 removes white gaps between header cells */
+  }
 
-/* ===========================
+  /* ===========================
    HEADER COLORS (PRIMARY)
    =========================== */
-.table-header {
-  background-color: #08989f !important;
-}
+  .table-header {
+    background-color: #08989f !important;
+  }
 
-/* all header cells: same background + same border color */
-.table-header th {
-  background-color: #08989f !important;
-  border-top: 1px solid #08989f !important;
-  border-bottom: 1px solid #08989f !important;
-  border-left: 1px solid #08989f !important;
-  border-right: 1px solid #08989f !important;
-  color: #ffffff !important;
-}
+  /* all header cells: same background + same border color */
+  .table-header th {
+    background-color: #08989f !important;
+    border-top: 1px solid #08989f !important;
+    border-bottom: 1px solid #08989f !important;
+    border-left: 1px solid #08989f !important;
+    border-right: 1px solid #08989f !important;
+    color: #ffffff !important;
+  }
 
-/* ===========================
+  /* ===========================
    ROW STYLE (Vuetify inset bar)
    =========================== */
 
-/* Remove all default borders from body cells */
-tbody td {
-  border: none !important;
-}
+  /* Remove all default borders from body cells */
+  tbody td {
+    border: none !important;
+  }
 
-/* LTR inset primary border inside every row */
-tbody tr {
-  position: relative;
-  box-shadow: inset 4px 0 0 0 #08989f;  /* left vertical color bar */
-  border-bottom: 1px solid white !important;
-}
+  /* LTR inset primary border inside every row */
+  tbody tr {
+    position: relative;
+    box-shadow: inset 4px 0 0 0 #08989f; /* left vertical color bar */
+    border-bottom: 1px solid white !important;
+  }
 
-/* RTL inset primary border (right side) */
-[dir="rtl"] tbody tr {
-  box-shadow: inset -4px 0 0 0 #08989f; /* right side */
-  border-bottom: 1px solid white !important;
-}
+  /* RTL inset primary border (right side) */
+  [dir='rtl'] tbody tr {
+    box-shadow: inset -4px 0 0 0 #08989f; /* right side */
+    border-bottom: 1px solid white !important;
+  }
 
-/* Optional hover */
-tbody tr:hover {
-  background-color: rgba(0, 0, 0, 0.03);
-}
+  /* Optional hover */
+  tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+  .overflow-x-auto::-webkit-scrollbar {
+    width: 6px; /* 👈 vertical scrollbar width */
+    height: 8px; /* 👈 horizontal scrollbar height (keep as you like) */
+  }
 
+  .overflow-x-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+  }
+  /* Make the whole header block sticky inside the scroll area */
+  .overflow-x-auto > table > thead.table-header {
+    position: sticky;
+    top: 0;
+    z-index: 40; /* above body rows */
+  }
+  /* Default: hide scrollbars but scroll works */
+  .overflow-x-auto::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+  }
+
+  /* On hover: show scrollbars */
+  .overflow-x-auto:hover::-webkit-scrollbar {
+    width: 4px; /* vertical */
+    height: 4px; /* horizontal */
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #bfbfbf;
+    border-radius: 4px;
+  }
+
+  .overflow-x-auto:hover::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  /* Default: hide */
+  .overflow-x-auto {
+    scrollbar-width: none;
+  }
+
+  /* On hover: show */
+  .overflow-x-auto:hover {
+    scrollbar-width: thin;
+    scrollbar-color: #b9b6b6 transparent;
+  }
 </style>

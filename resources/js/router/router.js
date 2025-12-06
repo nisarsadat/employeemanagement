@@ -149,6 +149,22 @@ import MashkokPeopleForm from '../pages/FiftyFormats/MashkokPeopleForm.vue';
 import MujahedinoForm from '../pages/FiftyFormats/MujahedinoForm.vue';
 import OldJahadisForm from '../pages/FiftyFormats/OldJahadisForm.vue';
 import TujaransForm from '../pages/FiftyFormats/TujaransForm.vue';
+import MasjidForm from '../pages/FiftyFormats/MasjidForm.vue';
+import CheckpointForm from '../pages/FiftyFormats/CheckpointForm.vue';
+import HighwayForm from '../pages/FiftyFormats/HighwayForm.vue';
+import CompanyForm from '../pages/FiftyFormats/CompanyForm.vue';
+import DoneLostPlaceForm from '../pages/FiftyFormats/DoneLostPlaceForm.vue';
+import CriminalCapturePlaceForm from '../pages/FiftyFormats/CriminalCapturePlaceForm.vue';
+import EconemyProjectForm from '../pages/FiftyFormats/EconemyProjectForm.vue';
+import PumpForm from '../pages/FiftyFormats/PumpForm.vue';
+import GovernmentPlaceForm from '../pages/FiftyFormats/GovernmentPlaceForm.vue';
+import SuperMarketForm from '../pages/FiftyFormats/SuperMarketForm.vue';
+import ShoraForm from '../pages/FiftyFormats/ShoraForm.vue';
+import ParkForm from '../pages/FiftyFormats/ParkForm.vue';
+import ComplexForm from '../pages/FiftyFormats/ComplexForm.vue';
+import DeplomaticPlaceForm from '../pages/FiftyFormats/DeplomaticPlaceForm.vue';
+import UniversityForm from '../pages/FiftyFormats/UniversityForm.vue';
+import WakilanoForm from '../pages/FiftyFormats/WakilanoForm.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -988,9 +1004,31 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('wakilanos') },
         },
         {
+          path: '/app/wakilanatform',
+          name: 'WakilanoCreate',
+          component: WakilanoForm,
+        },
+        {
+          path: '/app/wakilanatform/:id',
+          name: 'WakilanoEdit',
+          component: WakilanoForm,
+          props: true,
+        },
+        {
           path: 'universities',
           component: Universities,
           meta: { requiresAuth: true, perm: permFor('universities') },
+        },
+        {
+          path: '/app/universityform',
+          name: 'universities.create',
+          component: UniversityForm,
+        },
+        {
+          path: '/app/universityform/:id',
+          name: 'universities.edit',
+          component: UniversityForm,
+          props: true,
         },
         {
           path: 'masjids',
@@ -998,9 +1036,31 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('masjids') },
         },
         {
+          path: '/app/masjid',
+          name: 'MasjidIndex',
+          component: MasjidForm,
+        },
+        {
+          path: '/app/masjidform/:id?',
+          name: 'MasjidForm',
+          component: MasjidForm,
+          props: true,
+        },
+        {
           path: 'highways',
           component: HighWays,
           meta: { requiresAuth: true, perm: permFor('highways') },
+        },
+        {
+          path: '/app/highwayform',
+          name: 'HighwayCreate',
+          component: HighwayForm,
+        },
+        {
+          path: '/app/highwayform/:id',
+          name: 'HighwayEdit',
+          component: HighwayForm,
+          props: true,
         },
         {
           path: 'companies',
@@ -1008,9 +1068,31 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('companies') },
         },
         {
+          path: '/app/companyform',
+          name: 'CompanyCreate',
+          component: CompanyForm,
+        },
+        {
+          path: '/app/companyform/:id',
+          name: 'CompanyEdit',
+          component: CompanyForm,
+          props: true,
+        },
+        {
           path: 'donelostplaces',
           component: DoneLostPlaces,
           meta: { requiresAuth: true, perm: permFor('donelostplaces') },
+        },
+        {
+          path: '/app/done-lost-places/form',
+          name: 'DoneLostPlaceCreate',
+          component: DoneLostPlaceForm,
+        },
+        {
+          path: '/app/done-lost-places/form/:id',
+          name: 'DoneLostPlaceEdit',
+          component: DoneLostPlaceForm,
+          props: true,
         },
         {
           path: 'econemyprojects',
@@ -1018,15 +1100,59 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('econemyprojects') },
         },
         {
+          path: '/app/econemyprojectform',
+          name: 'EconemyProjectCreate',
+          component: EconemyProjectForm,
+        },
+        {
+          path: '/app/econemyprojectform/:id',
+          name: 'EconemyProjectEdit',
+          component: EconemyProjectForm,
+          props: true,
+        },
+        {
           path: 'criminalcaptureplaces',
           component: CriminalCapturePlaces,
           meta: { requiresAuth: true, perm: permFor('criminalcaptureplaces') },
         },
+        {
+          path: '/app/criminal-capture-place-form',
+          name: 'CriminalCapturePlaceCreate',
+          component: CriminalCapturePlaceForm,
+        },
+        {
+          path: '/app/criminal-capture-place-form/:id',
+          name: 'CriminalCapturePlaceEdit',
+          component: CriminalCapturePlaceForm,
+          props: true,
+        },
         { path: 'pumps', component: Pumps, meta: { requiresAuth: true, perm: permFor('pumps') } },
+        {
+          path: '/app/pumpform',
+          name: 'PumpCreate',
+          component: PumpForm,
+        },
+        {
+          path: '/app/pumpform/:id',
+          name: 'PumpEdit',
+          component: PumpForm,
+          props: true,
+        },
         {
           path: 'shoras',
           component: Shoras,
           meta: { requiresAuth: true, perm: permFor('shoras') },
+        },
+        {
+          path: '/app/shoraform',
+          name: 'ShoraCreate',
+          component: ShoraForm,
+        },
+        {
+          path: '/app/shoraform/:id',
+          name: 'ShoraEdit',
+          component: ShoraForm,
+          props: true,
         },
         {
           path: 'checkpoints',
@@ -1034,25 +1160,92 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('checkpoints') },
         },
         {
+          path: '/app/checkpointform',
+          name: 'CheckpointCreate',
+          component: CheckpointForm,
+        },
+        {
+          path: '/app/checkpointform/:id',
+          name: 'CheckpointEdit',
+          component: CheckpointForm,
+          props: true,
+        },
+        {
           path: 'governmentplaces',
           component: GovernmentPlaces,
           meta: { requiresAuth: true, perm: permFor('governmentplaces') },
         },
         {
+          path: '/app/governmentplaceform',
+          name: 'GovernmentPlaceCreate',
+          component: GovernmentPlaceForm,
+        },
+        {
+          path: '/app/governmentplaceform/:id',
+          name: 'GovernmentPlaceEdit',
+          component: GovernmentPlaceForm,
+          props: true,
+        },
+
+        {
           path: 'supermarkets',
           component: SuperMarkets,
           meta: { requiresAuth: true, perm: permFor('supermarkets') },
         },
+        {
+          path: '/app/supermarketform',
+          name: 'SuperMarketCreate',
+          component: SuperMarketForm,
+        },
+        {
+          path: '/app/supermarketform/:id',
+          name: 'SuperMarketEdit',
+          component: SuperMarketForm,
+          props: true,
+        },
         { path: 'parks', component: Parks, meta: { requiresAuth: true, perm: permFor('parks') } },
+        {
+          path: '/app/parkform',
+          name: 'ParkCreate',
+          component: ParkForm,
+        },
+        {
+          path: '/app/parkform/:id',
+          name: 'ParkEdit',
+          component: ParkForm,
+          props: true,
+        },
         {
           path: 'complexes',
           component: Complexes,
           meta: { requiresAuth: true, perm: permFor('complexes') },
         },
         {
+          path: '/app/complexform',
+          name: 'ComplexCreate',
+          component: ComplexForm,
+        },
+        {
+          path: '/app/complexform/:id',
+          name: 'ComplexEdit',
+          component: ComplexForm,
+          props: true,
+        },
+        {
           path: 'deplomaticplaces',
           component: DeplomaticPlaces,
           meta: { requiresAuth: true, perm: permFor('deplomaticplaces') },
+        },
+        {
+          path: '/app/deplomaticplaceform',
+          name: 'DeplomaticPlaceCreate',
+          component: DeplomaticPlaceForm,
+        },
+        {
+          path: '/app/deplomaticplaceform/:id',
+          name: 'DeplomaticPlaceEdit',
+          component: DeplomaticPlaceForm,
+          props: true,
         },
 
         // Finance

@@ -1469,13 +1469,12 @@
     font-family: inherit;
   }
 
-
   .stepper-shell {
     position: absolute;
     top: 80px; /* distance from top (AppBar) – adjust if needed */
-    left: 43%;
+    left: 50%;
     transform: translateX(-50%);
-    max-width: 1150px;
+    max-width: 90%;
     width: 100%;
     z-index: 20;
     margin: 0;

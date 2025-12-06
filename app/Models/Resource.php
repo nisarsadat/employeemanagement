@@ -48,6 +48,19 @@ use App\Models\fifthyformatstow\RahnomaMamlat;
 use App\Models\fifthyformatstow\School;
 use App\Models\fifthyformatstow\TransportCompany;
 use App\Models\fifthyformatstow\WorkShop;
+
+// ⭐ NEW: Fifthy Format Three models
+use App\Models\fifthyformatsthree\Badmashano;
+use App\Models\fifthyformatsthree\EmaratOffice;
+use App\Models\fifthyformatsthree\Hostel;
+use App\Models\fifthyformatsthree\Hotel;
+use App\Models\fifthyformatsthree\Madrasa;
+use App\Models\fifthyformatsthree\MashkokPeople;
+use App\Models\fifthyformatsthree\Mujahedino;
+use App\Models\fifthyformatsthree\OldJahadi;
+use App\Models\fifthyformatsthree\Sarayano;
+use App\Models\fifthyformatsthree\Tujaran;
+
 use Illuminate\Database\Eloquent\Model;
 
 class Resource extends Model
@@ -115,6 +128,8 @@ class Resource extends Model
     }
 
     public function events() { return $this->hasMany(Event::class); }
+    public function informations() { return $this->hasMany(Information::class); }
+
     public function fasads() { return $this->hasMany(Fasad::class , 'resource_id','id'); }
     public function saeenFasads() { return $this->hasMany(SaeenFasad::class , 'resource_id','id'); }
     public function heists() { return $this->hasMany(Heist::class , 'resource_id','id'); }
@@ -209,6 +224,58 @@ class Resource extends Model
     {
         return $this->hasMany(DeplomaticPlace::class);
     }
+
+    // ⭐ NEW: Fifthy Format Three relations
+    public function badmashanos()
+    {
+        return $this->hasMany(Badmashano::class, 'resource_id', 'id');
+    }
+
+    public function emaratOffices()
+    {
+        return $this->hasMany(EmaratOffice::class, 'resource_id', 'id');
+    }
+
+    public function hostels()
+    {
+        return $this->hasMany(Hostel::class, 'resource_id', 'id');
+    }
+
+    public function hotels()
+    {
+        return $this->hasMany(Hotel::class, 'resource_id', 'id');
+    }
+
+    public function madrasas()
+    {
+        return $this->hasMany(Madrasa::class, 'resource_id', 'id');
+    }
+
+    public function mashkokPeople()
+    {
+        return $this->hasMany(MashkokPeople::class, 'resource_id', 'id');
+    }
+
+    public function mujahedinos()
+    {
+        return $this->hasMany(Mujahedino::class, 'resource_id', 'id');
+    }
+
+    public function oldJahadis()
+    {
+        return $this->hasMany(OldJahadi::class, 'resource_id', 'id');
+    }
+
+    public function sarayanos()
+    {
+        return $this->hasMany(Sarayano::class, 'resource_id', 'id');
+    }
+
+    public function tujarans()
+    {
+        return $this->hasMany(Tujaran::class, 'resource_id', 'id');
+    }
+
     public function expenses() { return $this->morphMany(Expense::class, 'payee'); }
 
     // ✅ NEW: instant flip employee to فعال when a new resource is created

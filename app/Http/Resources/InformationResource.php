@@ -9,12 +9,19 @@ class InformationResource extends JsonResource
     public function toArray($request)
     {
         /** @var \App\Models\Information $info */
-        $info = $this->resource; // the Information model instance
+        $info = $this->resource;
 
-        // 🔹 Related models (can be null)
+        // 🔹 Related models
         $resource       = $info ? $info->resource : null;
         $officeEmployee = $info ? $info->officeEmployee : null;
         $documents      = $info ? $info->documents : collect();
+
+        // ===================== 🔹 FIXED DATE =====================
+        // Always convert to YYYY/MM/DD without T, Z, seconds...
+        $rawDate = $info ? (string) $info->information_saved_date : null;
+        $cleanDate = $rawDate ? substr($rawDate, 0, 10) : null; // "2025-12-06"
+        $formattedDate = $cleanDate ? str_replace('-', '/', $cleanDate) : null; // "2025/12/06"
+        // =========================================================
 
         return [
             // --------------------------------------------------
@@ -28,7 +35,7 @@ class InformationResource extends JsonResource
             'office_employee_code_number' => $officeEmployee ? $officeEmployee->code_number : null,
 
             // --------------------------------------------------
-            // 🔹 Nested RESOURCE (real related model)
+            // 🔹 Nested RESOURCE
             // --------------------------------------------------
             'resource' => $resource ? [
                 'id'          => $resource->id,
@@ -48,7 +55,7 @@ class InformationResource extends JsonResource
             ] : null,
 
             // --------------------------------------------------
-            // 🔹 Information own fields
+            // 🔹 Information fields
             // --------------------------------------------------
             'name'              => $info ? $info->name : null,
             'nick_name'         => $info ? $info->nick_name : null,
@@ -67,7 +74,11 @@ class InformationResource extends JsonResource
             'jenayee_info_type' => $info ? $info->jenayee_info_type : null,
             'Province_addr'     => $info ? $info->Province_addr : null,
 
-            'information_saved_date' => $info ? $info->information_saved_date : null,
+            // ===================== 🔹 DATE FIX =====================
+            'information_saved_date'      => $cleanDate,     // 2025-12-06
+            'information_saved_date_ymd'  => $formattedDate, // 2025/12/06
+            // ======================================================
+
             'information_saved_hour' => $info ? $info->information_saved_hour : null,
             'information_degree'     => $info ? $info->information_degree : null,
 
@@ -83,6 +94,9 @@ class InformationResource extends JsonResource
             // --------------------------------------------------
             'documents' => InformationDocumentResource::collection($documents),
 
+            // --------------------------------------------------
+            // 🔹 Timestamps
+            // --------------------------------------------------
             'created_at' => $info ? $info->created_at : null,
             'updated_at' => $info ? $info->updated_at : null,
         ];

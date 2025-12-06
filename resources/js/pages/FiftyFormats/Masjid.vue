@@ -1,386 +1,160 @@
 <template>
-  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar :title="t('مسجد')" :subtitle="t('ایجاد/ویرایش مسجد')" @toggle-drawer="drawer = !drawer">
-      <template #actions><v-btn icon /></template>
+  <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- APP BAR -->
+    <AppBar
+      :title="t('مساجد')"
+      :subtitle="t('فهرست، جستجو و مدیریت مساجد')"
+    >
+      <template #actions>
+        <v-btn icon />
+      </template>
     </AppBar>
 
-    <!-- Search (feeds FilterableTable dataset) -->
-    <v-row class="d-flex">
-      <v-col cols="12" md="9">
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('جستجو')"
-          density="compact"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          @keyup.enter="fetchAll"
-          clearable
-          @click:clear="
-            () => {
-              repo.Search = '';
-              fetchAll();
-            }
-          "
-        />
-      </v-col>
-    </v-row>
+    <!-- 🔍 Search + ➕ Create -->
+    <v-container class="pa-0">
+      <v-row class="align-center">
+        <!-- Search Field -->
+        <v-col cols="12" sm="8" md="9" lg="10">
+          <v-text-field
+            v-model.trim="repo.Search"
+            :label="t('جستجو در مساجد...')"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            hide-details
+            @keyup.enter="fetchAll"
+            clearable
+            @click:clear="clearSearch"
+            class="bg-white"
+          />
+        </v-col>
 
-    <!-- Single-row validated editor (no pagination/footer/add-row) -->
-    <v-form
-      ref="editorForm"
-      v-model="editorValid"
-      lazy-validation
-      :key="formKey"
-      @submit.prevent="onSubmit(rows[0])"
-    >
-      <v-card class="tablebody" ref="editorCard">
-        <v-data-table
-          :headers="headers"
-          :items="rows"
-          :loading="repo.loading"
-          item-key="idOrTmp"
-          class="elevation-2 custom-table"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          density="comfortable"
-          hide-default-footer
-        >
-          <!-- Identity -->
-          <template #item.masjid_name="{ item }">
-            <v-text-field
-              v-model="item.draft.masjid_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام مسجد')"
-              :rules="[rules.required]"
-              hide-details
-              required
-            />
-          </template>
-          <template #item.masjid_type="{ item }">
-            <v-text-field
-              v-model="item.draft.masjid_type"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نوع مسجد')"
-              hide-details
-            />
-          </template>
+        <!-- Create Button -->
+        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            size="large"
+            class="text-none mx-4"
+            rounded="lg"
+            block
+            prepend-icon="mdi-plus"
+            @click="goCreate"
+          >
+            {{ t('اضافه کردن مسجد جدید') }}
+          </v-btn>
+        </v-col>
+      </v-row>
 
-          <!-- Responsible person -->
-          <template #item.responsible_name="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مسوول')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_f_name="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_f_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام پدر مسوول')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_position="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_position"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('وظیفه/موقف مسوول')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_mazhab="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_mazhab"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مذهب مسوول')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_old_job="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_old_job"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('وظیفه قبلی مسوول')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_now_job="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_now_job"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('وظیفه فعلی مسوول')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_tarfdary="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_tarfdary"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('طرفداری/وابستگی')"
-              hide-details
-            />
-          </template>
-
-          <!-- Responsible address (main) -->
-          <template #item.responsible_main_province="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.responsible_main_province"
-                density="compact"
-                variant="outlined"
-                :label="t('ولایت اصلی مسوول')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.responsible_main_district"
-                density="compact"
-                variant="outlined"
-                :label="t('ولسوالی اصلی مسوول')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.responsible_main_village"
-                density="compact"
-                variant="outlined"
-                :label="t('قریه اصلی مسوول')"
-                hide-details
-              />
+      <!-- 📊 Filter Cards (same style as Heist) -->
+      <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- All -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'all' }"
+            @click="cardFilter = 'all'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-home-group</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('تمام مساجد') }}</div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <!-- Responsible address (now) -->
-          <template #item.responsible_now_province="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.responsible_now_province"
-                density="compact"
-                variant="outlined"
-                :label="t('ولایت فعلی مسوول')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.responsible_now_district"
-                density="compact"
-                variant="outlined"
-                :label="t('ولسوالی فعلی مسوول')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.responsible_now_village"
-                density="compact"
-                variant="outlined"
-                :label="t('قریه فعلی مسوول')"
-                hide-details
-              />
+        <!-- With coordinates -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
+            @click="cardFilter = 'withCoordinates'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-map-marker-radius</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <!-- Masjid community & count -->
-          <template #item.masjid_people_mazhab="{ item }">
-            <v-text-field
-              v-model="item.draft.masjid_people_mazhab"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مذهب مردم مسجد')"
-              hide-details
-            />
-          </template>
-          <template #item.masjid_homes_quantity="{ item }">
-            <v-text-field
-              v-model="item.draft.masjid_homes_quantity"
-              class="text-group"
-              density="compact"
-              type="number"
-              variant="outlined"
-              :label="t('تعداد خانه‌های مربوط مسجد')"
-              :rules="[rules.nonNegativeInt]"
-              hide-details
-            />
-          </template>
-
-          <!-- Masjid address -->
-          <template #item.masjid_province="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.masjid_province"
-                density="compact"
-                variant="outlined"
-                :label="t('ولایت مسجد')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.masjid_zone"
-                density="compact"
-                variant="outlined"
-                :label="t('زون مسجد')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.masjid_district"
-                density="compact"
-                variant="outlined"
-                :label="t('ولسوالی مسجد')"
-                hide-details
-              />
+        <!-- With resource code -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withResource' }"
+            @click="cardFilter = 'withResource'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-account-badge</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای کود منبع') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withResource }}
+                </div>
+              </div>
             </div>
-          </template>
-          <template #item.masjid_village="{ item }">
-            <v-text-field
-              v-model="item.draft.masjid_village"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('قریه مسجد')"
-              hide-details
-            />
-          </template>
-          <template #item.masjid_specific_place="{ item }">
-            <v-text-field
-              v-model="item.draft.masjid_specific_place"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('موقعیت مشخص مسجد')"
-              hide-details
-            />
-          </template>
-          <template #item.masjid_street_number="{ item }">
-            <v-text-field
-              v-model="item.draft.masjid_street_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره سرک مسجد')"
-              hide-details
-            />
-          </template>
+          </v-card>
+        </v-col>
 
-          <!-- Coordinates BEFORE note -->
-          <template #item.masjid_coordinates="{ item }">
-            <v-text-field
-              v-model="item.draft.masjid_coordinates"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مختصات مسجد')"
-              hide-details
-            />
-          </template>
-
-          <template #item.Province_addr="{ item }">
-            <v-text-field
-              v-model="item.draft.Province_addr"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت مربوطه')"
-              hide-details
-            />
-          </template>
-
-          <!-- Resource (code -> phone/id mapping like Mawad) -->
-          <template #item.resource_code="{ item }">
-            <v-autocomplete
-              v-model="item.draft.resource_code"
-              :items="resources"
-              item-title="code_number"
-              item-value="code_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('کود منبع')"
-              hide-details
-              clearable
-              @update:model-value="onResourceCodeChange(item)"
-            />
-          </template>
-          <template #item.resource_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره منبع')"
-              hide-details
-              readonly
-            />
-          </template>
-
-          <!-- Note -->
-          <template #item.note="{ item }">
-            <v-textarea
-              v-model="item.draft.note"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('یادداشت')"
-              hide-details
-              auto-grow
-              rows="2"
-            />
-          </template>
-
-          <!-- Actions -->
-          <template #item.actions="{ item }">
-            <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
-                {{ t('ثبت دیتا') }}
-              </v-btn>
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
-                {{ t('حذف دیتا') }}
-              </v-btn>
-              <v-btn color="warning" variant="outlined" @click="clearRow">
-                {{ t('پاک کردن ورودی‌ها') }}
-              </v-btn>
+        <!-- With homes count -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withHomes' }"
+            @click="cardFilter = 'withHomes'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-home-group-plus</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای تعداد خانه') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withHomes }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
 
-          <template #no-data>
-            <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
-          </template>
-        </v-data-table>
-      </v-card>
-    </v-form>
-
-    <!-- ✅ PeekButton like Mawad -->
+    <!-- 👁 Peek drawer (like Heist) -->
     <v-container fluid>
       <PeekButton
         v-model="expanded"
         :id="selectedId"
         :item="detail"
-        :loading="detailLoading"
+        :loading="loadingOne"
         title-key="masjid_name"
-        :fields="headers"
+        :fields="headersFT"
         :cols="3"
-        dir="rtl"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+        :auto-detect-dates="false"
+        :date-keys="[]"
         @fetch="fetchOne"
       />
     </v-container>
 
-    <!-- FilterableTable (list/peek/edit + map) -->
+    <!-- 📋 MAIN TABLE (FilterableTable like Heist) -->
     <FilterableTable
       :headers="headersFT"
-      :rows="rowsFT"
+      :rows="filteredRowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
@@ -389,12 +163,31 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      :dateKeys="[]"
-      @edit="startEdit"
-      @peek="openPeek"
       class="mb-20 mx-2"
+      @edit="goEdit"
+      @peek="openPeek"
     >
-      <!-- ✅ FlyToMapButton cell like Mawad -->
+      <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP (like Heist) -->
+      <template #cell-resource_code="{ row }">
+        <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              v-if="row.resource_code"
+              variant="tonal"
+              color="primary"
+              append-icon="mdi-account"
+              size="default"
+              @click.stop="goToResource(row)"
+            >
+              {{ row.resource_code }}
+            </v-btn>
+            <span v-else>-</span>
+          </template>
+        </v-tooltip>
+      </template>
+
+      <!-- 🗺 MAP CELL -->
       <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="row.masjid_coordinates"
@@ -405,269 +198,212 @@
           :zoom="16"
         />
       </template>
+
+      <!-- ⚙️ ACTIONS (same design as Heist) -->
+      <template #actions="{ item }">
+        <div class="d-flex align-center ga-2">
+          <!-- مشاهده -->
+          <v-tooltip :text="t('مشاهده مسجد')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="blue"
+                @click.stop="openPeek(item)"
+              >
+                mdi-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- ویرایش -->
+          <v-tooltip :text="t('ویرایش مسجد')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="amber-darken-2"
+                @click.stop="goEdit(item)"
+              >
+                mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- حذف -->
+          <v-tooltip :text="t('حذف مسجد')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="red-darken-2"
+                @click.stop="openDeleteDialog(item)"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
     </FilterableTable>
 
-    <!-- Error Snackbar -->
-    <v-snackbar v-model="showError" color="error" timeout="4500">
+    <!-- 🗑 Delete Confirm Dialog -->
+    <DeleteConfirmDialog
+      v-model="deleteDialog"
+      :target="deleteTarget"
+      :is-rtl="isRtl"
+      @confirm="handleDeleteConfirmed"
+    />
+
+    <!-- ❗ Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
-        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+        <v-btn variant="text" @click="showError = false"> {{ t('بستن') }} </v-btn>
       </template>
-    </v-snackbar>
-
-    <!-- Success Snackbar -->
-    <v-snackbar v-model="showOk" color="primary" timeout="3000">
-      {{ okMessage }}
     </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, watch, nextTick } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import AppBar from '@/components/AppBar.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import PeekButton from '@/components/PeekButton.vue';
-  import FlyToMapButton from '@/components/FlyToMapButton.vue';
-  import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-  const { t, locale } = useI18n();
-  const drawer = ref(false);
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+import AppBar from '@/components/AppBar.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import FlyToMapButton from '@/components/FlyToMapButton.vue';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-  const repo = useWakilanoRepository();
+import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
-  /* ===== Resource dropdown (code -> phone/id) ===== */
-  const resources = computed(() => repo.resourcecode || []);
-  function onResourceCodeChange(item) {
-    const code = item?.draft?.resource_code;
-    const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone = found?.phone_number ?? '';
-    item.draft.resource_id = found?.id ?? null;
+const repo = useWakilanoRepository();
+const router = useRouter();
+
+/* i18n / RTL */
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
+
+/* Snackbar */
+const showError = ref(false);
+const errorMessage = ref('');
+const showErrorMessage = (m) => {
+  errorMessage.value = m;
+  showError.value = true;
+};
+
+/* 🔗 go to Resources page for this resource_code */
+function goToResource(row) {
+  if (!row?.resource_code) return;
+  router.push(`/app/resources/${row.resource_code}`);
+}
+
+/* Helper for FilterableTable payload */
+const getRow = (s) => (s && s.raw ? s.raw : s);
+
+/* rows from store */
+const rowsFT = computed(() => {
+  const list = repo.Masjids || [];
+  if (Array.isArray(list)) return list;
+  if (Array.isArray(list.data)) return list.data;
+  return [];
+});
+
+/* 🔢 Filter cards state */
+const cardFilter = ref('all');
+
+const stats = computed(() => {
+  const rows = rowsFT.value || [];
+  const total = rows.length;
+  const withCoordinates = rows.filter(
+    (r) => r && r.masjid_coordinates && String(r.masjid_coordinates).trim() !== ''
+  ).length;
+  const withResource = rows.filter(
+    (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
+  ).length;
+  const withHomes = rows.filter((r) => {
+    if (!r) return false;
+    const val = r.masjid_homes_quantity;
+    if (val === null || val === undefined || val === '') return false;
+    const num = Number(val);
+    return !Number.isNaN(num) && num > 0;
+  }).length;
+
+  return { total, withCoordinates, withResource, withHomes };
+});
+
+const filteredRowsFT = computed(() => {
+  const base = rowsFT.value || [];
+  switch (cardFilter.value) {
+    case 'withCoordinates':
+      return base.filter(
+        (r) => r && r.masjid_coordinates && String(r.masjid_coordinates).trim() !== ''
+      );
+    case 'withResource':
+      return base.filter(
+        (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
+      );
+    case 'withHomes':
+      return base.filter((r) => {
+        if (!r) return false;
+        const val = r.masjid_homes_quantity;
+        if (val === null || val === undefined || val === '') return false;
+        const num = Number(val);
+        return !Number.isNaN(num) && num > 0;
+      });
+    default:
+      return base;
   }
+});
 
-  /* ===== Editor state ===== */
-  const rows = ref([]);
-  function toRowModel(x = {}) {
-    const base = {
-      id: x.id ?? null,
-      idOrTmp: x.id ?? 'tmp-1',
-      loading: false,
+/* TABLE HEADERS */
+const headersFT = computed(() => [
+  { title: t('نام مسجد'), key: 'masjid_name' },
+  { title: t('نوع مسجد'), key: 'masjid_type' },
 
-      masjid_name: x.masjid_name ?? '',
-      masjid_type: x.masjid_type ?? '',
+  { title: t('مسوول'), key: 'responsible_name' },
+  { title: t('نام پدر مسوول'), key: 'responsible_f_name' },
+  { title: t('وظیفه/موقف مسوول'), key: 'responsible_position' },
+  { title: t('مذهب مسوول'), key: 'responsible_mazhab' },
+  { title: t('وظیفه قبلی مسوول'), key: 'responsible_old_job' },
+  { title: t('وظیفه فعلی مسوول'), key: 'responsible_now_job' },
+  { title: t('طرفداری/وابستگی'), key: 'responsible_tarfdary' },
 
-      responsible_name: x.responsible_name ?? '',
-      responsible_f_name: x.responsible_f_name ?? '',
-      responsible_position: x.responsible_position ?? '',
-      responsible_mazhab: x.responsible_mazhab ?? '',
-      responsible_old_job: x.responsible_old_job ?? '',
-      responsible_now_job: x.responsible_now_job ?? '',
-      responsible_tarfdary: x.responsible_tarfdary ?? '',
+  { title: t('ولایت اصلی مسوول'), key: 'responsible_main_province' },
+  { title: t('ولسوالی اصلی مسوول'), key: 'responsible_main_district' },
+  { title: t('قریه اصلی مسوول'), key: 'responsible_main_village' },
+  { title: t('ولایت فعلی مسوول'), key: 'responsible_now_province' },
+  { title: t('ولسوالی فعلی مسوول'), key: 'responsible_now_district' },
+  { title: t('قریه فعلی مسوول'), key: 'responsible_now_village' },
 
-      responsible_main_province: x.responsible_main_province ?? '',
-      responsible_main_district: x.responsible_main_district ?? '',
-      responsible_main_village: x.responsible_main_village ?? '',
-      responsible_now_province: x.responsible_now_province ?? '',
-      responsible_now_district: x.responsible_now_district ?? '',
-      responsible_now_village: x.responsible_now_village ?? '',
+  { title: t('مذهب مردم مسجد'), key: 'masjid_people_mazhab' },
+  { title: t('تعداد خانه‌های مربوط مسجد'), key: 'masjid_homes_quantity' },
 
-      masjid_people_mazhab: x.masjid_people_mazhab ?? '',
-      masjid_homes_quantity: x.masjid_homes_quantity ?? '',
+  { title: t('ولایت مسجد'), key: 'masjid_province' },
+  { title: t('زون مسجد'), key: 'masjid_zone' },
+  { title: t('ولسوالی مسجد'), key: 'masjid_district' },
+  { title: t('قریه مسجد'), key: 'masjid_village' },
+  { title: t('موقعیت مشخص مسجد'), key: 'masjid_specific_place' },
+  { title: t('شماره سرک مسجد'), key: 'masjid_street_number' },
 
-      masjid_province: x.masjid_province ?? '',
-      masjid_zone: x.masjid_zone ?? '',
-      Province_addr: x.Province_addr ?? '',
-      masjid_district: x.masjid_district ?? '',
-      masjid_village: x.masjid_village ?? '',
-      masjid_specific_place: x.masjid_specific_place ?? '',
-      masjid_street_number: x.masjid_street_number ?? '',
-      masjid_coordinates: x.masjid_coordinates ?? '',
+  { title: t('مختصات مسجد'), key: 'masjid_coordinates' },
+  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
-      // Resource fields (Fasad pattern)
-      resource_code: x.resource_code ?? '',
-      resource_phone: x.resource_phone ?? '',
-      resource_id: x.resource_id ?? null,
+  { title: t('کود منبع'), key: 'resource_code' },
+  { title: t('شماره منبع'), key: 'resource_phone' },
 
-      note: x.note ?? '',
-    };
-    return { ...base, draft: { ...base } };
-  }
-  function setBlankEditorRow() {
-    rows.value = [toRowModel({})];
-  }
+  { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('یادداشت'), key: 'note', width: 300 },
+]);
 
-  /* ===== Filterable dataset ===== */
-  const rowsFT = computed(() => repo.Masjids || []);
-  const filters = ref({});
-
-  /* ===== Snackbars ===== */
-  const showError = ref(false),
-    errorMessage = ref('');
-  const showOk = ref(false),
-    okMessage = ref('');
-  function showErrorMessage(msg) {
-    errorMessage.value = msg || t('خطا رخ داد');
-    showError.value = true;
-  }
-  function showOkMessage(msg) {
-    okMessage.value = msg || t('موفقیت‌آمیز');
-    showOk.value = true;
-  }
-
-  /* ===== Headers ===== */
-  const headers = computed(() => [
-    { title: t('نام مسجد'), key: 'masjid_name' },
-    { title: t('نوع مسجد'), key: 'masjid_type' },
-
-    { title: t('مسوول'), key: 'responsible_name' },
-    { title: t('نام پدر مسوول'), key: 'responsible_f_name' },
-    { title: t('وظیفه/موقف مسوول'), key: 'responsible_position' },
-    { title: t('مذهب مسوول'), key: 'responsible_mazhab' },
-    { title: t('وظیفه قبلی مسوول'), key: 'responsible_old_job' },
-    { title: t('وظیفه فعلی مسوول'), key: 'responsible_now_job' },
-    { title: t('طرفداری/وابستگی'), key: 'responsible_tarfdary' },
-
-    { title: t('آدرس اصلی مسوول'), key: 'responsible_main_province' },
-    { title: t('آدرس فعلی مسوول'), key: 'responsible_now_province' },
-
-    { title: t('مذهب مردم مسجد'), key: 'masjid_people_mazhab' },
-    { title: t('تعداد خانه‌های مربوط مسجد'), key: 'masjid_homes_quantity' },
-
-    { title: t('آدرس مسجد (۱)'), key: 'masjid_province' },
-    { title: t('قریه مسجد'), key: 'masjid_village' },
-    { title: t('موقعیت مشخص مسجد'), key: 'masjid_specific_place' },
-    { title: t('شماره سرک مسجد'), key: 'masjid_street_number' },
-
-    { title: t('مختصات مسجد'), key: 'masjid_coordinates' }, // before note
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
-    // Resource (Fasad pattern)
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
-
-    { title: t('یادداشت'), key: 'note' },
-
-    { title: t('عمل'), key: 'actions', sortable: false },
-  ]);
-
-  const headersFT = computed(() => [
-    { title: t('نام مسجد'), key: 'masjid_name' },
-    { title: t('نوع مسجد'), key: 'masjid_type' },
-
-    { title: t('مسوول'), key: 'responsible_name' },
-    { title: t('نام پدر مسوول'), key: 'responsible_f_name' },
-    { title: t('وظیفه/موقف مسوول'), key: 'responsible_position' },
-    { title: t('مذهب مسوول'), key: 'responsible_mazhab' },
-    { title: t('وظیفه قبلی مسوول'), key: 'responsible_old_job' },
-    { title: t('وظیفه فعلی مسوول'), key: 'responsible_now_job' },
-    { title: t('طرفداری/وابستگی'), key: 'responsible_tarfdary' },
-
-    { title: t('ولایت اصلی مسوول'), key: 'responsible_main_province' },
-    { title: t('ولسوالی اصلی مسوول'), key: 'responsible_main_district' },
-    { title: t('قریه اصلی مسوول'), key: 'responsible_main_village' },
-    { title: t('ولایت فعلی مسوول'), key: 'responsible_now_province' },
-    { title: t('ولسوالی فعلی مسوول'), key: 'responsible_now_district' },
-    { title: t('قریه فعلی مسوول'), key: 'responsible_now_village' },
-
-    { title: t('مذهب مردم مسجد'), key: 'masjid_people_mazhab' },
-    { title: t('تعداد خانه‌های مربوط مسجد'), key: 'masjid_homes_quantity' },
-
-    { title: t('ولایت مسجد'), key: 'masjid_province' },
-    { title: t('زون مسجد'), key: 'masjid_zone' },
-    { title: t('ولسوالی مسجد'), key: 'masjid_district' },
-    { title: t('قریه مسجد'), key: 'masjid_village' },
-    { title: t('موقعیت مشخص مسجد'), key: 'masjid_specific_place' },
-    { title: t('شماره سرک مسجد'), key: 'masjid_street_number' },
-
-    { title: t('مختصات مسجد'), key: 'masjid_coordinates' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
-    // Resource in list
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
-
-    // Map column like Mawad
-    { title: t('نقشه'), key: 'map', sortable: false },
-
-    { title: t('یادداشت'), key: 'note' },
-  ]);
-
-  const topGroups = computed(() => [
-    { title: t('مسجد'), keys: ['masjid_name', 'masjid_type'] },
-    {
-      title: t('مسوول مسجد'),
-      keys: [
-        'responsible_name',
-        'responsible_f_name',
-        'responsible_position',
-        'responsible_mazhab',
-        'responsible_old_job',
-        'responsible_now_job',
-        'responsible_tarfdary',
-      ],
-    },
-    {
-      title: t('آدرس مسوول'),
-      keys: [
-        'responsible_main_province',
-        'responsible_main_district',
-        'responsible_main_village',
-        'responsible_now_province',
-        'responsible_now_district',
-        'responsible_now_village',
-      ],
-    },
-    { title: t('اجتماع مسجد'), keys: ['masjid_people_mazhab', 'masjid_homes_quantity'] },
-    {
-      title: t('آدرس مسجد'),
-      keys: [
-        'masjid_province',
-        'masjid_zone',
-        'masjid_district',
-        'masjid_village',
-        'masjid_specific_place',
-        'masjid_street_number',
-        'masjid_coordinates',
-      ],
-    },
-    { title: t('منبع/یادداشت'), keys: ['resource_code', 'resource_phone', 'resource_id', 'note'] },
-  ]);
-
-  /* ===== Validation ===== */
-  const editorForm = ref(null);
-  const editorValid = ref(false);
-  const formKey = ref(0);
-  const rules = {
-    required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
-    nonNegativeInt: (v) =>
-      v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
-  };
-  async function validateForm() {
-    const { valid } = await (editorForm.value?.validate?.() ?? { valid: true });
-    if (!valid) scrollToFirstInvalid();
-    return { valid };
-  }
-  const editorCard = ref(null);
-  function scrollToFirstInvalid() {
-    const root = editorCard.value?.$el || editorCard.value || document;
-    const first = root.querySelector(
-      '.v-input--error, [aria-invalid="true"], .v-messages__message'
-    );
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      first.querySelector?.('input, textarea, .v-field__input')?.focus?.();
-    }
-  }
-
-  /* ===== Diff + payload ===== */
-  function diffDraft(item) {
-    const d = item.draft || {};
-    const changed = {};
-    const KEYS = [
-      'masjid_name',
-      'masjid_type',
+/* TOP GROUPS */
+const topGroups = computed(() => [
+  { title: t('مسجد'), keys: ['masjid_name', 'masjid_type'] },
+  {
+    title: t('مسوول مسجد'),
+    keys: [
       'responsible_name',
       'responsible_f_name',
       'responsible_position',
@@ -675,232 +411,196 @@
       'responsible_old_job',
       'responsible_now_job',
       'responsible_tarfdary',
+    ],
+  },
+  {
+    title: t('آدرس مسوول'),
+    keys: [
       'responsible_main_province',
       'responsible_main_district',
       'responsible_main_village',
       'responsible_now_province',
       'responsible_now_district',
       'responsible_now_village',
-      'masjid_people_mazhab',
-      'masjid_homes_quantity',
+    ],
+  },
+  { title: t('اجتماع مسجد'), keys: ['masjid_people_mazhab', 'masjid_homes_quantity'] },
+  {
+    title: t('آدرس مسجد'),
+    keys: [
       'masjid_province',
       'masjid_zone',
       'masjid_district',
-      'Province_addr',
       'masjid_village',
       'masjid_specific_place',
       'masjid_street_number',
       'masjid_coordinates',
-      'resource_code',
-      'resource_phone',
-      'resource_id',
-      'note',
-    ];
-    for (const k of KEYS) {
-      if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    }
-    return changed;
-  }
-  function toFormDataSelective(obj) {
-    const fd = new FormData();
-    Object.entries(obj || {}).forEach(([k, v]) => {
-      if (v !== undefined && v !== null) fd.append(k, v);
-    });
-    return fd;
-  }
+    ],
+  },
+  { title: t('منبع/یادداشت'), keys: ['resource_code', 'resource_phone', 'note', 'Province_addr'] },
+]);
 
-  /* ===== CRUD ===== */
-  async function onSubmit(item) {
-    if (!item?.draft?.masjid_name?.trim()) {
-      showErrorMessage(t('نام مسجد الزامی است'));
-      return;
-    }
-    const v = await validateForm();
-    if (!v.valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      return;
-    }
-    await save(item);
-  }
-  async function save(item) {
-    item.loading = true;
-    try {
-      if (!item.id) {
-        const fd = toFormDataSelective(item.draft);
-        const created = await repo.CreateMasjid?.(fd);
-        if (created?.id) showOkMessage(t('ریکارد ایجاد شد'));
-        await fetchAll();
-        setBlankEditorRow();
-        editorForm.value?.resetValidation?.();
-        return;
-      }
-      const changed = diffDraft(item);
-      if (Object.keys(changed).length === 0) {
-        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
-        return;
-      }
-      const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateMasjid?.(item.id, fd);
-      if (updated?.id) showOkMessage(t('ریکارد بروزرسانی شد'));
+const filters = ref({});
+
+/* Peek */
+const expanded = ref(false);
+const selectedId = ref(null);
+const loadingOne = ref(false);
+const detail = ref(null);
+
+async function fetchOne(id) {
+  if (!id) return;
+  loadingOne.value = true;
+  try {
+    if (typeof repo.FetchMasjidData === 'function') {
+      await repo.FetchMasjidData(id);
+      const single = Array.isArray(repo.Masjid) ? repo.Masjid[0] : repo.Masjid;
+      detail.value = single || {};
+    } else {
       await fetchAll();
-      setBlankEditorRow();
-      editorForm.value?.resetValidation?.();
-    } catch (e) {
-      showErrorMessage(t('خطا در ذخیره داده'));
-    } finally {
-      item.loading = false;
+      const list = rowsFT.value || [];
+      detail.value = list.find((r) => r.id === id) || {};
     }
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات مسجد'));
+  } finally {
+    loadingOne.value = false;
   }
-  async function del(item) {
-    if (!item.id) {
-      setBlankEditorRow();
-      return;
-    }
-    if (!confirm(t('آیا از حذف "{name}" مطمئن هستید؟', { name: item.masjid_name || '' }))) return;
-    try {
-      await repo.DeleteMasjid?.(item.id);
-      await fetchAll();
-      showOkMessage(t('ریکارد حذف شد'));
-      setBlankEditorRow();
-    } catch (e) {
-      showErrorMessage(t('خطا در حذف'));
-    }
-  }
-  function clearRow() {
-    setBlankEditorRow();
-    showOkMessage(t('ورودی‌ها پاک شد'));
-  }
+}
 
-  /* ===== Peek / Fetch like Mawad ===== */
-  const expanded = ref(false);
-  const selectedId = ref(null);
-  const detailLoading = ref(false);
-  const detail = ref(null);
+function openPeek(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  selectedId.value = row.id;
+  expanded.value = true;
+  fetchOne(row.id);
+}
 
-  async function fetchOne(id) {
-    if (!id) return;
-    detailLoading.value = true;
-    try {
-      await repo.FetchMasjidData?.(id);
-      detail.value = repo.Masjid || [];
-      selectedId.value = id;
-    } catch (e) {
-      showErrorMessage(t('خطا در دریافت معلومات'));
-    } finally {
-      detailLoading.value = false;
-    }
-  }
+/* navigation */
+function goCreate() {
+  router.push('/app/masjidform');
+}
 
-  /* ===== FilterableTable actions ===== */
-  async function startEdit(row) {
-    try {
-      const id = row?.id;
-      if (!id) return;
-      if (typeof repo.FetchMasjidData === 'function') {
-        await repo.FetchMasjidData(id);
-      } else if (typeof repo.FetchMasjidsData === 'function') {
-        await repo.FetchMasjidsData({ page: 1, itemsPerPage: 100000 });
-      }
-      const single =
-        (repo.Masjid && Array.isArray(repo.Masjid) ? repo.Masjid[0] : repo.Masjid) ||
-        (repo.Masjids || []).find((r) => r.id === id) ||
-        row;
+function goEdit(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push(`/app/masjidform/${row.id}`);
+}
 
-      rows.value = [toRowModel(single)];
-      await nextTick();
-      (editorCard.value?.$el || editorCard.value)?.scrollIntoView?.({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    } catch (e) {
-      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
-    }
-  }
+/* delete with dialog */
+const deleteDialog = ref(false);
+const deleteTarget = ref(null);
 
-  function openPeek(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-    expanded.value = true;
-    fetchOne(row.id);
-  }
+function openDeleteDialog(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  deleteTarget.value = row;
+  deleteDialog.value = true;
+}
 
-  /* ===== Fetch & init ===== */
-  async function fetchAll() {
-    await Promise.allSettled([
-      repo.FetchMasjidsData?.({ page: 1, itemsPerPage: 100000, search: repo.Search || '' }),
-      repo.GetResourceCode?.(), // load codes/phones for autocomplete
-    ]);
-  }
-  onMounted(async () => {
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value;
+  deleteDialog.value = false;
+  if (!row?.id) return;
+  try {
+    await repo.DeleteMasjid?.(row.id);
     await fetchAll();
-    setBlankEditorRow();
-  });
+    showErrorMessage(t('حذف شد'));
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در حذف'));
+  } finally {
+    deleteTarget.value = null;
+  }
+}
+
+/* fetch all */
+async function fetchAll() {
+  try {
+    await repo.FetchMasjidsData?.({
+      page: 1,
+      itemsPerPage: 100000,
+      search: repo.Search || '',
+    });
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت فهرست مساجد'));
+  }
+}
+
+function clearSearch() {
+  repo.Search = '';
+  fetchAll();
+}
+
+/* init */
+onMounted(async () => {
+  await fetchAll();
+});
 </script>
 
 <style scoped>
-  table th {
-    white-space: nowrap;
-  }
-  .custom-table :deep(.v-data-table__thead th) {
-    background: rgb(var(--v-theme-primary));
-    color: #fff;
-    font-weight: 400;
-  }
+.ga-2 {
+  gap: 8px;
+}
 
-  /* layout like Fasad */
-  .addr-group {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(120px, 1fr));
-    gap: 2px;
-  }
-  .text-group {
-    display: grid;
-    width: 140px;
-    gap: 2px;
-  }
-  .text-group-note {
-    display: grid;
-    width: 380px;
-    gap: 2px;
-  }
+/* Background similar to other index pages */
+.page-bg {
+  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+  font-family: inherit;
+}
 
-  .flex {
-    display: flex;
-  }
-  .items-center {
-    align-items: center;
-  }
-  .gap-1 {
-    gap: 4px;
-  }
+/* Stats cards (copy of Heist style) */
+.stat-card {
+  cursor: pointer;
+  border-radius: 14px;
+  border: 1px solid rgba(33, 150, 243, 0.08);
+  background: #ffffff;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+    background-color 0.2s ease;
+}
 
-  .tablebody {
-    display: flex !important;
-    gap: 2px !important;
-  }
+.stat-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  border-color: rgba(33, 150, 243, 0.35);
+}
 
-  /* compact inputs */
-  :deep(.v-field-label),
-  :deep(.v-label),
-  :deep(input::placeholder) {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    color: #555 !important;
-  }
-  :deep(.v-field__input) {
-    min-height: 26px !important;
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-  }
+.stat-card--active {
+  border-color: rgba(25, 118, 210, 0.9);
+  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+}
 
-  .addr-group,
-  .text-group,
-  .text-group-note {
-    margin: -16px !important;
-    padding: -10px !important;
-    row-gap: -6px !important;
-    column-gap: 2px !important;
-    gap: -10px !important;
-  }
+.stat-card-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.stat-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e3f2fd;
+}
+
+.stat-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stat-card-subtitle {
+  font-size: 11px;
+  color: #666;
+}
 </style>

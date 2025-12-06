@@ -55,7 +55,18 @@ class ResourceResource extends JsonResource
             + $this->supermarkets()->count()
             + $this->parks()->count()
             + $this->complexes()->count()
-            + $this->deplomaticplaces()->count();
+            + $this->deplomaticplaces()->count()
+            // ⭐ NEW: Fifthy Format Three (10) – just added, nothing removed
+            + $this->badmashanos()->count()
+            + $this->emaratOffices()->count()
+            + $this->hostels()->count()
+            + $this->hotels()->count()
+            + $this->madrasas()->count()
+            + $this->mashkokPeople()->count()
+            + $this->mujahedinos()->count()
+            + $this->oldJahadis()->count()
+            + $this->sarayanos()->count()
+            + $this->tujarans()->count();
 
         return [
             'id'       => $this->id,
@@ -114,9 +125,7 @@ class ResourceResource extends JsonResource
             // ✅ Counts
             'events_count'           => $this->events()->count(),
             // 🔁 if you have an informations() relation, this will work out of the box
-            'informations_count'     => method_exists($this, 'informations')
-                ? $this->informations()->count()
-                : 0,
+            'informations_count'     => $this->informations()->count(),
             'fifty_six_formats_count'=> $fiftySixFormatsCount,
 
             // embedded office employee (minimal)

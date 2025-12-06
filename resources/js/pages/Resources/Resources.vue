@@ -208,6 +208,84 @@
         <span v-else class="text-xs text-grey">-</span>
       </template>
 
+      <!-- 📌 Events count -->
+      <template #cell-events_count="{ row }">
+        <div v-if="getRow(row)?.events_count > 0" class="d-flex flex-column align-start">
+          <v-tooltip :text="t('برای دیدن واقعات این منبع کلیک کنید')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-btn
+                class="px-2 py-1 text-none"
+                color="success"
+                size="default"
+                variant="tonal"
+                v-bind="tooltipProps"
+                @click.stop="goResourceEvents(row)"
+              >
+                <div class="d-flex align-center ga-1">
+                  <v-icon size="18">mdi-alert-circle-check</v-icon>
+                  <span class="text-body-2">
+                    {{ getRow(row).events_count }}
+                  </span>
+                </div>
+              </v-btn>
+            </template>
+          </v-tooltip>
+        </div>
+        <span v-else class="text-xs text-grey">-</span>
+      </template>
+
+      <!-- 🧩 Informations count -->
+      <template #cell-informations_count="{ row }">
+        <div v-if="getRow(row)?.informations_count > 0" class="d-flex flex-column align-start">
+          <v-tooltip :text="t('برای دیدن اطلاعات این منبع کلیک کنید')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-btn
+                class="px-2 py-1 text-none"
+                color="info"
+                size="default"
+                variant="tonal"
+                v-bind="tooltipProps"
+                @click.stop="goResourceInformations(row)"
+              >
+                <div class="d-flex align-center ga-1">
+                  <v-icon size="18">mdi-information-variant-circle</v-icon>
+                  <span class="text-body-2">
+                    {{ getRow(row).informations_count }}
+                  </span>
+                </div>
+              </v-btn>
+            </template>
+          </v-tooltip>
+        </div>
+        <span v-else class="text-xs text-grey">-</span>
+      </template>
+
+      <!-- 📑 Fifty-six formats count -->
+      <template #cell-fifty_six_formats_count="{ row }">
+        <div v-if="getRow(row)?.fifty_six_formats_count > 0" class="d-flex flex-column align-start">
+          <v-tooltip :text="t('برای دیدن ۵۶ فارمت های این منبع کلیک کنید')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-btn
+                class="px-2 py-1 text-none"
+                color="pink"
+                size="default"
+                variant="tonal"
+                v-bind="tooltipProps"
+                @click.stop="goResourceFiftySixFormats(row)"
+              >
+                <div class="d-flex align-center ga-1">
+                  <v-icon size="18">mdi-file-document-multiple-outline</v-icon>
+                  <span class="text-body-2">
+                    {{ getRow(row).fifty_six_formats_count }}
+                  </span>
+                </div>
+              </v-btn>
+            </template>
+          </v-tooltip>
+        </div>
+        <span v-else class="text-xs text-grey">-</span>
+      </template>
+
       <!-- 🗺 Map cell -->
       <template #cell-map="{ row }">
         <FlyToMapButton
@@ -366,7 +444,32 @@
     // assuming nested relation: office_employee: { id, name, code_number }
     return row.office_employee || null;
   }
+  // 🔗 Go to events of this resource
+  function goResourceEvents(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
 
+    // adjust path/query to your real events route
+    router.push({ path: '/app/events', query: { resource_id: row.id } });
+  }
+
+  // 🔗 Go to informations of this resource
+  function goResourceInformations(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+
+    // adjust path/query to your real informations route
+    router.push({ path: '/app/informations', query: { resource_id: row.id } });
+  }
+
+  // 🔗 Go to 56 formats of this resource
+  function goResourceFiftySixFormats(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+
+    // adjust path/query to your real 56-formats route
+    router.push({ path: '/app/fifthyformatsroute', query: { resource_id: row.id } });
+  }
   /* ===== Data for table ===== */
   const rowsFT = computed(() => repo.Resources || []);
 
@@ -494,6 +597,9 @@
     { title: t('کوردینات'), key: 'coordinates' },
     { title: t('نوت'), key: 'note' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('تعداد واقعات'), key: 'events_count' },
+    { title: t(' تعداد اطلاعات'), key: 'informations_count' },
+    { title: t(' تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);
