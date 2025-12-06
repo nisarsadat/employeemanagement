@@ -1,286 +1,142 @@
 <template>
-  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- APP BAR -->
     <AppBar
       :title="t('کلب‌ها')"
-      :subtitle="t('اضافه کردن یک ریکارډ کلب')"
-      @toggle-drawer="drawer = !drawer"
+      :subtitle="t('فهرست، جستجو و مدیریت کلب‌ها')"
     >
-      <template #actions><v-btn icon /></template>
+      <template #actions>
+        <v-btn icon />
+      </template>
     </AppBar>
 
-    <!-- Search (for FilterableTable dataset) -->
-    <v-row class="d-flex">
-      <v-col cols="12" md="9">
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('جستجو')"
-          density="compact"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          @keyup.enter="fetchAll"
-          clearable
-          @click:clear="
-            () => {
-              repo.Search = '';
-              fetchAll();
-            }
-          "
-        />
-      </v-col>
-    </v-row>
+    <!-- 🔍 Search + ➕ Create -->
+    <v-container class="pa-0">
+      <v-row class="align-center">
+        <!-- Search Field -->
+        <v-col cols="12" sm="8" md="9" lg="10">
+          <v-text-field
+            v-model.trim="repo.Search"
+            :label="t('جستجو در کلب‌ها...')"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            hide-details
+            @keyup.enter="fetchAll"
+            clearable
+            @click:clear="clearSearch"
+            class="bg-white"
+          />
+        </v-col>
 
-    <!-- Single-row editor — NO pagination/items-per-page -->
-    <v-form
-      ref="editorForm"
-      v-model="editorValid"
-      lazy-validation
-      :key="formKey"
-      @submit.prevent="onSubmit(rows[0])"
-    >
-      <v-card class="tablebody" ref="editorCard">
-        <v-data-table
-          :headers="headers"
-          :items="rows"
-          :loading="repo.loading"
-          item-key="idOrTmp"
-          class="elevation-2 custom-table"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          density="comfortable"
-          hide-default-footer
-        >
-          <!-- Basics -->
-          <template #item.name="{ item }">
-            <v-text-field
-              v-model="item.draft.name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام')"
-              :rules="[rules.required]"
-              :error="hasError(item, 'name')"
-              :error-messages="getErrorMessages(item, 'name')"
-              hide-details
-              required
-            />
-          </template>
+        <!-- Create Button -->
+        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            size="large"
+            class="text-none mx-4"
+            rounded="lg"
+            block
+            prepend-icon="mdi-plus"
+            @click="goCreate"
+          >
+            {{ t('اضافه ریکارډ جدید کلب') }}
+          </v-btn>
+        </v-col>
+      </v-row>
 
-          <template #item.club_name="{ item }">
-            <v-text-field
-              v-model="item.draft.club_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام کلب')"
-              :rules="[rules.required]"
-              :error="hasError(item, 'club_name')"
-              :error-messages="getErrorMessages(item, 'club_name')"
-              hide-details
-              required
-            />
-          </template>
-
-          <template #item.club_type="{ item }">
-            <v-text-field
-              v-model="item.draft.club_type"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نوع کلب')"
-              :error="hasError(item, 'club_type')"
-              :error-messages="getErrorMessages(item, 'club_type')"
-              hide-details
-            />
-          </template>
-
-          <template #item.father_name="{ item }">
-            <v-text-field
-              v-model="item.draft.father_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام پدر')"
-              :error="hasError(item, 'father_name')"
-              :error-messages="getErrorMessages(item, 'father_name')"
-              hide-details
-            />
-          </template>
-
-          <template #item.position="{ item }">
-            <v-text-field
-              v-model="item.draft.position"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('وظیفه/موقعیت')"
-              :error="hasError(item, 'position')"
-              :error-messages="getErrorMessages(item, 'position')"
-              hide-details
-            />
-          </template>
-
-          <template #item.phone_number="{ item }">
-            <v-text-field
-              v-model="item.draft.phone_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره تماس')"
-              :rules="[rules.phone]"
-              :error="hasError(item, 'phone_number')"
-              :error-messages="getErrorMessages(item, 'phone_number')"
-              hide-details
-            />
-          </template>
-
-          <!-- Address (grouped) -->
-          <template #item.province="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.province"
-                density="compact"
-                variant="outlined"
-                :label="t('ولایت')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.zone"
-                density="compact"
-                variant="outlined"
-                :label="t('زون')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.district"
-                density="compact"
-                variant="outlined"
-                :label="t('ولسوالی')"
-                hide-details
-              />
+      <!-- 📊 Filter Cards (exactly like Fasad, adapted for clubs) -->
+      <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- All -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'all' }"
+            @click="cardFilter = 'all'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-account-group</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('تمام کلب‌ها') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('مجموع') }}: {{ stats.total }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <template #item.specific_place="{ item }">
-            <v-text-field
-              v-model="item.draft.specific_place"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('موقعیت مشخص')"
-              :error="hasError(item, 'specific_place')"
-              :error-messages="getErrorMessages(item, 'specific_place')"
-              hide-details
-            />
-          </template>
-
-          <template #item.cordinate="{ item }">
-            <v-text-field
-              v-model="item.draft.cordinate"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مختصات')"
-              :error="hasError(item, 'cordinate')"
-              :error-messages="getErrorMessages(item, 'cordinate')"
-              hide-details
-            />
-          </template>
-
-          <!-- Students -->
-          <template #item.am_students="{ item }">
-            <v-text-field
-              v-model="item.draft.am_students"
-              class="text-group"
-              density="compact"
-              type="number"
-              variant="outlined"
-              :label="t('شاگردان صبح')"
-              :rules="[rules.nonNegativeInt]"
-              :error="hasError(item, 'am_students')"
-              :error-messages="getErrorMessages(item, 'am_students')"
-              hide-details
-            />
-          </template>
-
-          <template #item.pm_students="{ item }">
-            <v-text-field
-              v-model="item.draft.pm_students"
-              class="text-group"
-              density="compact"
-              type="number"
-              variant="outlined"
-              :label="t('شاگردان عصر')"
-              :rules="[rules.nonNegativeInt]"
-              :error="hasError(item, 'pm_students')"
-              :error-messages="getErrorMessages(item, 'pm_students')"
-              hide-details
-            />
-          </template>
-          <template #item.Province_addr="{ item }">
-            <v-text-field
-              v-model="item.draft.Province_addr"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت مربوطه')"
-              hide-details
-              :error="hasError(item, 'Province_addr')"
-              :error-messages="getErrorMessages(item, 'Province_addr')"
-            />
-          </template>
-          <!-- Resource link -->
-          <template #item.resource_code="{ item }">
-            <v-autocomplete
-              v-model="item.draft.resource_code"
-              :items="resources"
-              item-title="code_number"
-              item-value="code_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('کود منبع')"
-              hide-details
-              clearable
-              @update:model-value="onResourceCodeChange(item)"
-            />
-          </template>
-
-          <template #item.resource_phone_number="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_phone_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره منبع')"
-              hide-details
-              readonly
-            />
-          </template>
-
-          <!-- Actions -->
-          <template #item.actions="{ item }">
-            <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
-                {{ t('ثبت دیتا') }}
-              </v-btn>
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
-                {{ t('حذف دیتا') }}
-              </v-btn>
-              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
-                {{ t('پاک کردن ورودی‌ها') }}
-              </v-btn>
+        <!-- With coordinates (cordinate) -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
+            @click="cardFilter = 'withCoordinates'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-map-marker-radius</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <template #no-data>
-            <div class="py-8 text-medium-emphasis">
-              {{ t('یک سطر ویرایش/ایجاد آماده است') }}
+        <!-- With phone -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withPhone' }"
+            @click="cardFilter = 'withPhone'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-phone</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای شماره تماس') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withPhone }}
+                </div>
+              </div>
             </div>
-          </template>
-        </v-data-table>
-      </v-card>
-    </v-form>
+          </v-card>
+        </v-col>
 
-    <!-- Peek button for details -->
+        <!-- With resource -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withResource' }"
+            @click="cardFilter = 'withResource'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-card-account-phone</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای منبع') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withResource }}
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+
+    <!-- 👁 Peek drawer -->
     <v-container fluid>
       <PeekButton
         v-model="expanded"
@@ -288,479 +144,408 @@
         :item="detail"
         :loading="loadingOne"
         title-key="club_name"
-        :fields="headers"
+        :fields="headersFT"
         :cols="3"
-        dir="rtl"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+        :auto-detect-dates="false"
+        :date-keys="[]"
         @fetch="fetchOne"
       />
     </v-container>
 
-    <!-- FilterableTable (list + edit/peek triggers) -->
-    <v-container fluid>
-      <FilterableTable
-        :headers="headersFT"
-        :rows="rowsFT"
-        :filters="filters"
-        @update:filters="(v) => (filters = { ...v })"
-        :top-groups="topGroups"
-        :showIndex="true"
-        :rtl="true"
-        :enableEdit="true"
-        :enablePeek="true"
-        :autoDetectDates="false"
-        :dateKeys="['resource_saved_date']"
-        @edit="startEdit"
-        @peek="openPeek"
-        class="mb-20 mx-2"
-      >
-        <!-- ✅ custom cell for the 'map' column -->
-        <template #cell-map="{ row }">
-          <FlyToMapButton
-            :coordinates="row.cordinate"
-            :title="row.name"
-            :subtitle="row.code_number"
-            type="fasads"
-            :photo-url="row.picture"
-            :zoom="16"
-          />
-        </template>
-      </FilterableTable>
-    </v-container>
+    <!-- 📋 MAIN TABLE -->
+    <FilterableTable
+      :headers="headersFT"
+      :rows="filteredRowsFT"
+      :filters="filters"
+      @update:filters="(v) => (filters = { ...v })"
+      :top-groups="topGroups"
+      :showIndex="true"
+      :rtl="true"
+      :enableEdit="true"
+      :enablePeek="true"
+      :autoDetectDates="false"
+      class="mb-20 mx-2"
+      @edit="goEdit"
+      @peek="openPeek"
+    >
+      <!-- 🔗 RESOURCE CODE CLICKABLE (same hover style) -->
+      <template #cell-resource_code="{ row }">
+        <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              v-if="row.resource_code"
+              variant="tonal"
+              color="primary"
+              append-icon="mdi-account"
+              size="default"
+              @click.stop="goToResource(row)"
+            >
+              {{ row.resource_code }}
+            </v-btn>
+            <span v-else>-</span>
+          </template>
+        </v-tooltip>
+      </template>
 
-    <!-- Error Snackbar -->
-    <v-snackbar v-model="showError" color="error" timeout="4500">
+      <!-- 🗺 MAP CELL -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.cordinate"
+          :title="row.name"
+          :subtitle="row.club_name"
+          type="clubs"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
+
+      <!-- ⚙️ ACTIONS (same idea as Fasad) -->
+      <template #actions="{ item }">
+        <div class="d-flex align-center ga-2">
+          <!-- مشاهده -->
+          <v-tooltip :text="t('مشاهده کلب')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="blue"
+                @click.stop="openPeek(item)"
+              >
+                mdi-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- ویرایش -->
+          <v-tooltip :text="t('ویرایش کلب')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="amber-darken-2"
+                @click.stop="goEdit(item)"
+              >
+                mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- حذف -->
+          <v-tooltip :text="t('حذف کلب')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="red-darken-2"
+                @click.stop="openDeleteDialog(item)"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
+    </FilterableTable>
+
+    <!-- 🗑 Delete Confirm Dialog -->
+    <DeleteConfirmDialog
+      v-model="deleteDialog"
+      :target="deleteTarget"
+      :is-rtl="isRtl"
+      @confirm="handleDeleteConfirmed"
+    />
+
+    <!-- ❗ Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
-        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+        <v-btn variant="text" @click="showError = false">
+          {{ t('بستن') }}
+        </v-btn>
       </template>
-    </v-snackbar>
-
-    <!-- Success Snackbar -->
-    <v-snackbar v-model="showOk" color="primary" timeout="3000">
-      {{ okMessage }}
     </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, watch, nextTick } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import AppBar from '@/components/AppBar.vue';
-  import PeekButton from '@/components/PeekButton.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import { useFasadRepository } from '@/stores/FasadRepository';
-  import FlyToMapButton from '../../components/FlyToMapButton.vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-  const { t, locale } = useI18n();
-  const drawer = ref(false);
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+import AppBar from '@/components/AppBar.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import FlyToMapButton from '@/components/FlyToMapButton.vue';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-  const repo = useFasadRepository();
+import { useFasadRepository } from '@/stores/FasadRepository';
 
-  /* ========= Validation + form ========= */
-  const editorForm = ref(null);
-  const editorValid = ref(false);
-  const formKey = ref(0);
+const repo = useFasadRepository();
+const router = useRouter();
 
-  const rules = {
-    required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
-    nonNegativeInt: (v) =>
-      v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
-    phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
-  };
+/* i18n / RTL */
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-  async function validateForm() {
-    const form = editorForm.value;
-    if (!form?.validate) return { valid: true };
-    const { valid } = await form.validate();
-    if (!valid) await nextTick().then(scrollToFirstInvalid);
-    return { valid };
+/* Snackbar */
+const showError = ref(false);
+const errorMessage = ref('');
+const showErrorMessage = (m) => {
+  errorMessage.value = m;
+  showError.value = true;
+};
+
+/* Helpers */
+const getRow = (s) => (s && s.raw ? s.raw : s);
+
+/* rows from store */
+const rowsFT = computed(() => {
+  const list = repo.Clubs || [];
+  if (Array.isArray(list)) return list;
+  if (Array.isArray(list.data)) return list.data;
+  return [];
+});
+
+/* 🔢 Filter cards state */
+const cardFilter = ref('all');
+
+const stats = computed(() => {
+  const rows = rowsFT.value || [];
+  const total = rows.length;
+
+  const withCoordinates = rows.filter(
+    (r) => r && r.cordinate && String(r.cordinate).trim() !== ''
+  ).length;
+
+  const withPhone = rows.filter(
+    (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
+  ).length;
+
+  const withResource = rows.filter(
+    (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
+  ).length;
+
+  return { total, withCoordinates, withPhone, withResource };
+});
+
+const filteredRowsFT = computed(() => {
+  const base = rowsFT.value || [];
+  switch (cardFilter.value) {
+    case 'withCoordinates':
+      return base.filter((r) => r && r.cordinate && String(r.cordinate).trim() !== '');
+    case 'withPhone':
+      return base.filter((r) => r && r.phone_number && String(r.phone_number).trim() !== '');
+    case 'withResource':
+      return base.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '');
+    default:
+      return base;
   }
-  function scrollToFirstInvalid() {
-    const first =
-      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-      document.querySelector('.v-messages__message');
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input && typeof input.focus === 'function') input.focus();
-    }
+});
+
+/* TABLE HEADERS – list view (clubs fields) */
+const headersFT = computed(() => [
+  { title: t('نام'), key: 'name' },
+  { title: t('نام کلب'), key: 'club_name' },
+  { title: t('نوع کلب'), key: 'club_type' },
+  { title: t('نام پدر'), key: 'father_name' },
+  { title: t('وظیفه/موقعیت'), key: 'position' },
+  { title: t('شماره تماس'), key: 'phone_number' },
+
+  { title: t('ولایت'), key: 'province' },
+  { title: t('زون'), key: 'zone' },
+  { title: t('ولسوالی'), key: 'district' },
+  { title: t('موقعیت مشخص'), key: 'specific_place' },
+  { title: t('مختصات'), key: 'cordinate' },
+
+  { title: t('شاگردان صبح'), key: 'am_students' },
+  { title: t('شاگردان عصر'), key: 'pm_students' },
+
+  { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
+  { title: t('کود منبع'), key: 'resource_code' },
+  { title: t('شماره منبع'), key: 'resource_phone_number' },
+
+  { title: t('نقشه'), key: 'map', sortable: false },
+]);
+
+/* TOP GROUPS (for FilterableTable) */
+const topGroups = computed(() => [
+  {
+    title: t('مشخصات'),
+    keys: ['name', 'club_name', 'club_type', 'father_name', 'position', 'phone_number'],
+  },
+  {
+    title: t('موقعیت'),
+    keys: ['province', 'zone', 'district', 'specific_place', 'cordinate'],
+  },
+  { title: t('شاگردان'), keys: ['am_students', 'pm_students'] },
+  { title: t('منبع'), keys: ['resource_code', 'resource_phone_number'] },
+  { title: t('دیگر'), keys: ['Province_addr'] },
+]);
+
+const filters = ref({});
+
+/* Peek */
+const expanded = ref(false);
+const selectedId = ref(null);
+const loadingOne = ref(false);
+const detail = ref(null);
+
+async function fetchOne(id) {
+  loadingOne.value = true;
+  try {
+    await repo.FetchClubData?.(id);
+    const single = repo.Club && Array.isArray(repo.Club) ? repo.Club[0] : repo.Club || {};
+    detail.value = single || {};
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات کلب'));
+  } finally {
+    loadingOne.value = false;
   }
+}
 
-  /* ========= Per-row error bucket ========= */
-  const itemErrors = ref({});
-  function setItemErrors(item, errors) {
-    itemErrors.value[item.idOrTmp] = errors || {};
-  }
-  function clearItemErrors(item) {
-    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
-  }
-  function hasError(item, field) {
-    return !!itemErrors.value[item.idOrTmp]?.[field];
-  }
-  function getErrorMessages(item, field) {
-    return itemErrors.value[item.idOrTmp]?.[field] ?? [];
-  }
+function openPeek(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  selectedId.value = row.id;
+  expanded.value = true;
+  fetchOne(row.id);
+}
 
-  /* ========= Single editor row ========= */
-  const rows = ref([]);
-  let tmpId = 0;
-  const newTmpId = () => `tmp-${++tmpId}`;
+/* navigation */
+function goCreate() {
+  router.push('/app/clubform');
+}
 
-  function toRowModel(x = {}) {
-    const r = x.resource || {};
-    const base = {
-      id: x.id ?? null,
-      idOrTmp: x.id ?? newTmpId(),
-      loading: false,
+function goEdit(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push(`/app/clubform/${row.id}`);
+}
 
-      name: x.name ?? '',
-      club_name: x.club_name ?? '',
-      club_type: x.club_type ?? '',
-      father_name: x.father_name ?? '',
-      position: x.position ?? '',
-      Province_addr: x.Province_addr ?? '',
-      phone_number: x.phone_number ?? '',
+/* go to resource page by resource_code */
+function goToResource(row) {
+  if (!row?.resource_code) return;
+  router.push(`/app/resources/${row.resource_code}`);
+}
 
-      province: x.province ?? '',
-      zone: x.zone ?? '',
-      district: x.district ?? '',
-      specific_place: x.specific_place ?? '',
-      cordinate: x.cordinate ?? '',
+/* delete with dialog */
+const deleteDialog = ref(false);
+const deleteTarget = ref(null);
 
-      am_students: x.am_students ?? '',
-      pm_students: x.pm_students ?? '',
+function openDeleteDialog(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  deleteTarget.value = row;
+  deleteDialog.value = true;
+}
 
-      resource_code: x.resource_code ?? r.code_number ?? '',
-      resource_phone_number: x.resource_phone_number ?? r.phone_number ?? '',
-      resource_id: x.resource_id ?? r.id ?? null,
-    };
-    return { ...base, draft: { ...base } };
-  }
-  function setBlankEditorRow() {
-    rows.value = [toRowModel({})];
-  }
-
-  /* ========= Filterable dataset ========= */
-  const rowsFT = computed(() => repo.Clubs || []);
-  const filters = ref({});
-
-  /* ========= Resources dropdown ========= */
-  const resources = computed(() => repo.resourcecode || []);
-  function onResourceCodeChange(item) {
-    const code = item.draft.resource_code;
-    const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone_number = found?.phone_number ?? '';
-    item.draft.resource_id = found?.id ?? null;
-  }
-
-  /* ========= Headers ========= */
-  const headers = computed(() => [
-    { title: t('نام'), key: 'name' },
-    { title: t('نام کلب'), key: 'club_name' },
-    { title: t('نوع کلب'), key: 'club_type' },
-    { title: t('نام پدر'), key: 'father_name' },
-    { title: t('وظیفه/موقعیت'), key: 'position' },
-    { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('موقعیت'), key: 'province' }, // grouped province+zone+district
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-    { title: t('مختصات'), key: 'cordinate' },
-    { title: t('شاگردان صبح'), key: 'am_students' },
-    { title: t('شاگردان عصر'), key: 'pm_students' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone_number' },
-    { title: t('عمل'), key: 'actions', sortable: false },
-  ]);
-
-  const headersFT = computed(() => [
-    { title: t('نام'), key: 'name' },
-    { title: t('نام کلب'), key: 'club_name' },
-    { title: t('نوع کلب'), key: 'club_type' },
-    { title: t('نام پدر'), key: 'father_name' },
-    { title: t('وظیفه/موقعیت'), key: 'position' },
-    { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('ولایت'), key: 'province' },
-    { title: t('زون'), key: 'zone' },
-    { title: t('ولسوالی'), key: 'district' },
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-    { title: t('مختصات'), key: 'cordinate' },
-    { title: t('شاگردان صبح'), key: 'am_students' },
-    { title: t('شاگردان عصر'), key: 'pm_students' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone_number' },
-    { title: t('نقشه'), key: 'map', sortable: false },
-
-  ]);
-
-  const topGroups = computed(() => [
-    {
-      title: t('مشخصات'),
-      keys: ['name', 'club_name', 'club_type', 'father_name', 'position', 'phone_number'],
-    },
-    { title: t('موقعیت'), keys: ['province', 'zone', 'district', 'specific_place', 'cordinate'] },
-    { title: t('شاگردان'), keys: ['am_students', 'pm_students'] },
-    { title: t('منبع'), keys: ['resource_code', 'resource_phone_number'] },
-  ]);
-
-  /* ========= Diff & payload ========= */
-  const EDITABLE_KEYS = [
-    'name',
-    'club_name',
-    'club_type',
-    'father_name',
-    'position',
-    'phone_number',
-    'province',
-    'zone',
-    'Province_addr',
-    'district',
-    'specific_place',
-    'cordinate',
-    'am_students',
-    'pm_students',
-    'resource_code',
-    'resource_phone_number',
-    'resource_id',
-  ];
-  const REQUIRED_ON_UPDATE = ['name', 'club_name'];
-
-  function diffDraft(item) {
-    const d = item.draft || {};
-    const changed = {};
-    for (const k of EDITABLE_KEYS) if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    for (const k of REQUIRED_ON_UPDATE) if (d[k] !== undefined) changed[k] = d[k];
-    return changed;
-  }
-  function toFormDataSelective(obj) {
-    const fd = new FormData();
-    Object.entries(obj || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
-
-  /* ========= Snackbars ========= */
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const showOk = ref(false);
-  const okMessage = ref('');
-  function showErrorMessage(msg) {
-    errorMessage.value = msg || t('خطا رخ داد');
-    showError.value = true;
-  }
-  function showOkMessage(msg) {
-    okMessage.value = msg || t('موفقیت‌آمیز');
-    showOk.value = true;
-  }
-
-  /* ========= Save / Submit / Delete / Clear ========= */
-  async function onSubmit(item) {
-    if (!item?.draft?.name?.trim()) return showErrorMessage(t('نام الزامی است'));
-    if (!item?.draft?.club_name?.trim()) return showErrorMessage(t('نام کلب الزامی است'));
-
-    const v = await validateForm();
-    if (!v.valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      return;
-    }
-    await save(item);
-  }
-
-  async function save(item) {
-    item.loading = true;
-    clearItemErrors(item);
-    try {
-      if (!item.id) {
-        const fd = toFormDataSelective(item.draft);
-        const created = await repo.CreateClub?.(fd);
-        if (created?.id) {
-          showOkMessage(t('کلب با موفقیت ایجاد شد'));
-          await fetchAll();
-          setBlankEditorRow();
-          editorForm.value?.resetValidation?.();
-        } else {
-          await fetchAll();
-          setBlankEditorRow();
-        }
-        return;
-      }
-
-      const changed = diffDraft(item);
-      if (Object.keys(changed).length === 0) {
-        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
-        return;
-      }
-
-      const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateClub?.(item.id, fd);
-      if (updated?.id) {
-        showOkMessage(t('کلب بروزرسانی شد'));
-        await fetchAll();
-        setBlankEditorRow();
-        editorForm.value?.resetValidation?.();
-      }
-    } catch (e) {
-      console.error('Save error:', e);
-      if (e?.response?.data?.errors) {
-        setItemErrors(item, e.response.data.errors);
-        showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
-      } else {
-        showErrorMessage(t('خطا در ذخیره داده'));
-      }
-    } finally {
-      item.loading = false;
-    }
-  }
-
-  async function del(item) {
-    if (!item.id) {
-      setBlankEditorRow();
-      return;
-    }
-    if (!confirm(t('آیا از حذف "{name}" مطمئن هستید؟', { name: item.name }))) return;
-    try {
-      await repo.DeleteClub?.(item.id);
-      await fetchAll();
-      showOkMessage(t('کلب حذف شد'));
-      setBlankEditorRow();
-    } catch (e) {
-      console.error('Delete error:', e);
-      showErrorMessage(t('خطا در حذف'));
-    }
-  }
-
-  function clearEditor(item) {
-    if (item && itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
-    setBlankEditorRow();
-    showOkMessage(t('ورودی‌ها پاک شد'));
-  }
-
-  /* ========= Peek / single fetch ========= */
-  const expanded = ref(false);
-  const selectedId = ref(null);
-  const loadingOne = ref(false);
-  const detail = ref(null);
-
-  async function fetchOne(id) {
-    loadingOne.value = true;
-    try {
-      await repo.FetchClubData?.(id);
-      detail.value = repo.Club || [];
-    } catch (e) {
-      console.error('fetchOne error', e);
-      showErrorMessage(t('خطا در دریافت اطلاعات'));
-    } finally {
-      loadingOne.value = false;
-    }
-  }
-  function openPeek(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-    selectedId.value = row.id;
-    expanded.value = true;
-    fetchOne(row.id);
-  }
-
-  /* ========= Edit from table ========= */
-  const editorCard = ref(null);
-  async function startEdit(row) {
-    try {
-      const id = row?.id;
-      if (!id) return;
-      await repo.FetchClubData?.(id);
-      const single = repo.Club && Array.isArray(repo.Club) ? repo.Club[0] : repo.Club || row;
-      rows.value = [toRowModel(single || row)];
-      await nextTick();
-      const el = editorCard.value?.$el || editorCard.value;
-      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-    } catch (e) {
-      console.error('startEdit error', e);
-      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
-    }
-  }
-
-  /* ========= Data load ========= */
-  async function fetchAll() {
-    await Promise.allSettled([
-      repo.GetResourceCode?.(),
-      repo.FetchClubsData?.({ page: 1, itemsPerPage: 100000, search: repo.Search || '' }),
-    ]);
-  }
-
-  onMounted(async () => {
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value;
+  deleteDialog.value = false;
+  if (!row?.id) return;
+  try {
+    await repo.DeleteClub?.(row.id);
     await fetchAll();
-    setBlankEditorRow();
-  });
-  repo.GetResourceCode?.();
+    showErrorMessage(t('حذف شد'));
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در حذف'));
+  } finally {
+    deleteTarget.value = null;
+  }
+}
+
+/* fetch all */
+async function fetchAll() {
+  try {
+    await repo.FetchClubsData?.({
+      page: 1,
+      itemsPerPage: 100000,
+      search: repo.Search || '',
+    });
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت فهرست کلب‌ها'));
+  }
+}
+
+function clearSearch() {
+  repo.Search = '';
+  fetchAll();
+}
+
+/* init */
+onMounted(async () => {
+  await fetchAll();
+});
 </script>
 
 <style scoped>
-  table th {
-    white-space: nowrap;
-  }
-  .custom-table :deep(.v-data-table__thead th) {
-    background: rgb(var(--v-theme-primary));
-    color: #fff;
-    font-weight: 400;
-  }
+.ga-2 {
+  gap: 8px;
+}
 
-  .addr-group {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(120px, 1fr));
-    gap: 2px;
-  }
-  .text-group {
-    display: grid;
-    width: 140px;
-    gap: 2px;
-  }
-  .text-group-note {
-    display: grid;
-    width: 380px;
-    gap: 2px;
-  }
+/* Background same style */
+.page-bg {
+  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+  font-family: inherit;
+}
 
-  .flex {
-    display: flex;
-  }
-  .items-center {
-    align-items: center;
-  }
-  .gap-1 {
-    gap: 4px;
-  }
+/* Stats cards */
+.stat-card {
+  cursor: pointer;
+  border-radius: 14px;
+  border: 1px solid rgba(33, 150, 243, 0.08);
+  background: #ffffff;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+    background-color 0.2s ease;
+}
 
-  .tablebody {
-    display: flex !important;
-    gap: 2px !important;
-  }
+.stat-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  border-color: rgba(33, 150, 243, 0.35);
+}
 
-  /* Compact labels/inputs */
-  :deep(.v-field-label),
-  :deep(.v-label),
-  :deep(input::placeholder) {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    color: #555 !important;
-  }
-  :deep(.v-field__input) {
-    min-height: 26px !important;
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-  }
-  /* Tight spacing inside grouped blocks */
-  .addr-group,
-  .text-group,
-  .text-group-note {
-    margin: -16px !important;
-    padding: -10px !important;
-    row-gap: -6px !important;
-    column-gap: 2px !important;
-    gap: -10px !important;
-  }
+.stat-card--active {
+  border-color: rgba(25, 118, 210, 0.9);
+  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+}
+
+.stat-card-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.stat-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e3f2fd;
+}
+
+.stat-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stat-card-subtitle {
+  font-size: 11px;
+  color: #666;
+}
 </style>

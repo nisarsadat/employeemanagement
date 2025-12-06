@@ -222,7 +222,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.SaeenFasads = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.SaeenFasads.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -478,7 +478,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
 
     async DeleteCaptive(id) {
       try {
-        await axios.delete(`/heists/${id}`);
+        await axios.delete(`/captives/${id}`);
         toast.success('ریکارډ  بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
@@ -490,6 +490,45 @@ export const useFasadRepository = defineStore('FasadRepository', {
         console.error(e);
         this.error = e;
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
+      }
+    },
+    async DownloadCaptiveDocuments(id) {
+      try {
+        setContentType(null);
+
+        const response = await axios.get(`/captives/${id}/documents/zip`, {
+          responseType: 'blob',
+          withCredentials: true, // if you use Sanctum cookies
+        });
+
+        const contentType = response.headers['content-type'] || '';
+        if (!contentType.includes('zip')) {
+          // Not a real ZIP → probably error HTML/JSON
+          const text =
+            (await response.data.text?.()) ??
+            (await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.readAsText(response.data);
+            }));
+
+          console.error('Download not a zip:', text);
+          toast.error('سرور فایل زیپ برنگرداند (ممکن است ارور HTML باشد).');
+          return;
+        }
+
+        const url = window.URL.createObjectURL(response.data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'captive_documents.zip';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'د اسنادو دانلود ناکام شو'));
       }
     },
     /* ============================ Mulkano ============================ */
@@ -572,7 +611,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
 
     async DeleteMulakno(id) {
       try {
-        await axios.delete(`/heists/${id}`);
+        await axios.delete(`/mulaknos/${id}`);
         toast.success('ریکارډ  بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
@@ -1043,7 +1082,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
 
     async DeleteSoldier(id) {
       try {
-        await axios.delete(`/soldier/${id}`);
+        await axios.delete(`/soldiers/${id}`);
         toast.success('ریکارډ  بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });

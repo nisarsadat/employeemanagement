@@ -143,11 +143,11 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       try {
         setContentType('application/json');
         const { data } = await axios.get(`/badmashanos/${id}`);
-        this.Badmashanos = data?.data ?? {};
+        this.Badmashano = data?.data ?? {};
       } catch (e) {
         console.error(e);
         this.error = e;
-        this.Badmashanos = {};
+        this.Badmashano = {};
       }
     },
 

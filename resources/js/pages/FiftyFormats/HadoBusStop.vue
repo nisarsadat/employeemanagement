@@ -1,655 +1,557 @@
 <!-- src/views/hada/HadaBusStops.vue -->
 <template>
-  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- APP BAR -->
     <AppBar
       :title="t('ایستگاه‌های هدا')"
-      :subtitle="t('اضافه کردن یک ریکارډ جدید ایستگاه هدا')"
-      @toggle-drawer="drawer = !drawer"
+      :subtitle="t('فهرست، جستجو و مدیریت ایستگاه‌های هدا')"
     >
-      <template #actions><v-btn icon /></template>
+      <template #actions>
+        <v-btn icon />
+      </template>
     </AppBar>
 
-    <!-- Search -->
-    <v-row class="d-flex">
-      <v-col>
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('جستجو')"
-          density="compact"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          @keyup.enter="fetchAll"
-          clearable
-          @click:clear="
-            () => {
-              repo.Search = '';
-              fetchAll();
-            }
-          "
-        />
-      </v-col>
-    </v-row>
+    <!-- 🔍 Search + ➕ Create -->
+    <v-container class="pa-0">
+      <v-row class="align-center">
+        <!-- Search Field -->
+        <v-col cols="12" sm="8" md="9" lg="10">
+          <v-text-field
+            v-model.trim="repo.Search"
+            :label="t('جستجو در ایستگاه‌ها...')"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            hide-details
+            @keyup.enter="fetchAll"
+            clearable
+            @click:clear="clearSearch"
+            class="bg-white"
+          />
+        </v-col>
 
-    <!-- Single-row validated editor (Fasad pattern) -->
-    <v-form
-      ref="editorForm"
-      v-model="editorValid"
-      lazy-validation
-      @submit.prevent="onSubmit(rows[0])"
-    >
-      <v-card class="tablebody" ref="editorCard">
-        <v-data-table
-          :headers="headers"
-          :items="rows"
-          :loading="repo.loading"
-          item-key="idOrTmp"
-          class="elevation-2 custom-table"
-          density="comfortable"
-          hide-default-footer
-          :dir="isRtl ? 'rtl' : 'ltr'"
-        >
-          <!-- BASIC -->
-          <template #item.name="{ item }">
-            <v-text-field
-              v-model="item.draft.name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام ایستگاه')"
-              :rules="[rules.required]"
-              hide-details
-              :error="hasError(item, 'name')"
-              :error-messages="getErrorMessages(item, 'name')"
-              required
-            />
-          </template>
-          <template #item.hada_type="{ item }">
-            <v-text-field
-              v-model="item.draft.hada_type"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نوع هدا')"
-              hide-details
-            />
-          </template>
+        <!-- Create Button -->
+        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            size="large"
+            class="text-none mx-4"
+            rounded="lg"
+            block
+            prepend-icon="mdi-plus"
+            @click="goCreate"
+          >
+            {{ t('اضافه کردن ایستگاه جدید') }}
+          </v-btn>
+        </v-col>
+      </v-row>
 
-          <!-- RESPONSIBLE -->
-          <template #item.responsible_name="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام مسئول')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_f_name="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_f_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام پدر مسئول')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_position="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_position"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('وظیفه مسئول')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره مسئول')"
-              hide-details
-            />
-          </template>
-
-          <!-- ADDRESS (grouped) -->
-          <template #item.province="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.province"
-                density="compact"
-                variant="outlined"
-                hide-details
-                :label="t('ولایت')"
-              />
-              <v-text-field
-                v-model="item.draft.zone"
-                density="compact"
-                variant="outlined"
-                hide-details
-                :label="t('زون')"
-              />
-              <v-text-field
-                v-model="item.draft.district"
-                density="compact"
-                variant="outlined"
-                hide-details
-                :label="t('ولسوالی')"
-              />
-              <v-text-field
-                v-model="item.draft.village"
-                density="compact"
-                variant="outlined"
-                hide-details
-                :label="t('قریه')"
-              />
+      <!-- 📊 Filter Cards (like Heist) -->
+      <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- All -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'all' }"
+            @click="cardFilter = 'all'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-bus-stop</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('تمام ایستگاه‌ها') }}</div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <template #item.specific_place="{ item }">
-            <v-text-field
-              v-model="item.draft.specific_place"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('موقعیت مشخص')"
-              hide-details
-            />
-          </template>
-          <template #item.street_number="{ item }">
-            <v-text-field
-              v-model="item.draft.street_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره سرک')"
-              hide-details
-            />
-          </template>
-          <template #item.coordinates="{ item }">
-            <v-text-field
-              v-model="item.draft.coordinates"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مختصات')"
-              hide-details
-            />
-          </template>
-
-          <!-- NOTE -->
-          <template #item.note="{ item }">
-            <v-text-field
-              v-model="item.draft.note"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('یادداشت')"
-              hide-details
-            />
-          </template>
-
-          <template #item.Province_addr="{ item }">
-            <v-text-field
-              v-model="item.draft.Province_addr"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت مربوطه')"
-              hide-details
-              :error="hasError(item, 'Province_addr')"
-              :error-messages="getErrorMessages(item, 'Province_addr')"
-            />
-          </template>
-          <!-- RESOURCE -->
-          <template #item.resource_code="{ item }">
-            <v-autocomplete
-              v-model="item.draft.resource_code"
-              :items="resources"
-              item-title="code_number"
-              item-value="code_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('کود منبع')"
-              hide-details
-              clearable
-              @update:model-value="onResourceCodeChange(item)"
-            />
-          </template>
-          <template #item.resource_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره منبع')"
-              hide-details
-              readonly
-            />
-          </template>
-
-          <!-- ACTIONS -->
-          <template #item.actions="{ item }">
-            <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
-                {{ t('ثبت دیتا') }}
-              </v-btn>
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
-                {{ t('حذف') }}
-              </v-btn>
-              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
-                {{ t('پاک کردن ورودی‌ها') }}
-              </v-btn>
+        <!-- With coordinates -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
+            @click="cardFilter = 'withCoordinates'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-map-marker-radius</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <template #no-data>
-            <div class="py-8 text-medium-emphasis">
-              {{ t('یک سطر برای ویرایش/ایجاد آماده است') }}
+        <!-- With responsible phone -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withResponsiblePhone' }"
+            @click="cardFilter = 'withResponsiblePhone'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-phone</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای شماره مسئول') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withResponsiblePhone }}
+                </div>
+              </div>
             </div>
-          </template>
-        </v-data-table>
-      </v-card>
-    </v-form>
+          </v-card>
+        </v-col>
 
-    <!-- Filterable list (no repo changes, no extra API calls) -->
+        <!-- With resource code -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withResource' }"
+            @click="cardFilter = 'withResource'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-account-details</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای منبع') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withResource }}
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+
+    <!-- 👁 Peek drawer (same as Heist) -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loadingOne"
+        title-key="name"
+        image-key="picture"        
+        :fields="headersFT"
+        :cols="3"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+        :auto-detect-dates="false"
+        :date-keys="[]"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
+    <!-- 📋 MAIN TABLE -->
     <FilterableTable
       :headers="headersFT"
-      :rows="rowsFT"
+      :rows="filteredRowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
-      class="mb-20 mx-2"
       :enableEdit="true"
-      @edit="startEdit"
+      :enablePeek="true"
+      :autoDetectDates="false"
+      class="mb-20 mx-2"
+      @edit="goEdit"
+      @peek="openPeek"
     >
-      <!-- ✅ custom cell for the 'map' column -->
+      <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP (same behavior as Heist) -->
+      <template #cell-resource_code="{ row }">
+        <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              v-if="row.resource_code"
+              variant="tonal"
+              color="primary"
+              append-icon="mdi-account"
+              size="default"
+              @click.stop="goToResource(row)"
+            >
+              {{ row.resource_code }}
+            </v-btn>
+            <span v-else>-</span>
+          </template>
+        </v-tooltip>
+      </template>
+
+      <!-- 🗺 MAP CELL -->
       <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="row.coordinates"
           :title="row.name"
-          :subtitle="row.code_number"
-          type="hado_bus_stop"
+          :subtitle="row.code_number || row.Province_addr"
+          type="hada_bus_stop"
           :photo-url="row.picture"
           :zoom="16"
         />
       </template>
+
+      <!-- ⚙️ ACTIONS -->
+      <template #actions="{ item }">
+        <div class="d-flex align-center ga-2">
+          <!-- مشاهده -->
+          <v-tooltip :text="t('مشاهده ایستگاه')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="blue"
+                @click.stop="openPeek(item)"
+              >
+                mdi-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- ویرایش -->
+          <v-tooltip :text="t('ویرایش ایستگاه')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="amber-darken-2"
+                @click.stop="goEdit(item)"
+              >
+                mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- حذف -->
+          <v-tooltip :text="t('حذف ایستگاه')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="red-darken-2"
+                @click.stop="openDeleteDialog(item)"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
     </FilterableTable>
 
-    <!-- Error Snackbar -->
+    <!-- 🗑 Delete Confirm Dialog -->
+    <DeleteConfirmDialog
+      v-model="deleteDialog"
+      :target="deleteTarget"
+      :is-rtl="isRtl"
+      @confirm="handleDeleteConfirmed"
+    />
+
+    <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
-        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+        <v-btn variant="text" @click="showError = false"> {{ t('بستن') }} </v-btn>
       </template>
     </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import AppBar from '@/components/AppBar.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import { useSchoolRepository } from '@/stores/SchoolRepository'; // <-- unchanged per your request
-  import FlyToMapButton from '../../components/FlyToMapButton.vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+import AppBar from '@/components/AppBar.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import FlyToMapButton from '@/components/FlyToMapButton.vue';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-  const drawer = ref(false);
-  const repo = useSchoolRepository(); // <-- unchanged
+import { useSchoolRepository } from '@/stores/SchoolRepository';
 
-  /* ===== Editor form + snackbar ===== */
-  const editorForm = ref(null);
-  const editorValid = ref(false);
-  const editorCard = ref(null);
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const showErrorMessage = (msg) => {
-    errorMessage.value = msg;
-    showError.value = true;
-  };
+const repo = useSchoolRepository();
+const router = useRouter();
 
-  /* ===== Per-field errors ===== */
-  const itemErrors = ref({});
-  const setItemErrors = (item, errors) => (itemErrors.value[item.idOrTmp] = errors || {});
-  const clearItemErrors = (item) => {
-    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
-  };
-  const hasError = (item, f) => !!itemErrors.value[item.idOrTmp]?.[f];
-  const getErrorMessages = (item, f) => itemErrors.value[item.idOrTmp]?.[f] ?? [];
+/* i18n / RTL */
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-  /* ===== Validation rules ===== */
-  const rules = { required: (v) => !!v || t('این فیلد الزامی است') };
+/* Snackbar */
+const showError = ref(false);
+const errorMessage = ref('');
+const showErrorMessage = (m) => {
+  errorMessage.value = m;
+  showError.value = true;
+};
 
-  /* ===== One editor row only ===== */
-  const rows = ref([]);
-  const setBlankEditorRow = () => {
-    rows.value = [toRowModel({})];
-  };
+/* 🔗 go to Resources page for this resource_code */
+function goToResource(row) {
+  if (!row?.resource_code) return;
+  router.push(`/app/resources/${row.resource_code}`);
+}
 
-  /* ===== FilterableTable data (no repo changes) ===== */
-  const rowsFT = computed(() => repo.HadoBusStops || []); // uses your existing state
-  const filters = ref({});
+/* helper to normalize table row payload */
+const getRow = (s) => (s && s.raw ? s.raw : s);
 
-  /* ===== Resources dropdown ===== */
-  const resources = computed(() => repo.resourcecode || []);
-  function onResourceCodeChange(item) {
-    const found = resources.value.find((r) => r.code_number === item.draft.resource_code);
-    item.draft.resource_phone = found?.phone_number ?? '';
-    item.draft.resource_id = found?.id ?? null;
+/* rows from store */
+const rowsFT = computed(() => {
+  const list = repo.HadoBusStops || [];
+  if (Array.isArray(list)) return list;
+  if (Array.isArray(list.data)) return list.data;
+  return [];
+});
+
+/* 🔢 Filter cards state */
+const cardFilter = ref('all');
+
+const stats = computed(() => {
+  const rows = rowsFT.value || [];
+  const total = rows.length;
+  const withCoordinates = rows.filter(
+    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+  ).length;
+  const withResponsiblePhone = rows.filter(
+    (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
+  ).length;
+  const withResource = rows.filter(
+    (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
+  ).length;
+
+  return { total, withCoordinates, withResponsiblePhone, withResource };
+});
+
+const filteredRowsFT = computed(() => {
+  const base = rowsFT.value || [];
+  switch (cardFilter.value) {
+    case 'withCoordinates':
+      return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+    case 'withResponsiblePhone':
+      return base.filter(
+        (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
+      );
+    case 'withResource':
+      return base.filter(
+        (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
+      );
+    default:
+      return base;
   }
+});
 
-  /* ===== Headers ===== */
-  const headers = computed(() => [
-    { title: t('نام ایستگاه'), key: 'name' },
-    { title: t('نوع هدا'), key: 'hada_type' },
+/* TABLE HEADERS – all fields + map + actions */
+const headersFT = computed(() => [
+  { title: t('نام ایستگاه'), key: 'name' },
+  { title: t('نوع هدا'), key: 'hada_type' },
 
-    { title: t('نام مسئول'), key: 'responsible_name' },
-    { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
-    { title: t('وظیفه مسئول'), key: 'responsible_position' },
-    { title: t('شماره مسئول'), key: 'responsible_phone' },
+  { title: t('نام مسئول'), key: 'responsible_name' },
+  { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
+  { title: t('وظیفه مسئول'), key: 'responsible_position' },
+  { title: t('شماره مسئول'), key: 'responsible_phone' },
 
-    { title: t('آدرس'), key: 'province' },
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-    { title: t('شماره سرک'), key: 'street_number' },
-    { title: t('مختصات'), key: 'coordinates' },
+  { title: t('ولایت'), key: 'province' },
+  { title: t('زون'), key: 'zone' },
+  { title: t('ولسوالی'), key: 'district' },
+  { title: t('قریه'), key: 'village' },
 
-    { title: t('یادداشت'), key: 'note' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+  { title: t('موقعیت مشخص'), key: 'specific_place' },
+  { title: t('شماره سرک'), key: 'street_number' },
+  { title: t('مختصات'), key: 'coordinates' },
+  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
+  { title: t('یادداشت'), key: 'note', width: 260 },
 
-    { title: t('عملیات'), key: 'actions', sortable: false },
-  ]);
+  { title: t('کود منبع'), key: 'resource_code' },
+  { title: t('شماره منبع'), key: 'resource_phone' },
 
-  const headersFT = computed(() => [
-    { title: t('نام ایستگاه'), key: 'name' },
-    { title: t('نوع هدا'), key: 'hada_type' },
+  { title: t('نقشه'), key: 'map', sortable: false },
+]);
 
-    { title: t('نام مسئول'), key: 'responsible_name' },
-    { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
-    { title: t('وظیفه مسئول'), key: 'responsible_position' },
-    { title: t('شماره مسئول'), key: 'responsible_phone' },
+/* TOP GROUPS – for FilterableTable filters */
+const topGroups = computed(() => [
+  { title: t('مشخصات'), keys: ['name', 'hada_type'] },
+  {
+    title: t('مسئول'),
+    keys: ['responsible_name', 'responsible_f_name', 'responsible_position', 'responsible_phone'],
+  },
+  { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
+  {
+    title: t('موقعیت'),
+    keys: ['specific_place', 'street_number', 'coordinates', 'Province_addr'],
+  },
+  { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+  { title: t('یادداشت'), keys: ['note'] },
+]);
 
-    { title: t('ولایت'), key: 'province' },
-    { title: t('زون'), key: 'zone' },
-    { title: t('ولسوالی'), key: 'district' },
-    { title: t('قریه'), key: 'village' },
+const filters = ref({});
 
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-    { title: t('شماره سرک'), key: 'street_number' },
-    { title: t('مختصات'), key: 'coordinates' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+/* Peek (same logic as Heist) */
+const expanded = ref(false);
+const selectedId = ref(null);
+const loadingOne = ref(false);
+const detail = ref(null);
 
-    { title: t('یادداشت'), key: 'note' },
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
-    { title: t('نقشه'), key: 'map', sortable: false },
-
-  ]);
-
-  const topGroups = computed(() => [
-    { title: t('مشخصات'), keys: ['name', 'hada_type'] },
-    {
-      title: t('مسئول'),
-      keys: ['responsible_name', 'responsible_f_name', 'responsible_position', 'responsible_phone'],
-    },
-    { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
-    { title: t('موقعیت'), keys: ['specific_place', 'street_number', 'coordinates'] },
-    { title: t('یادداشت'), keys: ['note'] },
-    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
-  ]);
-
-  /* ===== Row model / diff / form-data ===== */
-  let tmpId = 0;
-  const newTmpId = () => `tmp-${++tmpId}`;
-
-  function toRowModel(x = {}) {
-    const base = {
-      id: x.id ?? null,
-      idOrTmp: x.id ?? newTmpId(),
-      loading: false,
-
-      name: x.name ?? '',
-      hada_type: x.hada_type ?? '',
-
-      responsible_name: x.responsible_name ?? '',
-      responsible_f_name: x.responsible_f_name ?? '',
-      responsible_position: x.responsible_position ?? '',
-      responsible_phone: x.responsible_phone ?? '',
-
-      province: x.province ?? '',
-      zone: x.zone ?? '',
-      district: x.district ?? '',
-      village: x.village ?? '',
-      specific_place: x.specific_place ?? '',
-      street_number: x.street_number ?? '',
-      coordinates: x.coordinates ?? '',
-
-      note: x.note ?? '',
-
-      resource_code: x.resource_code ?? '',
-      resource_phone: x.resource_phone ?? '',
-      Province_addr: x.Province_addr ?? '',
-      resource_id: x.resource_id ?? null,
-    };
-    return { ...base, draft: { ...base } };
-  }
-
-  const EDITABLE_KEYS = [
-    'name',
-    'hada_type',
-    'responsible_name',
-    'responsible_f_name',
-    'responsible_position',
-    'responsible_phone',
-    'province',
-    'zone',
-    'Province_addr',
-    'district',
-    'village',
-    'specific_place',
-    'street_number',
-    'coordinates',
-    'note',
-    'resource_code',
-    'resource_phone',
-    'resource_id',
-  ];
-
-  function diffDraft(item) {
-    const d = item.draft || {};
-    const changed = {};
-    for (const k of EDITABLE_KEYS) {
-      if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    }
-    return changed;
-  }
-
-  function toFormDataSelective(obj) {
-    const fd = new FormData();
-    Object.entries(obj || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
-
-  /* ===== Submit / Save / Delete / Edit ===== */
-  async function onSubmit(item) {
-    if (!item?.draft?.name?.trim()) {
-      showErrorMessage(t('نام ایستگاه الزامی است'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-    await save(item);
-  }
-
-  async function save(item) {
-    item.loading = true;
-    clearItemErrors(item);
-    try {
-      if (!item.id) {
-        const fd = toFormDataSelective(diffDraft(item));
-        const created = await repo.CreateHadoBusStop?.(fd);
-        if (created?.id) {
-          await fetchAll();
-          setBlankEditorRow();
-          editorForm.value?.resetValidation?.();
-        } else {
-          await fetchAll();
-        }
-        return;
-      }
-      const changed = diffDraft(item);
-      if (Object.keys(changed).length === 0) {
-        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
-        return;
-      }
-      const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateHadoBusStop?.(item.id, fd);
-      if (updated?.id) {
-        await fetchAll();
-        setBlankEditorRow();
-        editorForm.value?.resetValidation?.();
-      }
-    } catch (error) {
-      if (error?.response?.data?.errors) {
-        setItemErrors(item, error.response.data.errors);
-        showErrorMessage(t('لطفاً خطاهای فرم را بررسی کنید'));
-      } else {
-        showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته')));
-      }
-    } finally {
-      item.loading = false;
-    }
-  }
-
-  async function del(item) {
-    if (!item.id) {
-      setBlankEditorRow();
-      return;
-    }
-    if (!confirm(t('آیا مطمئن هستید؟'))) return;
-    try {
-      await repo.DeleteHadoBusStop?.(item.id);
+async function fetchOne(id) {
+  loadingOne.value = true;
+  try {
+    if (typeof repo.FetchHadoBusStopData === 'function') {
+      await repo.FetchHadoBusStopData(id);
+      const single = Array.isArray(repo.HadoBusStop) ? repo.HadoBusStop[0] : repo.HadoBusStop;
+      detail.value = single || {};
+    } else {
       await fetchAll();
-      setBlankEditorRow();
-    } catch (e) {
-      showErrorMessage(t('خطا در حذف') + ': ' + (e?.message || t('خطای ناشناخته')));
+      const list = rowsFT.value || [];
+      detail.value = list.find((r) => r.id === id) || {};
     }
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات ایستگاه'));
+  } finally {
+    loadingOne.value = false;
   }
+}
 
-  async function startEdit(row) {
-    // No repo/function changes: just load the selected row into the single editor
-    rows.value = [toRowModel(row || {})];
-    await nextTick();
-    const el = editorCard.value?.$el || editorCard.value;
-    el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+function openPeek(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  selectedId.value = row.id;
+  expanded.value = true;
+  fetchOne(row.id);
+}
+
+/* navigation – same style as Heist */
+function goCreate() {
+  router.push('/app/hadabusstopform');
+}
+
+function goEdit(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push(`/app/hadabusstopform/${row.id}`);
+}
+
+/* delete with dialog */
+const deleteDialog = ref(false);
+const deleteTarget = ref(null);
+
+function openDeleteDialog(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  deleteTarget.value = row;
+  deleteDialog.value = true;
+}
+
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value;
+  deleteDialog.value = false;
+  if (!row?.id) return;
+  try {
+    await repo.DeleteHadoBusStop?.(row.id);
+    await fetchAll();
+    showErrorMessage(t('حذف شد'));
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در حذف'));
+  } finally {
+    deleteTarget.value = null;
   }
+}
 
-  function clearEditor(item) {
-    if (item && item.idOrTmp && itemErrors.value[item.idOrTmp])
-      delete itemErrors.value[item.idOrTmp];
-    setBlankEditorRow();
-    showErrorMessage(t('ورودی‌ها پاک شد'));
-  }
-
-  function scrollToFirstInvalid() {
-    const first =
-      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-      document.querySelector('.v-messages__message');
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input && typeof input.focus === 'function') input.focus();
-    }
-  }
-
-  /* ===== Fetch (unchanged function names) ===== */
-  async function fetchAll() {
+/* fetch all */
+async function fetchAll() {
+  try {
     await repo.FetchHadoBusStopsData?.({
       page: 1,
       itemsPerPage: 100000,
       search: repo.Search || '',
     });
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت فهرست ایستگاه‌های هدا'));
   }
+}
 
-  /* ===== Init ===== */
-  onMounted(async () => {
-    await Promise.allSettled([repo.GetResourceCode?.()]);
-    await fetchAll();
-    setBlankEditorRow();
-  });
+function clearSearch() {
+  repo.Search = '';
+  fetchAll();
+}
+
+/* init */
+onMounted(async () => {
+  await fetchAll();
+});
 </script>
 
 <style scoped>
-  table th {
-    white-space: nowrap;
-  }
-  .custom-table :deep(.v-data-table__thead th) {
-    background: rgb(var(--v-theme-primary));
-    color: #fff;
-    font-weight: 400;
-  }
+.ga-2 {
+  gap: 8px;
+}
 
-  /* layout like your template */
-  .tablebody {
-    display: flex !important;
-    gap: 2px !important;
-  }
-  .addr-group {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(120px, 1fr));
-    gap: 2px;
-  }
-  .text-group {
-    display: grid;
-    width: 140px;
-    gap: 2px;
-  }
-  .text-group-note {
-    display: grid;
-    width: 380px;
-    gap: 2px;
-  }
+/* Background similar to other index pages */
+.page-bg {
+  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+  font-family: inherit;
+}
 
-  /* compact inputs + labels */
-  :deep(.v-field-label),
-  :deep(.v-label),
-  :deep(input::placeholder) {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    color: #555 !important;
-  }
-  :deep(.v-field__input) {
-    min-height: 26px !important;
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-  }
+/* Stats cards (copied from Heist) */
+.stat-card {
+  cursor: pointer;
+  border-radius: 14px;
+  border: 1px solid rgba(33, 150, 243, 0.08);
+  background: #ffffff;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+    background-color 0.2s ease;
+}
 
-  /* Tight spacing inside grouped blocks */
-  .addr-group,
-  .addr-group1,
-  .text-group,
-  .text-group-note {
-    margin: -16px !important;
-    padding: -10px !important;
-    row-gap: -6px !important;
-    column-gap: 2px !important;
-    gap: -10px !important;
-  }
+.stat-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  border-color: rgba(33, 150, 243, 0.35);
+}
+
+.stat-card--active {
+  border-color: rgba(25, 118, 210, 0.9);
+  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+}
+
+.stat-card-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.stat-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e3f2fd;
+}
+
+.stat-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stat-card-subtitle {
+  font-size: 11px;
+  color: #666;
+}
 </style>

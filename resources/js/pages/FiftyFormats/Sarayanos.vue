@@ -1,771 +1,556 @@
 <template>
-  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- APP BAR -->
     <AppBar
       :title="t('سرایانو / Sarayano')"
-      :subtitle="t('اضافه کردن یک ریکارډ جدید سرایانو')"
-      @toggle-drawer="drawer = !drawer"
+      :subtitle="t('فهرست، جستجو و مدیریت سرایانو')"
     >
-      <template #actions><v-btn icon /></template>
+      <template #actions>
+        <v-btn icon />
+      </template>
     </AppBar>
 
-    <!-- Search -->
-    <v-row class="d-flex">
-      <v-col cols="12" md="9">
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('جستجو')"
-          density="compact"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          @keyup.enter="fetchAll"
-          clearable
-          @click:clear="
-            () => {
-              repo.Search = '';
-              fetchAll();
-            }
-          "
-        />
-      </v-col>
-    </v-row>
+    <!-- 🔍 Search + ➕ Create -->
+    <v-container class="pa-0">
+      <v-row class="align-center">
+        <!-- Search Field -->
+        <v-col cols="12" sm="8" md="9" lg="10">
+          <v-text-field
+            v-model.trim="repo.Search"
+            :label="t('جستجو در سرایانو...')"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            hide-details
+            @keyup.enter="fetchAll"
+            clearable
+            @click:clear="clearSearch"
+            class="bg-white"
+          />
+        </v-col>
 
-    <!-- Single-row validated editor (Fasad style) -->
-    <v-form
-      ref="editorForm"
-      v-model="editorValid"
-      lazy-validation
-      :key="formKey"
-      @submit.prevent="onSubmit(rows[0])"
-    >
-      <v-card class="tablebody" ref="editorCard">
-        <v-data-table
-          :headers="headers"
-          :items="rows"
-          :loading="repo.loading"
-          item-key="idOrTmp"
-          class="elevation-2 custom-table"
-          density="comfortable"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          hide-default-footer
-        >
-          <!-- Saray info -->
-          <template #item.saray_name="{ item }">
-            <v-text-field
-              v-model="item.draft.saray_name"
-              class="text-group pr-2"
-              density="compact"
-              variant="outlined"
-              :label="t('نام سرای')"
-              :rules="[rules.required]"
-              hide-details
-              :error="hasError(item, 'saray_name')"
-              :error-messages="getErrorMessages(item, 'saray_name')"
-              required
-            />
-          </template>
-          <template #item.saray_type="{ item }">
-            <v-text-field
-              v-model="item.draft.saray_type"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نوع سرای')"
-              hide-details
-            />
-          </template>
+        <!-- Create Button -->
+        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            size="large"
+            class="text-none mx-4"
+            rounded="lg"
+            block
+            prepend-icon="mdi-plus"
+            @click="goCreate"
+          >
+            {{ t('اضافه کردن سرای جدید') }}
+          </v-btn>
+        </v-col>
+      </v-row>
 
-          <!-- Responsible person -->
-          <template #item.responsible_name="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مسؤول: نام')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_f_name="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_f_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مسؤول: نام پدر')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_position="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_position"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مسؤول: موقف')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مسؤول: شماره تماس')"
-              hide-details
-              :error="hasError(item, 'responsible_phone')"
-              :error-messages="getErrorMessages(item, 'responsible_phone')"
-            />
-          </template>
-
-          <!-- Address (grouped) -->
-          <template #item.province="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.province"
-                density="compact"
-                variant="outlined"
-                hide-details
-                :label="t('ولایت')"
-              />
-              <v-text-field
-                v-model="item.draft.zone"
-                density="compact"
-                variant="outlined"
-                hide-details
-                :label="t('زون')"
-              />
-              <v-text-field
-                v-model="item.draft.district"
-                density="compact"
-                variant="outlined"
-                hide-details
-                :label="t('ولسوالی')"
-              />
-              <v-text-field
-                v-model="item.draft.village"
-                density="compact"
-                variant="outlined"
-                hide-details
-                :label="t('قریه/ناحیه')"
-              />
+      <!-- 📊 Filter Cards -->
+      <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- All -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'all' }"
+            @click="cardFilter = 'all'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-office-building</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('تمام سرایانو') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('مجموع') }}: {{ stats.total }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <!-- Specific place + coordinates -->
-          <template #item.specific_place="{ item }">
-            <v-text-field
-              v-model="item.draft.specific_place"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('موقعیت مشخص')"
-              hide-details
-            />
-          </template>
-          <template #item.cordenates="{ item }">
-            <v-text-field
-              v-model="item.draft.cordenates"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مختصات')"
-              hide-details
-            />
-          </template>
-
-          <!-- Employees / Notes -->
-          <template #item.employee_quantity="{ item }">
-            <v-text-field
-              v-model="item.draft.employee_quantity"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('تعداد کارمندان')"
-              hide-details
-            />
-          </template>
-          <template #item.note="{ item }">
-            <v-text-field
-              v-model="item.draft.note"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('یادداشت')"
-              hide-details
-            />
-          </template>
-
-          <template #item.Province_addr="{ item }">
-            <v-text-field
-              v-model="item.draft.Province_addr"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت مربوطه')"
-              hide-details
-              :error="hasError(item, 'Province_addr')"
-              :error-messages="getErrorMessages(item, 'Province_addr')"
-            />
-          </template>
-          <!-- Resource code (autocomplete) + phone (readonly) -->
-          <template #item.resource_code="{ item }">
-            <v-autocomplete
-              v-model="item.draft.resource_code"
-              :items="resources"
-              item-title="code_number"
-              item-value="code_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('کود منبع')"
-              hide-details
-              clearable
-              @update:model-value="onResourceCodeChange(item)"
-            />
-          </template>
-          <template #item.resource_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره منبع')"
-              hide-details
-              readonly
-            />
-          </template>
-
-          <!-- Actions -->
-          <template #item.actions="{ item }">
-            <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
-                {{ t('ثبت دیتا') }}
-              </v-btn>
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
-                {{ t('حذف') }}
-              </v-btn>
-              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
-                {{ t('پاک کردن ورودی‌ها') }}
-              </v-btn>
+        <!-- With coordinates -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
+            @click="cardFilter = 'withCoordinates'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-map-marker-radius</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <template #no-data>
-            <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
-          </template>
-        </v-data-table>
-      </v-card>
-    </v-form>
+        <!-- With responsible phone -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withPhone' }"
+            @click="cardFilter = 'withPhone'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-phone</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای شماره مسؤول') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withPhone }}
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
 
-    <!-- Peek + FilterableTable -->
+        <!-- With employees -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withEmployees' }"
+            @click="cardFilter = 'withEmployees'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-account-group</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای کارمندان ثبت‌شده') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withEmployees }}
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+
+    <!-- 👁 Peek drawer -->
     <v-container fluid>
       <PeekButton
         v-model="expanded"
         :id="selectedId"
         :item="detail"
-        :loading="loading"
+        :loading="loadingOne"
         title-key="saray_name"
-        :fields="headers"
+        :fields="headersFT"
         :cols="3"
-        dir="rtl"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+        :auto-detect-dates="false"
+        :date-keys="[]"
         @fetch="fetchOne"
       />
     </v-container>
 
+    <!-- 📋 MAIN TABLE -->
     <FilterableTable
       :headers="headersFT"
-      :rows="rowsFT"
+      :rows="filteredRowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
-      class="mb-20 mx-2"
       :enableEdit="true"
       :enablePeek="true"
-      @edit="startEdit"
+      :autoDetectDates="false"
+      class="mb-20 mx-2"
+      @edit="goEdit"
       @peek="openPeek"
     >
-      <!-- ✅ custom cell for the 'map' column -->
+      <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
+      <template #cell-resource_code="{ row }">
+        <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              v-if="row.resource_code"
+              variant="tonal"
+              color="primary"
+              append-icon="mdi-account"
+              size="default"
+              @click.stop="goToResource(row)"
+            >
+              {{ row.resource_code }}
+            </v-btn>
+            <span v-else>-</span>
+          </template>
+        </v-tooltip>
+      </template>
+
+      <!-- 🗺 MAP CELL -->
       <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="row.cordenates"
-          :title="row.name"
-          :subtitle="row.code_number"
+          :title="row.saray_name"
+          :subtitle="row.Province_addr"
           type="sarayano"
           :photo-url="row.picture"
           :zoom="16"
         />
       </template>
+
+      <!-- ⚙️ ACTIONS -->
+      <template #actions="{ item }">
+        <div class="d-flex align-center ga-2">
+          <!-- مشاهده -->
+          <v-tooltip :text="t('مشاهده سرای')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="blue"
+                @click.stop="openPeek(item)"
+              >
+                mdi-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- ویرایش -->
+          <v-tooltip :text="t('ویرایش سرای')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="amber-darken-2"
+                @click.stop="goEdit(item)"
+              >
+                mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- حذف -->
+          <v-tooltip :text="t('حذف سرای')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="red-darken-2"
+                @click.stop="openDeleteDialog(item)"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
     </FilterableTable>
 
-    <!-- Error Snackbar -->
+    <!-- 🗑 Delete Confirm Dialog -->
+    <DeleteConfirmDialog
+      v-model="deleteDialog"
+      :target="deleteTarget"
+      :is-rtl="isRtl"
+      @confirm="handleDeleteConfirmed"
+    />
+
+    <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
-        <v-btn variant="text" @click="showError = false">
-          {{ t('بستن') }}
-        </v-btn>
+        <v-btn variant="text" @click="showError = false"> {{ t('بستن') }} </v-btn>
       </template>
     </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, watch, nextTick } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import AppBar from '@/components/AppBar.vue';
-  import PeekButton from '@/components/PeekButton.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
-  import FlyToMapButton from '../../components/FlyToMapButton.vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
-  const drawer = ref(false);
+import AppBar from '@/components/AppBar.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import FlyToMapButton from '@/components/FlyToMapButton.vue';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-  const repo = useBadmashanoRepository();
+import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 
-  /* ===== Editor form + snackbar ===== */
-  const editorForm = ref(null);
-  const editorValid = ref(false);
-  const formKey = ref(0);
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const editorCard = ref(null);
-  function showErrorMessage(message) {
-    errorMessage.value = message;
-    showError.value = true;
+const repo = useBadmashanoRepository();
+const router = useRouter();
+
+/* i18n / RTL */
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
+
+/* Snackbar */
+const showError = ref(false);
+const errorMessage = ref('');
+const showErrorMessage = (m) => {
+  errorMessage.value = m;
+  showError.value = true;
+};
+
+/* 🔗 go to Resources page for this resource_code */
+function goToResource(row) {
+  if (!row?.resource_code) return;
+  router.push(`/app/resources/${row.resource_code}`);
+}
+
+/* Helpers */
+const getRow = (s) => (s && s.raw ? s.raw : s);
+
+/* rows from store */
+const rowsFT = computed(() => {
+  const list = repo.Sarayanos || [];
+  if (Array.isArray(list)) return list;
+  if (Array.isArray(list.data)) return list.data;
+  return [];
+});
+
+/* 🔢 Filter cards state */
+const cardFilter = ref('all');
+
+const stats = computed(() => {
+  const rows = rowsFT.value || [];
+  const total = rows.length;
+  const withCoordinates = rows.filter(
+    (r) => r && r.cordenates && String(r.cordenates).trim() !== ''
+  ).length;
+  const withPhone = rows.filter(
+    (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
+  ).length;
+  const withEmployees = rows.filter(
+    (r) => r && r.employee_quantity && String(r.employee_quantity).trim() !== ''
+  ).length;
+
+  return { total, withCoordinates, withPhone, withEmployees };
+});
+
+const filteredRowsFT = computed(() => {
+  const base = rowsFT.value || [];
+  switch (cardFilter.value) {
+    case 'withCoordinates':
+      return base.filter((r) => r && r.cordenates && String(r.cordenates).trim() !== '');
+    case 'withPhone':
+      return base.filter(
+        (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
+      );
+    case 'withEmployees':
+      return base.filter(
+        (r) => r && r.employee_quantity && String(r.employee_quantity).trim() !== ''
+      );
+    default:
+      return base;
   }
+});
 
-  /* ===== Errors per row ===== */
-  const itemErrors = ref({});
-  function setItemErrors(item, errors) {
-    itemErrors.value[item.idOrTmp] = errors;
-  }
-  function clearItemErrors(item) {
-    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
-  }
-  function hasError(item, field) {
-    return !!(itemErrors.value[item.idOrTmp] && itemErrors.value[item.idOrTmp][field]);
-  }
-  function getErrorMessages(item, field) {
-    return itemErrors.value[item.idOrTmp]?.[field] ?? [];
-  }
+/* TABLE HEADERS */
+const headersFT = computed(() => [
+  { title: t('نام سرای'), key: 'saray_name' },
+  { title: t('نوع سرای'), key: 'saray_type' },
 
-  /* ===== Rules ===== */
-  const rules = {
-    required: (v) => !!v || t('این فیلد الزامی است'),
-    number: (v) => !v || /^[0-9]+$/.test(v) || t('فقط اعداد مجاز است'),
-  };
+  { title: t('مسؤول: نام'), key: 'responsible_name' },
+  { title: t('مسؤول: نام پدر'), key: 'responsible_f_name' },
+  { title: t('مسؤول: موقف'), key: 'responsible_position' },
+  { title: t('مسؤول: شماره تماس'), key: 'responsible_phone' },
 
-  /* ===== Single editor row ===== */
-  const rows = ref([]);
-  function setBlankEditorRow() {
-    rows.value = [toRowModel({})];
-  }
+  { title: t('ولایت'), key: 'province' },
+  { title: t('زون'), key: 'zone' },
+  { title: t('ولسوالی'), key: 'district' },
+  { title: t('قریه/ناحیه'), key: 'village' },
+  { title: t('موقعیت مشخص'), key: 'specific_place' },
+  { title: t('مختصات'), key: 'cordenates' },
 
-  /* ===== ALL data for FilterableTable ===== */
-  const rowsFT = computed(() => repo.Sarayanos || []);
+  { title: t('تعداد کارمندان'), key: 'employee_quantity' },
+  { title: t('یادداشت'), key: 'note', width: 250 },
+  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
-  /* ===== Headers (editor table) ===== */
-  const headers = computed(() => [
-    { title: t('نام سرای'), key: 'saray_name' },
-    { title: t('نوع سرای'), key: 'saray_type' },
+  { title: t('کود منبع'), key: 'resource_code' },
+  { title: t('شماره منبع'), key: 'resource_phone' },
 
-    { title: t('مسؤول: نام'), key: 'responsible_name' },
-    { title: t('مسؤول: نام پدر'), key: 'responsible_f_name' },
-    { title: t('مسؤول: موقف'), key: 'responsible_position' },
-    { title: t('مسؤول: شماره تماس'), key: 'responsible_phone' },
+  { title: t('نقشه'), key: 'map', sortable: false },
+]);
 
-    { title: t('آدرس'), key: 'province' },
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-    { title: t('مختصات'), key: 'cordenates' },
+/* TOP GROUPS */
+const topGroups = computed(() => [
+  { title: t('سرای'), keys: ['saray_name', 'saray_type'] },
+  {
+    title: t('مسؤول'),
+    keys: ['responsible_name', 'responsible_f_name', 'responsible_position', 'responsible_phone'],
+  },
+  { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
+  { title: t('موقعیت'), keys: ['specific_place', 'cordenates'] },
+  { title: t('کارمندان/یادداشت'), keys: ['employee_quantity', 'note'] },
+  { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+  { title: t('دیگر'), keys: ['Province_addr'] },
+]);
 
-    { title: t('تعداد کارمندان'), key: 'employee_quantity' },
-    { title: t('یادداشت'), key: 'note' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+const filters = ref({});
 
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
+/* Peek */
+const expanded = ref(false);
+const selectedId = ref(null);
+const loadingOne = ref(false);
+const detail = ref(null);
 
-    { title: t('عملیات'), key: 'actions', sortable: false },
-  ]);
-
-  /* ===== Headers for FilterableTable ===== */
-  const headersFT = computed(() => [
-    { title: t('نام سرای'), key: 'saray_name' },
-    { title: t('نوع سرای'), key: 'saray_type' },
-
-    { title: t('مسؤول: نام'), key: 'responsible_name' },
-    { title: t('مسؤول: نام پدر'), key: 'responsible_f_name' },
-    { title: t('مسؤول: موقف'), key: 'responsible_position' },
-    { title: t('مسؤول: شماره تماس'), key: 'responsible_phone' },
-
-    { title: t('ولایت'), key: 'province' },
-    { title: t('زون'), key: 'zone' },
-    { title: t('ولسوالی'), key: 'district' },
-    { title: t('قریه/ناحیه'), key: 'village' },
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-    { title: t('مختصات'), key: 'cordenates' },
-
-    { title: t('تعداد کارمندان'), key: 'employee_quantity' },
-    { title: t('یادداشت'), key: 'note' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
-    { title: t('نقشه'), key: 'map', sortable: false },
-
-  ]);
-
-  /* ===== Top filter groups ===== */
-  const topGroups = computed(() => [
-    { title: t('سرای'), keys: ['saray_name', 'saray_type'] },
-    {
-      title: t('مسؤول'),
-      keys: ['responsible_name', 'responsible_f_name', 'responsible_position', 'responsible_phone'],
-    },
-    { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
-    { title: t('موقعیت'), keys: ['specific_place', 'cordenates'] },
-    { title: t('کارمندان/یادداشت'), keys: ['employee_quantity', 'note'] },
-    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
-  ]);
-
-  /* ===== Resources dropdown -> code/phone + set resource_id ===== */
-  const resources = computed(() => repo.resourcecode || []);
-  function onResourceCodeChange(item) {
-    const code = item.draft.resource_code;
-    const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone = found?.phone_number ?? '';
-    item.draft.resource_id = found?.id ?? null;
-  }
-
-  /* ===== Row model & diff ===== */
-  function toRowModel(x = {}) {
-    const base = {
-      id: x.id ?? null,
-      idOrTmp: x.id ?? 'tmp-1',
-      loading: false,
-
-      saray_name: x.saray_name ?? '',
-      saray_type: x.saray_type ?? '',
-
-      responsible_name: x.responsible_name ?? '',
-      responsible_f_name: x.responsible_f_name ?? '',
-      responsible_position: x.responsible_position ?? '',
-      responsible_phone: x.responsible_phone ?? '',
-
-      province: x.province ?? '',
-      zone: x.zone ?? '',
-      district: x.district ?? '',
-      village: x.village ?? '',
-      specific_place: x.specific_place ?? '',
-      cordenates: x.cordenates ?? '',
-
-      employee_quantity: x.employee_quantity ?? '',
-      note: x.note ?? '',
-      Province_addr: x.Province_addr ?? '',
-
-      resource_code: x.resource_code ?? '',
-      resource_phone: x.resource_phone ?? '',
-      resource_id: x.resource_id ?? null,
-    };
-    return { ...base, draft: { ...base } };
-  }
-
-  const EDITABLE_KEYS = [
-    'saray_name',
-    'saray_type',
-    'responsible_name',
-    'responsible_f_name',
-    'responsible_position',
-    'responsible_phone',
-    'province',
-    'zone',
-    'district',
-    'village',
-    'Province_addr',
-    'specific_place',
-    'cordenates',
-    'employee_quantity',
-    'note',
-    'resource_code',
-    'resource_phone',
-    'resource_id',
-  ];
-  const REQUIRED_ON_UPDATE = ['saray_name'];
-
-  function diffDraft(item) {
-    const d = item.draft || {};
-    const changed = {};
-    for (const k of EDITABLE_KEYS) {
-      if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    }
-    for (const k of REQUIRED_ON_UPDATE) {
-      if (d[k] !== undefined) changed[k] = d[k];
-    }
-    return changed;
-  }
-
-  function toFormDataSelective(obj) {
-    const fd = new FormData();
-    Object.entries(obj || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
-
-  async function hardResetFormValidation() {
-    editorValid.value = false;
-    itemErrors.value = {};
-    await nextTick();
-    editorForm.value?.resetValidation?.();
-    formKey.value++;
-    await nextTick();
-  }
-
-  /* ===== Save / Delete ===== */
-  async function save(item) {
-    if (!item.draft?.saray_name?.trim()) {
-      showErrorMessage(t('نام سرای الزامی است'));
-      return;
-    }
-    item.loading = true;
-    clearItemErrors(item);
-
-    try {
-      // CREATE
-      if (!item.id) {
-        const fd = toFormDataSelective(item.draft);
-        const created = await repo.CreateSarayano?.(fd);
-        if (created && created.id) {
-          await fetchAll();
-          setBlankEditorRow();
-          editorForm.value?.resetValidation?.();
-        } else {
-          await fetchAll();
-          setBlankEditorRow();
-          editorForm.value?.resetValidation?.();
-        }
-        return;
-      }
-
-      // UPDATE
-      const changed = diffDraft(item);
-      if (Object.keys(changed).length === 0) {
-        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
-        return;
-      }
-      const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateSarayano?.(item.id, fd);
-      if (updated && updated.id) {
-        await fetchAll();
-        setBlankEditorRow();
-        editorForm.value?.resetValidation?.();
-      }
-    } catch (error) {
-      console.error('Save error:', error);
-      if (error?.response?.data?.errors) {
-        setItemErrors(item, error.response.data.errors);
-        showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
-      } else {
-        showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته')));
-      }
-    } finally {
-      item.loading = false;
-    }
-  }
-
-  // VALIDATED SUBMIT
-  async function onSubmit(item) {
-    const form = editorForm.value;
-    if (!form) return;
-    const { valid } = await form.validate();
-    if (!valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-    await save(item);
-  }
-
-  function scrollToFirstInvalid() {
-    const first =
-      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-      document.querySelector('.v-messages__message');
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input && typeof input.focus === 'function') input.focus();
-    }
-  }
-
-  async function del(item) {
-    if (!item.id) {
-      setBlankEditorRow();
-      return;
-    }
-    if (!confirm(t('آیا مطمئن هستید؟'))) return;
-    try {
-      await repo.DeleteSarayano?.(item.id);
+async function fetchOne(id) {
+  loadingOne.value = true;
+  try {
+    if (typeof repo.FetchSarayanoData === 'function') {
+      await repo.FetchSarayanoData(id);
+      const single = Array.isArray(repo.Sarayano) ? repo.Sarayano[0] : repo.Sarayano;
+      detail.value = single || {};
+    } else {
       await fetchAll();
-      setBlankEditorRow();
-    } catch (e) {
-      console.error('Delete error:', e);
-      showErrorMessage(t('خطا در حذف') + ': ' + (e?.message || t('خطای ناشناخته')));
+      const list = rowsFT.value || [];
+      detail.value = list.find((r) => r.id === id) || {};
     }
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات سرای'));
+  } finally {
+    loadingOne.value = false;
   }
+}
 
-  function clearEditor(item) {
-    try {
-      if (item && item.idOrTmp && itemErrors.value[item.idOrTmp]) {
-        delete itemErrors.value[item.idOrTmp];
-      }
-      setBlankEditorRow();
-      showErrorMessage(t('ورودی‌ها پاک شد'));
-    } catch (e) {
-      console.error('clearEditor error:', e);
-    }
-  }
+function openPeek(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  selectedId.value = row.id;
+  expanded.value = true;
+  fetchOne(row.id);
+}
 
-  /* ===== Peek / Fetch ===== */
-  const expanded = ref(false);
-  const selectedId = ref(null);
-  const loading = ref(false);
-  const detail = ref(null);
+/* navigation */
+function goCreate() {
+  router.push('/app/sarayanoform');
+}
 
-  async function fetchOne(id) {
-    loading.value = true;
-    try {
-      await repo.FetchSarayanoData?.(id);
-      detail.value = repo.Sarayano || [];
-    } catch (error) {
-      console.error('Fetch one error:', error);
-      showErrorMessage(t('خطا در دریافت اطلاعات'));
-    } finally {
-      loading.value = false;
-    }
-  }
-  function openPeek(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-    expanded.value = true;
-    fetchOne(row.id);
-  }
+function goEdit(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push(`/app/sarayanoform/${row.id}`);
+}
 
-  /* ===== Fetch ALL (no pagination) ===== */
-  async function fetchAll() {
-    try {
-      if (typeof repo.FetchSarayanosData === 'function') {
-        await repo.FetchSarayanosData({ page: 1, itemsPerPage: 100000, search: repo.Search || '' });
-        return;
-      }
-      await repo.FetchSarayanosData?.({ page: 1, itemsPerPage: 100000, search: repo.Search || '' });
-    } catch (e) {
-      console.error('fetchAll error', e);
-    }
-  }
+/* delete with dialog */
+const deleteDialog = ref(false);
+const deleteTarget = ref(null);
 
-  /* ===== Start edit from FilterableTable ===== */
-  async function startEdit(row) {
-    try {
-      const id = row?.id;
-      if (!id) return;
-      await repo.FetchSarayanoData?.(id);
-      const single =
-        repo.Sarayano && Array.isArray(repo.Sarayano) ? repo.Sarayano[0] : repo.Sarayano || row;
-      rows.value = [toRowModel(single || row)];
-      await nextTick();
-      const el = editorCard.value?.$el || editorCard.value;
-      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-    } catch (e) {
-      console.error('startEdit error', e);
-      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
-    }
-  }
+function openDeleteDialog(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  deleteTarget.value = row;
+  deleteDialog.value = true;
+}
 
-  /* ===== Init ===== */
-  onMounted(async () => {
-    await Promise.allSettled([repo.GetResourceCode?.()]);
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value;
+  deleteDialog.value = false;
+  if (!row?.id) return;
+  try {
+    await repo.DeleteSarayano?.(row.id);
     await fetchAll();
-    setBlankEditorRow();
-  });
+    showErrorMessage(t('حذف شد'));
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در حذف'));
+  } finally {
+    deleteTarget.value = null;
+  }
+}
+
+/* fetch all */
+async function fetchAll() {
+  try {
+    await repo.FetchSarayanosData?.({
+      page: 1,
+      itemsPerPage: 100000,
+      search: repo.Search || '',
+    });
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت فهرست سرایانو'));
+  }
+}
+
+function clearSearch() {
+  repo.Search = '';
+  fetchAll();
+}
+
+/* init */
+onMounted(async () => {
+  await fetchAll();
+});
 </script>
 
 <style scoped>
-  /* Prevent header wrap */
-  table th {
-    white-space: nowrap;
-  }
+.ga-2 {
+  gap: 8px;
+}
 
-  /* Colored table header */
-  .custom-table :deep(.v-data-table__thead th) {
-    background: rgb(var(--v-theme-primary));
-    color: #fff;
-    font-weight: 400;
-  }
+/* Background similar to other index pages */
+.page-bg {
+  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+  font-family: inherit;
+}
 
-  /* Layout helpers (Fasad style) */
-  .tablebody {
-    display: flex !important;
-    gap: 2px !important;
-  }
-  .flex {
-    display: flex;
-  }
-  .items-center {
-    align-items: center;
-  }
-  .gap-1 {
-    gap: 4px;
-  }
+/* Stats cards */
+.stat-card {
+  cursor: pointer;
+  border-radius: 14px;
+  border: 1px solid rgba(33, 150, 243, 0.08);
+  background: #ffffff;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+    background-color 0.2s ease;
+}
 
-  /* Grouped inputs */
-  .addr-group {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(120px, 1fr));
-    gap: 2px;
-  }
-  .text-group {
-    display: grid;
-    width: 140px;
-    gap: 2px;
-  }
-  .text-group-note {
-    display: grid;
-    width: 380px;
-    gap: 2px;
-  }
+.stat-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  border-color: rgba(33, 150, 243, 0.35);
+}
 
-  /* Compact inputs + labels */
-  :deep(.v-field-label),
-  :deep(.v-label),
-  :deep(input::placeholder) {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    color: #555 !important;
-  }
-  :deep(.v-field__input) {
-    min-height: 26px !important;
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-  }
+.stat-card--active {
+  border-color: rgba(25, 118, 210, 0.9);
+  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+}
 
-  /* Tight spacing inside grouped blocks */
-  .addr-group,
-  .addr-group1,
-  .text-group,
-  .text-group-note {
-    margin: -16px !important;
-    padding: -10px !important;
-    row-gap: -6px !important;
-    column-gap: 2px !important;
-    gap: -10px !important;
-  }
+.stat-card-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.stat-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e3f2fd;
+}
+
+.stat-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stat-card-subtitle {
+  font-size: 11px;
+  color: #666;
+}
 </style>

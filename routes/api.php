@@ -131,6 +131,7 @@ use App\Http\Controllers\Api\OfficeEmployeeControllerReport;
 use App\Models\OfficeEmployee;
 use App\Http\Controllers\Reports\FiftyFormatsReportController;
 use App\Http\Controllers\Api\InformationReportController;
+use App\Http\Controllers\CaptiveDocumentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -245,6 +246,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('saeen-fasads', SaeenFasadController::class);
     Route::apiResource('heists', HeistController::class);
     Route::apiResource('captives', CaptiveController::class);
+    Route::get('captives/{captive}/documents/zip', [CaptiveDocumentController::class, 'downloadAll']);
+
     Route::apiResource('mulkanos', MulkanoController::class);
     Route::apiResource('entry-exits', EntryExitController::class);
     Route::apiResource('sarafyanos', SarafyanoController::class);

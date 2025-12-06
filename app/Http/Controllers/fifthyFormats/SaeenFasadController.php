@@ -3,14 +3,10 @@
 namespace App\Http\Controllers\fifthyFormats;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\fifthyFormats\StoreSaeenFasadaRequest;
 use App\Http\Requests\fifthyFormats\StoreSaeenFasadRequest;
-use App\Http\Requests\fifthyFormats\UpdateSaeenFasadaRequest;
 use App\Http\Requests\fifthyFormats\UpdateSaeenFasadRequest;
-use App\Http\Resources\fifthyFormats\SaeenFasadaResource;
 use App\Http\Resources\fifthyFormats\SaeenFasadResource;
 use App\Models\fifthyFormats\SaeenFasad;
-use App\Models\fifthyFormats\SaeenFasada;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -35,12 +31,12 @@ class SaeenFasadController extends Controller
     }
 
     /**
-     * GET /saeen-fasadas/{saeenFasada}
+     * GET /saeen-fasadas/{saeenFasad}
      */
-    public function show(SaeenFasad $saeenFasada)
+    public function show(SaeenFasad $saeenFasad)
     {
-        $saeenFasada->load('resource');
-        return new SaeenFasadResource($saeenFasada);
+        $saeenFasad->load('resource');
+        return new SaeenFasadResource($saeenFasad);
     }
 
     /**
@@ -72,17 +68,17 @@ class SaeenFasadController extends Controller
     }
 
     /**
-     * PUT /saeen-fasadas/{saeenFasada}
+     * PUT /saeen-fasadas/{saeenFasad}
      * Accepts `picture` either as a FILE or a STRING; replaces file if a new one is uploaded.
      */
-    public function update(UpdateSaeenFasadRequest $request, SaeenFasad $saeenFasada)
+    public function update(UpdateSaeenFasadRequest $request, SaeenFasad $saeenFasad)
     {
         $data = $request->validated();
 
         if ($request->hasFile('picture')) {
             // Delete old stored picture if we had one saved under /storage
-            if ($saeenFasada->picture && str_starts_with($saeenFasada->picture, 'storage/')) {
-                $old = str_replace('storage/', '', $saeenFasada->picture);
+            if ($saeenFasad->picture && str_starts_with($saeenFasad->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $saeenFasad->picture);
                 Storage::disk('public')->delete($old);
             }
 
@@ -95,25 +91,37 @@ class SaeenFasadController extends Controller
             }
         }
 
-        $saeenFasada->update($data);
-        $saeenFasada->load('resource');
+        $saeenFasad->update($data);
+        $saeenFasad->load('resource');
 
-        return new SaeenFasadResource($saeenFasada);
+        return new SaeenFasadResource($saeenFasad);
     }
 
     /**
-     * DELETE /saeen-fasadas/{saeenFasada}
+     * DELETE /saeen-fasadas/{saeenFasad}
      */
-    public function destroy(SaeenFasad $saeenFasada)
+    public function destroy(SaeenFasad $saeenFasad)
     {
-        // Optional: remove the stored file if it lives under /storage
-        if ($saeenFasada->picture && str_starts_with($saeenFasada->picture, 'storage/')) {
-            $old = str_replace('storage/', '', $saeenFasada->picture);
-            Storage::disk('public')->delete($old);
+        try {
+            // ✅ Remove the stored file if it lives under /storage
+            if ($saeenFasad->picture && str_starts_with($saeenFasad->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $saeenFasad->picture);
+                Storage::disk('public')->delete($old);
+            }
+
+            $saeenFasad->delete();
+
+            return response()->json([
+                'message' => 'Deleted',
+            ], 200);
+        } catch (\Throwable $e) {
+            // Log the error for debugging
+            report($e);
+
+            return response()->json([
+                'message' => 'Unable to delete record.',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
-
-        $saeenFasada->delete();
-
-        return response()->json(['message' => 'Deleted']);
     }
 }

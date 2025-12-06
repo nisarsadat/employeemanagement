@@ -3,12 +3,12 @@
 namespace App\Http\Resources\fifthyFormats;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class CaptiveResource extends JsonResource
 {
     public function toArray($request): array
     {
-        // Get the related Resource model if it was eager-loaded
         $related = $this->resource->relationLoaded('resource')
             ? $this->resource->getRelation('resource')
             : null;
@@ -34,17 +34,14 @@ class CaptiveResource extends JsonResource
             'now_activity'     => $this->now_activity,
             'phone_number'     => $this->phone_number,
             'note'             => $this->note,
-            'Province_addr'               => $this->Province_addr,
-            'coordinates'               => $this->coordinates,
+            'Province_addr'    => $this->Province_addr,
+            'coordinates'      => $this->coordinates,
 
-            // relation ids
             'resource_id' => $this->resource_id,
 
-            // ✅ Flatten FROM THE RELATED MODEL (not from $this->resource which is the Captive)
             'resource_code'         => $related?->code_number,
             'resource_phone_number' => $related?->phone_number,
 
-            // ✅ Keep nested object too, built from the related model
             'resource' => $this->when(
                 $related !== null,
                 fn () => [
@@ -54,6 +51,21 @@ class CaptiveResource extends JsonResource
                     'phone_number' => $related->phone_number,
                 ]
             ),
+
+            // ✅ documents list
+            'documents' => $this->whenLoaded('documents', function () {
+                return $this->documents->map(function ($doc) {
+                    return [
+                        'id'         => $doc->id,
+                        'file_name'  => $doc->file_name,
+                        'file_path'  => $doc->file_path,
+                        'url'        => Storage::disk('public')->url($doc->file_path),
+                        'mime_type'  => $doc->mime_type,
+                        'size_bytes' => $doc->size_bytes,
+                        'created_at' => $doc->created_at,
+                    ];
+                });
+            }),
 
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

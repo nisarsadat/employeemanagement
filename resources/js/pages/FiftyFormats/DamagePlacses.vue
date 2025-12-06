@@ -1,865 +1,569 @@
-<!-- src/views/fifthyFormats/DamagePlaces.vue -->
 <template>
-  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- APP BAR -->
     <AppBar
       :title="t('نقاط آسیب')"
-      :subtitle="t('اضافه کردن یک ریکارډ نقطه آسیب')"
-      @toggle-drawer="drawer = !drawer"
+      :subtitle="t('فهرست، جستجو و مدیریت نقاط آسیب')"
     >
-      <template #actions><v-btn icon /></template>
+      <template #actions>
+        <v-btn icon />
+      </template>
     </AppBar>
 
-    <!-- Search -->
-    <v-row class="d-flex">
-      <v-col>
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('جستجو')"
-          density="compact"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          @keyup.enter="fetchAll"
-          clearable
-          @click:clear="
-            () => {
-              repo.Search = '';
-              fetchAll();
-            }
-          "
-        />
-      </v-col>
-    </v-row>
+    <!-- 🔍 Search + ➕ Create -->
+    <v-container class="pa-0">
+      <v-row class="align-center">
+        <!-- Search Field -->
+        <v-col cols="12" sm="8" md="9" lg="10">
+          <v-text-field
+            v-model.trim="repo.Search"
+            :label="t('جستجو در نقاط آسیب...')"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            hide-details
+            @keyup.enter="fetchAll"
+            clearable
+            @click:clear="clearSearch"
+            class="bg-white"
+          />
+        </v-col>
 
-    <!-- Single-row validated editor (Fasad style) -->
-    <v-form
-      ref="editorForm"
-      v-model="editorValid"
-      lazy-validation
-      :key="formKey"
-      @submit.prevent="onSubmit(rows[0])"
-    >
-      <v-card class="tablebody" ref="editorCard">
-        <v-data-table
-          :headers="headers"
-          :items="rows"
-          :loading="repo.loading"
-          item-key="idOrTmp"
-          class="elevation-2 custom-table"
-          density="comfortable"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          hide-default-footer
-        >
-          <!-- LOCATION -->
-          <template #item.province="{ item }">
-            <v-text-field
-              v-model="item.draft.province"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت')"
-              :rules="[rules.required]"
-              hide-details
-              :error="hasError(item, 'province')"
-              :error-messages="getErrorMessages(item, 'province')"
-              required
-            />
-          </template>
-          <template #item.zone="{ item }">
-            <v-text-field
-              v-model="item.draft.zone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('زون')"
-              hide-details
-            />
-          </template>
-          <template #item.district="{ item }">
-            <v-text-field
-              v-model="item.draft.district"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('ولسوالی')"
-              :rules="[rules.required]"
-              hide-details
-              :error="hasError(item, 'district')"
-              :error-messages="getErrorMessages(item, 'district')"
-              required
-            />
-          </template>
-          <template #item.village="{ item }">
-            <v-text-field
-              v-model="item.draft.village"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('قریه/ناحیه')"
-              hide-details
-            />
-          </template>
+        <!-- Create Button -->
+        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            size="large"
+            class="text-none mx-4"
+            rounded="lg"
+            block
+            prepend-icon="mdi-plus"
+            @click="goCreate"
+          >
+            {{ t('اضافه نقطه آسیب جدید') }}
+          </v-btn>
+        </v-col>
+      </v-row>
 
-          <!-- DETAILS -->
-          <template #item.specific_place="{ item }">
-            <v-text-field
-              v-model="item.draft.specific_place"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('موقعیت مشخص')"
-              hide-details
-            />
-          </template>
-          <template #item.specific_dot="{ item }">
-            <v-text-field
-              v-model="item.draft.specific_dot"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نقطه مشخص')"
-              hide-details
-            />
-          </template>
-          <template #item.coordinates="{ item }">
-            <v-text-field
-              v-model="item.draft.coordinates"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مختصات')"
-              hint="34.5553, 69.2075"
-              persistent-hint
-              hide-details
-            />
-          </template>
-
-          <!-- THREAT / STATUS -->
-          <template #item.tahdid_type="{ item }">
-            <v-text-field
-              v-model="item.draft.tahdid_type"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نوع تهدید')"
-              hide-details
-            />
-          </template>
-          <template #item.percentage="{ item }">
-            <v-text-field
-              v-model="item.draft.percentage"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('درصدی')"
-              :rules="[rules.number]"
-              hide-details
-              :error="hasError(item, 'percentage')"
-              :error-messages="getErrorMessages(item, 'percentage')"
-            />
-          </template>
-          <template #item.tahdid_place="{ item }">
-            <v-text-field
-              v-model="item.draft.tahdid_place"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('محل تهدید')"
-              hide-details
-            />
-          </template>
-          <template #item.amnyat_khala="{ item }">
-            <v-text-field
-              v-model="item.draft.amnyat_khala"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('خلأ امنیتی')"
-              hide-details
-            />
-          </template>
-          <template #item.cameesa_tafseel="{ item }">
-            <v-text-field
-              v-model="item.draft.cameesa_tafseel"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('تفصیل کمیسه/کمیسیه')"
-              hide-details
-            />
-          </template>
-
-          <!-- GUARD / MASOOL -->
-          <template #item.guard_quantity="{ item }">
-            <v-text-field
-              v-model="item.draft.guard_quantity"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('تعداد محافظ')"
-              :rules="[rules.number]"
-              hide-details
-              :error="hasError(item, 'guard_quantity')"
-              :error-messages="getErrorMessages(item, 'guard_quantity')"
-            />
-          </template>
-          <template #item.masool_name="{ item }">
-            <v-text-field
-              v-model="item.draft.masool_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام مسوول')"
-              hide-details
-            />
-          </template>
-          <template #item.masool_f_name="{ item }">
-            <v-text-field
-              v-model="item.draft.masool_f_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نام پدر مسوول')"
-              hide-details
-            />
-          </template>
-          <template #item.masool_position="{ item }">
-            <v-text-field
-              v-model="item.draft.masool_position"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('وظیفه/موقف مسوول')"
-              hide-details
-            />
-          </template>
-          <template #item.masool_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.masool_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره مسوول')"
-              hide-details
-            />
-          </template>
-
-          <!-- NOTE -->
-          <template #item.note="{ item }">
-            <v-text-field
-              v-model="item.draft.note"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('یادداشت')"
-              hide-details
-            />
-          </template>
-
-          <template #item.Province_addr="{ item }">
-            <v-text-field
-              v-model="item.draft.Province_addr"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت مربوطه')"
-              hide-details
-              :error="hasError(item, 'Province_addr')"
-              :error-messages="getErrorMessages(item, 'Province_addr')"
-            />
-          </template>
-          <!-- RESOURCE (id select -> phone auto) -->
-          <template #item.resource_id="{ item }">
-            <v-autocomplete
-              v-model="item.draft.resource_id"
-              :items="resources"
-              item-title="code_number"
-              item-value="id"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('منبع')"
-              hide-details
-              clearable
-              @update:model-value="onResourceSelect(item)"
-            />
-          </template>
-          <template #item.resource_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره منبع')"
-              hide-details
-              readonly
-            />
-          </template>
-
-          <!-- ACTIONS -->
-          <template #item.actions="{ item }">
-            <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
-                {{ t('ثبت دیتا') }}
-              </v-btn>
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
-                {{ t('حذف') }}
-              </v-btn>
-              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
-                {{ t('پاک کردن ورودی‌ها') }}
-              </v-btn>
+      <!-- 📊 Filter Cards -->
+      <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- All -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'all' }"
+            @click="cardFilter = 'all'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-map-marker</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('تمام نقاط آسیب') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('مجموع') }}: {{ stats.total }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <!-- NO DATA -->
-          <template #no-data>
-            <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
-          </template>
-        </v-data-table>
-      </v-card>
-    </v-form>
+        <!-- With coordinates -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
+            @click="cardFilter = 'withCoordinates'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-map-marker-radius</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
 
-    <!-- Peek + FilterableTable (Fasad pattern) -->
+        <!-- With high threat -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'highThreat' }"
+            @click="cardFilter = 'highThreat'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-alert-decagram</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('تهدید بلند') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withHighThreat }}
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+
+        <!-- With guards -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withGuards' }"
+            @click="cardFilter = 'withGuards'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-shield-account</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای محافظ') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withGuards }}
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+
+    <!-- 👁 Peek drawer -->
     <v-container fluid>
       <PeekButton
         v-model="expanded"
         :id="selectedId"
         :item="detail"
-        :loading="loading"
+        :loading="loadingOne"
         title-key="specific_place"
-        :fields="headers"
+        :fields="headersFT"
         :cols="3"
-        dir="rtl"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+        :auto-detect-dates="false"
+        :date-keys="[]"
         @fetch="fetchOne"
       />
     </v-container>
 
+    <!-- 📋 MAIN TABLE -->
     <FilterableTable
       :headers="headersFT"
-      :rows="rowsFT"
+      :rows="filteredRowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
-      class="mb-20 mx-2"
       :enableEdit="true"
       :enablePeek="true"
-      @edit="startEdit"
+      :autoDetectDates="false"
+      class="mb-20 mx-2"
+      @edit="goEdit"
       @peek="openPeek"
     >
-      <!-- ✅ custom cell for the 'map' column -->
+      <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
+      <template #cell-resource_code="{ row }">
+        <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              v-if="row.resource_code"
+              variant="tonal"
+              color="primary"
+              append-icon="mdi-account"
+              size="default"
+              @click.stop="goToResource(row)"
+            >
+              {{ row.resource_code }}
+            </v-btn>
+            <span v-else>-</span>
+          </template>
+        </v-tooltip>
+      </template>
+
+      <!-- 🗺 MAP CELL -->
       <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="row.coordinates"
-          :title="row.name"
-          :subtitle="row.code_number"
+          :title="row.specific_place || row.province"
+          :subtitle="row.district"
           type="mawads"
           :photo-url="row.picture"
           :zoom="16"
         />
       </template>
+
+      <!-- ⚙️ ACTIONS -->
+      <template #actions="{ item }">
+        <div class="d-flex align-center ga-2">
+          <!-- مشاهده -->
+          <v-tooltip :text="t('مشاهده نقطه آسیب')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="blue"
+                @click.stop="openPeek(item)"
+              >
+                mdi-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- ویرایش -->
+          <v-tooltip :text="t('ویرایش نقطه آسیب')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="amber-darken-2"
+                @click.stop="goEdit(item)"
+              >
+                mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- حذف -->
+          <v-tooltip :text="t('حذف نقطه آسیب')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="red-darken-2"
+                @click.stop="openDeleteDialog(item)"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
     </FilterableTable>
 
-    <!-- Error Snackbar -->
+    <!-- 🗑 Delete Confirm Dialog -->
+    <DeleteConfirmDialog
+      v-model="deleteDialog"
+      :target="deleteTarget"
+      :is-rtl="isRtl"
+      @confirm="handleDeleteConfirmed"
+    />
+
+    <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
-        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+        <v-btn variant="text" @click="showError = false">
+          {{ t('بستن') }}
+        </v-btn>
       </template>
     </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, watch, nextTick, onBeforeUnmount } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import AppBar from '@/components/AppBar.vue';
-  import PeekButton from '@/components/PeekButton.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import { useMawadRepository } from '@/stores/MawadRepository';
-  import FlyToMapButton from '../../components/FlyToMapButton.vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
-  const drawer = ref(false);
+import AppBar from '@/components/AppBar.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import FlyToMapButton from '@/components/FlyToMapButton.vue';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-  const repo = useMawadRepository();
+import { useMawadRepository } from '@/stores/MawadRepository';
 
-  /* ===== Editor form + snackbar ===== */
-  const editorForm = ref(null);
-  const editorValid = ref(false);
-  const formKey = ref(0);
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const editorCard = ref(null);
-  function showErrorMessage(message) {
-    errorMessage.value = message;
-    showError.value = true;
-  }
+const repo = useMawadRepository();
+const router = useRouter();
 
-  /* ===== Errors per row ===== */
-  const itemErrors = ref({});
-  function setItemErrors(item, errors) {
-    itemErrors.value[item.idOrTmp] = errors;
-  }
-  function clearItemErrors(item) {
-    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
-  }
-  function hasError(item, field) {
-    return !!(itemErrors.value[item.idOrTmp] && itemErrors.value[item.idOrTmp][field]);
-  }
-  function getErrorMessages(item, field) {
-    return itemErrors.value[item.idOrTmp]?.[field] ?? [];
-  }
+/* i18n / RTL */
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-  /* ===== Rules ===== */
-  const rules = {
-    required: (v) => !!v || t('این فیلد الزامی است'),
-    number: (v) => !v || /^[0-9]+$/.test(v) || t('فقط اعداد مجاز است'),
-  };
+/* Snackbar */
+const showError = ref(false);
+const errorMessage = ref('');
+const showErrorMessage = (m) => {
+  errorMessage.value = m;
+  showError.value = true;
+};
 
-  /* ===== Single editor row ===== */
-  const rows = ref([]);
-  function setBlankEditorRow() {
-    rows.value = [toRowModel({})];
-  }
+/* 🔗 go to Resources page for this resource_code */
+function goToResource(row) {
+  if (!row?.resource_code) return;
+  router.push(`/app/resources/${row.resource_code}`);
+}
 
-  /* ===== Data for FilterableTable (all) ===== */
-  const rowsFT = computed(() => repo.DamagePlaces || []);
+/* Helpers */
+const getRow = (s) => (s && s.raw ? s.raw : s);
 
-  /* ===== Headers (editor) ===== */
-  const headers = computed(() => [
-    { title: t('ولایت'), key: 'province' },
-    { title: t('زون'), key: 'zone' },
-    { title: t('ولسوالی'), key: 'district' },
-    { title: t('قریه/ناحیه'), key: 'village' },
+/* rows from store */
+const rowsFT = computed(() => {
+  const list = repo.DamagePlaces || [];
+  if (Array.isArray(list)) return list;
+  if (Array.isArray(list.data)) return list.data;
+  return [];
+});
 
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-    { title: t('نقطه مشخص'), key: 'specific_dot' },
-    { title: t('مختصات'), key: 'coordinates' },
+/* 🔢 Filter cards state */
+const cardFilter = ref('all');
 
-    { title: t('نوع تهدید'), key: 'tahdid_type' },
-    { title: t('درصدی'), key: 'percentage' },
-    { title: t('محل تهدید'), key: 'tahdid_place' },
-    { title: t('خلأ امنیتی'), key: 'amnyat_khala' },
-    { title: t('تفصیل کمیسه'), key: 'cameesa_tafseel' },
+const stats = computed(() => {
+  const rows = rowsFT.value || [];
+  const total = rows.length;
+  const withCoordinates = rows.filter(
+    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+  ).length;
+  const withHighThreat = rows.filter((r) => {
+    const p = Number(r?.percentage ?? 0);
+    return !Number.isNaN(p) && p >= 50;
+  }).length;
+  const withGuards = rows.filter((r) => {
+    const g = Number(r?.guard_quantity ?? 0);
+    return !Number.isNaN(g) && g > 0;
+  }).length;
 
-    { title: t('تعداد محافظ'), key: 'guard_quantity' },
-    { title: t('نام مسوول'), key: 'masool_name' },
-    { title: t('نام پدر مسوول'), key: 'masool_f_name' },
-    { title: t('وظیفه مسوول'), key: 'masool_position' },
-    { title: t('شماره مسوول'), key: 'masool_phone' },
+  return { total, withCoordinates, withHighThreat, withGuards };
+});
 
-    { title: t('یادداشت'), key: 'note' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
-    { title: t('منبع'), key: 'resource_id' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
-
-    { title: t('عملیات'), key: 'actions', sortable: false },
-  ]);
-
-  /* ===== Headers for FilterableTable ===== */
-  const headersFT = computed(() => [
-    { title: t('ولایت'), key: 'province' },
-    { title: t('زون'), key: 'zone' },
-    { title: t('ولسوالی'), key: 'district' },
-    { title: t('قریه/ناحیه'), key: 'village' },
-
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-    { title: t('نقطه مشخص'), key: 'specific_dot' },
-    { title: t('مختصات'), key: 'coordinates' },
-
-    { title: t('نوع تهدید'), key: 'tahdid_type' },
-    { title: t('درصدی'), key: 'percentage' },
-    { title: t('محل تهدید'), key: 'tahdid_place' },
-    { title: t('خلأ امنیتی'), key: 'amnyat_khala' },
-    { title: t('تفصیل کمیسه'), key: 'cameesa_tafseel' },
-
-    { title: t('تعداد محافظ'), key: 'guard_quantity' },
-    { title: t('نام مسوول'), key: 'masool_name' },
-    { title: t('نام پدر مسوول'), key: 'masool_f_name' },
-    { title: t('وظیفه مسوول'), key: 'masool_position' },
-    { title: t('شماره مسوول'), key: 'masool_phone' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
-
-    { title: t('یادداشت'), key: 'note' },
-    { title: t('نقشه'), key: 'map', sortable: false },
-  ]);
-
-  /* ===== Top filter groups ===== */
-  const topGroups = computed(() => [
-    { title: t('موقعیت'), keys: ['province', 'zone', 'district', 'village'] },
-    { title: t('جزییات'), keys: ['specific_place', 'specific_dot', 'coordinates'] },
-    {
-      title: t('تهدید/حالت'),
-      keys: ['tahdid_type', 'percentage', 'tahdid_place', 'amnyat_khala', 'cameesa_tafseel'],
-    },
-    {
-      title: t('مسوول/محافظ'),
-      keys: ['guard_quantity', 'masool_name', 'masool_f_name', 'masool_position', 'masool_phone'],
-    },
-    { title: t('منبع/یادداشت'), keys: ['resource_code', 'resource_phone', 'note'] },
-  ]);
-
-  /* ===== Resources dropdown -> set phone/code ===== */
-  const resources = computed(() => repo.resourcecode || []);
-  function onResourceSelect(item) {
-    const found = resources.value.find((r) => r.id === item.draft.resource_id);
-    item.draft.resource_code = found?.code_number ?? '';
-    item.draft.resource_phone = found?.phone_number ?? '';
-  }
-
-  /* ===== Row model & diff ===== */
-  function toRowModel(x = {}) {
-    const base = {
-      id: x.id ?? null,
-      idOrTmp: x.id ?? 'tmp-1',
-      loading: false,
-
-      province: x.province ?? '',
-      zone: x.zone ?? '',
-      district: x.district ?? '',
-      village: x.village ?? '',
-
-      specific_place: x.specific_place ?? '',
-      specific_dot: x.specific_dot ?? '',
-      coordinates: x.coordinates ?? '',
-
-      tahdid_type: x.tahdid_type ?? '',
-      percentage: x.percentage ?? '',
-      tahdid_place: x.tahdid_place ?? '',
-      amnyat_khala: x.amnyat_khala ?? '',
-      cameesa_tafseel: x.cameesa_tafseel ?? '',
-
-      guard_quantity: x.guard_quantity ?? '',
-      masool_name: x.masool_name ?? '',
-      masool_f_name: x.masool_f_name ?? '',
-      masool_position: x.masool_position ?? '',
-      masool_phone: x.masool_phone ?? '',
-
-      Province_addr: x.Province_addr ?? '',
-      note: x.note ?? '',
-
-      resource_id: x.resource_id ?? null,
-      resource_code: x.resource_code ?? x.resource?.code_number ?? '',
-      resource_phone: x.resource_phone ?? x.resource?.phone_number ?? '',
-    };
-    return { ...base, draft: { ...base } };
-  }
-
-  const EDITABLE_KEYS = [
-    'province',
-    'zone',
-    'district',
-    'village',
-    'specific_place',
-    'specific_dot',
-    'coordinates',
-    'tahdid_type',
-    'percentage',
-    'tahdid_place',
-    'amnyat_khala',
-    'cameesa_tafseel',
-    'guard_quantity',
-    'masool_name',
-    'masool_f_name',
-    'masool_position',
-    'masool_phone',
-    'Province_addr',
-    'note',
-    'resource_id',
-    'resource_code',
-    'resource_phone',
-  ];
-  const REQUIRED_ON_UPDATE = ['province', 'district'];
-
-  function diffDraft(item) {
-    const d = item.draft || {};
-    const changed = {};
-    for (const k of EDITABLE_KEYS) {
-      if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    }
-    for (const k of REQUIRED_ON_UPDATE) {
-      if (d[k] !== undefined) changed[k] = d[k];
-    }
-    return changed;
-  }
-
-  function toFormDataSelective(obj) {
-    const fd = new FormData();
-    Object.entries(obj || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
-
-  async function hardResetFormValidation() {
-    editorValid.value = false;
-    itemErrors.value = {};
-    await nextTick();
-    editorForm.value?.resetValidation?.();
-    formKey.value++;
-    await nextTick();
-  }
-
-  /* ===== Save / Delete ===== */
-  async function save(item) {
-    // quick client validation (like Fasad)
-    if (!item.draft?.province?.trim() || !item.draft?.district?.trim()) {
-      showErrorMessage(t('ولایت و ولسوالی الزامی است'));
-      return;
-    }
-
-    item.loading = true;
-    clearItemErrors(item);
-
-    try {
-      // CREATE
-      if (!item.id) {
-        const fd = toFormDataSelective(item.draft);
-        const created = await repo.CreateDamagePlace?.(fd);
-        if (created && created.id) {
-          await fetchAll();
-          setBlankEditorRow();
-          editorForm.value?.resetValidation?.();
-        } else {
-          await fetchAll();
-          setBlankEditorRow();
-          editorForm.value?.resetValidation?.();
-        }
-        return;
-      }
-
-      // UPDATE
-      const changed = diffDraft(item);
-      if (Object.keys(changed).length === 0) {
-        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
-        return;
-      }
-      const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateDamagePlace?.(item.id, fd);
-      if (updated && updated.id) {
-        await fetchAll();
-        setBlankEditorRow();
-        editorForm.value?.resetValidation?.();
-      }
-    } catch (error) {
-      console.error('Save error:', error);
-      if (error?.response?.data?.errors) {
-        setItemErrors(item, error.response.data.errors);
-        showErrorMessage(t('لطفاً خطاهای فرم را بررسی کنید'));
-      } else {
-        showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته')));
-      }
-    } finally {
-      item.loading = false;
-    }
-  }
-
-  /* VALIDATED SUBMIT */
-  async function onSubmit(item) {
-    const form = editorForm.value;
-    if (!form) return;
-    const { valid } = await form.validate();
-    if (!valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-    await save(item);
-  }
-
-  function scrollToFirstInvalid() {
-    const first =
-      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-      document.querySelector('.v-messages__message');
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input && typeof input.focus === 'function') input.focus();
-    }
-  }
-
-  async function del(item) {
-    if (!item.id) {
-      setBlankEditorRow();
-      return;
-    }
-    if (!confirm(t('آیا مطمئن هستید؟'))) return;
-    try {
-      await repo.DeleteDamagePlace?.(item.id);
-      await fetchAll();
-      setBlankEditorRow();
-    } catch (e) {
-      console.error('Delete error:', e);
-      showErrorMessage(t('خطا در حذف') + ': ' + (e?.message || t('خطای ناشناخته')));
-    }
-  }
-
-  function clearEditor(item) {
-    try {
-      if (item && item.idOrTmp && itemErrors.value[item.idOrTmp]) {
-        delete itemErrors.value[item.idOrTmp];
-      }
-      setBlankEditorRow();
-      showErrorMessage(t('ورودی‌ها پاک شد'));
-    } catch (e) {
-      console.error('clearEditor error:', e);
-    }
-  }
-
-  /* ===== Peek / Fetch one ===== */
-  const expanded = ref(false);
-  const selectedId = ref(null);
-  const loading = ref(false);
-  const detail = ref(null);
-
-  async function fetchOne(id) {
-    loading.value = true;
-    try {
-      await repo.FetchDamagePlaceData?.(id);
-      detail.value =
-        repo.DamagePlace && Array.isArray(repo.DamagePlace)
-          ? repo.DamagePlace[0]
-          : repo.DamagePlace;
-    } catch (error) {
-      console.error('Fetch one error:', error);
-      showErrorMessage(t('خطا در دریافت اطلاعات'));
-    } finally {
-      loading.value = false;
-    }
-  }
-  function openPeek(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-    expanded.value = true;
-    selectedId.value = row.id;
-    fetchOne(row.id);
-  }
-
-  /* ===== Fetch ALL (no pagination) ===== */
-  async function fetchAll() {
-    try {
-      if (typeof repo.FetchDamagePlacesData === 'function') {
-        await repo.FetchDamagePlacesData({
-          page: 1,
-          itemsPerPage: 100000,
-          search: repo.Search || '',
-        });
-        return;
-      }
-      await repo.FetchDamagePlacesData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
+const filteredRowsFT = computed(() => {
+  const base = rowsFT.value || [];
+  switch (cardFilter.value) {
+    case 'withCoordinates':
+      return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+    case 'highThreat':
+      return base.filter((r) => {
+        const p = Number(r?.percentage ?? 0);
+        return !Number.isNaN(p) && p >= 50;
       });
-    } catch (e) {
-      console.error('fetchAll error', e);
-    }
+    case 'withGuards':
+      return base.filter((r) => {
+        const g = Number(r?.guard_quantity ?? 0);
+        return !Number.isNaN(g) && g > 0;
+      });
+    default:
+      return base;
   }
+});
 
-  /* ===== Start edit from FilterableTable ===== */
-  async function startEdit(row) {
-    try {
-      const id = row?.id;
-      if (!id) {
-        rows.value = [toRowModel(row)];
-        return;
-      }
-      await repo.FetchDamagePlaceData?.(id);
-      const single =
-        repo.DamagePlace && Array.isArray(repo.DamagePlace)
-          ? repo.DamagePlace[0]
-          : repo.DamagePlace || row;
-      rows.value = [toRowModel(single || row)];
-      await nextTick();
-      const el = editorCard.value?.$el || editorCard.value;
-      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-    } catch (e) {
-      console.error('startEdit error', e);
-      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
+/* TABLE HEADERS */
+const headersFT = computed(() => [
+  { title: t('ولایت'), key: 'province' },
+  { title: t('زون'), key: 'zone' },
+  { title: t('ولسوالی'), key: 'district' },
+  { title: t('قریه/ناحیه'), key: 'village' },
+
+  { title: t('موقعیت مشخص'), key: 'specific_place' },
+  { title: t('نقطه مشخص'), key: 'specific_dot' },
+  { title: t('مختصات'), key: 'coordinates' },
+
+  { title: t('نوع تهدید'), key: 'tahdid_type' },
+  { title: t('درصدی'), key: 'percentage' },
+  { title: t('محل تهدید'), key: 'tahdid_place' },
+  { title: t('خلأ امنیتی'), key: 'amnyat_khala' },
+  { title: t('تفصیل کمیسه'), key: 'cameesa_tafseel' },
+
+  { title: t('تعداد محافظ'), key: 'guard_quantity' },
+  { title: t('نام مسوول'), key: 'masool_name' },
+  { title: t('نام پدر مسوول'), key: 'masool_f_name' },
+  { title: t('وظیفه مسوول'), key: 'masool_position' },
+  { title: t('شماره مسوول'), key: 'masool_phone' },
+
+  { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
+  { title: t('کود منبع'), key: 'resource_code' },
+  { title: t('شماره منبع'), key: 'resource_phone' },
+
+  { title: t('یادداشت'), key: 'note', width: 300 },
+
+  { title: t('نقشه'), key: 'map', sortable: false },
+]);
+
+/* TOP GROUPS */
+const topGroups = computed(() => [
+  { title: t('موقعیت'), keys: ['province', 'zone', 'district', 'village'] },
+  { title: t('جزییات'), keys: ['specific_place', 'specific_dot', 'coordinates'] },
+  {
+    title: t('تهدید/حالت'),
+    keys: ['tahdid_type', 'percentage', 'tahdid_place', 'amnyat_khala', 'cameesa_tafseel'],
+  },
+  {
+    title: t('مسوول/محافظ'),
+    keys: ['guard_quantity', 'masool_name', 'masool_f_name', 'masool_position', 'masool_phone'],
+  },
+  { title: t('منبع/یادداشت'), keys: ['resource_code', 'resource_phone', 'note', 'Province_addr'] },
+]);
+
+const filters = ref({});
+
+/* Peek */
+const expanded = ref(false);
+const selectedId = ref(null);
+const loadingOne = ref(false);
+const detail = ref(null);
+
+async function fetchOne(id) {
+  loadingOne.value = true;
+  try {
+    if (typeof repo.FetchDamagePlaceData === 'function') {
+      await repo.FetchDamagePlaceData(id);
+      const single = Array.isArray(repo.DamagePlace) ? repo.DamagePlace[0] : repo.DamagePlace;
+      detail.value = single || {};
+    } else {
+      await fetchAll();
+      const list = rowsFT.value || [];
+      detail.value = list.find((r) => r.id === id) || {};
     }
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات نقطه آسیب'));
+  } finally {
+    loadingOne.value = false;
   }
+}
 
-  /* ===== Init ===== */
-  onMounted(async () => {
-    await Promise.allSettled([repo.GetResourceCode?.()]); // fills repo.resourcecode
+function openPeek(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  selectedId.value = row.id;
+  expanded.value = true;
+  fetchOne(row.id);
+}
+
+/* navigation */
+function goCreate() {
+  router.push('/app/damage-places/form');
+}
+
+function goEdit(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push(`/app/damage-places/form/${row.id}`);
+}
+
+/* delete with dialog */
+const deleteDialog = ref(false);
+const deleteTarget = ref(null);
+
+function openDeleteDialog(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  deleteTarget.value = row;
+  deleteDialog.value = true;
+}
+
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value;
+  deleteDialog.value = false;
+  if (!row?.id) return;
+  try {
+    await repo.DeleteDamagePlace?.(row.id);
     await fetchAll();
-    setBlankEditorRow();
-  });
+    showErrorMessage(t('حذف شد'));
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در حذف'));
+  } finally {
+    deleteTarget.value = null;
+  }
+}
 
-  onBeforeUnmount(() => {
-    // reserved for cleanup if previews/files are added later
-  });
+/* fetch all */
+async function fetchAll() {
+  try {
+    await repo.FetchDamagePlacesData?.({
+      page: 1,
+      itemsPerPage: 100000,
+      search: repo.Search || '',
+    });
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت فهرست نقاط آسیب'));
+  }
+}
+
+function clearSearch() {
+  repo.Search = '';
+  fetchAll();
+}
+
+/* init */
+onMounted(async () => {
+  await fetchAll();
+});
 </script>
 
 <style scoped>
-  /* Prevent header wrap */
-  table th {
-    white-space: nowrap;
-  }
+.ga-2 {
+  gap: 8px;
+}
 
-  /* Colored table header */
-  .custom-table :deep(.v-data-table__thead th) {
-    background: rgb(var(--v-theme-primary));
-    color: #fff;
-    font-weight: 400;
-  }
+/* Background similar to other index pages */
+.page-bg {
+  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+  font-family: inherit;
+}
 
-  /* Layout helpers (Fasad style) */
-  .tablebody {
-    display: flex !important;
-    gap: 2px !important;
-  }
-  .flex {
-    display: flex;
-  }
-  .items-center {
-    align-items: center;
-  }
-  .gap-1 {
-    gap: 4px;
-  }
+/* Stats cards */
+.stat-card {
+  cursor: pointer;
+  border-radius: 14px;
+  border: 1px solid rgba(33, 150, 243, 0.08);
+  background: #ffffff;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+    background-color 0.2s ease;
+}
 
-  /* Input sizing */
-  .text-group {
-    display: grid;
-    width: 140px;
-    gap: 2px;
-  }
-  .text-group-note {
-    display: grid;
-    width: 380px;
-    gap: 2px;
-  }
+.stat-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  border-color: rgba(33, 150, 243, 0.35);
+}
 
-  /* Compact inputs + labels */
-  :deep(.v-field-label),
-  :deep(.v-label),
-  :deep(input::placeholder) {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    color: #555 !important;
-  }
-  :deep(.v-field__input) {
-    min-height: 26px !important;
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-  }
+.stat-card--active {
+  border-color: rgba(25, 118, 210, 0.9);
+  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+}
 
-  /* Tight spacing like Fasad */
-  .text-group,
-  .text-group-note {
-    margin: -16px !important;
-    row-gap: -6px !important;
-    column-gap: 2px !important;
-  }
+.stat-card-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.stat-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e3f2fd;
+}
+
+.stat-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stat-card-subtitle {
+  font-size: 11px;
+  color: #666;
+}
 </style>

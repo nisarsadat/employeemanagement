@@ -109,6 +109,38 @@ import OfficeEmployeeForm from '../pages/OfficeEmployee/OfficeEmployeeForm.vue';
 import ResourcesForm from '../pages/Resources/ResourcesForm.vue';
 import EventsForm from '../pages/Events/EventsForm.vue';
 import DeleviryCaptiveForm from '../pages/DeleviryCaptive/DeleviryCaptiveForm.vue';
+import CaptiveForm from '../pages/FiftyFormats/CaptiveForm.vue';
+import HeistForm from '../pages/FiftyFormats/HeistForm.vue';
+import FasadForm from '../pages/FiftyFormats/FasadForm.vue';
+import SaeenFasadForm from '../pages/FiftyFormats/SaeenFasadForm.vue';
+import EntryExitForm from '../pages/FiftyFormats/EntryExitForm.vue';
+import SarafyanoForm from '../pages/FiftyFormats/SarafyanoForm.vue';
+import MahajeratForm from '../pages/FiftyFormats/MahajeratForm.vue';
+import ClubForm from '../pages/FiftyFormats/ClubForm.vue';
+import SoldierForm from '../pages/FiftyFormats/SoldierForm.vue';
+import MawadForm from '../pages/FiftyFormats/MawadForm.vue';
+import MulkanoForm from '../pages/FiftyFormats/MulkanoForm.vue';
+import LostMujremeenForm from '../pages/FiftyFormats/LostMujremeenForm.vue';
+import OldSoldiersHomeForm from '../pages/FiftyFormats/OldSoldiersHomeForm.vue';
+import RobberForm from '../pages/FiftyFormats/RobberForm.vue';
+import NonResponsablePeopleForm from '../pages/FiftyFormats/NonResponsablePeopleForm.vue';
+import MashkokHomeForm from '../pages/FiftyFormats/MashkokHomeForm.vue';
+import DamagePlaceForm from '../pages/FiftyFormats/DamagePlaceForm.vue';
+import DamageRasanPlaceForm from '../pages/FiftyFormats/DamageRasanPlaceForm.vue';
+import MashkokShopForm from '../pages/FiftyFormats/MashkokShopForm.vue';
+import LuchakanoForm from '../pages/FiftyFormats/LuchakanoForm.vue';
+import SchoolForm from '../pages/FiftyFormats/SchoolForm.vue';
+import HadaBusStopForm from '../pages/FiftyFormats/HadaBusStopForm.vue';
+import TransportCompanyForm from '../pages/FiftyFormats/TransportCompanyForm.vue';
+import ParkingForm from '../pages/FiftyFormats/ParkingForm.vue';
+import BankForm from '../pages/FiftyFormats/BankForm.vue';
+import CarSalesCompanyForm from '../pages/FiftyFormats/CarSalesCompanyForm.vue';
+import ApartmentForm from '../pages/FiftyFormats/ApartmentForm.vue';
+import RahnomaMamlatForm from '../pages/FiftyFormats/RahnomaMamlatForm.vue';
+import HospitalForm from '../pages/FiftyFormats/HospitalForm.vue';
+import WorkShopForm from '../pages/FiftyFormats/WorkShopForm.vue';
+import BadmashanoForm from '../pages/FiftyFormats/BadmashanoForm.vue';
+import SarayanoForm from '../pages/FiftyFormats/SarayanoForm.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -272,20 +304,90 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('fasads') },
         },
         {
+          path: '/app/fasadform',
+          name: 'fasads.create',
+          component: FasadForm,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/app/fasadform/:id',
+          name: 'fasads.edit',
+          props: true,
+          component: FasadForm,
+          meta: { requiresAuth: true },
+        },
+        {
           path: 'saeenfasad',
           component: SaeenFasad,
           meta: { requiresAuth: true, perm: permFor('saeenfasad') },
         },
+        {
+          path: '/app/saeen-fasadform',
+          name: 'saeenFasads.create',
+          component: SaeenFasadForm,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/app/saeen-fasadform/:id',
+          name: 'saeenFasads.edit',
+          props: true,
+          component: SaeenFasadForm,
+
+          meta: { requiresAuth: true },
+        },
         { path: 'heist', component: Heist, meta: { requiresAuth: true, perm: permFor('heist') } },
+        // 👇 Create new heist
+        {
+          path: '/app/heistform',
+          name: 'HeistsCreate',
+          component: HeistForm,
+        },
+
+        // 👇 Edit heist
+        {
+          path: '/app/heistform/:id',
+          name: 'HeistsEdit',
+          props: true,
+          component: HeistForm,
+        },
         {
           path: 'captives',
           component: Captives,
           meta: { requiresAuth: true, perm: permFor('captives') },
         },
         {
+          path: '/app/captiveform',
+          name: 'CaptiveCreate',
+          component: CaptiveForm,
+        },
+        {
+          path: '/app/captiveform/:id',
+          name: 'CaptiveEdit',
+          component: CaptiveForm,
+          props: true,
+        },
+        {
+          path: '/app/resources/:code',
+          name: 'ResourceDetailsByCode',
+          component: Resources,
+          props: true,
+        },
+
+        {
           path: 'mulkanos',
           component: Mulkanos,
           meta: { requiresAuth: true, perm: permFor('mulkanos') },
+        },
+        {
+          path: '/app/mulkanoform',
+          name: 'mulkano-create',
+          component: MulkanoForm,
+        },
+        {
+          path: '/app/mulkanoform/:id',
+          name: 'mulkano-edit',
+          props: true,
+          component: MulkanoForm,
         },
         {
           path: 'entry-exits',
@@ -293,20 +395,79 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('entry-exits') },
         },
         {
+          path: 'entryexitform',
+          name: 'EntryExitCreate',
+          component: EntryExitForm,
+        },
+
+        // ✅ ENTRY/EXIT EDIT
+        {
+          path: 'entryexitform/:id',
+          name: 'EntryExitEdit',
+          component: EntryExitForm,
+
+          props: true,
+        },
+
+        {
           path: 'sarafyanos',
           component: Sarafyanos,
           meta: { requiresAuth: true, perm: permFor('sarafyanos') },
         },
+        {
+          path: '/app/sarafyanosform',
+          name: 'SarafyanoCreate',
+          component: SarafyanoForm,
+        },
+        {
+          path: '/app/sarafyanosform/:id',
+          name: 'SarafyanoEdit',
+          component: SarafyanoForm,
+        },
         { path: 'clubs', component: Clubs, meta: { requiresAuth: true, perm: permFor('clubs') } },
+        {
+          path: '/app/clubform',
+          name: 'ClubCreate',
+          component: ClubForm,
+        },
+        {
+          path: '/app/clubform/:id',
+          name: 'ClubEdit',
+          props: true,
+          component: ClubForm,
+        },
         {
           path: 'mahajerats',
           component: Mahajerats,
           meta: { requiresAuth: true, perm: permFor('mahajerats') },
         },
         {
+          path: '/app/mahajeratform',
+          name: 'MahajeratsCreate',
+          component: MahajeratForm,
+        },
+        {
+          path: '/app/mahajeratform/:id',
+          name: 'MahajeratsEdit',
+          props: true,
+          component: MahajeratForm,
+        },
+        {
           path: 'soldiers',
           component: Soldiers,
           meta: { requiresAuth: true, perm: permFor('soldiers') },
+        },
+        // e.g. in src/router/index.js or wherever your routes are defined
+
+        {
+          path: '/app/soldiers',
+          name: 'SoldiersIndex',
+          component: SoldierForm,
+        },
+        {
+          path: '/app/soldierform/:id?',
+          name: 'SoldierForm',
+          component: SoldierForm,
         },
 
         // 56 Formats — one
@@ -316,9 +477,31 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('mawads') },
         },
         {
+          path: '/app/mawads',
+          name: 'MawadsIndex',
+          component: MawadForm,
+        },
+        {
+          path: '/app/mawadform/:id?',
+          name: 'MawadForm',
+          component: MawadForm,
+        },
+
+        {
           path: 'lostmujremeens',
           component: LostMujremeens,
           meta: { requiresAuth: true, perm: permFor('lostmujremeens') },
+        },
+        {
+          path: '/app/lost-mujremeen-form',
+          name: 'lost.mujremeens.create',
+          component: LostMujremeenForm,
+        },
+        {
+          path: '/app/lost-mujremeen-form/:id',
+          name: 'lost.mujremeens.edit',
+          props: true,
+          component: LostMujremeenForm,
         },
         {
           path: 'oldsoldiershomes',
@@ -326,9 +509,32 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('oldsoldiershomes') },
         },
         {
+          path: '/app/old-soldiers-home-form',
+          name: 'OldSoldiersHomeCreate',
+          component: OldSoldiersHomeForm,
+        },
+
+        {
+          path: '/app/old-soldiers-home-form/:id',
+          name: 'OldSoldiersHomeEdit',
+          props: true,
+          component: OldSoldiersHomeForm,
+        },
+        {
           path: 'robbers',
           component: Robbers,
           meta: { requiresAuth: true, perm: permFor('robbers') },
+        },
+        {
+          path: '/app/robbers/create',
+          name: 'RobbersCreate',
+          component: RobberForm,
+        },
+        {
+          path: '/app/robbers/:id',
+          name: 'RobbersEdit',
+          component: RobberForm,
+          props: true,
         },
         {
           path: 'nonresponsablepeople',
@@ -336,19 +542,66 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('nonresponsablepeople') },
         },
         {
+          path: '/app/non-responsable-people-form',
+          name: 'NonResponsablePeopleCreate',
+          component: NonResponsablePeopleForm,
+        },
+        {
+          path: '/app/non-responsable-people-form/:id',
+          name: 'NonResponsablePeopleEdit',
+          props: true,
+          component: NonResponsablePeopleForm,
+        },
+        {
           path: 'mashkokhomes',
           component: MashkokHomes,
           meta: { requiresAuth: true, perm: permFor('mashkokhomes') },
+        },
+        {
+          path: '/app/mashkok-home',
+          name: 'MashkokHomeCreate',
+          component: MashkokHomeForm,
+        },
+        {
+          path: '/app/mashkok-home/:id',
+          name: 'MashkokHomeEdit',
+          props: true,
+          component: MashkokHomeForm,
         },
         {
           path: 'damageplaces',
           component: DamagePlacses,
           meta: { requiresAuth: true, perm: permFor('damageplaces') },
         },
+        // DamagePlaces (فورم ۵۰: نقاط آسیب)
+        {
+          path: '/app/damage-places',
+          name: 'DamagePlacesIndex',
+          component: DamagePlaceForm,
+        },
+
+        {
+          path: '/app/damage-places/form/:id?',
+          name: 'DamagePlaceForm',
+          component: DamagePlaceForm,
+          props: true,
+        },
+
         {
           path: 'damagerasanplaces',
           component: DamageRasanPlaces,
           meta: { requiresAuth: true, perm: permFor('damagerasanplaces') },
+        },
+        {
+          path: '/app/damage-rasan-placeform',
+          name: 'DamageRasanPlaceCreate',
+          component: DamageRasanPlaceForm,
+        },
+        {
+          path: '/app/damage-rasan-placeform/:id',
+          name: 'DamageRasanPlaceEdit',
+          props: true,
+          component: DamageRasanPlaceForm,
         },
         {
           path: 'mashkokshops',
@@ -356,9 +609,32 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('mashkokshops') },
         },
         {
+          path: '/app/mashkok-shops',
+          name: 'MashkokShopsIndex',
+          component: MashkokShopForm,
+        },
+
+        {
+          path: '/app/mashkok-shops/form/:id?',
+          name: 'MashkokShopForm',
+          props: true,
+          component: MashkokShopForm,
+        },
+
+        {
           path: 'luchakanos',
           component: Luchakanos,
           meta: { requiresAuth: true, perm: permFor('luchakanos') },
+        },
+        {
+          path: '/app/luchakanoform',
+          name: 'LuchakanoCreate',
+          component: LuchakanoForm,
+        },
+        {
+          path: '/app/luchakanoform/:id',
+          name: 'LuchakanoEdit',
+          component: LuchakanoForm,
         },
 
         // 56 Formats — two
@@ -368,9 +644,33 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('schools') },
         },
         {
+          path: '/app/schools',
+          name: 'SchoolsIndex',
+          component: SchoolForm,
+        },
+
+        {
+          path: '/app/schools/form/:id?',
+          name: 'SchoolForm',
+          props: true,
+          component: SchoolForm,
+        },
+
+        {
           path: 'hadobusstops',
           component: HadoBusStop,
           meta: { requiresAuth: true, perm: permFor('hadobusstops') },
+        },
+        {
+          path: '/app/hadabusstopform',
+          name: 'HadaBusStopCreate',
+          component: HadaBusStopForm,
+        },
+        {
+          path: '/app/hadabusstopform/:id',
+          name: 'HadaBusStopEdit',
+          props: true,
+          component: HadaBusStopForm,
         },
         {
           path: 'transportcompanies',
@@ -378,20 +678,82 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('transportcompanies') },
         },
         {
+          path: '/app/transport-companies/new',
+          name: 'TransportCompanyCreate',
+          component: TransportCompanyForm,
+        },
+
+        {
+          path: '/app/transport-companies/:id/edit',
+          name: 'TransportCompanyEdit',
+          props: true,
+          component: TransportCompanyForm,
+        },
+
+        {
           path: 'carsalescompanies',
           component: CarSalesCompany,
+          name: 'CarSalesCompaniesIndex',
           meta: { requiresAuth: true, perm: permFor('carsalescompanies') },
+        },
+        {
+          path: '/app/car-sales-companies/new',
+          name: 'CarSalesCompanyCreate',
+          component: CarSalesCompanyForm,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/app/car-sales-companies/:id',
+          name: 'CarSalesCompanyEdit',
+          component: CarSalesCompanyForm,
+          props: true,
+          meta: { requiresAuth: true },
         },
         {
           path: 'parkings',
           component: Parkings,
           meta: { requiresAuth: true, perm: permFor('parkings') },
         },
+        {
+          path: '/app/parkingform',
+          name: 'ParkingCreate',
+          component: ParkingForm,
+        },
+
+        {
+          path: '/app/parkingform/:id',
+          name: 'ParkingEdit',
+          component: ParkingForm,
+          props: true,
+        },
         { path: 'banks', component: Banks, meta: { requiresAuth: true, perm: permFor('banks') } },
+        {
+          path: '/app/bankform',
+          name: 'BankCreate',
+          component: BankForm,
+        },
+
+        {
+          path: '/app/bankform/:id',
+          name: 'BankEdit',
+          props: true,
+          component: BankForm,
+        },
         {
           path: 'apartments',
           component: Apartments,
           meta: { requiresAuth: true, perm: permFor('apartments') },
+        },
+        {
+          path: '/app/apartmentform',
+          name: 'ApartmentCreate',
+          component: ApartmentForm,
+        },
+        {
+          path: '/app/apartmentform/:id',
+          name: 'ApartmentEdit',
+          component: ApartmentForm,
+          props: true,
         },
         {
           path: 'rahnomamamlats',
@@ -399,14 +761,47 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('rahnomamamlats') },
         },
         {
+          path: '/app/rahnoma-mamlats/create',
+          name: 'RahnomaMamlatCreate',
+          component: RahnomaMamlatForm,
+        },
+        {
+          path: '/app/rahnoma-mamlats/:id',
+          name: 'RahnomaMamlatEdit',
+          props: true,
+          component: RahnomaMamlatForm,
+        },
+        {
           path: 'hosppitals',
           component: Hosppitals,
           meta: { requiresAuth: true, perm: permFor('hosppitals') },
         },
         {
+          path: '/app/hospitalform',
+          name: 'HospitalCreate',
+          component: HospitalForm,
+        },
+        {
+          path: '/app/hospitalform/:id',
+          name: 'HospitalEdit',
+          props: true,
+          component: HospitalForm,
+        },
+        {
           path: 'workshops',
           component: WorkShops,
           meta: { requiresAuth: true, perm: permFor('workshops') },
+        },
+        {
+          path: '/app/workshops/create',
+          name: 'WorkShopCreate',
+          component: WorkShopForm,
+        },
+        {
+          path: '/app/workshops/:id',
+          name: 'WorkShopEdit',
+          props: true,
+          component: WorkShopForm,
         },
 
         // 56 Formats — three
@@ -416,9 +811,33 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('badmashanos') },
         },
         {
+          path: '/app/badmashanoform',
+          name: 'BadmashanoCreate',
+          component: BadmashanoForm,
+        },
+        {
+          path: '/app/badmashanoform/:id',
+          name: 'BadmashanoEdit',
+          props: true,
+          component: BadmashanoForm,
+        },
+        {
           path: 'sarayanos',
           component: Sarayanos,
           meta: { requiresAuth: true, perm: permFor('sarayanos') },
+        },
+        {
+          path: '/app/sarayanoform',
+          name: 'SarayanoCreate',
+          meta: { requiresAuth: true },
+          component: SarayanoForm,
+        },
+        {
+          path: '/app/sarayanoform/:id',
+          name: 'SarayanoEdit',
+          meta: { requiresAuth: true },
+          props: true,
+          component: SarayanoForm,
         },
         {
           path: 'hotels',

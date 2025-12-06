@@ -39,6 +39,7 @@ class StoreSaeenFasadRequest extends FormRequest
             'phone_number' => ['nullable','string'],
             'band_distince' => ['nullable','string'],
             'band_place' => ['nullable','string'],
+            'coordinates' => ['nullable','string'],
             'old_job' => ['nullable','string'],
             'now_job' => ['nullable','string'],
             'resource_code' => ['nullable','string'],

@@ -30,7 +30,9 @@ class NonResponsablePeopleController extends Controller
             });
         }
 
-        return NonResponsablePeopleResource::collection($q->paginate($perPage));
+        return NonResponsablePeopleResource::collection(
+            $q->paginate($perPage)
+        );
     }
 
     /** POST /non-responsable-people */
@@ -43,31 +45,42 @@ class NonResponsablePeopleController extends Controller
     }
 
     /** GET /non-responsable-people/{id} */
-    public function show(NonResponsablePeople $nonResponsablePeople)
+    public function show($id)
     {
-        $nonResponsablePeople->load(['resource:id,name,code_number,phone_number']);
-        return NonResponsablePeopleResource::make($nonResponsablePeople);
+        $record = NonResponsablePeople::with(['resource:id,name,code_number,phone_number'])
+            ->findOrFail($id);
+
+        return NonResponsablePeopleResource::make($record);
     }
 
-    /** PUT /non-responsable-people/{id} */
-    public function update(UpdateNonResponsablePeopleRequest $request, NonResponsablePeople $nonResponsablePeople)
+    public function update(UpdateNonResponsablePeopleRequest $request, NonResponsablePeople $non_responsable_person)
     {
-        $nonResponsablePeople->update($request->validated());
-        $nonResponsablePeople->load(['resource:id,name,code_number,phone_number']);
-        return NonResponsablePeopleResource::make($nonResponsablePeople);
+        $data = $request->validated();
+
+        $non_responsable_person->update($data);
+        $non_responsable_person->load('resource');
+
+        return new NonResponsablePeopleResource($non_responsable_person);
     }
 
     /** DELETE /non-responsable-people/{id} */
-    public function destroy(NonResponsablePeople $nonResponsablePeople)
+    public function destroy($id)
     {
-        $nonResponsablePeople->delete();
+        $record = NonResponsablePeople::findOrFail($id);
+        $record->delete(); // ✅ this will delete the record (or soft delete if the model uses SoftDeletes)
+
         return response()->noContent();
     }
 
     /** POST /non-responsable-people/bulk-delete { "ids": [1,2,3] } */
     public function bulkDelete(Request $request)
     {
-        NonResponsablePeople::destroy($request->input('ids', []));
+        $ids = (array) $request->input('ids', []);
+
+        if (! empty($ids)) {
+            NonResponsablePeople::whereIn('id', $ids)->delete();
+        }
+
         return response()->noContent();
     }
 }

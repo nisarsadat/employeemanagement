@@ -82,8 +82,8 @@ class FifthyFormatsCountController extends Controller
         $map = [
             // Main Fifty Formats (10)
             'fasads'               => Fasad::class,
-            'saeen-fasads'         => SaeenFasad::class,
-            'heists'               => Heist::class,
+            'saeenfasad'         => SaeenFasad::class,
+            'heist'               => Heist::class,
             'captives'             => Captive::class,
             'mulkanos'             => Mulkano::class,
             'entry-exits'          => EntryExit::class,

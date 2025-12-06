@@ -11,8 +11,8 @@ class UpdateLostMujremeenRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'picture'     => ['nullable','string'],
-            'nick_name'   => ['nullable','string'],
+            'picture'     => ['nullable','image'],
+            'nickname'   => ['nullable','string'],
             'name'        => ['sometimes','required','string'],
             'father_name' => ['nullable','string'],
 

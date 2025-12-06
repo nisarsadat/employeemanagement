@@ -5,7 +5,8 @@ namespace App\Models\fifthyFormats;
 use App\Models\Resource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Support\Facades\Storage;
+use App\Models\CaptiveDocument;
 class Captive extends Model
 {
     use HasFactory;
@@ -29,15 +30,33 @@ class Captive extends Model
         'band_distince',
         'now_activity',
         'phone_number',
+        'note',
         'Province_addr',
         'coordinates',
-        'note',
         'resource_id',
     ];
 
-    public function resource()
+    // 🔗 documents relation
+    public function documents()
     {
-        return $this->belongsTo(Resource::class, 'resource_id', 'id');
+        return $this->hasMany(CaptiveDocument::class , 'captive_id' , 'id');
     }
 
+    // (if not already there)
+    public function resource()
+    {
+        return $this->belongsTo(Resource::class);
+    }
+
+    // 🧹 delete files when a captive is deleted
+    protected static function booted()
+    {
+        static::deleting(function (Captive $captive) {
+            foreach ($captive->documents as $doc) {
+                if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
+                    Storage::disk('public')->delete($doc->file_path);
+                }
+            }
+        });
+    }
 }
