@@ -34,6 +34,7 @@ class OldJahadi extends Model
         'supplier',
         'tanzim',
         'note',
+        'organ',
         'coordinates',
         'resource_id',
     ];

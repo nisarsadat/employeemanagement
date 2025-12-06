@@ -1,0 +1,728 @@
+<template>
+  <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- APP BAR -->
+    <AppBar
+      :title="isEdit ? t('ویرایش امارت آفس') : t('ایجاد امارت آفس جدید')"
+      :subtitle="
+        isEdit
+          ? t('ویرایش جزئیات یک ریکارډ امارت آفس موجود')
+          : t('ثبت یک ریکارډ امارت آفس جدید در سیستم')
+      "
+    >
+      <template #actions>
+        <v-btn
+          variant="text"
+          prepend-icon="mdi-arrow-left"
+          class="text-none rounded-pill"
+          @click="goBack"
+        >
+          {{ t('برگشت') }}
+        </v-btn>
+      </template>
+    </AppBar>
+
+    <!-- FORM -->
+    <v-container class="mt-4">
+      <v-form
+        ref="formRef"
+        v-model="formValid"
+        lazy-validation
+        @submit.prevent="onSubmit"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+      >
+        <v-card class="simple-form-card" elevation="1">
+          <v-row>
+            <!-- Fields -->
+            <v-col cols="12" md="9">
+              <!-- Address -->
+              <div class="section-header">
+                <span class="section-title">
+                  {{ isEdit ? t('ویرایش ریکارډ امارت آفس') : t('ایجاد ریکارډ امارت آفس') }}
+                </span>
+              </div>
+              <v-row>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.province"
+                    :label="t('ولایت *')"
+                    variant="outlined"
+                    density="compact"
+                    :rules="[rules.required]"
+                    :error="hasError('province')"
+                    :error-messages="getErrorMessages('province')"
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.zone"
+                    :label="t('زون')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('zone')"
+                    :error-messages="getErrorMessages('zone')"
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.district"
+                    :label="t('ولسوالی')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('district')"
+                    :error-messages="getErrorMessages('district')"
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.village"
+                    :label="t('قریه/ناحیه')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('village')"
+                    :error-messages="getErrorMessages('village')"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.specific_place"
+                    :label="t('موقعیت مشخص')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('specific_place')"
+                    :error-messages="getErrorMessages('specific_place')"
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.street_number"
+                    :label="t('شماره سرک')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('street_number')"
+                    :error-messages="getErrorMessages('street_number')"
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.home_number"
+                    :label="t('شماره خانه')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('home_number')"
+                    :error-messages="getErrorMessages('home_number')"
+                  />
+                </v-col>
+              </v-row>
+
+              <!-- Now: office details, threat, coords -->
+              <div class="section-header mt-4">
+                <span class="section-title">{{ t('جزئیات امارت آفس') }}</span>
+              </div>
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.home_type"
+                    :label="t('نوع خانه/اداره')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('home_type')"
+                    :error-messages="getErrorMessages('home_type')"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.responsible_office"
+                    :label="t('اداره/مسؤول مربوطه')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('responsible_office')"
+                    :error-messages="getErrorMessages('responsible_office')"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.tahdid_mutawajeh"
+                    :label="t('تهدید متوجه')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('tahdid_mutawajeh')"
+                    :error-messages="getErrorMessages('tahdid_mutawajeh')"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model.number="form.guard_quantity"
+                    type="number"
+                    :label="t('تعداد محافظین')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('guard_quantity')"
+                    :error-messages="getErrorMessages('guard_quantity')"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.Province_addr"
+                    :label="t('ولایت مربوطه')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('Province_addr')"
+                    :error-messages="getErrorMessages('Province_addr')"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.coordenates"
+                    :label="t('مختصات (coordenates)')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('coordenates')"
+                    :error-messages="getErrorMessages('coordenates')"
+                  />
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-4" />
+
+          <!-- Extra fields: resource + note -->
+          <div class="section-header mb-2">
+            <span class="section-title">{{ t('ملاحظات و منبع') }}</span>
+          </div>
+          <v-row>
+            <!-- Resource mapping -->
+            <v-col cols="12" md="4">
+              <v-autocomplete
+                v-model="form.resource_code"
+                :items="resources"
+                item-title="code_number"
+                item-value="code_number"
+                :label="t('کود منبع')"
+                variant="outlined"
+                density="compact"
+                clearable
+                @update:model-value="onResourceCodeChange"
+                :error="hasError('resource_code')"
+                :error-messages="getErrorMessages('resource_code')"
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.resource_phone"
+                :label="t('شماره منبع')"
+                variant="outlined"
+                density="compact"
+                readonly
+              />
+            </v-col>
+
+            <!-- Note -->
+            <v-col cols="12" md="8">
+              <v-text-field
+                v-model="form.note"
+                :label="t('ملاحظات')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('note')"
+                :error-messages="getErrorMessages('note')"
+              />
+            </v-col>
+          </v-row>
+
+          <!-- Actions -->
+          <v-row class="mt-4">
+            <v-col cols="12" class="d-flex justify-end ga-2">
+              <v-btn
+                color="primary"
+                variant="elevated"
+                class="text-none rounded-pill primary-action-btn"
+                :loading="saving"
+                type="submit"
+                :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
+              >
+                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ امارت آفس') }}
+              </v-btn>
+              <v-btn
+                color="warning"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-broom"
+                @click="resetForm"
+              >
+                {{ t('پاک کردن فرم') }}
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-form>
+
+      <!-- IMAGE PREVIEW DIALOG -->
+      <v-dialog v-model="previewOpen" max-width="520">
+        <v-card>
+          <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
+          <v-card-text class="d-flex justify-center">
+            <v-img
+              :src="normalizePicture(previewSrc)"
+              :alt="t('پیش نمایش')"
+              max-width="480"
+              max-height="420"
+              cover
+            />
+          </v-card-text>
+          <v-card-actions class="justify-end">
+            <v-btn color="primary" variant="flat" @click="previewOpen = false">
+              {{ t('بستن') }}
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <!-- Error Snackbar -->
+      <v-snackbar v-model="showError" color="error" timeout="5000">
+        {{ errorMessage }}
+        <template #actions>
+          <v-btn variant="text" @click="showError = false"> {{ t('بستن') }} </v-btn>
+        </template>
+      </v-snackbar>
+
+      <!-- Success Snackbar -->
+      <v-snackbar v-model="showSuccess" color="success" timeout="3000">
+        {{ successMessage }}
+        <template #actions>
+          <v-btn variant="text" @click="showSuccess = false"> {{ t('بستن') }} </v-btn>
+        </template>
+      </v-snackbar>
+    </v-container>
+  </v-container>
+</template>
+
+<script setup>
+  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
+
+  import AppBar from '@/components/AppBar.vue';
+  import { useBadmashanoRepository } from '@/stores/BadmashanoRepository'; // or your Emarat repo
+
+  const repo = useBadmashanoRepository();
+  const route = useRoute();
+  const router = useRouter();
+
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
+
+  /* MODE */
+  const isEdit = computed(() => !!route.params.id);
+
+  /* FORM / STATE */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
+
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
+
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
+  }
+  function showSuccessMessage(message) {
+    successMessage.value = message;
+    showSuccess.value = true;
+  }
+
+  /* BACKEND ERRORS */
+  const backendErrors = ref({});
+  function setBackendErrors(errors) {
+    backendErrors.value = errors || {};
+  }
+  function clearBackendErrors() {
+    backendErrors.value = {};
+  }
+  function hasError(field) {
+    return !!backendErrors.value?.[field];
+  }
+  function getErrorMessages(field) {
+    return backendErrors.value?.[field] ?? [];
+  }
+
+  /* FORM MODEL */
+  const blankForm = () => ({
+    id: null,
+
+    // media
+    picture: null,
+    previewUrl: null,
+
+    // address
+    province: '',
+    zone: '',
+    district: '',
+    village: '',
+    specific_place: '',
+    street_number: '',
+    home_number: '',
+
+    // office / threat / coords
+    home_type: '',
+    responsible_office: '',
+    tahdid_mutawajeh: '',
+    guard_quantity: '',
+    Province_addr: '',
+    coordenates: '',
+
+    // resource
+    resource_code: '',
+    resource_phone: '',
+    resource_id: null,
+
+    // note
+    note: '',
+  });
+
+  const form = ref(blankForm());
+
+  /* RULES */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+  };
+
+  /* PICTURE */
+  const pictureInput = ref(null);
+  const pictureFile = ref(null);
+  const pictureChanged = ref(false);
+
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
+
+  function triggerPicture() {
+    pictureInput.value?.click();
+  }
+
+  function onPickPicture(e) {
+    const file = e.target.files?.[0] ?? null;
+    pictureFile.value = file;
+    pictureChanged.value = !!file;
+
+    if (file) {
+      if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(form.value.previewUrl);
+      }
+      form.value.previewUrl = URL.createObjectURL(file);
+    } else {
+      form.value.previewUrl = form.value.picture || null;
+    }
+    if (e.target) e.target.value = '';
+  }
+
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
+
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) {
+      return clean;
+    }
+    clean = clean.replace(/\\\//g, '/');
+
+    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+      return clean;
+    }
+    if (clean.startsWith('/')) {
+      return clean;
+    }
+    return '/' + clean.replace(/^\/+/, '');
+  }
+
+  function openPreview(src) {
+    const base = src || form.value.previewUrl || form.value.picture;
+    const normalized = normalizePicture(base);
+    previewSrc.value = normalized;
+    if (previewSrc.value) {
+      previewOpen.value = true;
+    }
+  }
+
+  /* RESOURCES DROPDOWN */
+  const resources = computed(() => repo.resourcecode || []);
+
+  function onResourceCodeChange(code) {
+    const found = resources.value.find((r) => r.code_number === code);
+    form.value.resource_phone = found?.phone_number ?? '';
+    form.value.resource_id = found?.id ?? null;
+  }
+
+  /* MAP FROM API */
+  function mapFromApi(payload = {}) {
+    const x = payload.data ?? payload;
+    const b = blankForm();
+
+    b.id = x.id ?? null;
+
+    const fullUrl = x.picture ?? null;
+    b.picture = fullUrl;
+    b.previewUrl = fullUrl;
+
+    b.province = x.province ?? '';
+    b.zone = x.zone ?? '';
+    b.district = x.district ?? '';
+    b.village = x.village ?? '';
+    b.specific_place = x.specific_place ?? '';
+    b.street_number = x.street_number ?? '';
+    b.home_number = x.home_number ?? '';
+
+    b.home_type = x.home_type ?? '';
+    b.responsible_office = x.responsible_office ?? '';
+    b.tahdid_mutawajeh = x.tahdid_mutawajeh ?? '';
+    b.guard_quantity = x.guard_quantity ?? '';
+    b.Province_addr = x.Province_addr ?? '';
+    b.coordenates = x.coordenates ?? '';
+
+    b.resource_code = x.resource_code ?? x.resource?.code_number ?? '';
+    b.resource_phone = x.resource_phone ?? x.resource?.phone_number ?? '';
+    b.resource_id = x.resource_id ?? x.resource?.id ?? null;
+
+    b.note = x.note ?? '';
+
+    return b;
+  }
+
+  async function loadRecord() {
+    const id = route.params.id;
+    if (!id) {
+      form.value = blankForm();
+      pictureFile.value = null;
+      pictureChanged.value = false;
+      return;
+    }
+    try {
+      await repo.FetchEmaratOfficeData?.(id);
+      const single = Array.isArray(repo.EmaratOffice)
+        ? repo.EmaratOffice[0]
+        : repo.EmaratOffice || {};
+      if (!single) return;
+
+      const mapped = mapFromApi(single);
+      form.value = { ...mapped };
+      pictureFile.value = null;
+      pictureChanged.value = false;
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات امارت آفس'));
+    }
+  }
+
+  /* FORM DATA HELPERS */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  function buildCreateFormData() {
+    const payload = { ...form.value };
+
+    delete payload.previewUrl;
+
+    const fd = toFormData(payload);
+
+    if (pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+
+    return fd;
+  }
+
+  function buildUpdateFormData() {
+    const payload = { ...form.value };
+
+    delete payload.previewUrl;
+    delete payload.picture;
+
+    const fd = toFormData(payload);
+
+    if (pictureChanged.value && pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+
+    return fd;
+  }
+
+  /* SCROLL TO FIRST INVALID */
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  /* SUBMIT */
+  async function onSubmit() {
+    clearBackendErrors();
+
+    const f = formRef.value;
+    if (!f) return;
+
+    const { valid } = await f.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+
+    if (!form.value.province?.trim()) {
+      showErrorMessage(t('ولایت الزامی است'));
+      return;
+    }
+
+    saving.value = true;
+
+    try {
+      if (!isEdit.value) {
+        const fd = buildCreateFormData();
+        const created = await repo.CreateEmaratOffice?.(fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (created?.id) {
+          showSuccessMessage(t('موفقانه ثبت شد'));
+          router.push('/app/emaratoffices').catch(() => {});
+        } else {
+          showErrorMessage(t('ثبت معلومات ناکام شد'));
+        }
+      } else {
+        const fd = buildUpdateFormData();
+        const updated = await repo.UpdateEmaratOffice?.(form.value.id, fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (updated?.id) {
+          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+          router.push('/app/emaratoffices').catch(() => {});
+        } else {
+          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      saving.value = false;
+    }
+  }
+
+  /* RESET & NAVIGATION */
+  function resetForm() {
+    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(form.value.previewUrl);
+    }
+
+    if (isEdit.value) {
+      loadRecord();
+    } else {
+      form.value = blankForm();
+      pictureFile.value = null;
+      pictureChanged.value = false;
+    }
+
+    clearBackendErrors();
+    formRef.value?.resetValidation?.();
+    showSuccessMessage(t('فرم پاک شد'));
+  }
+
+  function goBack() {
+    router.push('/app/emaratoffices');
+  }
+
+  /* INIT */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
+    if (isEdit.value) {
+      await loadRecord();
+    }
+  });
+</script>
+
+<style scoped>
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* main card */
+  .simple-form-card {
+    padding: 16px 16px 20px;
+    border-radius: 12px;
+  }
+
+  /* sections */
+  .section-header {
+    display: flex;
+    align-items: center;
+    padding-block: 2px;
+  }
+  .section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.8;
+  }
+
+  /* picture */
+  .pic-wrap-simple {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  .primary-avatar {
+    border: 2px solid rgba(33, 150, 243, 0.25);
+  }
+
+  /* small gap utility */
+  .gap-2 {
+    gap: 8px;
+  }
+
+  /* slightly tighter fields */
+  :deep(.v-field--variant-outlined .v-field__input) {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    min-height: 36px;
+  }
+
+  /* prettier buttons */
+  .soft-btn {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  .primary-action-btn {
+    padding-inline: 18px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+  }
+
+  .secondary-action-btn {
+    padding-inline: 14px;
+    font-weight: 500;
+  }
+</style>

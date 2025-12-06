@@ -1,334 +1,300 @@
+<!-- src/views/badmashano/MashkokPeopleIndex.vue -->
 <template>
-  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container
+    fluid
+    class="page-bg pt-6"
+    :dir="isRtl ? 'rtl' : 'ltr'"
+  >
+    <!-- APP BAR -->
     <AppBar
-      :title="t('افراد مشکوک ')"
-      :subtitle="t('اضافه کردن ریکارډ جدید مشکوکات')"
-      @toggle-drawer="drawer = !drawer"
+      :title="t('افراد مشکوک')"
+      :subtitle="t('فهرست، جستجو و مدیریت افراد مشکوک')"
     >
-      <template #actions><v-btn icon /></template>
+      <template #actions>
+        <v-btn icon />
+      </template>
     </AppBar>
 
-    <!-- Search -->
-    <v-row class="d-flex">
-      <v-col>
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('جستجو')"
-          density="compact"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          @keyup.enter="fetchAll"
-          clearable
-          @click:clear="
-            () => {
-              repo.Search = '';
-              fetchAll();
-            }
-          "
-        />
-      </v-col>
-    </v-row>
+    <!-- 🔍 Search + ➕ Create -->
+    <v-container class="pa-0">
+      <v-row class="align-center">
+        <!-- Search Field -->
+        <v-col cols="12" sm="8" md="9" lg="10">
+          <v-text-field
+            v-model.trim="repo.Search"
+            :label="t('جستجو در افراد مشکوک...')"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            hide-details
+            @keyup.enter="fetchAll"
+            clearable
+            @click:clear="clearSearch"
+            class="bg-white"
+          />
+        </v-col>
 
-    <!-- Single-row validated editor -->
-    <v-form
-      ref="editorForm"
-      v-model="editorValid"
-      lazy-validation
-      :key="formKey"
-      @submit.prevent="onSubmit(rows[0])"
-    >
-      <v-card class="tablebody" ref="editorCard">
-        <v-data-table
-          :headers="headers"
-          :items="rows"
-          :loading="repo.loading"
-          item-key="idOrTmp"
-          class="elevation-2 custom-table"
-          density="comfortable"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          hide-default-footer
-        >
-          <!-- Picture (picker + preview) -->
-          <template #item.picture="{ item }">
-            <div class="pic-wrap">
-              <input
-                class="hidden-file"
-                type="file"
-                accept="image/*"
-                :id="`up-${item.idOrTmp}`"
-                @change="(e) => onPickFile(item, e.target.files?.[0] ?? null)"
-              />
-              <v-btn
-                v-if="!item.previewUrl && !item.picture"
-                color="primary"
-                variant="outlined"
-                icon
-                @click="triggerFile(item)"
-              >
-                <v-icon>mdi-plus</v-icon>
-              </v-btn>
+        <!-- Create Button -->
+        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            size="large"
+            class="text-none mx-4"
+            rounded="lg"
+            block
+            prepend-icon="mdi-plus"
+            @click="goCreate"
+          >
+            {{ t('اضافه فرد مشکوک جدید') }}
+          </v-btn>
+        </v-col>
+      </v-row>
 
-              <div v-else class="pic-thumb" :title="t('گزینه ها')">
-                <v-avatar size="32">
-                  <v-img :src="item.previewUrl || item.picture" :alt="t('تصویر')" cover />
-                </v-avatar>
-                <div class="pic-overlay">
-                  <v-btn
-                    size="x-small"
-                    color="primary"
-                    variant="flat"
-                    @click.stop="triggerFile(item)"
-                  >
-                    <v-icon start>mdi-pencil</v-icon>{{ t('ویرایش') }}
-                  </v-btn>
-                  <v-btn
-                    size="x-small"
-                    color="secondary"
-                    variant="flat"
-                    @click.stop="openPreview(item.previewUrl || item.picture)"
-                  >
-                    <v-icon start>mdi-eye</v-icon>{{ t('نمایش') }}
-                  </v-btn>
+      <!-- 📊 Filter Cards -->
+      <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- All -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'all' }"
+            @click="cardFilter = 'all'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-account-multiple</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('تمام افراد مشکوک') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('مجموع') }}: {{ stats.total }}
                 </div>
               </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <!-- Name / father / phone -->
-          <template #item.name="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.name"
-                density="compact"
-                variant="outlined"
-                :label="t('نام')"
-                :rules="[rules.required]"
-                hide-details
-                :error="hasError(item, 'name')"
-                :error-messages="getErrorMessages(item, 'name')"
-                required
-              />
-              <v-text-field
-                v-model="item.draft.father_name"
-                density="compact"
-                variant="outlined"
-                :label="t('نام پدر')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.phone_number"
-                density="compact"
-                variant="outlined"
-                :label="t('شماره تماس')"
-                hide-details
-              />
+        <!-- With coordinates -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
+            @click="cardFilter = 'withCoordinates'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-map-marker-radius</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <!-- Main address -->
-          <template #item.main_province="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.main_province"
-                density="compact"
-                variant="outlined"
-                :label="t('ولایت اصلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.main_district"
-                density="compact"
-                variant="outlined"
-                :label="t('ولسوالی اصلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.main_village"
-                density="compact"
-                variant="outlined"
-                :label="t('قریه/ناحیه اصلی')"
-                hide-details
-              />
+        <!-- With phone -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withPhone' }"
+            @click="cardFilter = 'withPhone'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-phone</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای شماره تماس') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withPhone }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <!-- Current address -->
-          <template #item.now_province="{ item }">
-            <div class="addr-group1">
-              <v-text-field
-                v-model="item.draft.now_province"
-                density="compact"
-                variant="outlined"
-                :label="t('ولایت فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_zone"
-                density="compact"
-                variant="outlined"
-                :label="t('زون فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_districts"
-                density="compact"
-                variant="outlined"
-                :label="t('ولسوالی‌های فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_village"
-                density="compact"
-                variant="outlined"
-                :label="t('قریه/ناحیه فعلی')"
-                hide-details
-              />
+        <!-- With job -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withJob' }"
+            @click="cardFilter = 'withJob'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-briefcase</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای وظیفه فعلی') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withJob }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
 
-          <template #item.now_specific_place="{ item }">
-            <div class="addr-group1">
-              <v-text-field
-                v-model="item.draft.now_specific_place"
-                density="compact"
-                variant="outlined"
-                :label="t('موقعیت مشخص فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_street_number"
-                density="compact"
-                variant="outlined"
-                :label="t('شماره سرک فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_home_number"
-                density="compact"
-                variant="outlined"
-                :label="t('شماره خانه فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.coordinates"
-                density="compact"
-                variant="outlined"
-                :label="t('مختصات')"
-                hide-details
-              />
-            </div>
-          </template>
+    <!-- 👁 Peek drawer -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loadingOne"
+        title-key="name"
+        image-key="picture"
+        :fields="headersFT"
+        :cols="3"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+        :auto-detect-dates="false"
+        :date-keys="[]"
+        @fetch="fetchOne"
+      />
+    </v-container>
 
-          <!-- Jobs / suspicion -->
-          <template #item.old_job="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.old_job"
-                density="compact"
-                variant="outlined"
-                :label="t('وظیفه قبلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.now_job"
-                density="compact"
-                variant="outlined"
-                :label="t('وظیفه فعلی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.mushkokyat_points"
-                density="compact"
-                variant="outlined"
-                :label="t('نقاط مشکوکیت')"
-                hide-details
-              />
-            </div>
-          </template>
-
-          <!-- Note -->
-          <template #item.note="{ item }">
-            <v-text-field
-              v-model="item.draft.note"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('یادداشت')"
-              hide-details
+    <!-- 📋 MAIN TABLE -->
+    <FilterableTable
+      :headers="headersFT"
+      :rows="filteredRowsFT"
+      :filters="filters"
+      @update:filters="(v) => (filters = { ...v })"
+      :top-groups="topGroups"
+      :showIndex="true"
+      :rtl="true"
+      :enableEdit="true"
+      :enablePeek="true"
+      :autoDetectDates="false"
+      class="mb-20 mx-2"
+      @edit="goEdit"
+      @peek="openPeek"
+    >
+      <!-- تصویر -->
+      <template #cell-picture="{ row }">
+        <div v-if="row.picture" class="pic-wrap">
+          <v-avatar
+            size="32"
+            class="cursor-pointer"
+            @click.stop="openPreview(row.picture)"
+          >
+            <v-img
+              :src="normalizePicture(row.picture)"
+              :alt="row.name"
+              cover
             />
-          </template>
+          </v-avatar>
+        </div>
+        <div v-else class="pic-wrap">
+          <v-avatar size="32">
+            <v-icon size="20">mdi-account</v-icon>
+          </v-avatar>
+        </div>
+      </template>
 
-          <template #item.Province_addr="{ item }">
-            <v-text-field
-              v-model="item.draft.Province_addr"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت مربوطه')"
-              hide-details
-              :error="hasError(item, 'Province_addr')"
-              :error-messages="getErrorMessages(item, 'Province_addr')"
-            />
+      <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
+      <template #cell-resource_code="{ row }">
+        <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              v-if="row.resource_code"
+              variant="tonal"
+              color="primary"
+              append-icon="mdi-account"
+              size="default"
+              @click.stop="goToResource(row)"
+            >
+              {{ row.resource_code }}
+            </v-btn>
+            <span v-else>-</span>
           </template>
+        </v-tooltip>
+      </template>
 
-          <!-- Resource code (autocomplete) + phone (readonly) -->
-          <template #item.resource_code="{ item }">
-            <v-autocomplete
-              v-model="item.draft.resource_code"
-              :items="resources"
-              item-title="code_number"
-              item-value="code_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('کود منبع')"
-              hide-details
-              clearable
-              @update:model-value="onResourceCodeChange(item)"
-            />
-          </template>
-          <template #item.resource_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره منبع')"
-              hide-details
-              readonly
-            />
-          </template>
+      <!-- 🗺 MAP CELL -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.phone_number"
+          type="mashkokpeople"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
 
-          <!-- Actions -->
-          <template #item.actions="{ item }">
-            <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
-                {{ t('ثبت دیتا') }}
-              </v-btn>
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
-                {{ t('حذف') }}
-              </v-btn>
-              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
-                {{ t('پاک کردن ورودی‌ها') }}
-              </v-btn>
-            </div>
-          </template>
+      <!-- ⚙️ ACTIONS -->
+      <template #actions="{ item }">
+        <div class="d-flex align-center ga-2">
+          <!-- مشاهده -->
+          <v-tooltip :text="t('مشاهده فرد مشکوک')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="blue"
+                @click.stop="openPeek(item)"
+              >
+                mdi-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
 
-          <template #no-data>
-            <div class="py-8 text-medium-emphasis">
-              {{ t('یک سطر ویرایش/ایجاد آماده است') }}
-            </div>
-          </template>
-        </v-data-table>
-      </v-card>
-    </v-form>
+          <!-- ویرایش -->
+          <v-tooltip :text="t('ویرایش فرد مشکوک')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="amber-darken-2"
+                @click.stop="goEdit(item)"
+              >
+                mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
 
-    <!-- Image preview dialog -->
+          <!-- حذف -->
+          <v-tooltip :text="t('حذف فرد مشکوک')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="red-darken-2"
+                @click.stop="openDeleteDialog(item)"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
+    </FilterableTable>
+
+    <!-- 🖼 IMAGE PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520">
       <v-card>
-        <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
+        <v-toolbar
+          density="compact"
+          color="primary"
+          :title="t('پیش نمایش تصویر')"
+          class="text-white"
+        />
         <v-card-text class="d-flex justify-center">
-          <v-img :src="previewSrc" :alt="t('پیش نمایش')" max-width="480" max-height="420" cover />
+          <v-img
+            v-if="previewSrc"
+            :src="previewSrc"
+            :alt="t('پیش نمایش')"
+            max-width="480"
+            max-height="420"
+            cover
+          />
         </v-card-text>
         <v-card-actions class="justify-end">
           <v-btn color="primary" variant="flat" @click="previewOpen = false">
@@ -338,572 +304,381 @@
       </v-card>
     </v-dialog>
 
-    <!-- ✅ PeekButton for details -->
-    <v-container fluid>
-      <PeekButton
-        v-model="expanded"
-        :id="selectedId"
-        :item="detail"
-        :loading="loading"
-        title-key="name"
-        :fields="headers"
-        :cols="3"
-        dir="rtl"
-        @fetch="fetchOne"
-      />
-    </v-container>
+    <!-- 🗑 Delete Confirm Dialog -->
+    <DeleteConfirmDialog
+      v-model="deleteDialog"
+      :target="deleteTarget"
+      :is-rtl="isRtl"
+      @confirm="handleDeleteConfirmed"
+    />
 
-    <!-- Filterable Table -->
-    <FilterableTable
-      :headers="headersFT"
-      :rows="rowsFT"
-      :filters="filters"
-      @update:filters="(v) => (filters = { ...v })"
-      :top-groups="topGroups"
-      :showIndex="true"
-      :rtl="true"
-      class="mb-20 mx-2"
-      :enableEdit="true"
-      :enablePeek="true"
-      @edit="startEdit"
-      @peek="openPeek"
-    >
-      <!-- ✅ Map button cell -->
-      <template #cell-map="{ row }">
-        <FlyToMapButton
-          :coordinates="row.coordinates"
-          :title="row.name"
-          :subtitle="row.phone_number"
-          type="badmashano"
-          :photo-url="row.picture"
-          :zoom="16"
-        />
-      </template>
-    </FilterableTable>
-
-    <!-- Error Snackbar -->
+    <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
-        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+        <v-btn variant="text" @click="showError = false">
+          {{ t('بستن') }}
+        </v-btn>
       </template>
     </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, watch, computed, nextTick, onBeforeUnmount } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import AppBar from '@/components/AppBar.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import PeekButton from '@/components/PeekButton.vue';
-  import FlyToMapButton from '@/components/FlyToMapButton.vue';
-  import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-  const { t, locale } = useI18n();
-  const drawer = ref(false);
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+import AppBar from '@/components/AppBar.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import FlyToMapButton from '@/components/FlyToMapButton.vue';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-  const repo = useBadmashanoRepository();
+import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 
-  /* ===== Editor form + snackbar ===== */
-  const editorForm = ref(null);
-  const editorValid = ref(false);
-  const formKey = ref(0);
-  const editorCard = ref(null);
-  const showError = ref(false);
-  const errorMessage = ref('');
-  function showErrorMessage(m) {
-    errorMessage.value = m;
-    showError.value = true;
+const repo = useBadmashanoRepository();
+const router = useRouter();
+
+/* i18n / RTL */
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
+
+/* Snackbar */
+const showError = ref(false);
+const errorMessage = ref('');
+const showErrorMessage = (m) => {
+  errorMessage.value = m;
+  showError.value = true;
+};
+
+/* 🔗 go to Resources page for this resource_code */
+function goToResource(row) {
+  if (!row?.resource_code) return;
+  router.push(`/app/resources/${row.resource_code}`);
+}
+
+/* Helpers */
+const getRow = (s) => (s && s.raw ? s.raw : s);
+
+/* rows from store */
+const rowsFT = computed(() => {
+  const list = repo.MashkokPeoples || [];
+  if (Array.isArray(list)) return list;
+  if (Array.isArray(list.data)) return list.data;
+  return [];
+});
+
+/* 🔢 Filter cards state */
+const cardFilter = ref('all');
+
+const stats = computed(() => {
+  const rows = rowsFT.value || [];
+  const total = rows.length;
+  const withCoordinates = rows.filter(
+    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+  ).length;
+  const withPhone = rows.filter(
+    (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
+  ).length;
+  const withJob = rows.filter(
+    (r) => r && r.now_job && String(r.now_job).trim() !== ''
+  ).length;
+
+  return { total, withCoordinates, withPhone, withJob };
+});
+
+const filteredRowsFT = computed(() => {
+  const base = rowsFT.value || [];
+  switch (cardFilter.value) {
+    case 'withCoordinates':
+      return base.filter(
+        (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+      );
+    case 'withPhone':
+      return base.filter(
+        (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
+      );
+    case 'withJob':
+      return base.filter(
+        (r) => r && r.now_job && String(r.now_job).trim() !== ''
+      );
+    default:
+      return base;
   }
+});
 
-  /* ===== Errors per row ===== */
-  const itemErrors = ref({});
-  function setItemErrors(item, errors) {
-    itemErrors.value[item.idOrTmp] = errors;
-  }
-  function clearItemErrors(item) {
-    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
-  }
-  function hasError(item, field) {
-    return !!itemErrors.value[item.idOrTmp]?.[field];
-  }
-  function getErrorMessages(item, field) {
-    return itemErrors.value[item.idOrTmp]?.[field] ?? [];
-  }
+/* TABLE HEADERS – MashkokPeople fields + map */
+const headersFT = computed(() => [
+  { title: t('تصویر'), key: 'picture', sortable: false },
 
-  /* ===== Rules ===== */
-  const rules = {
-    required: (v) => !!v || t('این فیلد الزامی است'),
-  };
+  { title: t('نام'), key: 'name' },
+  { title: t('نام پدر'), key: 'father_name' },
+  { title: t('شماره تماس'), key: 'phone_number' },
 
-  /* ===== Main rows ===== */
-  const rows = ref([]);
-  function setBlankEditorRow() {
-    rows.value = [toRowModel({})];
-  }
+  { title: t('ولایت اصلی'), key: 'main_province' },
+  { title: t('ولسوالی اصلی'), key: 'main_district' },
+  { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
 
-  /* ===== Headers (editor & FT) ===== */
-  const headers = computed(() => [
-    { title: t('تصویر'), key: 'picture', width: 120, sortable: false },
+  { title: t('ولایت فعلی'), key: 'now_province' },
+  { title: t('زون فعلی'), key: 'now_zone' },
+  { title: t('ولسوالی‌های فعلی'), key: 'now_districts' },
+  { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
 
-    { title: t('نام/پدر/تماس'), key: 'name' },
+  { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
+  { title: t('شماره سرک فعلی'), key: 'now_street_number' },
+  { title: t('شماره خانه فعلی'), key: 'now_home_number' },
 
-    { title: t('آدرس اصلی'), key: 'main_province' },
-    { title: t('آدرس فعلی'), key: 'now_province' },
-    { title: t('موقعیت/مختصات'), key: 'now_specific_place' },
+  { title: t('وظیفه قبلی'), key: 'old_job' },
+  { title: t('وظیفه فعلی'), key: 'now_job' },
+  { title: t('نقاط مشکوکیت'), key: 'mushkokyat_points' },
 
-    { title: t('وظایف/نقاط مشکوکیت'), key: 'old_job' },
+  { title: t('ولایت مربوطه'), key: 'Province_addr' },
+  { title: t('مختصات'), key: 'coordinates' },
 
-    { title: t('یادداشت'), key: 'note' },
+  { title: t('کود منبع'), key: 'resource_code' },
+  { title: t('شماره منبع'), key: 'resource_phone' },
 
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+  { title: t('یادداشت'), key: 'note', width: 300 },
 
-    { title: t('عملیات'), key: 'actions', sortable: false },
-  ]);
+  { title: t('نقشه'), key: 'map', sortable: false },
+]);
 
-  const headersFT = computed(() => [
-    { title: t('نام'), key: 'name' },
-    { title: t('نام پدر'), key: 'father_name' },
+/* TOP GROUPS – group everything nicely */
+const topGroups = computed(() => [
+  { title: t('مشخصات'), keys: ['name', 'father_name', 'phone_number'] },
+  { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+  {
+    title: t('آدرس فعلی'),
+    keys: [
+      'now_province',
+      'now_zone',
+      'now_districts',
+      'now_village',
+      'now_specific_place',
+      'now_street_number',
+      'now_home_number',
+    ],
+  },
+  {
+    title: t('وظایف/مشکوکیت'),
+    keys: ['old_job', 'now_job', 'mushkokyat_points'],
+  },
+  {
+    title: t('موقعیت/مختصات'),
+    keys: ['Province_addr', 'coordinates'],
+  },
+  {
+    title: t('منبع'),
+    keys: ['resource_code', 'resource_phone'],
+  },
+  {
+    title: t('دیگر'),
+    keys: ['note'],
+  },
+]);
 
-    { title: t('ولایت اصلی'), key: 'main_province' },
-    { title: t('ولسوالی اصلی'), key: 'main_district' },
-    { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+const filters = ref({});
 
-    { title: t('ولایت فعلی'), key: 'now_province' },
-    { title: t('زون فعلی'), key: 'now_zone' },
-    { title: t('ولسوالی‌های فعلی'), key: 'now_districts' },
-    { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
-    { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
-    { title: t('شماره سرک فعلی'), key: 'now_street_number' },
-    { title: t('شماره خانه فعلی'), key: 'now_home_number' },
-    { title: t('مختصات'), key: 'coordinates' },
+/* Peek */
+const expanded = ref(false);
+const selectedId = ref(null);
+const loadingOne = ref(false);
+const detail = ref(null);
 
-    { title: t('وظیفه قبلی'), key: 'old_job' },
-    { title: t('وظیفه فعلی'), key: 'now_job' },
-    { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('نقاط مشکوکیت'), key: 'mushkokyat_points' },
-
-    { title: t('یادداشت'), key: 'note' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
-    { title: t('نقشه'), key: 'map', sortable: false },
-  ]);
-
-  /* ===== Filterable data ===== */
-  const rowsFT = computed(() => repo.MashkokPeoples || []);
-  const filters = ref({});
-  const topGroups = computed(() => [
-    { title: t('مشخصات'), keys: ['name', 'father_name', 'phone_number'] },
-    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-    { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_districts', 'now_village'] },
-    {
-      title: t('موقعیت/مختصات'),
-      keys: ['now_specific_place', 'now_street_number', 'now_home_number', 'coordinates'],
-    },
-    { title: t('وظایف/مشکوکیت'), keys: ['old_job', 'now_job', 'mushkokyat_points'] },
-    { title: t('منبع/یادداشت'), keys: ['resource_code', 'resource_phone', 'note'] },
-  ]);
-
-  /* ===== Resources dropdown -> code/phone + set resource_id ===== */
-  const resources = computed(() => repo.resourcecode || []);
-  function onResourceCodeChange(item) {
-    const code = item.draft.resource_code;
-    const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone = found?.phone_number ?? '';
-    item.draft.resource_id = found?.id ?? null;
-  }
-
-  /* ===== Picture handling ===== */
-  const previewOpen = ref(false);
-  const previewSrc = ref(null);
-  function openPreview(src) {
-    previewSrc.value = src || null;
-    if (previewSrc.value) previewOpen.value = true;
-  }
-  function triggerFile(item) {
-    document.getElementById(`up-${item.idOrTmp}`)?.click();
-  }
-
-  /* ===== Row model & diff ===== */
-  let tmpId = 0;
-  const newTmpId = () => `tmp-${++tmpId}`;
-  function toRowModel(x = {}) {
-    const base = {
-      id: x.id ?? null,
-      idOrTmp: x.id ?? newTmpId(),
-      loading: false,
-
-      picture: x.picture ?? null,
-      previewUrl: x.picture ?? null,
-
-      name: x.name ?? '',
-      father_name: x.father_name ?? '',
-      phone_number: x.phone_number ?? '',
-
-      main_province: x.main_province ?? '',
-      main_district: x.main_district ?? '',
-      main_village: x.main_village ?? '',
-
-      now_province: x.now_province ?? '',
-      now_zone: x.now_zone ?? '',
-      now_districts: x.now_districts ?? '',
-      now_village: x.now_village ?? '',
-      now_specific_place: x.now_specific_place ?? '',
-      now_street_number: x.now_street_number ?? '',
-      now_home_number: x.now_home_number ?? '',
-      coordinates: x.coordinates ?? '',
-
-      Province_addr: x.Province_addr ?? '',
-      old_job: x.old_job ?? '',
-      now_job: x.now_job ?? '',
-      mushkokyat_points: x.mushkokyat_points ?? '',
-
-      note: x.note ?? '',
-
-      resource_code: x.resource_code ?? '',
-      resource_phone: x.resource_phone ?? '',
-      resource_id: x.resource_id ?? null,
-    };
-    return { ...base, draft: { ...base, picture: null } };
-  }
-
-  function onPickFile(item, file) {
-    item.draft.picture = file || null;
-    if (file) {
-      if (item._blobUrl) URL.revokeObjectURL(item._blobUrl);
-      item._blobUrl = URL.createObjectURL(file);
-      item.previewUrl = item._blobUrl;
+async function fetchOne(id) {
+  loadingOne.value = true;
+  try {
+    if (typeof repo.FetchMashkokPeopleData === 'function') {
+      await repo.FetchMashkokPeopleData(id);
+      const single = Array.isArray(repo.MashkokPeople)
+        ? repo.MashkokPeople[0]
+        : repo.MashkokPeople;
+      detail.value = single || {};
     } else {
-      item.previewUrl = item.picture || null;
-    }
-  }
-
-  const EDITABLE_KEYS = [
-    'name',
-    'father_name',
-    'phone_number',
-    'main_province',
-    'main_district',
-    'main_village',
-    'now_province',
-    'now_zone',
-    'now_districts',
-    'Province_addr',
-    'now_village',
-    'now_specific_place',
-    'now_street_number',
-    'now_home_number',
-    'coordinates',
-    'old_job',
-    'now_job',
-    'mushkokyat_points',
-    'note',
-    'resource_code',
-    'resource_phone',
-    'resource_id',
-  ];
-  const REQUIRED_ON_UPDATE = ['name'];
-
-  function diffDraft(item) {
-    const d = item.draft || {};
-    const changed = {};
-    for (const k of EDITABLE_KEYS) {
-      if ((d[k] ?? '') !== (item[k] ?? '')) changed[k] = d[k];
-    }
-    if (d.picture && typeof d.picture === 'object') changed.picture = d.picture;
-    for (const k of REQUIRED_ON_UPDATE) {
-      if (d[k] !== undefined) changed[k] = d[k];
-    }
-    return changed;
-  }
-  function toFormDataSelective(obj) {
-    const fd = new FormData();
-    Object.entries(obj || {}).forEach(([k, v]) => {
-      if (v !== undefined && v !== null) fd.append(k, v);
-    });
-    return fd;
-  }
-
-  /* ===== Save / Delete ===== */
-  async function save(item) {
-    if (!item.draft?.name?.trim()) {
-      showErrorMessage(t('نام الزامی است'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-    item.loading = true;
-    clearItemErrors(item);
-    try {
-      // CREATE
-      if (!item.id) {
-        const fd = toFormDataSelective(item.draft);
-        const created = await repo.CreateMashkokPeople?.(fd);
-        await fetchAll();
-        setBlankEditorRow();
-        editorForm.value?.resetValidation?.();
-        return;
-      }
-      // UPDATE
-      const changed = diffDraft(item);
-      if (Object.keys(changed).length === 0) {
-        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
-        return;
-      }
-      const fd = toFormDataSelective(changed);
-      const updated = await repo.UpdateMashkokPeople?.(item.id, fd);
-      if (updated?.id) {
-        await fetchAll();
-        setBlankEditorRow();
-        editorForm.value?.resetValidation?.();
-      }
-    } catch (error) {
-      console.error('Save error:', error);
-      if (error?.response?.data?.errors) {
-        setItemErrors(item, error.response.data.errors);
-        showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
-      } else {
-        showErrorMessage(
-          t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته'))
-        );
-      }
-    } finally {
-      item.loading = false;
-    }
-  }
-
-  async function onSubmit(item) {
-    const form = editorForm.value;
-    if (!form) return;
-    const { valid } = await form.validate();
-    if (!valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-    await save(item);
-  }
-
-  function scrollToFirstInvalid() {
-    const root = editorCard.value?.$el || editorCard.value || document;
-    const first = root.querySelector(
-      '.v-input--error, [aria-invalid="true"], .v-messages__message'
-    );
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input?.focus) input.focus();
-    }
-  }
-
-  async function del(item) {
-    if (!item.id) {
-      setBlankEditorRow();
-      return;
-    }
-    if (!confirm(t('آیا مطمئن هستید؟'))) return;
-    try {
-      await repo.DeleteMashkokPeople?.(item.id);
       await fetchAll();
-      setBlankEditorRow();
-    } catch (e) {
-      console.error('Delete error:', e);
-      showErrorMessage(t('خطا در حذف') + ': ' + (e?.message || t('خطای ناشناخته')));
+      const list = rowsFT.value || [];
+      detail.value = list.find((r) => r.id === id) || {};
     }
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات فرد مشکوک'));
+  } finally {
+    loadingOne.value = false;
   }
+}
 
-  /* ===== Peek / Fetch one ===== */
-  const expanded = ref(false);
-  const selectedId = ref(null);
-  const loading = ref(false);
-  const detail = ref(null);
+function openPeek(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  selectedId.value = row.id;
+  expanded.value = true;
+  fetchOne(row.id);
+}
 
-  async function fetchOne(id) {
-    loading.value = true;
-    try {
-      await repo.FetchMashkokPeopleData?.(id);
-      detail.value = Array.isArray(repo.MashkokPeople)
-        ? repo.MashkokPeople[0] || null
-        : repo.MashkokPeople || null;
-    } catch (error) {
-      console.error('Fetch one error:', error);
-      showErrorMessage(t('خطا در دریافت اطلاعات'));
-    } finally {
-      loading.value = false;
-    }
-  }
+/* navigation */
+function goCreate() {
+  router.push('/app/mashkokpeopleform');
+}
 
-  function openPeek(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-    selectedId.value = row.id;
-    expanded.value = true;
-    fetchOne(row.id);
-  }
+function goEdit(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push(`/app/mashkokpeopleform/${row.id}`);
+}
 
-  /* ===== Fetch / Start edit ===== */
-  async function fetchAll() {
-    try {
-      await repo.FetchMashkokPeoplesData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
-    } catch (e) {
-      console.error('fetchAll error', e);
-    }
-  }
+/* delete with dialog */
+const deleteDialog = ref(false);
+const deleteTarget = ref(null);
 
-  async function startEdit(row) {
-    try {
-      const id = row?.id;
-      if (!id) return;
+function openDeleteDialog(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  deleteTarget.value = row;
+  deleteDialog.value = true;
+}
 
-      await repo.FetchMashkokPeopleData?.(id);
-
-      // ✅ Always keep a real id – merge row + API item
-      const apiItem = Array.isArray(repo.MashkokPeople)
-        ? repo.MashkokPeople[0] || {}
-        : repo.MashkokPeople || {};
-
-      const merged = {
-        ...apiItem,
-        id: row.id, // force correct id from table row
-      };
-
-      rows.value = [toRowModel(merged)];
-      await nextTick();
-      const el = editorCard.value?.$el || editorCard.value;
-      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-    } catch (e) {
-      console.error('startEdit error', e);
-      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
-    }
-  }
-
-  /* ===== Init & cleanup ===== */
-  onMounted(async () => {
-    await Promise.allSettled([repo.GetResourceCode?.()]);
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value;
+  deleteDialog.value = false;
+  if (!row?.id) return;
+  try {
+    await repo.DeleteMashkokPeople?.(row.id);
     await fetchAll();
-    setBlankEditorRow();
-  });
-  onBeforeUnmount(() => {
-    // revoke any blob URLs to avoid leaks
-    rows.value.forEach((r) => {
-      if (r?._blobUrl) URL.revokeObjectURL(r._blobUrl);
+    showErrorMessage(t('حذف شد'));
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در حذف'));
+  } finally {
+    deleteTarget.value = null;
+  }
+}
+
+/* fetch all */
+async function fetchAll() {
+  try {
+    await repo.FetchMashkokPeoplesData?.({
+      page: 1,
+      itemsPerPage: 100000,
+      search: repo.Search || '',
     });
-  });
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت فهرست افراد مشکوک'));
+  }
+}
+
+function clearSearch() {
+  repo.Search = '';
+  fetchAll();
+}
+
+/* IMAGE PREVIEW helpers */
+const previewOpen = ref(false);
+const previewSrc = ref(null);
+
+function normalizePicture(src) {
+  if (!src) return null;
+  let clean = String(src).trim();
+
+  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+  clean = clean.replace(/\\\//g, '/');
+
+  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+  if (clean.startsWith('/')) return clean;
+
+  return '/' + clean.replace(/^\/+/, '');
+}
+
+function openPreview(src) {
+  const normalized = normalizePicture(src);
+  if (!normalized) return;
+  previewSrc.value = normalized;
+  previewOpen.value = true;
+}
+
+/* init */
+onMounted(async () => {
+  await fetchAll();
+});
 </script>
 
 <style scoped>
-  .custom-table :deep(.v-data-table__thead th) {
-    background: rgb(var(--v-theme-primary));
-    color: #fff;
-    font-weight: 400;
-  }
+.ga-2 {
+  gap: 8px;
+}
 
-  /* groups */
-  .addr-group {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(160px, 1fr));
-    gap: 2px;
-  }
-  .addr-group1 {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(160px, 1fr));
-    gap: 2px;
-  }
-  .text-group {
-    display: grid;
-    width: 160px;
-    gap: 2px;
-  }
-  .text-group-note {
-    display: grid;
-    width: 380px;
-    gap: 2px;
-  }
+/* Background similar to other index pages */
+.page-bg {
+  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+  font-family: inherit;
+}
 
-  .flex {
-    display: flex;
-  }
-  .items-center {
-    align-items: center;
-  }
-  .gap-1 {
-    gap: 4px;
-  }
+/* Stats cards */
+.stat-card {
+  cursor: pointer;
+  border-radius: 14px;
+  border: 1px solid rgba(33, 150, 243, 0.08);
+  background: #ffffff;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.15s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
 
-  .tablebody {
-    display: flex !important;
-    gap: 2px !important;
-  }
+.stat-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  border-color: rgba(33, 150, 243, 0.35);
+}
 
-  /* image overlay */
-  .hidden-file {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
-  }
-  .pic-wrap {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-  }
-  .pic-thumb {
-    position: relative;
-    display: inline-flex;
-    cursor: pointer;
-  }
-  .pic-overlay {
-    position: absolute;
-    inset: -6px -6px auto auto;
-    display: none;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.55);
-    padding: 6px;
-    border-radius: 8px;
-    transform: translateY(-40%);
-    white-space: nowrap;
-  }
-  .pic-thumb:hover .pic-overlay {
-    display: inline-flex;
-  }
-  .pic-overlay :deep(.v-btn) {
-    color: #fff;
-  }
+.stat-card--active {
+  border-color: rgba(25, 118, 210, 0.9);
+  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+}
 
-  /* compact inputs */
-  :deep(.v-field-label),
-  :deep(.v-label),
-  :deep(input::placeholder) {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    color: #555 !important;
-  }
-  :deep(.v-field__input) {
-    min-height: 26px !important;
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-  }
-  .addr-group,
-  .addr-group1,
-  .text-group,
-  .text-group-note {
-    margin: -16px !important;
-    padding: -10px !important;
-    row-gap: -6px !important;
-    column-gap: 2px !important;
-    gap: -10px !important;
-  }
+.stat-card-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.stat-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e3f2fd;
+}
+
+.stat-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stat-card-subtitle {
+  font-size: 11px;
+  color: #666;
+}
+
+/* picture */
+.pic-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
 </style>

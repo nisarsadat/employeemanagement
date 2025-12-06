@@ -70,6 +70,7 @@ use App\Models\fifthyformatfour\Complex;
 use App\Models\fifthyformatfour\DeplomaticPlace;
 use App\Models\fifthyformatfour\University;
 use App\Models\fifthyformatfour\Wakilano;
+use App\Models\fifthyformatsthree\Sarayano;
 
 class FifthyFormatsCountController extends Controller
 {
@@ -125,7 +126,7 @@ class FifthyFormatsCountController extends Controller
             'mashkok-people'       => MashkokPeople::class,
             'mujahedinos'          => Mujahedino::class,
             'old-jahadis'          => OldJahadi::class,
-            'sarayanos'            => Sarayanos::class,
+            'sarayanos'            => Sarayano::class,
             'tujarans'             => Tujaran::class,
 
             // Fifthy Format Four (16)

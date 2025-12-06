@@ -1,786 +1,591 @@
+<!-- src/views/madrasa/MadrasasIndex.vue -->
 <template>
-  <v-container fluid class="pt-6 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- APP BAR -->
     <AppBar
-      :title="t('مدرسه ')"
-      :subtitle="t('اضافه کردن یک ریکارډ جدید مدرسه')"
-      @toggle-drawer="drawer = !drawer"
+      :title="t('مدرسه')"
+      :subtitle="t('فهرست، جستجو و مدیریت مدرسه‌ها')"
     >
-      <template #actions><v-btn icon /></template>
+      <template #actions>
+        <v-btn icon />
+      </template>
     </AppBar>
 
-    <!-- Search -->
-    <v-row class="d-flex">
-      <v-col>
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('جستجو')"
-          density="compact"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          @keyup.enter="fetchAll"
-          clearable
-          @click:clear="
-            () => {
-              repo.Search = '';
-              fetchAll();
-            }
-          "
-        />
-      </v-col>
-    </v-row>
+    <!-- 🔍 Search + ➕ Create -->
+    <v-container class="pa-0">
+      <v-row class="align-center">
+        <!-- Search Field -->
+        <v-col cols="12" sm="8" md="9" lg="10">
+          <v-text-field
+            v-model.trim="repo.Search"
+            :label="t('جستجو در مدرسه...')"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            hide-details
+            @keyup.enter="fetchAll"
+            clearable
+            @click:clear="clearSearch"
+            class="bg-white"
+          />
+        </v-col>
 
-    <!-- Single-row validated editor -->
-    <v-form
-      ref="editorForm"
-      v-model="editorValid"
-      lazy-validation
-      :key="formKey"
-      @submit.prevent="onSubmit(rows[0])"
-    >
-      <v-card class="tablebody" ref="editorCard">
-        <v-data-table
-          :headers="headers"
-          :items="rows"
-          :loading="repo.loading"
-          item-key="idOrTmp"
-          class="elevation-2 custom-table"
-          density="comfortable"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          hide-default-footer
-        >
-          <!-- Basic info -->
-          <template #item.name="{ item }">
-            <v-text-field
-              v-model="item.draft.name"
-              class="text-group pr-2  "
-              density="compact"
-              variant="outlined"
-              :label="t('نام مدرسه')"
-              :rules="[rules.required]"
-              hide-details
-              :error="hasError(item, 'name')"
-              :error-messages="getErrorMessages(item, 'name')"
-              required
-            />
-          </template>
-          <template #item.madrasa_type="{ item }">
-            <v-text-field
-              v-model="item.draft.madrasa_type"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نوع مدرسه')"
-              hide-details
-            />
-          </template>
+        <!-- Create Button -->
+        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            size="large"
+            class="text-none mx-4"
+            rounded="lg"
+            block
+            prepend-icon="mdi-plus"
+            @click="goCreate"
+          >
+            {{ t('اضافه کردن مدرسه جدید') }}
+          </v-btn>
+        </v-col>
+      </v-row>
 
-          <!-- Responsible -->
-          <template #item.responsible_name="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مسؤول: نام')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_f_name="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_f_name"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مسؤول: نام پدر')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_position="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_position"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مسؤول: موقف')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مسؤول: شماره تماس')"
-              hide-details
-            />
-          </template>
-          <template #item.responsible_main_province="{ item }">
-            <v-text-field
-              v-model="item.draft.responsible_main_province"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت اصلی مسؤول')"
-              hide-details
-            />
-          </template>
-          <template #item.tarafdari_type_responsible="{ item }">
-            <v-text-field
-              v-model="item.draft.tarafdari_type_responsible"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('نوع طرفداری مسؤول')"
-              hide-details
-            />
-          </template>
-
-          <!-- Religious & counts -->
-          <template #item.mazhab="{ item }">
-            <v-text-field
-              v-model="item.draft.mazhab"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مذهب')"
-              hide-details
-            />
-          </template>
-          <template #item.male_teacher_quantity="{ item }">
-            <v-text-field
-              v-model="item.draft.male_teacher_quantity"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('تعداد استادان (ذکور)')"
-              hide-details
-            />
-          </template>
-          <template #item.female_teacher_quantity="{ item }">
-            <v-text-field
-              v-model="item.draft.female_teacher_quantity"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('تعداد استادان (اناث)')"
-              hide-details
-            />
-          </template>
-          <template #item.male_students_quantity="{ item }">
-            <v-text-field
-              v-model="item.draft.male_students_quantity"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('تعداد شاگردان (ذکور)')"
-              hide-details
-            />
-          </template>
-          <template #item.female_students_quantity="{ item }">
-            <v-text-field
-              v-model="item.draft.female_students_quantity"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('تعداد شاگردان (اناث)')"
-              hide-details
-            />
-          </template>
-
-          <!-- Address -->
-          <template #item.province="{ item }">
-            <div class="addr-group">
-              <v-text-field
-                v-model="item.draft.province"
-                density="compact"
-                variant="outlined"
-                :label="t('ولایت')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.zone"
-                density="compact"
-                variant="outlined"
-                :label="t('زون')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.district"
-                density="compact"
-                variant="outlined"
-                :label="t('ولسوالی')"
-                hide-details
-              />
-              <v-text-field
-                v-model="item.draft.village"
-                density="compact"
-                variant="outlined"
-                :label="t('قریه/ناحیه')"
-                hide-details
-              />
+      <!-- 📊 Filter Cards -->
+      <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- All -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'all' }"
+            @click="cardFilter = 'all'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-school</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('تمام مدرسه‌ها') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('مجموع') }}: {{ stats.total }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <!-- Location details -->
-          <template #item.specific_place="{ item }">
-            <v-text-field
-              v-model="item.draft.specific_place"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('موقعیت مشخص')"
-              hide-details
-            />
-          </template>
-          <template #item.street_number="{ item }">
-            <v-text-field
-              v-model="item.draft.street_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره سرک')"
-              hide-details
-            />
-          </template>
-          <template #item.coordinates="{ item }">
-            <v-text-field
-              v-model="item.draft.coordinates"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('مختصات')"
-              hide-details
-            />
-          </template>
-
-          <!-- Note -->
-          <template #item.note="{ item }">
-            <v-text-field
-              v-model="item.draft.note"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('یادداشت')"
-              hide-details
-            />
-          </template>
-
-          <template #item.Province_addr="{ item }">
-            <v-text-field
-              v-model="item.draft.Province_addr"
-              class="text-group-note"
-              density="compact"
-              variant="outlined"
-              :label="t('ولایت مربوطه')"
-              hide-details
-              :error="hasError(item, 'Province_addr')"
-              :error-messages="getErrorMessages(item, 'Province_addr')"
-            />
-          </template>
-          <!-- Resource code (autocomplete) + phone (readonly) -->
-          <template #item.resource_code="{ item }">
-            <v-autocomplete
-              v-model="item.draft.resource_code"
-              :items="resources"
-              item-title="code_number"
-              item-value="code_number"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('کود منبع')"
-              hide-details
-              clearable
-              @update:model-value="onResourceCodeChange(item)"
-            />
-          </template>
-          <template #item.resource_phone="{ item }">
-            <v-text-field
-              v-model="item.draft.resource_phone"
-              class="text-group"
-              density="compact"
-              variant="outlined"
-              :label="t('شماره منبع')"
-              hide-details
-              readonly
-            />
-          </template>
-
-          <!-- Actions -->
-          <template #item.actions="{ item }">
-            <div class="flex items-center gap-1">
-              <v-btn class="bg-primary" variant="outlined" type="submit" :loading="item.loading">
-                {{ t('ثبت دیتا') }}
-              </v-btn>
-              <v-btn class="bg-error" variant="outlined" @click="del(item)">
-                {{ t('حذف') }}
-              </v-btn>
-              <v-btn color="warning" variant="outlined" @click="clearEditor(item)">
-                {{ t('پاک کردن ورودی‌ها') }}
-              </v-btn>
+        <!-- With coordinates -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
+            @click="cardFilter = 'withCoordinates'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-map-marker-radius</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
+                </div>
+              </div>
             </div>
-          </template>
+          </v-card>
+        </v-col>
 
-          <template #no-data>
-            <div class="py-8 text-medium-emphasis">{{ t('یک سطر ویرایش/ایجاد آماده است') }}</div>
-          </template>
-        </v-data-table>
-      </v-card>
-    </v-form>
+        <!-- With responsible phone -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withPhone' }"
+            @click="cardFilter = 'withPhone'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-phone</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">
+                  {{ t('دارای شماره تماس مسؤول') }}
+                </div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withPhone }}
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
 
-    <!-- Filterable Table -->
+        <!-- With responsible name -->
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withResponsible' }"
+            @click="cardFilter = 'withResponsible'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-account-tie</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">
+                  {{ t('دارای مسؤول مشخص') }}
+                </div>
+                <div class="stat-card-subtitle">
+                  {{ t('تعداد') }}: {{ stats.withResponsible }}
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+
+    <!-- 👁 Peek drawer -->
+    <v-container fluid>
+      <PeekButton
+        v-model="expanded"
+        :id="selectedId"
+        :item="detail"
+        :loading="loadingOne"
+        title-key="name"
+        :fields="headersFT"
+        :cols="3"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+        :auto-detect-dates="false"
+        :date-keys="[]"
+        @fetch="fetchOne"
+      />
+    </v-container>
+
+    <!-- 📋 MAIN TABLE -->
     <FilterableTable
       :headers="headersFT"
-      :rows="rowsFT"
+      :rows="filteredRowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
-      class="mb-20 mx-2"
       :enableEdit="true"
-      :enablePeek="false"
-      @edit="startEdit"
+      :enablePeek="true"
+      :autoDetectDates="false"
+      class="mb-20 mx-2"
+      @edit="goEdit"
+      @peek="openPeek"
+    >
+      <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
+      <template #cell-resource_code="{ row }">
+        <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              v-if="row.resource_code"
+              variant="tonal"
+              color="primary"
+              append-icon="mdi-account"
+              size="default"
+              @click.stop="goToResource(row)"
+            >
+              {{ row.resource_code }}
+            </v-btn>
+            <span v-else>-</span>
+          </template>
+        </v-tooltip>
+      </template>
+
+      <!-- 🗺 MAP CELL -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.province"
+          type="madrasas"
+          :photo-url="null"
+          :zoom="16"
+        />
+      </template>
+
+      <!-- ⚙️ ACTIONS -->
+      <template #actions="{ item }">
+        <div class="d-flex align-center ga-2">
+          <!-- مشاهده -->
+          <v-tooltip :text="t('مشاهده مدرسه')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="blue"
+                @click.stop="openPeek(item)"
+              >
+                mdi-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- ویرایش -->
+          <v-tooltip :text="t('ویرایش مدرسه')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="amber-darken-2"
+                @click.stop="goEdit(item)"
+              >
+                mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <!-- حذف -->
+          <v-tooltip :text="t('حذف مدرسه')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="red-darken-2"
+                @click.stop="openDeleteDialog(item)"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
+    </FilterableTable>
+
+    <!-- 🗑 Delete Confirm Dialog -->
+    <DeleteConfirmDialog
+      v-model="deleteDialog"
+      :target="deleteTarget"
+      :is-rtl="isRtl"
+      @confirm="handleDeleteConfirmed"
     />
 
-    <!-- Error Snackbar -->
+    <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
-        <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
+        <v-btn variant="text" @click="showError = false">
+          {{ t('بستن') }}
+        </v-btn>
       </template>
     </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, watch, computed, nextTick } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import AppBar from '@/components/AppBar.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+import AppBar from '@/components/AppBar.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import FlyToMapButton from '@/components/FlyToMapButton.vue';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-  const drawer = ref(false);
-  const repo = useBadmashanoRepository();
+import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 
-  /* ===== Editor form + snackbar ===== */
-  const editorForm = ref(null);
-  const editorValid = ref(false);
-  const formKey = ref(0);
-  const editorCard = ref(null);
-  const showError = ref(false);
-  const errorMessage = ref('');
-  function showErrorMessage(m) {
-    errorMessage.value = m;
-    showError.value = true;
+const repo = useBadmashanoRepository();
+const router = useRouter();
+
+/* i18n / RTL */
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
+
+/* Snackbar */
+const showError = ref(false);
+const errorMessage = ref('');
+const showErrorMessage = (m) => {
+  errorMessage.value = m;
+  showError.value = true;
+};
+
+/* 🔗 go to Resources page for this resource_code */
+function goToResource(row) {
+  if (!row?.resource_code) return;
+  router.push(`/app/resources/${row.resource_code}`);
+}
+
+/* Helpers */
+const getRow = (s) => (s && s.raw ? s.raw : s);
+
+/* rows from store */
+const rowsFT = computed(() => {
+  const list = repo.Madrasas || [];
+  if (Array.isArray(list)) return list;
+  if (Array.isArray(list.data)) return list.data;
+  return [];
+});
+
+/* 🔢 Filter cards state */
+const cardFilter = ref('all');
+
+const stats = computed(() => {
+  const rows = rowsFT.value || [];
+  const total = rows.length;
+  const withCoordinates = rows.filter(
+    (r) => r && r.coordinates && String(r.coordinates).trim() !== '',
+  ).length;
+  const withPhone = rows.filter(
+    (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== '',
+  ).length;
+  const withResponsible = rows.filter(
+    (r) => r && r.responsible_name && String(r.responsible_name).trim() !== '',
+  ).length;
+
+  return { total, withCoordinates, withPhone, withResponsible };
+});
+
+const filteredRowsFT = computed(() => {
+  const base = rowsFT.value || [];
+  switch (cardFilter.value) {
+    case 'withCoordinates':
+      return base.filter(
+        (r) => r && r.coordinates && String(r.coordinates).trim() !== '',
+      );
+    case 'withPhone':
+      return base.filter(
+        (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== '',
+      );
+    case 'withResponsible':
+      return base.filter(
+        (r) => r && r.responsible_name && String(r.responsible_name).trim() !== '',
+      );
+    default:
+      return base;
   }
+});
 
-  /* ===== Errors per row ===== */
-  const itemErrors = ref({});
-  function setItemErrors(item, errors) {
-    itemErrors.value[item.idOrTmp] = errors;
-  }
-  function clearItemErrors(item) {
-    if (itemErrors.value[item.idOrTmp]) delete itemErrors.value[item.idOrTmp];
-  }
-  function hasError(item, field) {
-    return !!itemErrors.value[item.idOrTmp]?.[field];
-  }
-  function getErrorMessages(item, field) {
-    return itemErrors.value[item.idOrTmp]?.[field] ?? [];
-  }
+/* TABLE HEADERS */
+const headersFT = computed(() => [
+  { title: t('نام مدرسه'), key: 'name' },
+  { title: t('نوع مدرسه'), key: 'madrasa_type' },
 
-  /* ===== Rules ===== */
-  const rules = {
-    required: (v) => !!v || t('این فیلد الزامی است'),
-  };
+  { title: t('مسؤول: نام'), key: 'responsible_name' },
+  { title: t('مسؤول: نام پدر'), key: 'responsible_f_name' },
+  { title: t('مسؤول: موقف'), key: 'responsible_position' },
+  { title: t('مسؤول: شماره تماس'), key: 'responsible_phone' },
+  { title: t('ولایت اصلی مسؤول'), key: 'responsible_main_province' },
+  { title: t('نوع طرفداری مسؤول'), key: 'tarafdari_type_responsible' },
 
-  /* ===== Headers ===== */
-  const headers = computed(() => [
-    { title: t('نام مدرسه'), key: 'name' },
-    { title: t('نوع مدرسه'), key: 'madrasa_type' },
+  { title: t('مذهب'), key: 'mazhab' },
+  { title: t('استادان (ذکور)'), key: 'male_teacher_quantity' },
+  { title: t('استادان (اناث)'), key: 'female_teacher_quantity' },
+  { title: t('شاگردان (ذکور)'), key: 'male_students_quantity' },
+  { title: t('شاگردان (اناث)'), key: 'female_students_quantity' },
 
-    { title: t('مسؤول: نام'), key: 'responsible_name' },
-    { title: t('مسؤول: نام پدر'), key: 'responsible_f_name' },
-    { title: t('مسؤول: موقف'), key: 'responsible_position' },
-    { title: t('مسؤول: شماره تماس'), key: 'responsible_phone' },
-    { title: t('ولایت اصلی مسؤول'), key: 'responsible_main_province' },
-    { title: t('نوع طرفداری مسؤول'), key: 'tarafdari_type_responsible' },
+  { title: t('ولایت'), key: 'province' },
+  { title: t('زون'), key: 'zone' },
+  { title: t('ولسوالی'), key: 'district' },
+  { title: t('قریه/ناحیه'), key: 'village' },
+  { title: t('موقعیت مشخص'), key: 'specific_place' },
+  { title: t('شماره سرک'), key: 'street_number' },
+  { title: t('مختصات'), key: 'coordinates' },
 
-    { title: t('مذهب'), key: 'mazhab' },
-    { title: t('استادان (ذکور)'), key: 'male_teacher_quantity' },
-    { title: t('استادان (اناث)'), key: 'female_teacher_quantity' },
-    { title: t('شاگردان (ذکور)'), key: 'male_students_quantity' },
-    { title: t('شاگردان (اناث)'), key: 'female_students_quantity' },
+  { title: t('یادداشت'), key: 'note', width: 300 },
+  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
-    { title: t('آدرس'), key: 'province' },
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-    { title: t('شماره سرک'), key: 'street_number' },
-    { title: t('مختصات'), key: 'coordinates' },
+  { title: t('کود منبع'), key: 'resource_code' },
+  { title: t('شماره منبع'), key: 'resource_phone' },
 
-    { title: t('یادداشت'), key: 'note' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+  { title: t('نقشه'), key: 'map', sortable: false },
+]);
 
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
+/* TOP GROUPS */
+const topGroups = computed(() => [
+  { title: t('مدرسه'), keys: ['name', 'madrasa_type'] },
+  {
+    title: t('مسؤول مدرسه'),
+    keys: [
+      'responsible_name',
+      'responsible_f_name',
+      'responsible_position',
+      'responsible_phone',
+      'responsible_main_province',
+      'tarafdari_type_responsible',
+    ],
+  },
+  {
+    title: t('دینی و احصائیه'),
+    keys: [
+      'mazhab',
+      'male_teacher_quantity',
+      'female_teacher_quantity',
+      'male_students_quantity',
+      'female_students_quantity',
+    ],
+  },
+  { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
+  { title: t('موقعیت/سرک/مختصات'), keys: ['specific_place', 'street_number', 'coordinates'] },
+  { title: t('یادداشت/منبع'), keys: ['note', 'Province_addr', 'resource_code', 'resource_phone'] },
+]);
 
-    { title: t('عملیات'), key: 'actions', sortable: false },
-  ]);
+const filters = ref({});
 
-  const headersFT = computed(() => [
-    { title: t('نام مدرسه'), key: 'name' },
-    { title: t('نوع مدرسه'), key: 'madrasa_type' },
+/* Peek */
+const expanded = ref(false);
+const selectedId = ref(null);
+const loadingOne = ref(false);
+const detail = ref(null);
 
-    { title: t('مسؤول: نام'), key: 'responsible_name' },
-    { title: t('مسؤول: نام پدر'), key: 'responsible_f_name' },
-    { title: t('مسؤول: موقف'), key: 'responsible_position' },
-    { title: t('مسؤول: شماره تماس'), key: 'responsible_phone' },
-    { title: t('ولایت اصلی مسؤول'), key: 'responsible_main_province' },
-    { title: t('نوع طرفداری مسؤول'), key: 'tarafdari_type_responsible' },
-
-    { title: t('مذهب'), key: 'mazhab' },
-    { title: t('استادان (ذکور)'), key: 'male_teacher_quantity' },
-    { title: t('استادان (اناث)'), key: 'female_teacher_quantity' },
-    { title: t('شاگردان (ذکور)'), key: 'male_students_quantity' },
-    { title: t('شاگردان (اناث)'), key: 'female_students_quantity' },
-
-    { title: t('ولایت'), key: 'province' },
-    { title: t('زون'), key: 'zone' },
-    { title: t('ولسوالی'), key: 'district' },
-    { title: t('قریه/ناحیه'), key: 'village' },
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
-    { title: t('شماره سرک'), key: 'street_number' },
-    { title: t('مختصات'), key: 'coordinates' },
-
-    { title: t('یادداشت'), key: 'note' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone' },
-  ]);
-
-  const topGroups = computed(() => [
-    { title: t('مدرسه'), keys: ['name', 'madrasa_type'] },
-    {
-      title: t('مسؤول مدرسه'),
-      keys: [
-        'responsible_name',
-        'responsible_f_name',
-        'responsible_position',
-        'responsible_phone',
-        'responsible_main_province',
-        'tarafdari_type_responsible',
-      ],
-    },
-    {
-      title: t('دینی و احصائیه'),
-      keys: [
-        'mazhab',
-        'male_teacher_quantity',
-        'female_teacher_quantity',
-        'male_students_quantity',
-        'female_students_quantity',
-      ],
-    },
-    { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
-    { title: t('موقعیت/سرک/مختصات'), keys: ['specific_place', 'street_number', 'coordinates'] },
-    { title: t('یادداشت/منبع'), keys: ['note', 'resource_code', 'resource_phone'] },
-  ]);
-
-  /* ===== Filterable data ===== */
-  const rowsFT = computed(() => repo.Madrasas || []);
-  const filters = ref({});
-
-  /* ===== Resources dropdown -> code/phone + id ===== */
-  const resources = computed(() => repo.resourcecode || []);
-  function onResourceCodeChange(item) {
-    const code = item.draft.resource_code;
-    const found = resources.value.find((r) => r.code_number === code);
-    item.draft.resource_phone = found?.phone_number ?? '';
-    item.draft.resource_id = found?.id ?? null;
-  }
-
-  /* ===== Main rows ===== */
-  const rows = ref([]);
-  function setBlankEditorRow() {
-    rows.value = [toRowModel({})];
-  }
-
-  /* ===== Row model & diff ===== */
-  let tmpId = 0;
-  const newTmpId = () => `tmp-${++tmpId}`;
-  function toRowModel(x = {}) {
-    const base = {
-      id: x.id ?? null,
-      idOrTmp: x.id ?? newTmpId(),
-      loading: false,
-
-      picture: x.picture ?? null,
-
-      name: x.name ?? '',
-      madrasa_type: x.madrasa_type ?? '',
-
-      responsible_name: x.responsible_name ?? '',
-      responsible_f_name: x.responsible_f_name ?? '',
-      responsible_position: x.responsible_position ?? '',
-      responsible_phone: x.responsible_phone ?? '',
-      responsible_main_province: x.responsible_main_province ?? '',
-      tarafdari_type_responsible: x.tarafdari_type_responsible ?? '',
-
-      mazhab: x.mazhab ?? '',
-      male_teacher_quantity: x.male_teacher_quantity ?? '',
-      female_teacher_quantity: x.female_teacher_quantity ?? '',
-      male_students_quantity: x.male_students_quantity ?? '',
-      female_students_quantity: x.female_students_quantity ?? '',
-
-      province: x.province ?? '',
-      zone: x.zone ?? '',
-      district: x.district ?? '',
-      village: x.village ?? '',
-      specific_place: x.specific_place ?? '',
-      Province_addr: x.Province_addr ?? '',
-      street_number: x.street_number ?? '',
-      coordinates: x.coordinates ?? '',
-
-      note: x.note ?? '',
-
-      resource_code: x.resource_code ?? '',
-      resource_phone: x.resource_phone ?? '',
-      resource_id: x.resource_id ?? null,
-    };
-    return { ...base, draft: { ...base } };
-  }
-
-  const EDITABLE_KEYS = [
-    'picture',
-    'name',
-    'madrasa_type',
-    'responsible_name',
-    'responsible_f_name',
-    'responsible_position',
-    'responsible_phone',
-    'responsible_main_province',
-    'tarafdari_type_responsible',
-    'mazhab',
-    'male_teacher_quantity',
-    'female_teacher_quantity',
-    'male_students_quantity',
-    'female_students_quantity',
-    'province',
-    'zone',
-      'Province_addr',
-    'district',
-    'village',
-    'specific_place',
-    'street_number',
-    'coordinates',
-    'note',
-    'resource_code',
-    'resource_phone',
-    'resource_id',
-  ];
-  const REQUIRED_ON_UPDATE = ['name'];
-
-  function diffDraft(item) {
-    const d = item.draft || {};
-    const changed = {};
-    for (const k of EDITABLE_KEYS) {
-      const prev = item[k];
-      const next = d[k];
-      if (next instanceof File) {
-        if (!(prev instanceof File)) changed[k] = next;
-        continue;
-      }
-      if ((next ?? '') !== (prev ?? '')) changed[k] = next;
-    }
-    for (const k of REQUIRED_ON_UPDATE) {
-      if (d[k] !== undefined) changed[k] = d[k];
-    }
-    return changed;
-  }
-
-  function toFormDataSelective(obj) {
-    const fd = new FormData();
-    Object.entries(obj || {}).forEach(([k, v]) => {
-      if (v !== undefined && v !== null) fd.append(k, v);
-    });
-    return fd;
-  }
-
-  /* ===== Save / Delete / Submit ===== */
-  async function save(item) {
-    if (!item?.draft?.name?.trim()) {
-      showErrorMessage(t('نام مدرسه الزامی است'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-    item.loading = true;
-    clearItemErrors(item);
-    try {
-      // CREATE
-      if (!item.id) {
-        const fd = toFormDataSelective(item.draft);
-        await repo.CreateMadrasa?.(fd);
-        await fetchAll();
-        setBlankEditorRow();
-        editorForm.value?.resetValidation?.();
-        return;
-      }
-      // UPDATE
-      const changed = diffDraft(item);
-      if (Object.keys(changed).length === 0) {
-        showErrorMessage(t('هیچ تغییری برای ذخیره وجود ندارد'));
-        return;
-      }
-      const fd = toFormDataSelective(changed);
-      await repo.UpdateMadrasa?.(item.id, fd);
+async function fetchOne(id) {
+  loadingOne.value = true;
+  try {
+    if (typeof repo.FetchMadrasaData === 'function') {
+      await repo.FetchMadrasaData(id);
+      const single = Array.isArray(repo.Madrasa) ? repo.Madrasa[0] : repo.Madrasa;
+      detail.value = single || {};
+    } else {
       await fetchAll();
-      setBlankEditorRow();
-      editorForm.value?.resetValidation?.();
-    } catch (error) {
-      if (error?.response?.data?.errors) {
-        setItemErrors(item, error.response.data.errors);
-        showErrorMessage(t('لطفا خطاهای فرم را بررسی کنید'));
-      } else {
-        showErrorMessage(t('خطا در ذخیره اطلاعات') + ': ' + (error?.message || t('خطای ناشناخته')));
-      }
-    } finally {
-      item.loading = false;
+      const list = rowsFT.value || [];
+      detail.value = list.find((r) => r.id === id) || {};
     }
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات مدرسه'));
+  } finally {
+    loadingOne.value = false;
   }
+}
 
-  async function onSubmit(item) {
-    const { valid } = await editorForm.value.validate();
-    if (!valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-    await save(item);
-  }
+function openPeek(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  selectedId.value = row.id;
+  expanded.value = true;
+  fetchOne(row.id);
+}
 
-  function scrollToFirstInvalid() {
-    const root = editorCard.value?.$el || editorCard.value || document;
-    const first = root.querySelector(
-      '.v-input--error, [aria-invalid="true"], .v-messages__message'
-    );
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      input?.focus?.();
-    }
-  }
+/* navigation */
+function goCreate() {
+  router.push('/app/madrasas/form');
+}
 
-  async function del(item) {
-    if (!item.id) {
-      setBlankEditorRow();
-      return;
-    }
-    if (!confirm(t('آیا مطمئن هستید؟'))) return;
-    try {
-      await repo.DeleteMadrasa?.(item.id);
-      await fetchAll();
-      setBlankEditorRow();
-    } catch (e) {
-      showErrorMessage(t('خطا در حذف') + ': ' + (e?.message || t('خطای ناشناخته')));
-    }
-  }
+function goEdit(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push(`/app/madrasas/form/${row.id}`);
+}
 
-  async function startEdit(row) {
-    const id = row?.id;
-    if (!id) return;
-    try {
-      await repo.FetchMadrasaData?.(id);
-      const single = Array.isArray(repo.Madrasa) ? repo.Madrasa[0] : repo.Madrasa || row;
-      rows.value = [toRowModel(single || row)];
-      await nextTick();
-      (editorCard.value?.$el || editorCard.value)?.scrollIntoView?.({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    } catch (e) {
-      showErrorMessage(t('خطا در باز کردن مورد برای ویرایش'));
-    }
-  }
+/* delete with dialog */
+const deleteDialog = ref(false);
+const deleteTarget = ref(null);
 
-  /* ===== Fetch & init ===== */
-  async function fetchAll() {
-    await repo.FetchMadrasasData?.({ page: 1, itemsPerPage: 100000, search: repo.Search || '' });
-  }
-  onMounted(async () => {
-    await Promise.allSettled([repo.GetResourceCode?.()]);
+function openDeleteDialog(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  deleteTarget.value = row;
+  deleteDialog.value = true;
+}
+
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value;
+  deleteDialog.value = false;
+  if (!row?.id) return;
+  try {
+    await repo.DeleteMadrasa?.(row.id);
     await fetchAll();
-    setBlankEditorRow();
-  });
+    showErrorMessage(t('حذف شد'));
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در حذف'));
+  } finally {
+    deleteTarget.value = null;
+  }
+}
+
+/* fetch all */
+async function fetchAll() {
+  try {
+    await repo.FetchMadrasasData?.({
+      page: 1,
+      itemsPerPage: 100000,
+      search: repo.Search || '',
+    });
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت فهرست مدرسه‌ها'));
+  }
+}
+
+function clearSearch() {
+  repo.Search = '';
+  fetchAll();
+}
+
+/* init */
+onMounted(async () => {
+  await fetchAll();
+});
 </script>
 
 <style scoped>
-  .custom-table :deep(.v-data-table__thead th) {
-    background: rgb(var(--v-theme-primary));
-    color: #fff;
-    font-weight: 400;
-  }
+.ga-2 {
+  gap: 8px;
+}
 
-  /* layout like Fasad */
-  .addr-group {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(120px, 1fr));
-    gap: 2px;
-  }
-  .text-group {
-    display: grid;
-    width: 140px;
-    gap: 2px;
-  }
-  .text-group-note {
-    display: grid;
-    width: 380px;
-    gap: 2px;
-  }
+/* Background like other indexes */
+.page-bg {
+  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+  font-family: inherit;
+}
 
-  .flex {
-    display: flex;
-  }
-  .items-center {
-    align-items: center;
-  }
-  .gap-1 {
-    gap: 4px;
-  }
+/* Stats cards */
+.stat-card {
+  cursor: pointer;
+  border-radius: 14px;
+  border: 1px solid rgba(33, 150, 243, 0.08);
+  background: #ffffff;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.15s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
 
-  .tablebody {
-    display: flex !important;
-    gap: 2px !important;
-  }
+.stat-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  border-color: rgba(33, 150, 243, 0.35);
+}
 
-  /* compact spacing like Fasad */
-  :deep(.v-field-label),
-  :deep(.v-label),
-  :deep(input::placeholder) {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    color: #555 !important;
-  }
-  :deep(.v-field__input) {
-    min-height: 26px !important;
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-  }
-  .addr-group,
-  .addr-group1,
-  .text-group,
-  .text-group-note {
-    margin: -16px !important;
-    padding: -10px !important;
-    row-gap: -6px !important;
-    column-gap: 2px !important;
-    gap: -10px !important;
-  }
+.stat-card--active {
+  border-color: rgba(25, 118, 210, 0.9);
+  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+}
+
+.stat-card-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.stat-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e3f2fd;
+}
+
+.stat-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stat-card-subtitle {
+  font-size: 11px;
+  color: #666;
+}
 </style>

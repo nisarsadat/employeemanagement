@@ -424,7 +424,7 @@
     {
       slug: 'emarat-offices',
       labelFa: 'فورم‌های دفاتر امارت',
-      path: '/emarat-offices',
+      path: '/emaratoffices',
       icon: '🏛️',
       perm: 'emarat_offices',
     },
@@ -452,7 +452,7 @@
     {
       slug: 'mashkok-people',
       labelFa: 'فورم‌های افراد مشکوک',
-      path: '/mashkok-people',
+      path: '/mashkokpeoples',
       icon: '🕵️‍♂️',
       perm: 'mashkok_people',
     },
@@ -466,7 +466,7 @@
     {
       slug: 'old-jahadis',
       labelFa: 'فورم‌های قومندانان جهادی قدیمی',
-      path: '/old-jahadis',
+      path: '/oldjahadis',
       icon: '🎖️',
       perm: 'old_jahadis',
     },

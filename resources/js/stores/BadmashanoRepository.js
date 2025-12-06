@@ -323,11 +323,11 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       try {
         setContentType('application/json');
         const { data } = await axios.get(`/hotels/${id}`);
-        this.Hotels = data?.data ?? {};
+        this.Hotel = data?.data ?? {};
       } catch (e) {
         console.error(e);
         this.error = e;
-        this.Hotels = {};
+        this.Hotel = {};
       }
     },
 
@@ -589,7 +589,7 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       }
     },
 
-    async FetchMujahedino(id) {
+    async FetchMujahedinoData(id) {
       try {
         setContentType('application/json');
         const { data } = await axios.get(`/mujahedinos/${id}`);
@@ -954,11 +954,11 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       try {
         setContentType('application/json');
         const { data } = await axios.get(`/madrasas/${id}`);
-        this.Madrasas = data?.data ?? {};
+        this.Madrasa = data?.data ?? {};
       } catch (e) {
         console.error(e);
         this.error = e;
-        this.Madrasas = {};
+        this.Madrasa = {};
       }
     },
 

@@ -141,6 +141,14 @@ import HospitalForm from '../pages/FiftyFormats/HospitalForm.vue';
 import WorkShopForm from '../pages/FiftyFormats/WorkShopForm.vue';
 import BadmashanoForm from '../pages/FiftyFormats/BadmashanoForm.vue';
 import SarayanoForm from '../pages/FiftyFormats/SarayanoForm.vue';
+import HostelForm from '../pages/FiftyFormats/HostelForm.vue';
+import EmaratOfficeForm from '../pages/FiftyFormats/EmaratOfficeForm.vue';
+import HotelForm from '../pages/FiftyFormats/HotelForm.vue';
+import MadrasaForm from '../pages/FiftyFormats/MadrasaForm.vue';
+import MashkokPeopleForm from '../pages/FiftyFormats/MashkokPeopleForm.vue';
+import MujahedinoForm from '../pages/FiftyFormats/MujahedinoForm.vue';
+import OldJahadisForm from '../pages/FiftyFormats/OldJahadisForm.vue';
+import TujaransForm from '../pages/FiftyFormats/TujaransForm.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -850,19 +858,76 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('hostels') },
         },
         {
+          path: '/app/hotelform',
+          component: HotelForm,
+        },
+        {
+          path: '/app/hotelform/:id',
+          component: HotelForm,
+          props: true,
+        },
+        {
+          path: '/app/hostelform',
+          name: 'HostelCreate',
+          component: HostelForm,
+        },
+
+        {
+          path: '/app/hostelform/:id',
+          name: 'HostelEdit',
+          component: HostelForm,
+          props: true,
+        },
+        {
           path: 'tujarans',
           component: Tujarans,
           meta: { requiresAuth: true, perm: permFor('tujarans') },
         },
         {
+          path: '/app/tujarans',
+          name: 'TujaransIndex',
+          component: TujaransForm,
+        },
+        {
+          path: '/app/tujaransform/:id?',
+          name: 'TujaransForm',
+          component: TujaransForm,
+          props: true,
+        },
+
+        {
           path: 'mujahedinos',
           component: Mujahedinos,
           meta: { requiresAuth: true, perm: permFor('mujahedinos') },
         },
+        // src/router/index.js (or wherever your routes live)
+        {
+          path: '/app/mujahedino',
+          name: 'MujahedinoIndex',
+          component: MujahedinoForm,
+        },
+        {
+          path: '/app/mujahedinoform/:id?',
+          name: 'MujahedinoForm',
+          component: MujahedinoForm,
+          props: true,
+        },
+
         {
           path: 'emaratoffices',
           component: EmaratOffices,
           meta: { requiresAuth: true, perm: permFor('emaratoffices') },
+        },
+        {
+          path: '/app/emarat-offices/form',
+          name: 'EmaratOfficeCreate',
+          component: EmaratOfficeForm,
+        },
+        {
+          path: '/app/emarat-offices/form/:id',
+          name: 'EmaratOfficeEdit',
+          component: EmaratOfficeForm,
+          props: true,
         },
         {
           path: 'oldjahadis',
@@ -870,15 +935,51 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('oldjahadis') },
         },
         {
+          path: '/app/oldjahadis',
+          name: 'OldJahadisIndex',
+          component: OldJahadisForm,
+        },
+        {
+          path: '/app/oldjahadisform/:id?',
+          name: 'OldJahadisForm',
+          component: OldJahadisForm,
+          props: true,
+        },
+
+        {
           path: 'mashkokpeoples',
           component: MashkokPeopls,
           meta: { requiresAuth: true, perm: permFor('mashkokpeoples') },
+        },
+        {
+          path: '/app/mashkokpeopleform',
+          name: 'MashkokPeopleCreate',
+          component: MashkokPeopleForm,
+        },
+        {
+          path: '/app/mashkokpeopleform/:id',
+          name: 'MashkokPeopleEdit',
+          component: MashkokPeopleForm,
+          props: true,
         },
         {
           path: 'madrasas',
           component: Madrasa,
           meta: { requiresAuth: true, perm: permFor('madrasas') },
         },
+        // ...
+        {
+          path: '/app/madrasas',
+          name: 'MadrasasIndex',
+          component: MadrasaForm,
+        },
+        {
+          path: '/app/madrasas/form/:id?',
+          name: 'MadrasaForm',
+          component: MadrasaForm,
+          props: true,
+        },
+        // ...
 
         // 56 Formats — four
         {

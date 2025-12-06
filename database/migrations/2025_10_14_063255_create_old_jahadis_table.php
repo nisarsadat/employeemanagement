@@ -34,6 +34,7 @@ return new class extends Migration {
             $table->string('employee_quantity')->nullable();
             $table->string('supplier')->nullable();
             $table->string('tanzim')->nullable();
+            $table->string('organ')->nullable();
 
             $table->text('note')->nullable();
             $table->text('coordinates')->nullable();

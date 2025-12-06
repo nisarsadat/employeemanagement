@@ -32,6 +32,7 @@ class StoreOldJahadiRequest extends FormRequest
             'employee_quantity' => ['nullable','string'],
             'supplier' => ['nullable','string'],
             'tanzim' => ['nullable','string'],
+            'organ' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
 
             'note' => ['nullable','string'],

@@ -33,6 +33,7 @@ class OldJahadiResource extends JsonResource
             'employee_quantity' => $this->employee_quantity,
             'supplier' => $this->supplier,
             'tanzim' => $this->tanzim,
+            'organ' => $this->organ,
             'Province_addr'               => $this->Province_addr,
 
             'note' => $this->note,
