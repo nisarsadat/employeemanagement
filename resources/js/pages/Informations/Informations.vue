@@ -275,6 +275,18 @@
               </v-icon>
             </template>
           </v-tooltip>
+          <v-tooltip text="فرم معلومات (PDF / Word)" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                size="small"
+                v-bind="tooltipProps"
+                color="indigo-darken-2"
+                @click.stop="goPrint(item)"
+              >
+                mdi-file-document-outline
+              </v-icon>
+            </template>
+          </v-tooltip>
         </div>
       </template>
     </FilterableTable>
@@ -332,6 +344,11 @@
   /* ===== helper to unwrap row/raw ===== */
   function getRow(payload) {
     return payload?.raw ?? payload;
+  }
+  function goPrint(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/informations/print/${row.id}`);
   }
 
   /* ===== Data sources to arrays ===== */

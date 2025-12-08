@@ -64,7 +64,7 @@
           <v-icon icon="mdi-account-details" class="mr-2"></v-icon>
           {{ t('مشخصات منبع') }}
           <v-spacer></v-spacer>
-          <v-chip :color="statusChipColor" size="default" class="status-chip fontfamily">
+          <v-chip :color="statusChipColor" size="default" class="status-chip fontfamily white">
             {{ model.activity || t('نامشخص') }}
           </v-chip>
         </v-card-title>
@@ -350,7 +350,7 @@
   /* Status chip color */
   const statusChipColor = computed(() => {
     const s = (model.value?.activity || '').toString().toLowerCase();
-    if (['فعال', 'active', 'on', 'working', 'valid'].some((k) => s.includes(k))) return 'black';
+    if (['فعال', 'active', 'on', 'working', 'valid'].some((k) => s.includes(k))) return 'white';
     if (['غیر فعال', 'inactive', 'off', 'blocked', 'invalid'].some((k) => s.includes(k)))
       return 'error';
     return 'warning';

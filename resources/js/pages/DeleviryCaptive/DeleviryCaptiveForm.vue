@@ -1289,7 +1289,7 @@ const progressValue = computed(() => (completedSteps.value / 4) * 100);
 .stepper-shell {
   position: absolute;
   top: 80px;
-  left: 5%;
+  left: 50%;
   transform: translateX(-50%);
   max-width: 85%;
   width: 100%;

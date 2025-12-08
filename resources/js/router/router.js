@@ -165,6 +165,7 @@ import ComplexForm from '../pages/FiftyFormats/ComplexForm.vue';
 import DeplomaticPlaceForm from '../pages/FiftyFormats/DeplomaticPlaceForm.vue';
 import UniversityForm from '../pages/FiftyFormats/UniversityForm.vue';
 import WakilanoForm from '../pages/FiftyFormats/WakilanoForm.vue';
+import InformationPrintDialog from '../pages/Informations/InformationPrintDialog.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -283,7 +284,11 @@ const router = createRouter({
           component: InformationsForm,
           meta: { requiresAuth: true, perm: permFor('informations') },
         },
-
+        {
+          path: '/app/informations/print/:id',
+          name: 'InformationPrint',
+          component: InformationPrintDialog,
+        },
         {
           path: 'informationform/:id/:relation?',
           name: 'informationform.edit',
