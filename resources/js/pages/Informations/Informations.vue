@@ -280,7 +280,7 @@
               <v-icon
                 size="small"
                 v-bind="tooltipProps"
-                color="indigo-darken-2"
+                color="primary"
                 @click.stop="goPrint(item)"
               >
                 mdi-file-document-outline

@@ -132,6 +132,7 @@ use App\Models\OfficeEmployee;
 use App\Http\Controllers\Reports\FiftyFormatsReportController;
 use App\Http\Controllers\Api\InformationReportController;
 use App\Http\Controllers\CaptiveDocumentController;
+use App\Http\Controllers\EmployeeManagementDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -428,5 +429,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('information-report/activity-report', [InformationReportController::class, 'activityReport']);
     Route::get('fifty-formats/counts', [FifthyFormatsCountController::class, 'index']);
+        // ---------------------- Employee Management Dashboard ----------------------
+    Route::prefix('dashboard/employee-management')->group(function () {
+        // Cards: totals (employees, resources, active/inactive, info, events, captive, money, oil)
+        Route::get('/cards', [EmployeeManagementDashboardController::class, 'cards']);
+
+        // Time series for graphs (resources, informations, events) with ?from= & ?to=
+        Route::get('/timeseries', [EmployeeManagementDashboardController::class, 'timeseries']);
+
+        // 56 formats categorized by hawza
+        Route::get('/formats-by-hawza', [EmployeeManagementDashboardController::class, 'formatsByHawza']);
+    });
+
 
 });

@@ -1,207 +1,438 @@
 <template>
-  <AppBar :title="t('دشبورد')" @toggle-drawer="drawer = !drawer">
+  <!-- APP BAR (same pattern as other pages) -->
+  <AppBar :title="t('د کارمند مدیریت عمومي داشبورد')" @toggle-drawer="drawer = !drawer">
     <template #actions>
       <v-btn icon />
     </template>
   </AppBar>
 
-  <v-container fluid class="bg-bgproject py-4" :dir="isRtl ? 'rtl' : 'ltr'">
-    <!-- Main Tabs -->
-    <v-row class="align-start">
+  <v-container fluid class="page-bg" :dir="isRtl ? 'rtl' : 'ltr'">
+    <v-row class="mt-4">
       <v-col cols="12">
-        <v-tabs
-          v-model="mainTab"
-          fixed-tabs
-          class="mb-3 rounded-xl"
-          align-tabs="center"
-          density="comfortable"
-          color="primary"
-        >
-          <v-tab value="accounts">{{ t('افراد') }}</v-tab>
-          <v-tab value="cashflow">{{ t('اطلاعات و واقعات') }}</v-tab>
-          <v-tab value="oil">{{ t('۵۶ فارمت') }}</v-tab>
-          <v-tab value="report">{{ t('بخش مالی') }}</v-tab>
-        </v-tabs>
+        <v-card elevation="2" class="pa-3 rounded-xl">
+          <!-- HEADER + REFRESH -->
+          <div class="d-flex justify-space-between align-center mb-3">
+            <div>
+              <div class="text-subtitle-1 font-weight-bold">
+                {{ t('د کارمند مدیریت عمومي انځور') }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                {{
+                  t(
+                    'ټول دفتر کارمندان، منابع، اطلاعات، واقعات، تسلیم شوي بندیان او ۵۶ فارمتونه په یوه صفحه کې.'
+                  )
+                }}
+              </div>
+            </div>
 
-        <v-window v-model="mainTab">
-          <!-- ========== Accounts Window ========== -->
-          <v-window-item value="accounts">
-            <v-card elevation="2" class="pa-2 rounded-xl">
-              <v-tabs
-                v-model="accountsTab"
-                grow
-                class="mb-2 rounded-lg"
-                color="primary"
-                density="comfortable"
-              >
-                <v-tab value="list">{{ t('کارمندان') }}</v-tab>
-                <v-tab value="types">{{ t('منابع') }}</v-tab>
-                <v-tab value="type">{{ t('زندانی های تسلیم شده') }}</v-tab>
-              </v-tabs>
+            <v-btn
+              variant="text"
+              class="text-none"
+              prepend-icon="mdi-refresh"
+              :loading="isAnyLoading"
+              @click="refreshAll"
+            >
+              {{ t('ټول تازه کول') }}
+            </v-btn>
+          </div>
 
-              <v-window v-model="accountsTab" v-if="auth.can('PeopleDashboard.view')">
-                <v-window-item value="list">
-                  <officeemployeedashboard />
-                </v-window-item>
-                <v-window-item value="types">
-                  <ResourceDashboard />
-                </v-window-item>
-                <v-window-item value="type">
-                  <CaptiveDeleviryDashboard />
-                </v-window-item>
-              </v-window>
-            </v-card>
-          </v-window-item>
+          <!-- ========== STAT CARDS ========== -->
+          <v-row dense class="mb-4">
+            <!-- Employees -->
+            <v-col cols="12" sm="6" md="3">
+              <v-card class="pa-3 elevation-2 rounded-xl">
+                <div class="d-flex justify-space-between align-center">
+                  <div>
+                    <div class="text-caption text-medium-emphasis">
+                      {{ t('ټول دفتر کارمندان') }}
+                    </div>
+                    <div class="text-h5 font-weight-bold">
+                      {{ repo.cards.total_employees }}
+                    </div>
+                  </div>
+                  <v-avatar size="32">
+                    <v-icon>mdi-account-group</v-icon>
+                  </v-avatar>
+                </div>
+              </v-card>
+            </v-col>
 
-          <!-- ========== Cashflow (Income/Expense) Window ========== -->
-          <v-window-item value="cashflow">
-            <v-card elevation="2" class="pa-2 rounded-xl">
-              <v-tabs
-                v-model="cashflowTab"
-                grow
-                class="mb-2 rounded-lg"
-                color="primary"
-                density="comfortable"
-              >
-                <v-tab value="income">{{ t('اطلاعات') }}</v-tab>
-                <v-tab value="expense">{{ t('واقعات') }}</v-tab>
-              </v-tabs>
+            <!-- Resources total + active/inactive -->
+            <v-col cols="12" sm="6" md="3">
+              <v-card class="pa-3 elevation-2 rounded-xl">
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('ټول منابع') }}
+                </div>
+                <div class="text-h5 font-weight-bold">
+                  {{ repo.cards.total_resources }}
+                </div>
+                <div class="text-caption text-medium-emphasis d-flex justify-space-between mt-1">
+                  <span>{{ t('فعال') }}: {{ repo.cards.total_resources_active }}</span>
+                  <span>{{ t('غیر فعال') }}: {{ repo.cards.total_resources_inactive }}</span>
+                </div>
+              </v-card>
+            </v-col>
 
-              <v-window v-model="cashflowTab" v-if="auth.can('InfoEnevtDashboard.view')">
-                <v-window-item value="income">
-                  <InfoDashboard />
-                </v-window-item>
-                <v-window-item value="expense">
-                  <EventDashboard />
-                </v-window-item>
-              </v-window>
-            </v-card>
-          </v-window-item>
+            <!-- Informations -->
+            <v-col cols="12" sm="6" md="3">
+              <v-card class="pa-3 elevation-2 rounded-xl">
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('ټول اطلاعات') }}
+                </div>
+                <div class="text-h5 font-weight-bold">
+                  {{ repo.cards.total_informations }}
+                </div>
+                <div class="text-caption text-medium-emphasis mt-1">
+                  {{ t('پر منابع او افرادو') }}
+                </div>
+              </v-card>
+            </v-col>
 
-          <!-- ========== Oil Window ========== -->
-          <v-window-item value="oil">
-            <v-card elevation="2" class="pa-2 rounded-xl">
-              <v-tabs
-                v-model="oilTab"
-                grow
-                class="mb-2 rounded-lg"
-                color="primary"
-                density="comfortable"
-              >
-                <v-tab value="income">{{ t('۵۶ فارمت ') }}</v-tab>
-                <v-tab value="expense">{{ t('۵۶ فارمت') }}</v-tab>
-                <v-tab value="accountssss">{{ t('۵۶ فارمت') }}</v-tab>
-                <v-tab value="accountsss">{{ t('۵۶ فارمت') }}</v-tab>
-                <v-tab value="accountss">{{ t('۵۶ فارمت') }}</v-tab>
-              </v-tabs>
+            <!-- Events -->
+            <v-col cols="12" sm="6" md="3">
+              <v-card class="pa-3 elevation-2 rounded-xl">
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('ټولې پیښې') }}
+                </div>
+                <div class="text-h5 font-weight-bold">
+                  {{ repo.cards.total_events }}
+                </div>
+                <div class="text-caption text-medium-emphasis mt-1">
+                  {{ t('په سیستم کې ثبت شوي') }}
+                </div>
+              </v-card>
+            </v-col>
 
-              <v-window v-model="oilTab" v-if="auth.can('FifthyFormatDashboard.view')">
-                <v-window-item value="income">
-                  <FirstTen />
-                </v-window-item>
-                <v-window-item value="expense">
-                  <SecondTen />
-                </v-window-item>
-                <v-window-item value="accountssss">
-                  <ThirdTen />
-                </v-window-item>
-                <v-window-item value="accountsss">
-                  <FourthTen />
-                </v-window-item>
-                <v-window-item value="accountss">
-                  <FifthTen />
-                </v-window-item>
-              </v-window>
-            </v-card>
-          </v-window-item>
+            <!-- Captive deliveries -->
+            <v-col cols="12" sm="6" md="3">
+              <v-card class="pa-3 elevation-2 rounded-xl mt-2">
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('ټول تسلیم شوي بندیان') }}
+                </div>
+                <div class="text-h5 font-weight-bold">
+                  {{ repo.cards.total_captive_deliveries }}
+                </div>
+              </v-card>
+            </v-col>
 
-          <!-- ========== Reports Window ========== -->
-          <v-window-item value="report">
-            <v-card elevation="2" class="pa-2 rounded-xl">
-              <v-tabs
-                v-model="reportTab"
-                grow
-                class="mb-2 rounded-lg"
-                color="primary"
-                density="comfortable"
-              >
-                <v-tab value="oilreport">{{ t('بخش تیل') }}</v-tab>
-                <v-tab value="moneyreport">{{ t('بخش پول') }}</v-tab>
-              </v-tabs>
+            <!-- Money summary -->
+            <v-col cols="12" sm="6" md="4">
+              <v-card class="pa-3 elevation-2 rounded-xl mt-2">
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('مالي وضعیت (پیسې)') }}
+                </div>
+                <div class="text-subtitle-1 font-weight-bold">
+                  {{ t('ټول موجوده پیسې') }}:
+                  {{ repo.cards.total_money_balance }}
+                </div>
+                <div class="text-caption text-medium-emphasis mt-1">
+                  {{ t('عاید') }}: {{ repo.cards.total_money_income }}
+                  &nbsp; | &nbsp;
+                  {{ t('مصرف') }}: {{ repo.cards.total_money_expense }}
+                </div>
+              </v-card>
+            </v-col>
 
-              <!-- bind to reportTab (fixed) -->
-              <v-window v-model="reportTab" v-if="auth.can('FininaceDashboard.view')">
-                <v-window-item value="oilreport">
-                  <OilReport />
-                </v-window-item>
-                <v-window-item value="moneyreport">
-                  <MoneyReport />
-                </v-window-item>
-              </v-window>
-            </v-card>
-          </v-window-item>
-        </v-window>
+            <!-- Oil summary -->
+            <v-col cols="12" sm="6" md="4">
+              <v-card class="pa-3 elevation-2 rounded-xl mt-2">
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('د تېلو حساب') }}
+                </div>
+                <div class="text-subtitle-1 font-weight-bold">
+                  {{ t('ټول موجود تېل') }}:
+                  {{ repo.cards.total_oil_balance }}
+                </div>
+                <div class="text-caption text-medium-emphasis mt-1">
+                  {{ t('عاید') }}: {{ repo.cards.total_oil_income }}
+                  &nbsp; | &nbsp;
+                  {{ t('مصرف') }}: {{ repo.cards.total_oil_expense }}
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <!-- ========== TIME FILTER + GRAPHS ========== -->
+          <v-row dense>
+            <!-- Filter (MODE buttons instead of date range) -->
+            <v-col cols="12" md="4">
+              <v-card class="pa-3 rounded-xl elevation-1">
+                <div class="d-flex justify-space-between align-center mb-2">
+                  <div class="text-subtitle-2 font-weight-medium">
+                    {{ t('مهالوېش فلټر') }}
+                  </div>
+                  <v-btn
+                    size="small"
+                    variant="text"
+                    prepend-icon="mdi-refresh"
+                    :loading="repo.isLoadingTimeseries"
+                    @click="refreshTimeseries"
+                  >
+                    {{ t('ګراف تازه کول') }}
+                  </v-btn>
+                </div>
+
+                <!-- MODE BUTTONS -->
+                <div class="mode-buttons" :class="isRtl ? 'mode-buttons-rtl' : 'mode-buttons-ltr'">
+                  <v-btn
+                    v-for="mode in timeModes"
+                    :key="mode.value"
+                    size="small"
+                    variant="outlined"
+                    class="text-none"
+                    :color="repo.timeseriesMode === mode.value ? 'primary' : undefined"
+                    :class="{
+                      'mode-active': repo.timeseriesMode === mode.value,
+                    }"
+                    @click="setMode(mode.value)"
+                  >
+                    {{ mode.label }}
+                  </v-btn>
+                </div>
+
+                <div class="text-caption text-medium-emphasis mt-2">
+                  {{
+                    t(
+                      'یو حالت وټاکه: ورځنی، اونیز، میاشتنی، کلنی یا ټول وخت. ټول وخت د پروژې له پیل نه تر اوسه پورې معلومات ښيي.'
+                    )
+                  }}
+                </div>
+              </v-card>
+            </v-col>
+
+            <!-- Resources over time -->
+            <v-col cols="12" md="8">
+              <v-card class="pa-3 rounded-xl elevation-1 h-100">
+                <div class="d-flex justify-space-between align-center mb-2">
+                  <div class="text-subtitle-2 font-weight-medium">
+                    {{ t('منابع د وخت په تېرېدو') }}
+                  </div>
+                </div>
+
+                <!-- ✅ SHOW DATE LABELS -->
+                <v-sparkline
+                  :value="resourceSeries.data"
+                  :labels="resourceSeries.labels"
+                  smooth
+                  auto-draw
+                  auto-draw-duration="800"
+                  height="80"
+                  show-labels
+                  label-size="9"
+                />
+
+                <div class="text-caption text-medium-emphasis mt-1">
+                  {{ t('د ټاکل شوي مودې په جریان کې د منابعو شمېر ښيي.') }}
+                </div>
+              </v-card>
+            </v-col>
+
+            <!-- Informations over time -->
+            <v-col cols="12" md="6" class="mt-4">
+              <v-card class="pa-3 rounded-xl elevation-1 h-100">
+                <div class="text-subtitle-2 font-weight-medium mb-2">
+                  {{ t('اطلاعات د وخت په تېرېدو') }}
+                </div>
+
+                <!-- ✅ SHOW DATE LABELS -->
+                <v-sparkline
+                  :value="informationSeries.data"
+                  :labels="informationSeries.labels"
+                  smooth
+                  auto-draw
+                  auto-draw-duration="800"
+                  height="80"
+                  show-labels
+                  label-size="9"
+                />
+
+                <div class="text-caption text-medium-emphasis mt-1">
+                  {{ t('د ټاکل شوي مودې په جریان کې ثبت شوي اطلاعات.') }}
+                </div>
+              </v-card>
+            </v-col>
+
+            <!-- Events over time -->
+            <v-col cols="12" md="6" class="mt-4">
+              <v-card class="pa-3 rounded-xl elevation-1 h-100">
+                <div class="text-subtitle-2 font-weight-medium mb-2">
+                  {{ t('پیښې د وخت په تېرېدو') }}
+                </div>
+
+                <!-- ✅ SHOW DATE LABELS -->
+                <v-sparkline
+                  :value="eventSeries.data"
+                  :labels="eventSeries.labels"
+                  smooth
+                  auto-draw
+                  auto-draw-duration="800"
+                  height="80"
+                  show-labels
+                  label-size="9"
+                />
+
+                <div class="text-caption text-medium-emphasis mt-1">
+                  {{ t('د ټاکل شوي مودې په جریان کې ثبت شوي پیښې.') }}
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <!-- ========== 56 FORMATS BY HAWZA - CHART INSTEAD OF TABLE ========== -->
+          <v-row class="mt-6">
+            <v-col cols="12">
+              <v-card class="pa-3 rounded-xl elevation-2">
+                <div class="d-flex justify-space-between align-center mb-3">
+                  <div>
+                    <div class="text-subtitle-1 font-weight-medium">
+                      {{ t('۵۶ فارمتونه د حوزې له مخې') }}
+                    </div>
+                    <div class="text-caption text-medium-emphasis">
+                      {{
+                        t(
+                          'هر نقطه د یوې حوزې د ټولو فارمتونو مجموع ښيي. د افقي محور په اوږدو کې حوزې ښکاري.'
+                        )
+                      }}
+                    </div>
+                  </div>
+
+                  <v-btn
+                    size="small"
+                    variant="text"
+                    prepend-icon="mdi-refresh"
+                    :loading="repo.isLoadingFormats"
+                    @click="repo.FetchFormatsByHawza"
+                  >
+                    {{ t('فارمتونه تازه کول') }}
+                  </v-btn>
+                </div>
+
+                <!-- 📈 HAWZA TOTALS CHART -->
+                <v-sparkline
+                  :value="hawzaSeries.data"
+                  :labels="hawzaSeries.labels"
+                  smooth
+                  auto-draw
+                  auto-draw-duration="800"
+                  height="100"
+                  show-labels
+                  label-size="9"
+                />
+
+                <div class="text-caption text-medium-emphasis mt-1">
+                  {{
+                    t(
+                      'هر لیبل یوه حوزه ده او ارزښت یې د هغې حوزې د ټولو فارمتونو مجموع ده.'
+                    )
+                  }}
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-card>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue';
-  import { useI18n } from 'vue-i18n';
+import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-  import AppBar from '../../components/AppBar.vue';
-  import officeemployeedashboard from './PeopleDashboard/Officeemployeedashboard.vue';
-  import CaptiveDeleviryDashboard from './PeopleDashboard/CaptiveDeliveryDashboard.vue';
-  import ResourceDashboard from './PeopleDashboard/ResourceDashboard.vue';
+import AppBar from '@/components/AppBar.vue';
+import { useEmployeeManagementDashboardRepository } from '@/stores/EmployeeManagementDashboardRepository';
 
-  import EventDashboard from './EIDashboard/EventDashboard.vue';
-  import InfoDashboard from './EIDashboard/InfoDashboard.vue';
-  import MoneyReport from './OIlMoney/MoneyReport.vue';
-  import OilReport from './OIlMoney/OilReport.vue';
-  import FirstTen from './FifthyFormat/Firstten.vue';
-  import SecondTen from './FifthyFormat/SecondTen.vue';
-  import ThirdTen from './FifthyFormat/ThirdTen.vue';
-  import FourthTen from './FifthyFormat/FourthTen.vue';
-  import FifthTen from './FifthyFormat/FifthTen.vue';
+const { t, locale } = useI18n();
+const repo = useEmployeeManagementDashboardRepository();
 
-  import { useLoginRepository } from '../../stores/LoginRepository';
-  const auth = useLoginRepository();
-  const { t, locale } = useI18n();
-  const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
+const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
+const drawer = ref(false);
 
-  const drawer = ref(false);
+// chart series
+const resourceSeries = computed(() => repo.getResourceSeriesForChart());
+const informationSeries = computed(() => repo.getInformationSeriesForChart());
+const eventSeries = computed(() => repo.getEventSeriesForChart());
 
-  // Main tabs: accounts | cashflow | oil | report
-  const mainTab = ref('accounts');
+// ✅ NEW: hawza totals series for the last chart
+const hawzaSeries = computed(() => {
+  const rows = repo.hawzaRows || [];
+  const formatKeys = repo.formatKeys || [];
 
-  // Sub-tabs
-  const accountsTab = ref('list'); // list | types
-  const cashflowTab = ref('income'); // income | expense
-  const oilTab = ref('income'); // income | expense | account
-  const reportTab = ref('oilreport'); // oilreport | moneyreport
+  const labels = rows.map((r) => r.hawza);
+  const data = rows.map((r) => {
+    if (typeof r.total === 'number') {
+      return r.total;
+    }
+    // fallback: sum all format columns if total not present
+    return formatKeys.reduce((sum, key) => {
+      const val = Number(r[key] || 0);
+      return sum + (Number.isFinite(val) ? val : 0);
+    }, 0);
+  });
+
+  return { labels, data };
+});
+
+const isAnyLoading = computed(
+  () => repo.isLoadingCards || repo.isLoadingTimeseries || repo.isLoadingFormats
+);
+
+// time modes for the buttons
+const timeModes = [
+  { value: 'daily', label: 'ورځنی' },
+  { value: 'weekly', label: 'اونیز' },
+  { value: 'monthly', label: 'میاشتنی' },
+  { value: 'yearly', label: 'کلنی' },
+  { value: 'all', label: 'ټول وخت' },
+];
+
+const setMode = async (mode) => {
+  if (repo.timeseriesMode === mode) return;
+  repo.timeseriesMode = mode;
+  await refreshTimeseries();
+};
+
+const refreshTimeseries = async () => {
+  await repo.FetchDashboardTimeseries();
+};
+
+const refreshAll = async () => {
+  await Promise.all([
+    repo.FetchDashboardCards(),
+    repo.FetchDashboardTimeseries(),
+    repo.FetchFormatsByHawza(),
+  ]);
+};
+
+onMounted(refreshAll);
 </script>
 
 <style scoped>
-  :deep(.v-tabs) {
-    backdrop-filter: saturate(120%) blur(2px);
-  }
+.text-no-wrap {
+  white-space: nowrap;
+}
 
-  :deep(.v-tab) {
-    font-weight: 600;
-    letter-spacing: 0.2px;
-  }
+.v-data-table {
+  font-size: 11px;
+}
 
-  :deep(.v-card) {
-    border-radius: 16px;
-  }
+.mode-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
 
-  :deep(.v-window-item) {
-    padding: 8px;
-  }
+.mode-buttons-ltr {
+  justify-content: flex-start;
+}
 
-  /* Better spacing for RTL/LTR */
-  .v-container[dir='rtl'] :deep(.v-tab__slider) {
-    inset-inline-start: 0 !important;
-  }
+.mode-buttons-rtl {
+  justify-content: flex-end;
+  direction: rtl;
+}
+
+.mode-active {
+  font-weight: 600;
+}
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid \class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
     <AppBar :title="t('کارمندان مدیریت')" :subtitle="t('فهرست و جستجو')">
       <template #actions>
