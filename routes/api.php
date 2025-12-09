@@ -131,6 +131,7 @@ use App\Http\Controllers\Api\OfficeEmployeeControllerReport;
 use App\Models\OfficeEmployee;
 use App\Http\Controllers\Reports\FiftyFormatsReportController;
 use App\Http\Controllers\Api\InformationReportController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\CaptiveDocumentController;
 use App\Http\Controllers\EmployeeManagementDashboardController;
 
@@ -440,6 +441,28 @@ Route::middleware('auth:sanctum')->group(function () {
         // 56 formats categorized by hawza
         Route::get('/formats-by-hawza', [EmployeeManagementDashboardController::class, 'formatsByHawza']);
     });
+
+        // ---------------------- Notifications ----------------------
+    Route::get('/notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+
+    // 🔹 Get unread count
+    // GET /api/notifications/unread-count
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])
+        ->name('notifications.unreadCount');
+
+    // 🔹 Mark ONE notification as read
+    // POST /api/notifications/{notification}/mark-as-read
+    Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])
+        ->name('notifications.markAsRead');
+
+    // 🔹 Mark ALL notifications as read
+    // POST /api/notifications/mark-all-as-read
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])
+        ->name('notifications.markAllAsRead');
+
+    Route::delete('/notifications/clear', [NotificationController::class, 'clearAll']);
+
 
 
 });

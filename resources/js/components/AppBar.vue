@@ -84,12 +84,6 @@
         </template>
       </v-tooltip>
 
-      <!-- Dark / Light (Commented but styled)
-      <v-btn @click.stop="toggleTheme" icon size="small" variant="tonal" class="action-btn">
-        <v-icon size="20">{{ darkMode ? 'mdi-weather-night' : 'mdi-weather-sunny' }}</v-icon>
-      </v-btn>
-      -->
-
       <!-- Language -->
       <v-menu transition="scale-transition">
         <template #activator="{ props }">
@@ -126,6 +120,9 @@
         </v-list>
       </v-menu>
 
+      <!-- 🔔 Notifications -->
+      <NotificationMenu />
+
       <!-- Fullscreen -->
       <v-btn
         @click="!iconsLoading && toggleFullscreen()"
@@ -138,12 +135,6 @@
       >
         <v-icon size="20">mdi-crop-free</v-icon>
       </v-btn>
-
-      <!-- Notifications (Commented but styled)
-      <v-btn icon size="small" variant="tonal" class="action-btn">
-        <v-icon size="20">mdi-bell-ring-outline</v-icon>
-      </v-btn>
-      -->
     </div>
   </v-app-bar>
 </template>
@@ -154,6 +145,7 @@ import { useI18n } from 'vue-i18n';
 import { useTheme } from 'vuetify';
 import { useEmployeOfficeRepository } from '@/stores/EmployeeRepository';
 import { useCalendar } from '../../composables/useCalendar';
+import NotificationMenu from './NotificationBell.vue'; // 👈 adjust path/name if different
 
 const repo = useEmployeOfficeRepository();
 const { t, locale } = useI18n();
@@ -164,12 +156,10 @@ const darkMode = ref(false);
 defineProps({
   title: { type: String, default: '' },
   subtitle: { type: String, default: '' },
-  // 🧭 optional breadcrumbs: [{ text, to?, disabled? }]
   breadcrumbs: {
     type: Array,
     default: () => [],
   },
-  // ⏳ loading state for right-side icons
   iconsLoading: {
     type: Boolean,
     default: false,
@@ -315,7 +305,8 @@ const toggleDrawerVisible = () => {
   box-shadow: 0 6px 20px rgba(var(--v-theme-primary), 0.2);
 }
 
-.action-btn {
+/* 🔔 Make action buttons (including NotificationMenu) share the same design */
+:deep(.action-btn) {
   width: 44px;
   height: 44px;
   border-radius: 12px;
@@ -324,7 +315,7 @@ const toggleDrawerVisible = () => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.action-btn:hover {
+:deep(.action-btn:hover) {
   background: rgba(var(--v-theme-surface), 0.9) !important;
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
@@ -432,7 +423,7 @@ const toggleDrawerVisible = () => {
   }
 }
 
-.action-btn:active .v-icon {
+:deep(.action-btn:active .v-icon) {
   animation: calendarPulse 0.3s ease;
 }
 
@@ -450,8 +441,12 @@ const toggleDrawerVisible = () => {
     font-size: 0.75rem !important;
   }
 
-  .action-btn,
   .nav-toggle-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  :deep(.action-btn) {
     width: 40px;
     height: 40px;
   }

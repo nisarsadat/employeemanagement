@@ -385,7 +385,7 @@
                           <label
                             v-for="opt in getFilteredOptions(openDropdown || '')"
                             :key="opt || '__EMPTY__'"
-                            class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-blue-50 cursor-pointer select-none transition-colors duration-150 group/option"
+                            class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-blue-50 cursor-pointer select-none transition-colors	duration-150 group/option"
                             @click.stop
                           >
                             <div class="relative">
@@ -591,6 +591,23 @@
             </template>
           </tbody>
         </table>
+      </div>
+
+      <!-- ✅ Footer: record count after filters (no other changes) -->
+      <div
+        class="flex items-center justify-between px-4 py-2 text-[11px] text-gray-600 bg-white/80 border-t border-gray-100 print:hidden"
+      >
+        <div>
+          تعداد ردیف‌ها بعد از فیلتر:
+          <span class="font-bold text-gray-900">{{ filteredRows.length }}</span>
+          از
+          <span class="font-medium text-gray-700">{{ rows.length }}</span>
+        </div>
+
+        <div v-if="selectedCount > 0" class="text-[11px] text-gray-700">
+          ردیف‌های انتخاب‌شده:
+          <span class="font-semibold text-blue-700">{{ selectedCount }}</span>
+        </div>
       </div>
     </div>
   </div>

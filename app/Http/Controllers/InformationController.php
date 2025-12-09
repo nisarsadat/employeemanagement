@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreInformationRequest;
 use App\Http\Requests\UpdateInformationRequest;
 use App\Http\Resources\InformationResource;
+use App\Services\NotificationService; // 🔔 notifications
 
 class InformationController extends Controller
 {
@@ -44,9 +45,12 @@ class InformationController extends Controller
 
     public function store(StoreInformationRequest $request)
     {
-        return DB::transaction(function () use ($request) {
+        $user = $request->user(); // 🔔 who did this
+
+        return DB::transaction(function () use ($request, $user) {
             $info = Information::create($request->validated());
 
+            // 📎 documents
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("information_docs/{$info->id}", 'public');
@@ -62,13 +66,26 @@ class InformationController extends Controller
 
             $info->load(['resource', 'officeEmployee', 'documents']);
 
+            // 🔔 Notification: CREATED
+            NotificationService::record(
+                $user,
+                module: 'اطلاع',
+                action: 'created',
+                title: 'اطلاع جدید ثبت شد',
+                message: 'نام اطلاع: ' . ($info->name ?? ''),
+                routeName: 'informations',         // ⚠️ use your real route name if different
+                routeParams: ['id' => $info->id],
+                level: 'success',
+                changes: null                      // no changes on create
+            );
+
             return new InformationResource($info);
         });
     }
 
     public function show($id)
     {
-        // 🔹 Fetch by id + relations (no route model binding confusion)
+        // 🔹 Fetch by id + relations
         $information = Information::with(['resource', 'officeEmployee', 'documents'])
             ->findOrFail($id);
 
@@ -77,12 +94,35 @@ class InformationController extends Controller
 
     public function update(UpdateInformationRequest $request, $id)
     {
-        return DB::transaction(function () use ($request, $id) {
+        $user = $request->user(); // 🔔
+
+        return DB::transaction(function () use ($request, $id, $user) {
             $information = Information::with(['resource', 'officeEmployee', 'documents'])
                 ->findOrFail($id);
 
-            $information->update($request->validated());
+            // 🧮 build changes BEFORE update
+            $original  = $information->getOriginal();
+            $validated = $request->validated();
+            $changes   = [];
 
+            foreach ($validated as $field => $newValue) {
+                if (array_key_exists($field, $original)) {
+                    $oldValue = $original[$field];
+
+                    // loose comparison is OK for now; adjust if you need strict
+                    if ($oldValue != $newValue) {
+                        $changes[$field] = [
+                            'old' => $oldValue,
+                            'new' => $newValue,
+                        ];
+                    }
+                }
+            }
+
+            // 🔄 apply update
+            $information->update($validated);
+
+            // 📎 new documents
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("information_docs/{$information->id}", 'public');
@@ -98,20 +138,53 @@ class InformationController extends Controller
 
             $information->load(['resource', 'officeEmployee', 'documents']);
 
+            // 🔔 Notification: UPDATED + changes
+            NotificationService::record(
+                $user,
+                module: 'اطلاع',
+                action: 'updated',
+                title: 'اطلاع اصلاح شد',
+                message: 'نام اطلاع: ' . ($information->name ?? ''),
+                routeName: 'informations',         // ⚠️ adjust if needed
+                routeParams: ['id' => $information->id],
+                level: 'info',
+                changes: !empty($changes) ? $changes : null
+            );
+
             return new InformationResource($information);
         });
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $information = Information::with('documents')->findOrFail($id);
+        $user = $request->user(); // 🔔
 
-        foreach ($information->documents as $doc) {
-            Storage::disk('public')->delete($doc->file_path);
-        }
+        return DB::transaction(function () use ($id, $user) {
+            $information = Information::with('documents')->findOrFail($id);
 
-        $information->delete();
+            $name = $information->name;
 
-        return response()->json(['message' => 'Deleted']);
+            // 🗑 delete files
+            foreach ($information->documents as $doc) {
+                Storage::disk('public')->delete($doc->file_path);
+            }
+
+            $information->delete();
+
+            // 🔔 Notification: DELETED
+            NotificationService::record(
+                $user,
+                module: 'اطلاع',
+                action: 'deleted',
+                title: 'اطلاع حذف شد',
+                message: 'نام اطلاع: ' . ($name ?? ''),
+                routeName: null,                   // no direct link after delete
+                routeParams: ['informations'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->json(['message' => 'Deleted']);
+        });
     }
 }

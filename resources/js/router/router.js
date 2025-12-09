@@ -166,6 +166,7 @@ import DeplomaticPlaceForm from '../pages/FiftyFormats/DeplomaticPlaceForm.vue';
 import UniversityForm from '../pages/FiftyFormats/UniversityForm.vue';
 import WakilanoForm from '../pages/FiftyFormats/WakilanoForm.vue';
 import InformationPrintDialog from '../pages/Informations/InformationPrintDialog.vue';
+import NotificationsPage from '../components/NotificationsPage.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -197,7 +198,15 @@ const router = createRouter({
       children: [
         // (If someone lands exactly on /app, child redirect is a safety net)
         { path: '', redirect: '/app/dashboards' },
-
+        {
+          path: 'notifications', // full path: /app/notifications
+          name: 'notifications', // matches router.push({ name: 'notifications' })
+          component: NotificationsPage,
+          meta: {
+            requiresAuth: true,
+            title: 'Notifications',
+          },
+        },
         // Core (each with meta.perm)
         {
           path: 'dashboards',
@@ -219,6 +228,7 @@ const router = createRouter({
           path: 'officeemployee',
           component: OfficeEmployeesPage,
           meta: { requiresAuth: true, perm: permFor('officeemployee') },
+          name: 'officeemployee',
         },
         {
           path: 'officeemployeeform/:id?',

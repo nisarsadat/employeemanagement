@@ -33,4 +33,11 @@ class User extends Authenticatable
     {
         return $this->image ? asset('storage/'.$this->image) : null;
     }
+    // app/Models/User.php
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
 }
