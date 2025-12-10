@@ -31,13 +31,26 @@ class User extends Authenticatable
 
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image ? asset('storage/'.$this->image) : null;
+        return $this->image ? asset('storage/' . $this->image) : null;
     }
-    // app/Models/User.php
 
     public function notifications()
     {
         return $this->hasMany(Notification::class);
     }
 
+    /** 🔹 Chat: conversations the user participates in */
+    public function conversations()
+    {
+        // conversations ↔ users pivot with last_read_at
+        return $this->belongsToMany(Conversation::class)
+            ->withPivot('last_read_at')
+            ->withTimestamps();
+    }
+
+    /** 🔹 Chat: messages the user has sent */
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
 }

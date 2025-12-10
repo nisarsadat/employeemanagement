@@ -15,7 +15,7 @@ class StoreUserRequest extends FormRequest
             'username'              => ['required', 'alpha_dash', 'max:60', 'unique:users,username'],
             'password'              => ['required', 'string', 'min:8'],
             // expects password_confirmation
-            'picture'               => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,avif', 'max:2048'],
+            'picture'               => ['nullable', 'image'],
         ];
     }
 }

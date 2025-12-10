@@ -28,14 +28,14 @@
           icon
           size="small"
           variant="tonal"
-          color="primary"
+          color="grey-200"
           class="action-btn notification-btn"
           :dir="isRtl ? 'rtl' : 'ltr'"
           :loading="repo.loading"
           :disabled="repo.loading"
           @click="onOpen"
         >
-          <v-icon size="22" :class="{ 'bell-animate': badgeVisible }"> mdi-bell-outline </v-icon>
+          <v-icon size="22" color="primary" :class="{ 'bell-animate': badgeVisible }"> mdi-bell-outline </v-icon>
         </v-btn>
       </v-badge>
     </template>
@@ -60,6 +60,21 @@
         </div>
 
         <div class="d-flex align-center" style="gap: 4px">
+          <!-- Mute/Unmute Button -->
+          <v-btn
+            icon
+            size="small"
+            variant="text"
+            :color="soundEnabled ? 'grey-darken-1' : 'error'"
+            @click="toggleSound"
+            class="sound-toggle-btn"
+            :title="soundEnabled ? $t('بی‌صدا کردن') : $t('صداگذاری')"
+          >
+            <v-icon size="20">
+              {{ soundEnabled ? 'mdi-volume-high' : 'mdi-volume-off' }}
+            </v-icon>
+          </v-btn>
+
           <v-btn
             icon
             size="small"
@@ -68,6 +83,7 @@
             :disabled="repo.unreadCount === 0"
             @click="markAll"
             class="mark-all-btn"
+            :title="$t('خواندن همه')"
           >
             <v-icon size="20">mdi-check-all</v-icon>
           </v-btn>
@@ -80,6 +96,7 @@
             @click="refresh"
             :loading="repo.loading"
             class="refresh-btn"
+            :title="$t('بروزرسانی')"
           >
             <v-icon size="20">mdi-refresh</v-icon>
           </v-btn>
@@ -104,13 +121,12 @@
                   {{ $t('امروز') }}
                 </span>
               </div>
+
               <v-list-item
                 v-for="n in todayNotifications"
                 :key="n.id"
                 class="notification-item px-4 py-3"
-                :class="{
-                  'notification-unread': !n.is_read,
-                }"
+                :class="{ 'notification-unread': !n.is_read }"
                 @click="goTo(n)"
                 ripple
               >
@@ -139,10 +155,11 @@
                     <v-list-item-title class="text-body-2 font-weight-medium notification-title">
                       {{ formatTitle(n) }}
                     </v-list-item-title>
+
                     <v-list-item-subtitle
                       class="text-caption text-grey-darken-1 ml-2 notification-time"
                     >
-                      {{ formatTime(n.created_at) }}
+                      {{ formatTime(n) }}
                     </v-list-item-subtitle>
                   </div>
 
@@ -186,13 +203,12 @@
                   {{ $t('قبلی') }}
                 </span>
               </div>
+
               <v-list-item
                 v-for="n in olderUnreadNotifications"
                 :key="n.id"
                 class="notification-item px-4 py-3"
-                :class="{
-                  'notification-unread': !n.is_read,
-                }"
+                :class="{ 'notification-unread': !n.is_read }"
                 @click="goTo(n)"
                 ripple
               >
@@ -221,10 +237,11 @@
                     <v-list-item-title class="text-body-2 font-weight-medium notification-title">
                       {{ formatTitle(n) }}
                     </v-list-item-title>
+
                     <v-list-item-subtitle
                       class="text-caption text-grey-darken-1 ml-2 notification-time"
                     >
-                      {{ formatTime(n.created_at) }}
+                      {{ formatTime(n) }}
                     </v-list-item-subtitle>
                   </div>
 
@@ -292,6 +309,7 @@
     </v-card>
   </v-menu>
 </template>
+
 <script setup>
   import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
   import { useRouter } from 'vue-router';
@@ -302,69 +320,206 @@
   const repo = useNotificationRepository();
 
   const { t, locale } = useI18n();
-  /* ======== SOUND FIXED VERSION ======== */
+
+  /* =========================
+   RTL
+========================= */
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (n) => {
+    isRtl.value = n === 'fa';
+  });
+
+  /* =========================
+   🔊 SOUND
+========================= */
   let notificationSound = null;
-  const soundEnabled = ref(false);
-  const previousUnread = ref(0);
+  const soundEnabled = ref(true); // Default to enabled
+
+  // 🔊 Create a centralized function to handle sound playback
+  const playNotificationSound = () => {
+    // First check if sound is enabled
+    if (!soundEnabled.value) {
+      console.log('Sound is muted, skipping sound playback');
+      return;
+    }
+
+    if (!notificationSound) {
+      console.warn('Sound not initialized');
+      return;
+    }
+
+    try {
+      // Reset and play
+      notificationSound.currentTime = 0;
+      notificationSound.play().catch((error) => {
+        console.warn('Audio play blocked or failed:', error);
+      });
+    } catch (e) {
+      console.warn('Play sound error:', e);
+    }
+  };
+
+  // Toggle sound on/off
+  const toggleSound = () => {
+    soundEnabled.value = !soundEnabled.value;
+
+    // Save preference to localStorage
+    localStorage.setItem('notificationSoundEnabled', soundEnabled.value.toString());
+
+    // If turning sound on, try to unlock audio
+    if (soundEnabled.value && notificationSound) {
+      try {
+        notificationSound
+          .play()
+          .then(() => {
+            notificationSound.pause();
+            notificationSound.currentTime = 0;
+          })
+          .catch((e) => {
+            console.log('Audio unlock may be blocked:', e);
+          });
+      } catch (e) {
+        // Ignore errors
+      }
+    }
+
+    // Show feedback in console
+    console.log(`Sound ${soundEnabled.value ? 'enabled' : 'muted'}`);
+  };
+
+  // Initialize sound on component mount
   const setupSound = () => {
     try {
       notificationSound = new Audio('/sounds/notify.wav');
       notificationSound.volume = 0.8;
+      notificationSound.preload = 'auto';
+
+      // Try to unlock audio by playing/pausing on load
+      notificationSound.load();
     } catch (e) {
-      console.warn('Sound failed to load', e);
+      console.warn('Sound setup failed:', e);
     }
   };
 
-  const playSound = () => {
-    if (!soundEnabled.value || !notificationSound) return;
-    notificationSound.currentTime = 0;
-    notificationSound.play().catch(() => {});
-  };
-
-  // User explicitly enabled audio when clicking bell
+  // When user opens the notification menu
   const onOpen = async () => {
-    if (!soundEnabled.value) {
-      soundEnabled.value = true;
-
-      try {
-        await notificationSound.play();
-      } catch (e) {
-        console.warn('Autoplay blocked until user interacts');
-      }
-    }
-
     await repo.fetchNotifications(1);
   };
 
-  /* Watch for new notifications */
+  /* =========================
+   🔔 DETECT NEW NOTIFICATIONS
+========================= */
+  const lastSeenMaxId = ref(0);
+
+  // Watch for any changes in notifications array
+  watch(
+    () => repo.notifications,
+    (newNotifications, oldNotifications) => {
+      if (!newNotifications || newNotifications.length === 0) return;
+
+      // Find the highest ID in current notifications
+      const maxId = Math.max(...newNotifications.map((n) => n.id || 0));
+
+      // If we have no previous maxId, set it and return (initial load)
+      if (lastSeenMaxId.value === 0) {
+        lastSeenMaxId.value = maxId;
+        return;
+      }
+
+      // If new maxId is greater than previous, we have new notifications
+      if (maxId > lastSeenMaxId.value) {
+        console.log('New notification detected! Playing sound...');
+        playNotificationSound(); // 🔊 Use centralized sound function
+        lastSeenMaxId.value = maxId;
+      }
+    },
+    { deep: true, immediate: true }
+  );
+
+  // Also watch unread count changes
   watch(
     () => repo.unreadCount,
-    (newVal, oldVal) => {
-      if (!soundEnabled.value) return;
-      if (typeof oldVal === 'number' && newVal > oldVal) {
-        playSound();
+    (newCount, oldCount) => {
+      // Only trigger on increase and when we have an old value (not initial)
+      if (oldCount !== undefined && newCount > oldCount) {
+        console.log('Unread count increased! Playing sound...');
+        playNotificationSound(); // 🔊 Use centralized sound function
       }
-      previousUnread.value = newVal;
     }
   );
 
-  /* Mounted */
+  /* =========================
+   MOUNT / UNMOUNT
+========================= */
   onMounted(async () => {
+    // Load sound preference from localStorage
+    const savedSoundPref = localStorage.getItem('notificationSoundEnabled');
+    if (savedSoundPref !== null) {
+      soundEnabled.value = savedSoundPref === 'true';
+    } else {
+      // Save default to localStorage
+      localStorage.setItem('notificationSoundEnabled', 'true');
+    }
+
+    console.log('Initial sound state:', soundEnabled.value ? 'enabled' : 'muted');
+
+    // Setup sound
     setupSound();
+
+    // Try to unlock audio immediately
+    try {
+      // Create a temporary silent audio context to unlock audio
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) {
+        const audioContext = new AudioContext();
+        // Create a silent buffer
+        const buffer = audioContext.createBuffer(1, 1, 22050);
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+        source.start();
+        setTimeout(() => audioContext.close(), 100);
+      }
+    } catch (e) {
+      console.log('Audio context initialization may be blocked');
+    }
+
+    // Fetch notifications
     await repo.fetchNotifications(1);
     await repo.fetchUnreadCount();
+
+    // Initialize last seen ID
+    if (repo.notifications.length > 0) {
+      lastSeenMaxId.value = Math.max(...repo.notifications.map((n) => n.id || 0));
+    }
+
+    // Start polling
     repo.startPolling();
   });
 
-  /* ---------- BADGE ---------- */
+  onUnmounted(() => {
+    repo.stopPolling();
+
+    // Clean up audio
+    if (notificationSound) {
+      try {
+        notificationSound.pause();
+        notificationSound.src = ''; // Clear source
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    }
+  });
+
+  /* =========================
+   BADGE
+========================= */
   const badgeVisible = computed(() => repo.unreadCount > 0);
   const badgeContent = computed(() => (repo.unreadCount > 99 ? '99+' : repo.unreadCount || ''));
 
-  /* ===== RTL ===== */
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (n) => (isRtl.value = n === 'fa'));
-
-  /* ---------- NOTIFICATION GROUPS ---------- */
+  /* =========================
+   GROUPS (TODAY / OLDER)
+========================= */
   const todayNotifications = computed(() => {
     const today = new Date().toISOString().slice(0, 10);
     return repo.notifications.filter((n) => n.created_at && n.created_at.slice(0, 10) === today);
@@ -385,7 +540,9 @@
     ...olderUnreadNotifications.value,
   ]);
 
-  /* ---------- HELPERS ---------- */
+  /* =========================
+   HELPERS
+========================= */
   const getNotificationColor = (n) => {
     switch (n.action) {
       case 'created':
@@ -398,7 +555,9 @@
         return 'rgb(var(--v-theme-primary))';
     }
   };
+
   const getNotificationIconColor = () => '#fff';
+
   const getNotificationIcon = (n) => {
     switch (n.action) {
       case 'created':
@@ -411,14 +570,20 @@
         return 'mdi-information';
     }
   };
+
   const getModuleColor = (m) =>
     ({
       resources: 'deep-purple-lighten-5',
       events: 'cyan-lighten-5',
       informations: 'amber-lighten-5',
     }[m] || 'grey-lighten-4');
+
   const getModuleName = (m) =>
-    ({ resources: 'منبع', events: 'رویداد', informations: 'اطلاعیه' }[m] || m);
+    ({
+      resources: 'منبع',
+      events: 'رویداد',
+      informations: 'اطلاعیه',
+    }[m] || m);
 
   const formatTitle = (n) => {
     const name = n.actor?.name || n.actor_name || n.user?.name || n.user_name || 'کاربر';
@@ -436,14 +601,29 @@
     );
   };
 
-  const formatTime = (dateString) => {
+  /* =========================
+   ⏱ TIME FORMAT (ENGLISH)
+========================= */
+  const formatTime = (n) => {
+    if (!n) return '';
+
+    if (n.created_at_human) {
+      return n.created_at_human;
+    }
+
+    const dateString = n.created_at;
     if (!dateString) return '';
 
-    const created = new Date(dateString);
+    const [datePart, timePart] = dateString.split(' ');
+    if (!datePart || !timePart) return '';
+
+    const [y, m, d] = datePart.split('-').map(Number);
+    const [hh, mm, ss] = timePart.split(':').map(Number);
+
+    const created = new Date(y, m - 1, d, hh, mm, ss);
     const now = new Date();
 
     const diffMs = now - created;
-
     if (diffMs < 0) {
       return created.toLocaleTimeString('en-GB', {
         hour: '2-digit',
@@ -472,6 +652,9 @@
     return `${year} years ago`;
   };
 
+  /* =========================
+   ACTIONS
+========================= */
   const markAll = async () => {
     if (!repo.unreadCount) return;
     await repo.markAllAsRead();
@@ -479,6 +662,7 @@
 
   const refresh = async () => {
     await repo.fetchNotifications(1);
+    await repo.fetchUnreadCount();
   };
 
   const goTo = async (n) => {
@@ -500,20 +684,6 @@
   const viewAll = () => {
     router.push({ name: 'notifications' });
   };
-
-  onMounted(async () => {
-    setupSound();
-
-    await repo.fetchNotifications(1);
-    await repo.fetchUnreadCount();
-
-    repo.startPolling();
-  });
-
-  onUnmounted(() => {
-    repo.stopPolling();
-  });
-  
 </script>
 
 <style scoped>
@@ -558,7 +728,7 @@
   }
 
   /* ============================
- 📜 SCROLLABLE LIST (Professional Scrollbar)
+ 📜 SCROLLABLE LIST
 ============================ */
   .notification-list {
     flex: 1 1 auto;
@@ -570,7 +740,7 @@
     height: 100%;
   }
 
-  /* Custom scrollbar - Professional Design */
+  /* Custom scrollbar */
   .notification-list::-webkit-scrollbar {
     width: 6px;
   }
@@ -590,14 +760,14 @@
     background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
   }
 
-  /* For Firefox */
+  /* Firefox */
   .notification-list {
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 #f1f5f9;
   }
 
   /* ============================
- 📅 NOTIFICATION GROUPS
+ 📅 GROUPS
 ============================ */
   .notification-groups {
     padding-bottom: 8px;
@@ -615,7 +785,7 @@
   }
 
   /* ============================
- 🧾 NOTIFICATION ITEMS
+ 🧾 ITEMS
 ============================ */
   .notification-item {
     position: relative;
@@ -658,7 +828,7 @@
     border-radius: 4px 0 0 4px;
   }
 
-  /* Unread notification styling */
+  /* Unread */
   .notification-unread {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
     border-left: 2px solid rgb(var(--v-theme-primary));
@@ -711,9 +881,6 @@
     }
   }
 
-  /* ============================
- 🎨 NOTIFICATION ELEMENTS
-============================ */
   /* Avatar */
   .notification-icon-container {
     position: relative;
@@ -730,7 +897,7 @@
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
   }
 
-  /* Text Styling */
+  /* Text */
   .notification-title {
     color: #1e293b;
     line-height: 1.4;
@@ -757,7 +924,7 @@
     min-width: 45px;
   }
 
-  /* Action button */
+  /* append button */
   .notification-action-btn {
     opacity: 0;
     transform: translateX(4px);
@@ -772,9 +939,7 @@
     transform: translateX(0);
   }
 
-  /* ============================
- 📊 EMPTY STATE
-============================ */
+  /* Empty state */
   .notification-empty-state {
     animation: fadeIn 0.5s ease;
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -793,9 +958,7 @@
     }
   }
 
-  /* ============================
- 🔘 BUTTONS
-============================ */
+  /* Buttons */
   .notification-btn {
     border-radius: 10px;
     transition: all 0.3s ease;
@@ -808,10 +971,16 @@
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
   }
 
+  /* Sound toggle button */
+  .sound-toggle-btn:hover {
+    background: rgba(var(--v-theme-error), 0.08) !important;
+    transform: scale(1.1);
+  }
+
   .mark-all-btn:hover,
   .refresh-btn:hover {
     background: rgba(59, 130, 246, 0.08) !important;
-    transform: rotate(90deg);
+    transform: scale(1.1);
   }
 
   .refresh-btn:active {
@@ -842,9 +1011,7 @@
     box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.1);
   }
 
-  /* ============================
- 🔔 BELL ANIMATION
-============================ */
+  /* Bell animation */
   .bell-animate {
     animation: bell-ring 1.2s cubic-bezier(0.36, 0, 0.66, 1) infinite;
   }

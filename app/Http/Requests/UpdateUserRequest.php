@@ -16,8 +16,8 @@ class UpdateUserRequest extends FormRequest
         return [
             'name'        => ['sometimes', 'required', 'string', 'max:100'],
             'username'    => ['sometimes', 'required', 'alpha_dash', 'max:60', Rule::unique('users','username')->ignore($userId)],
-            'password'    => ['sometimes', 'required', 'string', 'min:8', 'confirmed'],
-            'picture'     => ['sometimes', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp,avif', 'max:2048'],
+            'password'    => ['sometimes', 'required', 'string', 'min:6', 'confirmed'],
+            'picture'     => ['sometimes', 'nullable', 'image'],
         ];
     }
 }

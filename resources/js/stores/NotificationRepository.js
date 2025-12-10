@@ -10,7 +10,7 @@ export const useNotificationRepository = defineStore('NotificationRepository', {
     page: 1,
     lastPage: 1,
     perPage: 10, // max 10 per page
-    pollingId: null, // 👈 for auto refresh
+    pollingId: null, // for auto refresh
   }),
 
   actions: {
@@ -44,6 +44,7 @@ export const useNotificationRepository = defineStore('NotificationRepository', {
 
         // Laravel paginated resource: { data: [...], meta: {...} }
         this.notifications = data.data || [];
+
         const meta = data.meta || {};
         this.page = meta.current_page || 1;
         this.lastPage = meta.last_page || 1;
@@ -104,16 +105,19 @@ export const useNotificationRepository = defineStore('NotificationRepository', {
       }
     },
 
-    // 👇 NEW: auto refresh unread count (and initially notifications)
+    // 👇 auto refresh: now also fetches NOTIFICATIONS (for sound + list)
     startPolling() {
       if (this.pollingId) return;
 
-      // initial fetch
       this.fetchUnreadCount();
 
-      this.pollingId = setInterval(() => {
-        this.fetchUnreadCount();
-      }, 10000); // every 10 seconds
+      this.pollingId = setInterval(async () => {
+        try {
+          await this.fetchUnreadCount();            // optional extra sync with backend
+        } catch (e) {
+          console.error('notification polling error', e);
+        }
+      }, 20000); // every 10 seconds
     },
 
     stopPolling() {

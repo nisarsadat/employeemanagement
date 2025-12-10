@@ -122,6 +122,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RbacController;
 
 use App\Http\Controllers\Api\ActiveInactiveOfficeEmployeeController as AE; // ✅ NEW
+use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\EventControllerReport;
 use App\Http\Controllers\Api\EventReportController;
 use App\Http\Controllers\Api\FifthyFormatsCountController;
@@ -462,6 +463,18 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('notifications.markAllAsRead');
 
     Route::delete('/notifications/clear', [NotificationController::class, 'clearAll']);
+
+
+
+    Route::middleware('auth:sanctum')->prefix('chat')->group(function () {
+        Route::get('/users', [ChatController::class, 'users']);
+        Route::get('/conversations', [ChatController::class, 'conversations']);
+        Route::get('/conversations/user/{user}', [ChatController::class, 'conversationWithUser']);
+        Route::post('/messages', [ChatController::class, 'sendMessage']);
+        Route::post('/conversations/{conversation}/read', [ChatController::class, 'markAsRead']);
+    });
+
+
 
 
 
