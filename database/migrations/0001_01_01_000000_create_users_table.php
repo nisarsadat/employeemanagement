@@ -9,13 +9,21 @@ return new class extends Migration {
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+
             $table->string('name');
             $table->string('username')->unique();
             $table->string('password');
-            $table->string('image')->nullable();       // storage path (public disk)
+
+            // ✅ avatar image path (storage/public)
+            $table->string('image')->nullable();
+
+            // ✅ online/offline + last seen
+            $table->boolean('is_online')->default(false);
+            $table->timestamp('last_seen_at')->nullable();
+
             $table->rememberToken();
             $table->timestamps();
-            $table->softDeletes();                     // 👈 enable soft deletes
+            $table->softDeletes();
         });
     }
 

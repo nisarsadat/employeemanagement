@@ -6,28 +6,24 @@ use App\Models\Message;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Broadcasting\InteractsWithSockets;
 
 class MessageSent implements ShouldBroadcast
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use SerializesModels;
 
-    public Message $message;
-
-    public function __construct(Message $message)
+    public function __construct(public Message $message)
     {
-        // make sure sender is loaded
-        $this->message = $message->load('sender');
+        $this->message->loadMissing('sender:id,name');
     }
 
-    public function broadcastOn()
+    public function broadcastOn(): array
     {
-        // each conversation has its own private channel
-        return new PrivateChannel('conversations.' . $this->message->conversation_id);
+        return [
+            new PrivateChannel('conversation.' . $this->message->conversation_id),
+        ];
     }
 
-    public function broadcastAs()
+    public function broadcastAs(): string
     {
         return 'MessageSent';
     }
@@ -35,14 +31,16 @@ class MessageSent implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'id'              => $this->message->id,
+            'id' => $this->message->id,
             'conversation_id' => $this->message->conversation_id,
-            'body'            => $this->message->body,
-            'created_at'      => $this->message->created_at?->toISOString(),
-            'sender'          => [
-                'id'   => $this->message->sender->id,
+            'body' => $this->message->body,
+            'sender' => [
+                'id' => $this->message->sender->id,
                 'name' => $this->message->sender->name,
             ],
+            'created_at' => $this->message->created_at->toIso8601String(),
+            'delivered_at' => optional($this->message->delivered_at)->toIso8601String(),
+            'seen_at' => optional($this->message->seen_at)->toIso8601String(),
         ];
     }
 }

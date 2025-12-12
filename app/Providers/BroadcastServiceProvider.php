@@ -2,20 +2,19 @@
 
 namespace App\Providers;
 
-use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\ServiceProvider;
 
 class BroadcastServiceProvider extends ServiceProvider
 {
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        // Register the broadcasting routes (/broadcasting/auth)
-        Broadcast::routes(['middleware' => ['auth:sanctum']]);
+        // ✅ Put broadcasting auth under /api (Bearer token friendly)
+        Broadcast::routes([
+            'middleware' => ['api', 'auth:sanctum'],
+            'prefix'     => 'api', // ✅ /api/broadcasting/auth
+        ]);
 
-        // Load your channels definitions
         require base_path('routes/channels.php');
     }
 }

@@ -310,7 +310,7 @@
   :deep(.action-btn) {
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    border-radius: 50%;
     background: rgba(var(--v-theme-surface), 0.7) !important;
     border: 1px solid rgba(var(--v-theme-outline), 0.15);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

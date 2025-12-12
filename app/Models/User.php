@@ -2,26 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Permission\Traits\HasRoles; // ✅ REQUIRED
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
-    use HasRoles;
-    use SoftDeletes; // keep enabled; controller will forceDelete()
+    use HasApiTokens, Notifiable, SoftDeletes, HasRoles; // ✅ ADD HasRoles
 
-    protected $guard_name = 'web';
+    protected $guard_name = 'web'; // ✅ IMPORTANT for Spatie
 
     protected $fillable = [
         'name',
         'username',
         'password',
         'image',
+        'is_online',
+        'last_seen_at',
     ];
 
     protected $hidden = [
@@ -29,28 +28,17 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $casts = [
+        'is_online'    => 'boolean',
+        'last_seen_at' => 'datetime',
+    ];
+
+    protected $appends = ['image_url'];
+
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image ? asset('storage/' . $this->image) : null;
-    }
-
-    public function notifications()
-    {
-        return $this->hasMany(Notification::class);
-    }
-
-    /** 🔹 Chat: conversations the user participates in */
-    public function conversations()
-    {
-        // conversations ↔ users pivot with last_read_at
-        return $this->belongsToMany(Conversation::class)
-            ->withPivot('last_read_at')
-            ->withTimestamps();
-    }
-
-    /** 🔹 Chat: messages the user has sent */
-    public function sentMessages()
-    {
-        return $this->hasMany(Message::class, 'sender_id');
+        return $this->image
+            ? asset('storage/' . $this->image)
+            : null;
     }
 }

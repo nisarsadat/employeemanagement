@@ -3,272 +3,322 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Conversation;
-use App\Models\Message;
 use App\Models\User;
+use App\Models\Message;
+use App\Models\Conversation;
 use App\Events\MessageSent;
+use App\Events\MessageSeen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ChatController extends Controller
 {
-    /**
-     * List all other users you can chat with.
-     */
+    // Consider user online if pinged within last N seconds
+    private int $onlineSeconds = 10;
+
+    private function isOnline(User $u): bool
+    {
+        if (!$u->last_seen_at) return false;
+        return $u->last_seen_at->diffInSeconds(now()) <= $this->onlineSeconds;
+    }
+
     public function users(Request $request)
     {
         $authId = $request->user()->id;
 
-        $users = User::query()
-            ->where('id', '!=', $authId)
-            ->select('id', 'name', 'username') // username is optional for your UI search
+        return User::where('id', '!=', $authId)
+            ->select('id', 'name', 'username', 'image', 'last_seen_at')
             ->orderBy('name')
-            ->get();
-
-        return response()->json($users);
+            ->get()
+            ->map(fn ($u) => [
+                'id'        => $u->id,
+                'name'      => $u->name,
+                'username'  => $u->username,
+                'image_url' => $u->image_url,
+                'isOnline'  => $this->isOnline($u),
+                'lastSeen'  => $u->last_seen_at?->toIso8601String(),
+            ]);
     }
 
-    /**
-     * List conversations for the authenticated user, including:
-     * - other_user
-     * - last_message
-     * - unread_count (messages from others after last_read_at)
-     */
     public function conversations(Request $request)
     {
         $auth = $request->user();
 
-        $conversations = Conversation::query()
+        return Conversation::where('type', 'direct')
             ->whereHas('participants', fn ($q) => $q->where('user_id', $auth->id))
             ->with([
-                'participants:id,name',
-                'lastMessage.sender:id,name',
+                'participants' => fn ($q) => $q->select('users.id', 'users.name', 'users.username', 'users.image', 'users.last_seen_at'),
+                // ✅ include sender image for UI avatar
+                'lastMessage.sender:id,name,image',
             ])
-            ->orderByDesc(
-                Message::select('created_at')
-                    ->whereColumn('conversation_id', 'conversations.id')
-                    ->latest()
-                    ->take(1)
-            )
             ->get()
-            ->map(function (Conversation $conversation) use ($auth) {
-                // auth participant on pivot to get last_read_at
-                $authParticipant = $conversation->participants
-                    ->firstWhere('id', $auth->id);
+            ->map(function ($conv) use ($auth) {
+                $other = $conv->participants->firstWhere('id', '!=', $auth->id);
+                $pivot = $conv->participants->firstWhere('id', $auth->id)?->pivot;
 
-                $lastReadAt = optional($authParticipant?->pivot)->last_read_at;
-
-                // other user (for direct chat)
-                $other = $conversation->participants
-                    ->firstWhere('id', '!=', $auth->id);
-
-                // count unread messages (from other users, after last_read_at)
-                $unreadCount = Message::query()
-                    ->where('conversation_id', $conversation->id)
+                $unread = Message::where('conversation_id', $conv->id)
                     ->where('sender_id', '!=', $auth->id)
-                    ->when($lastReadAt, function ($q) use ($lastReadAt) {
-                        $q->where('created_at', '>', $lastReadAt);
-                    })
+                    ->when($pivot?->last_read_at, fn ($q) =>
+                        $q->where('created_at', '>', $pivot->last_read_at)
+                    )
                     ->count();
 
                 return [
-                    'id'           => $conversation->id,
-                    'type'         => $conversation->type,
-                    'other_user'   => $other ? [
-                        'id'   => $other->id,
-                        'name' => $other->name,
+                    'id' => $conv->id,
+                    'other_user' => $other ? [
+                        'id'        => $other->id,
+                        'name'      => $other->name,
+                        'image_url' => $other->image_url,
+                        'isOnline'  => ($other->last_seen_at && $other->last_seen_at->diffInSeconds(now()) <= $this->onlineSeconds),
+                        'lastSeen'  => $other->last_seen_at?->toIso8601String(),
                     ] : null,
-                    'last_message' => $conversation->lastMessage ? [
-                        'id'         => $conversation->lastMessage->id,
-                        'body'       => $conversation->lastMessage->body,
-                        'sender'     => [
-                            'id'   => $conversation->lastMessage->sender->id,
-                            'name' => $conversation->lastMessage->sender->name,
+                    'last_message' => $conv->lastMessage ? [
+                        'id'          => $conv->lastMessage->id,
+                        'body'        => $conv->lastMessage->body,
+                        'sender'      => [
+                            'id'        => $conv->lastMessage->sender->id,
+                            'name'      => $conv->lastMessage->sender->name,
+                            'image_url' => $conv->lastMessage->sender->image_url,
                         ],
-                        'created_at' => $conversation->lastMessage->created_at->toIso8601String(),
+                        'created_at'  => $conv->lastMessage->created_at->toIso8601String(),
+                        'delivered_at'=> optional($conv->lastMessage->delivered_at)->toIso8601String(),
+                        'seen_at'     => optional($conv->lastMessage->seen_at)->toIso8601String(),
                     ] : null,
-                    'unread_count' => $unreadCount,
+                    'unread_count' => $unread,
                 ];
             });
-
-        return response()->json($conversations);
     }
 
-    /**
-     * Get (or create) direct conversation with a user + messages.
-     */
+    private function findDirectConversation(int $userA, int $userB): ?Conversation
+    {
+        return Conversation::where('type', 'direct')
+            ->whereHas('participants', fn ($q) => $q->where('user_id', $userA))
+            ->whereHas('participants', fn ($q) => $q->where('user_id', $userB))
+            ->first();
+    }
+
     public function conversationWithUser(Request $request, User $user)
     {
         $auth = $request->user();
+        $now  = now();
 
-        if ($auth->id === $user->id) {
-            return response()->json([
-                'message' => 'You cannot chat with yourself.',
-            ], 422);
-        }
+        $conversation = $this->findDirectConversation($auth->id, $user->id);
 
-        $perPage = (int) $request->query('perPage', 30);
-
-        $conversation = Conversation::query()
-            ->where('type', 'direct')
-            ->whereHas('participants', fn ($q) => $q->where('user_id', $auth->id))
-            ->whereHas('participants', fn ($q) => $q->where('user_id', $user->id))
-            ->first();
-
-        if (! $conversation) {
+        if (!$conversation) {
             $conversation = DB::transaction(function () use ($auth, $user) {
                 $conv = Conversation::create([
-                    'type'       => 'direct',
+                    'type' => 'direct',
                     'created_by' => $auth->id,
                 ]);
 
-                $conv->participants()->attach([
-                    $auth->id => ['created_at' => now(), 'updated_at' => now()],
-                    $user->id => ['created_at' => now(), 'updated_at' => now()],
-                ]);
-
+                $conv->participants()->attach([$auth->id, $user->id]);
                 return $conv;
             });
         }
 
-        $messages = Message::query()
-            ->where('conversation_id', $conversation->id)
-            ->with('sender:id,name')
-            ->orderByDesc('id')
-            ->paginate($perPage);
+        // ✅ mark seen for messages from other user
+        $unseenIds = Message::where('conversation_id', $conversation->id)
+            ->where('sender_id', $user->id)
+            ->whereNull('seen_at')
+            ->pluck('id')
+            ->toArray();
 
-        // mark as read for auth user
+        if (!empty($unseenIds)) {
+            Message::whereIn('id', $unseenIds)->update(['seen_at' => $now]);
+
+            // ✅ broadcast seen
+            try {
+                broadcast(new MessageSeen(
+                    sender_id: $user->id,
+                    conversation_id: $conversation->id,
+                    message_ids: $unseenIds,
+                    seen_at: $now->toIso8601String()
+                ))->toOthers();
+            } catch (\Throwable $e) {}
+        }
+
         $conversation->participants()
-            ->updateExistingPivot($auth->id, ['last_read_at' => now()]);
+            ->updateExistingPivot($auth->id, ['last_read_at' => $now]);
+
+        $messages = Message::where('conversation_id', $conversation->id)
+            // ✅ include sender image
+            ->with('sender:id,name,image')
+            ->orderBy('id')
+            ->get()
+            ->map(fn ($m) => [
+                'id'          => $m->id,
+                'body'        => $m->body,
+                'sender'      => [
+                    'id'        => $m->sender->id,
+                    'name'      => $m->sender->name,
+                    'image_url' => $m->sender->image_url,
+                ],
+                'created_at'  => $m->created_at->toIso8601String(),
+                'delivered_at'=> optional($m->delivered_at)->toIso8601String(),
+                'seen_at'     => optional($m->seen_at)->toIso8601String(),
+            ]);
 
         return response()->json([
-            'conversation' => [
-                'id'   => $conversation->id,
-                'type' => $conversation->type,
-                'user' => [
-                    'id'   => $user->id,
-                    'name' => $user->name,
-                ],
-            ],
-            'messages' => [
-                'data' => $messages->getCollection()->map(function (Message $m) {
-                    return [
-                        'id'         => $m->id,
-                        'body'       => $m->body,
-                        'sender'     => [
-                            'id'   => $m->sender->id,
-                            'name' => $m->sender->name,
-                        ],
-                        'created_at' => $m->created_at->toIso8601String(),
-                    ];
-                }),
-                'meta' => [
-                    'current_page' => $messages->currentPage(),
-                    'last_page'    => $messages->lastPage(),
-                    'per_page'     => $messages->perPage(),
-                    'total'        => $messages->total(),
-                ],
-            ],
+            'conversation' => ['id' => $conversation->id],
+            'messages' => ['data' => $messages],
         ]);
     }
 
-    /**
-     * Send a message (auth user → receiver).
-     * Uses try/catch around broadcast so it NEVER crashes
-     * even if Reverb / Pusher is not running.
-     */
     public function sendMessage(Request $request)
     {
         $auth = $request->user();
 
-        $validated = $request->validate([
-            'receiver_id' => ['required', 'integer', 'exists:users,id'],
-            'body'        => ['required', 'string', 'max:5000'],
+        $data = $request->validate([
+            'receiver_id' => 'required|exists:users,id',
+            'body' => 'required|string',
         ]);
 
-        if ((int) $validated['receiver_id'] === $auth->id) {
-            return response()->json([
-                'message' => 'You cannot send messages to yourself.',
-            ], 422);
-        }
+        $receiver = User::findOrFail($data['receiver_id']);
+        $now = now();
 
-        $receiver = User::findOrFail($validated['receiver_id']);
+        // ✅ FIX: get conversation ONLY between auth & receiver
+        $conversation = $this->findDirectConversation($auth->id, $receiver->id);
 
-        // find or create conversation
-        $conversation = Conversation::query()
-            ->where('type', 'direct')
-            ->whereHas('participants', fn ($q) => $q->where('user_id', $auth->id))
-            ->whereHas('participants', fn ($q) => $q->where('user_id', $receiver->id))
-            ->first();
-
-        if (! $conversation) {
+        if (!$conversation) {
             $conversation = DB::transaction(function () use ($auth, $receiver) {
                 $conv = Conversation::create([
-                    'type'       => 'direct',
+                    'type' => 'direct',
                     'created_by' => $auth->id,
                 ]);
-
-                $conv->participants()->attach([
-                    $auth->id     => ['created_at' => now(), 'updated_at' => now()],
-                    $receiver->id => ['created_at' => now(), 'updated_at' => now()],
-                ]);
-
+                $conv->participants()->attach([$auth->id, $receiver->id]);
                 return $conv;
             });
         }
 
-        // create message
         $message = $conversation->messages()->create([
             'sender_id' => $auth->id,
-            'body'      => $validated['body'],
+            'body' => $data['body'],
+            'delivered_at' => $now,
         ]);
 
-        // sender has read everything in this conversation
         $conversation->participants()
-            ->updateExistingPivot($auth->id, ['last_read_at' => now()]);
+            ->updateExistingPivot($auth->id, ['last_read_at' => $now]);
 
-        // broadcast but DON'T break if Reverb/Pusher is down
+        // ✅ realtime broadcast
         try {
             broadcast(new MessageSent($message))->toOthers();
-        } catch (\Throwable $e) {
-            \Log::warning('Chat broadcast failed', [
-                'error' => $e->getMessage(),
-            ]);
-        }
-
-        $message->load('sender:id,name');
+        } catch (\Throwable $e) {}
 
         return response()->json([
-            'id'              => $message->id,
-            'conversation_id' => $message->conversation_id,
-            'body'            => $message->body,
-            'sender'          => [
-                'id'   => $message->sender->id,
-                'name' => $message->sender->name,
+            'id' => $message->id,
+            'conversation_id' => $conversation->id,
+            'body' => $message->body,
+            'sender' => [
+                'id'        => $auth->id,
+                'name'      => $auth->name,
+                'image_url' => $auth->image_url,
             ],
-            'created_at'      => $message->created_at->toIso8601String(),
-        ], 201);
+            'created_at' => $message->created_at->toIso8601String(),
+            'delivered_at' => $message->delivered_at?->toIso8601String(),
+            'seen_at' => null,
+        ]);
     }
 
-    /**
-     * Mark conversation as read for authenticated user.
-     * (Used for badge / unread logic.)
-     */
     public function markAsRead(Request $request, Conversation $conversation)
+    {
+        $conversation->participants()
+            ->updateExistingPivot($request->user()->id, ['last_read_at' => now()]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    // ✅ Read all conversations (fix read-all not worked)
+    public function readAllConversations(Request $request)
+    {
+        $auth = $request->user();
+        $now  = now();
+
+        $convs = Conversation::where('type', 'direct')
+            ->whereHas('participants', fn ($q) => $q->where('user_id', $auth->id))
+            ->get();
+
+        foreach ($convs as $conv) {
+            $conv->participants()->updateExistingPivot($auth->id, ['last_read_at' => $now]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
+    // ✅ Clear conversation (works for any user -> clears for both)
+    public function clearConversation(Request $request, Conversation $conversation)
     {
         $auth = $request->user();
 
-        if (! $conversation->participants()->where('user_id', $auth->id)->exists()) {
+        $isParticipant = $conversation->participants()
+            ->where('user_id', $auth->id)
+            ->exists();
+
+        if (!$isParticipant) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
+
+        Message::where('conversation_id', $conversation->id)->delete();
 
         $conversation->participants()
             ->updateExistingPivot($auth->id, ['last_read_at' => now()]);
 
+        return response()->json(['ok' => true]);
+    }
+
+    // ✅ Presence ping
+    public function ping(Request $request)
+    {
+        $request->user()->update([
+            'last_seen_at' => now(),
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    // Optional offline
+    public function offline(Request $request)
+    {
+        $request->user()->update([
+            'last_seen_at' => now()->subYears(5),
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    // ✅ Unread counts only (FAST)
+    public function unreadCounts(Request $request)
+    {
+        $auth = $request->user();
+
+        $convs = Conversation::where('type', 'direct')
+            ->whereHas('participants', fn ($q) => $q->where('user_id', $auth->id))
+            ->with(['participants' => fn ($q) => $q->where('user_id', $auth->id)])
+            ->get();
+
+        $items = [];
+        $total = 0;
+
+        foreach ($convs as $conv) {
+            $pivot = $conv->participants->first()?->pivot;
+
+            $unread = Message::where('conversation_id', $conv->id)
+                ->where('sender_id', '!=', $auth->id)
+                ->when($pivot?->last_read_at, fn ($q) =>
+                    $q->where('created_at', '>', $pivot->last_read_at)
+                )
+                ->count();
+
+            $items[] = [
+                'conversation_id' => $conv->id,
+                'unread_count'    => $unread,
+            ];
+
+            $total += $unread;
+        }
+
         return response()->json([
-            'success'       => true,
-            'conversation'  => $conversation->id,
-            'last_read_at'  => now()->toIso8601String(),
+            'total_unread' => $total,
+            'items'        => $items,
         ]);
     }
 }

@@ -1,48 +1,41 @@
-// src/stores/ChatRepository.js
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
 export const useChatRepository = defineStore('ChatRepository', {
   state: () => ({
-    loading: false,
+    bootLoading: false,
+    silentLoading: false,
+    messagesLoading: false,
     sending: false,
 
-    // auth user
     currentUser: null,
-
-    // users to chat with (loaded once on open)
     users: [],
-
-    // list of conversations with unread_count & last_message
     conversations: [],
 
-    // current conversation & partner
-    activeUser: null, // { id, name, email? }
+    activeUser: null,
     activeConversationId: null,
-
-    // messages of current conversation (ASC)
     messages: [],
 
-    // total unread count for appbar badge
     unreadCount: 0,
 
-    // pagination meta
-    messagesMeta: {
-      current_page: 1,
-      last_page: 1,
-      per_page: 50,
-      total: 0,
-    },
-
-    // Echo
+    // Echo state
     userChannelSubscribed: false,
-    conversationChannelName: null,
+    activeConversationChannelName: null,
 
-    // polling (fallback when Echo is not configured)
-    conversationsPollId: null,
-    messagesPollId: null,
+    // timers
+    unreadPollId: null,
+    presencePingId: null,
 
+    // init flags
     initialized: false,
+    usersLoadedOnce: false,
+    conversationsLoadedOnce: false,
+
+    // ✅ used by component for notification + sound trigger (ONLY when receiving)
+    lastIncomingMessage: null,
+
+    // ✅ optional: track sends (NO sound)
+    lastSentMessageId: null,
   }),
 
   getters: {
@@ -52,437 +45,250 @@ export const useChatRepository = defineStore('ChatRepository', {
   },
 
   actions: {
-    /* ===============================
-       BOOTSTRAP (called when chat menu opened)
-       - ONE TIME:
-         /user
-         /chat/users
-         /chat/conversations
-       - then start polling (2s) only for:
-         /chat/conversations
-         /chat/conversations/user/{id}
-    =============================== */
+    async initBadge() {
+      if (!this.currentUser) await this.fetchCurrentUser();
+
+      this.startUnreadPolling();
+      this.startPresencePing();
+      this.subscribeToUserChannel();
+    },
+
     async bootstrap() {
       if (this.initialized) return;
 
+      this.bootLoading = true;
       try {
-        this.loading = true;
+        if (!this.currentUser) await this.fetchCurrentUser();
 
-        // 1) fetch current auth user
-        await this.fetchCurrentUser();
-
-        // 2) fetch users (list at left)
-        await this.fetchUsers();
-
-        // 3) fetch conversations (for unread + last message)
-        await this.fetchConversations();
-
-        // 4) subscribe to Echo user channel
-        this.subscribeToUserChannel();
-
-        // 5) start polling fallback (every 2s) – only conversations + active messages
-        this.startPolling();
+        await this.fetchUsersOnce();
+        await this.fetchConversationsOnce();
 
         this.initialized = true;
-      } catch (e) {
-        console.error('Chat bootstrap error', e);
       } finally {
-        this.loading = false;
+        this.bootLoading = false;
       }
     },
 
-    /* ===============================
-       BASIC LOADERS
-    =============================== */
-    async fetchCurrentUser() {
+    async pingOnline() {
       try {
-        const { data } = await axios.get('/user'); // Sanctum default
-        this.currentUser = data;
-      } catch (e) {
-        console.error('fetchCurrentUser error', e);
-      }
+        await axios.post('/chat/ping');
+      } catch {}
     },
 
-    async fetchUsers() {
+    startPresencePing() {
+      if (this.presencePingId) return;
+      this.pingOnline();
+      this.presencePingId = setInterval(() => this.pingOnline(), 20000);
+    },
+
+    async fetchCurrentUser() {
+      const { data } = await axios.get('/user');
+      this.currentUser = data;
+    },
+
+    async fetchUsersOnce() {
+      if (this.usersLoadedOnce) return;
+      this.silentLoading = true;
       try {
         const { data } = await axios.get('/chat/users');
         this.users = Array.isArray(data) ? data : [];
-      } catch (e) {
-        console.error('fetchUsers error', e);
+        this.usersLoadedOnce = true;
+      } finally {
+        this.silentLoading = false;
       }
     },
 
-    async fetchConversations() {
+    async fetchConversationsOnce() {
+      if (this.conversationsLoadedOnce) return;
+      this.silentLoading = true;
       try {
         const { data } = await axios.get('/chat/conversations');
         this.conversations = Array.isArray(data) ? data : [];
         this.recalculateUnread();
-      } catch (e) {
-        console.error('fetchConversations error', e);
-      }
-    },
-
-    async refreshActiveConversationMessages() {
-      if (!this.activeUser || !this.activeUser.id) return;
-
-      try {
-        const { data } = await axios.get(
-          `/chat/conversations/user/${this.activeUser.id}`,
-          {
-            params: { perPage: this.messagesMeta.per_page },
-          },
-        );
-
-        this.activeConversationId = data.conversation.id;
-
-        const msgs = Array.isArray(data.messages?.data)
-          ? data.messages.data
-          : [];
-
-        // backend DESC → show ASC
-        this.messages = [...msgs].reverse().map((m) => ({
-          ...m,
-          sender: m.sender || {},
-        }));
-
-        this.messagesMeta = {
-          current_page: data.messages.meta.current_page,
-          last_page: data.messages.meta.last_page,
-          per_page: data.messages.meta.per_page,
-          total: data.messages.meta.total,
-        };
-      } catch (e) {
-        console.error('refreshActiveConversationMessages error', e);
-      }
-    },
-
-    /* ===============================
-       OPEN CONVERSATION WITH USER
-    =============================== */
-    async openConversationWith(user) {
-      if (!user || !user.id) return;
-
-      this.loading = true;
-
-      try {
-        this.activeUser = user;
-
-        const { data } = await axios.get(
-          `/chat/conversations/user/${user.id}`,
-          {
-            params: { perPage: this.messagesMeta.per_page },
-          },
-        );
-
-        this.activeConversationId = data.conversation.id;
-
-        const msgs = Array.isArray(data.messages?.data)
-          ? data.messages.data
-          : [];
-
-        this.messages = [...msgs].reverse().map((m) => ({
-          ...m,
-          sender: m.sender || {},
-        }));
-
-        this.messagesMeta = {
-          current_page: data.messages.meta.current_page,
-          last_page: data.messages.meta.last_page,
-          per_page: data.messages.meta.per_page,
-          total: data.messages.meta.total,
-        };
-
-        // mark read in backend + local
-        await this.markConversationAsReadById(this.activeConversationId);
-
-        // subscribe to conversation channel
-        this.subscribeToConversationChannel(this.activeConversationId);
-
-        // ensure messages polling is active for this conv (every 2s)
-        this.startMessagesPolling();
-      } catch (e) {
-        console.error('openConversationWith error', e);
+        this.conversationsLoadedOnce = true;
       } finally {
-        this.loading = false;
+        this.silentLoading = false;
       }
     },
 
-    /* ===============================
-       UNREAD / READ HELPERS
-    =============================== */
+    async refreshLists() {
+      this.silentLoading = true;
+      try {
+        const [uRes, cRes] = await Promise.all([
+          axios.get('/chat/users'),
+          axios.get('/chat/conversations'),
+        ]);
+
+        this.users = Array.isArray(uRes.data) ? uRes.data : [];
+        this.conversations = Array.isArray(cRes.data) ? cRes.data : [];
+        this.recalculateUnread();
+      } finally {
+        this.silentLoading = false;
+      }
+    },
+
+    async fetchUnreadCounts() {
+      try {
+        const { data } = await axios.get('/chat/unread-counts');
+
+        const map = new Map((data.items || []).map((i) => [i.conversation_id, i.unread_count]));
+
+        this.conversations = this.conversations.map((c) =>
+          map.has(c.id) ? { ...c, unread_count: map.get(c.id) } : c
+        );
+
+        this.unreadCount =
+          typeof data.total_unread === 'number' ? data.total_unread : this.unreadCount;
+      } catch {}
+    },
+
     recalculateUnread() {
-      this.unreadCount = (this.conversations || []).reduce(
-        (sum, c) => sum + (c.unread_count || 0),
-        0,
-      );
+      this.unreadCount = this.conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+    },
+
+    startUnreadPolling() {
+      if (this.unreadPollId) return;
+      this.fetchUnreadCounts();
+      this.unreadPollId = setInterval(() => this.fetchUnreadCounts(), 5000);
+    },
+
+    async openConversationWith(user) {
+      this.activeUser = user;
+      this.messages = [];
+      this.activeConversationId = null;
+
+      this.messagesLoading = true;
+      try {
+        const { data } = await axios.get(`/chat/conversations/user/${user.id}`);
+
+        this.activeConversationId = data?.conversation?.id || null;
+        this.messages = data?.messages?.data || [];
+
+        if (this.activeConversationId) {
+          await this.markConversationAsReadById(this.activeConversationId);
+          this.subscribeToConversationChannel(this.activeConversationId);
+        }
+      } finally {
+        this.messagesLoading = false;
+      }
+    },
+
+    closeChatSession() {
+      this.stopConversationRealtime();
+      this.activeUser = null;
+      this.activeConversationId = null;
+      this.messages = [];
     },
 
     async markConversationAsReadById(conversationId) {
-      if (!conversationId) return;
-
       try {
         await axios.post(`/chat/conversations/${conversationId}/read`);
+      } catch {}
 
-        const idx = this.conversations.findIndex((c) => c.id === conversationId);
-        if (idx !== -1) {
-          const conv = this.conversations[idx];
-          const updated = {
-            ...conv,
-            unread_count: 0,
-          };
-          this.conversations.splice(idx, 1, updated);
-        }
-
-        this.recalculateUnread();
-      } catch (e) {
-        console.error('markConversationAsReadById error', e);
-      }
-    },
-
-    /**
-     * Used by component: mark all conversations with this user as read.
-     */
-    async markMessagesAsRead(userId) {
-      if (!userId) return;
-
-      const targetConversations = this.conversations.filter(
-        (c) => c.other_user && c.other_user.id === userId,
+      this.conversations = this.conversations.map((c) =>
+        c.id === conversationId ? { ...c, unread_count: 0 } : c
       );
-
-      if (!targetConversations.length) {
-        if (this.activeConversationId && this.activeUser?.id === userId) {
-          await this.markConversationAsReadById(this.activeConversationId);
-        }
-        return;
-      }
-
-      for (const conv of targetConversations) {
-        await this.markConversationAsReadById(conv.id);
-      }
+      this.recalculateUnread();
     },
 
-    /* ===============================
-       SEND MESSAGE
-    =============================== */
-    async sendMessage(body) {
-      if (!this.activeUser || !this.activeUser.id) return;
-      if (!body || !body.trim()) return;
-      if (!this.currentUser) return;
-
-      this.sending = true;
-
+    async markAllAsRead() {
       try {
-        const trimmed = body.trim();
+        await axios.post('/chat/conversations/read-all');
+      } catch {}
 
+      this.conversations = this.conversations.map((c) => ({ ...c, unread_count: 0 }));
+      this.unreadCount = 0;
+    },
+
+    async clearChat(conversationId) {
+      try {
+        await axios.post(`/chat/conversations/${conversationId}/clear`);
+      } catch {}
+
+      if (this.activeConversationId === conversationId) {
+        this.messages = [];
+      }
+
+      this.conversations = this.conversations.map((c) =>
+        c.id === conversationId ? { ...c, last_message: null, unread_count: 0 } : c
+      );
+      this.recalculateUnread();
+    },
+
+    async sendMessage(body) {
+      this.sending = true;
+      try {
         const { data } = await axios.post('/chat/messages', {
           receiver_id: this.activeUser.id,
-          body: trimmed,
+          body,
         });
 
-        const message = {
-          id: data.id,
-          conversation_id: data.conversation_id,
-          body: data.body,
-          sender: data.sender,
-          created_at: data.created_at,
-        };
-
-        if (!this.activeConversationId) {
-          this.activeConversationId = data.conversation_id;
-        }
-
-        this.messages.push(message);
-        this.messages.sort(
-          (a, b) => new Date(a.created_at) - new Date(b.created_at),
-        );
-
-        // update conversations list (outgoing message, mark read for us)
-        this.upsertConversationFromMessage(message, true, { markRead: true });
-      } catch (e) {
-        console.error('sendMessage error', e);
+        this.lastSentMessageId = data?.id || data?.message?.id || null;
+        return data;
       } finally {
         this.sending = false;
       }
     },
 
-    /* ===============================
-       INCOMING MESSAGE (Echo)
-    =============================== */
-    handleIncomingMessage(payload) {
-      if (!payload) return;
-
-      const currentUserId = this.currentUser?.id ?? null;
-
-      // if we are sender, ignore duplicate
-      if (currentUserId && payload.sender?.id === currentUserId) {
-        return;
-      }
-
-      const message = {
-        id: payload.id,
-        conversation_id: payload.conversation_id,
-        body: payload.body,
-        sender: payload.sender,
-        created_at: payload.created_at,
-      };
-
-      const isActiveConversation =
-        this.activeConversationId &&
-        payload.conversation_id === this.activeConversationId;
-
-      if (isActiveConversation) {
-        this.messages.push(message);
-        this.messages.sort(
-          (a, b) => new Date(a.created_at) - new Date(b.created_at),
-        );
-
-        this.upsertConversationFromMessage(message, false, { markRead: true });
-
-        // tell backend it's read
-        this.markConversationAsReadById(payload.conversation_id);
-      } else {
-        // different conversation → increment unread
-        this.upsertConversationFromMessage(message, false, {
-          incrementUnread: true,
-        });
-      }
-    },
-
-    /**
-     * Sync conversations list with last message + unread_count.
-     */
-    upsertConversationFromMessage(message, isOutgoing, options = {}) {
-      const { markRead = false, incrementUnread = false } = options;
-      const convId = message.conversation_id;
-
-      const idx = this.conversations.findIndex((c) => c.id === convId);
-
-      let otherUser = null;
-      if (
-        this.activeConversationId === convId &&
-        this.activeUser &&
-        this.activeUser.id
-      ) {
-        otherUser = { id: this.activeUser.id, name: this.activeUser.name };
-      } else if (
-        message.sender &&
-        this.currentUser &&
-        message.sender.id !== this.currentUser.id
-      ) {
-        otherUser = { id: message.sender.id, name: message.sender.name };
-      }
-
-      if (idx !== -1) {
-        const conv = this.conversations[idx];
-        let unread = conv.unread_count || 0;
-
-        if (markRead) {
-          unread = 0;
-        } else if (incrementUnread) {
-          unread += 1;
-        }
-
-        const updated = {
-          ...conv,
-          last_message: message,
-          other_user: conv.other_user || otherUser,
-          unread_count: unread,
-        };
-
-        this.conversations.splice(idx, 1, updated);
-      } else {
-        const unread = incrementUnread ? 1 : 0;
-        const newConv = {
-          id: convId,
-          type: 'direct',
-          other_user: otherUser,
-          last_message: message,
-          unread_count: unread,
-        };
-        this.conversations.unshift(newConv);
-      }
-
-      this.recalculateUnread();
-    },
-
-    /* ===============================
-       POLLING FALLBACK (2 seconds)
-       Only calls:
-       - fetchConversations()
-       - refreshActiveConversationMessages()
-    =============================== */
-    startPolling() {
-      // conversations polling (badge + list)
-      if (this.conversationsPollId) {
-        clearInterval(this.conversationsPollId);
-      }
-      this.conversationsPollId = window.setInterval(() => {
-        this.fetchConversations();
-      }, 2000); // 🔁 every 2 seconds
-
-      // messages polling for active conversation
-      this.startMessagesPolling();
-    },
-
-    startMessagesPolling() {
-      if (this.messagesPollId) {
-        clearInterval(this.messagesPollId);
-      }
-
-      if (!this.activeUser || !this.activeUser.id) return;
-
-      this.messagesPollId = window.setInterval(() => {
-        this.refreshActiveConversationMessages();
-      }, 2000); // 🔁 every 2 seconds
-    },
-
-    stopPolling() {
-      if (this.conversationsPollId) {
-        clearInterval(this.conversationsPollId);
-        this.conversationsPollId = null;
-      }
-      if (this.messagesPollId) {
-        clearInterval(this.messagesPollId);
-        this.messagesPollId = null;
-      }
-    },
-
-    /* ===============================
-       ECHO SUBSCRIPTIONS
-    =============================== */
     subscribeToUserChannel() {
-      if (this.userChannelSubscribed) return;
-      if (!this.currentUser) return;
-      if (typeof window === 'undefined' || !window.Echo) return;
+      if (this.userChannelSubscribed || !window.Echo || !this.currentUser?.id) return;
 
-      const userId = this.currentUser.id;
-      if (!userId) return;
-
-      window.Echo.private(`user.${userId}`).listen('.MessageSent', (e) => {
-        this.handleIncomingMessage(e);
-      });
+      window.Echo.private(`user.${this.currentUser.id}`)
+        .listen('.MessageSeen', (e) => this.handleMessageSeen(e))
+        .listen('.MessageSent', (e) => this.handleIncomingMessage(e));
 
       this.userChannelSubscribed = true;
     },
 
-    subscribeToConversationChannel(conversationId) {
-      if (!conversationId) return;
-      if (typeof window === 'undefined' || !window.Echo) return;
+    stopConversationRealtime() {
+      if (!window.Echo || !this.activeConversationChannelName) return;
+      try {
+        window.Echo.leave(this.activeConversationChannelName);
+      } catch {}
+      this.activeConversationChannelName = null;
+    },
 
-      if (this.conversationChannelName) {
-        try {
-          window.Echo.leave(this.conversationChannelName);
-        } catch (e) {
-          console.warn('Failed to leave previous conversation channel', e);
-        }
+    subscribeToConversationChannel(conversationId) {
+      if (!window.Echo) return;
+
+      this.stopConversationRealtime();
+
+      const publicName = `conversation.${conversationId}`;
+      const internalName = `private-${publicName}`;
+
+      this.activeConversationChannelName = internalName;
+
+      window.Echo.private(publicName)
+        .listen('.MessageSent', (e) => this.handleIncomingMessage(e))
+        .listen('.MessageSeen', (e) => this.handleMessageSeen(e));
+    },
+
+    handleIncomingMessage(message) {
+      this.fetchUnreadCounts();
+
+      const myId = this.currentUser?.id;
+      const senderId = message?.sender_id || message?.sender?.id || null;
+      const isMine = !!myId && !!senderId && String(senderId) === String(myId);
+
+      // if current conversation open => append and mark read
+      if (this.activeConversationId === message.conversation_id) {
+        const exists = this.messages.some((m) => String(m.id) === String(message.id));
+        if (!exists) this.messages.push(message);
+
+        if (!isMine) this.markConversationAsReadById(this.activeConversationId);
       }
 
-      const channelName = `conversation.${conversationId}`;
-      this.conversationChannelName = channelName;
+      // ✅ trigger UI notify ONLY for incoming (not mine)
+      if (!isMine) {
+        this.lastIncomingMessage = message;
+      }
+    },
 
-      window.Echo.private(channelName).listen('.MessageSent', (e) => {
-        this.handleIncomingMessage(e);
-      });
+    handleMessageSeen(payload) {
+      const ids = payload.message_ids || [];
+      const seenAt = payload.seen_at;
+
+      this.messages = this.messages.map((m) => (ids.includes(m.id) ? { ...m, seen_at: seenAt } : m));
     },
   },
 });

@@ -466,13 +466,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-    Route::middleware('auth:sanctum')->prefix('chat')->group(function () {
-        Route::get('/users', [ChatController::class, 'users']);
-        Route::get('/conversations', [ChatController::class, 'conversations']);
-        Route::get('/conversations/user/{user}', [ChatController::class, 'conversationWithUser']);
-        Route::post('/messages', [ChatController::class, 'sendMessage']);
-        Route::post('/conversations/{conversation}/read', [ChatController::class, 'markAsRead']);
-    });
+    Route::get('/chat/users', [ChatController::class, 'users']);
+    Route::get('/chat/conversations', [ChatController::class, 'conversations']);
+    Route::get('/chat/conversations/user/{user}', [ChatController::class, 'conversationWithUser']);
+    Route::post('/chat/messages', [ChatController::class, 'sendMessage']);
+    Route::post('/chat/conversations/{conversation}/read', [ChatController::class, 'markAsRead']);
+    Route::post('/chat/conversations/read-all', [ChatController::class, 'readAllConversations']); // ✅
+    Route::post('/chat/conversations/{conversation}/clear', [ChatController::class, 'clearConversation']); // ✅
+    Route::post('/chat/unread-counts', [ChatController::class, 'unreadCounts']); // if you use POST
+    Route::get('/chat/unread-counts', [ChatController::class, 'unreadCounts']);  // if you use GET (your repo uses GET)
+    Route::post('/chat/ping', [ChatController::class, 'ping']);
+    Route::post('/chat/offline', [ChatController::class, 'offline']);
+
+
+
 
 
 
