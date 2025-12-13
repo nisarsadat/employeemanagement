@@ -47,6 +47,7 @@
                     accept="image/*"
                     @change="onPickPicture"
                   />
+
                   <v-avatar
                     size="88"
                     class="mb-2 cursor-pointer primary-avatar"
@@ -70,7 +71,7 @@
                       class="text-none rounded-pill soft-btn my-2"
                       @click.stop="triggerPicture"
                     >
-                      <v-icon start size="22" >mdi-pencil</v-icon>
+                      <v-icon start size="22">mdi-pencil</v-icon>
                       {{ t('تغییر عکس') }}
                     </v-btn>
 
@@ -80,11 +81,7 @@
                       color="secondary"
                       variant="tonal"
                       class="text-none rounded-pill soft-btn"
-                      @click.stop="
-                        openPreview(
-                          form.previewUrl || form.picture_url || form.picture
-                        )
-                      "
+                      @click.stop="openPreview(form.previewUrl || form.picture_url || form.picture)"
                     >
                       <v-icon start size="22">mdi-eye</v-icon>
                       {{ t('نمایش') }}
@@ -111,9 +108,10 @@
               <!-- Identity -->
               <div class="section-header">
                 <span class="section-title">
-                  {{ isEdit ? t('ویرایش  ') : t('ایجاد ') }}
+                  {{ isEdit ? t('ویرایش ') : t('ایجاد ') }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -154,6 +152,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس اصلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -191,6 +190,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس فعلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -273,6 +273,7 @@
           <div class="section-header mb-2">
             <span class="section-title">{{ t('جزئیات اضافی و منبع') }}</span>
           </div>
+
           <v-row>
             <!-- Specific form / band / activity -->
             <v-col cols="12" md="4">
@@ -407,11 +408,7 @@
                       {{ t('انتخاب فایل‌ها') }}
                     </v-btn>
 
-                    <v-chip
-                      size="small"
-                      variant="outlined"
-                      class="docs-counter-chip text-caption"
-                    >
+                    <v-chip size="small" variant="outlined" class="docs-counter-chip text-caption">
                       <v-icon size="16" class="ml-1">mdi-file-multiple</v-icon>
                       {{ t('جدید') }}: {{ form._newDocs.length }}
                       &nbsp;|&nbsp;
@@ -443,12 +440,7 @@
                   >
                     <v-icon size="16" class="ml-1">mdi-plus</v-icon>
                     {{ shortName(f.name) }}
-                    <v-icon
-                      size="16"
-                      class="ml-1"
-                      title="حذف"
-                      @click.stop="removeNewDocAt(idx)"
-                    >
+                    <v-icon size="16" class="ml-1" title="حذف" @click.stop="removeNewDocAt(idx)">
                       mdi-close
                     </v-icon>
                   </v-chip>
@@ -467,12 +459,7 @@
                   >
                     <v-icon size="16" class="ml-1">mdi-file-eye</v-icon>
                     {{ shortName(d.original_name || d.file_name) }}
-                    <v-icon
-                      size="16"
-                      class="ml-1"
-                      title="حذف"
-                      @click.stop="markDocForRemoval(d)"
-                    >
+                    <v-icon size="16" class="ml-1" title="حذف" @click.stop="markDocForRemoval(d)">
                       mdi-close
                     </v-icon>
                   </v-chip>
@@ -481,21 +468,20 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (✅ added PDF + Word like your simple export rules) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
                 class="text-none rounded-pill primary-action-btn"
                 :loading="saving"
                 type="submit"
-                :prepend-icon="
-                  isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'
-                "
+                :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد اسیر/گرفتار') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -504,6 +490,26 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -573,7 +579,7 @@ const router = useRouter();
 
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
-watch(locale, l => (isRtl.value = l === 'fa'));
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
 /* ===== ROUTE / MODE ===== */
 const isEdit = computed(() => !!route.params.id);
@@ -597,7 +603,7 @@ function showSuccessMessage(message) {
   showSuccess.value = true;
 }
 
-/* ===== BACKEND ERRORS (like employee form) ===== */
+/* ===== BACKEND ERRORS ===== */
 const backendErrors = ref({});
 function setBackendErrors(errors) {
   backendErrors.value = errors || {};
@@ -664,8 +670,8 @@ const form = ref(blankForm());
 
 /* ===== RULES ===== */
 const rules = {
-  required: v => !!v || t('این فیلد الزامی است'),
-  phone10: v =>
+  required: (v) => !!v || t('این فیلد الزامی است'),
+  phone10: (v) =>
     !v || /^[0-9]{10}$/.test(String(v)) || t('شماره تماس باید دقیقاً ۱۰ رقم باشد'),
 };
 
@@ -704,16 +710,18 @@ function openDoc(url) {
 
 function markDocForRemoval(doc) {
   if (!doc?.id) return;
+
   if (!Array.isArray(form.value.removed_document_ids)) {
     form.value.removed_document_ids = [];
   }
   if (!form.value.removed_document_ids.includes(doc.id)) {
     form.value.removed_document_ids.push(doc.id);
   }
-  form.value.existingDocs = (form.value.existingDocs || []).filter(d => d.id !== doc.id);
+
+  form.value.existingDocs = (form.value.existingDocs || []).filter((d) => d.id !== doc.id);
 }
 
-/* Download all docs (for edit) */
+/* Download all docs */
 const hasDocuments = computed(
   () =>
     (form.value._newDocs?.length || 0) > 0 ||
@@ -765,35 +773,28 @@ function normalizePicture(src) {
   if (!src) return null;
   let clean = String(src).trim();
 
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) {
-    return clean;
-  }
+  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
   clean = clean.replace(/\\\//g, '/');
 
-  if (clean.startsWith('http://') || clean.startsWith('https://')) {
-    return clean;
-  }
-  if (clean.startsWith('/')) {
-    return clean;
-  }
+  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+  if (clean.startsWith('/')) return clean;
+
   return '/' + clean.replace(/^\/+/, '');
 }
 
 function openPreview(src) {
-  const base =
-    src || form.value.previewUrl || form.value.picture_url || form.value.picture;
+  const base = src || form.value.previewUrl || form.value.picture_url || form.value.picture;
   const normalized = normalizePicture(base);
   previewSrc.value = normalized;
-  if (previewSrc.value) {
-    previewOpen.value = true;
-  }
+  if (previewSrc.value) previewOpen.value = true;
 }
 
 /* ===== RESOURCES DROPDOWN ===== */
 const resources = computed(() => repo.resourcecode || []);
 
 function onResourceCodeChange(code) {
-  const found = resources.value.find(r => r.code_number === code);
+  const found = resources.value.find((r) => r.code_number === code);
   form.value.resource_phone_number = found?.phone_number ?? '';
   form.value.resource_id = found?.id ?? null;
 }
@@ -885,14 +886,13 @@ function buildCreateFormData() {
   delete payload.existingDocs;
   delete payload._newDocs;
   delete payload.removed_document_ids;
+  delete payload.picture;
 
   const fd = toFormData(payload);
 
-  if (pictureFile.value) {
-    fd.append('picture', pictureFile.value);
-  }
+  if (pictureFile.value) fd.append('picture', pictureFile.value);
 
-  (form.value._newDocs || []).forEach(file => {
+  (form.value._newDocs || []).forEach((file) => {
     fd.append('documents[]', file);
   });
 
@@ -916,11 +916,11 @@ function buildUpdateFormData() {
     fd.append('picture', pictureFile.value);
   }
 
-  (form.value._newDocs || []).forEach(file => {
+  (form.value._newDocs || []).forEach((file) => {
     fd.append('documents[]', file);
   });
 
-  removed.forEach(id => {
+  removed.forEach((id) => {
     fd.append('removed_document_ids[]', id);
   });
 
@@ -937,6 +937,181 @@ function scrollToFirstInvalid() {
     const input = first.querySelector('input, textarea, .v-field__input');
     if (input && typeof input.focus === 'function') input.focus();
   }
+}
+
+/* =========================
+   SIMPLE EXPORT (PDF/WORD) — NO IMAGE, NO APP HEADERS
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+
+function exportRows() {
+  return [
+    { label: 'نام', value: form.value.name },
+    { label: 'نام مستعار', value: form.value.nick_name },
+    { label: 'نام پدر', value: form.value.father_name },
+
+    { label: 'ولایت اصلی', value: form.value.main_province },
+    { label: 'ولسوالی اصلی', value: form.value.main_district },
+    { label: 'قریه/ناحیه اصلی', value: form.value.main_village },
+
+    { label: 'ولایت فعلی', value: form.value.now_province },
+    { label: 'زون فعلی', value: form.value.now_zone },
+    { label: 'ولسوالی فعلی', value: form.value.now_district },
+    { label: 'قریه/ناحیه فعلی', value: form.value.now_village },
+
+    { label: 'موقعیت مشخص', value: form.value.specific_place },
+    { label: 'سرک نمبر', value: form.value.street_number },
+    { label: 'نمبر خانه', value: form.value.home_number },
+
+    { label: 'فرم مشخص/ویژه', value: form.value.specific_form },
+    { label: 'فاصله بانډ', value: form.value.band_distince },
+    { label: 'فعالیت فعلی', value: form.value.now_activity },
+
+    { label: 'شماره تماس', value: form.value.phone_number },
+
+    { label: 'کود منبع', value: form.value.resource_code },
+    { label: 'شماره منبع', value: form.value.resource_phone_number },
+
+    { label: 'ولایت مربوطه', value: form.value.Province_addr },
+    { label: 'مختصات', value: form.value.coordinates },
+    { label: 'ملاحظات', value: form.value.note },
+  ];
+}
+
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم اسیر/گرفتار</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>captive_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      direction: rtl;
+    }
+
+    .title {
+      text-align: center;
+      margin: 22px 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .simple-table {
+      width: 95%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin-left: 12px;
+      margin-right: 12px;
+    }
+
+    .simple-table th,
+    .simple-table td {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      vertical-align: top;
+      font-size: 12px;
+    }
+
+    .simple-table th {
+      width: 35%;
+      background: #f5f5f5;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .simple-table td {
+      width: 65%;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .sig {
+      margin-top: 18px;
+      margin-right: 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.focus();
+  w.print();
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `اسیر_گرفتار_${form.value.name || 'جدید'}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
 }
 
 /* ===== SUBMIT ===== */
@@ -964,7 +1139,7 @@ async function onSubmit() {
   try {
     if (!isEdit.value) {
       const fd = buildCreateFormData();
-      const created = await repo.CreateCaptive?.(fd).catch(e => {
+      const created = await repo.CreateCaptive?.(fd).catch((e) => {
         if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
         return null;
       });
@@ -977,7 +1152,7 @@ async function onSubmit() {
       }
     } else {
       const fd = buildUpdateFormData();
-      const updated = await repo.UpdateCaptive?.(form.value.id, fd).catch(e => {
+      const updated = await repo.UpdateCaptive?.(form.value.id, fd).catch((e) => {
         if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
         return null;
       });

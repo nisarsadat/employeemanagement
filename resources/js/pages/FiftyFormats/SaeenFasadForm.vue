@@ -47,6 +47,7 @@
                     accept="image/*"
                     @change="onPickPicture"
                   />
+
                   <v-avatar
                     size="88"
                     class="mb-2 cursor-pointer primary-avatar"
@@ -102,6 +103,7 @@
                   {{ isEdit ? t('ویرایش معلومات سعین فساد') : t('ایجاد ریکارډ سعین فساد') }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -142,6 +144,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس اصلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -153,6 +156,7 @@
                     :error-messages="getErrorMessages('main_province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.main_district"
@@ -163,6 +167,7 @@
                     :error-messages="getErrorMessages('main_district')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.main_village"
@@ -179,6 +184,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس فعلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -190,6 +196,7 @@
                     :error-messages="getErrorMessages('now_province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_zone"
@@ -200,6 +207,7 @@
                     :error-messages="getErrorMessages('now_zone')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_district"
@@ -210,6 +218,7 @@
                     :error-messages="getErrorMessages('now_district')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_village"
@@ -231,6 +240,7 @@
                     :error-messages="getErrorMessages('specific_place')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.street_number"
@@ -241,6 +251,7 @@
                     :error-messages="getErrorMessages('street_number')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.home_number"
@@ -261,6 +272,7 @@
           <div class="section-header mb-2">
             <span class="section-title">{{ t('جزئیات اضافی و منبع') }}</span>
           </div>
+
           <v-row>
             <!-- مسؤولیت / محل فعالیت / دوستان -->
             <v-col cols="12" md="4">
@@ -273,6 +285,7 @@
                 :error-messages="getErrorMessages('responsiability')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.activity_place"
@@ -283,6 +296,7 @@
                 :error-messages="getErrorMessages('activity_place')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.friends_number"
@@ -307,6 +321,7 @@
                 :error-messages="getErrorMessages('band_distince')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.band_place"
@@ -329,6 +344,7 @@
                 :error-messages="getErrorMessages('old_job')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_job"
@@ -369,6 +385,7 @@
                 :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_phone_number"
@@ -390,6 +407,7 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.coordinates"
@@ -400,6 +418,7 @@
                 :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.note"
@@ -412,9 +431,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (✅ added PDF + Word) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -427,6 +446,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت سعین فساد') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -435,6 +455,26 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -504,7 +544,7 @@ const router = useRouter();
 
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
-watch(locale, l => (isRtl.value = l === 'fa'));
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
 /* ===== ROUTE / MODE ===== */
 const isEdit = computed(() => !!route.params.id);
@@ -594,11 +634,10 @@ const form = ref(blankForm());
 
 /* ===== RULES ===== */
 const rules = {
-  required: v => !!v || t('این فیلد الزامی است'),
-  phone10: v =>
+  required: (v) => !!v || t('این فیلد الزامی است'),
+  phone10: (v) =>
     !v || /^[0-9]{10}$/.test(String(v)) || t('شماره تماس باید دقیقاً ۱۰ رقم باشد'),
-  number: v =>
-    v === '' || v === null || !isNaN(Number(v)) || t('لطفاً عدد وارد کنید'),
+  number: (v) => v === '' || v === null || !isNaN(Number(v)) || t('لطفاً عدد وارد کنید'),
 };
 
 /* ===== PICTURE ===== */
@@ -633,35 +672,28 @@ function normalizePicture(src) {
   if (!src) return null;
   let clean = String(src).trim();
 
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) {
-    return clean;
-  }
+  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
   clean = clean.replace(/\\\//g, '/');
 
-  if (clean.startsWith('http://') || clean.startsWith('https://')) {
-    return clean;
-  }
-  if (clean.startsWith('/')) {
-    return clean;
-  }
+  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+  if (clean.startsWith('/')) return clean;
+
   return '/' + clean.replace(/^\/+/, '');
 }
 
 function openPreview(src) {
-  const base =
-    src || form.value.previewUrl || form.value.picture_url || form.value.picture;
+  const base = src || form.value.previewUrl || form.value.picture_url || form.value.picture;
   const normalized = normalizePicture(base);
   previewSrc.value = normalized;
-  if (previewSrc.value) {
-    previewOpen.value = true;
-  }
+  if (previewSrc.value) previewOpen.value = true;
 }
 
 /* ===== RESOURCES DROPDOWN ===== */
 const resources = computed(() => repo.resourcecode || []);
 
 function onResourceCodeChange(code) {
-  const found = resources.value.find(r => r.code_number === code);
+  const found = resources.value.find((r) => r.code_number === code);
   form.value.resource_phone_number = found?.phone_number ?? '';
   form.value.resource_id = found?.id ?? null;
 }
@@ -722,11 +754,10 @@ async function loadRecord() {
     pictureChanged.value = false;
     return;
   }
+
   try {
     await repo.FetchSaeenFasadData?.(id);
-    const single = Array.isArray(repo.SaeenFasad)
-      ? repo.SaeenFasad[0]
-      : repo.SaeenFasad || {};
+    const single = Array.isArray(repo.SaeenFasad) ? repo.SaeenFasad[0] : repo.SaeenFasad || {};
     if (!single) return;
 
     const mapped = mapFromApi(single);
@@ -754,7 +785,7 @@ function buildCreateFormData() {
 
   delete payload.previewUrl;
   delete payload.picture_url;
-  delete payload.picture; // let backend set from uploaded file
+  delete payload.picture;
 
   const fd = toFormData(payload);
 
@@ -793,6 +824,187 @@ function scrollToFirstInvalid() {
   }
 }
 
+/* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS)
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+
+function exportRows() {
+  return [
+    { label: 'نام', value: form.value.name },
+    { label: 'نام مستعار', value: form.value.nick_name },
+    { label: 'نام پدر', value: form.value.father_name },
+
+    { label: 'ولایت اصلی', value: form.value.main_province },
+    { label: 'ولسوالی اصلی', value: form.value.main_district },
+    { label: 'قریه/ناحیه اصلی', value: form.value.main_village },
+
+    { label: 'ولایت فعلی', value: form.value.now_province },
+    { label: 'زون فعلی', value: form.value.now_zone },
+    { label: 'ولسوالی فعلی', value: form.value.now_district },
+    { label: 'قریه/ناحیه فعلی', value: form.value.now_village },
+
+    { label: 'موقعیت مشخص', value: form.value.specific_place },
+    { label: 'سرک نمبر', value: form.value.street_number },
+    { label: 'نمبر خانه', value: form.value.home_number },
+
+    { label: 'مسؤولیت', value: form.value.responsiability },
+    { label: 'محل فعالیت', value: form.value.activity_place },
+    { label: 'تعداد دوستان', value: form.value.friends_number },
+
+    { label: 'فاصله بانډ', value: form.value.band_distince },
+    { label: 'محل بند', value: form.value.band_place },
+
+    { label: 'وظیفه قبلی', value: form.value.old_job },
+    { label: 'وظیفه فعلی', value: form.value.now_job },
+
+    { label: 'شماره تماس', value: form.value.phone_number },
+
+    { label: 'کود منبع', value: form.value.resource_code },
+    { label: 'شماره منبع', value: form.value.resource_phone_number },
+
+    { label: 'ولایت مربوطه', value: form.value.Province_addr },
+    { label: 'مختصات', value: form.value.coordinates },
+    { label: 'ملاحظات', value: form.value.note },
+  ];
+}
+
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم سعین فساد</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>saeen_fasad_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      direction: rtl;
+    }
+
+    .title {
+      text-align: center;
+      margin: 22px 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .simple-table {
+      width: 95%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin-left: 12px;
+      margin-right: 12px;
+    }
+
+    .simple-table th,
+    .simple-table td {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      vertical-align: top;
+      font-size: 12px;
+    }
+
+    .simple-table th {
+      width: 35%;
+      background: #f5f5f5;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .simple-table td {
+      width: 65%;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .sig {
+      margin-top: 18px;
+      margin-right: 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.focus();
+  w.print();
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `سعین_فساد_${form.value.name || 'جدید'}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
+}
+
 /* ===== SUBMIT ===== */
 async function onSubmit() {
   clearBackendErrors();
@@ -818,7 +1030,7 @@ async function onSubmit() {
   try {
     if (!isEdit.value) {
       const fd = buildCreateFormData();
-      const created = await repo.CreateSaeenFasad?.(fd).catch(e => {
+      const created = await repo.CreateSaeenFasad?.(fd).catch((e) => {
         if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
         return null;
       });
@@ -831,7 +1043,7 @@ async function onSubmit() {
       }
     } else {
       const fd = buildUpdateFormData();
-      const updated = await repo.UpdateSaeenFasad?.(form.value.id, fd).catch(e => {
+      const updated = await repo.UpdateSaeenFasad?.(form.value.id, fd).catch((e) => {
         if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
         return null;
       });
@@ -844,7 +1056,7 @@ async function onSubmit() {
       }
     }
   } catch (e) {
-  console.error(e);
+    console.error(e);
     showErrorMessage(t('خطا در ذخیره اطلاعات'));
   } finally {
     saving.value = false;

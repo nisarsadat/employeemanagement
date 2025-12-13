@@ -12,7 +12,7 @@
       <template #actions>
         <v-btn
           variant="text"
-          prepend-icon="mdi-arrow-left"
+          :prepend-icon="isRtl ? 'mdi-arrow-right' : 'mdi-arrow-left'"
           class="text-none rounded-pill"
           @click="goBack"
         >
@@ -102,6 +102,7 @@
                   }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -251,6 +252,7 @@
           <div class="section-header mb-2">
             <span class="section-title">{{ t('جزئیات اضافی، موقعیت عمومی و منبع') }}</span>
           </div>
+
           <v-row>
             <!-- General location -->
             <v-col cols="12" md="4">
@@ -343,6 +345,7 @@
                 :label="t('مختصات')"
                 variant="outlined"
                 density="compact"
+                :rules="[rules.coordinatesOptional]"
                 :error="hasError('coordinates')"
                 :error-messages="getErrorMessages('coordinates')"
               />
@@ -401,7 +404,38 @@
 
           <!-- Actions -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
+              <!-- ✅ Simple Export (NO image / NO app headers) -->
+              <v-tooltip :text="t('PDF ساده (بدون عکس)')" location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="tonal"
+                    color="primary"
+                    class="text-none rounded-pill"
+                    prepend-icon="mdi-file-pdf-box"
+                    @click="downloadPdf"
+                  >
+                    {{ t('PDF') }}
+                  </v-btn>
+                </template>
+              </v-tooltip>
+
+              <v-tooltip :text="t('Word ساده (بدون عکس)')" location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="tonal"
+                    color="primary"
+                    class="text-none rounded-pill"
+                    prepend-icon="mdi-file-word-box"
+                    @click="downloadWord"
+                  >
+                    {{ t('Word') }}
+                  </v-btn>
+                </template>
+              </v-tooltip>
+
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -414,6 +448,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ مجرم گم شده') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -581,11 +616,20 @@ const form = ref(blankForm());
 
 /* RULES */
 const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
-  phone: (v) =>
-    !v ||
-    (/^[0-9]+$/.test(v) && v.length === 10) ||
-    t('شماره تماس باید ۱۰ رقم و فقط عدد باشد'),
+  required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
+  phone: (v) => {
+    const s = String(v ?? '').trim();
+    if (!s) return true;
+    if (!/^[0-9]+$/.test(s)) return t('شماره تماس فقط عدد باشد');
+    if (s.length !== 10) return t('شماره تماس باید ۱۰ رقم باشد');
+    return true;
+  },
+  coordinatesOptional: (v) => {
+    const s = String(v ?? '').trim();
+    if (!s) return true;
+    if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
+    return true;
+  },
 };
 
 /* PICTURE */
@@ -620,17 +664,12 @@ function normalizePicture(src) {
   if (!src) return null;
   let clean = String(src).trim();
 
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) {
-    return clean;
-  }
-  clean = clean.replace(/\\\//g, '/');
+  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
 
-  if (clean.startsWith('http://') || clean.startsWith('https://')) {
-    return clean;
-  }
-  if (clean.startsWith('/')) {
-    return clean;
-  }
+  clean = clean.replace(/\\\//g, '/');
+  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+  if (clean.startsWith('/')) return clean;
+
   return '/' + clean.replace(/^\/+/, '');
 }
 
@@ -638,14 +677,11 @@ function openPreview(src) {
   const base = src || form.value.previewUrl || form.value.picture;
   const normalized = normalizePicture(base);
   previewSrc.value = normalized;
-  if (previewSrc.value) {
-    previewOpen.value = true;
-  }
+  if (previewSrc.value) previewOpen.value = true;
 }
 
 /* RESOURCES DROPDOWN */
 const resources = computed(() => repo.resourcecode || []);
-
 function onResourceCodeChange(code) {
   const found = resources.value.find((r) => r.code_number === code);
   form.value.resource_phone = found?.phone_number ?? '';
@@ -736,30 +772,20 @@ function toFormData(obj) {
 
 function buildCreateFormData() {
   const payload = { ...form.value };
-
   delete payload.previewUrl;
 
   const fd = toFormData(payload);
-
-  if (pictureFile.value) {
-    fd.append('picture', pictureFile.value);
-  }
-
+  if (pictureFile.value) fd.append('picture', pictureFile.value);
   return fd;
 }
 
 function buildUpdateFormData() {
   const payload = { ...form.value };
-
   delete payload.previewUrl;
   delete payload.picture;
 
   const fd = toFormData(payload);
-
-  if (pictureChanged.value && pictureFile.value) {
-    fd.append('picture', pictureFile.value);
-  }
-
+  if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
   return fd;
 }
 
@@ -773,6 +799,133 @@ function scrollToFirstInvalid() {
     const input = first.querySelector('input, textarea, .v-field__input');
     if (input && typeof input.focus === 'function') input.focus();
   }
+}
+
+/* =========================
+   ✅ SIMPLE EXPORT (PDF/Word)
+   - NO images
+   - NO app headers/top bar
+   - Clean RTL table + signature lines
+========================= */
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function buildExportHtml() {
+  const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
+
+  const rows = [
+    [t('نام'), form.value.name],
+    [t('نام مستعار'), form.value.nickname],
+    [t('نام پدر'), form.value.father_name],
+
+    [t('ولایت اصلی'), form.value.main_province],
+    [t('ولسوالی اصلی'), form.value.main_district],
+    [t('قریه/ناحیه اصلی'), form.value.main_village],
+
+    [t('ولایت فعلی'), form.value.now_province],
+    [t('ولسوالی فعلی'), form.value.now_district],
+    [t('قریه/ناحیه فعلی'), form.value.now_village],
+    [t('موقعیت فعلی مشخص'), form.value.now_specific_place],
+    [t('سرک نمبر فعلی'), form.value.now_street_number],
+    [t('نمبر خانه فعلی'), form.value.now_home_number],
+
+    [t('ولایت'), form.value.province],
+    [t('زون'), form.value.zone],
+    [t('ولسوالی'), form.value.district],
+
+    [t('وظیفه قبلی'), form.value.old_job],
+    [t('جرم'), form.value.jorm],
+    [t('تاریخچه جرم'), form.value.history_jorm],
+    [t('دلیل مفقودی'), form.value.lost_reason],
+
+    [t('ولایت مربوطه'), form.value.Province_addr],
+    [t('مختصات'), form.value.coordinates],
+
+    [t('کود منبع'), form.value.resource_code],
+    [t('شماره منبع'), form.value.resource_phone],
+
+    [t('شماره تماس'), form.value.phone_number],
+    [t('ملاحظات'), form.value.note],
+  ];
+
+  return `
+<!doctype html>
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(t('فورم مجرم گم شده'))}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 18px; color: #111; }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    .meta { font-size: 12px; color: #444; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    td { border: 1px solid #ddd; padding: 8px; vertical-align: top; font-size: 12px; }
+    td.label { width: 32%; font-weight: 700; background: #fafafa; }
+    .sig { margin-top: 28px; display: flex; gap: 16px; }
+    .sig .box { flex: 1; border-top: 1px solid #333; padding-top: 6px; font-size: 12px; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <h2>${escapeHtml(t('فورم مجرم گم شده'))}</h2>
+  <div class="meta">${escapeHtml(t('شماره ریکارډ'))}: ${escapeHtml(rid)}</div>
+
+  <table>
+    ${rows
+      .map(([k, v]) => {
+        const val = String(v ?? '').trim();
+        return `
+          <tr>
+            <td class="label">${escapeHtml(k)}</td>
+            <td>${escapeHtml(val || '-')}</td>
+          </tr>
+        `;
+      })
+      .join('')}
+  </table>
+
+  <div class="sig">
+    <div class="box">${escapeHtml(t('امضا مسئول'))}</div>
+    <div class="box">${escapeHtml(t('امضا ثبت کننده'))}</div>
+    <div class="box">${escapeHtml(t('تاریخ'))}: ____________</div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+function downloadPdf() {
+  const html = buildExportHtml();
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 250);
+}
+
+function downloadWord() {
+  const html = buildExportHtml();
+  const blob = new Blob([html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const namePart = form.value.id ? `lost_mujremeen_${form.value.id}` : 'lost_mujremeen_blank';
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${namePart}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
 /* SUBMIT */
@@ -790,11 +943,6 @@ async function onSubmit() {
     return;
   }
 
-  if (!form.value.name?.trim()) {
-    showErrorMessage(t('نام الزامی است'));
-    return;
-  }
-
   saving.value = true;
 
   try {
@@ -807,7 +955,7 @@ async function onSubmit() {
 
       if (created?.id) {
         showSuccessMessage(t('موفقانه ثبت شد'));
-        router.push('/app/lost-mujremeen').catch(() => {});
+        router.push('/app/lostmujremeens').catch(() => {});
       } else {
         showErrorMessage(t('ثبت معلومات ناکام شد'));
       }
@@ -820,7 +968,7 @@ async function onSubmit() {
 
       if (updated?.id) {
         showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-        router.push('/app/lost-mujremeen').catch(() => {});
+        router.push('/app/lostmujremeens').catch(() => {});
       } else {
         showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
       }
@@ -853,7 +1001,7 @@ function resetForm() {
 }
 
 function goBack() {
-  router.push('/app/lost-mujremeen');
+  router.push('/app/lostmujremeens');
 }
 
 /* INIT */
@@ -931,5 +1079,9 @@ onMounted(async () => {
 .secondary-action-btn {
   padding-inline: 14px;
   font-weight: 500;
+}
+
+.ga-2 {
+  gap: 8px;
 }
 </style>

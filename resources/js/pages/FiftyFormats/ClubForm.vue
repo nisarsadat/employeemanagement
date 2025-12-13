@@ -12,7 +12,7 @@
       <template #actions>
         <v-btn
           variant="text"
-          prepend-icon="mdi-arrow-left"
+          :prepend-icon="isRtl ? 'mdi-arrow-right' : 'mdi-arrow-left'"
           class="text-none"
           @click="goBack"
         >
@@ -180,6 +180,7 @@
                 variant="outlined"
                 hide-details="auto"
                 type="number"
+                :rules="[rules.nonNegativeNumberOptional]"
               />
             </v-col>
             <v-col cols="12" md="3">
@@ -190,6 +191,7 @@
                 variant="outlined"
                 hide-details="auto"
                 type="number"
+                :rules="[rules.nonNegativeNumberOptional]"
               />
             </v-col>
           </v-row>
@@ -213,6 +215,7 @@
                 hide-details="auto"
                 hint="مثال: 34.1234, 69.1234"
                 persistent-hint
+                :rules="[rules.coordinatesOptional]"
               />
             </v-col>
           </v-row>
@@ -255,7 +258,38 @@
 
           <!-- ACTIONS -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
+              <!-- ✅ Export buttons beside submit (works even blank) -->
+              <v-tooltip :text="t('PDF ساده (بدون عکس)')" location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="tonal"
+                    color="primary"
+                    class="text-none"
+                    prepend-icon="mdi-file-pdf-box"
+                    @click="downloadPdf"
+                  >
+                    {{ t('PDF') }}
+                  </v-btn>
+                </template>
+              </v-tooltip>
+
+              <v-tooltip :text="t('Word ساده (بدون عکس)')" location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="tonal"
+                    color="primary"
+                    class="text-none"
+                    prepend-icon="mdi-file-word-box"
+                    @click="downloadWord"
+                  >
+                    {{ t('Word') }}
+                  </v-btn>
+                </template>
+              </v-tooltip>
+
               <v-btn
                 color="primary"
                 variant="flat"
@@ -265,6 +299,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت کلب جدید') }}
               </v-btn>
+
               <v-btn
                 color="secondary"
                 variant="text"
@@ -351,7 +386,25 @@ const form = ref({
 
 /* Rules */
 const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
+  required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
+
+  // empty OK, otherwise must be number >= 0
+  nonNegativeNumberOptional: (v) => {
+    const s = String(v ?? '').trim();
+    if (!s) return true;
+    const n = Number(s);
+    if (!Number.isFinite(n)) return t('عدد درست نیست');
+    if (n < 0) return t('عدد منفی قبول نیست');
+    return true;
+  },
+
+  // empty OK, otherwise "lat, lng"
+  coordinatesOptional: (v) => {
+    const s = String(v ?? '').trim();
+    if (!s) return true;
+    if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
+    return true;
+  },
 };
 
 /* Snackbar */
@@ -390,13 +443,17 @@ function resetForm() {
     position: '',
     phone_number: '',
     Province_addr: '',
+
     province: '',
     zone: '',
     district: '',
     specific_place: '',
+
     am_students: '',
     pm_students: '',
+
     cordinate: '',
+
     resource_code: '',
     resource_phone_number: '',
     resource_id: null,
@@ -414,13 +471,17 @@ function fillFormFromRecord(x = {}) {
     position: x.position ?? '',
     phone_number: x.phone_number ?? '',
     Province_addr: x.Province_addr ?? '',
+
     province: x.province ?? '',
     zone: x.zone ?? '',
     district: x.district ?? '',
     specific_place: x.specific_place ?? '',
+
     am_students: x.am_students ?? '',
     pm_students: x.pm_students ?? '',
+
     cordinate: x.cordinate ?? '',
+
     resource_code: x.resource_code ?? '',
     resource_phone_number: x.resource_phone_number ?? '',
     resource_id: x.resource_id ?? null,
@@ -448,19 +509,18 @@ async function onSubmit() {
 
   saving.value = true;
   try {
-    const payload = { ...form.value };
-    const fd = toFormData(payload);
+    const fd = toFormData({ ...form.value });
 
     if (isEdit.value && form.value.id) {
       const updated = await repo.UpdateClub?.(form.value.id, fd);
-      if (updated && updated.id) {
+      if (updated?.id) {
         showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
         goBack();
         return;
       }
     } else {
       const created = await repo.CreateClub?.(fd);
-      if (created && created.id) {
+      if (created?.id) {
         showSuccessMsg(t('کلب جدید موفقانه ثبت شد'));
         goBack();
         return;
@@ -495,12 +555,127 @@ async function loadExisting() {
   }
 }
 
+/* =========================
+   ✅ SIMPLE EXPORT (PDF/Word)
+   - Works even if form is blank
+   - NO images
+   - NO app headers/top bar
+   - Clean RTL table + signature lines
+========================= */
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function buildExportHtml() {
+  const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
+
+  const rows = [
+    [t('نام مسئول/شخص'), form.value.name],
+    [t('نام پدر'), form.value.father_name],
+    [t('نام کلب'), form.value.club_name],
+    [t('نوع کلب'), form.value.club_type],
+
+    [t('وظیفه/موقعیت مسئول'), form.value.position],
+    [t('شماره تماس'), form.value.phone_number],
+    [t('ولایت مربوطه'), form.value.Province_addr],
+
+    [t('ولایت'), form.value.province],
+    [t('زون'), form.value.zone],
+    [t('ولسوالی'), form.value.district],
+    [t('موقعیت مشخص'), form.value.specific_place],
+
+    [t('تعداد شاگردان صبح'), form.value.am_students],
+    [t('تعداد شاگردان عصر'), form.value.pm_students],
+
+    [t('مختصات'), form.value.cordinate],
+
+    [t('کود منبع'), form.value.resource_code],
+    [t('شماره منبع'), form.value.resource_phone_number],
+  ];
+
+  return `
+<!doctype html>
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(t('فورم کلب'))}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 18px; color: #111; }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    .meta { font-size: 12px; color: #444; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    td { border: 1px solid #ddd; padding: 8px; vertical-align: top; font-size: 12px; }
+    td.label { width: 32%; font-weight: 700; background: #fafafa; }
+    .sig { margin-top: 28px; display: flex; gap: 16px; }
+    .sig .box { flex: 1; border-top: 1px solid #333; padding-top: 6px; font-size: 12px; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <h2>${escapeHtml(t('فورم کلب'))}</h2>
+  <div class="meta">${escapeHtml(t('شماره ریکارډ'))}: ${escapeHtml(rid)}</div>
+
+  <table>
+    ${rows
+      .map(([k, v]) => {
+        const val = String(v ?? '').trim();
+        return `
+          <tr>
+            <td class="label">${escapeHtml(k)}</td>
+            <td>${escapeHtml(val || '-')}</td>
+          </tr>
+        `;
+      })
+      .join('')}
+  </table>
+
+  <div class="sig">
+    <div class="box">${escapeHtml(t('امضا مسئول'))}</div>
+    <div class="box">${escapeHtml(t('امضا ثبت کننده'))}</div>
+    <div class="box">${escapeHtml(t('تاریخ'))}: ____________</div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+function downloadPdf() {
+  const html = buildExportHtml();
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 250);
+}
+
+function downloadWord() {
+  const html = buildExportHtml();
+  const blob = new Blob([html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const namePart = form.value.id ? `club_${form.value.id}` : 'club_blank';
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${namePart}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
 /* Init */
 onMounted(async () => {
   await repo.GetResourceCode?.();
-  if (isEdit.value) {
-    await loadExisting();
-  }
+  if (isEdit.value) await loadExisting();
 });
 </script>
 
@@ -510,5 +685,8 @@ onMounted(async () => {
   font-weight: 700;
   margin-bottom: 4px;
   color: #37474f;
+}
+.ga-2 {
+  gap: 8px;
 }
 </style>

@@ -12,7 +12,7 @@
       <template #actions>
         <v-btn
           variant="text"
-          prepend-icon="mdi-arrow-left"
+          :prepend-icon="isRtl ? 'mdi-arrow-right' : 'mdi-arrow-left'"
           class="text-none"
           @click="goBack"
         >
@@ -30,15 +30,11 @@
         @submit.prevent="onSubmit"
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
-        <v-card class="pa-4" elevation="2">
+        <v-card class="simple-form-card" elevation="1">
           <!-- موقعیت -->
-          <v-row>
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('موقعیت منزل') }}
-              </h3>
-            </v-col>
-          </v-row>
+          <div class="section-header">
+            <span class="section-title">{{ t('موقعیت منزل') }}</span>
+          </div>
 
           <v-row>
             <v-col cols="12" md="3">
@@ -48,6 +44,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('province')"
+                :error-messages="getErrorMessages('province')"
               />
             </v-col>
             <v-col cols="12" md="3">
@@ -57,6 +55,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('zone')"
+                :error-messages="getErrorMessages('zone')"
               />
             </v-col>
             <v-col cols="12" md="3">
@@ -66,6 +66,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('district')"
+                :error-messages="getErrorMessages('district')"
               />
             </v-col>
             <v-col cols="12" md="3">
@@ -75,6 +77,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('village')"
+                :error-messages="getErrorMessages('village')"
               />
             </v-col>
           </v-row>
@@ -87,6 +91,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('specific_place')"
+                :error-messages="getErrorMessages('specific_place')"
               />
             </v-col>
             <v-col cols="12" md="3">
@@ -96,6 +102,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('street_number')"
+                :error-messages="getErrorMessages('street_number')"
               />
             </v-col>
             <v-col cols="12" md="3">
@@ -105,6 +113,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('home_number')"
+                :error-messages="getErrorMessages('home_number')"
               />
             </v-col>
           </v-row>
@@ -119,28 +129,31 @@
                 hide-details="auto"
                 hint="مثال: 34.1234, 69.1234"
                 persistent-hint
+                :rules="[rules.coordinatesOptional]"
+                :error="hasError('coordinates')"
+                :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
           </v-row>
 
+          <v-divider class="my-4" />
+
           <!-- هویت -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('مشخصات سرباز سابق') }}
-              </h3>
-            </v-col>
-          </v-row>
+          <div class="section-header">
+            <span class="section-title">{{ t('مشخصات سرباز سابق') }}</span>
+          </div>
 
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.name"
-                :label="t('نام')"
+                :label="t('نام *')"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
                 :rules="[rules.required]"
+                :error="hasError('name')"
+                :error-messages="getErrorMessages('name')"
                 required
               />
             </v-col>
@@ -151,6 +164,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('father_name')"
+                :error-messages="getErrorMessages('father_name')"
               />
             </v-col>
             <v-col cols="12" md="4">
@@ -160,11 +175,12 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('main_province')"
+                :error-messages="getErrorMessages('main_province')"
               />
             </v-col>
           </v-row>
 
-          <!-- اگر این مدل شماره تماس خودش دارد -->
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -175,18 +191,18 @@
                 hide-details="auto"
                 :rules="[rules.phone]"
                 maxlength="10"
+                :error="hasError('phone_number')"
+                :error-messages="getErrorMessages('phone_number')"
               />
             </v-col>
           </v-row>
 
+          <v-divider class="my-4" />
+
           <!-- کار / فعالیت / یادداشت -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('کار، فعالیت و یادداشت') }}
-              </h3>
-            </v-col>
-          </v-row>
+          <div class="section-header">
+            <span class="section-title">{{ t('کار، فعالیت و یادداشت') }}</span>
+          </div>
 
           <v-row>
             <v-col cols="12" md="4">
@@ -196,6 +212,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('old_job')"
+                :error-messages="getErrorMessages('old_job')"
               />
             </v-col>
             <v-col cols="12" md="4">
@@ -205,6 +223,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('now_activity')"
+                :error-messages="getErrorMessages('now_activity')"
               />
             </v-col>
             <v-col cols="12" md="4">
@@ -214,6 +234,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('Province_addr')"
+                :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col>
           </v-row>
@@ -226,18 +248,18 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :error="hasError('note')"
+                :error-messages="getErrorMessages('note')"
               />
             </v-col>
           </v-row>
 
+          <v-divider class="my-4" />
+
           <!-- منبع -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('معلومات منبع') }}
-              </h3>
-            </v-col>
-          </v-row>
+          <div class="section-header">
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
+          </div>
 
           <v-row>
             <v-col cols="12" md="4">
@@ -252,6 +274,8 @@
                 hide-details="auto"
                 clearable
                 @update:model-value="onResourceCodeChange"
+                :error="hasError('resource_code')"
+                :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
             <v-col cols="12" md="4">
@@ -268,20 +292,54 @@
 
           <!-- ACTIONS -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
+              <!-- ✅ Simple Export (NO image / NO app headers) -->
+              <v-tooltip :text="t('PDF ساده (بدون عکس)')" location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="tonal"
+                    color="primary"
+                    class="text-none rounded-pill"
+                    prepend-icon="mdi-file-pdf-box"
+                    @click="downloadPdf"
+                  >
+                    {{ t('PDF') }}
+                  </v-btn>
+                </template>
+              </v-tooltip>
+
+              <v-tooltip :text="t('Word ساده (بدون عکس)')" location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="tonal"
+                    color="primary"
+                    class="text-none rounded-pill"
+                    prepend-icon="mdi-file-word-box"
+                    @click="downloadWord"
+                  >
+                    {{ t('Word') }}
+                  </v-btn>
+                </template>
+              </v-tooltip>
+
               <v-btn
                 color="primary"
                 variant="flat"
-                class="text-none"
+                class="text-none rounded-pill primary-action-btn"
                 :loading="saving"
                 type="submit"
+                :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت منزل سرباز سابق') }}
               </v-btn>
+
               <v-btn
-                color="secondary"
-                variant="text"
-                class="text-none"
+                color="warning"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-broom"
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
@@ -315,7 +373,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -332,12 +390,28 @@ const repo = useMawadRepository();
 
 const isEdit = computed(() => !!route.params.id);
 
-/* Form state */
+/* FORM */
 const formRef = ref(null);
 const formValid = ref(false);
 const saving = ref(false);
 
-const form = ref({
+/* BACKEND ERRORS */
+const backendErrors = ref({});
+function setBackendErrors(errors) {
+  backendErrors.value = errors || {};
+}
+function clearBackendErrors() {
+  backendErrors.value = {};
+}
+function hasError(field) {
+  return !!backendErrors.value?.[field];
+}
+function getErrorMessages(field) {
+  return backendErrors.value?.[field] ?? [];
+}
+
+/* MODEL */
+const blankForm = () => ({
   id: null,
 
   province: '',
@@ -364,18 +438,27 @@ const form = ref({
   resource_id: null,
 });
 
-/* Rules */
+const form = ref(blankForm());
+
+/* RULES */
 const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
+  required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
   phone: (v) => {
-    if (!v) return true;
-    if (!/^[0-9]+$/.test(v)) return t('فقط اعداد مجاز است');
-    if (v.length !== 10) return t('شماره تماس باید دقیق ۱۰ رقم باشد');
+    const s = String(v ?? '').trim();
+    if (!s) return true;
+    if (!/^[0-9]+$/.test(s)) return t('فقط اعداد مجاز است');
+    if (s.length !== 10) return t('شماره تماس باید دقیق ۱۰ رقم باشد');
+    return true;
+  },
+  coordinatesOptional: (v) => {
+    const s = String(v ?? '').trim();
+    if (!s) return true;
+    if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
     return true;
   },
 };
 
-/* Snackbar */
+/* SNACKBAR */
 const showError = ref(false);
 const errorMessage = ref('');
 const showSuccess = ref(false);
@@ -385,82 +468,73 @@ function showErrorMessage(msg) {
   errorMessage.value = msg;
   showError.value = true;
 }
-
 function showSuccessMsg(msg) {
   successMessage.value = msg;
   showSuccess.value = true;
 }
 
-/* Resources dropdown */
+/* RESOURCES */
 const resources = computed(() => repo.resourcecode || []);
-
 function onResourceCodeChange(code) {
   const found = resources.value.find((r) => r.code_number === code);
   form.value.resource_phone = found?.phone_number ?? '';
   form.value.resource_id = found?.id ?? null;
 }
 
-/* Helpers */
-function resetForm() {
-  form.value = {
-    id: isEdit.value ? form.value.id : null,
+/* MAP FROM API */
+function mapFromApi(payload = {}) {
+  const x = payload.data ?? payload;
+  const b = blankForm();
 
-    province: '',
-    zone: '',
-    district: '',
-    village: '',
-    specific_place: '',
-    street_number: '',
-    home_number: '',
-    coordinates: '',
+  b.id = x.id ?? null;
 
-    name: '',
-    father_name: '',
-    main_province: '',
-    phone_number: '',
+  b.province = x.province ?? '';
+  b.zone = x.zone ?? '';
+  b.district = x.district ?? '';
+  b.village = x.village ?? '';
+  b.specific_place = x.specific_place ?? '';
+  b.street_number = x.street_number ?? '';
+  b.home_number = x.home_number ?? '';
+  b.coordinates = x.coordinates ?? '';
 
-    old_job: '',
-    now_activity: '',
-    Province_addr: '',
-    note: '',
+  b.name = x.name ?? '';
+  b.father_name = x.father_name ?? '';
+  b.main_province = x.main_province ?? '';
+  b.phone_number = x.phone_number ?? '';
 
-    resource_code: '',
-    resource_phone: '',
-    resource_id: null,
-  };
-  formRef.value?.resetValidation?.();
+  b.old_job = x.old_job ?? '';
+  b.now_activity = x.now_activity ?? '';
+  b.Province_addr = x.Province_addr ?? '';
+  b.note = x.note ?? '';
+
+  const r = x.resource || {};
+  b.resource_code = x.resource_code ?? r.code_number ?? '';
+  b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
+  b.resource_id = x.resource_id ?? r.id ?? null;
+
+  return b;
 }
 
-function fillFormFromRecord(x = {}) {
-  form.value = {
-    id: x.id ?? null,
-
-    province: x.province ?? '',
-    zone: x.zone ?? '',
-    district: x.district ?? '',
-    village: x.village ?? '',
-    specific_place: x.specific_place ?? '',
-    street_number: x.street_number ?? '',
-    home_number: x.home_number ?? '',
-    coordinates: x.coordinates ?? '',
-
-    name: x.name ?? '',
-    father_name: x.father_name ?? '',
-    main_province: x.main_province ?? '',
-    phone_number: x.phone_number ?? '',
-
-    old_job: x.old_job ?? '',
-    now_activity: x.now_activity ?? '',
-    Province_addr: x.Province_addr ?? '',
-    note: x.note ?? '',
-
-    resource_code: x.resource_code ?? '',
-    resource_phone: x.resource_phone ?? '',
-    resource_id: x.resource_id ?? null,
-  };
+/* LOAD */
+async function loadRecord() {
+  const id = route.params.id;
+  if (!id) {
+    form.value = blankForm();
+    return;
+  }
+  try {
+    await repo.FetchOldSoldiersHomeData?.(id);
+    const single = Array.isArray(repo.OldSoldiersHome)
+      ? repo.OldSoldiersHome[0]
+      : repo.OldSoldiersHome || {};
+    form.value = { ...mapFromApi(single) };
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات منزل سرباز سابق'));
+  }
 }
 
-/* Build FormData like Fasad */
+/* FORMDATA */
 function toFormData(obj) {
   const fd = new FormData();
   Object.entries(obj || {}).forEach(([k, v]) => {
@@ -470,37 +544,59 @@ function toFormData(obj) {
   return fd;
 }
 
-/* Submit */
+/* SCROLL */
+function scrollToFirstInvalid() {
+  const first =
+    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+    document.querySelector('.v-messages__message');
+  if (first) {
+    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const input = first.querySelector('input, textarea, .v-field__input');
+    if (input && typeof input.focus === 'function') input.focus();
+  }
+}
+
+/* SUBMIT */
 async function onSubmit() {
+  clearBackendErrors();
+
   if (!formRef.value) return;
   const { valid } = await formRef.value.validate();
+
   if (!valid) {
     showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
+    await nextTick();
+    scrollToFirstInvalid();
     return;
   }
 
-  // name required safety
-  if (!form.value.name || !form.value.name.trim()) {
+  if (!form.value.name?.trim()) {
     showErrorMessage(t('نام الزامی است'));
     return;
   }
 
   saving.value = true;
   try {
-    const payload = { ...form.value };
-    const fd = toFormData(payload);
+    const fd = toFormData({ ...form.value });
 
     if (isEdit.value && form.value.id) {
-      const updated = await repo.UpdateOldSoldiersHome?.(form.value.id, fd)
-        || await repo.UpdateOldSoldierHome?.(form.value.id, fd);
-      if (updated && updated.id) {
+      const updated = await repo.UpdateOldSoldiersHome?.(form.value.id, fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
+
+      if (updated?.id) {
         showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
         goBack();
         return;
       }
     } else {
-      const created = await repo.CreateOldSoldiersHome?.(fd);
-      if (created && created.id) {
+      const created = await repo.CreateOldSoldiersHome?.(fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
+
+      if (created?.id) {
         showSuccessMsg(t('منزل سرباز سابق موفقانه ثبت شد'));
         goBack();
         return;
@@ -509,49 +605,197 @@ async function onSubmit() {
 
     showErrorMessage(t('خطا در ذخیره معلومات'));
   } catch (e) {
-    console.error('OldSoldiersHome save error', e);
-    showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
+    console.error(e);
+    showErrorMessage(t('خطا در ذخیره معلومات'));
   } finally {
     saving.value = false;
   }
 }
 
-/* Navigation */
+/* RESET & NAV */
+function resetForm() {
+  if (isEdit.value) {
+    loadRecord();
+  } else {
+    form.value = blankForm();
+  }
+
+  clearBackendErrors();
+  formRef.value?.resetValidation?.();
+  showSuccessMsg(t('فرم پاک شد'));
+}
+
 function goBack() {
   router.push('/app/oldsoldiershomes');
 }
 
-/* Load on edit */
-async function loadExisting() {
-  const id = route.params.id;
-  if (!id) return;
-  try {
-    await repo.FetchOldSoldiersHomeData?.(id) || repo.FetchOldSoldiersHome?.(id);
-    const rec =
-      repo.OldSoldiersHome && Array.isArray(repo.OldSoldiersHome)
-        ? repo.OldSoldiersHome[0]
-        : repo.OldSoldiersHome || {};
-    fillFormFromRecord(rec);
-  } catch (e) {
-    console.error('loadExisting error', e);
-    showErrorMessage(t('خطا در دریافت معلومات منزل سرباز سابق'));
-  }
+/* ✅ SIMPLE EXPORT (NO image / NO app headers) */
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }
 
-/* Init */
+function buildExportHtml() {
+  const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
+
+  const rows = [
+    [t('ولایت'), form.value.province],
+    [t('زون'), form.value.zone],
+    [t('ولسوالی'), form.value.district],
+    [t('قریه/ناحیه'), form.value.village],
+    [t('موقعیت مشخص'), form.value.specific_place],
+    [t('شماره سرک'), form.value.street_number],
+    [t('شماره خانه'), form.value.home_number],
+    [t('مختصات'), form.value.coordinates],
+
+    [t('نام'), form.value.name],
+    [t('نام پدر'), form.value.father_name],
+    [t('ولایت اصلی'), form.value.main_province],
+    [t('شماره تماس'), form.value.phone_number],
+
+    [t('وظیفه قبلی'), form.value.old_job],
+    [t('فعالیت فعلی'), form.value.now_activity],
+    [t('ولایت مربوطه'), form.value.Province_addr],
+    [t('یادداشت'), form.value.note],
+
+    [t('کود منبع'), form.value.resource_code],
+    [t('شماره منبع'), form.value.resource_phone],
+  ];
+
+  return `
+<!doctype html>
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(t('فورم منزل سرباز سابق'))}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 18px; color: #111; }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    .meta { font-size: 12px; color: #444; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    td { border: 1px solid #ddd; padding: 8px; vertical-align: top; font-size: 12px; }
+    td.label { width: 32%; font-weight: 700; background: #fafafa; }
+    .sig { margin-top: 28px; display: flex; gap: 16px; }
+    .sig .box { flex: 1; border-top: 1px solid #333; padding-top: 6px; font-size: 12px; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <h2>${escapeHtml(t('فورم منزل سرباز سابق'))}</h2>
+  <div class="meta">${escapeHtml(t('شماره ریکارډ'))}: ${escapeHtml(rid)}</div>
+
+  <table>
+    ${rows
+      .map(([k, v]) => {
+        const val = String(v ?? '').trim();
+        return `
+          <tr>
+            <td class="label">${escapeHtml(k)}</td>
+            <td>${escapeHtml(val || '-')}</td>
+          </tr>
+        `;
+      })
+      .join('')}
+  </table>
+
+  <div class="sig">
+    <div class="box">${escapeHtml(t('امضا مسئول'))}</div>
+    <div class="box">${escapeHtml(t('امضا ثبت کننده'))}</div>
+    <div class="box">${escapeHtml(t('تاریخ'))}: ____________</div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+function downloadPdf() {
+  const html = buildExportHtml();
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 250);
+}
+
+function downloadWord() {
+  const html = buildExportHtml();
+  const blob = new Blob([html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const namePart = form.value.id
+    ? `old_soldier_home_${form.value.id}`
+    : 'old_soldier_home_blank';
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${namePart}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+/* INIT */
 onMounted(async () => {
   await repo.GetResourceCode?.();
   if (isEdit.value) {
-    await loadExisting();
+    await loadRecord();
   }
 });
 </script>
 
 <style scoped>
+.hidden-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.simple-form-card {
+  padding: 16px 16px 20px;
+  border-radius: 12px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  padding-block: 2px;
+}
+
 .section-title {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: #37474f;
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.ga-2 {
+  gap: 8px;
+}
+
+:deep(.v-field--variant-outlined .v-field__input) {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  min-height: 36px;
+}
+
+.primary-action-btn {
+  padding-inline: 18px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+}
+
+.secondary-action-btn {
+  padding-inline: 14px;
+  font-weight: 500;
 }
 </style>

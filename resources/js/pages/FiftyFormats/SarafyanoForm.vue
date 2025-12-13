@@ -12,7 +12,7 @@
       <template #actions>
         <v-btn
           variant="text"
-          prepend-icon="mdi-arrow-left"
+          :prepend-icon="isRtl ? 'mdi-arrow-right' : 'mdi-arrow-left'"
           class="text-none"
           @click="goBack"
         >
@@ -187,6 +187,7 @@
                 hide-details="auto"
                 hint="مثال: 34.1234, 69.1234"
                 persistent-hint
+                :rules="[rules.coordinatesOptional]"
               />
             </v-col>
           </v-row>
@@ -262,6 +263,7 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :rules="[rules.nonNegativeNumberOptional]"
               />
             </v-col>
           </v-row>
@@ -326,7 +328,38 @@
 
           <!-- ACTIONS -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
+              <!-- ✅ Export buttons beside submit (works even blank) -->
+              <v-tooltip :text="t('PDF ساده (بدون عکس)')" location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="tonal"
+                    color="primary"
+                    class="text-none"
+                    prepend-icon="mdi-file-pdf-box"
+                    @click="downloadPdf"
+                  >
+                    {{ t('PDF') }}
+                  </v-btn>
+                </template>
+              </v-tooltip>
+
+              <v-tooltip :text="t('Word ساده (بدون عکس)')" location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="tonal"
+                    color="primary"
+                    class="text-none"
+                    prepend-icon="mdi-file-word-box"
+                    @click="downloadWord"
+                  >
+                    {{ t('Word') }}
+                  </v-btn>
+                </template>
+              </v-tooltip>
+
               <v-btn
                 color="primary"
                 variant="flat"
@@ -336,6 +369,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت صرافیانو جدید') }}
               </v-btn>
+
               <v-btn
                 color="secondary"
                 variant="text"
@@ -428,7 +462,25 @@ const form = ref({
 
 /* Rules */
 const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
+  required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
+
+  // empty OK, otherwise "lat, lng"
+  coordinatesOptional: (v) => {
+    const s = String(v ?? '').trim();
+    if (!s) return true;
+    if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
+    return true;
+  },
+
+  // empty OK, otherwise must be number >= 0
+  nonNegativeNumberOptional: (v) => {
+    const s = String(v ?? '').trim();
+    if (!s) return true;
+    const n = Number(s);
+    if (!Number.isFinite(n)) return t('عدد درست نیست');
+    if (n < 0) return t('عدد منفی قبول نیست');
+    return true;
+  },
 };
 
 /* Snackbar */
@@ -545,19 +597,18 @@ async function onSubmit() {
 
   saving.value = true;
   try {
-    const payload = { ...form.value };
-    const fd = toFormData(payload);
+    const fd = toFormData({ ...form.value });
 
     if (isEdit.value && form.value.id) {
       const updated = await repo.UpdateSarafyano?.(form.value.id, fd);
-      if (updated && updated.id) {
+      if (updated?.id) {
         showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
         goBack();
         return;
       }
     } else {
       const created = await repo.CreateSarafyano?.(fd);
-      if (created && created.id) {
+      if (created?.id) {
         showSuccessMsg(t('صرافیانو جدید موفقانه ثبت شد'));
         goBack();
         return;
@@ -595,12 +646,133 @@ async function loadExisting() {
   }
 }
 
+/* =========================
+   ✅ SIMPLE EXPORT (PDF/Word)
+   - Works even if form is blank
+   - NO images
+   - NO app headers/top bar
+   - Clean RTL table + signature lines
+========================= */
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function buildExportHtml() {
+  const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
+
+  const rows = [
+    [t('نام شخص'), form.value.name],
+    [t('نام صرافی'), form.value.sarafi_name],
+    [t('نوع صرافی'), form.value.sarafi_type],
+    [t('نام پدر'), form.value.father_name],
+
+    [t('وظیفه/موقعیت'), form.value.position],
+    [t('شماره تماس'), form.value.phone_number],
+    [t('ولایت مربوطه'), form.value.Province_addr],
+
+    [t('ولایت'), form.value.province],
+    [t('زون'), form.value.zone],
+    [t('ولسوالی'), form.value.district],
+    [t('قریه/ناحیه'), form.value.village],
+    [t('موقعیت مشخص'), form.value.specific_place],
+    [t('مختصات'), form.value.cordinate],
+
+    [t('نام بازار/مارکیټ'), form.value.market_name],
+    [t('نمبر دکان'), form.value.shop_number],
+
+    [t('حواله به ولایات'), form.value.provinces_hawala],
+    [t('حواله به کشورها'), form.value.countries_hawala],
+    [t('تعداد کارمند'), form.value.employee_quantity],
+
+    [t('کود منبع'), form.value.resource_code],
+    [t('شماره منبع'), form.value.resource_phone_number],
+
+    [t('ملاحظات'), form.value.notes],
+  ];
+
+  return `
+<!doctype html>
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(t('فورم صرافیانو'))}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 18px; color: #111; }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    .meta { font-size: 12px; color: #444; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    td { border: 1px solid #ddd; padding: 8px; vertical-align: top; font-size: 12px; }
+    td.label { width: 32%; font-weight: 700; background: #fafafa; }
+    .sig { margin-top: 28px; display: flex; gap: 16px; }
+    .sig .box { flex: 1; border-top: 1px solid #333; padding-top: 6px; font-size: 12px; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <h2>${escapeHtml(t('فورم صرافیانو'))}</h2>
+  <div class="meta">${escapeHtml(t('شماره ریکارډ'))}: ${escapeHtml(rid)}</div>
+
+  <table>
+    ${rows
+      .map(([k, v]) => {
+        const val = String(v ?? '').trim();
+        return `
+          <tr>
+            <td class="label">${escapeHtml(k)}</td>
+            <td>${escapeHtml(val || '-')}</td>
+          </tr>
+        `;
+      })
+      .join('')}
+  </table>
+
+  <div class="sig">
+    <div class="box">${escapeHtml(t('امضا مسئول'))}</div>
+    <div class="box">${escapeHtml(t('امضا ثبت کننده'))}</div>
+    <div class="box">${escapeHtml(t('تاریخ'))}: ____________</div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+function downloadPdf() {
+  const html = buildExportHtml();
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 250);
+}
+
+function downloadWord() {
+  const html = buildExportHtml();
+  const blob = new Blob([html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const namePart = form.value.id ? `sarafyano_${form.value.id}` : 'sarafyano_blank';
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${namePart}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
 /* Init */
 onMounted(async () => {
   await repo.GetResourceCode?.();
-  if (isEdit.value) {
-    await loadExisting();
-  }
+  if (isEdit.value) await loadExisting();
 });
 </script>
 
@@ -610,5 +782,8 @@ onMounted(async () => {
   font-weight: 700;
   margin-bottom: 4px;
   color: #37474f;
+}
+.ga-2 {
+  gap: 8px;
 }
 </style>

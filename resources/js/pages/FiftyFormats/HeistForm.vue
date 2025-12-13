@@ -47,6 +47,7 @@
                     accept="image/*"
                     @change="onPickPicture"
                   />
+
                   <v-avatar
                     size="88"
                     class="mb-2 cursor-pointer primary-avatar"
@@ -98,6 +99,7 @@
                   {{ isEdit ? t('ویرایش ریکارډ هېست') : t('ایجاد ریکارډ هېست') }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -138,6 +140,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس اصلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -149,6 +152,7 @@
                     :error-messages="getErrorMessages('main_province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.main_district"
@@ -159,6 +163,7 @@
                     :error-messages="getErrorMessages('main_district')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.main_village"
@@ -175,6 +180,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس فعلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -186,6 +192,7 @@
                     :error-messages="getErrorMessages('now_province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_zone"
@@ -196,6 +203,7 @@
                     :error-messages="getErrorMessages('now_zone')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_district"
@@ -206,6 +214,7 @@
                     :error-messages="getErrorMessages('now_district')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_village"
@@ -227,6 +236,7 @@
                     :error-messages="getErrorMessages('specific_place')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.street_number"
@@ -237,6 +247,7 @@
                     :error-messages="getErrorMessages('street_number')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.home_number"
@@ -257,6 +268,7 @@
           <div class="section-header mb-2">
             <span class="section-title">{{ t('جزئیات اضافی و منبع') }}</span>
           </div>
+
           <v-row>
             <!-- Jobs / activity / gun / robberies -->
             <v-col cols="12" md="3">
@@ -269,6 +281,7 @@
                 :error-messages="getErrorMessages('old_job')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.now_job"
@@ -279,6 +292,7 @@
                 :error-messages="getErrorMessages('now_job')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model.number="form.done_roberies"
@@ -290,6 +304,7 @@
                 :error-messages="getErrorMessages('done_roberies')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.gun_type"
@@ -312,6 +327,7 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.coordinates"
@@ -339,6 +355,7 @@
                 :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_phone_number"
@@ -362,9 +379,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (✅ added PDF + Word like before) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -377,6 +394,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ هېست') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -385,6 +403,26 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -454,7 +492,7 @@ const router = useRouter();
 
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
-watch(locale, l => (isRtl.value = l === 'fa'));
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
 /* MODE */
 const isEdit = computed(() => !!route.params.id);
@@ -503,8 +541,8 @@ const blankForm = () => ({
 
   // identity
   name: '',
-  nick_name: '',
   father_name: '',
+  phone_number: '',
 
   // addresses
   main_province: '',
@@ -531,8 +569,7 @@ const blankForm = () => ({
   resource_phone_number: '',
   resource_id: null,
 
-  // contact & note
-  phone_number: '',
+  // note
   note: '',
 });
 
@@ -540,7 +577,7 @@ const form = ref(blankForm());
 
 /* RULES */
 const rules = {
-  required: v => !!v || t('این فیلد الزامی است'),
+  required: (v) => !!v || t('این فیلد الزامی است'),
 };
 
 /* PICTURE */
@@ -575,17 +612,13 @@ function normalizePicture(src) {
   if (!src) return null;
   let clean = String(src).trim();
 
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) {
-    return clean;
-  }
+  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
   clean = clean.replace(/\\\//g, '/');
 
-  if (clean.startsWith('http://') || clean.startsWith('https://')) {
-    return clean;
-  }
-  if (clean.startsWith('/')) {
-    return clean;
-  }
+  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+  if (clean.startsWith('/')) return clean;
+
   return '/' + clean.replace(/^\/+/, '');
 }
 
@@ -593,16 +626,14 @@ function openPreview(src) {
   const base = src || form.value.previewUrl || form.value.picture;
   const normalized = normalizePicture(base);
   previewSrc.value = normalized;
-  if (previewSrc.value) {
-    previewOpen.value = true;
-  }
+  if (previewSrc.value) previewOpen.value = true;
 }
 
 /* RESOURCES DROPDOWN */
 const resources = computed(() => repo.resourcecode || []);
 
 function onResourceCodeChange(code) {
-  const found = resources.value.find(r => r.code_number === code);
+  const found = resources.value.find((r) => r.code_number === code);
   form.value.resource_phone_number = found?.phone_number ?? '';
   form.value.resource_id = found?.id ?? null;
 }
@@ -619,8 +650,8 @@ function mapFromApi(payload = {}) {
   b.previewUrl = fullUrl;
 
   b.name = x.name ?? '';
-  b.nick_name = x.nick_name ?? '';
   b.father_name = x.father_name ?? '';
+  b.phone_number = x.phone_number ?? '';
 
   b.main_province = x.main_province ?? '';
   b.main_district = x.main_district ?? '';
@@ -645,7 +676,6 @@ function mapFromApi(payload = {}) {
   b.resource_phone_number = x.resource_phone_number ?? r.phone_number ?? '';
   b.resource_id = x.resource_id ?? r.id ?? null;
 
-  b.phone_number = x.phone_number ?? '';
   b.note = x.note ?? '';
 
   return b;
@@ -659,6 +689,7 @@ async function loadRecord() {
     pictureChanged.value = false;
     return;
   }
+
   try {
     await repo.FetchHeistData?.(id);
     const single = Array.isArray(repo.Heist) ? repo.Heist[0] : repo.Heist || {};
@@ -687,7 +718,7 @@ function toFormData(obj) {
 function buildCreateFormData() {
   const payload = { ...form.value };
 
-  delete payload.previewUrl;
+  delete payload.previewUrl; // UI-only
 
   const fd = toFormData(payload);
 
@@ -702,7 +733,7 @@ function buildUpdateFormData() {
   const payload = { ...form.value };
 
   delete payload.previewUrl;
-  delete payload.picture;
+  delete payload.picture; // keep current unless uploading new
 
   const fd = toFormData(payload);
 
@@ -723,6 +754,182 @@ function scrollToFirstInvalid() {
     const input = first.querySelector('input, textarea, .v-field__input');
     if (input && typeof input.focus === 'function') input.focus();
   }
+}
+
+/* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS)
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+
+function exportRows() {
+  return [
+    { label: 'نام', value: form.value.name },
+    { label: 'نام پدر', value: form.value.father_name },
+    { label: 'شماره تماس', value: form.value.phone_number },
+
+    { label: 'ولایت اصلی', value: form.value.main_province },
+    { label: 'ولسوالی اصلی', value: form.value.main_district },
+    { label: 'قریه/ناحیه اصلی', value: form.value.main_village },
+
+    { label: 'ولایت فعلی', value: form.value.now_province },
+    { label: 'زون فعلی', value: form.value.now_zone },
+    { label: 'ولسوالی فعلی', value: form.value.now_district },
+    { label: 'قریه/ناحیه فعلی', value: form.value.now_village },
+
+    { label: 'موقعیت مشخص', value: form.value.specific_place },
+    { label: 'سرک نمبر', value: form.value.street_number },
+    { label: 'نمبر خانه', value: form.value.home_number },
+
+    { label: 'وظیفه قبلی', value: form.value.old_job },
+    { label: 'وظیفه فعلی', value: form.value.now_job },
+
+    { label: 'سرقت‌های انجام‌شده', value: form.value.done_roberies },
+    { label: 'نوع سلاح', value: form.value.gun_type },
+
+    { label: 'ولایت مربوطه', value: form.value.Province_addr },
+    { label: 'مختصات', value: form.value.coordinates },
+
+    { label: 'کود منبع', value: form.value.resource_code },
+    { label: 'شماره منبع', value: form.value.resource_phone_number },
+
+    { label: 'ملاحظات', value: form.value.note },
+  ];
+}
+
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم هېست</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>heist_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      direction: rtl;
+    }
+
+    .title {
+      text-align: center;
+      margin: 22px 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .simple-table {
+      width: 95%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin-left: 12px;
+      margin-right: 12px;
+    }
+
+    .simple-table th,
+    .simple-table td {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      vertical-align: top;
+      font-size: 12px;
+    }
+
+    .simple-table th {
+      width: 35%;
+      background: #f5f5f5;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .simple-table td {
+      width: 65%;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .sig {
+      margin-top: 18px;
+      margin-right: 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.focus();
+  w.print();
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `هېست_${form.value.name || 'جدید'}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
 }
 
 /* SUBMIT */
@@ -750,7 +957,7 @@ async function onSubmit() {
   try {
     if (!isEdit.value) {
       const fd = buildCreateFormData();
-      const created = await repo.CreateHeist?.(fd).catch(e => {
+      const created = await repo.CreateHeist?.(fd).catch((e) => {
         if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
         return null;
       });
@@ -763,7 +970,7 @@ async function onSubmit() {
       }
     } else {
       const fd = buildUpdateFormData();
-      const updated = await repo.UpdateHeist?.(form.value.id, fd).catch(e => {
+      const updated = await repo.UpdateHeist?.(form.value.id, fd).catch((e) => {
         if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
         return null;
       });
@@ -803,7 +1010,7 @@ function resetForm() {
 }
 
 function goBack() {
-  router.push('/app/heists');
+  router.push('/app/heist');
 }
 
 /* INIT */
