@@ -146,7 +146,7 @@
   import { useEmployeOfficeRepository } from '@/stores/EmployeeRepository';
   import { useCalendar } from '../../composables/useCalendar';
   import NotificationMenu from './NotificationBell.vue'; // 👈 adjust path/name if different
-  import ChatMenu from './ChatMenu.vue';
+  import ChatMenu from './chat/ChatMenu.vue';
 
   const repo = useEmployeOfficeRepository();
   const { t, locale } = useI18n();

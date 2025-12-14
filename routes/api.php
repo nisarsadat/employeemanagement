@@ -122,6 +122,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RbacController;
 
 use App\Http\Controllers\Api\ActiveInactiveOfficeEmployeeController as AE; // ✅ NEW
+use App\Http\Controllers\Api\ChatAttachmentController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\EventControllerReport;
 use App\Http\Controllers\Api\EventReportController;
@@ -465,18 +466,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/notifications/clear', [NotificationController::class, 'clearAll']);
 
 
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::get('/chat/users', [ChatController::class, 'users']);
+        Route::get('/chat/conversations', [ChatController::class, 'conversations']);
+        Route::get('/chat/conversations/user/{user}', [ChatController::class, 'conversationWithUser']);
 
-    Route::get('/chat/users', [ChatController::class, 'users']);
-    Route::get('/chat/conversations', [ChatController::class, 'conversations']);
-    Route::get('/chat/conversations/user/{user}', [ChatController::class, 'conversationWithUser']);
-    Route::post('/chat/messages', [ChatController::class, 'sendMessage']);
-    Route::post('/chat/conversations/{conversation}/read', [ChatController::class, 'markAsRead']);
-    Route::post('/chat/conversations/read-all', [ChatController::class, 'readAllConversations']); // ✅
-    Route::post('/chat/conversations/{conversation}/clear', [ChatController::class, 'clearConversation']); // ✅
-    Route::post('/chat/unread-counts', [ChatController::class, 'unreadCounts']); // if you use POST
-    Route::get('/chat/unread-counts', [ChatController::class, 'unreadCounts']);  // if you use GET (your repo uses GET)
-    Route::post('/chat/ping', [ChatController::class, 'ping']);
-    Route::post('/chat/offline', [ChatController::class, 'offline']);
+        Route::post('/chat/messages', [ChatController::class, 'sendMessage']); // multipart
+        Route::delete('/chat/messages/{message}', [ChatController::class, 'deleteMessage']);
+
+        Route::post('/chat/conversations/{conversation}/read', [ChatController::class, 'markAsRead']);
+        Route::post('/chat/conversations/read-all', [ChatController::class, 'readAllConversations']);
+        Route::post('/chat/conversations/{conversation}/clear', [ChatController::class, 'clearConversation']);
+        Route::post('/chat/chats/delete-all', [ChatController::class, 'deleteAllChats']);
+        Route::get('/chat/conversations/{conversation}/search', [ChatController::class, 'searchMessages']);
+
+        Route::post('/chat/ping', [ChatController::class, 'ping']);
+    });
+
+
+
+
 
 
 

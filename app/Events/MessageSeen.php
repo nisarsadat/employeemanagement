@@ -3,10 +3,10 @@
 namespace App\Events;
 
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSeen implements ShouldBroadcast
+class MessageSeen implements ShouldBroadcastNow
 {
     use SerializesModels;
 
@@ -28,5 +28,15 @@ class MessageSeen implements ShouldBroadcast
     public function broadcastAs(): string
     {
         return 'MessageSeen';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'sender_id' => $this->sender_id,
+            'conversation_id' => $this->conversation_id,
+            'message_ids' => array_values($this->message_ids),
+            'seen_at' => $this->seen_at,
+        ];
     }
 }
