@@ -469,8 +469,8 @@ const detail = ref(null);
 async function fetchOne(id) {
   loadingOne.value = true;
   try {
-    if (typeof repo.FetchRobber === 'function') {
-      await repo.FetchRobber(id);
+    if (typeof repo.FetchRobberData === 'function') {
+      await repo.FetchRobberData(id);
       const single = Array.isArray(repo.Robber) ? repo.Robber[0] : repo.Robber;
       detail.value = single || {};
     } else {

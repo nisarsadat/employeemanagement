@@ -45,6 +45,7 @@
                   }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -85,6 +86,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس اصلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -96,6 +98,7 @@
                     :error-messages="getErrorMessages('main_province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.main_district"
@@ -106,6 +109,7 @@
                     :error-messages="getErrorMessages('main_district')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.main_village"
@@ -122,6 +126,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس فعلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -133,6 +138,7 @@
                     :error-messages="getErrorMessages('now_province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_zone"
@@ -143,6 +149,7 @@
                     :error-messages="getErrorMessages('now_zone')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_district"
@@ -153,6 +160,7 @@
                     :error-messages="getErrorMessages('now_district')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_village"
@@ -174,6 +182,7 @@
                     :error-messages="getErrorMessages('now_specific_place')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_street_number"
@@ -184,6 +193,7 @@
                     :error-messages="getErrorMessages('now_street_number')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_home_number"
@@ -204,6 +214,7 @@
           <div class="section-header mb-2">
             <span class="section-title">{{ t('جزئیات اضافی، امنیتی و منبع') }}</span>
           </div>
+
           <v-row>
             <!-- Social / work -->
             <v-col cols="12" md="3">
@@ -216,6 +227,7 @@
                 :error-messages="getErrorMessages('friends_quantity')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.supplier"
@@ -226,6 +238,7 @@
                 :error-messages="getErrorMessages('supplier')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.phone_number"
@@ -237,6 +250,7 @@
                 :error-messages="getErrorMessages('phone_number')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.activity_place"
@@ -258,6 +272,7 @@
                 :error-messages="getErrorMessages('history_jorm')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.old_job"
@@ -268,6 +283,7 @@
                 :error-messages="getErrorMessages('old_job')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_job"
@@ -290,6 +306,7 @@
                 :error-messages="getErrorMessages('gun_type')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.tanzim"
@@ -300,6 +317,7 @@
                 :error-messages="getErrorMessages('tanzim')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.takhalof_type"
@@ -322,6 +340,7 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.coordinates"
@@ -349,6 +368,7 @@
                 :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_phone"
@@ -372,9 +392,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (✅ added PDF + Word, works even if blank) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -387,6 +407,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ اشخاص غیرمسؤول') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -395,6 +416,26 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -591,6 +632,7 @@ async function loadRecord() {
     form.value = blankForm();
     return;
   }
+
   try {
     await repo.FetchNonResponsablePeopleData?.(id);
     const single = Array.isArray(repo.NonResponsablePeople)
@@ -636,6 +678,200 @@ function scrollToFirstInvalid() {
     const input = first.querySelector('input, textarea, .v-field__input');
     if (input && typeof input.focus === 'function') input.focus();
   }
+}
+
+/* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+
+function exportRows() {
+  return [
+    { label: t('نام'), value: v(form.value.name) },
+    { label: t('نام مستعار'), value: v(form.value.nick_name) },
+    { label: t('نام پدر'), value: v(form.value.father_name) },
+
+    { label: t('ولایت اصلی'), value: v(form.value.main_province) },
+    { label: t('ولسوالی اصلی'), value: v(form.value.main_district) },
+    { label: t('قریه/ناحیه اصلی'), value: v(form.value.main_village) },
+
+    { label: t('ولایت فعلی'), value: v(form.value.now_province) },
+    { label: t('زون فعلی'), value: v(form.value.now_zone) },
+    { label: t('ولسوالی فعلی'), value: v(form.value.now_district) },
+    { label: t('قریه/ناحیه فعلی'), value: v(form.value.now_village) },
+
+    { label: t('موقعیت مشخص'), value: v(form.value.now_specific_place) },
+    { label: t('شماره سرک'), value: v(form.value.now_street_number) },
+    { label: t('شماره خانه'), value: v(form.value.now_home_number) },
+
+    { label: t('تعداد دوستان'), value: v(form.value.friends_quantity) },
+    { label: t('تمویل‌کننده'), value: v(form.value.supplier) },
+    { label: t('شماره تماس'), value: v(form.value.phone_number) },
+    { label: t('محل فعالیت'), value: v(form.value.activity_place) },
+
+    { label: t('سابقه جرم'), value: v(form.value.history_jorm) },
+    { label: t('وظیفه قبلی'), value: v(form.value.old_job) },
+    { label: t('وظیفه فعلی'), value: v(form.value.now_job) },
+
+    { label: t('نوع سلاح'), value: v(form.value.gun_type) },
+    { label: t('تنظیم'), value: v(form.value.tanzim) },
+    { label: t('نوع تخلف'), value: v(form.value.takhalof_type) },
+
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+    { label: t('مختصات'), value: v(form.value.coordinates) },
+
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+
+    { label: t('یادداشت'), value: v(form.value.note) },
+  ];
+}
+
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم اشخاص غیرمسؤول</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>non_responsable_people_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      direction: rtl;
+    }
+
+    .title {
+      text-align: center;
+      margin: 22px 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .simple-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0 auto;
+    }
+
+    .simple-table th,
+    .simple-table td {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      vertical-align: top;
+      font-size: 12px;
+    }
+
+    .simple-table th {
+      width: 35%;
+      background: #f5f5f5;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .simple-table td {
+      width: 65%;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .sig {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
+  };
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `اشخاص_غیرمسؤول_${safeFileName(form.value.name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
 }
 
 /* SUBMIT */
@@ -741,11 +977,6 @@ onMounted(async () => {
   opacity: 0.8;
 }
 
-/* small gap utility */
-.gap-2 {
-  gap: 8px;
-}
-
 /* slightly tighter fields */
 :deep(.v-field--variant-outlined .v-field__input) {
   padding-top: 4px;
@@ -754,10 +985,6 @@ onMounted(async () => {
 }
 
 /* prettier buttons */
-.soft-btn {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
 .primary-action-btn {
   padding-inline: 18px;
   font-weight: 600;

@@ -11,46 +11,65 @@ use App\Http\Requests\fifthyformatone\UpdateRobbersRequest;
 
 class RobbersController extends Controller
 {
-
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $perPage = (int) $request->get('perPage', 15);
+        $search  = $request->get('search');
 
-        $q = Robbers::query()
-            ->with(['resource:id,name,code_number,phone_number']) // ⬅ include needed cols
+        $query = Robbers::query()
+            ->with(['resource:id,name,code_number,phone_number'])
             ->latest();
 
         if ($search) {
-            $q->where(function ($w) use ($search) {
-                $w->where('name', 'like', "%{$search}%")
-                ->orWhere('nickname', 'like', "%{$search}%")
-                ->orWhere('father_name', 'like', "%{$search}%")
-                ->orWhere('phone_number', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nickname', 'like', "%{$search}%")
+                  ->orWhere('father_name', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$search}%");
             });
         }
 
-        return RobbersResource::collection($q->paginate($perPage));
+        return RobbersResource::collection(
+            $query->paginate($perPage)
+        );
     }
 
     public function store(StoreRobbersRequest $request)
     {
-        $record = Robbers::create($request->validated())
-            ->load(['resource:id,name,code_number,phone_number']); // ⬅
-        return RobbersResource::make($record);
+        $robber = Robbers::create($request->validated());
+
+        $robber->load(['resource:id,name,code_number,phone_number']);
+
+        return RobbersResource::make($robber);
     }
 
-    public function show(Robbers $robbers)
+    /**
+     * IMPORTANT:
+     * This endpoint must ONLY be called with a VALID ID
+     */
+    public function show($id)
     {
-        $robbers->load(['resource:id,name,code_number,phone_number']); // ⬅
-        return RobbersResource::make($robbers);
+        $robber = Robbers::with(['resource:id,name,code_number,phone_number'])
+            ->findOrFail($id);
+
+        return RobbersResource::make($robber);
     }
 
-    public function update(UpdateRobbersRequest $request, Robbers $robbers)
+    public function update(UpdateRobbersRequest $request, $id)
     {
-        $robbers->update($request->validated());
-        $robbers->load(['resource:id,name,code_number,phone_number']); // ⬅
-        return RobbersResource::make($robbers);
+        $robber = Robbers::findOrFail($id);
+
+        $robber->update($request->validated());
+
+        $robber->load(['resource:id,name,code_number,phone_number']);
+
+        return RobbersResource::make($robber);
     }
 
+    public function destroy($id)
+    {
+        Robbers::findOrFail($id)->delete();
+
+        return response()->noContent();
+    }
 }

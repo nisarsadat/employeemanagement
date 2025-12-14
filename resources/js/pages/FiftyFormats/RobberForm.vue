@@ -37,13 +37,10 @@
               <!-- Identity -->
               <div class="section-header">
                 <span class="section-title">
-                  {{
-                    isEdit
-                      ? t('ویرایش ریکارډ رهزن')
-                      : t('ایجاد ریکارډ رهزن')
-                  }}
+                  {{ isEdit ? t('ویرایش ریکارډ رهزن') : t('ایجاد ریکارډ رهزن') }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -84,6 +81,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس اصلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -95,6 +93,7 @@
                     :error-messages="getErrorMessages('main_province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.main_district"
@@ -105,6 +104,7 @@
                     :error-messages="getErrorMessages('main_district')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.main_village"
@@ -121,6 +121,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس فعلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -132,6 +133,7 @@
                     :error-messages="getErrorMessages('now_province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_zone"
@@ -142,6 +144,7 @@
                     :error-messages="getErrorMessages('now_zone')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_district"
@@ -152,6 +155,7 @@
                     :error-messages="getErrorMessages('now_district')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_village"
@@ -173,6 +177,7 @@
                     :error-messages="getErrorMessages('now_specific_place')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_street_number"
@@ -183,6 +188,7 @@
                     :error-messages="getErrorMessages('now_street_number')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_home_number"
@@ -203,6 +209,7 @@
           <div class="section-header mb-2">
             <span class="section-title">{{ t('جزئیات اضافی و منبع') }}</span>
           </div>
+
           <v-row>
             <!-- Jobs / supplier / history -->
             <v-col cols="12" md="3">
@@ -215,6 +222,7 @@
                 :error-messages="getErrorMessages('old_job')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.now_job"
@@ -225,6 +233,7 @@
                 :error-messages="getErrorMessages('now_job')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.supplier"
@@ -235,6 +244,7 @@
                 :error-messages="getErrorMessages('supplier')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.history_form"
@@ -257,6 +267,7 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.coordinates"
@@ -297,9 +308,10 @@
                 :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="form.resource_phone_number"
+                v-model="form.resource_phone"
                 :label="t('شماره منبع')"
                 variant="outlined"
                 density="compact"
@@ -320,9 +332,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (✅ PDF + Word works even for blank) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -335,6 +347,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ رهزن') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -343,6 +356,26 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -456,7 +489,7 @@ const blankForm = () => ({
 
   // resource
   resource_code: '',
-  resource_phone_number: '',
+  resource_phone: '',
   resource_id: null,
 
   // contact & note
@@ -470,7 +503,7 @@ const form = ref(blankForm());
 const rules = {
   required: (v) => !!v || t('این فیلد الزامی است'),
   phoneDigits: (v) => {
-    if (!v) return true; // optional but when filled must be 10 digits
+    if (!v) return true;
     const digits = String(v).replace(/\D/g, '');
     return digits.length === 10 || t('شماره تماس باید دقیقاً ۱۰ رقم باشد');
   },
@@ -481,7 +514,7 @@ const resources = computed(() => repo.resourcecode || []);
 
 function onResourceCodeChange(code) {
   const found = resources.value.find((r) => r.code_number === code);
-  form.value.resource_phone_number = found?.phone_number ?? '';
+  form.value.resource_phone = found?.phone_number ?? '';
   form.value.resource_id = found?.id ?? null;
 }
 
@@ -517,7 +550,7 @@ function mapFromApi(payload = {}) {
 
   const r = x.resource || {};
   b.resource_code = x.resource_code ?? r.code_number ?? '';
-  b.resource_phone_number = x.resource_phone_number ?? r.phone_number ?? '';
+  b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
   b.resource_id = x.resource_id ?? r.id ?? null;
 
   b.phone_number = x.phone_number ?? '';
@@ -532,8 +565,9 @@ async function loadRecord() {
     form.value = blankForm();
     return;
   }
+
   try {
-    await repo.FetchRobber?.(id);
+    await repo.FetchRobberData?.(id);
     const single = Array.isArray(repo.Robber) ? repo.Robber[0] : repo.Robber || {};
     if (!single) return;
 
@@ -557,14 +591,12 @@ function toFormData(obj) {
 
 function buildCreateFormData() {
   const payload = { ...form.value };
-  const fd = toFormData(payload);
-  return fd;
+  return toFormData(payload);
 }
 
 function buildUpdateFormData() {
   const payload = { ...form.value };
-  const fd = toFormData(payload);
-  return fd;
+  return toFormData(payload);
 }
 
 /* SCROLL TO FIRST INVALID */
@@ -577,6 +609,194 @@ function scrollToFirstInvalid() {
     const input = first.querySelector('input, textarea, .v-field__input');
     if (input && typeof input.focus === 'function') input.focus();
   }
+}
+
+/* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+
+function exportRows() {
+  return [
+    { label: t('نام'), value: v(form.value.name) },
+    { label: t('نام مستعار'), value: v(form.value.nickname) },
+    { label: t('نام پدر'), value: v(form.value.father_name) },
+
+    { label: t('ولایت اصلی'), value: v(form.value.main_province) },
+    { label: t('ولسوالی اصلی'), value: v(form.value.main_district) },
+    { label: t('قریه/ناحیه اصلی'), value: v(form.value.main_village) },
+
+    { label: t('ولایت فعلی'), value: v(form.value.now_province) },
+    { label: t('زون فعلی'), value: v(form.value.now_zone) },
+    { label: t('ولسوالی فعلی'), value: v(form.value.now_district) },
+    { label: t('قریه/ناحیه فعلی'), value: v(form.value.now_village) },
+
+    { label: t('موقعیت مشخص فعلی'), value: v(form.value.now_specific_place) },
+    { label: t('سرک نمبر فعلی'), value: v(form.value.now_street_number) },
+    { label: t('نمبر خانه فعلی'), value: v(form.value.now_home_number) },
+
+    { label: t('وظیفه قبلی'), value: v(form.value.old_job) },
+    { label: t('وظیفه فعلی'), value: v(form.value.now_job) },
+    { label: t('تمویل‌کننده'), value: v(form.value.supplier) },
+    { label: t('تاریخچه/فورم'), value: v(form.value.history_form) },
+
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+    { label: t('مختصات'), value: v(form.value.coordinates) },
+
+    { label: t('شماره تماس'), value: v(form.value.phone_number) },
+
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+
+    { label: t('ملاحظات'), value: v(form.value.note) },
+  ];
+}
+
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم رهزن</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>robber_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      direction: rtl;
+    }
+
+    .title {
+      text-align: center;
+      margin: 22px 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .simple-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0 auto;
+    }
+
+    .simple-table th,
+    .simple-table td {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      vertical-align: top;
+      font-size: 12px;
+    }
+
+    .simple-table th {
+      width: 35%;
+      background: #f5f5f5;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .simple-table td {
+      width: 65%;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .sig {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
+  };
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `رهزن_${safeFileName(form.value.name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
 }
 
 /* SUBMIT */
@@ -680,11 +900,6 @@ onMounted(async () => {
   font-size: 0.9rem;
   font-weight: 600;
   opacity: 0.8;
-}
-
-/* small gap utility */
-.gap-2 {
-  gap: 8px;
 }
 
 /* slightly tighter fields */

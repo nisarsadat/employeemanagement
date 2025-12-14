@@ -1,12 +1,13 @@
+<!-- src/views/schools/SchoolsForm.vue -->
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
     <AppBar
-      :title="isEdit ? t('ویرایش سرای') : t('ایجاد سرای جدید')"
+      :title="isEdit ? t('ویرایش مکتب') : t('ایجاد مکتب جدید')"
       :subtitle="
         isEdit
-          ? t('ویرایش جزئیات یک ریکارډ سرای موجود')
-          : t('ثبت یک ریکارډ سرای جدید در سیستم')
+          ? t('ویرایش جزئیات یک ریکارډ مکتب موجود')
+          : t('ثبت یک ریکارډ جدید مکتب در سیستم')
       "
     >
       <template #actions>
@@ -31,88 +32,142 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
-          <!-- Identity / basic info -->
+          <!-- ================= SCHOOL INFO ================= -->
           <div class="section-header">
-            <span class="section-title">
-              {{ isEdit ? t('ویرایش ریکارډ سرای') : t('ایجاد ریکارډ سرای') }}
-            </span>
+            <span class="section-title">{{ t('مشخصات مکتب') }}</span>
           </div>
+
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="form.saray_name"
-                :label="t('نام سرای *')"
+                v-model="form.school_name"
+                :label="t('نام مکتب *')"
                 variant="outlined"
                 density="compact"
                 :rules="[rules.required]"
-                :error="hasError('saray_name')"
-                :error-messages="getErrorMessages('saray_name')"
+                :error="hasError('school_name')"
+                :error-messages="getErrorMessages('school_name')"
               />
             </v-col>
 
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="form.saray_type"
-                :label="t('نوع سرای')"
+                v-model="form.school_type"
+                :label="t('نوع مکتب')"
                 variant="outlined"
                 density="compact"
-                :error="hasError('saray_type')"
-                :error-messages="getErrorMessages('saray_type')"
+                :error="hasError('school_type')"
+                :error-messages="getErrorMessages('school_type')"
               />
             </v-col>
           </v-row>
 
-          <!-- Responsible person -->
-          <div class="section-header mt-4">
-            <span class="section-title">{{ t('مسؤول سرای') }}</span>
+          <v-divider class="my-4" />
+
+          <!-- ================= PRINCIPLE ================= -->
+          <div class="section-header">
+            <span class="section-title">{{ t('مدیر مکتب') }}</span>
           </div>
+
+          <v-row>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.principle_name"
+                :label="t('نام مدیر')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('principle_name')"
+                :error-messages="getErrorMessages('principle_name')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.principle_f_name"
+                :label="t('نام پدر مدیر')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('principle_f_name')"
+                :error-messages="getErrorMessages('principle_f_name')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.principle_phone"
+                :label="t('شماره مدیر')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('principle_phone')"
+                :error-messages="getErrorMessages('principle_phone')"
+              />
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-4" />
+
+          <!-- ================= TEACHERS / STUDENTS ================= -->
+          <div class="section-header">
+            <span class="section-title">{{ t('معلمان و شاگردان') }}</span>
+          </div>
+
           <v-row>
             <v-col cols="12" md="3">
               <v-text-field
-                v-model="form.responsible_name"
-                :label="t('مسؤول: نام')"
+                v-model="form.male_teachers_quantity"
+                :label="t('معلمان مرد')"
                 variant="outlined"
                 density="compact"
-                :error="hasError('responsible_name')"
-                :error-messages="getErrorMessages('responsible_name')"
+                type="number"
+                :error="hasError('male_teachers_quantity')"
+                :error-messages="getErrorMessages('male_teachers_quantity')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
-                v-model="form.responsible_f_name"
-                :label="t('مسؤول: نام پدر')"
+                v-model="form.female_teachers_quantity"
+                :label="t('معلمان زن')"
                 variant="outlined"
                 density="compact"
-                :error="hasError('responsible_f_name')"
-                :error-messages="getErrorMessages('responsible_f_name')"
+                type="number"
+                :error="hasError('female_teachers_quantity')"
+                :error-messages="getErrorMessages('female_teachers_quantity')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
-                v-model="form.responsible_position"
-                :label="t('مسؤول: موقف')"
+                v-model="form.male_students_quantity"
+                :label="t('شاگردان پسر')"
                 variant="outlined"
                 density="compact"
-                :error="hasError('responsible_position')"
-                :error-messages="getErrorMessages('responsible_position')"
+                type="number"
+                :error="hasError('male_students_quantity')"
+                :error-messages="getErrorMessages('male_students_quantity')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
-                v-model="form.responsible_phone"
-                :label="t('مسؤول: شماره تماس')"
+                v-model="form.female_students_quantity"
+                :label="t('شاگردان دختر')"
                 variant="outlined"
                 density="compact"
-                :error="hasError('responsible_phone')"
-                :error-messages="getErrorMessages('responsible_phone')"
+                type="number"
+                :error="hasError('female_students_quantity')"
+                :error-messages="getErrorMessages('female_students_quantity')"
               />
             </v-col>
           </v-row>
 
-          <!-- Address -->
-          <div class="section-header mt-4">
-            <span class="section-title">{{ t('آدرس سرای') }}</span>
+          <v-divider class="my-4" />
+
+          <!-- ================= ADDRESS ================= -->
+          <div class="section-header">
+            <span class="section-title">{{ t('آدرس مکتب') }}</span>
           </div>
+
           <v-row>
             <v-col cols="12" md="3">
               <v-text-field
@@ -124,6 +179,7 @@
                 :error-messages="getErrorMessages('province')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.zone"
@@ -134,20 +190,22 @@
                 :error-messages="getErrorMessages('zone')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.district"
-                :label="t('ولسوالی')"
+                :label="t('ولسوالی/ناحیه')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('district')"
                 :error-messages="getErrorMessages('district')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.village"
-                :label="t('قریه/ناحیه')"
+                :label="t('قریه/ناحیه کوچک')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('village')"
@@ -155,7 +213,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.specific_place"
                 :label="t('موقعیت مشخص')"
@@ -165,31 +223,26 @@
                 :error-messages="getErrorMessages('specific_place')"
               />
             </v-col>
-            <v-col cols="12" md="6">
+
+            <v-col cols="12" md="4">
               <v-text-field
-                v-model="form.cordenates"
+                v-model="form.street_number"
+                :label="t('شماره سرک')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('street_number')"
+                :error-messages="getErrorMessages('street_number')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.coordinates"
                 :label="t('مختصات')"
                 variant="outlined"
                 density="compact"
-                :error="hasError('cordenates')"
-                :error-messages="getErrorMessages('cordenates')"
-              />
-            </v-col>
-          </v-row>
-
-          <!-- Extra fields -->
-          <div class="section-header mt-4">
-            <span class="section-title">{{ t('جزئیات اضافی و منبع') }}</span>
-          </div>
-          <v-row>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.employee_quantity"
-                :label="t('تعداد کارمندان')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('employee_quantity')"
-                :error-messages="getErrorMessages('employee_quantity')"
+                :error="hasError('coordinates')"
+                :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
 
@@ -203,8 +256,16 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col>
+          </v-row>
 
-            <!-- Resource mapping -->
+          <v-divider class="my-4" />
+
+          <!-- ================= RESOURCE + NOTE ================= -->
+          <div class="section-header">
+            <span class="section-title">{{ t('منبع و یادداشت') }}</span>
+          </div>
+
+          <v-row>
             <v-col cols="12" md="4">
               <v-autocomplete
                 v-model="form.resource_code"
@@ -231,8 +292,7 @@
               />
             </v-col>
 
-            <!-- Note -->
-            <v-col cols="12" md="8">
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.note"
                 :label="t('یادداشت')"
@@ -244,9 +304,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- ================= ACTIONS (PDF/WORD bottom) ================= -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -257,8 +317,9 @@
                   isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'
                 "
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ سرای') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد مکتب') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -267,6 +328,26 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -277,7 +358,9 @@
       <v-snackbar v-model="showError" color="error" timeout="5000">
         {{ errorMessage }}
         <template #actions>
-          <v-btn variant="text" @click="showError = false"> {{ t('بستن') }} </v-btn>
+          <v-btn variant="text" @click="showError = false">
+            {{ t('بستن') }}
+          </v-btn>
         </template>
       </v-snackbar>
 
@@ -285,7 +368,9 @@
       <v-snackbar v-model="showSuccess" color="success" timeout="3000">
         {{ successMessage }}
         <template #actions>
-          <v-btn variant="text" @click="showSuccess = false"> {{ t('بستن') }} </v-btn>
+          <v-btn variant="text" @click="showSuccess = false">
+            {{ t('بستن') }}
+          </v-btn>
         </template>
       </v-snackbar>
     </v-container>
@@ -298,9 +383,9 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import AppBar from '@/components/AppBar.vue';
-import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+import { useSchoolRepository } from '@/stores/SchoolRepository';
 
-const repo = useBadmashanoRepository();
+const repo = useSchoolRepository();
 const route = useRoute();
 const router = useRouter();
 
@@ -349,22 +434,25 @@ function getErrorMessages(field) {
 const blankForm = () => ({
   id: null,
 
-  saray_name: '',
-  saray_type: '',
+  school_name: '',
+  school_type: '',
 
-  responsible_name: '',
-  responsible_f_name: '',
-  responsible_position: '',
-  responsible_phone: '',
+  principle_name: '',
+  principle_f_name: '',
+  principle_phone: '',
+
+  male_teachers_quantity: '',
+  female_teachers_quantity: '',
+  male_students_quantity: '',
+  female_students_quantity: '',
 
   province: '',
   zone: '',
   district: '',
   village: '',
   specific_place: '',
-  cordenates: '',
-
-  employee_quantity: '',
+  street_number: '',
+  coordinates: '',
   Province_addr: '',
 
   resource_code: '',
@@ -386,6 +474,7 @@ const resources = computed(() => repo.resourcecode || []);
 
 function onResourceCodeChange(code) {
   const found = resources.value.find((r) => r.code_number === code);
+  form.value.resource_code = code || '';
   form.value.resource_phone = found?.phone_number ?? '';
   form.value.resource_id = found?.id ?? null;
 }
@@ -397,27 +486,31 @@ function mapFromApi(payload = {}) {
 
   b.id = x.id ?? null;
 
-  b.saray_name = x.saray_name ?? '';
-  b.saray_type = x.saray_type ?? '';
+  b.school_name = x.school_name ?? '';
+  b.school_type = x.school_type ?? '';
 
-  b.responsible_name = x.responsible_name ?? '';
-  b.responsible_f_name = x.responsible_f_name ?? '';
-  b.responsible_position = x.responsible_position ?? '';
-  b.responsible_phone = x.responsible_phone ?? '';
+  b.principle_name = x.principle_name ?? '';
+  b.principle_f_name = x.principle_f_name ?? '';
+  b.principle_phone = x.principle_phone ?? '';
+
+  b.male_teachers_quantity = x.male_teachers_quantity ?? '';
+  b.female_teachers_quantity = x.female_teachers_quantity ?? '';
+  b.male_students_quantity = x.male_students_quantity ?? '';
+  b.female_students_quantity = x.female_students_quantity ?? '';
 
   b.province = x.province ?? '';
   b.zone = x.zone ?? '';
   b.district = x.district ?? '';
   b.village = x.village ?? '';
   b.specific_place = x.specific_place ?? '';
-  b.cordenates = x.cordenates ?? '';
-
-  b.employee_quantity = x.employee_quantity ?? '';
+  b.street_number = x.street_number ?? '';
+  b.coordinates = x.coordinates ?? '';
   b.Province_addr = x.Province_addr ?? '';
 
-  b.resource_code = x.resource_code ?? x.resource?.code_number ?? '';
-  b.resource_phone = x.resource_phone ?? x.resource?.phone_number ?? '';
-  b.resource_id = x.resource_id ?? x.resource?.id ?? null;
+  const r = x.resource || {};
+  b.resource_id = x.resource_id ?? r.id ?? null;
+  b.resource_code = x.resource_code ?? r.code_number ?? '';
+  b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
 
   b.note = x.note ?? '';
 
@@ -430,16 +523,16 @@ async function loadRecord() {
     form.value = blankForm();
     return;
   }
+
   try {
-    await repo.FetchSarayanoData?.(id);
-    const single = Array.isArray(repo.Sarayano) ? repo.Sarayano[0] : repo.Sarayano || {};
+    await repo.FetchSchoolData?.(id);
+    const single = Array.isArray(repo.School) ? repo.School[0] : repo.School || {};
     if (!single) return;
 
-    const mapped = mapFromApi(single);
-    form.value = { ...mapped };
+    form.value = { ...mapFromApi(single) };
   } catch (e) {
     console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات سرای'));
+    showErrorMessage(t('خطا در دریافت معلومات مکتب'));
   }
 }
 
@@ -475,6 +568,189 @@ function scrollToFirstInvalid() {
   }
 }
 
+/* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+
+function exportRows() {
+  return [
+    { label: t('نام مکتب'), value: v(form.value.school_name) },
+    { label: t('نوع مکتب'), value: v(form.value.school_type) },
+
+    { label: t('نام مدیر'), value: v(form.value.principle_name) },
+    { label: t('نام پدر مدیر'), value: v(form.value.principle_f_name) },
+    { label: t('شماره مدیر'), value: v(form.value.principle_phone) },
+
+    { label: t('معلمان مرد'), value: v(form.value.male_teachers_quantity) },
+    { label: t('معلمان زن'), value: v(form.value.female_teachers_quantity) },
+    { label: t('شاگردان پسر'), value: v(form.value.male_students_quantity) },
+    { label: t('شاگردان دختر'), value: v(form.value.female_students_quantity) },
+
+    { label: t('ولایت'), value: v(form.value.province) },
+    { label: t('زون'), value: v(form.value.zone) },
+    { label: t('ولسوالی/ناحیه'), value: v(form.value.district) },
+    { label: t('قریه/ناحیه کوچک'), value: v(form.value.village) },
+
+    { label: t('موقعیت مشخص'), value: v(form.value.specific_place) },
+    { label: t('شماره سرک'), value: v(form.value.street_number) },
+    { label: t('مختصات'), value: v(form.value.coordinates) },
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+
+    { label: t('یادداشت'), value: v(form.value.note) },
+  ];
+}
+
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم مکتب</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.school_name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>school_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      direction: rtl;
+    }
+
+    .title {
+      text-align: center;
+      margin: 22px 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .simple-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0 auto;
+    }
+
+    .simple-table th,
+    .simple-table td {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      vertical-align: top;
+      font-size: 12px;
+    }
+
+    .simple-table th {
+      width: 35%;
+      background: #f5f5f5;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .simple-table td {
+      width: 65%;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .sig {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
+  };
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `مکتب_${safeFileName(form.value.school_name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
+}
+
 /* SUBMIT */
 async function onSubmit() {
   clearBackendErrors();
@@ -490,8 +766,8 @@ async function onSubmit() {
     return;
   }
 
-  if (!form.value.saray_name?.trim()) {
-    showErrorMessage(t('نام سرای الزامی است'));
+  if (!form.value.school_name?.trim()) {
+    showErrorMessage(t('نام مکتب الزامی است'));
     return;
   }
 
@@ -500,27 +776,27 @@ async function onSubmit() {
   try {
     if (!isEdit.value) {
       const fd = buildCreateFormData();
-      const created = await repo.CreateSarayano?.(fd).catch((e) => {
+      const created = await repo.CreateSchool?.(fd).catch((e) => {
         if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
         return null;
       });
 
       if (created?.id) {
         showSuccessMessage(t('موفقانه ثبت شد'));
-        router.push('/app/sarayanos').catch(() => {});
+        router.push('/app/schools').catch(() => {});
       } else {
         showErrorMessage(t('ثبت معلومات ناکام شد'));
       }
     } else {
       const fd = buildUpdateFormData();
-      const updated = await repo.UpdateSarayano?.(form.value.id, fd).catch((e) => {
+      const updated = await repo.UpdateSchool?.(form.value.id, fd).catch((e) => {
         if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
         return null;
       });
 
       if (updated?.id) {
         showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-        router.push('/app/sarayanos').catch(() => {});
+        router.push('/app/schools').catch(() => {});
       } else {
         showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
       }
@@ -547,7 +823,7 @@ function resetForm() {
 }
 
 function goBack() {
-  router.push('/app/sarayanos');
+  router.push('/app/schools');
 }
 
 /* INIT */
@@ -585,7 +861,7 @@ onMounted(async () => {
   min-height: 36px;
 }
 
-/* prettier buttons */
+/* buttons */
 .primary-action-btn {
   padding-inline: 18px;
   font-weight: 600;
@@ -594,5 +870,8 @@ onMounted(async () => {
 .secondary-action-btn {
   padding-inline: 14px;
   font-weight: 500;
+}
+.ga-2 {
+  gap: 8px;
 }
 </style>

@@ -425,7 +425,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
       } catch (e) {
         console.error(e);
         this.error = e;
-        this.Captive = {};
+        this.Robber = {};
       }
     },
 
