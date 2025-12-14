@@ -83,6 +83,7 @@
                 :label="t('تعداد افراد')"
                 variant="outlined"
                 density="compact"
+                :rules="[rules.nonNegativeInt]"
                 :error="hasError('people_quantity')"
                 :error-messages="getErrorMessages('people_quantity')"
               />
@@ -94,6 +95,7 @@
                 :label="t('جلسات در هفته')"
                 variant="outlined"
                 density="compact"
+                :rules="[rules.nonNegativeInt]"
                 :error="hasError('week_meeting_quantity')"
                 :error-messages="getErrorMessages('week_meeting_quantity')"
               />
@@ -161,6 +163,7 @@
                 :label="t('شماره تماس مسؤول')"
                 variant="outlined"
                 density="compact"
+                :rules="[rules.phone]"
                 :error="hasError('responsible_phone')"
                 :error-messages="getErrorMessages('responsible_phone')"
               />
@@ -198,6 +201,7 @@
                 :label="t('شماره تمویل‌کننده')"
                 variant="outlined"
                 density="compact"
+                :rules="[rules.phone]"
                 :error="hasError('supplier_phone')"
                 :error-messages="getErrorMessages('supplier_phone')"
               />
@@ -261,6 +265,7 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.coordinates"
@@ -288,6 +293,7 @@
                 :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_phone"
@@ -311,9 +317,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (BOTTOM + EXPORT) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -326,6 +332,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ شورا') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -334,6 +341,27 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -392,12 +420,13 @@ const errorMessage = ref('');
 const showSuccess = ref(false);
 const successMessage = ref('');
 
+/* messages */
 function showErrorMessage(message) {
-  errorMessage.value = message;
+  errorMessage.value = message || t('خطا رخ داد');
   showError.value = true;
 }
 function showSuccessMessage(message) {
-  successMessage.value = message;
+  successMessage.value = message || t('عملیات موفقانه انجام شد');
   showSuccess.value = true;
 }
 
@@ -457,7 +486,9 @@ const form = ref(blankForm());
 
 /* RULES */
 const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
+  required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
+  nonNegativeInt: (v) => v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
+  phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
 };
 
 /* RESOURCES DROPDOWN */
@@ -465,6 +496,7 @@ const resources = computed(() => repo.resourcecode || []);
 
 function onResourceCodeChange(code) {
   const found = resources.value.find((r) => r.code_number === code);
+  form.value.resource_code = code || '';
   form.value.resource_phone = found?.phone_number ?? '';
   form.value.resource_id = found?.id ?? null;
 }
@@ -521,10 +553,7 @@ async function loadRecord() {
   try {
     await repo.FetchShoraData?.(id);
     const single = Array.isArray(repo.Shora) ? repo.Shora[0] : repo.Shora || {};
-    if (!single) return;
-
-    const mapped = mapFromApi(single);
-    form.value = { ...mapped };
+    form.value = { ...mapFromApi(single || {}) };
   } catch (e) {
     console.error(e);
     showErrorMessage(t('خطا در دریافت معلومات شورا'));
@@ -534,22 +563,10 @@ async function loadRecord() {
 /* FORM DATA HELPERS */
 function toFormData(obj) {
   const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
+  Object.entries(obj || {}).forEach(([k, v]) => {
     if (v === undefined || v === null) return;
     fd.append(k, v);
   });
-  return fd;
-}
-
-function buildCreateFormData() {
-  const payload = { ...form.value };
-  const fd = toFormData(payload);
-  return fd;
-}
-
-function buildUpdateFormData() {
-  const payload = { ...form.value };
-  const fd = toFormData(payload);
   return fd;
 }
 
@@ -563,6 +580,150 @@ function scrollToFirstInvalid() {
     const input = first.querySelector('input, textarea, .v-field__input');
     if (input && typeof input.focus === 'function') input.focus();
   }
+}
+
+/* =========================
+   SIMPLE EXPORT (NO image, NO app headers) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+function exportRows() {
+  return [
+    { label: t('نام شورا'), value: v(form.value.shora_name) },
+    { label: t('هدف شورا'), value: v(form.value.shora_goal) },
+    { label: t('قریه شورا'), value: v(form.value.shora_village) },
+
+    { label: t('تعداد افراد'), value: v(form.value.people_quantity) },
+    { label: t('جلسات در هفته'), value: v(form.value.week_meeting_quantity) },
+    { label: t('ثبت/راجستر'), value: v(form.value.regester) },
+    { label: t('محل جلسات شورا'), value: v(form.value.shora_meeting_place) },
+
+    { label: t('مسؤول شورا'), value: v(form.value.responsible_name) },
+    { label: t('نام پدر مسؤول'), value: v(form.value.responsible_f_name) },
+    { label: t('وظیفه مسؤول'), value: v(form.value.responsible_job) },
+    { label: t('شماره تماس مسؤول'), value: v(form.value.responsible_phone) },
+
+    { label: t('تمویل‌کننده'), value: v(form.value.supplier_name) },
+    { label: t('وظیفه تمویل‌کننده'), value: v(form.value.supplier_job) },
+    { label: t('شماره تمویل‌کننده'), value: v(form.value.supplier_phone) },
+
+    { label: t('طرفداری امارت'), value: v(form.value.emarat_tarfdary) },
+
+    { label: t('ولایت شورا'), value: v(form.value.shora_province) },
+    { label: t('زون شورا'), value: v(form.value.shora_zone) },
+    { label: t('ولسوالی شورا'), value: v(form.value.shora_district) },
+
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+    { label: t('مختصات'), value: v(form.value.coordinates) },
+
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+
+    { label: t('یادداشت'), value: v(form.value.note) },
+  ];
+}
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم شورا</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.shora_name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>shora_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+    html, body {
+      margin: 0; padding: 0; background: #fff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px; direction: rtl;
+    }
+    .title { text-align: center; margin: 22px 0 12px; font-size: 16px; font-weight: 700; }
+    .simple-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+    .simple-table th, .simple-table td {
+      border: 1px solid #000; padding: 6px 8px; vertical-align: top; font-size: 12px;
+    }
+    .simple-table th { width: 35%; background: #f5f5f5; text-align: right; font-weight: 700; }
+    .simple-table td { width: 65%; text-align: right; word-break: break-word; }
+    .sig { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
+  };
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `شورا_${safeFileName(form.value.shora_name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
 }
 
 /* SUBMIT */
@@ -588,8 +749,9 @@ async function onSubmit() {
   saving.value = true;
 
   try {
+    const fd = toFormData({ ...form.value });
+
     if (!isEdit.value) {
-      const fd = buildCreateFormData();
       const created = await repo.CreateShora?.(fd).catch((e) => {
         if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
         return null;
@@ -602,7 +764,6 @@ async function onSubmit() {
         showErrorMessage(t('ثبت معلومات ناکام شد'));
       }
     } else {
-      const fd = buildUpdateFormData();
       const updated = await repo.UpdateShora?.(form.value.id, fd).catch((e) => {
         if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
         return null;
@@ -668,8 +829,7 @@ onMounted(async () => {
   opacity: 0.8;
 }
 
-/* small gap utility */
-.gap-2 {
+.ga-2 {
   gap: 8px;
 }
 

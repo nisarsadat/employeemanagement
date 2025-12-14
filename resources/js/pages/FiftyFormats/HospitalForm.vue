@@ -32,16 +32,14 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
-          <!-- Basics -->
-          <v-row>
-            <v-col cols="12">
-              <div class="section-header">
-                <span class="section-title">
-                  {{ isEdit ? t('ویرایش معلومات شفاخانه') : t('معلومات اصلی شفاخانه') }}
-                </span>
-              </div>
-            </v-col>
+          <!-- ================= BASIC INFO ================= -->
+          <div class="section-header">
+            <span class="section-title">
+              {{ isEdit ? t('ویرایش معلومات شفاخانه') : t('معلومات اصلی شفاخانه') }}
+            </span>
+          </div>
 
+          <v-row>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.name"
@@ -77,14 +75,14 @@
             </v-col>
           </v-row>
 
-          <!-- Responsible -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <div class="section-header">
-                <span class="section-title">{{ t('مسئول شفاخانه') }}</span>
-              </div>
-            </v-col>
+          <v-divider class="my-4" />
 
+          <!-- ================= RESPONSIBLE ================= -->
+          <div class="section-header">
+            <span class="section-title">{{ t('مسئول شفاخانه') }}</span>
+          </div>
+
+          <v-row>
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.responsible_name"
@@ -124,20 +122,21 @@
                 :label="t('شماره مسئول')"
                 variant="outlined"
                 density="compact"
+                :rules="[rules.phoneMinMax]"
                 :error="hasError('responsible_phone')"
                 :error-messages="getErrorMessages('responsible_phone')"
               />
             </v-col>
           </v-row>
 
-          <!-- Staff / Guards -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <div class="section-header">
-                <span class="section-title">{{ t('کارمندان و محافظین') }}</span>
-              </div>
-            </v-col>
+          <v-divider class="my-4" />
 
+          <!-- ================= STAFF / GUARDS ================= -->
+          <div class="section-header">
+            <span class="section-title">{{ t('کارمندان و محافظین') }}</span>
+          </div>
+
+          <v-row>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model.number="form.male_quantity"
@@ -175,14 +174,14 @@
             </v-col>
           </v-row>
 
-          <!-- Address -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <div class="section-header">
-                <span class="section-title">{{ t('آدرس شفاخانه') }}</span>
-              </div>
-            </v-col>
+          <v-divider class="my-4" />
 
+          <!-- ================= ADDRESS ================= -->
+          <div class="section-header">
+            <span class="section-title">{{ t('آدرس شفاخانه') }}</span>
+          </div>
+
+          <v-row>
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.province"
@@ -263,14 +262,12 @@
 
           <v-divider class="my-4" />
 
-          <!-- Note / Province_addr / Resource -->
-          <v-row>
-            <v-col cols="12">
-              <div class="section-header">
-                <span class="section-title">{{ t('ولایت مربوطه، منبع و یادداشت') }}</span>
-              </div>
-            </v-col>
+          <!-- ================= Province_addr / Resource / Note ================= -->
+          <div class="section-header">
+            <span class="section-title">{{ t('ولایت مربوطه، منبع و یادداشت') }}</span>
+          </div>
 
+          <v-row>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
@@ -320,9 +317,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- ================= ACTIONS (PDF/WORD bottom) ================= -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -345,6 +342,26 @@
               >
                 {{ t('پاک کردن فرم') }}
               </v-btn>
+
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
+              </v-btn>
             </v-col>
           </v-row>
         </v-card>
@@ -354,7 +371,9 @@
       <v-snackbar v-model="showError" color="error" timeout="5000">
         {{ errorMessage }}
         <template #actions>
-          <v-btn variant="text" @click="showError = false"> {{ t('بستن') }} </v-btn>
+          <v-btn variant="text" @click="showError = false">
+            {{ t('بستن') }}
+          </v-btn>
         </template>
       </v-snackbar>
 
@@ -362,7 +381,9 @@
       <v-snackbar v-model="showSuccess" color="success" timeout="3000">
         {{ successMessage }}
         <template #actions>
-          <v-btn variant="text" @click="showSuccess = false"> {{ t('بستن') }} </v-btn>
+          <v-btn variant="text" @click="showSuccess = false">
+            {{ t('بستن') }}
+          </v-btn>
         </template>
       </v-snackbar>
     </v-container>
@@ -460,6 +481,17 @@ const form = ref(blankForm());
 /* RULES */
 const rules = {
   required: (v) => !!v || t('این فیلد الزامی است'),
+
+  // ✅ min/max phone validation (works with blank too)
+  // You can change 7/15 if your system needs different
+  phoneMinMax: (v) => {
+    if (!v) return true;
+    const s = String(v).trim();
+    if (!s) return true;
+    if (s.length < 7) return t('شماره باید حداقل ۷ رقم باشد');
+    if (s.length > 15) return t('شماره باید حداکثر ۱۵ رقم باشد');
+    return true;
+  },
 };
 
 /* RESOURCES DROPDOWN */
@@ -467,6 +499,7 @@ const resources = computed(() => repo.resourcecode || []);
 
 function onResourceCodeChange(code) {
   const found = resources.value.find((r) => r.code_number === code);
+  form.value.resource_code = code || '';
   form.value.resource_phone = found?.phone_number ?? '';
   form.value.resource_id = found?.id ?? null;
 }
@@ -502,9 +535,10 @@ function mapFromApi(payload = {}) {
   b.note = x.note ?? '';
   b.Province_addr = x.Province_addr ?? '';
 
-  b.resource_code = x.resource_code ?? x.resource?.code_number ?? '';
-  b.resource_phone = x.resource_phone ?? x.resource?.phone_number ?? '';
-  b.resource_id = x.resource_id ?? x.resource?.id ?? null;
+  const r = x.resource || {};
+  b.resource_id = x.resource_id ?? r.id ?? null;
+  b.resource_code = x.resource_code ?? r.code_number ?? '';
+  b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
 
   return b;
 }
@@ -519,7 +553,7 @@ async function loadRecord() {
     await repo.FetchHosppitalData?.(id);
     const single = Array.isArray(repo.Hosppital) ? repo.Hosppital[0] : repo.Hosppital || {};
     if (!single) return;
-    form.value = mapFromApi(single);
+    form.value = { ...mapFromApi(single) };
   } catch (e) {
     console.error(e);
     showErrorMessage(t('خطا در دریافت معلومات شفاخانه'));
@@ -537,13 +571,11 @@ function toFormData(obj) {
 }
 
 function buildCreateFormData() {
-  const payload = { ...form.value };
-  return toFormData(payload);
+  return toFormData({ ...form.value });
 }
 
 function buildUpdateFormData() {
-  const payload = { ...form.value };
-  return toFormData(payload);
+  return toFormData({ ...form.value });
 }
 
 /* SCROLL TO FIRST INVALID */
@@ -556,6 +588,191 @@ function scrollToFirstInvalid() {
     const input = first.querySelector('input, textarea, .v-field__input');
     if (input && typeof input.focus === 'function') input.focus();
   }
+}
+
+/* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+
+function exportRows() {
+  return [
+    { label: t('نام'), value: v(form.value.name) },
+    { label: t('نوع شفاخانه'), value: v(form.value.hospita_type) },
+    { label: t('بخش مشخص'), value: v(form.value.specific_past) },
+
+    { label: t('نام مسئول'), value: v(form.value.responsible_name) },
+    { label: t('نام پدر مسئول'), value: v(form.value.responsible_f_name) },
+    { label: t('وظیفه مسئول'), value: v(form.value.responsible_position) },
+    { label: t('شماره مسئول'), value: v(form.value.responsible_phone) },
+
+    { label: t('کارمندان مرد'), value: v(form.value.male_quantity) },
+    { label: t('کارمندان زن'), value: v(form.value.female_quantity) },
+    { label: t('تعداد محافظین'), value: v(form.value.guard_quantity) },
+
+    { label: t('ولایت'), value: v(form.value.province) },
+    { label: t('زون'), value: v(form.value.zone) },
+    { label: t('ولسوالی'), value: v(form.value.district) },
+    { label: t('قریه'), value: v(form.value.village) },
+
+    { label: t('شماره سرک'), value: v(form.value.street_number) },
+    { label: t('موقعیت مشخص'), value: v(form.value.specific_place) },
+    { label: t('مختصات'), value: v(form.value.coordinates) },
+
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+
+    { label: t('یادداشت'), value: v(form.value.note) },
+  ];
+}
+
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم شفاخانه</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>hospital_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      direction: rtl;
+    }
+
+    .title {
+      text-align: center;
+      margin: 22px 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .simple-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0 auto;
+    }
+
+    .simple-table th,
+    .simple-table td {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      vertical-align: top;
+      font-size: 12px;
+    }
+
+    .simple-table th {
+      width: 35%;
+      background: #f5f5f5;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .simple-table td {
+      width: 65%;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .sig {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
+  };
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `شفاخانه_${safeFileName(form.value.name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
 }
 
 /* SUBMIT */
@@ -643,11 +860,13 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* main card */
 .simple-form-card {
   padding: 16px 16px 20px;
   border-radius: 12px;
 }
 
+/* sections */
 .section-header {
   display: flex;
   align-items: center;
@@ -659,24 +878,24 @@ onMounted(async () => {
   opacity: 0.8;
 }
 
-.gap-2 {
-  gap: 8px;
-}
-
+/* slightly tighter fields */
 :deep(.v-field--variant-outlined .v-field__input) {
   padding-top: 4px;
   padding-bottom: 4px;
   min-height: 36px;
 }
 
+/* buttons */
 .primary-action-btn {
   padding-inline: 18px;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
 }
-
 .secondary-action-btn {
   padding-inline: 14px;
   font-weight: 500;
+}
+.ga-2 {
+  gap: 8px;
 }
 </style>

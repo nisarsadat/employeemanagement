@@ -34,13 +34,14 @@
         <v-card class="simple-form-card" elevation="1">
           <v-row>
             <!-- Identity + address -->
-            <v-col cols="12" md="9">
+            <v-col cols="12" md="12">
               <!-- Identity -->
               <div class="section-header">
                 <span class="section-title">
                   {{ isEdit ? t('ویرایش ریکارډ سوپرمارکیت') : t('ایجاد ریکارډ سوپرمارکیت') }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="6">
                   <v-text-field
@@ -76,6 +77,7 @@
                     :error-messages="getErrorMessages('daily_clientele')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model.number="form.shops_quantity"
@@ -87,6 +89,7 @@
                     :error-messages="getErrorMessages('shops_quantity')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model.number="form.employee_quantity"
@@ -98,6 +101,7 @@
                     :error-messages="getErrorMessages('employee_quantity')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model.number="form.guard_quantity"
@@ -115,6 +119,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('مسؤول سوپرمارکیت') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -126,6 +131,7 @@
                     :error-messages="getErrorMessages('responsible_name')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.responsible_f_name"
@@ -136,12 +142,15 @@
                     :error-messages="getErrorMessages('responsible_f_name')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.responsible_phone"
                     :label="t('شماره تماس مسؤول')"
                     variant="outlined"
                     density="compact"
+                    inputmode="numeric"
+                    :rules="[rules.phone10]"
                     :error="hasError('responsible_phone')"
                     :error-messages="getErrorMessages('responsible_phone')"
                   />
@@ -152,6 +161,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس سوپرمارکیت') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -163,6 +173,7 @@
                     :error-messages="getErrorMessages('province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.zone"
@@ -173,6 +184,7 @@
                     :error-messages="getErrorMessages('zone')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.district"
@@ -183,6 +195,7 @@
                     :error-messages="getErrorMessages('district')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.village"
@@ -214,8 +227,8 @@
           <div class="section-header mb-2">
             <span class="section-title">{{ t('مختصات، منبع و سایر جزئیات') }}</span>
           </div>
+
           <v-row>
-            <!-- Province addr + coordinates -->
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
@@ -226,6 +239,7 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.coordinates"
@@ -253,6 +267,7 @@
                 :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_phone"
@@ -276,9 +291,34 @@
             </v-col>
           </v-row>
 
+          <!-- ✅ EXPORT BUTTONS (BOTTOM) -->
+          <v-row class="mt-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
+              <v-btn
+                color="secondary"
+                variant="outlined"
+                class="text-none rounded-pill soft-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF ساده') }}
+              </v-btn>
+
+              <v-btn
+                color="secondary"
+                variant="outlined"
+                class="text-none rounded-pill soft-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word ساده') }}
+              </v-btn>
+            </v-col>
+          </v-row>
+
           <!-- Actions -->
-          <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+          <v-row class="mt-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -289,6 +329,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ سوپرمارکیت') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -344,432 +385,487 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 
-  import AppBar from '@/components/AppBar.vue';
-  import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+import AppBar from '@/components/AppBar.vue';
+import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
-  const repo = useWakilanoRepository();
-  const route = useRoute();
-  const router = useRouter();
+const repo = useWakilanoRepository();
+const route = useRoute();
+const router = useRouter();
 
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-  /* MODE */
-  const isEdit = computed(() => !!route.params.id);
+/* MODE */
+const isEdit = computed(() => !!route.params.id);
 
-  /* FORM / STATE */
-  const formRef = ref(null);
-  const formValid = ref(false);
-  const saving = ref(false);
+/* FORM / STATE */
+const formRef = ref(null);
+const formValid = ref(false);
+const saving = ref(false);
 
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const showSuccess = ref(false);
-  const successMessage = ref('');
+const showError = ref(false);
+const errorMessage = ref('');
+const showSuccess = ref(false);
+const successMessage = ref('');
 
-  function showErrorMessage(message) {
-    errorMessage.value = message;
-    showError.value = true;
+function showErrorMessage(message) {
+  errorMessage.value = message;
+  showError.value = true;
+}
+function showSuccessMessage(message) {
+  successMessage.value = message;
+  showSuccess.value = true;
+}
+
+/* BACKEND ERRORS */
+const backendErrors = ref({});
+function setBackendErrors(errors) {
+  backendErrors.value = errors || {};
+}
+function clearBackendErrors() {
+  backendErrors.value = {};
+}
+function hasError(field) {
+  return !!backendErrors.value?.[field];
+}
+function getErrorMessages(field) {
+  return backendErrors.value?.[field] ?? [];
+}
+
+/* FORM MODEL */
+const blankForm = () => ({
+  id: null,
+
+  // media
+  picture: null,
+  previewUrl: null,
+
+  // identity
+  supermarket_name: '',
+  market_activity_type: '',
+  daily_clientele: '',
+  shops_quantity: '',
+  employee_quantity: '',
+  guard_quantity: '',
+
+  // responsible
+  responsible_name: '',
+  responsible_f_name: '',
+  responsible_phone: '',
+
+  // address
+  province: '',
+  zone: '',
+  district: '',
+  village: '',
+  specefic_place: '',
+  Province_addr: '',
+
+  // extra
+  coordinates: '',
+
+  // resource
+  resource_code: '',
+  resource_phone: '',
+  resource_id: null,
+
+  // note
+  note: '',
+});
+
+const form = ref(blankForm());
+
+/* RULES (✅ phone must be min/max 10 digits) */
+const rules = {
+  required: (v) => !!v || t('این فیلد الزامی است'),
+  phone10: (v) => {
+    if (v === null || v === undefined || String(v).trim() === '') return true;
+    const digits = String(v).replace(/\D/g, '');
+    return digits.length === 10 || t('شماره تماس باید دقیقاً ۱۰ رقم باشد');
+  },
+};
+
+/* SIMPLE EXPORT (NO IMAGE / NO APP HEADERS) */
+function esc(v) {
+  return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function buildSimpleHtml() {
+  const rows = [
+    [t('نام سوپرمارکیت'), form.value.supermarket_name],
+    [t('نوع فعالیت'), form.value.market_activity_type],
+    [t('مراجعین روزانه'), form.value.daily_clientele],
+    [t('تعداد دکان‌ها'), form.value.shops_quantity],
+    [t('تعداد کارمندان'), form.value.employee_quantity],
+    [t('تعداد محافظ'), form.value.guard_quantity],
+
+    [t('مسؤول'), form.value.responsible_name],
+    [t('نام پدر مسؤول'), form.value.responsible_f_name],
+    [t('شماره تماس مسؤول'), form.value.responsible_phone],
+
+    [t('ولایت'), form.value.province],
+    [t('زون'), form.value.zone],
+    [t('ولسوالی'), form.value.district],
+    [t('قریه'), form.value.village],
+    [t('موقعیت مشخص'), form.value.specefic_place],
+
+    [t('ولایت مربوطه'), form.value.Province_addr],
+    [t('مختصات'), form.value.coordinates],
+
+    [t('کود منبع'), form.value.resource_code],
+    [t('شماره منبع'), form.value.resource_phone],
+
+    [t('یادداشت'), form.value.note],
+  ];
+
+  const tableRows = rows
+    .map(
+      ([k, v]) => `
+      <tr>
+        <td class="k">${esc(k)}</td>
+        <td class="v">${esc(v || '')}</td>
+      </tr>`
+    )
+    .join('');
+
+  return `
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${esc(t('سوپرمارکیت'))}</title>
+  <style>
+    body{font-family: Arial, sans-serif; direction: rtl; padding: 18px; color:#111;}
+    h2{margin:0 0 10px 0; font-size: 16px;}
+    .meta{margin-bottom: 12px; font-size: 12px; color:#444;}
+    table{width:100%; border-collapse:collapse; margin-top:10px;}
+    td{border:1px solid #ddd; padding:8px; vertical-align:top; font-size: 12px;}
+    td.k{width: 32%; background:#f7f7f9; font-weight:700;}
+    .sig{margin-top:18px; display:flex; gap:24px; justify-content:space-between;}
+    .sig .line{flex:1; border-top:1px solid #444; padding-top:6px; font-size:12px; text-align:center;}
+    @media print{ body{padding:0} }
+  </style>
+</head>
+<body>
+  <h2>${esc(t('فورم معلومات سوپرمارکیت'))}</h2>
+  <div class="meta">${esc(t('این سند به صورت ساده (بدون عکس و بدون هدر اپ) تولید شده است.'))}</div>
+  <table>
+    <tbody>
+      ${tableRows}
+    </tbody>
+  </table>
+
+  <div class="sig">
+    <div class="line">${esc(t('امضا'))}</div>
+    <div class="line">${esc(t('تاریخ'))}</div>
+  </div>
+</body>
+</html>`;
+}
+
+function downloadPdf() {
+  const html = buildSimpleHtml();
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 250);
+}
+
+function downloadWord() {
+  const html = buildSimpleHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `supermarket_simple_${form.value?.id ?? 'new'}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* PICTURE (kept for consistency; no UI field in template right now) */
+const pictureInput = ref(null);
+const pictureFile = ref(null);
+const pictureChanged = ref(false);
+
+const previewOpen = ref(false);
+const previewSrc = ref(null);
+
+function normalizePicture(src) {
+  if (!src) return null;
+  let clean = String(src).trim();
+  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+  clean = clean.replace(/\\\//g, '/');
+  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+  if (clean.startsWith('/')) return clean;
+  return '/' + clean.replace(/^\/+/, '');
+}
+
+function openPreview(src) {
+  const base = src || form.value.previewUrl || form.value.picture;
+  const normalized = normalizePicture(base);
+  previewSrc.value = normalized;
+  if (previewSrc.value) previewOpen.value = true;
+}
+
+/* RESOURCES DROPDOWN */
+const resources = computed(() => repo.resourcecode || []);
+function onResourceCodeChange(code) {
+  const found = resources.value.find((r) => r.code_number === code);
+  form.value.resource_phone = found?.phone_number ?? '';
+  form.value.resource_id = found?.id ?? null;
+}
+
+/* MAP FROM API */
+function mapFromApi(payload = {}) {
+  const x = payload.data ?? payload;
+  const b = blankForm();
+
+  b.id = x.id ?? null;
+
+  const fullUrl = x.picture ?? null;
+  b.picture = fullUrl;
+  b.previewUrl = fullUrl;
+
+  b.supermarket_name = x.supermarket_name ?? '';
+  b.market_activity_type = x.market_activity_type ?? '';
+  b.daily_clientele = x.daily_clientele ?? '';
+  b.shops_quantity = x.shops_quantity ?? '';
+  b.employee_quantity = x.employee_quantity ?? '';
+  b.guard_quantity = x.guard_quantity ?? '';
+
+  b.responsible_name = x.responsible_name ?? '';
+  b.responsible_f_name = x.responsible_f_name ?? '';
+  b.responsible_phone = x.responsible_phone ?? '';
+
+  b.province = x.province ?? '';
+  b.zone = x.zone ?? '';
+  b.district = x.district ?? '';
+  b.village = x.village ?? '';
+  b.specefic_place = x.specefic_place ?? '';
+  b.Province_addr = x.Province_addr ?? '';
+
+  b.coordinates = x.coordinates ?? '';
+
+  b.resource_code = x.resource_code ?? x.resource?.code_number ?? '';
+  b.resource_phone = x.resource_phone ?? x.resource?.phone_number ?? '';
+  b.resource_id = x.resource_id ?? x.resource?.id ?? null;
+
+  b.note = x.note ?? '';
+  return b;
+}
+
+async function loadRecord() {
+  const id = route.params.id;
+  if (!id) {
+    form.value = blankForm();
+    pictureFile.value = null;
+    pictureChanged.value = false;
+    return;
   }
-  function showSuccessMessage(message) {
-    successMessage.value = message;
-    showSuccess.value = true;
+
+  try {
+    await repo.FetchSuperMarketData?.(id);
+    const single = Array.isArray(repo.SuperMarket) ? repo.SuperMarket[0] : repo.SuperMarket || {};
+    const mapped = mapFromApi(single);
+    form.value = { ...mapped };
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
+    if (form.value.resource_code) onResourceCodeChange(form.value.resource_code);
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات سوپرمارکیت'));
   }
+}
 
-  /* BACKEND ERRORS */
-  const backendErrors = ref({});
-  function setBackendErrors(errors) {
-    backendErrors.value = errors || {};
-  }
-  function clearBackendErrors() {
-    backendErrors.value = {};
-  }
-  function hasError(field) {
-    return !!backendErrors.value?.[field];
-  }
-  function getErrorMessages(field) {
-    return backendErrors.value?.[field] ?? [];
-  }
-
-  /* FORM MODEL */
-  const blankForm = () => ({
-    id: null,
-
-    // media
-    picture: null,
-    previewUrl: null,
-
-    // identity
-    supermarket_name: '',
-    market_activity_type: '',
-    daily_clientele: '',
-    shops_quantity: '',
-    employee_quantity: '',
-    guard_quantity: '',
-
-    // responsible
-    responsible_name: '',
-    responsible_f_name: '',
-    responsible_phone: '',
-
-    // address
-    province: '',
-    zone: '',
-    district: '',
-    village: '',
-    specefic_place: '',
-    Province_addr: '',
-
-    // extra
-    coordinates: '',
-
-    // resource
-    resource_code: '',
-    resource_phone: '',
-    resource_id: null,
-
-    // note
-    note: '',
+/* FORM DATA HELPERS */
+function toFormData(obj) {
+  const fd = new FormData();
+  Object.entries(obj).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    fd.append(k, v);
   });
+  return fd;
+}
 
-  const form = ref(blankForm());
+function buildCreateFormData() {
+  const payload = { ...form.value };
+  delete payload.previewUrl;
 
-  /* RULES */
-  const rules = {
-    required: (v) => !!v || t('این فیلد الزامی است'),
-  };
+  const fd = toFormData(payload);
+  if (pictureFile.value) fd.append('picture', pictureFile.value);
+  return fd;
+}
 
-  /* PICTURE */
-  const pictureInput = ref(null);
-  const pictureFile = ref(null);
-  const pictureChanged = ref(false);
+function buildUpdateFormData() {
+  const payload = { ...form.value };
+  delete payload.previewUrl;
+  delete payload.picture;
 
-  const previewOpen = ref(false);
-  const previewSrc = ref(null);
+  const fd = toFormData(payload);
+  if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+  return fd;
+}
 
-  function triggerPicture() {
-    pictureInput.value?.click();
+/* SCROLL TO FIRST INVALID */
+function scrollToFirstInvalid() {
+  const first =
+    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+    document.querySelector('.v-messages__message');
+  if (first) {
+    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const input = first.querySelector('input, textarea, .v-field__input');
+    if (input && typeof input.focus === 'function') input.focus();
+  }
+}
+
+/* SUBMIT */
+async function onSubmit() {
+  clearBackendErrors();
+
+  const f = formRef.value;
+  if (!f) return;
+
+  const { valid } = await f.validate();
+  if (!valid) {
+    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+    await nextTick();
+    scrollToFirstInvalid();
+    return;
   }
 
-  function onPickPicture(e) {
-    const file = e.target.files?.[0] ?? null;
-    pictureFile.value = file;
-    pictureChanged.value = !!file;
-
-    if (file) {
-      if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(form.value.previewUrl);
-      }
-      form.value.previewUrl = URL.createObjectURL(file);
-    } else {
-      form.value.previewUrl = form.value.picture || null;
-    }
-    if (e.target) e.target.value = '';
+  if (!form.value.supermarket_name?.trim()) {
+    showErrorMessage(t('نام سوپرمارکیت الزامی است'));
+    return;
   }
 
-  function normalizePicture(src) {
-    if (!src) return null;
-    let clean = String(src).trim();
+  saving.value = true;
 
-    if (clean.startsWith('blob:') || clean.startsWith('data:')) {
-      return clean;
-    }
-    clean = clean.replace(/\\\//g, '/');
+  try {
+    if (!isEdit.value) {
+      const fd = buildCreateFormData();
+      const created = await repo.CreateSuperMarket?.(fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
 
-    if (clean.startsWith('http://') || clean.startsWith('https://')) {
-      return clean;
-    }
-    if (clean.startsWith('/')) {
-      return clean;
-    }
-    return '/' + clean.replace(/^\/+/, '');
-  }
-
-  function openPreview(src) {
-    const base = src || form.value.previewUrl || form.value.picture;
-    const normalized = normalizePicture(base);
-    previewSrc.value = normalized;
-    if (previewSrc.value) {
-      previewOpen.value = true;
-    }
-  }
-
-  /* RESOURCES DROPDOWN */
-  const resources = computed(() => repo.resourcecode || []);
-
-  function onResourceCodeChange(code) {
-    const found = resources.value.find((r) => r.code_number === code);
-    form.value.resource_phone = found?.phone_number ?? '';
-    form.value.resource_id = found?.id ?? null;
-  }
-
-  /* MAP FROM API */
-  function mapFromApi(payload = {}) {
-    const x = payload.data ?? payload;
-    const b = blankForm();
-
-    b.id = x.id ?? null;
-
-    const fullUrl = x.picture ?? null;
-    b.picture = fullUrl;
-    b.previewUrl = fullUrl;
-
-    b.supermarket_name = x.supermarket_name ?? '';
-    b.market_activity_type = x.market_activity_type ?? '';
-    b.daily_clientele = x.daily_clientele ?? '';
-    b.shops_quantity = x.shops_quantity ?? '';
-    b.employee_quantity = x.employee_quantity ?? '';
-    b.guard_quantity = x.guard_quantity ?? '';
-
-    b.responsible_name = x.responsible_name ?? '';
-    b.responsible_f_name = x.responsible_f_name ?? '';
-    b.responsible_phone = x.responsible_phone ?? '';
-
-    b.province = x.province ?? '';
-    b.zone = x.zone ?? '';
-    b.district = x.district ?? '';
-    b.village = x.village ?? '';
-    b.specefic_place = x.specefic_place ?? '';
-    b.Province_addr = x.Province_addr ?? '';
-
-    b.coordinates = x.coordinates ?? '';
-
-    b.resource_code = x.resource_code ?? x.resource?.code_number ?? '';
-    b.resource_phone = x.resource_phone ?? x.resource?.phone_number ?? '';
-    b.resource_id = x.resource_id ?? x.resource?.id ?? null;
-
-    b.note = x.note ?? '';
-
-    return b;
-  }
-
-  async function loadRecord() {
-    const id = route.params.id;
-    if (!id) {
-      form.value = blankForm();
-      pictureFile.value = null;
-      pictureChanged.value = false;
-      return;
-    }
-    try {
-      await repo.FetchSuperMarketData?.(id);
-      const single = Array.isArray(repo.SuperMarket) ? repo.SuperMarket[0] : repo.SuperMarket || {};
-      const mapped = mapFromApi(single);
-      form.value = { ...mapped };
-      pictureFile.value = null;
-      pictureChanged.value = false;
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در دریافت معلومات سوپرمارکیت'));
-    }
-  }
-
-  /* FORM DATA HELPERS */
-  function toFormData(obj) {
-    const fd = new FormData();
-    Object.entries(obj).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
-
-  function buildCreateFormData() {
-    const payload = { ...form.value };
-
-    delete payload.previewUrl;
-
-    const fd = toFormData(payload);
-
-    if (pictureFile.value) {
-      fd.append('picture', pictureFile.value);
-    }
-
-    return fd;
-  }
-
-  function buildUpdateFormData() {
-    const payload = { ...form.value };
-
-    delete payload.previewUrl;
-    delete payload.picture;
-
-    const fd = toFormData(payload);
-
-    if (pictureChanged.value && pictureFile.value) {
-      fd.append('picture', pictureFile.value);
-    }
-
-    return fd;
-  }
-
-  /* SCROLL TO FIRST INVALID */
-  function scrollToFirstInvalid() {
-    const first =
-      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-      document.querySelector('.v-messages__message');
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input && typeof input.focus === 'function') input.focus();
-    }
-  }
-
-  /* SUBMIT */
-  async function onSubmit() {
-    clearBackendErrors();
-
-    const f = formRef.value;
-    if (!f) return;
-
-    const { valid } = await f.validate();
-    if (!valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-
-    if (!form.value.supermarket_name?.trim()) {
-      showErrorMessage(t('نام سوپرمارکیت الزامی است'));
-      return;
-    }
-
-    saving.value = true;
-
-    try {
-      if (!isEdit.value) {
-        const fd = buildCreateFormData();
-        const created = await repo.CreateSuperMarket?.(fd).catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
-
-        if (created?.id) {
-          showSuccessMessage(t('موفقانه ثبت شد'));
-          router.push('/app/supermarkets').catch(() => {});
-        } else {
-          showErrorMessage(t('ثبت معلومات ناکام شد'));
-        }
+      if (created?.id) {
+        showSuccessMessage(t('موفقانه ثبت شد'));
+        router.push('/app/supermarkets').catch(() => {});
       } else {
-        const fd = buildUpdateFormData();
-        const updated = await repo.UpdateSuperMarket?.(form.value.id, fd).catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
-
-        if (updated?.id) {
-          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-          router.push('/app/supermarkets').catch(() => {});
-        } else {
-          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-        }
+        showErrorMessage(t('ثبت معلومات ناکام شد'));
       }
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در ذخیره اطلاعات'));
-    } finally {
-      saving.value = false;
-    }
-  }
-
-  /* RESET & NAVIGATION */
-  function resetForm() {
-    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(form.value.previewUrl);
-    }
-
-    if (isEdit.value) {
-      loadRecord();
     } else {
-      form.value = blankForm();
-      pictureFile.value = null;
-      pictureChanged.value = false;
-    }
+      const fd = buildUpdateFormData();
+      const updated = await repo.UpdateSuperMarket?.(form.value.id, fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
 
-    clearBackendErrors();
-    formRef.value?.resetValidation?.();
-    showSuccessMessage(t('فرم پاک شد'));
+      if (updated?.id) {
+        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+        router.push('/app/supermarkets').catch(() => {});
+      } else {
+        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در ذخیره اطلاعات'));
+  } finally {
+    saving.value = false;
+  }
+}
+
+/* RESET & NAVIGATION */
+function resetForm() {
+  if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(form.value.previewUrl);
   }
 
-  function goBack() {
-    router.push('/app/supermarkets');
+  if (isEdit.value) {
+    loadRecord();
+  } else {
+    form.value = blankForm();
+    pictureFile.value = null;
+    pictureChanged.value = false;
   }
 
-  /* INIT */
-  onMounted(async () => {
-    await repo.GetResourceCode?.();
-    if (isEdit.value) {
-      await loadRecord();
-    }
-  });
+  clearBackendErrors();
+  formRef.value?.resetValidation?.();
+  showSuccessMessage(t('فرم پاک شد'));
+}
+
+function goBack() {
+  router.push('/app/supermarkets');
+}
+
+/* INIT */
+onMounted(async () => {
+  await repo.GetResourceCode?.();
+  if (isEdit.value) await loadRecord();
+});
 </script>
 
 <style scoped>
-  .hidden-file {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
-  }
+.hidden-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
 
-  /* main card */
-  .simple-form-card {
-    padding: 16px 16px 20px;
-    border-radius: 12px;
-  }
+/* main card */
+.simple-form-card {
+  padding: 16px 16px 20px;
+  border-radius: 12px;
+}
 
-  /* sections */
-  .section-header {
-    display: flex;
-    align-items: center;
-    padding-block: 2px;
-  }
-  .section-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    opacity: 0.8;
-  }
+/* sections */
+.section-header {
+  display: flex;
+  align-items: center;
+  padding-block: 2px;
+}
+.section-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
 
-  /* picture */
-  .pic-wrap-simple {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .cursor-pointer {
-    cursor: pointer;
-  }
-  .primary-avatar {
-    border: 2px solid rgba(33, 150, 243, 0.25);
-  }
+/* slightly tighter fields */
+:deep(.v-field--variant-outlined .v-field__input) {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  min-height: 36px;
+}
 
-  /* slightly tighter fields */
-  :deep(.v-field--variant-outlined .v-field__input) {
-    padding-top: 4px;
-    padding-bottom: 4px;
-    min-height: 36px;
-  }
+/* prettier buttons */
+.soft-btn {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
 
-  /* prettier buttons */
-  .soft-btn {
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  }
+.primary-action-btn {
+  padding-inline: 18px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+}
 
-  .primary-action-btn {
-    padding-inline: 18px;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
-  }
-
-  .secondary-action-btn {
-    padding-inline: 14px;
-    font-weight: 500;
-  }
+.secondary-action-btn {
+  padding-inline: 14px;
+  font-weight: 500;
+}
 </style>

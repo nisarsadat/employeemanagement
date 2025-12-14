@@ -1,3 +1,4 @@
+<!-- src/views/wakilano/CriminalCapturePlaceForm.vue -->
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
@@ -44,6 +45,7 @@
                   }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -84,6 +86,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('جزئیات جرم') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -95,6 +98,7 @@
                     :error-messages="getErrorMessages('jorm_type')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model.number="form.criminals_quantity"
@@ -102,10 +106,12 @@
                     :label="t('تعداد مجرمین')"
                     variant="outlined"
                     density="compact"
+                    :rules="[rules.nonNegativeInt]"
                     :error="hasError('criminals_quantity')"
                     :error-messages="getErrorMessages('criminals_quantity')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.office"
@@ -122,6 +128,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس محل دستگیری') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -195,6 +202,7 @@
           <div class="section-header mb-2">
             <span class="section-title">{{ t('جزئیات اضافی و منبع') }}</span>
           </div>
+
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -223,6 +231,7 @@
                 :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_phone_number"
@@ -246,9 +255,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (BOTTOM + EXPORT) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -261,6 +270,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ محل دستگیری') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -269,6 +279,27 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -323,12 +354,13 @@ const errorMessage = ref('');
 const showSuccess = ref(false);
 const successMessage = ref('');
 
+/* messages */
 function showErrorMessage(message) {
-  errorMessage.value = message;
+  errorMessage.value = message || t('خطا رخ داد');
   showError.value = true;
 }
 function showSuccessMessage(message) {
-  successMessage.value = message;
+  successMessage.value = message || t('عملیات موفقانه انجام شد');
   showSuccess.value = true;
 }
 
@@ -379,7 +411,8 @@ const form = ref(blankForm());
 
 /* RULES */
 const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
+  required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
+  nonNegativeInt: (v) => v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
 };
 
 /* RESOURCES DROPDOWN */
@@ -387,6 +420,7 @@ const resources = computed(() => repo.resourcecode || []);
 
 function onResourceCodeChange(code) {
   const found = resources.value.find((r) => r.code_number === code);
+  form.value.resource_code = code || '';
   form.value.resource_phone_number = found?.phone_number ?? '';
   form.value.resource_id = found?.id ?? null;
 }
@@ -436,10 +470,7 @@ async function loadRecord() {
     const single = Array.isArray(repo.CriminalCapturePlace)
       ? repo.CriminalCapturePlace[0]
       : repo.CriminalCapturePlace || {};
-    if (!single) return;
-
-    const mapped = mapFromApi(single);
-    form.value = { ...mapped };
+    form.value = { ...mapFromApi(single || {}) };
   } catch (e) {
     console.error(e);
     showErrorMessage(t('خطا در دریافت معلومات محل دستگیری'));
@@ -449,22 +480,10 @@ async function loadRecord() {
 /* FORM DATA HELPERS */
 function toFormData(obj) {
   const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
+  Object.entries(obj || {}).forEach(([k, v]) => {
     if (v === undefined || v === null) return;
     fd.append(k, v);
   });
-  return fd;
-}
-
-function buildCreateFormData() {
-  const payload = { ...form.value };
-  const fd = toFormData(payload);
-  return fd;
-}
-
-function buildUpdateFormData() {
-  const payload = { ...form.value };
-  const fd = toFormData(payload);
   return fd;
 }
 
@@ -478,6 +497,139 @@ function scrollToFirstInvalid() {
     const input = first.querySelector('input, textarea, .v-field__input');
     if (input && typeof input.focus === 'function') input.focus();
   }
+}
+
+/* =========================
+   SIMPLE EXPORT (NO image, NO app headers) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+function exportRows() {
+  return [
+    { label: t('نام مجرم'), value: v(form.value.name) },
+    { label: t('نام پدر'), value: v(form.value.father_name) },
+    { label: t('وظیفه'), value: v(form.value.job) },
+
+    { label: t('نوع جرم'), value: v(form.value.jorm_type) },
+    { label: t('تعداد مجرمین'), value: v(form.value.criminals_quantity) },
+    { label: t('اداره'), value: v(form.value.office) },
+
+    { label: t('ولایت'), value: v(form.value.province) },
+    { label: t('زون'), value: v(form.value.zone) },
+    { label: t('ولسوالی'), value: v(form.value.district) },
+    { label: t('قریه/ناحیه'), value: v(form.value.village) },
+    { label: t('موقعیت مشخص'), value: v(form.value.specefic_place) },
+    { label: t('مختصات'), value: v(form.value.coordinates) },
+
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone_number) },
+
+    { label: t('یادداشت'), value: v(form.value.note) },
+  ];
+}
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم محل دستگیری</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>criminal_capture_place_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+    html, body {
+      margin: 0; padding: 0; background: #fff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px; direction: rtl;
+    }
+    .title { text-align: center; margin: 22px 0 12px; font-size: 16px; font-weight: 700; }
+    .simple-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+    .simple-table th, .simple-table td {
+      border: 1px solid #000; padding: 6px 8px; vertical-align: top; font-size: 12px;
+    }
+    .simple-table th { width: 35%; background: #f5f5f5; text-align: right; font-weight: 700; }
+    .simple-table td { width: 65%; text-align: right; word-break: break-word; }
+    .sig { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
+  };
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `محل_دستگیری_${safeFileName(form.value.name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
 }
 
 /* SUBMIT */
@@ -503,8 +655,9 @@ async function onSubmit() {
   saving.value = true;
 
   try {
+    const fd = toFormData({ ...form.value });
+
     if (!isEdit.value) {
-      const fd = buildCreateFormData();
       const created = await repo.CreateCriminalCapturePlace?.(fd).catch((e) => {
         if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
         return null;
@@ -517,13 +670,10 @@ async function onSubmit() {
         showErrorMessage(t('ثبت معلومات ناکام شد'));
       }
     } else {
-      const fd = buildUpdateFormData();
-      const updated = await repo
-        .UpdateCriminalCapturePlace?.(form.value.id, fd)
-        .catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
+      const updated = await repo.UpdateCriminalCapturePlace?.(form.value.id, fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
 
       if (updated?.id) {
         showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
@@ -585,8 +735,7 @@ onMounted(async () => {
   opacity: 0.8;
 }
 
-/* small gap utility */
-.gap-2 {
+.ga-2 {
   gap: 8px;
 }
 
@@ -598,10 +747,6 @@ onMounted(async () => {
 }
 
 /* prettier buttons */
-.soft-btn {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
 .primary-action-btn {
   padding-inline: 18px;
   font-weight: 600;

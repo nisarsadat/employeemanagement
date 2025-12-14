@@ -1,3 +1,4 @@
+<!-- src/views/masjids/MasjidsForm.vue -->
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
@@ -376,9 +377,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (✅ bottom + PDF/Word like your rule) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -391,6 +392,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ مسجد') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -399,6 +401,26 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -571,9 +593,10 @@ function mapFromApi(payload = {}) {
   b.masjid_coordinates = x.masjid_coordinates ?? '';
   b.Province_addr = x.Province_addr ?? '';
 
-  b.resource_code = x.resource_code ?? '';
-  b.resource_phone = x.resource_phone ?? '';
-  b.resource_id = x.resource_id ?? null;
+  const r = x.resource || {};
+  b.resource_code = x.resource_code ?? r.code_number ?? '';
+  b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
+  b.resource_id = x.resource_id ?? r.id ?? null;
 
   b.note = x.note ?? '';
 
@@ -629,6 +652,197 @@ function scrollToFirstInvalid() {
     const input = first.querySelector('input, textarea, .v-field__input');
     if (input && typeof input.focus === 'function') input.focus();
   }
+}
+
+/* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+
+function exportRows() {
+  return [
+    { label: t('نام مسجد'), value: v(form.value.masjid_name) },
+    { label: t('نوع مسجد'), value: v(form.value.masjid_type) },
+
+    { label: t('نام مسوول'), value: v(form.value.responsible_name) },
+    { label: t('نام پدر مسوول'), value: v(form.value.responsible_f_name) },
+    { label: t('وظیفه/موقف مسوول'), value: v(form.value.responsible_position) },
+    { label: t('مذهب مسوول'), value: v(form.value.responsible_mazhab) },
+    { label: t('وظیفه قبلی مسوول'), value: v(form.value.responsible_old_job) },
+    { label: t('وظیفه فعلی مسوول'), value: v(form.value.responsible_now_job) },
+    { label: t('طرفداری/وابستگی'), value: v(form.value.responsible_tarfdary) },
+
+    { label: t('ولایت اصلی مسوول'), value: v(form.value.responsible_main_province) },
+    { label: t('ولسوالی اصلی مسوول'), value: v(form.value.responsible_main_district) },
+    { label: t('قریه اصلی مسوول'), value: v(form.value.responsible_main_village) },
+    { label: t('ولایت فعلی مسوول'), value: v(form.value.responsible_now_province) },
+    { label: t('ولسوالی فعلی مسوول'), value: v(form.value.responsible_now_district) },
+    { label: t('قریه فعلی مسوول'), value: v(form.value.responsible_now_village) },
+
+    { label: t('مذهب مردم مسجد'), value: v(form.value.masjid_people_mazhab) },
+    { label: t('تعداد خانه‌های مربوط مسجد'), value: v(form.value.masjid_homes_quantity) },
+
+    { label: t('ولایت مسجد'), value: v(form.value.masjid_province) },
+    { label: t('زون مسجد'), value: v(form.value.masjid_zone) },
+    { label: t('ولسوالی مسجد'), value: v(form.value.masjid_district) },
+    { label: t('قریه مسجد'), value: v(form.value.masjid_village) },
+    { label: t('موقعیت مشخص مسجد'), value: v(form.value.masjid_specific_place) },
+    { label: t('شماره سرک مسجد'), value: v(form.value.masjid_street_number) },
+    { label: t('مختصات مسجد'), value: v(form.value.masjid_coordinates) },
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+
+    { label: t('یادداشت'), value: v(form.value.note) },
+  ];
+}
+
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم مسجد</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.masjid_name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>masjid_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      direction: rtl;
+    }
+
+    .title {
+      text-align: center;
+      margin: 22px 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .simple-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0 auto;
+    }
+
+    .simple-table th,
+    .simple-table td {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      vertical-align: top;
+      font-size: 12px;
+    }
+
+    .simple-table th {
+      width: 35%;
+      background: #f5f5f5;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .simple-table td {
+      width: 65%;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .sig {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
+  };
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `مسجد_${safeFileName(form.value.masjid_name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
 }
 
 /* SUBMIT */

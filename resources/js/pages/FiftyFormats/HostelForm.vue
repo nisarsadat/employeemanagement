@@ -1,10 +1,13 @@
+<!-- src/views/badmashano/HostelForm.vue (or your path) -->
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
     <AppBar
       :title="isEdit ? t('ویرایش خواب گاه') : t('ایجاد خواب گاه جدید')"
       :subtitle="
-        isEdit ? t('ویرایش جزئیات یک ریکارډ خواب گاه موجود') : t('ثبت یک ریکارډ خواب گاه جدید در سیستم')
+        isEdit
+          ? t('ویرایش جزئیات یک ریکارډ خواب گاه موجود')
+          : t('ثبت یک ریکارډ خواب گاه جدید در سیستم')
       "
     >
       <template #actions>
@@ -29,190 +32,196 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ================= HOSTEL INFO ================= -->
+          <div class="section-header">
+            <span class="section-title">{{ t('مشخصات خواب گاه') }}</span>
+          </div>
+
           <v-row>
-            <!-- Identity + addresses -->
-            <v-col cols="12" md="9">
-              <!-- Hostel basic -->
-              <div class="section-header">
-                <span class="section-title">
-                  {{ isEdit ? t('ویرایش ریکارډ خواب گاه') : t('ایجاد ریکارډ خواب گاه') }}
-                </span>
-              </div>
-              <v-row>
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.hostel_name"
-                    :label="t('نام خواب گاه *')"
-                    variant="outlined"
-                    density="compact"
-                    :rules="[rules.required]"
-                    :error="hasError('hostel_name')"
-                    :error-messages="getErrorMessages('hostel_name')"
-                  />
-                </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.hostel_name"
+                :label="t('نام خواب گاه *')"
+                variant="outlined"
+                density="compact"
+                :rules="[rules.required]"
+                :error="hasError('hostel_name')"
+                :error-messages="getErrorMessages('hostel_name')"
+              />
+            </v-col>
 
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.hostel_type"
-                    :label="t('نوع خواب گاه')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('hostel_type')"
-                    :error-messages="getErrorMessages('hostel_type')"
-                  />
-                </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.hostel_type"
+                :label="t('نوع خواب گاه')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('hostel_type')"
+                :error-messages="getErrorMessages('hostel_type')"
+              />
+            </v-col>
 
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model.number="form.people_quantity"
-                    type="number"
-                    :label="t('تعداد افراد')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('people_quantity')"
-                    :error-messages="getErrorMessages('people_quantity')"
-                  />
-                </v-col>
-              </v-row>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model.number="form.people_quantity"
+                type="number"
+                :label="t('تعداد افراد')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('people_quantity')"
+                :error-messages="getErrorMessages('people_quantity')"
+              />
+            </v-col>
 
-              <v-row>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.people_type"
-                    :label="t('نوع افراد')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('people_type')"
-                    :error-messages="getErrorMessages('people_type')"
-                  />
-                </v-col>
-              </v-row>
-
-              <!-- Responsible person -->
-              <div class="section-header mt-4">
-                <span class="section-title">{{ t('مسؤول خواب گاه') }}</span>
-              </div>
-              <v-row>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.responsible_name"
-                    :label="t('مسؤول: نام')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('responsible_name')"
-                    :error-messages="getErrorMessages('responsible_name')"
-                  />
-                </v-col>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.responsible_f_name"
-                    :label="t('مسؤول: نام پدر')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('responsible_f_name')"
-                    :error-messages="getErrorMessages('responsible_f_name')"
-                  />
-                </v-col>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.responsible_position"
-                    :label="t('مسؤول: موقف')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('responsible_position')"
-                    :error-messages="getErrorMessages('responsible_position')"
-                  />
-                </v-col>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.responsible_phone"
-                    :label="t('مسؤول: شماره تماس')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('responsible_phone')"
-                    :error-messages="getErrorMessages('responsible_phone')"
-                  />
-                </v-col>
-              </v-row>
-
-              <!-- Address -->
-              <div class="section-header mt-4">
-                <span class="section-title">{{ t('آدرس خواب گاه') }}</span>
-              </div>
-              <v-row>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.province"
-                    :label="t('ولایت')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('province')"
-                    :error-messages="getErrorMessages('province')"
-                  />
-                </v-col>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.zone"
-                    :label="t('زون')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('zone')"
-                    :error-messages="getErrorMessages('zone')"
-                  />
-                </v-col>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.district"
-                    :label="t('ولسوالی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('district')"
-                    :error-messages="getErrorMessages('district')"
-                  />
-                </v-col>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.village"
-                    :label="t('قریه/ناحیه')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('village')"
-                    :error-messages="getErrorMessages('village')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.specific_place"
-                    :label="t('موقعیت مشخص')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('specific_place')"
-                    :error-messages="getErrorMessages('specific_place')"
-                  />
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.coordenates"
-                    :label="t('مختصات')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('coordenates')"
-                    :error-messages="getErrorMessages('coordenates')"
-                  />
-                </v-col>
-              </v-row>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.people_type"
+                :label="t('نوع افراد')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('people_type')"
+                :error-messages="getErrorMessages('people_type')"
+              />
             </v-col>
           </v-row>
 
           <v-divider class="my-4" />
 
-          <!-- Extra fields -->
-          <div class="section-header mb-2">
+          <!-- ================= RESPONSIBLE ================= -->
+          <div class="section-header">
+            <span class="section-title">{{ t('مسؤول خواب گاه') }}</span>
+          </div>
+
+          <v-row>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.responsible_name"
+                :label="t('مسؤول: نام')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('responsible_name')"
+                :error-messages="getErrorMessages('responsible_name')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.responsible_f_name"
+                :label="t('مسؤول: نام پدر')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('responsible_f_name')"
+                :error-messages="getErrorMessages('responsible_f_name')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.responsible_position"
+                :label="t('مسؤول: موقف')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('responsible_position')"
+                :error-messages="getErrorMessages('responsible_position')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.responsible_phone"
+                :label="t('مسؤول: شماره تماس')"
+                variant="outlined"
+                density="compact"
+                :rules="[rules.phoneMinMax]"
+                :error="hasError('responsible_phone')"
+                :error-messages="getErrorMessages('responsible_phone')"
+              />
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-4" />
+
+          <!-- ================= ADDRESS ================= -->
+          <div class="section-header">
+            <span class="section-title">{{ t('آدرس خواب گاه') }}</span>
+          </div>
+
+          <v-row>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.province"
+                :label="t('ولایت')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('province')"
+                :error-messages="getErrorMessages('province')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.zone"
+                :label="t('زون')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('zone')"
+                :error-messages="getErrorMessages('zone')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.district"
+                :label="t('ولسوالی')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('district')"
+                :error-messages="getErrorMessages('district')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.village"
+                :label="t('قریه/ناحیه')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('village')"
+                :error-messages="getErrorMessages('village')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.specific_place"
+                :label="t('موقعیت مشخص')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('specific_place')"
+                :error-messages="getErrorMessages('specific_place')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.coordenates"
+                :label="t('مختصات')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('coordenates')"
+                :error-messages="getErrorMessages('coordenates')"
+              />
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-4" />
+
+          <!-- ================= EXTRA + RESOURCE + NOTE ================= -->
+          <div class="section-header">
             <span class="section-title">{{ t('جزئیات اضافی و منبع') }}</span>
           </div>
+
           <v-row>
-            <!-- Province addr -->
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
@@ -224,7 +233,6 @@
               />
             </v-col>
 
-            <!-- Resource mapping -->
             <v-col cols="12" md="4">
               <v-autocomplete
                 v-model="form.resource_code"
@@ -240,6 +248,7 @@
                 :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_phone"
@@ -250,7 +259,6 @@
               />
             </v-col>
 
-            <!-- Note -->
             <v-col cols="12">
               <v-text-field
                 v-model="form.note"
@@ -263,9 +271,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- ================= ACTIONS (PDF/WORD bottom) ================= -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -276,6 +284,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ خواب گاه') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -285,12 +294,32 @@
               >
                 {{ t('پاک کردن فرم') }}
               </v-btn>
+
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
+              </v-btn>
             </v-col>
           </v-row>
         </v-card>
       </v-form>
 
-      <!-- IMAGE PREVIEW DIALOG -->
+      <!-- IMAGE PREVIEW DIALOG (kept as-is) -->
       <v-dialog v-model="previewOpen" max-width="520">
         <v-card>
           <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
@@ -335,434 +364,510 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 
-  import AppBar from '@/components/AppBar.vue';
-  import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+import AppBar from '@/components/AppBar.vue';
+import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 
-  const repo = useBadmashanoRepository();
-  const route = useRoute();
-  const router = useRouter();
+const repo = useBadmashanoRepository();
+const route = useRoute();
+const router = useRouter();
 
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-  /* MODE */
-  const isEdit = computed(() => !!route.params.id);
+/* MODE */
+const isEdit = computed(() => !!route.params.id);
 
-  /* FORM / STATE */
-  const formRef = ref(null);
-  const formValid = ref(false);
-  const saving = ref(false);
+/* FORM / STATE */
+const formRef = ref(null);
+const formValid = ref(false);
+const saving = ref(false);
 
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const showSuccess = ref(false);
-  const successMessage = ref('');
+const showError = ref(false);
+const errorMessage = ref('');
+const showSuccess = ref(false);
+const successMessage = ref('');
 
-  function showErrorMessage(message) {
-    errorMessage.value = message;
-    showError.value = true;
+/* NOT USED here but kept */
+const previewOpen = ref(false);
+const previewSrc = ref(null);
+
+function showErrorMessage(message) {
+  errorMessage.value = message;
+  showError.value = true;
+}
+function showSuccessMessage(message) {
+  successMessage.value = message;
+  showSuccess.value = true;
+}
+
+/* BACKEND ERRORS */
+const backendErrors = ref({});
+function setBackendErrors(errors) {
+  backendErrors.value = errors || {};
+}
+function clearBackendErrors() {
+  backendErrors.value = {};
+}
+function hasError(field) {
+  return !!backendErrors.value?.[field];
+}
+function getErrorMessages(field) {
+  return backendErrors.value?.[field] ?? [];
+}
+
+/* FORM MODEL */
+const blankForm = () => ({
+  id: null,
+
+  // media
+  picture: null,
+  previewUrl: null,
+
+  hostel_name: '',
+  hostel_type: '',
+  people_quantity: '',
+  people_type: '',
+
+  responsible_name: '',
+  responsible_f_name: '',
+  responsible_position: '',
+  responsible_phone: '',
+
+  province: '',
+  zone: '',
+  district: '',
+  village: '',
+  specific_place: '',
+  coordenates: '',
+
+  Province_addr: '',
+  note: '',
+
+  resource_code: '',
+  resource_phone: '',
+  resource_id: null,
+});
+
+const form = ref(blankForm());
+
+/* RULES */
+const rules = {
+  required: (v) => !!v || t('این فیلد الزامی است'),
+  phoneMinMax: (v) => {
+    if (!v) return true;
+    const s = String(v).replace(/\s+/g, '');
+    if (!/^\d+$/.test(s)) return t('شماره تیلیفون باید فقط عدد باشد');
+    if (s.length < 10) return t('شماره تیلیفون باید حداقل ۱۰ رقم باشد');
+    if (s.length > 13) return t('شماره تیلیفون باید حداکثر ۱۳ رقم باشد');
+    return true;
+  },
+};
+
+/* PICTURE (kept as-is from your code) */
+const pictureInput = ref(null);
+const pictureFile = ref(null);
+const pictureChanged = ref(false);
+
+function normalizePicture(src) {
+  if (!src) return null;
+  let clean = String(src).trim();
+
+  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+  clean = clean.replace(/\\\//g, '/');
+
+  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+  if (clean.startsWith('/')) return clean;
+  return '/' + clean.replace(/^\/+/, '');
+}
+
+/* RESOURCES DROPDOWN */
+const resources = computed(() => repo.resourcecode || []);
+function onResourceCodeChange(code) {
+  const found = resources.value.find((r) => r.code_number === code);
+  form.value.resource_code = code || '';
+  form.value.resource_phone = found?.phone_number ?? '';
+  form.value.resource_id = found?.id ?? null;
+}
+
+/* MAP FROM API */
+function mapFromApi(payload = {}) {
+  const x = payload.data ?? payload;
+  const b = blankForm();
+
+  b.id = x.id ?? null;
+
+  const fullUrl = x.picture ?? null;
+  b.picture = fullUrl;
+  b.previewUrl = fullUrl;
+
+  b.hostel_name = x.hostel_name ?? '';
+  b.hostel_type = x.hostel_type ?? '';
+  b.people_quantity = x.people_quantity ?? '';
+  b.people_type = x.people_type ?? '';
+
+  b.responsible_name = x.responsible_name ?? '';
+  b.responsible_f_name = x.responsible_f_name ?? '';
+  b.responsible_position = x.responsible_position ?? '';
+  b.responsible_phone = x.responsible_phone ?? '';
+
+  b.province = x.province ?? '';
+  b.zone = x.zone ?? '';
+  b.district = x.district ?? '';
+  b.village = x.village ?? '';
+  b.specific_place = x.specific_place ?? '';
+  b.coordenates = x.coordenates ?? '';
+
+  b.Province_addr = x.Province_addr ?? '';
+  b.note = x.note ?? '';
+
+  const r = x.resource || {};
+  b.resource_id = x.resource_id ?? r.id ?? null;
+  b.resource_code = x.resource_code ?? r.code_number ?? '';
+  b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
+
+  return b;
+}
+
+async function loadRecord() {
+  const id = route.params.id;
+  if (!id) {
+    form.value = blankForm();
+    pictureFile.value = null;
+    pictureChanged.value = false;
+    return;
   }
-  function showSuccessMessage(message) {
-    successMessage.value = message;
-    showSuccess.value = true;
+
+  try {
+    await repo.FetchHostelData?.(id);
+    const single = Array.isArray(repo.Hostel) ? repo.Hostel[0] : repo.Hostel || {};
+    form.value = { ...mapFromApi(single || {}) };
+    pictureFile.value = null;
+    pictureChanged.value = false;
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات خواب گاه'));
   }
+}
 
-  /* BACKEND ERRORS */
-  const backendErrors = ref({});
-  function setBackendErrors(errors) {
-    backendErrors.value = errors || {};
-  }
-  function clearBackendErrors() {
-    backendErrors.value = {};
-  }
-  function hasError(field) {
-    return !!backendErrors.value?.[field];
-  }
-  function getErrorMessages(field) {
-    return backendErrors.value?.[field] ?? [];
-  }
-
-  /* FORM MODEL */
-  const blankForm = () => ({
-    id: null,
-
-    // media
-    picture: null,
-    previewUrl: null,
-
-    // hostel info
-    hostel_name: '',
-    hostel_type: '',
-    people_quantity: '',
-    people_type: '',
-
-    // responsible
-    responsible_name: '',
-    responsible_f_name: '',
-    responsible_position: '',
-    responsible_phone: '',
-
-    // address
-    province: '',
-    zone: '',
-    district: '',
-    village: '',
-    specific_place: '',
-    coordenates: '',
-
-    // extra
-    Province_addr: '',
-    note: '',
-
-    // resource
-    resource_code: '',
-    resource_phone: '',
-    resource_id: null,
+/* FORM DATA HELPERS */
+function toFormData(obj) {
+  const fd = new FormData();
+  Object.entries(obj).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    fd.append(k, v);
   });
+  return fd;
+}
 
-  const form = ref(blankForm());
+function buildCreateFormData() {
+  const payload = { ...form.value };
+  delete payload.previewUrl;
 
-  /* RULES */
-  const rules = {
-    required: (v) => !!v || t('این فیلد الزامی است'),
+  const fd = toFormData(payload);
+
+  if (pictureFile.value) {
+    fd.append('picture', pictureFile.value);
+  }
+  return fd;
+}
+
+function buildUpdateFormData() {
+  const payload = { ...form.value };
+  delete payload.previewUrl;
+  delete payload.picture;
+
+  const fd = toFormData(payload);
+
+  if (pictureChanged.value && pictureFile.value) {
+    fd.append('picture', pictureFile.value);
+  }
+  return fd;
+}
+
+/* SCROLL TO FIRST INVALID */
+function scrollToFirstInvalid() {
+  const first =
+    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+    document.querySelector('.v-messages__message');
+  if (first) {
+    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const input = first.querySelector('input, textarea, .v-field__input');
+    if (input && typeof input.focus === 'function') input.focus();
+  }
+}
+
+/* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+
+function exportRows() {
+  return [
+    { label: t('نام خواب گاه'), value: v(form.value.hostel_name) },
+    { label: t('نوع خواب گاه'), value: v(form.value.hostel_type) },
+    { label: t('تعداد افراد'), value: v(form.value.people_quantity) },
+    { label: t('نوع افراد'), value: v(form.value.people_type) },
+
+    { label: t('مسؤول: نام'), value: v(form.value.responsible_name) },
+    { label: t('مسؤول: نام پدر'), value: v(form.value.responsible_f_name) },
+    { label: t('مسؤول: موقف'), value: v(form.value.responsible_position) },
+    { label: t('مسؤول: شماره تماس'), value: v(form.value.responsible_phone) },
+
+    { label: t('ولایت'), value: v(form.value.province) },
+    { label: t('زون'), value: v(form.value.zone) },
+    { label: t('ولسوالی'), value: v(form.value.district) },
+    { label: t('قریه/ناحیه'), value: v(form.value.village) },
+    { label: t('موقعیت مشخص'), value: v(form.value.specific_place) },
+    { label: t('مختصات'), value: v(form.value.coordenates) },
+
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+    { label: t('یادداشت'), value: v(form.value.note) },
+  ];
+}
+
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم خواب گاه</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.hostel_name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>hostel_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+    html, body {
+      margin: 0; padding: 0; background: #fff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px; direction: rtl;
+    }
+    .title { text-align: center; margin: 22px 0 12px; font-size: 16px; font-weight: 700; }
+    .simple-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+    .simple-table th, .simple-table td {
+      border: 1px solid #000; padding: 6px 8px; vertical-align: top; font-size: 12px;
+    }
+    .simple-table th { width: 35%; background: #f5f5f5; text-align: right; font-weight: 700; }
+    .simple-table td { width: 65%; text-align: right; word-break: break-word; }
+    .sig { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
   };
+}
 
-  /* PICTURE */
-  const pictureInput = ref(null);
-  const pictureFile = ref(null);
-  const pictureChanged = ref(false);
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
 
-  const previewOpen = ref(false);
-  const previewSrc = ref(null);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `خوابگاه_${safeFileName(form.value.hostel_name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-  function triggerPicture() {
-    pictureInput.value?.click();
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
+}
+
+/* SUBMIT */
+async function onSubmit() {
+  clearBackendErrors();
+
+  const f = formRef.value;
+  if (!f) return;
+
+  const { valid } = await f.validate();
+  if (!valid) {
+    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+    await nextTick();
+    scrollToFirstInvalid();
+    return;
   }
 
-  function onPickPicture(e) {
-    const file = e.target.files?.[0] ?? null;
-    pictureFile.value = file;
-    pictureChanged.value = !!file;
-
-    if (file) {
-      if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(form.value.previewUrl);
-      }
-      form.value.previewUrl = URL.createObjectURL(file);
-    } else {
-      form.value.previewUrl = form.value.picture || null;
-    }
-    if (e.target) e.target.value = '';
+  if (!form.value.hostel_name?.trim()) {
+    showErrorMessage(t('نام خواب گاه الزامی است'));
+    return;
   }
 
-  function normalizePicture(src) {
-    if (!src) return null;
-    let clean = String(src).trim();
+  saving.value = true;
 
-    if (clean.startsWith('blob:') || clean.startsWith('data:')) {
-      return clean;
-    }
-    clean = clean.replace(/\\\//g, '/');
+  try {
+    if (!isEdit.value) {
+      const fd = buildCreateFormData();
+      const created = await repo.CreateHostel?.(fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
 
-    if (clean.startsWith('http://') || clean.startsWith('https://')) {
-      return clean;
-    }
-    if (clean.startsWith('/')) {
-      return clean;
-    }
-    return '/' + clean.replace(/^\/+/, '');
-  }
-
-  function openPreview(src) {
-    const base = src || form.value.previewUrl || form.value.picture;
-    const normalized = normalizePicture(base);
-    previewSrc.value = normalized;
-    if (previewSrc.value) {
-      previewOpen.value = true;
-    }
-  }
-
-  /* RESOURCES DROPDOWN */
-  const resources = computed(() => repo.resourcecode || []);
-
-  function onResourceCodeChange(code) {
-    const found = resources.value.find((r) => r.code_number === code);
-    form.value.resource_phone = found?.phone_number ?? '';
-    form.value.resource_id = found?.id ?? null;
-  }
-
-  /* MAP FROM API */
-  function mapFromApi(payload = {}) {
-    const x = payload.data ?? payload;
-    const b = blankForm();
-
-    b.id = x.id ?? null;
-
-    const fullUrl = x.picture ?? null;
-    b.picture = fullUrl;
-    b.previewUrl = fullUrl;
-
-    b.hostel_name = x.hostel_name ?? '';
-    b.hostel_type = x.hostel_type ?? '';
-    b.people_quantity = x.people_quantity ?? '';
-    b.people_type = x.people_type ?? '';
-
-    b.responsible_name = x.responsible_name ?? '';
-    b.responsible_f_name = x.responsible_f_name ?? '';
-    b.responsible_position = x.responsible_position ?? '';
-    b.responsible_phone = x.responsible_phone ?? '';
-
-    b.province = x.province ?? '';
-    b.zone = x.zone ?? '';
-    b.district = x.district ?? '';
-    b.village = x.village ?? '';
-    b.specific_place = x.specific_place ?? '';
-    b.coordenates = x.coordenates ?? '';
-
-    b.Province_addr = x.Province_addr ?? '';
-    b.note = x.note ?? '';
-
-    b.resource_code = x.resource_code ?? x.resource?.code_number ?? '';
-    b.resource_phone = x.resource_phone ?? x.resource?.phone_number ?? '';
-    b.resource_id = x.resource_id ?? x.resource?.id ?? null;
-
-    return b;
-  }
-
-  async function loadRecord() {
-    const id = route.params.id;
-    if (!id) {
-      form.value = blankForm();
-      pictureFile.value = null;
-      pictureChanged.value = false;
-      return;
-    }
-    try {
-      await repo.FetchHostelData?.(id);
-      const single = Array.isArray(repo.Hostel) ? repo.Hostel[0] : repo.Hostel || {};
-      if (!single) return;
-
-      const mapped = mapFromApi(single);
-      form.value = { ...mapped };
-      pictureFile.value = null;
-      pictureChanged.value = false;
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در دریافت معلومات خواب گاه'));
-    }
-  }
-
-  /* FORM DATA HELPERS */
-  function toFormData(obj) {
-    const fd = new FormData();
-    Object.entries(obj).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
-
-  function buildCreateFormData() {
-    const payload = { ...form.value };
-
-    delete payload.previewUrl;
-
-    const fd = toFormData(payload);
-
-    if (pictureFile.value) {
-      fd.append('picture', pictureFile.value);
-    }
-
-    return fd;
-  }
-
-  function buildUpdateFormData() {
-    const payload = { ...form.value };
-
-    delete payload.previewUrl;
-    delete payload.picture;
-
-    const fd = toFormData(payload);
-
-    if (pictureChanged.value && pictureFile.value) {
-      fd.append('picture', pictureFile.value);
-    }
-
-    return fd;
-  }
-
-  /* SCROLL TO FIRST INVALID */
-  function scrollToFirstInvalid() {
-    const first =
-      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-      document.querySelector('.v-messages__message');
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input && typeof input.focus === 'function') input.focus();
-    }
-  }
-
-  /* SUBMIT */
-  async function onSubmit() {
-    clearBackendErrors();
-
-    const f = formRef.value;
-    if (!f) return;
-
-    const { valid } = await f.validate();
-    if (!valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-
-    if (!form.value.hostel_name?.trim()) {
-      showErrorMessage(t('نام خواب گاه الزامی است'));
-      return;
-    }
-
-    saving.value = true;
-
-    try {
-      if (!isEdit.value) {
-        const fd = buildCreateFormData();
-        const created = await repo.CreateHostel?.(fd).catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
-
-        if (created?.id) {
-          showSuccessMessage(t('موفقانه ثبت شد'));
-          router.push('/app/hostels').catch(() => {});
-        } else {
-          showErrorMessage(t('ثبت معلومات ناکام شد'));
-        }
+      if (created?.id) {
+        showSuccessMessage(t('موفقانه ثبت شد'));
+        router.push('/app/hostels').catch(() => {});
       } else {
-        const fd = buildUpdateFormData();
-        const updated = await repo.UpdateHostel?.(form.value.id, fd).catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
-
-        if (updated?.id) {
-          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-          router.push('/app/hostels').catch(() => {});
-        } else {
-          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-        }
+        showErrorMessage(t('ثبت معلومات ناکام شد'));
       }
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در ذخیره اطلاعات'));
-    } finally {
-      saving.value = false;
-    }
-  }
-
-  /* RESET & NAVIGATION */
-  function resetForm() {
-    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(form.value.previewUrl);
-    }
-
-    if (isEdit.value) {
-      loadRecord();
     } else {
-      form.value = blankForm();
-      pictureFile.value = null;
-      pictureChanged.value = false;
-    }
+      const fd = buildUpdateFormData();
+      const updated = await repo.UpdateHostel?.(form.value.id, fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
 
-    clearBackendErrors();
-    formRef.value?.resetValidation?.();
-    showSuccessMessage(t('فرم پاک شد'));
+      if (updated?.id) {
+        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+        router.push('/app/hostels').catch(() => {});
+      } else {
+        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در ذخیره اطلاعات'));
+  } finally {
+    saving.value = false;
+  }
+}
+
+/* RESET & NAVIGATION */
+function resetForm() {
+  if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(form.value.previewUrl);
   }
 
-  function goBack() {
-    router.push('/app/hostels');
+  if (isEdit.value) {
+    loadRecord();
+  } else {
+    form.value = blankForm();
+    pictureFile.value = null;
+    pictureChanged.value = false;
   }
 
-  /* INIT */
-  onMounted(async () => {
-    await repo.GetResourceCode?.();
-    if (isEdit.value) {
-      await loadRecord();
-    }
-  });
+  clearBackendErrors();
+  formRef.value?.resetValidation?.();
+  showSuccessMessage(t('فرم پاک شد'));
+}
+
+function goBack() {
+  router.push('/app/hostels');
+}
+
+/* INIT */
+onMounted(async () => {
+  await repo.GetResourceCode?.();
+  if (isEdit.value) {
+    await loadRecord();
+  }
+});
 </script>
 
 <style scoped>
-  .hidden-file {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
-  }
+/* main card */
+.simple-form-card {
+  padding: 16px 16px 20px;
+  border-radius: 12px;
+}
 
-  /* main card */
-  .simple-form-card {
-    padding: 16px 16px 20px;
-    border-radius: 12px;
-  }
+/* sections */
+.section-header {
+  display: flex;
+  align-items: center;
+  padding-block: 2px;
+}
+.section-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
 
-  /* sections */
-  .section-header {
-    display: flex;
-    align-items: center;
-    padding-block: 2px;
-  }
-  .section-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    opacity: 0.8;
-  }
+/* slightly tighter fields */
+:deep(.v-field--variant-outlined .v-field__input) {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  min-height: 36px;
+}
 
-  /* picture */
-  .pic-wrap-simple {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .cursor-pointer {
-    cursor: pointer;
-  }
-  .primary-avatar {
-    border: 2px solid rgba(33, 150, 243, 0.25);
-  }
-
-  /* small gap utility */
-  .gap-2 {
-    gap: 8px;
-  }
-
-  /* slightly tighter fields */
-  :deep(.v-field--variant-outlined .v-field__input) {
-    padding-top: 4px;
-    padding-bottom: 4px;
-    min-height: 36px;
-  }
-
-  /* prettier buttons */
-  .soft-btn {
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  }
-
-  .primary-action-btn {
-    padding-inline: 18px;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
-  }
-
-  .secondary-action-btn {
-    padding-inline: 14px;
-    font-weight: 500;
-  }
+/* buttons */
+.primary-action-btn {
+  padding-inline: 18px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+}
+.secondary-action-btn {
+  padding-inline: 14px;
+  font-weight: 500;
+}
+.ga-2 {
+  gap: 8px;
+}
 </style>

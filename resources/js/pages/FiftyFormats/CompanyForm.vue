@@ -1,3 +1,4 @@
+<!-- src/views/companies/CompaniesForm.vue -->
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
@@ -38,6 +39,7 @@
                   {{ isEdit ? t('ویرایش ریکارډ شرکت') : t('ایجاد ریکارډ شرکت') }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -326,16 +328,6 @@
               />
             </v-col>
 
-            <!-- hidden resource_id (still in payload) -->
-            <v-col cols="12" md="4" v-if="false">
-              <v-text-field
-                v-model="form.resource_id"
-                :label="t('Resource ID')"
-                variant="outlined"
-                density="compact"
-              />
-            </v-col>
-
             <!-- Note -->
             <v-col cols="12" md="8">
               <v-text-field
@@ -349,9 +341,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (✅ bottom + PDF/Word) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -362,6 +354,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ شرکت') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -371,31 +364,30 @@
               >
                 {{ t('پاک کردن فرم') }}
               </v-btn>
+
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
+              </v-btn>
             </v-col>
           </v-row>
         </v-card>
       </v-form>
-
-      <!-- IMAGE PREVIEW DIALOG -->
-      <v-dialog v-model="previewOpen" max-width="520">
-        <v-card>
-          <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
-          <v-card-text class="d-flex justify-center">
-            <v-img
-              :src="normalizePicture(previewSrc)"
-              :alt="t('پیش نمایش')"
-              max-width="480"
-              max-height="420"
-              cover
-            />
-          </v-card-text>
-          <v-card-actions class="justify-end">
-            <v-btn color="primary" variant="flat" @click="previewOpen = false">
-              {{ t('بستن') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
 
       <!-- Error Snackbar -->
       <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -473,10 +465,6 @@
   const blankForm = () => ({
     id: null,
 
-    // media
-    picture: null,
-    previewUrl: null,
-
     // identity
     com_name: '',
     com_type: '',
@@ -526,56 +514,6 @@
     phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
   };
 
-  /* PICTURE */
-  const pictureInput = ref(null);
-  const pictureFile = ref(null);
-  const pictureChanged = ref(false);
-
-  const previewOpen = ref(false);
-  const previewSrc = ref(null);
-
-  function triggerPicture() {
-    pictureInput.value?.click();
-  }
-
-  function onPickPicture(e) {
-    const file = e.target.files?.[0] ?? null;
-    pictureFile.value = file;
-    pictureChanged.value = !!file;
-
-    if (file) {
-      if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(form.value.previewUrl);
-      }
-      form.value.previewUrl = URL.createObjectURL(file);
-    } else {
-      form.value.previewUrl = form.value.picture || null;
-    }
-    if (e.target) e.target.value = '';
-  }
-
-  function normalizePicture(src) {
-    if (!src) return null;
-    let clean = String(src).trim();
-
-    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
-    clean = clean.replace(/\\\//g, '/');
-
-    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-    if (clean.startsWith('/')) return clean;
-
-    return '/' + clean.replace(/^\/+/, '');
-  }
-
-  function openPreview(src) {
-    const base = src || form.value.previewUrl || form.value.picture;
-    const normalized = normalizePicture(base);
-    previewSrc.value = normalized;
-    if (previewSrc.value) {
-      previewOpen.value = true;
-    }
-  }
-
   /* RESOURCES DROPDOWN */
   const resources = computed(() => repo.resourcecode || []);
 
@@ -591,10 +529,6 @@
     const b = blankForm();
 
     b.id = x.id ?? null;
-
-    const fullUrl = x.picture ?? null;
-    b.picture = fullUrl;
-    b.previewUrl = fullUrl;
 
     b.com_name = x.com_name ?? '';
     b.com_type = x.com_type ?? '';
@@ -636,8 +570,6 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
-      pictureFile.value = null;
-      pictureChanged.value = false;
       return;
     }
     try {
@@ -647,8 +579,6 @@
 
       const mapped = mapFromApi(single);
       form.value = { ...mapped };
-      pictureFile.value = null;
-      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات شرکت'));
@@ -667,30 +597,13 @@
 
   function buildCreateFormData() {
     const payload = { ...form.value };
-
-    delete payload.previewUrl;
-
     const fd = toFormData(payload);
-
-    if (pictureFile.value) {
-      fd.append('picture', pictureFile.value);
-    }
-
     return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-
-    delete payload.previewUrl;
-    delete payload.picture;
-
     const fd = toFormData(payload);
-
-    if (pictureChanged.value && pictureFile.value) {
-      fd.append('picture', pictureFile.value);
-    }
-
     return fd;
   }
 
@@ -704,6 +617,193 @@
       const input = first.querySelector('input, textarea, .v-field__input');
       if (input && typeof input.focus === 'function') input.focus();
     }
+  }
+
+  /* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
+========================= */
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, (m) => {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return map[m];
+    });
+  }
+
+  function safeFileName(s) {
+    return String(s ?? '')
+      .replace(/[\\/:*?"<>|]/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function v(x) {
+    return x && String(x).trim() ? x : '—';
+  }
+
+  function exportRows() {
+    return [
+      { label: t('نام شرکت'), value: v(form.value.com_name) },
+      { label: t('نوع شرکت'), value: v(form.value.com_type) },
+      { label: t('نوع محصول/خدمت'), value: v(form.value.product_type) },
+      { label: t('سطح شرکت'), value: v(form.value.com_level) },
+      { label: t('مالک اصلی'), value: v(form.value.main_owner) },
+
+      { label: t('مسوول'), value: v(form.value.responsible_name) },
+      { label: t('نام پدر مسوول'), value: v(form.value.responsible_f_name) },
+      { label: t('وظیفه/موقف'), value: v(form.value.responsible_position) },
+      { label: t('شماره تماس مسوول'), value: v(form.value.responsible_phone) },
+
+      { label: t('ولایت'), value: v(form.value.com_province) },
+      { label: t('زون'), value: v(form.value.com_zone) },
+      { label: t('ولسوالی'), value: v(form.value.com_district) },
+      { label: t('قریه'), value: v(form.value.com_village) },
+      { label: t('موقعیت مشخص'), value: v(form.value.com_specific_place) },
+      { label: t('مختصات'), value: v(form.value.com_coordinates) },
+
+      { label: t('کارمندان داخلی مرد'), value: v(form.value.male_employee_quantity_inner) },
+      { label: t('کارمندان داخلی زن'), value: v(form.value.female_employee_quantity_inner) },
+      { label: t('کارمندان بیرونی مرد'), value: v(form.value.male_employee_quantity_out) },
+      { label: t('کارمندان بیرونی زن'), value: v(form.value.female_employee_quantity_out) },
+
+      { label: t('تعداد محافظ'), value: v(form.value.guard_quantity) },
+      { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+
+      { label: t('کود منبع'), value: v(form.value.resource_code) },
+      { label: t('شماره منبع'), value: v(form.value.resource_phone_number) },
+
+      { label: t('ملاحظات'), value: v(form.value.note) },
+    ];
+  }
+
+  function buildSimpleTableHtml() {
+    const rows = exportRows()
+      .map(
+        (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+      )
+      .join('');
+
+    return `
+    <h3 class="title">فورم شرکت</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+  }
+
+  function buildDocumentHtml() {
+    const bodyHtml = buildSimpleTableHtml();
+    const safeId = esc(form.value.id || '');
+    const safeName = esc(form.value.com_name || '');
+
+    return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>company_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      direction: rtl;
+    }
+
+    .title {
+      text-align: center;
+      margin: 22px 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .simple-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0 auto;
+    }
+
+    .simple-table th,
+    .simple-table td {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      vertical-align: top;
+      font-size: 12px;
+    }
+
+    .simple-table th {
+      width: 35%;
+      background: #f5f5f5;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .simple-table td {
+      width: 65%;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .sig {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+  }
+
+  function downloadPdf() {
+    const html = buildDocumentHtml();
+    const w = window.open('', '_blank', 'width=1024,height=768');
+    if (!w) return;
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+
+    w.onload = () => {
+      w.focus();
+      w.print();
+    };
+  }
+
+  function downloadWord() {
+    const html = buildDocumentHtml();
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `شرکت_${safeFileName(form.value.com_name || 'جدید')}_${Date.now()}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+    showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
   }
 
   /* SUBMIT */
@@ -766,16 +866,10 @@
 
   /* RESET & NAVIGATION */
   function resetForm() {
-    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(form.value.previewUrl);
-    }
-
     if (isEdit.value) {
       loadRecord();
     } else {
       form.value = blankForm();
-      pictureFile.value = null;
-      pictureChanged.value = false;
     }
 
     clearBackendErrors();
@@ -797,14 +891,6 @@
 </script>
 
 <style scoped>
-  .hidden-file {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
-  }
-
   /* main card */
   .simple-form-card {
     padding: 16px 16px 20px;
@@ -823,25 +909,12 @@
     opacity: 0.8;
   }
 
-  /* picture */
-  .pic-wrap-simple {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .cursor-pointer {
-    cursor: pointer;
-  }
-  .primary-avatar {
-    border: 2px solid rgba(33, 150, 243, 0.25);
-  }
-
   /* small gap utility */
   .gap-2 {
     gap: 8px;
   }
 
-  /* tighter fields like Heist */
+  /* tighter fields */
   :deep(.v-field--variant-outlined .v-field__input) {
     padding-top: 4px;
     padding-bottom: 4px;

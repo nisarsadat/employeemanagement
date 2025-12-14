@@ -38,6 +38,7 @@
               {{ isEdit ? t('ویرایش معلومات وکیل') : t('ایجاد ریکارډ وکیل') }}
             </span>
           </div>
+
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -50,6 +51,7 @@
                 :error-messages="getErrorMessages('name')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.f_name"
@@ -60,6 +62,7 @@
                 :error-messages="getErrorMessages('f_name')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.grand_father_name"
@@ -76,6 +79,7 @@
           <div class="section-header mt-4">
             <span class="section-title">{{ t('آدرس اصلی') }}</span>
           </div>
+
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -87,6 +91,7 @@
                 :error-messages="getErrorMessages('main_province')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.main_district"
@@ -97,6 +102,7 @@
                 :error-messages="getErrorMessages('main_district')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.main_village"
@@ -113,6 +119,7 @@
           <div class="section-header mt-4">
             <span class="section-title">{{ t('آدرس فعلی') }}</span>
           </div>
+
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -124,6 +131,7 @@
                 :error-messages="getErrorMessages('now_province')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_zone"
@@ -134,6 +142,7 @@
                 :error-messages="getErrorMessages('now_zone')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_district"
@@ -155,6 +164,7 @@
                 :error-messages="getErrorMessages('now_village')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_specific_place"
@@ -165,6 +175,7 @@
                 :error-messages="getErrorMessages('now_specific_place')"
               />
             </v-col>
+
             <v-col cols="12" md="2">
               <v-text-field
                 v-model="form.now_street_number"
@@ -175,6 +186,7 @@
                 :error-messages="getErrorMessages('now_street_number')"
               />
             </v-col>
+
             <v-col cols="12" md="2">
               <v-text-field
                 v-model="form.now_home_number"
@@ -185,6 +197,7 @@
                 :error-messages="getErrorMessages('now_home_number')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.Guzar"
@@ -195,6 +208,7 @@
                 :error-messages="getErrorMessages('Guzar')"
               />
             </v-col>
+
             <v-col cols="12" md="9">
               <v-text-field
                 v-model="form.place_tafseel"
@@ -211,6 +225,7 @@
           <div class="section-header mt-4">
             <span class="section-title">{{ t('وظایف و خانه‌ها') }}</span>
           </div>
+
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -222,6 +237,7 @@
                 :error-messages="getErrorMessages('old_job')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_job"
@@ -232,6 +248,7 @@
                 :error-messages="getErrorMessages('now_job')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model.number="form.home_quantity"
@@ -249,6 +266,7 @@
           <div class="section-header mt-4">
             <span class="section-title">{{ t('تماس و سابقه') }}</span>
           </div>
+
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -256,10 +274,15 @@
                 :label="t('شماره تماس')"
                 variant="outlined"
                 density="compact"
+                :rules="[rules.phone10]"
                 :error="hasError('phone_number')"
                 :error-messages="getErrorMessages('phone_number')"
+                inputmode="numeric"
+                maxlength="10"
+                counter="10"
               />
             </v-col>
+
             <v-col cols="12" md="8">
               <v-text-field
                 v-model="form.history_form"
@@ -276,6 +299,7 @@
           <div class="section-header mt-4">
             <span class="section-title">{{ t('مختصات و ولایت مربوطه') }}</span>
           </div>
+
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
@@ -287,6 +311,7 @@
                 :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
+
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.Province_addr"
@@ -304,6 +329,7 @@
           <div class="section-header mb-2">
             <span class="section-title">{{ t('منبع و یادداشت') }}</span>
           </div>
+
           <v-row>
             <v-col cols="12" md="4">
               <v-autocomplete
@@ -320,6 +346,7 @@
                 :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_phone"
@@ -329,6 +356,7 @@
                 readonly
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_id"
@@ -362,12 +390,11 @@
                 class="text-none rounded-pill primary-action-btn"
                 :loading="saving"
                 type="submit"
-                :prepend-icon="
-                  isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'
-                "
+                :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -379,6 +406,38 @@
               </v-btn>
             </v-col>
           </v-row>
+
+          <!-- ✅ SIMPLE EXPORT BUTTONS (BOTTOM) -->
+          <v-divider class="my-4" />
+          <v-card-actions class="justify-end ga-2">
+            <v-tooltip :text="t('PDF ساده (بدون عکس)')" location="top">
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  variant="tonal"
+                  prepend-icon="mdi-file-pdf-box"
+                  class="text-none rounded-pill"
+                  @click="downloadPdf"
+                >
+                  {{ t('PDF ساده') }}
+                </v-btn>
+              </template>
+            </v-tooltip>
+
+            <v-tooltip :text="t('Word ساده (بدون عکس)')" location="top">
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  variant="tonal"
+                  prepend-icon="mdi-file-word-box"
+                  class="text-none rounded-pill"
+                  @click="downloadWord"
+                >
+                  {{ t('Word ساده') }}
+                </v-btn>
+              </template>
+            </v-tooltip>
+          </v-card-actions>
         </v-card>
       </v-form>
 
@@ -494,9 +553,16 @@ const blankForm = () => ({
 
 const form = ref(blankForm());
 
-/* RULES */
+/* ✅ RULES (only validation change: phone exactly 10 digits) */
 const rules = {
   required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
+  phone10: (v) => {
+    const s = String(v ?? '').trim();
+    if (!s) return true; // not required; keep your logic
+    if (!/^\d+$/.test(s)) return t('فقط اعداد');
+    if (s.length !== 10) return t('شماره تماس باید دقیقاً ۱۰ رقم باشد');
+    return true;
+  },
 };
 
 /* RESOURCES DROPDOWN */
@@ -673,6 +739,130 @@ function resetForm() {
 
 function goBack() {
   router.push('/app/wakilanos');
+}
+
+/* ✅ SIMPLE EXPORT (works for blank too) */
+function normalizeValue(v) {
+  if (v === null || v === undefined) return '';
+  return String(v);
+}
+
+function buildSimpleRows() {
+  const rows = [
+    [t('نام'), form.value.name],
+    [t('نام پدر'), form.value.f_name],
+    [t('نام پدرکلان'), form.value.grand_father_name],
+
+    [t('ولایت اصلی'), form.value.main_province],
+    [t('ولسوالی اصلی'), form.value.main_district],
+    [t('قریه اصلی'), form.value.main_village],
+
+    [t('ولایت فعلی'), form.value.now_province],
+    [t('زون فعلی'), form.value.now_zone],
+    [t('ولسوالی فعلی'), form.value.now_district],
+    [t('قریه فعلی'), form.value.now_village],
+    [t('موقعیت مشخص فعلی'), form.value.now_specific_place],
+    [t('شماره سرک'), form.value.now_street_number],
+    [t('شماره خانه'), form.value.now_home_number],
+    [t('گذر'), form.value.Guzar],
+    [t('تفصیل موقعیت'), form.value.place_tafseel],
+
+    [t('وظیفه قبلی'), form.value.old_job],
+    [t('وظیفه فعلی'), form.value.now_job],
+    [t('تعداد خانه'), form.value.home_quantity],
+
+    [t('شماره تماس'), form.value.phone_number],
+    [t('سابقه/فرم'), form.value.history_form],
+
+    [t('مختصات'), form.value.coordinates],
+    [t('ولایت مربوطه'), form.value.Province_addr],
+
+    [t('کود منبع'), form.value.resource_code],
+    [t('شماره منبع'), form.value.resource_phone],
+    [t('Resource ID'), form.value.resource_id],
+
+    [t('یادداشت'), form.value.note],
+  ];
+
+  return rows.map(([label, value]) => [label, normalizeValue(value).trim()]);
+}
+
+function buildSimpleExportHtml(docTitle) {
+  const rows = buildSimpleRows();
+
+  const tr = rows
+    .map(
+      ([k, v]) => `
+        <tr>
+          <td class="k">${k}</td>
+          <td class="v">${v || '-'}</td>
+        </tr>
+      `
+    )
+    .join('');
+
+  return `
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>${docTitle}</title>
+  <style>
+    body { font-family: Arial, Tahoma, sans-serif; padding: 24px; color: #111; }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    .meta { margin-bottom: 16px; font-size: 12px; color: #444; }
+    table { width: 100%; border-collapse: collapse; }
+    td { border: 1px solid #ddd; padding: 8px 10px; vertical-align: top; }
+    td.k { width: 30%; background: #f7f7f7; font-weight: 700; }
+    td.v { width: 70%; }
+    .sign { margin-top: 28px; display: flex; justify-content: space-between; gap: 16px; }
+    .sign .box { width: 33%; border-top: 1px solid #999; padding-top: 8px; font-size: 12px; color: #333; text-align: center; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <h2>${docTitle}</h2>
+  <div class="meta">${t('تاریخ')}: ${new Date().toLocaleDateString('fa-AF')}</div>
+  <table>
+    <tbody>
+      ${tr}
+    </tbody>
+  </table>
+
+  <div class="sign">
+    <div class="box">${t('امضاء')}</div>
+    <div class="box">${t('مهر')}</div>
+    <div class="box">${t('تایید')}</div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+function downloadPdf() {
+  const html = buildSimpleExportHtml(t('فورم وکیل'));
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  w.print();
+}
+
+function downloadWord() {
+  const html = buildSimpleExportHtml(t('فورم وکیل'));
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'wakilano.doc';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
 }
 
 /* INIT */

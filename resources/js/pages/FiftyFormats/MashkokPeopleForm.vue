@@ -3,11 +3,7 @@
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
     <AppBar
-      :title="
-        isEdit
-          ? t('ویرایش فرد مشکوک')
-          : t('ایجاد فرد مشکوک جدید')
-      "
+      :title="isEdit ? t('ویرایش فرد مشکوک') : t('ایجاد فرد مشکوک جدید')"
       :subtitle="
         isEdit
           ? t('ویرایش جزئیات یک ریکارډ فرد مشکوک موجود')
@@ -52,6 +48,7 @@
                     accept="image/*"
                     @change="onPickPicture"
                   />
+
                   <v-avatar
                     size="88"
                     class="mb-2 cursor-pointer primary-avatar"
@@ -100,13 +97,10 @@
               <!-- Identity -->
               <div class="section-header">
                 <span class="section-title">
-                  {{
-                    isEdit
-                      ? t('ویرایش ریکارډ فرد مشکوک')
-                      : t('ایجاد ریکارډ فرد مشکوک')
-                  }}
+                  {{ isEdit ? t('ویرایش ریکارډ فرد مشکوک') : t('ایجاد ریکارډ فرد مشکوک') }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -137,6 +131,7 @@
                     :label="t('شماره تماس')"
                     variant="outlined"
                     density="compact"
+                    :rules="[rules.phoneMinMax]"
                     :error="hasError('phone_number')"
                     :error-messages="getErrorMessages('phone_number')"
                   />
@@ -147,6 +142,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس اصلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -158,6 +154,7 @@
                     :error-messages="getErrorMessages('main_province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.main_district"
@@ -168,6 +165,7 @@
                     :error-messages="getErrorMessages('main_district')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.main_village"
@@ -184,6 +182,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس فعلی') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -195,6 +194,7 @@
                     :error-messages="getErrorMessages('now_province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_zone"
@@ -205,6 +205,7 @@
                     :error-messages="getErrorMessages('now_zone')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_districts"
@@ -215,6 +216,7 @@
                     :error-messages="getErrorMessages('now_districts')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_village"
@@ -236,6 +238,7 @@
                     :error-messages="getErrorMessages('now_specific_place')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_street_number"
@@ -246,6 +249,7 @@
                     :error-messages="getErrorMessages('now_street_number')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_home_number"
@@ -266,8 +270,8 @@
           <div class="section-header mb-2">
             <span class="section-title">{{ t('جزئیات اضافی و منبع') }}</span>
           </div>
+
           <v-row>
-            <!-- Jobs / suspicion -->
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.old_job"
@@ -278,6 +282,7 @@
                 :error-messages="getErrorMessages('old_job')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.now_job"
@@ -288,6 +293,7 @@
                 :error-messages="getErrorMessages('now_job')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.mushkokyat_points"
@@ -299,7 +305,6 @@
               />
             </v-col>
 
-            <!-- Province addr + coordinates -->
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.Province_addr"
@@ -310,6 +315,7 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.coordinates"
@@ -337,6 +343,7 @@
                 :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_phone"
@@ -347,7 +354,6 @@
               />
             </v-col>
 
-            <!-- Note -->
             <v-col cols="12" md="8">
               <v-text-field
                 v-model="form.note"
@@ -360,27 +366,20 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (BOTTOM) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
                 class="text-none rounded-pill primary-action-btn"
                 :loading="saving"
                 type="submit"
-                :prepend-icon="
-                  isEdit
-                    ? 'mdi-content-save-edit-outline'
-                    : 'mdi-plus-circle-outline'
-                "
+                :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{
-                  isEdit
-                    ? t('ذخیره تغییرات')
-                    : t('ایجاد ریکارډ فرد مشکوک')
-                }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ فرد مشکوک') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -389,6 +388,27 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -445,13 +465,7 @@
 </template>
 
 <script setup>
-import {
-  ref,
-  computed,
-  onMounted,
-  watch,
-  nextTick,
-} from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -549,6 +563,14 @@ const form = ref(blankForm());
 /* RULES */
 const rules = {
   required: (v) => !!v || t('این فیلد الزامی است'),
+  phoneMinMax: (v) => {
+    if (!v) return true;
+    const s = String(v).replace(/\s+/g, '');
+    if (!/^\d+$/.test(s)) return t('شماره تیلیفون باید فقط عدد باشد');
+    if (s.length < 10) return t('شماره تیلیفون باید حداقل ۱۰ رقم باشد');
+    if (s.length > 13) return t('شماره تیلیفون باید حداکثر ۱۳ رقم باشد');
+    return true;
+  },
 };
 
 /* PICTURE */
@@ -569,7 +591,7 @@ function onPickPicture(e) {
   pictureChanged.value = !!file;
 
   if (file) {
-    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+    if (form.value.previewUrl && String(form.value.previewUrl).startsWith('blob:')) {
       URL.revokeObjectURL(form.value.previewUrl);
     }
     form.value.previewUrl = URL.createObjectURL(file);
@@ -583,17 +605,13 @@ function normalizePicture(src) {
   if (!src) return null;
   let clean = String(src).trim();
 
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) {
-    return clean;
-  }
+  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
   clean = clean.replace(/\\\//g, '/');
 
-  if (clean.startsWith('http://') || clean.startsWith('https://')) {
-    return clean;
-  }
-  if (clean.startsWith('/')) {
-    return clean;
-  }
+  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+  if (clean.startsWith('/')) return clean;
+
   return '/' + clean.replace(/^\/+/, '');
 }
 
@@ -601,9 +619,7 @@ function openPreview(src) {
   const base = src || form.value.previewUrl || form.value.picture;
   const normalized = normalizePicture(base);
   previewSrc.value = normalized;
-  if (previewSrc.value) {
-    previewOpen.value = true;
-  }
+  if (previewSrc.value) previewOpen.value = true;
 }
 
 /* RESOURCES DROPDOWN */
@@ -611,6 +627,7 @@ const resources = computed(() => repo.resourcecode || []);
 
 function onResourceCodeChange(code) {
   const found = resources.value.find((r) => r.code_number === code);
+  form.value.resource_code = code || '';
   form.value.resource_phone = found?.phone_number ?? '';
   form.value.resource_id = found?.id ?? null;
 }
@@ -633,6 +650,7 @@ function mapFromApi(payload = {}) {
   b.main_province = x.main_province ?? '';
   b.main_district = x.main_district ?? '';
   b.main_village = x.main_village ?? '';
+
   b.now_province = x.now_province ?? '';
   b.now_zone = x.now_zone ?? '';
   b.now_districts = x.now_districts ?? '';
@@ -649,8 +667,7 @@ function mapFromApi(payload = {}) {
 
   const r = x.resource || {};
   b.resource_code = x.resource_code ?? r.code_number ?? '';
-  b.resource_phone =
-    x.resource_phone ?? x.resource_phone_number ?? r.phone_number ?? '';
+  b.resource_phone = x.resource_phone ?? x.resource_phone_number ?? r.phone_number ?? '';
   b.resource_id = x.resource_id ?? r.id ?? null;
 
   b.note = x.note ?? '';
@@ -673,8 +690,7 @@ async function loadRecord() {
       : repo.MashkokPeople || {};
     if (!single) return;
 
-    const mapped = mapFromApi(single);
-    form.value = { ...mapped };
+    form.value = { ...mapFromApi(single) };
     pictureFile.value = null;
     pictureChanged.value = false;
   } catch (e) {
@@ -695,30 +711,20 @@ function toFormData(obj) {
 
 function buildCreateFormData() {
   const payload = { ...form.value };
-
   delete payload.previewUrl;
 
   const fd = toFormData(payload);
-
-  if (pictureFile.value) {
-    fd.append('picture', pictureFile.value);
-  }
-
+  if (pictureFile.value) fd.append('picture', pictureFile.value);
   return fd;
 }
 
 function buildUpdateFormData() {
   const payload = { ...form.value };
-
   delete payload.previewUrl;
   delete payload.picture;
 
   const fd = toFormData(payload);
-
-  if (pictureChanged.value && pictureFile.value) {
-    fd.append('picture', pictureFile.value);
-  }
-
+  if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
   return fd;
 }
 
@@ -732,6 +738,145 @@ function scrollToFirstInvalid() {
     const input = first.querySelector('input, textarea, .v-field__input');
     if (input && typeof input.focus === 'function') input.focus();
   }
+}
+
+/* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+function exportRows() {
+  return [
+    { label: t('نام'), value: v(form.value.name) },
+    { label: t('نام پدر'), value: v(form.value.father_name) },
+    { label: t('شماره تماس'), value: v(form.value.phone_number) },
+
+    { label: t('ولایت اصلی'), value: v(form.value.main_province) },
+    { label: t('ولسوالی اصلی'), value: v(form.value.main_district) },
+    { label: t('قریه/ناحیه اصلی'), value: v(form.value.main_village) },
+
+    { label: t('ولایت فعلی'), value: v(form.value.now_province) },
+    { label: t('زون فعلی'), value: v(form.value.now_zone) },
+    { label: t('ولسوالی‌های فعلی'), value: v(form.value.now_districts) },
+    { label: t('قریه/ناحیه فعلی'), value: v(form.value.now_village) },
+    { label: t('موقعیت مشخص فعلی'), value: v(form.value.now_specific_place) },
+    { label: t('شماره سرک فعلی'), value: v(form.value.now_street_number) },
+    { label: t('شماره خانه فعلی'), value: v(form.value.now_home_number) },
+
+    { label: t('وظیفه قبلی'), value: v(form.value.old_job) },
+    { label: t('وظیفه فعلی'), value: v(form.value.now_job) },
+    { label: t('نقاط مشکوکیت'), value: v(form.value.mushkokyat_points) },
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+    { label: t('مختصات'), value: v(form.value.coordinates) },
+
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+
+    { label: t('ملاحظات'), value: v(form.value.note) },
+  ];
+}
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم فرد مشکوک</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>mashkok_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+    html, body {
+      margin: 0; padding: 0; background: #fff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px; direction: rtl;
+    }
+    .title { text-align: center; margin: 22px 0 12px; font-size: 16px; font-weight: 700; }
+    .simple-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+    .simple-table th, .simple-table td {
+      border: 1px solid #000; padding: 6px 8px; vertical-align: top; font-size: 12px;
+    }
+    .simple-table th { width: 35%; background: #f5f5f5; text-align: right; font-weight: 700; }
+    .simple-table td { width: 65%; text-align: right; word-break: break-word; }
+    .sig { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
+  };
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `فرد-مشکوک_${safeFileName(form.value.name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
 }
 
 /* SUBMIT */
@@ -772,12 +917,10 @@ async function onSubmit() {
       }
     } else {
       const fd = buildUpdateFormData();
-      const updated = await repo.UpdateMashkokPeople?.(form.value.id, fd).catch(
-        (e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        }
-      );
+      const updated = await repo.UpdateMashkokPeople?.(form.value.id, fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
 
       if (updated?.id) {
         showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
@@ -796,7 +939,7 @@ async function onSubmit() {
 
 /* RESET & NAVIGATION */
 function resetForm() {
-  if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+  if (form.value.previewUrl && String(form.value.previewUrl).startsWith('blob:')) {
     URL.revokeObjectURL(form.value.previewUrl);
   }
 
@@ -835,13 +978,11 @@ onMounted(async () => {
   pointer-events: none;
 }
 
-/* main card */
 .simple-form-card {
   padding: 16px 16px 20px;
   border-radius: 12px;
 }
 
-/* sections */
 .section-header {
   display: flex;
   align-items: center;
@@ -853,7 +994,6 @@ onMounted(async () => {
   opacity: 0.8;
 }
 
-/* picture */
 .pic-wrap-simple {
   display: flex;
   flex-direction: column;
@@ -866,19 +1006,12 @@ onMounted(async () => {
   border: 2px solid rgba(33, 150, 243, 0.25);
 }
 
-/* small gap utility */
-.gap-2 {
-  gap: 8px;
-}
-
-/* slightly tighter fields */
 :deep(.v-field--variant-outlined .v-field__input) {
   padding-top: 4px;
   padding-bottom: 4px;
   min-height: 36px;
 }
 
-/* prettier buttons */
 .soft-btn {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
@@ -888,9 +1021,14 @@ onMounted(async () => {
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
 }
-
 .secondary-action-btn {
   padding-inline: 14px;
   font-weight: 500;
+}
+.ga-2 {
+  gap: 8px;
+}
+.gap-2 {
+  gap: 8px;
 }
 </style>

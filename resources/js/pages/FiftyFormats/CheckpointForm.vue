@@ -35,11 +35,7 @@
           <!-- Identity + base info -->
           <div class="section-header">
             <span class="section-title">
-              {{
-                isEdit
-                  ? t('ویرایش ریکارډ چک‌پوینت')
-                  : t('ایجاد ریکارډ چک‌پوینت')
-              }}
+              {{ isEdit ? t('ویرایش ریکارډ چک‌پوینت') : t('ایجاد ریکارډ چک‌پوینت') }}
             </span>
           </div>
 
@@ -249,17 +245,6 @@
               />
             </v-col>
 
-            <!-- hidden resource_id field (if you want visible, change to text-field) -->
-            <v-col cols="12" md="4" v-if="false">
-              <v-text-field
-                v-model="form.resource_id"
-                :label="t('Resource ID')"
-                variant="outlined"
-                density="compact"
-                readonly
-              />
-            </v-col>
-
             <v-col cols="12" md="8">
               <v-text-field
                 v-model="form.note"
@@ -272,9 +257,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (BOTTOM + EXPORT) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -287,6 +272,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ چک‌پوینت') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -295,6 +281,27 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -305,7 +312,9 @@
       <v-snackbar v-model="showError" color="error" timeout="5000">
         {{ errorMessage }}
         <template #actions>
-          <v-btn variant="text" @click="showError = false"> {{ t('بستن') }} </v-btn>
+          <v-btn variant="text" @click="showError = false">
+            {{ t('بستن') }}
+          </v-btn>
         </template>
       </v-snackbar>
 
@@ -313,7 +322,9 @@
       <v-snackbar v-model="showSuccess" color="success" timeout="3000">
         {{ successMessage }}
         <template #actions>
-          <v-btn variant="text" @click="showSuccess = false"> {{ t('بستن') }} </v-btn>
+          <v-btn variant="text" @click="showSuccess = false">
+            {{ t('بستن') }}
+          </v-btn>
         </template>
       </v-snackbar>
     </v-container>
@@ -321,308 +332,445 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 
-  import AppBar from '@/components/AppBar.vue';
-  import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+import AppBar from '@/components/AppBar.vue';
+import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
-  const repo = useWakilanoRepository();
-  const route = useRoute();
-  const router = useRouter();
+const repo = useWakilanoRepository();
+const route = useRoute();
+const router = useRouter();
 
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-  /* MODE */
-  const isEdit = computed(() => !!route.params.id);
+/* MODE */
+const isEdit = computed(() => !!route.params.id);
 
-  /* FORM / STATE */
-  const formRef = ref(null);
-  const formValid = ref(false);
-  const saving = ref(false);
+/* FORM / STATE */
+const formRef = ref(null);
+const formValid = ref(false);
+const saving = ref(false);
 
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const showSuccess = ref(false);
-  const successMessage = ref('');
+const showError = ref(false);
+const errorMessage = ref('');
+const showSuccess = ref(false);
+const successMessage = ref('');
 
-  function showErrorMessage(message) {
-    errorMessage.value = message;
-    showError.value = true;
+function showErrorMessage(message) {
+  errorMessage.value = message;
+  showError.value = true;
+}
+function showSuccessMessage(message) {
+  successMessage.value = message;
+  showSuccess.value = true;
+}
+
+/* BACKEND ERRORS */
+const backendErrors = ref({});
+function setBackendErrors(errors) {
+  backendErrors.value = errors || {};
+}
+function clearBackendErrors() {
+  backendErrors.value = {};
+}
+function hasError(field) {
+  return !!backendErrors.value?.[field];
+}
+function getErrorMessages(field) {
+  return backendErrors.value?.[field] ?? [];
+}
+
+/* FORM MODEL */
+const blankForm = () => ({
+  id: null,
+
+  // base
+  checkpoint_name: '',
+  employee_quantity: '',
+  organ: '',
+  create_reason: '',
+
+  // officer
+  officer_name: '',
+  officer_f_name: '',
+  officer_phone: '',
+
+  // address
+  province: '',
+  zone: '',
+  district: '',
+  village: '',
+  specefic_place: '',
+  coordinates: '',
+  Province_addr: '',
+
+  // gun / resource
+  gun_type: '',
+  resource_code: '',
+  resource_phone: '',
+  resource_id: null,
+
+  // note
+  note: '',
+});
+
+const form = ref(blankForm());
+
+/* RULES */
+const rules = {
+  required: (v) => !!v || t('این فیلد الزامی است'),
+  nonNegativeInt: (v) =>
+    v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
+  phone: (v) =>
+    !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
+};
+
+/* RESOURCES DROPDOWN */
+const resources = computed(() => repo.resourcecode || []);
+
+function onResourceCodeChange(code) {
+  const found = resources.value.find((r) => r.code_number === code);
+  form.value.resource_code = code || '';
+  form.value.resource_phone = found?.phone_number ?? '';
+  form.value.resource_id = found?.id ?? null;
+}
+
+/* MAP FROM API */
+function mapFromApi(payload = {}) {
+  const x = payload.data ?? payload;
+  const b = blankForm();
+
+  b.id = x.id ?? null;
+
+  b.checkpoint_name = x.checkpoint_name ?? '';
+  b.employee_quantity = x.employee_quantity ?? '';
+  b.organ = x.organ ?? '';
+  b.create_reason = x.create_reason ?? '';
+
+  b.officer_name = x.officer_name ?? '';
+  b.officer_f_name = x.officer_f_name ?? '';
+  b.officer_phone = x.officer_phone ?? '';
+
+  b.province = x.province ?? '';
+  b.zone = x.zone ?? '';
+  b.district = x.district ?? '';
+  b.village = x.village ?? '';
+  b.specefic_place = x.specefic_place ?? '';
+  b.coordinates = x.coordinates ?? '';
+  b.Province_addr = x.Province_addr ?? '';
+
+  b.gun_type = x.gun_type ?? '';
+
+  const r = x.resource || {};
+  b.resource_code = x.resource_code ?? r.code_number ?? '';
+  b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
+  b.resource_id = x.resource_id ?? r.id ?? null;
+
+  b.note = x.note ?? '';
+
+  return b;
+}
+
+async function loadRecord() {
+  const id = route.params.id;
+  if (!id) {
+    form.value = blankForm();
+    return;
   }
-  function showSuccessMessage(message) {
-    successMessage.value = message;
-    showSuccess.value = true;
+  try {
+    await repo.FetchCheckpointData?.(id);
+    const single = Array.isArray(repo.Checkpoint) ? repo.Checkpoint[0] : repo.Checkpoint || {};
+    if (!single) return;
+
+    form.value = { ...mapFromApi(single) };
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات چک‌پوینت'));
   }
+}
 
-  /* BACKEND ERRORS */
-  const backendErrors = ref({});
-  function setBackendErrors(errors) {
-    backendErrors.value = errors || {};
-  }
-  function clearBackendErrors() {
-    backendErrors.value = {};
-  }
-  function hasError(field) {
-    return !!backendErrors.value?.[field];
-  }
-  function getErrorMessages(field) {
-    return backendErrors.value?.[field] ?? [];
-  }
-
-  /* FORM MODEL */
-  const blankForm = () => ({
-    id: null,
-
-    // base
-    checkpoint_name: '',
-    employee_quantity: '',
-    organ: '',
-    create_reason: '',
-
-    // officer
-    officer_name: '',
-    officer_f_name: '',
-    officer_phone: '',
-
-    // address
-    province: '',
-    zone: '',
-    district: '',
-    village: '',
-    specefic_place: '',
-    coordinates: '',
-    Province_addr: '',
-
-    // gun / resource
-    gun_type: '',
-    resource_code: '',
-    resource_phone: '',
-    resource_id: null,
-
-    // note
-    note: '',
+/* FORM DATA HELPERS */
+function toFormData(obj) {
+  const fd = new FormData();
+  Object.entries(obj).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    fd.append(k, v);
   });
+  return fd;
+}
 
-  const form = ref(blankForm());
+/* SCROLL TO FIRST INVALID */
+function scrollToFirstInvalid() {
+  const first =
+    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+    document.querySelector('.v-messages__message');
+  if (first) {
+    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const input = first.querySelector('input, textarea, .v-field__input');
+    if (input && typeof input.focus === 'function') input.focus();
+  }
+}
 
-  /* RULES */
-  const rules = {
-    required: (v) => !!v || t('این فیلد الزامی است'),
-    nonNegativeInt: (v) =>
-      v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
-    phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
+/* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+function exportRows() {
+  return [
+    { label: t('نام چک‌پوینت'), value: v(form.value.checkpoint_name) },
+    { label: t('تعداد کارمندان'), value: v(form.value.employee_quantity) },
+    { label: t('ارگان مربوط'), value: v(form.value.organ) },
+    { label: t('دلیل ایجاد'), value: v(form.value.create_reason) },
+
+    { label: t('مسؤول پوسته'), value: v(form.value.officer_name) },
+    { label: t('نام پدر مسؤول'), value: v(form.value.officer_f_name) },
+    { label: t('شماره تماس مسؤول'), value: v(form.value.officer_phone) },
+
+    { label: t('ولایت'), value: v(form.value.province) },
+    { label: t('زون'), value: v(form.value.zone) },
+    { label: t('ولسوالی'), value: v(form.value.district) },
+    { label: t('قریه'), value: v(form.value.village) },
+    { label: t('موقعیت مشخص'), value: v(form.value.specefic_place) },
+    { label: t('مختصات'), value: v(form.value.coordinates) },
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+
+    { label: t('نوع سلاح'), value: v(form.value.gun_type) },
+
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+
+    { label: t('یادداشت'), value: v(form.value.note) },
+  ];
+}
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم چک‌پوینت</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.checkpoint_name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>checkpoint_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+    html, body {
+      margin: 0; padding: 0; background: #fff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px; direction: rtl;
+    }
+    .title { text-align: center; margin: 22px 0 12px; font-size: 16px; font-weight: 700; }
+    .simple-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+    .simple-table th, .simple-table td {
+      border: 1px solid #000; padding: 6px 8px; vertical-align: top; font-size: 12px;
+    }
+    .simple-table th { width: 35%; background: #f5f5f5; text-align: right; font-weight: 700; }
+    .simple-table td { width: 65%; text-align: right; word-break: break-word; }
+    .sig { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
   };
+}
 
-  /* RESOURCES DROPDOWN */
-  const resources = computed(() => repo.resourcecode || []);
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
 
-  function onResourceCodeChange(code) {
-    const found = resources.value.find((r) => r.code_number === code);
-    form.value.resource_phone = found?.phone_number ?? '';
-    form.value.resource_id = found?.id ?? null;
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `چک‌پوینت_${safeFileName(form.value.checkpoint_name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
+}
+
+/* SUBMIT */
+async function onSubmit() {
+  clearBackendErrors();
+
+  const f = formRef.value;
+  if (!f) return;
+
+  const { valid } = await f.validate();
+  if (!valid) {
+    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+    await nextTick();
+    scrollToFirstInvalid();
+    return;
   }
 
-  /* MAP FROM API */
-  function mapFromApi(payload = {}) {
-    const x = payload.data ?? payload;
-    const b = blankForm();
-
-    b.id = x.id ?? null;
-
-    b.checkpoint_name = x.checkpoint_name ?? '';
-    b.employee_quantity = x.employee_quantity ?? '';
-    b.organ = x.organ ?? '';
-    b.create_reason = x.create_reason ?? '';
-
-    b.officer_name = x.officer_name ?? '';
-    b.officer_f_name = x.officer_f_name ?? '';
-    b.officer_phone = x.officer_phone ?? '';
-
-    b.province = x.province ?? '';
-    b.zone = x.zone ?? '';
-    b.district = x.district ?? '';
-    b.village = x.village ?? '';
-    b.specefic_place = x.specefic_place ?? '';
-    b.coordinates = x.coordinates ?? '';
-    b.Province_addr = x.Province_addr ?? '';
-
-    b.gun_type = x.gun_type ?? '';
-
-    const r = x.resource || {};
-    b.resource_code = x.resource_code ?? r.code_number ?? '';
-    b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
-    b.resource_id = x.resource_id ?? r.id ?? null;
-
-    b.note = x.note ?? '';
-
-    return b;
+  if (!form.value.checkpoint_name?.trim()) {
+    showErrorMessage(t('نام چک‌پوینت الزامی است'));
+    return;
   }
 
-  async function loadRecord() {
-    const id = route.params.id;
-    if (!id) {
-      form.value = blankForm();
-      return;
-    }
-    try {
-      await repo.FetchCheckpointData?.(id);
-      const single = Array.isArray(repo.Checkpoint) ? repo.Checkpoint[0] : repo.Checkpoint || {};
-      if (!single) return;
+  saving.value = true;
 
-      const mapped = mapFromApi(single);
-      form.value = { ...mapped };
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در دریافت معلومات چک‌پوینت'));
-    }
-  }
+  try {
+    const payload = { ...form.value };
+    const fd = toFormData(payload);
 
-  /* FORM DATA HELPERS */
-  function toFormData(obj) {
-    const fd = new FormData();
-    Object.entries(obj).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
+    if (!isEdit.value) {
+      const created = await repo.CreateCheckpoint?.(fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
 
-  /* SCROLL TO FIRST INVALID */
-  function scrollToFirstInvalid() {
-    const first =
-      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-      document.querySelector('.v-messages__message');
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input && typeof input.focus === 'function') input.focus();
-    }
-  }
-
-  /* SUBMIT */
-  async function onSubmit() {
-    clearBackendErrors();
-
-    const f = formRef.value;
-    if (!f) return;
-
-    const { valid } = await f.validate();
-    if (!valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-
-    if (!form.value.checkpoint_name?.trim()) {
-      showErrorMessage(t('نام چک‌پوینت الزامی است'));
-      return;
-    }
-
-    saving.value = true;
-
-    try {
-      if (!isEdit.value) {
-        const payload = { ...form.value };
-        const fd = toFormData(payload);
-        const created = await repo.CreateCheckpoint?.(fd).catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
-
-        if (created?.id) {
-          showSuccessMessage(t('موفقانه ثبت شد'));
-          router.push('/app/checkpoints').catch(() => {});
-        } else {
-          showErrorMessage(t('ثبت معلومات ناکام شد'));
-        }
+      if (created?.id) {
+        showSuccessMessage(t('موفقانه ثبت شد'));
+        router.push('/app/checkpoints').catch(() => {});
       } else {
-        const payload = { ...form.value };
-        const fd = toFormData(payload);
-        const updated = await repo.UpdateCheckpoint?.(form.value.id, fd).catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
-
-        if (updated?.id) {
-          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-          router.push('/app/checkpoints').catch(() => {});
-        } else {
-          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-        }
+        showErrorMessage(t('ثبت معلومات ناکام شد'));
       }
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در ذخیره اطلاعات'));
-    } finally {
-      saving.value = false;
-    }
-  }
-
-  /* RESET & NAVIGATION */
-  function resetForm() {
-    if (isEdit.value) {
-      loadRecord();
     } else {
-      form.value = blankForm();
-    }
+      const updated = await repo.UpdateCheckpoint?.(form.value.id, fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
 
-    clearBackendErrors();
-    formRef.value?.resetValidation?.();
-    showSuccessMessage(t('فرم پاک شد'));
+      if (updated?.id) {
+        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+        router.push('/app/checkpoints').catch(() => {});
+      } else {
+        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در ذخیره اطلاعات'));
+  } finally {
+    saving.value = false;
+  }
+}
+
+/* RESET & NAVIGATION */
+function resetForm() {
+  if (isEdit.value) {
+    loadRecord();
+  } else {
+    form.value = blankForm();
   }
 
-  function goBack() {
-    router.push('/app/checkpoints');
-  }
+  clearBackendErrors();
+  formRef.value?.resetValidation?.();
+  showSuccessMessage(t('فرم پاک شد'));
+}
 
-  /* INIT */
-  onMounted(async () => {
-    await repo.GetResourceCode?.();
-    if (isEdit.value) {
-      await loadRecord();
-    }
-  });
+function goBack() {
+  router.push('/app/checkpoints');
+}
+
+/* INIT */
+onMounted(async () => {
+  await repo.GetResourceCode?.();
+  if (isEdit.value) {
+    await loadRecord();
+  }
+});
 </script>
 
 <style scoped>
-  /* main card */
-  .simple-form-card {
-    padding: 16px 16px 20px;
-    border-radius: 12px;
-  }
+.simple-form-card {
+  padding: 16px 16px 20px;
+  border-radius: 12px;
+}
 
-  /* sections */
-  .section-header {
-    display: flex;
-    align-items: center;
-    padding-block: 2px;
-  }
-  .section-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    opacity: 0.8;
-  }
+.section-header {
+  display: flex;
+  align-items: center;
+  padding-block: 2px;
+}
+.section-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
 
-  /* slightly tighter fields */
-  :deep(.v-field--variant-outlined .v-field__input) {
-    padding-top: 4px;
-    padding-bottom: 4px;
-    min-height: 36px;
-  }
+:deep(.v-field--variant-outlined .v-field__input) {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  min-height: 36px;
+}
 
-  .primary-action-btn {
-    padding-inline: 18px;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
-  }
+.primary-action-btn {
+  padding-inline: 18px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+}
 
-  .secondary-action-btn {
-    padding-inline: 14px;
-    font-weight: 500;
-  }
+.secondary-action-btn {
+  padding-inline: 14px;
+  font-weight: 500;
+}
+
+.ga-2 {
+  gap: 8px;
+}
 </style>

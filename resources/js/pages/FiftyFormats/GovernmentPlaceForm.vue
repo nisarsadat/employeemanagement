@@ -33,14 +33,15 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <v-row>
-            <!-- Identity + address -->
-            <v-col cols="12" md="9">
+            <!-- Identity + address (FULL WIDTH now; picture removed) -->
+            <v-col cols="12">
               <!-- Identity -->
               <div class="section-header">
                 <span class="section-title">
                   {{ isEdit ? t('ویرایش ریکارډ اداره دولتی') : t('ایجاد ریکارډ اداره دولتی') }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="6">
                   <v-text-field
@@ -61,6 +62,7 @@
                     :label="t('مراجعین روزانه')"
                     variant="outlined"
                     density="compact"
+                    :rules="[rules.nonNegativeInt]"
                     :error="hasError('daily_clientele')"
                     :error-messages="getErrorMessages('daily_clientele')"
                   />
@@ -71,6 +73,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('مسؤول اداره') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -82,6 +85,7 @@
                     :error-messages="getErrorMessages('responsible_name')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.responsible_f_name"
@@ -92,6 +96,7 @@
                     :error-messages="getErrorMessages('responsible_f_name')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.responsible_possition"
@@ -102,12 +107,14 @@
                     :error-messages="getErrorMessages('responsible_possition')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.responsible_phone"
                     :label="t('شماره تماس مسؤول')"
                     variant="outlined"
                     density="compact"
+                    :rules="[rules.phone]"
                     :error="hasError('responsible_phone')"
                     :error-messages="getErrorMessages('responsible_phone')"
                   />
@@ -118,6 +125,7 @@
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس اداره') }}</span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -129,6 +137,7 @@
                     :error-messages="getErrorMessages('province')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.zone"
@@ -139,6 +148,7 @@
                     :error-messages="getErrorMessages('zone')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.district"
@@ -149,6 +159,7 @@
                     :error-messages="getErrorMessages('district')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.village"
@@ -180,8 +191,8 @@
           <div class="section-header mb-2">
             <span class="section-title">{{ t('امنیت، منبع و سایر جزئیات') }}</span>
           </div>
+
           <v-row>
-            <!-- Tafseel + security -->
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.tafseel"
@@ -192,6 +203,7 @@
                 :error-messages="getErrorMessages('tafseel')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.amnyatee_khala"
@@ -202,6 +214,7 @@
                 :error-messages="getErrorMessages('amnyatee_khala')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model.number="form.guard_quantity"
@@ -209,12 +222,12 @@
                 :label="t('تعداد محافظ')"
                 variant="outlined"
                 density="compact"
+                :rules="[rules.nonNegativeInt]"
                 :error="hasError('guard_quantity')"
                 :error-messages="getErrorMessages('guard_quantity')"
               />
             </v-col>
 
-            <!-- Province addr + coordinates -->
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
@@ -225,6 +238,7 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.coordinates"
@@ -252,6 +266,7 @@
                 :error-messages="getErrorMessages('resource_code')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_phone"
@@ -262,7 +277,6 @@
               />
             </v-col>
 
-            <!-- Note -->
             <v-col cols="12" md="8">
               <v-text-field
                 v-model="form.note"
@@ -275,9 +289,9 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (BOTTOM + EXPORT) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
@@ -288,6 +302,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ اداره دولتی') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -297,31 +312,31 @@
               >
                 {{ t('پاک کردن فرم') }}
               </v-btn>
+
+              <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
+              </v-btn>
             </v-col>
           </v-row>
         </v-card>
       </v-form>
-
-      <!-- IMAGE PREVIEW DIALOG -->
-      <v-dialog v-model="previewOpen" max-width="520">
-        <v-card>
-          <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
-          <v-card-text class="d-flex justify-center">
-            <v-img
-              :src="normalizePicture(previewSrc)"
-              :alt="t('پیش نمایش')"
-              max-width="480"
-              max-height="420"
-              cover
-            />
-          </v-card-text>
-          <v-card-actions class="justify-end">
-            <v-btn color="primary" variant="flat" @click="previewOpen = false">
-              {{ t('بستن') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
 
       <!-- Error Snackbar -->
       <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -343,434 +358,460 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 
-  import AppBar from '@/components/AppBar.vue';
-  import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+import AppBar from '@/components/AppBar.vue';
+import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
-  const repo = useWakilanoRepository();
-  const route = useRoute();
-  const router = useRouter();
+const repo = useWakilanoRepository();
+const route = useRoute();
+const router = useRouter();
 
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-  /* MODE */
-  const isEdit = computed(() => !!route.params.id);
+/* MODE */
+const isEdit = computed(() => !!route.params.id);
 
-  /* FORM / STATE */
-  const formRef = ref(null);
-  const formValid = ref(false);
-  const saving = ref(false);
+/* FORM / STATE */
+const formRef = ref(null);
+const formValid = ref(false);
+const saving = ref(false);
 
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const showSuccess = ref(false);
-  const successMessage = ref('');
+const showError = ref(false);
+const errorMessage = ref('');
+const showSuccess = ref(false);
+const successMessage = ref('');
 
-  function showErrorMessage(message) {
-    errorMessage.value = message;
-    showError.value = true;
+/* messages */
+function showErrorMessage(message) {
+  errorMessage.value = message || t('خطا رخ داد');
+  showError.value = true;
+}
+function showSuccessMessage(message) {
+  successMessage.value = message || t('عملیات موفقانه انجام شد');
+  showSuccess.value = true;
+}
+
+/* BACKEND ERRORS */
+const backendErrors = ref({});
+function setBackendErrors(errors) {
+  backendErrors.value = errors || {};
+}
+function clearBackendErrors() {
+  backendErrors.value = {};
+}
+function hasError(field) {
+  return !!backendErrors.value?.[field];
+}
+function getErrorMessages(field) {
+  return backendErrors.value?.[field] ?? [];
+}
+
+/* FORM MODEL */
+const blankForm = () => ({
+  id: null,
+
+  // identity
+  government_place_name: '',
+  daily_clientele: '',
+
+  // responsible
+  responsible_name: '',
+  responsible_f_name: '',
+  responsible_possition: '',
+  responsible_phone: '',
+
+  // address
+  province: '',
+  zone: '',
+  district: '',
+  village: '',
+  specefic_place: '',
+
+  // extra
+  tafseel: '',
+  amnyatee_khala: '',
+  guard_quantity: '',
+  Province_addr: '',
+  coordinates: '',
+
+  // resource
+  resource_code: '',
+  resource_phone: '',
+  resource_id: null,
+
+  // note
+  note: '',
+});
+
+const form = ref(blankForm());
+
+/* RULES */
+const rules = {
+  required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
+  nonNegativeInt: (v) => v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
+  phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
+};
+
+/* RESOURCES DROPDOWN */
+const resources = computed(() => repo.resourcecode || []);
+
+function onResourceCodeChange(code) {
+  const found = resources.value.find((r) => r.code_number === code);
+  form.value.resource_code = code || '';
+  form.value.resource_phone = found?.phone_number ?? '';
+  form.value.resource_id = found?.id ?? null;
+}
+
+/* MAP FROM API (picture removed) */
+function mapFromApi(payload = {}) {
+  const x = payload.data ?? payload;
+  const b = blankForm();
+
+  b.id = x.id ?? null;
+
+  b.government_place_name = x.government_place_name ?? '';
+  b.daily_clientele = x.daily_clientele ?? '';
+
+  b.responsible_name = x.responsible_name ?? '';
+  b.responsible_f_name = x.responsible_f_name ?? '';
+  b.responsible_possition = x.responsible_possition ?? '';
+  b.responsible_phone = x.responsible_phone ?? '';
+
+  b.province = x.province ?? '';
+  b.zone = x.zone ?? '';
+  b.district = x.district ?? '';
+  b.village = x.village ?? '';
+  b.specefic_place = x.specefic_place ?? '';
+
+  b.tafseel = x.tafseel ?? '';
+  b.amnyatee_khala = x.amnyatee_khala ?? '';
+  b.guard_quantity = x.guard_quantity ?? '';
+  b.Province_addr = x.Province_addr ?? '';
+  b.coordinates = x.coordinates ?? '';
+
+  const r = x.resource || {};
+  b.resource_code = x.resource_code ?? r.code_number ?? '';
+  b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
+  b.resource_id = x.resource_id ?? r.id ?? null;
+
+  b.note = x.note ?? '';
+
+  return b;
+}
+
+async function loadRecord() {
+  const id = route.params.id;
+  if (!id) {
+    form.value = blankForm();
+    return;
   }
-  function showSuccessMessage(message) {
-    successMessage.value = message;
-    showSuccess.value = true;
+  try {
+    await repo.FetchGovernmentPlaceData?.(id);
+    const single = Array.isArray(repo.GovernmentPlace)
+      ? repo.GovernmentPlace[0]
+      : repo.GovernmentPlace || {};
+    form.value = { ...mapFromApi(single || {}) };
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات اداره دولتی'));
   }
+}
 
-  /* BACKEND ERRORS */
-  const backendErrors = ref({});
-  function setBackendErrors(errors) {
-    backendErrors.value = errors || {};
-  }
-  function clearBackendErrors() {
-    backendErrors.value = {};
-  }
-  function hasError(field) {
-    return !!backendErrors.value?.[field];
-  }
-  function getErrorMessages(field) {
-    return backendErrors.value?.[field] ?? [];
-  }
-
-  /* FORM MODEL */
-  const blankForm = () => ({
-    id: null,
-
-    // media
-    picture: null,
-    previewUrl: null,
-
-    // identity
-    government_place_name: '',
-    daily_clientele: '',
-
-    // responsible
-    responsible_name: '',
-    responsible_f_name: '',
-    responsible_possition: '',
-    responsible_phone: '',
-
-    // address
-    province: '',
-    zone: '',
-    district: '',
-    village: '',
-    specefic_place: '',
-
-    // extra
-    tafseel: '',
-    amnyatee_khala: '',
-    guard_quantity: '',
-    Province_addr: '',
-    coordinates: '',
-
-    // resource
-    resource_code: '',
-    resource_phone: '',
-    resource_id: null,
-
-    // note
-    note: '',
+/* FORM DATA HELPERS */
+function toFormData(obj) {
+  const fd = new FormData();
+  Object.entries(obj || {}).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    fd.append(k, v);
   });
+  return fd;
+}
 
-  const form = ref(blankForm());
+function buildCreateFormData() {
+  return toFormData({ ...form.value });
+}
 
-  /* RULES */
-  const rules = {
-    required: (v) => !!v || t('این فیلد الزامی است'),
+function buildUpdateFormData() {
+  return toFormData({ ...form.value });
+}
+
+/* SCROLL TO FIRST INVALID */
+function scrollToFirstInvalid() {
+  const first =
+    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+    document.querySelector('.v-messages__message');
+  if (first) {
+    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const input = first.querySelector('input, textarea, .v-field__input');
+    if (input && typeof input.focus === 'function') input.focus();
+  }
+}
+
+/* =========================
+   SIMPLE EXPORT (NO image, NO app headers) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+function exportRows() {
+  return [
+    { label: t('نام اداره دولتی'), value: v(form.value.government_place_name) },
+    { label: t('مراجعین روزانه'), value: v(form.value.daily_clientele) },
+
+    { label: t('مسؤول اداره'), value: v(form.value.responsible_name) },
+    { label: t('نام پدر مسؤول'), value: v(form.value.responsible_f_name) },
+    { label: t('وظیفه/موقف مسؤول'), value: v(form.value.responsible_possition) },
+    { label: t('شماره تماس مسؤول'), value: v(form.value.responsible_phone) },
+
+    { label: t('ولایت'), value: v(form.value.province) },
+    { label: t('زون'), value: v(form.value.zone) },
+    { label: t('ولسوالی'), value: v(form.value.district) },
+    { label: t('قریه'), value: v(form.value.village) },
+    { label: t('موقعیت مشخص'), value: v(form.value.specefic_place) },
+
+    { label: t('تفصیل'), value: v(form.value.tafseel) },
+    { label: t('خلای امنیتی'), value: v(form.value.amnyatee_khala) },
+    { label: t('تعداد محافظ'), value: v(form.value.guard_quantity) },
+
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+    { label: t('مختصات'), value: v(form.value.coordinates) },
+
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+
+    { label: t('یادداشت'), value: v(form.value.note) },
+  ];
+}
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم اداره دولتی</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.government_place_name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>government_place_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+    html, body {
+      margin: 0; padding: 0; background: #fff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px; direction: rtl;
+    }
+    .title { text-align: center; margin: 22px 0 12px; font-size: 16px; font-weight: 700; }
+    .simple-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+    .simple-table th, .simple-table td {
+      border: 1px solid #000; padding: 6px 8px; vertical-align: top; font-size: 12px;
+    }
+    .simple-table th { width: 35%; background: #f5f5f5; text-align: right; font-weight: 700; }
+    .simple-table td { width: 65%; text-align: right; word-break: break-word; }
+    .sig { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
   };
+}
 
-  /* PICTURE */
-  const pictureInput = ref(null);
-  const pictureFile = ref(null);
-  const pictureChanged = ref(false);
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
 
-  const previewOpen = ref(false);
-  const previewSrc = ref(null);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `اداره_دولتی_${safeFileName(form.value.government_place_name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-  function triggerPicture() {
-    pictureInput.value?.click();
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
+}
+
+/* SUBMIT */
+async function onSubmit() {
+  clearBackendErrors();
+
+  const f = formRef.value;
+  if (!f) return;
+
+  const { valid } = await f.validate();
+  if (!valid) {
+    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+    await nextTick();
+    scrollToFirstInvalid();
+    return;
   }
 
-  function onPickPicture(e) {
-    const file = e.target.files?.[0] ?? null;
-    pictureFile.value = file;
-    pictureChanged.value = !!file;
-
-    if (file) {
-      if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(form.value.previewUrl);
-      }
-      form.value.previewUrl = URL.createObjectURL(file);
-    } else {
-      form.value.previewUrl = form.value.picture || null;
-    }
-    if (e.target) e.target.value = '';
+  if (!form.value.government_place_name?.trim()) {
+    showErrorMessage(t('نام اداره دولتی الزامی است'));
+    return;
   }
 
-  function normalizePicture(src) {
-    if (!src) return null;
-    let clean = String(src).trim();
+  saving.value = true;
 
-    if (clean.startsWith('blob:') || clean.startsWith('data:')) {
-      return clean;
-    }
-    clean = clean.replace(/\\\//g, '/');
+  try {
+    if (!isEdit.value) {
+      const fd = buildCreateFormData();
+      const created = await repo.CreateGovernmentPlace?.(fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
 
-    if (clean.startsWith('http://') || clean.startsWith('https://')) {
-      return clean;
-    }
-    if (clean.startsWith('/')) {
-      return clean;
-    }
-    return '/' + clean.replace(/^\/+/, '');
-  }
-
-  function openPreview(src) {
-    const base = src || form.value.previewUrl || form.value.picture;
-    const normalized = normalizePicture(base);
-    previewSrc.value = normalized;
-    if (previewSrc.value) {
-      previewOpen.value = true;
-    }
-  }
-
-  /* RESOURCES DROPDOWN */
-  const resources = computed(() => repo.resourcecode || []);
-
-  function onResourceCodeChange(code) {
-    const found = resources.value.find((r) => r.code_number === code);
-    form.value.resource_phone = found?.phone_number ?? '';
-    form.value.resource_id = found?.id ?? null;
-  }
-
-  /* MAP FROM API */
-  function mapFromApi(payload = {}) {
-    const x = payload.data ?? payload;
-    const b = blankForm();
-
-    b.id = x.id ?? null;
-
-    const fullUrl = x.picture ?? null;
-    b.picture = fullUrl;
-    b.previewUrl = fullUrl;
-
-    b.government_place_name = x.government_place_name ?? '';
-    b.daily_clientele = x.daily_clientele ?? '';
-
-    b.responsible_name = x.responsible_name ?? '';
-    b.responsible_f_name = x.responsible_f_name ?? '';
-    b.responsible_possition = x.responsible_possition ?? '';
-    b.responsible_phone = x.responsible_phone ?? '';
-
-    b.province = x.province ?? '';
-    b.zone = x.zone ?? '';
-    b.district = x.district ?? '';
-    b.village = x.village ?? '';
-    b.specefic_place = x.specefic_place ?? '';
-
-    b.tafseel = x.tafseel ?? '';
-    b.amnyatee_khala = x.amnyatee_khala ?? '';
-    b.guard_quantity = x.guard_quantity ?? '';
-    b.Province_addr = x.Province_addr ?? '';
-    b.coordinates = x.coordinates ?? '';
-
-    b.resource_code = x.resource_code ?? x.resource?.code_number ?? '';
-    b.resource_phone = x.resource_phone ?? x.resource?.phone_number ?? '';
-    b.resource_id = x.resource_id ?? x.resource?.id ?? null;
-
-    b.note = x.note ?? '';
-
-    return b;
-  }
-
-  async function loadRecord() {
-    const id = route.params.id;
-    if (!id) {
-      form.value = blankForm();
-      pictureFile.value = null;
-      pictureChanged.value = false;
-      return;
-    }
-    try {
-      await repo.FetchGovernmentPlaceData?.(id);
-      const single = Array.isArray(repo.GovernmentPlace)
-        ? repo.GovernmentPlace[0]
-        : repo.GovernmentPlace || {};
-      const mapped = mapFromApi(single);
-      form.value = { ...mapped };
-      pictureFile.value = null;
-      pictureChanged.value = false;
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در دریافت معلومات اداره دولتی'));
-    }
-  }
-
-  /* FORM DATA HELPERS */
-  function toFormData(obj) {
-    const fd = new FormData();
-    Object.entries(obj).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
-
-  function buildCreateFormData() {
-    const payload = { ...form.value };
-
-    delete payload.previewUrl;
-
-    const fd = toFormData(payload);
-
-    if (pictureFile.value) {
-      fd.append('picture', pictureFile.value);
-    }
-
-    return fd;
-  }
-
-  function buildUpdateFormData() {
-    const payload = { ...form.value };
-
-    delete payload.previewUrl;
-    delete payload.picture;
-
-    const fd = toFormData(payload);
-
-    if (pictureChanged.value && pictureFile.value) {
-      fd.append('picture', pictureFile.value);
-    }
-
-    return fd;
-  }
-
-  /* SCROLL TO FIRST INVALID */
-  function scrollToFirstInvalid() {
-    const first =
-      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-      document.querySelector('.v-messages__message');
-    if (first) {
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = first.querySelector('input, textarea, .v-field__input');
-      if (input && typeof input.focus === 'function') input.focus();
-    }
-  }
-
-  /* SUBMIT */
-  async function onSubmit() {
-    clearBackendErrors();
-
-    const f = formRef.value;
-    if (!f) return;
-
-    const { valid } = await f.validate();
-    if (!valid) {
-      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-      await nextTick();
-      scrollToFirstInvalid();
-      return;
-    }
-
-    if (!form.value.government_place_name?.trim()) {
-      showErrorMessage(t('نام اداره دولتی الزامی است'));
-      return;
-    }
-
-    saving.value = true;
-
-    try {
-      if (!isEdit.value) {
-        const fd = buildCreateFormData();
-        const created = await repo.CreateGovernmentPlace?.(fd).catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
-
-        if (created?.id) {
-          showSuccessMessage(t('موفقانه ثبت شد'));
-          router.push('/app/governmentplaces').catch(() => {});
-        } else {
-          showErrorMessage(t('ثبت معلومات ناکام شد'));
-        }
+      if (created?.id) {
+        showSuccessMessage(t('موفقانه ثبت شد'));
+        router.push('/app/governmentplaces').catch(() => {});
       } else {
-        const fd = buildUpdateFormData();
-        const updated = await repo.UpdateGovernmentPlace?.(form.value.id, fd).catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
-
-        if (updated?.id) {
-          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-          router.push('/app/governmentplaces').catch(() => {});
-        } else {
-          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-        }
+        showErrorMessage(t('ثبت معلومات ناکام شد'));
       }
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در ذخیره اطلاعات'));
-    } finally {
-      saving.value = false;
-    }
-  }
-
-  /* RESET & NAVIGATION */
-  function resetForm() {
-    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(form.value.previewUrl);
-    }
-
-    if (isEdit.value) {
-      loadRecord();
     } else {
-      form.value = blankForm();
-      pictureFile.value = null;
-      pictureChanged.value = false;
-    }
+      const fd = buildUpdateFormData();
+      const updated = await repo.UpdateGovernmentPlace?.(form.value.id, fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
 
-    clearBackendErrors();
-    formRef.value?.resetValidation?.();
-    showSuccessMessage(t('فرم پاک شد'));
+      if (updated?.id) {
+        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+        router.push('/app/governmentplaces').catch(() => {});
+      } else {
+        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در ذخیره اطلاعات'));
+  } finally {
+    saving.value = false;
+  }
+}
+
+/* RESET & NAVIGATION */
+function resetForm() {
+  if (isEdit.value) {
+    loadRecord();
+  } else {
+    form.value = blankForm();
   }
 
-  function goBack() {
-    router.push('/app/governmentplaces');
-  }
+  clearBackendErrors();
+  formRef.value?.resetValidation?.();
+  showSuccessMessage(t('فرم پاک شد'));
+}
 
-  /* INIT */
-  onMounted(async () => {
-    await repo.GetResourceCode?.();
-    if (isEdit.value) {
-      await loadRecord();
-    }
-  });
+function goBack() {
+  router.push('/app/governmentplaces');
+}
+
+/* INIT */
+onMounted(async () => {
+  await repo.GetResourceCode?.();
+  if (isEdit.value) {
+    await loadRecord();
+  }
+});
 </script>
 
 <style scoped>
-  .hidden-file {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
-  }
+/* main card */
+.simple-form-card {
+  padding: 16px 16px 20px;
+  border-radius: 12px;
+}
 
-  /* main card */
-  .simple-form-card {
-    padding: 16px 16px 20px;
-    border-radius: 12px;
-  }
+/* sections */
+.section-header {
+  display: flex;
+  align-items: center;
+  padding-block: 2px;
+}
+.section-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
 
-  /* sections */
-  .section-header {
-    display: flex;
-    align-items: center;
-    padding-block: 2px;
-  }
-  .section-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    opacity: 0.8;
-  }
+.ga-2 {
+  gap: 8px;
+}
 
-  /* picture */
-  .pic-wrap-simple {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .cursor-pointer {
-    cursor: pointer;
-  }
-  .primary-avatar {
-    border: 2px solid rgba(33, 150, 243, 0.25);
-  }
+/* slightly tighter fields */
+:deep(.v-field--variant-outlined .v-field__input) {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  min-height: 36px;
+}
 
-  /* slightly tighter fields */
-  :deep(.v-field--variant-outlined .v-field__input) {
-    padding-top: 4px;
-    padding-bottom: 4px;
-    min-height: 36px;
-  }
-
-  /* prettier buttons */
-  .soft-btn {
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  }
-
-  .primary-action-btn {
-    padding-inline: 18px;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
-  }
-
-  .secondary-action-btn {
-    padding-inline: 14px;
-    font-weight: 500;
-  }
+/* prettier buttons */
+.primary-action-btn {
+  padding-inline: 18px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+}
+.secondary-action-btn {
+  padding-inline: 14px;
+  font-weight: 500;
+}
 </style>

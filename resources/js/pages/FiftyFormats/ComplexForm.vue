@@ -41,6 +41,7 @@
                   {{ isEdit ? t('ویرایش ریکارډ کمپلکس') : t('ایجاد ریکارډ کمپلکس') }}
                 </span>
               </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -97,6 +98,7 @@
                     :label="t('ورود ذکور')"
                     variant="outlined"
                     density="compact"
+                    :rules="[rules.nonNegativeInt]"
                     :error="hasError('enter_male_quantity')"
                     :error-messages="getErrorMessages('enter_male_quantity')"
                   />
@@ -108,6 +110,7 @@
                     :label="t('خروج ذکور')"
                     variant="outlined"
                     density="compact"
+                    :rules="[rules.nonNegativeInt]"
                     :error="hasError('outer_male_quantity')"
                     :error-messages="getErrorMessages('outer_male_quantity')"
                   />
@@ -119,6 +122,7 @@
                     :label="t('ورود اناث')"
                     variant="outlined"
                     density="compact"
+                    :rules="[rules.nonNegativeInt]"
                     :error="hasError('enter_femal_quantity')"
                     :error-messages="getErrorMessages('enter_femal_quantity')"
                   />
@@ -130,6 +134,7 @@
                     :label="t('خروج اناث')"
                     variant="outlined"
                     density="compact"
+                    :rules="[rules.nonNegativeInt]"
                     :error="hasError('outer_femal_quantity')"
                     :error-messages="getErrorMessages('outer_femal_quantity')"
                   />
@@ -167,6 +172,7 @@
                     :label="t('شماره تماس مسؤول')"
                     variant="outlined"
                     density="compact"
+                    :rules="[rules.phone]"
                     :error="hasError('responsible_phone')"
                     :error-messages="getErrorMessages('responsible_phone')"
                   />
@@ -287,6 +293,7 @@
                     :label="t('تعداد محافظ')"
                     variant="outlined"
                     density="compact"
+                    :rules="[rules.nonNegativeInt]"
                     :error="hasError('guard_quantity')"
                     :error-messages="getErrorMessages('guard_quantity')"
                   />
@@ -341,21 +348,20 @@
             </v-col>
           </v-row>
 
-          <!-- Actions -->
+          <!-- Actions (BOTTOM + EXPORT) -->
           <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2">
+            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
                 color="primary"
                 variant="elevated"
                 class="text-none rounded-pill primary-action-btn"
                 :loading="saving"
                 type="submit"
-                :prepend-icon="
-                  isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'
-                "
+                :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ کمپلکس') }}
               </v-btn>
+
               <v-btn
                 color="warning"
                 variant="outlined"
@@ -364,6 +370,27 @@
                 @click="resetForm"
               >
                 {{ t('پاک کردن فرم') }}
+              </v-btn>
+
+              <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
+              <v-btn
+                color="red"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-pdf-box"
+                @click="downloadPdf"
+              >
+                {{ t('PDF') }}
+              </v-btn>
+
+              <v-btn
+                color="blue"
+                variant="outlined"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-file-word-box"
+                @click="downloadWord"
+              >
+                {{ t('Word') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -423,11 +450,11 @@ const showSuccess = ref(false);
 const successMessage = ref('');
 
 function showErrorMessage(message) {
-  errorMessage.value = message;
+  errorMessage.value = message || t('خطا رخ داد');
   showError.value = true;
 }
 function showSuccessMessage(message) {
-  successMessage.value = message;
+  successMessage.value = message || t('عملیات موفقانه انجام شد');
   showSuccess.value = true;
 }
 
@@ -443,6 +470,7 @@ function hasError(field) {
   return !!backendErrors.value?.[field];
 }
 function getErrorMessages(field) {
+  backendErrors.value?.[field] ?? [];
   return backendErrors.value?.[field] ?? [];
 }
 
@@ -495,7 +523,9 @@ const form = ref(blankForm());
 
 /* RULES */
 const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
+  required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
+  nonNegativeInt: (v) => v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
+  phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
 };
 
 /* RESOURCES DROPDOWN */
@@ -503,6 +533,7 @@ const resources = computed(() => repo.resourcecode || []);
 
 function onResourceCodeChange(code) {
   const found = resources.value.find((r) => r.code_number === code);
+  form.value.resource_code = code || '';
   form.value.resource_phone = found?.phone_number ?? '';
   form.value.resource_id = found?.id ?? null;
 }
@@ -560,10 +591,7 @@ async function loadRecord() {
   try {
     await repo.FetchComplexData?.(id);
     const single = Array.isArray(repo.Complex) ? repo.Complex[0] : repo.Complex || {};
-    if (!single) return;
-
-    const mapped = mapFromApi(single);
-    form.value = { ...mapped };
+    form.value = { ...mapFromApi(single || {}) };
   } catch (e) {
     console.error(e);
     showErrorMessage(t('خطا در دریافت معلومات کمپلکس'));
@@ -573,7 +601,7 @@ async function loadRecord() {
 /* FORM DATA HELPERS */
 function toFormData(obj) {
   const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
+  Object.entries(obj || {}).forEach(([k, v]) => {
     if (v === undefined || v === null) return;
     fd.append(k, v);
   });
@@ -581,15 +609,11 @@ function toFormData(obj) {
 }
 
 function buildCreateFormData() {
-  const payload = { ...form.value };
-  const fd = toFormData(payload);
-  return fd;
+  return toFormData({ ...form.value });
 }
 
 function buildUpdateFormData() {
-  const payload = { ...form.value };
-  const fd = toFormData(payload);
-  return fd;
+  return toFormData({ ...form.value });
 }
 
 /* SCROLL TO FIRST INVALID */
@@ -602,6 +626,150 @@ function scrollToFirstInvalid() {
     const input = first.querySelector('input, textarea, .v-field__input');
     if (input && typeof input.focus === 'function') input.focus();
   }
+}
+
+/* =========================
+   SIMPLE EXPORT (NO image, NO app headers) ✅ works even for blank
+========================= */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (m) => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[m];
+  });
+}
+function safeFileName(s) {
+  return String(s ?? '')
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function v(x) {
+  return x && String(x).trim() ? x : '—';
+}
+function exportRows() {
+  return [
+    { label: t('نام کمپلکس'), value: v(form.value.complex_name) },
+    { label: t('نوع فعالیت'), value: v(form.value.activity_type) },
+    { label: t('محل فعالیت'), value: v(form.value.activity_place) },
+    { label: t('تمویل‌کننده'), value: v(form.value.supplier) },
+
+    { label: t('ورود ذکور'), value: v(form.value.enter_male_quantity) },
+    { label: t('خروج ذکور'), value: v(form.value.outer_male_quantity) },
+    { label: t('ورود اناث'), value: v(form.value.enter_femal_quantity) },
+    { label: t('خروج اناث'), value: v(form.value.outer_femal_quantity) },
+
+    { label: t('مسؤول'), value: v(form.value.responsible_name) },
+    { label: t('نام پدر مسؤول'), value: v(form.value.responsible_f_name) },
+    { label: t('شماره تماس مسؤول'), value: v(form.value.responsible_phone) },
+    { label: t('کشور مسؤول'), value: v(form.value.responsible_country) },
+
+    { label: t('ولایت'), value: v(form.value.province) },
+    { label: t('زون'), value: v(form.value.zone) },
+    { label: t('ولسوالی'), value: v(form.value.district) },
+    { label: t('قریه'), value: v(form.value.village) },
+    { label: t('موقعیت مشخص'), value: v(form.value.specefic_place) },
+    { label: t('نمبر سرک'), value: v(form.value.street_number) },
+    { label: t('نمبر خانه'), value: v(form.value.home_number) },
+
+    { label: t('مختصات'), value: v(form.value.coordinates) },
+    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+    { label: t('تعداد محافظ'), value: v(form.value.guard_quantity) },
+
+    { label: t('کود منبع'), value: v(form.value.resource_code) },
+    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+
+    { label: t('ملاحظات'), value: v(form.value.note) },
+  ];
+}
+function buildSimpleTableHtml() {
+  const rows = exportRows()
+    .map(
+      (r) => `
+      <tr>
+        <th>${esc(r.label)}</th>
+        <td>${esc(r.value)}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <h3 class="title">فورم کمپلکس</h3>
+    <table class="simple-table">
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <div class="sig">
+      <div>امضاء / مهر مسئول: ____________________</div>
+      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+    </div>
+  `;
+}
+function buildDocumentHtml() {
+  const bodyHtml = buildSimpleTableHtml();
+  const safeId = esc(form.value.id || '');
+  const safeName = esc(form.value.complex_name || '');
+
+  return `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>complex_${safeId}_${safeName}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+    html, body {
+      margin: 0; padding: 0; background: #fff;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px; direction: rtl;
+    }
+    .title { text-align: center; margin: 22px 0 12px; font-size: 16px; font-weight: 700; }
+    .simple-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+    .simple-table th, .simple-table td {
+      border: 1px solid #000; padding: 6px 8px; vertical-align: top; font-size: 12px;
+    }
+    .simple-table th { width: 35%; background: #f5f5f5; text-align: right; font-weight: 700; }
+    .simple-table td { width: 65%; text-align: right; word-break: break-word; }
+    .sig { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>
+`;
+}
+
+function downloadPdf() {
+  const html = buildDocumentHtml();
+  const w = window.open('', '_blank', 'width=1024,height=768');
+  if (!w) return;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  w.onload = () => {
+    w.focus();
+    w.print();
+  };
+}
+
+function downloadWord() {
+  const html = buildDocumentHtml();
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `کمپلکس_${safeFileName(form.value.complex_name || 'جدید')}_${Date.now()}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
 }
 
 /* SUBMIT */
@@ -707,8 +875,7 @@ onMounted(async () => {
   opacity: 0.8;
 }
 
-/* small gap utility */
-.gap-2 {
+.ga-2 {
   gap: 8px;
 }
 
@@ -720,10 +887,6 @@ onMounted(async () => {
 }
 
 /* prettier buttons */
-.soft-btn {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
 .primary-action-btn {
   padding-inline: 18px;
   font-weight: 600;
