@@ -1,21 +1,12 @@
 <template>
-  <div class="p-4" :dir="isRtl ? 'rtl' : 'ltr'">
-    <!-- Header + counts -->
-    <div class="mb-3 flex flex-wrap items-center gap-2">
-      <h2 class="text-xl font-semibold">{{ t('کارمندان غیر فعال') }}</h2>
-
-      <div class="ml-auto flex flex-wrap gap-2">
-        <span class="px-2 py-1 text-xs rounded bg-emerald-100 text-emerald-700">
-          {{ t('فعال') }}: {{ repo.counts.active }}
-        </span>
-        <span class="px-2 py-1 text-xs rounded bg-amber-100 text-amber-700">
-          {{ t('غیر فعال') }}: {{ repo.counts.inactive }}
-        </span>
-        <span class="px-2 py-1 text-xs rounded bg-slate-100 text-slate-700">
-          {{ t('مجموع') }}: {{ repo.counts.total }}
-        </span>
-      </div>
-    </div>
+  <div class="p-4 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
+    <AppBar :title="t('کارمندان غیر فعال')" :subtitle="t('فهرست و جستجو')">
+      <template #actions>
+        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
+          {{ t('برگشت') }}
+        </v-btn>
+      </template>
+    </AppBar>
 
     <!-- Filters -->
     <div class="mb-3 grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -221,6 +212,14 @@
   import FilterablePrintTable from '../../components/FilterableTable.vue';
   import { useCalendar } from '../../../composables/useCalendar';
   import PeekButton from '../../components/PeekButton.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import { useRouter } from 'vue-router';
+
+  const router = useRouter();
+
+  function goBack() {
+    router.back();
+  }
   const { t, locale } = useI18n();
   const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
   const repo = useOfficeEmployeeActivityRepository();

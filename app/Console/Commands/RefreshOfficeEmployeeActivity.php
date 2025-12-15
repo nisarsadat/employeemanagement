@@ -7,18 +7,20 @@ use App\Models\OfficeEmployee;
 
 class RefreshOfficeEmployeeActivity extends Command
 {
-    protected $signature = 'office-employees:refresh-activity {--mode=month}';
-    protected $description = 'Set فعال/غیر فعال based on activity in current month (or rolling N days)';
+    protected $signature = 'office-employees:refresh-activity
+        {--days=7 : Window size in days}
+        {--min=5  : Minimum events on any resource to be active}';
+
+    protected $description = 'Set فعال/غیر فعال based on: any resource has >= MIN events in last DAYS days';
 
     public function handle(): int
     {
-        $since = $this->option('mode') === 'month'
-            ? now()->startOfMonth()               // current calendar month
-            : now()->subDays((int)$this->option('mode') ?: 30); // rolling N days
+        $days = (int) $this->option('days');
+        $min  = (int) $this->option('min');
 
-        OfficeEmployee::refreshStatusesSince($since);
+        OfficeEmployee::refreshStatusesByWeeklyRule($min, $days);
 
-        $this->info("Statuses refreshed since {$since->toDateTimeString()}");
+        $this->info("Statuses refreshed (rule: any resource has >= {$min} events in last {$days} days).");
         return self::SUCCESS;
     }
 }

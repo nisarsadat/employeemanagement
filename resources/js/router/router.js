@@ -167,6 +167,8 @@ import UniversityForm from '../pages/FiftyFormats/UniversityForm.vue';
 import WakilanoForm from '../pages/FiftyFormats/WakilanoForm.vue';
 import InformationPrintDialog from '../pages/Informations/InformationPrintDialog.vue';
 import NotificationsPage from '../components/NotificationsPage.vue';
+import ActiveEmployeesIndex from '../pages/ActiveInactive/ActiveEmployeesIndex.vue';
+import InactiveEmployeesIndex from '../pages/ActiveInactive/InactiveEmployeesIndex.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -215,11 +217,15 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('dashboards') },
         },
         {
-          path: 'activeandinactiveemployees',
-          component: ActiveAndInactiveEmployees,
+          path: 'activeemployees',
+          component: ActiveEmployeesIndex,
           meta: { requiresAuth: true, perm: permFor('activeandinactiveemployees') },
         },
-
+        {
+          path: 'inactiveemployees',
+          component: InactiveEmployeesIndex,
+          meta: { requiresAuth: true, perm: permFor('activeandinactiveemployees') },
+        },
         // Users
         { path: 'users', component: User, meta: { requiresAuth: true, perm: permFor('users') } },
 

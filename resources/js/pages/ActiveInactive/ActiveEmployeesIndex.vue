@@ -1,21 +1,12 @@
 <template>
-  <div class="p-4" :dir="isRtl ? 'rtl' : 'ltr'">
-    <!-- Header + counts -->
-    <div class="mb-3 flex flex-wrap items-center gap-2">
-      <h2 class="text-xl font-semibold">{{ t('کارمندان فعال') }}</h2>
-
-      <div class="ml-auto flex flex-wrap gap-2">
-        <span class="px-2 py-1 text-xs rounded bg-emerald-100 text-emerald-700">
-          {{ t('فعال') }}: {{ repo.counts.active }}
-        </span>
-        <span class="px-2 py-1 text-xs rounded bg-amber-100 text-amber-700">
-          {{ t('غیر فعال') }}: {{ repo.counts.inactive }}
-        </span>
-        <span class="px-2 py-1 text-xs rounded bg-slate-100 text-slate-700">
-          {{ t('مجموع') }}: {{ repo.counts.total }}
-        </span>
-      </div>
-    </div>
+  <div class="p-4 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
+    <AppBar :title="t('کارمندان فعال')" :subtitle="t('فهرست و جستجو')">
+      <template #actions>
+        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
+          {{ t('برگشت') }}
+        </v-btn>
+      </template>
+    </AppBar>
 
     <!-- Filters row -->
     <div class="mb-3 grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -66,23 +57,26 @@
       :all-label="t('همه')"
       @peek="openDetails"
     >
-      <!-- picture cell with click preview -->
-      <template v-slot:cell-picture="{ row }">
+      <!-- ✅ Picture cell -->
+      <template #cell-picture="{ row }">
         <button
           class="inline-flex items-center justify-center w-9 h-9 rounded overflow-hidden ring-1 ring-gray-200 hover:ring-gray-300"
-          @click="openPic(toSrc(row?.picture))"
+          type="button"
+          @click="openPic(getPhotoUrl(row))"
         >
-          <img
-            v-if="row?.picture"
-            :src="toSrc(row.picture)"
+          <v-img
+            v-if="getPhotoUrl(row)"
+            :src="getPhotoUrl(row)"
             class="w-full h-full object-cover"
-            @error="hideImgOnError"
+            loading="lazy"
+            referrerpolicy="no-referrer"
           />
           <div v-else class="w-full h-full grid place-items-center text-gray-400">No Pic</div>
         </button>
       </template>
     </FilterablePrintTable>
-    <!-- Peek drawer (replaces your Details Modal) -->
+
+    <!-- Peek drawer -->
     <PeekButton
       v-model="peekOpen"
       :id="peekId"
@@ -113,12 +107,12 @@
           <button class="text-gray-600 hover:text-black" @click="picUrl = null">✕</button>
         </div>
         <div class="p-3">
-          <img :src="toSrc(picUrl)" class="max-h-[70vh] max-w-full object-contain rounded-md" />
+          <img :src="picUrl" class="max-h-[70vh] max-w-full object-contain rounded-md" />
         </div>
       </div>
     </div>
 
-    <!-- Details Modal -->
+    <!-- Details Modal (unchanged) -->
     <div
       v-if="selected"
       class="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm overflow-y-auto"
@@ -129,14 +123,13 @@
           <div class="flex items-center gap-3">
             <button
               class="inline-flex items-center justify-center w-12 h-12 rounded overflow-hidden ring-1 ring-gray-200"
-              @click="openPic(toSrc(selected?.picture))"
+              @click="openPic(getPhotoUrl(selected))"
               v-if="selected"
             >
               <img
-                v-if="selected?.picture"
-                :src="toSrc(selected.picture)"
+                v-if="getPhotoUrl(selected)"
+                :src="getPhotoUrl(selected)"
                 class="w-full h-full object-cover"
-                @error="hideImgOnError"
               />
               <div v-else class="w-full h-full grid place-items-center text-gray-400">
                 <svg
@@ -180,7 +173,6 @@
               </template>
             </template>
 
-            <!-- counters -->
             <div class="md:col-span-2 lg:col-span-3 mt-3">
               <div class="text-[13px] font-semibold text-gray-700">{{ t('شمارنده‌ها') }}</div>
               <div class="mt-2 flex flex-wrap gap-2 text-[12px]">
@@ -215,89 +207,97 @@
 </template>
 
 <script setup>
-  /* Uses your Pinia repo & your Tailwind filterable table component */
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useOfficeEmployeeActivityRepository } from '@/stores/OfficeEmployeeActivityRepository';
   import FilterablePrintTable from '../../components/FilterableTable.vue';
   import { useCalendar } from '../../../composables/useCalendar';
   import PeekButton from '../../components/PeekButton.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import { useRouter } from 'vue-router';
+
+  const router = useRouter();
+  function goBack() {
+    router.back();
+  }
+
   const { t, locale } = useI18n();
   const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
   const repo = useOfficeEmployeeActivityRepository();
+
   const peekOpen = ref(false);
   const peekId = ref(null);
   const peekItem = ref(null);
   const peekLoading = ref(false);
 
-  /* =========================
-   IMAGE URL NORMALIZER
-   ========================= */
-  const API_BASE = import.meta.env.VITE_BACKEND_URL?.replace(/\/+$/, '') || window.location.origin;
+  const filters = ref({});
+  // ==============================
+  // IMAGE URL FIX (FRONTEND ONLY)
+  // ==============================
 
-  function toSrc(p) {
-    if (!p) return null;
-    let s = String(p).trim().replace(/\\/g, '/'); // windows -> web slashes
-    s = s.replace(/^public\//, 'storage/'); // normalize "public/..." to "storage/..."
-    if (/^https?:\/\//i.test(s)) return s; // already absolute
-    if (s.startsWith('/')) return API_BASE + s; // "/storage/..."
-    return API_BASE + '/' + s; // "storage/..." (no leading slash)
-  }
-  function hideImgOnError(e) {
-    if (e?.target) e.target.style.display = 'none';
-  }
-
-  /* rows */
-  const rowsActive = computed(() =>
-    (repo.active.items || []).map((r) => ({
-      ...r,
-      // (optional) attach a ready-to-use URL if you prefer: picture_url
-      picture_url: toSrc(r.picture),
-    }))
+  // ⚠️ force backend base (DO NOT fallback to frontend origin)
+  const API_BASE = (import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000').replace(
+    /\/+$/,
+    ''
   );
 
-  /* picture modal */
+  // unwrap row coming from FilterableTable / Peek
+  function unwrapRow(r) {
+    return r?.raw ?? r?.row ?? r;
+  }
+
+  // normalize slashes
+  function normalizeUrl(url) {
+    if (!url) return null;
+    return String(url).trim().replace(/\\/g, '/');
+  }
+
+  // ✅ FINAL IMAGE URL BUILDER
+  function getPhotoUrl(row) {
+    const r = unwrapRow(row);
+    const raw = r?.picture;
+    if (!raw) return null;
+
+    const u = normalizeUrl(raw);
+
+    // already absolute
+    if (/^https?:\/\//i.test(u)) return u;
+
+    // your API returns: "uploads/office-employees/xxx.png"
+    if (u.startsWith('uploads/')) return `${API_BASE}/${u}`;
+    if (u.startsWith('/uploads/')) return `${API_BASE}${u}`;
+
+    // fallback (safe)
+    if (u.startsWith('/')) return `${API_BASE}${u}`;
+    return `${API_BASE}/${u}`;
+  }
+
+  // ⚠️ DO NOT rewrite picture here
+  const rowsActive = computed(() => repo.active.items || []);
+
   const picUrl = ref(null);
   function openPic(url) {
     picUrl.value = url || null;
   }
 
-  /* details modal */
   const selected = ref(null);
-  // replace your openDetails(...)
-  function openDetails(payload) {
-    // unwrap common shapes: { raw }, { row }, or plain row
-    const row = payload && (payload.raw || payload.row) ? payload.raw || payload.row : payload;
 
+  function openDetails(payload) {
+    const row = payload && (payload.raw || payload.row) ? payload.raw || payload.row : payload;
     if (!row || !row.id) return;
 
-    // show something immediately
-    peekItem.value = {
-      ...row,
-      picture: toSrc(row.picture),
-    };
+    peekItem.value = { ...row, picture: getPhotoUrl(row) };
     peekId.value = row.id;
     peekOpen.value = true;
 
-    // then load fresh/full record if needed
     fetchOne(row.id);
   }
 
   async function fetchOne(id) {
     peekLoading.value = true;
     try {
-      // Prefer a dedicated method if you have it:
-      // await repo.fetchOne(id)
-      // const rec = repo.current || repo.one || repo.active.items.find(x => x.id === id)
-
-      // Fallback: try to find in the current list
       let rec = (repo.active.items || []).find((x) => x.id === id);
-
-      // If not found and you have an endpoint, call it here and assign rec:
-      // rec = await repo.fetchById(id)
-
       if (rec) {
-        // (optional) format dates if PeekButton shows raw values
         const fmt = (v) => {
           if (!v) return '—';
           const s = String(v);
@@ -311,7 +311,7 @@
 
         peekItem.value = {
           ...rec,
-          picture: toSrc(rec.picture),
+          picture: getPhotoUrl(rec),
           join_date: fmt(rec.join_date),
           left_date: fmt(rec.left_date),
         };
@@ -327,7 +327,6 @@
     return v === null || v === undefined || v === '' ? '—' : String(v);
   }
 
-  /* column groups + headers */
   const headers = computed(() => [
     { title: t('عکس'), key: 'picture', width: 64 },
     { title: t('نام'), key: 'name', width: 160 },
@@ -341,7 +340,6 @@
     { title: t('اطلاعات'), key: 'informations_count', width: 100 },
     { title: t('اسناد'), key: 'documents_count', width: 90 },
 
-    // extra identity/location/edu columns (table shows many; full set is in details)
     { title: t('نام پدر'), key: 'father_name', width: 140 },
     { title: t('نام پدرکلان'), key: 'grand_father_name', width: 140 },
     { title: t('نام مستعار'), key: 'nick_name', width: 120 },
@@ -380,7 +378,6 @@
     { title: t('یادداشت'), key: 'note', width: 200 },
   ]);
 
-  /* group headers for Row 1 */
   const topGroups = computed(() => [
     { title: t('رسانه'), keys: ['picture'] },
     {
@@ -411,16 +408,9 @@
     },
   ]);
 
-  /* enable dropdowns for all columns (fine for your table; it dedups options) */
   const dropdownKeys = computed(() => headers.value.map((h) => h.key).filter(Boolean));
-
-  /* mark date-like keys (table also auto-detects) */
   const dateKeys = ['join_date', 'left_date'];
 
-  /* filters state (table emits update:filters) */
-  let filters = ref({});
-
-  /* Details dialog field groups (ALL model fields) */
   const fieldGroups = computed(() => [
     { title: t('رسانه'), fields: [{ key: 'picture', label: t('عکس') }] },
     {
@@ -507,7 +497,7 @@
       ],
     },
   ]);
-  // Try to get the formatter from your composable; fall back if missing
+
   let formatForCalendarFn = null;
   try {
     const cal = typeof useCalendar === 'function' ? useCalendar() : null;
@@ -517,7 +507,6 @@
     formatForCalendarFn = null;
   }
 
-  // Plain-JS fallback (YYYY-MM-DD)
   function fallbackFormat(v) {
     if (!v) return '—';
     const s = String(v);
@@ -532,6 +521,7 @@
   function displayDate(v) {
     return formatForCalendarFn ? formatForCalendarFn(v) : fallbackFormat(v);
   }
+
   function reload() {
     if (repo.perPage === 'all') repo.setPage(1);
     repo.fetchCounts();

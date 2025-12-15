@@ -238,14 +238,6 @@
         to: { path: '/app/map-afg' },
         perm: 'map-afg.view',
       },
-
-      {
-        title: t('فعال و غیر فعال'),
-        icon: 'mdi-check',
-        to: { path: '/app/activeandinactiveemployees' },
-        perm: 'activeandinactiveemployees.view',
-      },
-
       {
         title: t('ارتباطی مرکز'),
         icon: 'mdi-menu',

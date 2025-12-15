@@ -55,6 +55,7 @@ return new class extends Migration {
             $table->string('new_study')->nullable();
             $table->string('faculty')->nullable();
             $table->string('nizami')->nullable();
+            $table->string('job_type')->nullable();
             $table->text('gun_knowledge')->nullable();
 
             // Demographic

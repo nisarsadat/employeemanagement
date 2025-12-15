@@ -12,7 +12,7 @@ class OfficeEmployee extends Model
 {
     use HasFactory;
     use HasMapPoint;
-    // ... top of the class
+
     public const ACTIVE   = 'فعال';
     public const INACTIVE = 'غیر فعال';
 
@@ -21,6 +21,8 @@ class OfficeEmployee extends Model
     private const RESOURCE_DATE_COL    = 'resource_saved_date';     // resources table
     private const INFORMATION_DATE_COL = 'information_saved_date';  // information table
 
+    // ✅ ADD THIS: include computed field in JSON
+    protected $appends = ['picture_url'];
 
     protected $fillable = [
         // Media
@@ -69,6 +71,7 @@ class OfficeEmployee extends Model
         'new_study',
         'faculty',
         'nizami',
+        'job_type',
         'gun_knowledge',
 
         // Demographic
@@ -84,6 +87,26 @@ class OfficeEmployee extends Model
         'left_date',
         'note',
     ];
+
+    // ✅ ADD THIS: picture_url accessor (returns FULL URL)
+    public function getPictureUrlAttribute(): ?string
+    {
+        if (!$this->picture) return null;
+
+        $p = str_replace('\\', '/', trim((string) $this->picture));
+
+        // already absolute
+        if (preg_match('/^https?:\/\//i', $p)) return $p;
+
+        // your current DB format: "uploads/...."
+        if (str_starts_with($p, 'uploads/')) return asset($p);
+        if (str_starts_with($p, '/uploads/')) return asset(ltrim($p, '/'));
+
+        // storage patterns if you ever store "public/..." or "office-employees/..."
+        if (str_starts_with($p, 'public/')) $p = substr($p, 7);
+
+        return asset('storage/' . ltrim($p, '/'));
+    }
 
     // ---------- Search ----------
     public function scopeSearch($query, $search)
@@ -106,16 +129,18 @@ class OfficeEmployee extends Model
     // ---------- Relationships ----------
     public function resources()
     {
-        return $this->hasMany(Resource::class, 'office_employee_id' );
+        return $this->hasMany(Resource::class, 'office_employee_id');
     }
+
     public function resource()
-        {
-            // assuming office_employees has a resource_id column
-            return $this->belongsTo(Resource::class, 'resource_id', 'id');
-        }
+    {
+        // assuming office_employees has a resource_id column
+        return $this->belongsTo(Resource::class, 'resource_id', 'id');
+    }
+
     public function informations()
     {
-        return $this->hasMany(Information::class , 'office_employee_id');
+        return $this->hasMany(Information::class, 'office_employee_id');
     }
 
     public function events()
@@ -132,9 +157,13 @@ class OfficeEmployee extends Model
     {
         return $this->hasMany(OfficeEmployeeDocument::class);
     }
-    public function expenses() { return $this->morphMany(Expense::class, 'payee'); }
 
-    // ---------- Activity logic ----------
+    public function expenses()
+    {
+        return $this->morphMany(Expense::class, 'payee');
+    }
+
+    // ---------- Stored activity scopes ----------
     public function scopeActive(Builder $q): Builder
     {
         return $q->where('activity', self::ACTIVE);
@@ -145,31 +174,56 @@ class OfficeEmployee extends Model
         return $q->where('activity', self::INACTIVE);
     }
 
-   // ✅ REPLACE your scopeHasActivitySince with this version
-    public function scopeHasActivitySince(\Illuminate\Database\Eloquent\Builder $q, \Carbon\Carbon $since): \Illuminate\Database\Eloquent\Builder
-    {
-        $eventCol       = self::EVENT_DATE_COL       ?: 'created_at';
-        $resourceCol    = self::RESOURCE_DATE_COL    ?: 'created_at';
-        $informationCol = self::INFORMATION_DATE_COL ?: 'created_at';
+    /* =========================================================
+     | NEW ACTIVITY LOGIC (WEEKLY THRESHOLD ON RESOURCE EVENTS)
+     |
+     | ACTIVE if ANY Resource of this employee has >= 5 Events
+     | within the last 7 days. Else INACTIVE.
+     ========================================================= */
 
-        return $q->where(function ($qq) use ($since, $eventCol, $resourceCol, $informationCol) {
-            $qq->whereHas('events', fn($e) => $e->where($eventCol, '>=', $since))
-            // ❌ removed assignedEvents because there is no event_office_employee_id column
-            ->orWhereHas('resources', fn($r) => $r->where($resourceCol, '>=', $since))
-            ->orWhereHas('informations', fn($i) => $i->where($informationCol, '>=', $since));
+    /**
+     * Query employees who are considered ACTIVE by the weekly rule.
+     *
+     * Rule:
+     * - An employee is active if ANY of their resources has >= $minEvents
+     *   events in the last $days days.
+     *
+     * NOTE: This requires Resource::events() relationship to exist.
+     */
+    public function scopeActiveByWeeklyResourceEvents(
+        Builder $q,
+        int $minEvents = 5,
+        int $days = 7
+    ): Builder {
+        $since    = now()->subDays($days);
+        $eventCol = self::EVENT_DATE_COL ?: 'created_at';
+
+        return $q->whereHas('resources', function ($r) use ($since, $eventCol, $minEvents) {
+            $r->whereHas(
+                'events',
+                fn ($e) => $e->where($eventCol, '>=', $since),
+                '>=',
+                $minEvents
+            );
         });
     }
 
+    /**
+     * Recalculate and STORE activity field using weekly rule.
+     *
+     * - set everyone inactive
+     * - set active those matching weekly rule
+     */
+    public static function refreshStatusesByWeeklyRule(
+        int $minEvents = 5,
+        int $days = 7
+    ): void {
+        // 1) Set all inactive
+        static::query()->update(['activity' => self::INACTIVE]);
 
-    /** Flip to غیر فعال, then set فعال if activity exists in the window */
-    public static function refreshStatusesSince(Carbon $since): void
-    {
+        // 2) Activate those who match rule
         static::query()
-            ->where('activity', '!=', self::INACTIVE)
-            ->update(['activity' => self::INACTIVE]);
-
-        static::query()
-            ->hasActivitySince($since)
+            ->activeByWeeklyResourceEvents($minEvents, $days)
             ->update(['activity' => self::ACTIVE]);
     }
 }

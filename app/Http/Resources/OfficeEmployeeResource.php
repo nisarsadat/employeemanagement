@@ -83,6 +83,7 @@ class OfficeEmployeeResource extends JsonResource
             'new_study'          => $this->new_study,
             'faculty'            => $this->faculty,
             'nizami'             => $this->nizami,
+            'job_type'             => $this->job_type,
             'gun_knowledge'      => $this->gun_knowledge,
 
             // 🔹 Demographic

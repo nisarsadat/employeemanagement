@@ -601,9 +601,18 @@
                 />
               </v-col>
             </v-row>
-
+              <v-col cols="12" md="12">
+                <v-select
+                  v-model="form.job_type"
+                  :items="repo.getJobTypeOptions()"
+                  :label="t('نوعیت وظیفه')"
+                  density="compact"
+                  variant="outlined"
+                  hide-details="auto"
+                />
+              </v-col>
             <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="3">
+              <v-col cols="6" md="6">
                 <v-text-field
                   v-model="form.relegy_study"
                   :label="t('تعلیمات دینی')"
@@ -673,7 +682,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="12">
                 <v-select
                   v-model="form.jahadi_mawaqaf"
                   :items="repo.getJahadiMawqafOptions()"
@@ -1008,6 +1017,7 @@
     new_study: '',
     faculty: '',
     nizami: '',
+    job_type: '',
     gun_knowledge: '',
     history_jahad: '',
     dilgay_mesher: '',
@@ -1230,6 +1240,7 @@
     b.new_study = x.new_study ?? '';
     b.faculty = x.faculty ?? '';
     b.nizami = x.nizami ?? '';
+    b.job_type = x.job_type ?? '';
     b.gun_knowledge = x.gun_knowledge ?? '';
     b.history_jahad = x.history_jahad ?? '';
     b.dilgay_mesher = x.dilgay_mesher ?? '';

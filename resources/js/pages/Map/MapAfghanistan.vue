@@ -1,4 +1,9 @@
 <template>
+  <AppBar title="نقشه">
+    <template #actions>
+      <v-btn icon></v-btn>
+    </template>
+  </AppBar>
   <div class="map-wrap">
     <div ref="mapEl" class="map"></div>
 
@@ -23,7 +28,7 @@
   import AddMapPointDialog from './AddMapPointDialog.vue';
   import { useMapPointsRepository } from '../../stores/MapPointsRepository';
   import { useMapBusStore } from '../../stores/MapBusStore';
-
+  import AppBar from '@/components/AppBar.vue';
   const mapPointsStore = useMapPointsRepository();
   const mapBus = useMapBusStore();
 
@@ -653,16 +658,12 @@
       // ✅ NEW: persist this routed person/place as a DB point,
       // so it always appears on the map (for this session)
       const coordStr =
-        typeof val.coords === 'string'
-          ? val.coords
-          : `${lng.toFixed(6)},${lat.toFixed(6)}`;
+        typeof val.coords === 'string' ? val.coords : `${lng.toFixed(6)},${lat.toFixed(6)}`;
 
       // build a simple key so we don't duplicate the same coord+title
       const mapKey = `${coordStr}::${meta.title || meta.name || ''}`;
 
-      const existing = (dbPointsLocal.value || []).find(
-        (p) => p._mapKey === mapKey
-      );
+      const existing = (dbPointsLocal.value || []).find((p) => p._mapKey === mapKey);
 
       const basePoint = {
         _mapKey: mapKey, // internal only
@@ -741,7 +742,7 @@
 </script>
 
 <style scoped>
-  .map-wrap { 
+  .map-wrap {
     position: relative;
   }
 

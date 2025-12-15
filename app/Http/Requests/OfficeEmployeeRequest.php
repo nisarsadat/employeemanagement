@@ -65,6 +65,7 @@ class OfficeEmployeeRequest extends FormRequest
             'new_study'               => ['nullable','string'],
             'faculty'                 => ['nullable','string'],
             'nizami'                  => ['nullable','string'],
+            'job_type'                  => ['nullable','string'],
             'gun_knowledge'           => ['nullable','string'],
 
             // Demographic

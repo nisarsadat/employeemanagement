@@ -15,6 +15,15 @@ const ZONE_HAWZA_MAP = {
 const JAHADI_MAWQAFA_OPTIONS = ['فرد', 'سرګروف', 'ډلګی مشر', 'محاظ مشر'];
 // === Halat Madani (Marital Status) options ===
 const HALAT_MADANI_OPTIONS = ['مجرد', 'متاهل'];
+const JOB_TYPE_OPTIONS = [
+  'اداری',
+  'اوپراتیفی',
+  'وظیفه یی پریښی',
+  'استفا یی ورکړی',
+  'منفک شوی',
+  'تبدیل شوی',
+  'خدمتی لیږل شوی',
+];
 
 // Build reverse map: Hawza -> Zone
 const HAWZA_ZONE_MAP = Object.entries(ZONE_HAWZA_MAP).reduce((acc, [zone, list]) => {
@@ -135,7 +144,9 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
     getHalatMadaniOptions() {
       return HALAT_MADANI_OPTIONS;
     },
-
+    getJobTypeOptions() {
+      return JOB_TYPE_OPTIONS;
+    },
     toggleRail() {
       this.rail = !this.rail;
     },

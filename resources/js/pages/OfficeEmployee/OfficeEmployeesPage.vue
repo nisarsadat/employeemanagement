@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid \class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
     <AppBar :title="t('کارمندان مدیریت')" :subtitle="t('فهرست و جستجو')">
       <template #actions>
@@ -48,10 +48,10 @@
     </v-container>
 
     <!-- 📊 STATS CARDS -->
-    <v-row class="px-2 mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
-      <!-- Total employees -->
-      <v-col cols="12" md="3" lg="3">
-        <v-card class="stat-card">
+    <v-row class="px-2 mt-2 d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
+      <!-- 1) Total employees -->
+      <v-col cols="12" md="2" lg="2">
+        <v-card class="stat-card" @click="applyJobTypeFilter(null)">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-primary fontfamily">
@@ -68,58 +68,77 @@
         </v-card>
       </v-col>
 
-      <!-- With documents -->
-      <v-col cols="12" md="3" lg="3">
-        <v-card class="stat-card">
+      <!-- 2) اداری -->
+      <v-col cols="12" md="2" lg="2">
+        <v-card class="stat-card" @click="applyJobTypeFilter('اداری')">
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-indigo fontfamily">
+                {{ edariCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('اداری') }}
+              </div>
+            </div>
+            <v-avatar color="indigo" variant="tonal" size="48">
+              <v-icon color="indigo">mdi-briefcase-account</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- 3) اوپراتیفی -->
+      <v-col cols="12" md="2" lg="2">
+        <v-card class="stat-card" @click="applyJobTypeFilter('اوپراتیفی')">
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-cyan fontfamily">
+                {{ operatifiCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('اوپراتیفی') }}
+              </div>
+            </div>
+            <v-avatar color="cyan" variant="tonal" size="48">
+              <v-icon color="cyan">mdi-shield-account</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- 4) Active employees (click -> /app/activeemployees) -->
+      <v-col cols="12" md="2" lg="2">
+        <v-card class="stat-card" @click="goActiveEmployees">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-green fontfamily">
-                {{ withDocumentsCount }}
+                {{ activeEmployeesCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('دارای اسناد ضمیمه') }}
+                {{ t('کارمندان فعال') }}
               </div>
             </div>
             <v-avatar color="green" variant="tonal" size="48">
-              <v-icon color="green">mdi-paperclip</v-icon>
+              <v-icon color="green">mdi-account-check</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <!-- With picture -->
-      <v-col cols="12" md="3" lg="3">
-        <v-card class="stat-card">
+      <!-- 5) Inactive employees (click -> /app/inactiveemployees) -->
+      <v-col cols="12" md="2" lg="2">
+        <v-card class="stat-card" @click="goInactiveEmployees">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-purple fontfamily">
-                {{ withPictureCount }}
+              <div class="text-h5 font-weight-bold text-red fontfamily">
+                {{ inactiveEmployeesCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('دارای عکس') }}
+                {{ t('کارمندان غیر فعال') }}
               </div>
             </div>
-            <v-avatar color="purple" variant="tonal" size="48">
-              <v-icon color="purple">mdi-account-box</v-icon>
-            </v-avatar>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- Today added -->
-      <v-col cols="12" md="3" lg="3">
-        <v-card class="stat-card">
-          <v-card-text class="pa-4 d-flex align-center justify-space-between">
-            <div>
-              <div class="text-h5 font-weight-bold text-amber fontfamily">
-                {{ todayAddedCount }}
-              </div>
-              <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('امروز اضافه شده') }}
-              </div>
-            </div>
-            <v-avatar color="amber" variant="tonal" size="48">
-              <v-icon color="amber">mdi-calendar-today</v-icon>
+            <v-avatar color="red" variant="tonal" size="48">
+              <v-icon color="red">mdi-account-off</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
@@ -381,7 +400,6 @@
 
   function normalizeUrl(url) {
     if (!url) return null;
-    // fix duplicate /storage/storage/
     return url.replace('/storage/storage/', '/storage/');
   }
 
@@ -393,34 +411,31 @@
 
   /* ===== Data & stats ===== */
   const rowsFT = computed(() => repo.Employees || []);
-
   const totalCount = computed(() => rowsFT.value.length);
 
-  const withDocumentsCount = computed(
-    () => rowsFT.value.filter((r) => Array.isArray(r.documents) && r.documents.length > 0).length
+  const edariCount = computed(
+    () => rowsFT.value.filter((r) => String(r.job_type || '').trim() === 'اداری').length
   );
 
-  const withPictureCount = computed(() => rowsFT.value.filter((r) => !!getPhotoUrl(r)).length);
+  const operatifiCount = computed(
+    () => rowsFT.value.filter((r) => String(r.job_type || '').trim() === 'اوپراتیفی').length
+  );
 
-  function isSameDate(dateValue, today) {
-    if (!dateValue) return false;
-    const d = new Date(dateValue);
-    if (Number.isNaN(d.getTime())) return false;
-    return (
-      d.getFullYear() === today.getFullYear() &&
-      d.getMonth() === today.getMonth() &&
-      d.getDate() === today.getDate()
-    );
-  }
+  const activeEmployeesCount = computed(
+    () => rowsFT.value.filter((r) => String(r.activity || '').trim() === 'فعال').length
+  );
 
-  const todayAddedCount = computed(() => {
-    const today = new Date();
-    return rowsFT.value.filter((r) => isSameDate(r.created_at, today)).length;
-  });
+  const inactiveEmployeesCount = computed(
+    () => rowsFT.value.filter((r) => String(r.activity || '').trim() === 'غیر فعال').length
+  );
 
   /* ===== Headers for FilterableTable ===== */
   const headersFT = computed(() => [
     { title: t('تصویر'), key: 'picture', sortable: false },
+    // Counts
+    { title: t('اطلاعات'), key: 'informations_count', sortable: false },
+    { title: t('حوادث'), key: 'events_count', sortable: false },
+    { title: t('منابع'), key: 'resources_count', sortable: false },
 
     // Identity
     { title: t('نام'), key: 'name' },
@@ -430,6 +445,7 @@
     { title: t('کود نمبر'), key: 'code_number' },
 
     // Rank/levels
+    { title: t('نوعیت وظیفه'), key: 'job_type' },
     { title: t('بست'), key: 'bast' },
     { title: t('رتبه/سطح'), key: 'level' },
 
@@ -477,14 +493,23 @@
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('ملاحظات'), key: 'note', width: 400 },
 
-    // Counts
-    { title: t('اطلاعات'), key: 'informations_count', sortable: false },
-    { title: t('حوادث'), key: 'events_count', sortable: false },
-    { title: t('منابع'), key: 'resources_count', sortable: false },
-
     // Map
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);
+  function applyJobTypeFilter(val) {
+    if (!val) {
+      // Total: clear job_type filter
+      const next = { ...(filters.value || {}) };
+      delete next.job_type;
+      filters.value = next;
+      return;
+    }
+
+    filters.value = {
+      ...(filters.value || {}),
+      job_type: val, // must match headersFT key: 'job_type'
+    };
+  }
 
   /* ===== Top filter groups ===== */
   const topGroups = computed(() => [
@@ -631,7 +656,6 @@
     router.push(`/app/officeemployeeform/${id}`);
   }
 
-  // 🔗 Go to informations for this employee
   function goEmployeeInformations(rowPayload) {
     const row = getRow(rowPayload);
     router.push({
@@ -640,7 +664,6 @@
     });
   }
 
-  // 🔗 Go to events for this employee
   function goEmployeeEvents(rowPayload) {
     const row = getRow(rowPayload);
     router.push({
@@ -649,7 +672,6 @@
     });
   }
 
-  // 🔗 Go to resources for this employee
   function goEmployeeResources(rowPayload) {
     const row = getRow(rowPayload);
     router.push({
@@ -658,7 +680,6 @@
     });
   }
 
-  /* ===== Download documents ZIP ===== */
   async function downloadEmployeeDocs(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
@@ -714,6 +735,14 @@
     }
   }
 
+  function goActiveEmployees() {
+    router.push('/app/activeemployees');
+  }
+
+  function goInactiveEmployees() {
+    router.push('/app/inactiveemployees');
+  }
+
   /* ===== Init ===== */
   onMounted(async () => {
     await fetchAll();
@@ -755,6 +784,7 @@
   .cursor-pointer {
     cursor: pointer;
   }
+
   .fontfamily {
     font-family: var(--app-font) !important;
   }
