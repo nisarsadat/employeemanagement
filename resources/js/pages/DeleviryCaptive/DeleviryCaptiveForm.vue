@@ -198,7 +198,9 @@
                       >
                         <v-img
                           v-if="form.previewUrl || form.picture_url || form.picture"
-                          :src="normalizePicture(form.previewUrl || form.picture_url || form.picture)"
+                          :src="
+                            normalizePicture(form.previewUrl || form.picture_url || form.picture)
+                          "
                           cover
                         />
                         <v-icon v-else size="36" color="grey">mdi-account</v-icon>
@@ -471,9 +473,7 @@
                   :error-messages="getErrorMessages('now_village')"
                 />
               </v-col>
-            </v-row>
 
-            <v-row class="px-3 pb-3 pt-0">
               <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.Province_addr"
@@ -485,7 +485,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="8">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.coordinates"
                   :label="t('کوردینات محل دستگیری / آدرس')"
@@ -493,6 +493,70 @@
                   variant="outlined"
                   :error="hasError('coordinates')"
                   :error-messages="getErrorMessages('coordinates')"
+                />
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-select
+                  v-model="form.captive_reason"
+                  :items="repo.captiveResons"
+                  item-title="title"
+                  item-value="value"
+                  :label="t('علت اسارت')"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  :loading="repo.loadingCaptiveReasons"
+                  :error="hasError('captive_reason')"
+                  :error-messages="getErrorMessages('captive_reason')"
+                />
+              </v-col>
+
+              <!-- Maznonyat type -->
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="form.maznonyat_type"
+                  :label="t('نوع مظنونیت')"
+                  variant="outlined"
+                  density="compact"
+                  :error="hasError('maznonyat_type')"
+                  :error-messages="getErrorMessages('maznonyat_type')"
+                />
+              </v-col>
+
+              <!-- Taslimi warkawonky person -->
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="form.taslimi_warkawonky_person"
+                  :label="t('تسلیمی ورکونکی شخص')"
+                  variant="outlined"
+                  density="compact"
+                  :error="hasError('taslimi_warkawonky_person')"
+                  :error-messages="getErrorMessages('taslimi_warkawonky_person')"
+                />
+              </v-col>
+
+              <!-- Taslimi akhistonky person -->
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="form.taslimi_akhistonky_person"
+                  :label="t('تسلیمی اخیستونکی شخص')"
+                  variant="outlined"
+                  density="compact"
+                  :error="hasError('taslimi_akhistonky_person')"
+                  :error-messages="getErrorMessages('taslimi_akhistonky_person')"
+                />
+              </v-col>
+
+              <!-- Taslimi akhistonky organ -->
+              <v-col cols="12" md="12">
+                <v-text-field
+                  v-model="form.taslimi_akhistonky_organ"
+                  :label="t('تسلیمی اخیستونکی ارگان')"
+                  variant="outlined"
+                  density="compact"
+                  :error="hasError('taslimi_akhistonky_organ')"
+                  :error-messages="getErrorMessages('taslimi_akhistonky_organ')"
                 />
               </v-col>
             </v-row>
@@ -549,7 +613,7 @@
             </v-row>
 
             <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.captive_hour"
                   :label="t('ساعت دستگیری')"
@@ -574,22 +638,15 @@
                 </span>
               </div>
               <span class="section-subtitle text-caption">
-                {{ t('نوعیت مظنونیت، حالت دستگیری، وسایل گرفته شده، ملاحظات و اسناد را درج کنید.') }}
+                {{
+                  t('نوعیت مظنونیت، حالت دستگیری، وسایل گرفته شده، ملاحظات و اسناد را درج کنید.')
+                }}
               </span>
             </div>
             <v-divider />
 
             <v-row class="pa-3">
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.suspect_type"
-                  :label="t('نوعیت مظنونیت')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('suspect_type')"
-                  :error-messages="getErrorMessages('suspect_type')"
-                />
-              </v-col>
+              
 
               <v-col cols="12" md="4">
                 <v-text-field
@@ -775,806 +832,808 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
+  import { ref, computed, watch, onMounted, nextTick } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
 
-import AppBar from '../../components/AppBar.vue';
-import DateInput from '../../components/DateInput.vue';
-import { useDatabaseRepository } from '../../stores/DatabaseRepository';
-import { useLoginRepository } from '../../stores/LoginRepository';
+  import AppBar from '../../components/AppBar.vue';
+  import DateInput from '../../components/DateInput.vue';
+  import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+  import { useLoginRepository } from '../../stores/LoginRepository';
 
-const repo = useDatabaseRepository();
-const auth = useLoginRepository();
-const route = useRoute();
-const router = useRouter();
-const { t, locale } = useI18n();
+  const repo = useDatabaseRepository();
+  const auth = useLoginRepository();
+  const route = useRoute();
+  const router = useRouter();
+  const { t, locale } = useI18n();
 
-/* ===== Direction ===== */
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (newLocale) => {
-  isRtl.value = newLocale === 'fa';
-});
+  /* ===== Direction ===== */
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (newLocale) => {
+    isRtl.value = newLocale === 'fa';
+  });
 
-/* ===== ROUTE / MODE ===== */
-const idParam = computed(() => route.params.id);
-const isEdit = computed(() => !!idParam.value);
+  /* ===== ROUTE / MODE ===== */
+  const idParam = computed(() => route.params.id);
+  const isEdit = computed(() => !!idParam.value);
 
-/* ===== FORM / STATE ===== */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* ===== FORM / STATE ===== */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
 
-const previewOpen = ref(false);
-const previewSrc = ref(null);
-const pictureInput = ref(null);
-const pictureFile = ref(null); // new image file
-const pictureChanged = ref(false); // track if user changed picture
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
+  const pictureInput = ref(null);
+  const pictureFile = ref(null); // new image file
+  const pictureChanged = ref(false); // track if user changed picture
 
-function showErrorMessage(message) {
-  errorMessage.value = message;
-  showError.value = true;
-}
-function showSuccessMessage(message) {
-  successMessage.value = message;
-  showSuccess.value = true;
-}
-
-/* ===== BACKEND ERRORS ===== */
-const backendErrors = ref({});
-function setBackendErrors(errors) {
-  backendErrors.value = errors || {};
-}
-function clearBackendErrors() {
-  backendErrors.value = {};
-}
-function hasError(field) {
-  return !!backendErrors.value?.[field];
-}
-function getErrorMessages(field) {
-  return backendErrors.value?.[field] ?? [];
-}
-
-/* ===== FORM MODEL ===== */
-const blankForm = () => ({
-  id: null,
-
-  // media
-  picture: null,
-  picture_url: null,
-  previewUrl: null,
-
-  // identity & personal
-  name: '',
-  father_name: '',
-  grand_father_name: '',
-  nickname: '',
-  tazkira: '',
-  age: '',
-  phone_number: '',
-  language: '',
-  scientific_level: '',
-  halat_madani: '',
-  criminal_history: '',
-  old_job: '',
-  new_job: '',
-
-  // addresses
-  main_province: '',
-  main_district: '',
-  main_village: '',
-  now_province: '',
-  now_district: '',
-  now_village: '',
-  Province_addr: '',
-  coordinates: '',
-
-  // captive details
-  captive_place: '',
-  captive_marja: '',
-  captive_date: '',
-  captive_hour: '',
-
-  // suspect / evidence / notes
-  suspect_type: '',
-  captive_halat: '',
-  suspect_tools: '',
-  notes: '',
-
-  // docs
-  existingDocs: [],
-  _newDocs: [],
-  removed_document_ids: [],
-});
-
-const form = ref(blankForm());
-
-/* ===== RULES ===== */
-const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
-  phone: (v) =>
-    !v || /^(\+?\d{7,15})$/.test(String(v)) || t('شماره تماس نامعتبر است'),
-  ageRange: (v) => {
-    if (v === '' || v === null || v === undefined) return true;
-    const n = Number(v);
-    if (Number.isNaN(n)) return t('عمر باید عدد باشد');
-    if (n < 0 || n > 200) return t('عمر باید بین ۰ تا ۲۰۰ باشد');
-    return true;
-  },
-};
-
-/* ===== DOCS ===== */
-const docsInput = ref(null);
-
-function triggerDocs() {
-  docsInput.value?.click();
-}
-
-function onPickDocs(e) {
-  const files = Array.from(e.target.files || []);
-  form.value._newDocs = files;
-  if (docsInput.value) docsInput.value.value = '';
-}
-
-function removeNewDocAt(index) {
-  if (!Array.isArray(form.value._newDocs)) return;
-  form.value._newDocs.splice(index, 1);
-  if (docsInput.value) docsInput.value.value = '';
-}
-
-function shortName(name = '') {
-  if (name.length <= 18) return name;
-  const dot = name.lastIndexOf('.');
-  if (dot === -1) return name.slice(0, 15) + '…';
-  const ext = name.slice(dot);
-  const base = name.slice(0, 15);
-  return `${base}…${ext}`;
-}
-
-function openDoc(url) {
-  if (!url) return;
-  window.open(url, '_blank');
-}
-
-function markDocForRemoval(doc) {
-  if (!doc?.id) return;
-  if (!Array.isArray(form.value.removed_document_ids)) {
-    form.value.removed_document_ids = [];
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
   }
-  if (!form.value.removed_document_ids.includes(doc.id)) {
-    form.value.removed_document_ids.push(doc.id);
+  function showSuccessMessage(message) {
+    successMessage.value = message;
+    showSuccess.value = true;
   }
-  form.value.existingDocs = (form.value.existingDocs || []).filter(
-    (d) => d.id !== doc.id
-  );
-}
 
-/* ===== PICTURE ===== */
-function triggerPicture() {
-  pictureInput.value?.click();
-}
+  /* ===== BACKEND ERRORS ===== */
+  const backendErrors = ref({});
+  function setBackendErrors(errors) {
+    backendErrors.value = errors || {};
+  }
+  function clearBackendErrors() {
+    backendErrors.value = {};
+  }
+  function hasError(field) {
+    return !!backendErrors.value?.[field];
+  }
+  function getErrorMessages(field) {
+    return backendErrors.value?.[field] ?? [];
+  }
 
-function onPickPicture(e) {
-  const file = e.target.files?.[0] ?? null;
-  pictureFile.value = file;
-  pictureChanged.value = !!file;
+  /* ===== FORM MODEL ===== */
+  const blankForm = () => ({
+    id: null,
 
-  if (file) {
-    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(form.value.previewUrl);
+    // media
+    picture: null,
+    picture_url: null,
+    previewUrl: null,
+
+    // identity & personal
+    name: '',
+    father_name: '',
+    grand_father_name: '',
+    nickname: '',
+    tazkira: '',
+    age: '',
+    phone_number: '',
+    language: '',
+    scientific_level: '',
+    halat_madani: '',
+    criminal_history: '',
+    old_job: '',
+    new_job: '',
+    captive_reason: '',
+    taslimi_warkawonky_person: '',
+    taslimi_akhistonky_person: '',
+    taslimi_akhistonky_organ: '',
+    maznonyat_type: '',
+
+    // addresses
+    main_province: '',
+    main_district: '',
+    main_village: '',
+    now_province: '',
+    now_district: '',
+    now_village: '',
+    Province_addr: '',
+    coordinates: '',
+
+    // captive details
+    captive_place: '',
+    captive_marja: '',
+    captive_date: '',
+    captive_hour: '',
+
+    // suspect / evidence / notes
+    captive_halat: '',
+    suspect_tools: '',
+    notes: '',
+
+    // docs
+    existingDocs: [],
+    _newDocs: [],
+    removed_document_ids: [],
+  });
+
+  const form = ref(blankForm());
+
+  /* ===== RULES ===== */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+    phone: (v) => !v || /^(\+?\d{7,15})$/.test(String(v)) || t('شماره تماس نامعتبر است'),
+    ageRange: (v) => {
+      if (v === '' || v === null || v === undefined) return true;
+      const n = Number(v);
+      if (Number.isNaN(n)) return t('عمر باید عدد باشد');
+      if (n < 0 || n > 200) return t('عمر باید بین ۰ تا ۲۰۰ باشد');
+      return true;
+    },
+  };
+
+  /* ===== DOCS ===== */
+  const docsInput = ref(null);
+
+  function triggerDocs() {
+    docsInput.value?.click();
+  }
+
+  function onPickDocs(e) {
+    const files = Array.from(e.target.files || []);
+    form.value._newDocs = files;
+    if (docsInput.value) docsInput.value.value = '';
+  }
+
+  function removeNewDocAt(index) {
+    if (!Array.isArray(form.value._newDocs)) return;
+    form.value._newDocs.splice(index, 1);
+    if (docsInput.value) docsInput.value.value = '';
+  }
+
+  function shortName(name = '') {
+    if (name.length <= 18) return name;
+    const dot = name.lastIndexOf('.');
+    if (dot === -1) return name.slice(0, 15) + '…';
+    const ext = name.slice(dot);
+    const base = name.slice(0, 15);
+    return `${base}…${ext}`;
+  }
+
+  function openDoc(url) {
+    if (!url) return;
+    window.open(url, '_blank');
+  }
+
+  function markDocForRemoval(doc) {
+    if (!doc?.id) return;
+    if (!Array.isArray(form.value.removed_document_ids)) {
+      form.value.removed_document_ids = [];
     }
-    form.value.previewUrl = URL.createObjectURL(file);
-  } else {
-    form.value.previewUrl = form.value.picture_url || form.value.picture || null;
-  }
-  if (e.target) e.target.value = '';
-}
-
-function normalizePicture(src) {
-  if (!src) return null;
-
-  let clean = String(src).trim();
-
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) {
-    return clean;
+    if (!form.value.removed_document_ids.includes(doc.id)) {
+      form.value.removed_document_ids.push(doc.id);
+    }
+    form.value.existingDocs = (form.value.existingDocs || []).filter((d) => d.id !== doc.id);
   }
 
-  clean = clean.replace(/\\\//g, '/');
-
-  if (clean.startsWith('http://') || clean.startsWith('https://')) {
-    return clean;
+  /* ===== PICTURE ===== */
+  function triggerPicture() {
+    pictureInput.value?.click();
   }
 
-  if (clean.startsWith('/')) {
-    return clean;
+  function onPickPicture(e) {
+    const file = e.target.files?.[0] ?? null;
+    pictureFile.value = file;
+    pictureChanged.value = !!file;
+
+    if (file) {
+      if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(form.value.previewUrl);
+      }
+      form.value.previewUrl = URL.createObjectURL(file);
+    } else {
+      form.value.previewUrl = form.value.picture_url || form.value.picture || null;
+    }
+    if (e.target) e.target.value = '';
   }
 
-  return '/' + clean.replace(/^\/+/, '');
-}
+  function normalizePicture(src) {
+    if (!src) return null;
 
-function openPreview(src) {
-  const base =
-    src || form.value.previewUrl || form.value.picture_url || form.value.picture;
-  const normalized = normalizePicture(base);
+    let clean = String(src).trim();
 
-  previewSrc.value = normalized;
-  if (previewSrc.value) {
-    previewOpen.value = true;
-  }
-}
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) {
+      return clean;
+    }
 
-/* ===== MAP FROM API ===== */
-function mapFromApi(payload = {}) {
-  const x = payload.data ?? payload;
+    clean = clean.replace(/\\\//g, '/');
 
-  const b = blankForm();
-  b.id = x.id ?? null;
+    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+      return clean;
+    }
 
-  const fullUrl = x.picture ?? null;
-  b.picture = x.picture ?? null;
-  b.picture_url = fullUrl;
-  b.previewUrl = fullUrl;
+    if (clean.startsWith('/')) {
+      return clean;
+    }
 
-  // identity
-  b.name = x.name ?? '';
-  b.father_name = x.father_name ?? '';
-  b.grand_father_name = x.grand_father_name ?? '';
-  b.nickname = x.nickname ?? '';
-  b.tazkira = x.tazkira ?? '';
-  b.age = x.age ?? '';
-  b.phone_number = x.phone_number ?? '';
-  b.language = x.language ?? '';
-  b.scientific_level = x.scientific_level ?? '';
-  b.halat_madani = x.halat_madani ?? '';
-  b.criminal_history = x.criminal_history ?? '';
-  b.old_job = x.old_job ?? '';
-  b.new_job = x.new_job ?? '';
-
-  // addresses
-  b.main_province = x.main_province ?? '';
-  b.main_district = x.main_district ?? '';
-  b.main_village = x.main_village ?? '';
-  b.now_province = x.now_province ?? '';
-  b.now_district = x.now_district ?? '';
-  b.now_village = x.now_village ?? '';
-  b.Province_addr = x.Province_addr ?? '';
-  b.coordinates = x.coordinates ?? '';
-
-  // captive details
-  b.captive_place = x.captive_place ?? '';
-  b.captive_marja = x.captive_marja ?? '';
-  b.captive_date = x.captive_date ?? '';
-  b.captive_hour = x.captive_hour ?? '';
-
-  // suspect / evidence / notes
-  b.suspect_type = x.suspect_type ?? '';
-  b.captive_halat = x.captive_halat ?? '';
-  b.suspect_tools = x.suspect_tools ?? '';
-  b.notes = x.notes ?? '';
-
-  // docs
-  b.existingDocs = Array.isArray(x.documents) ? x.documents : [];
-
-  return b;
-}
-
-async function loadForEdit() {
-  if (!isEdit.value) {
-    form.value = blankForm();
-    pictureFile.value = null;
-    pictureChanged.value = false;
-    return;
+    return '/' + clean.replace(/^\/+/, '');
   }
 
-  try {
-    if (typeof repo.FetchCaptiveDeliveryData === 'function') {
-      await repo.FetchCaptiveDeliveryData(idParam.value);
-      const raw = Array.isArray(repo.CaptiveDelivery)
-        ? repo.CaptiveDelivery[0]
-        : repo.CaptiveDelivery || {};
-      const mapped = mapFromApi(raw);
-      form.value = { ...mapped, _newDocs: [], removed_document_ids: [] };
+  function openPreview(src) {
+    const base = src || form.value.previewUrl || form.value.picture_url || form.value.picture;
+    const normalized = normalizePicture(base);
+
+    previewSrc.value = normalized;
+    if (previewSrc.value) {
+      previewOpen.value = true;
+    }
+  }
+
+  /* ===== MAP FROM API ===== */
+  function mapFromApi(payload = {}) {
+    const x = payload.data ?? payload;
+
+    const b = blankForm();
+    b.id = x.id ?? null;
+
+    const fullUrl = x.picture ?? null;
+    b.picture = x.picture ?? null;
+    b.picture_url = fullUrl;
+    b.previewUrl = fullUrl;
+
+    // identity
+    b.name = x.name ?? '';
+    b.father_name = x.father_name ?? '';
+    b.grand_father_name = x.grand_father_name ?? '';
+    b.nickname = x.nickname ?? '';
+    b.tazkira = x.tazkira ?? '';
+    b.age = x.age ?? '';
+    b.phone_number = x.phone_number ?? '';
+    b.language = x.language ?? '';
+    b.scientific_level = x.scientific_level ?? '';
+    b.halat_madani = x.halat_madani ?? '';
+    b.criminal_history = x.criminal_history ?? '';
+    b.old_job = x.old_job ?? '';
+    b.new_job = x.new_job ?? '';
+
+    // addresses
+    b.main_province = x.main_province ?? '';
+    b.main_district = x.main_district ?? '';
+    b.main_village = x.main_village ?? '';
+    b.now_province = x.now_province ?? '';
+    b.now_district = x.now_district ?? '';
+    b.now_village = x.now_village ?? '';
+    b.Province_addr = x.Province_addr ?? '';
+    b.coordinates = x.coordinates ?? '';
+    b.captive_reason = x.captive_reason ?? '';
+    b.taslimi_warkawonky_person = x.taslimi_warkawonky_person ?? '';
+    b.taslimi_akhistonky_person = x.taslimi_akhistonky_person ?? '';
+    b.taslimi_akhistonky_organ = x.taslimi_akhistonky_organ ?? '';
+    b.maznonyat_type = x.maznonyat_type ?? '';
+
+    // captive details
+    b.captive_place = x.captive_place ?? '';
+    b.captive_marja = x.captive_marja ?? '';
+    b.captive_date = x.captive_date ?? '';
+    b.captive_hour = x.captive_hour ?? '';
+
+    // suspect / evidence / notes
+    b.captive_halat = x.captive_halat ?? '';
+    b.suspect_tools = x.suspect_tools ?? '';
+    b.notes = x.notes ?? '';
+
+    // docs
+    b.existingDocs = Array.isArray(x.documents) ? x.documents : [];
+
+    return b;
+  }
+
+  async function loadForEdit() {
+    if (!isEdit.value) {
+      form.value = blankForm();
       pictureFile.value = null;
       pictureChanged.value = false;
+      return;
     }
-  } catch (e) {
-    console.error('loadForEdit error', e);
-    showErrorMessage(t('خطا در دریافت معلومات زندانی تسلیم شده'));
-  }
-}
 
-/* ===== FORM DATA HELPERS ===== */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
-  });
-  return fd;
-}
-
-function buildCreateFormData() {
-  const payload = { ...form.value };
-
-  delete payload.previewUrl;
-  delete payload.picture_url;
-  delete payload.existingDocs;
-  delete payload._newDocs;
-  delete payload.removed_document_ids;
-
-  const fd = toFormData(payload);
-
-  if (pictureFile.value) {
-    fd.append('picture', pictureFile.value);
-  }
-
-  (form.value._newDocs || []).forEach((file) => {
-    fd.append('documents[]', file);
-  });
-
-  return fd;
-}
-
-function buildUpdateFormData() {
-  const payload = { ...form.value };
-  const removed = payload.removed_document_ids || [];
-
-  delete payload.previewUrl;
-  delete payload.picture_url;
-  delete payload.existingDocs;
-  delete payload._newDocs;
-  delete payload.removed_document_ids;
-  delete payload.picture;
-
-  const fd = toFormData(payload);
-
-  if (pictureChanged.value && pictureFile.value) {
-    fd.append('picture', pictureFile.value);
-    if (form.value.picture && typeof form.value.picture === 'string') {
-      fd.append('old_picture', form.value.picture);
-    }
-  }
-
-  (form.value._newDocs || []).forEach((file) => {
-    fd.append('documents[]', file);
-  });
-
-  removed.forEach((id) => {
-    fd.append('removed_document_ids[]', id);
-  });
-
-  return fd;
-}
-
-/* ===== SUBMIT ===== */
-async function onSubmit() {
-  clearBackendErrors();
-
-  const f = formRef.value;
-  if (!f) return;
-
-  const { valid } = await f.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
-  }
-
-  if (!form.value.name?.trim()) {
-    showErrorMessage(t('نام الزامی است'));
-    return;
-  }
-
-  saving.value = true;
-
-  try {
-    if (!isEdit.value) {
-      const fd = buildCreateFormData();
-      const created = await repo.CreateCaptiveDelivery(fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
-
-      if (created?.id) {
-        showSuccessMessage(t('زندانی تسلیم شده موفقانه ثبت شد'));
-        router.push({ path: '/app/delevirycaptive' }).catch(() => {});
-      } else {
-        showErrorMessage(t('ثبت معلومات ناکام شد'));
+    try {
+      if (typeof repo.FetchCaptiveDeliveryData === 'function') {
+        await repo.FetchCaptiveDeliveryData(idParam.value);
+        const raw = Array.isArray(repo.CaptiveDelivery)
+          ? repo.CaptiveDelivery[0]
+          : repo.CaptiveDelivery || {};
+        const mapped = mapFromApi(raw);
+        form.value = { ...mapped, _newDocs: [], removed_document_ids: [] };
+        pictureFile.value = null;
+        pictureChanged.value = false;
       }
-    } else {
-      const fd = buildUpdateFormData();
-      const updated = await repo
-        .UpdateCaptiveDelivery(form.value.id, fd)
-        .catch((e) => {
+    } catch (e) {
+      console.error('loadForEdit error', e);
+      showErrorMessage(t('خطا در دریافت معلومات زندانی تسلیم شده'));
+    }
+  }
+
+  /* ===== FORM DATA HELPERS ===== */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  function buildCreateFormData() {
+    const payload = { ...form.value };
+
+    delete payload.previewUrl;
+    delete payload.picture_url;
+    delete payload.existingDocs;
+    delete payload._newDocs;
+    delete payload.removed_document_ids;
+
+    const fd = toFormData(payload);
+
+    if (pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+
+    (form.value._newDocs || []).forEach((file) => {
+      fd.append('documents[]', file);
+    });
+
+    return fd;
+  }
+
+  function buildUpdateFormData() {
+    const payload = { ...form.value };
+    const removed = payload.removed_document_ids || [];
+
+    delete payload.previewUrl;
+    delete payload.picture_url;
+    delete payload.existingDocs;
+    delete payload._newDocs;
+    delete payload.removed_document_ids;
+    delete payload.picture;
+
+    const fd = toFormData(payload);
+
+    if (pictureChanged.value && pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+      if (form.value.picture && typeof form.value.picture === 'string') {
+        fd.append('old_picture', form.value.picture);
+      }
+    }
+
+    (form.value._newDocs || []).forEach((file) => {
+      fd.append('documents[]', file);
+    });
+
+    removed.forEach((id) => {
+      fd.append('removed_document_ids[]', id);
+    });
+
+    return fd;
+  }
+
+  /* ===== SUBMIT ===== */
+  async function onSubmit() {
+    clearBackendErrors();
+
+    const f = formRef.value;
+    if (!f) return;
+
+    const { valid } = await f.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+
+    if (!form.value.name?.trim()) {
+      showErrorMessage(t('نام الزامی است'));
+      return;
+    }
+
+    saving.value = true;
+
+    try {
+      if (!isEdit.value) {
+        const fd = buildCreateFormData();
+        const created = await repo.CreateCaptiveDelivery(fd).catch((e) => {
           if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
           return null;
         });
 
-      if (updated?.id) {
-        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-        router.push({ path: '/app/delevirycaptive' }).catch(() => {});
+        if (created?.id) {
+          showSuccessMessage(t('زندانی تسلیم شده موفقانه ثبت شد'));
+          router.push({ path: '/app/delevirycaptive' }).catch(() => {});
+        } else {
+          showErrorMessage(t('ثبت معلومات ناکام شد'));
+        }
       } else {
-        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        const fd = buildUpdateFormData();
+        const updated = await repo.UpdateCaptiveDelivery(form.value.id, fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (updated?.id) {
+          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+          router.push({ path: '/app/delevirycaptive' }).catch(() => {});
+        } else {
+          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        }
       }
+    } catch (e) {
+      console.error('onSubmit error', e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      saving.value = false;
     }
-  } catch (e) {
-    console.error('onSubmit error', e);
-    showErrorMessage(t('خطا در ذخیره اطلاعات'));
-  } finally {
-    saving.value = false;
   }
-}
 
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-    document.querySelector('.v-messages__message');
-  if (first) {
-    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = first.querySelector('input, textarea, .v-field__input');
-    if (input && typeof input.focus === 'function') input.focus();
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
   }
-}
 
-/* ===== RESET & NAVIGATION ===== */
-function resetForm() {
-  if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-    URL.revokeObjectURL(form.value.previewUrl);
+  /* ===== RESET & NAVIGATION ===== */
+  function resetForm() {
+    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(form.value.previewUrl);
+    }
+    form.value = blankForm();
+    pictureFile.value = null;
+    pictureChanged.value = false;
+    formRef.value?.resetValidation?.();
+    clearBackendErrors();
+    showSuccessMessage(t('ورودی‌ها پاک شد'));
   }
-  form.value = blankForm();
-  pictureFile.value = null;
-  pictureChanged.value = false;
-  formRef.value?.resetValidation?.();
-  clearBackendErrors();
-  showSuccessMessage(t('ورودی‌ها پاک شد'));
-}
 
-function goBack() {
-  router.back();
-}
+  function goBack() {
+    router.back();
+  }
 
-/* ===== INIT ===== */
-onMounted(async () => {
-  await loadForEdit();
-});
+  /* ===== INIT ===== */
+  onMounted(async () => {
+    await loadForEdit();
+  });
 
-/* ===== STEPPER LOGIC ===== */
-const step1Complete = computed(() => !!form.value.name?.trim());
-const step2Complete = computed(
-  () =>
-    !!form.value.main_province?.trim() &&
-    !!form.value.main_district?.trim() &&
-    !!form.value.main_village?.trim()
-);
-const step3Complete = computed(
-  () => !!form.value.captive_place?.trim() && !!form.value.captive_date?.trim()
-);
-const step4Complete = computed(
-  () =>
-    (form.value._newDocs?.length || 0) > 0 ||
-    (form.value.existingDocs?.length || 0) > 0 ||
-    !!form.value.suspect_type?.trim() ||
-    !!form.value.notes?.trim()
-);
+  /* ===== STEPPER LOGIC ===== */
+  const step1Complete = computed(() => !!form.value.name?.trim());
+  const step2Complete = computed(
+    () =>
+      !!form.value.main_province?.trim() &&
+      !!form.value.main_district?.trim() &&
+      !!form.value.main_village?.trim()
+  );
+  const step3Complete = computed(
+    () => !!form.value.captive_place?.trim() && !!form.value.captive_date?.trim()
+  );
+  const step4Complete = computed(
+    () =>
+      (form.value._newDocs?.length || 0) > 0 ||
+      (form.value.existingDocs?.length || 0) > 0 ||
+      !!form.value.suspect_type?.trim() ||
+      !!form.value.notes?.trim()
+  );
 
-const completedSteps = computed(
-  () =>
-    [step1Complete.value, step2Complete.value, step3Complete.value, step4Complete.value].filter(
-      Boolean
-    ).length
-);
+  const completedSteps = computed(
+    () =>
+      [step1Complete.value, step2Complete.value, step3Complete.value, step4Complete.value].filter(
+        Boolean
+      ).length
+  );
 
-const currentStep = computed(() => {
-  if (!step1Complete.value) return 1;
-  if (!step2Complete.value) return 2;
-  if (!step3Complete.value) return 3;
-  return 4;
-});
+  const currentStep = computed(() => {
+    if (!step1Complete.value) return 1;
+    if (!step2Complete.value) return 2;
+    if (!step3Complete.value) return 3;
+    return 4;
+  });
 
-const progressValue = computed(() => (completedSteps.value / 4) * 100);
+  const progressValue = computed(() => (completedSteps.value / 4) * 100);
 </script>
 
 <style scoped>
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
-
-.stepper-shell {
-  position: absolute;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 85%;
-  width: 100%;
-  z-index: 20;
-  margin: 0;
-  padding-bottom: 12px;
-}
-
-/* push the form card down so it starts under the stepper */
-.form-shell {
-  max-width: 1150px;
-  margin-top: 140px;
-  margin-bottom: 40px;
-}
-
-@media (max-width: 960px) {
-  .stepper-shell {
-    top: 64px;
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
   }
-}
 
-.stepper-card {
-  border-radius: 14px;
-  padding: 10px 14px 12px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(33, 150, 243, 0.12);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  font-family: inherit;
-}
+  .stepper-shell {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 85%;
+    width: 100%;
+    z-index: 20;
+    margin: 0;
+    padding-bottom: 12px;
+  }
 
-.stepper-track-wrapper {
-  position: relative;
-  margin-top: 4px;
-}
+  /* push the form card down so it starts under the stepper */
+  .form-shell {
+    max-width: 1150px;
+    margin-top: 140px;
+    margin-bottom: 40px;
+  }
 
-.stepper-track {
-  opacity: 0.35;
-}
+  @media (max-width: 960px) {
+    .stepper-shell {
+      top: 64px;
+    }
+  }
 
-.stepper-dots {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-start: -7px;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-}
+  .stepper-card {
+    border-radius: 14px;
+    padding: 10px 14px 12px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(33, 150, 243, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    font-family: inherit;
+  }
 
-.stepper-dot-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
+  .stepper-track-wrapper {
+    position: relative;
+    margin-top: 4px;
+  }
 
-.stepper-dot {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #e0e7f1;
-  border: 2px solid #b0bec5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto;
-  transition: all 0.2s ease;
-}
+  .stepper-track {
+    opacity: 0.35;
+  }
 
-.stepper-dot.is-active:not(.is-complete) {
-  background: #1976d2;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.18);
-}
+  .stepper-dots {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: -7px;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+  }
 
-.stepper-dot.is-complete {
-  background: #4caf50;
-  border-color: #4caf50;
-  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.18);
-}
+  .stepper-dot-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
 
-.stepper-dot :deep(.v-icon) {
-  color: #fff !important;
-}
+  .stepper-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #e0e7f1;
+    border: 2px solid #b0bec5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    transition: all 0.2s ease;
+  }
 
-.stepper-label {
-  color: #555;
-  font-family: inherit;
-  font-weight: 600;
-}
+  .stepper-dot.is-active:not(.is-complete) {
+    background: #1976d2;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.18);
+  }
 
-.is-complete-text {
-  color: #2e7d32;
-}
+  .stepper-dot.is-complete {
+    background: #4caf50;
+    border-color: #4caf50;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.18);
+  }
 
-.stepper-caption {
-  font-family: inherit;
-  font-weight: 600;
-}
+  .stepper-dot :deep(.v-icon) {
+    color: #fff !important;
+  }
 
-/* Card styling */
-.form-card {
-  border-radius: 18px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-  font-family: inherit;
-}
+  .stepper-label {
+    color: #555;
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-/* Top avatar */
-.header-avatar {
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.35);
-}
+  .is-complete-text {
+    color: #2e7d32;
+  }
 
-.header-title {
-  font-family: inherit;
-  font-weight: 700;
-}
+  .stepper-caption {
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-.header-subtitle {
-  font-family: inherit;
-  font-weight: 600;
-}
+  /* Card styling */
+  .form-card {
+    border-radius: 18px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    font-family: inherit;
+  }
 
-/* Sections */
-.section-card {
-  background: #fafafa;
-  border-radius: 16px;
-  border: 1px solid #e0e0e0;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
-  font-family: inherit;
-}
+  /* Top avatar */
+  .header-avatar {
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.35);
+  }
 
-.section-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  border-color: rgba(33, 150, 243, 0.35);
-  transform: translateY(-1px);
-}
+  .header-title {
+    font-family: inherit;
+    font-weight: 700;
+  }
 
-.section-header {
-  padding: 8px 14px;
-  background: #f7f7f9;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: inherit;
-}
+  .header-subtitle {
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-.docs-header {
-  background: #f3f6ff;
-}
+  /* Sections */
+  .section-card {
+    background: #fafafa;
+    border-radius: 16px;
+    border: 1px solid #e0e0e0;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+    font-family: inherit;
+  }
 
-.section-subtitle {
-  color: #777;
-  font-family: inherit;
-  font-weight: 600;
-}
+  .section-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border-color: rgba(33, 150, 243, 0.35);
+    transform: translateY(-1px);
+  }
 
-.section-icon {
-  color: #1976d2;
-}
+  .section-header {
+    padding: 8px 14px;
+    background: #f7f7f9;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: inherit;
+  }
 
-.section-title {
-  font-family: inherit;
-  font-weight: 700;
-}
+  .docs-header {
+    background: #f3f6ff;
+  }
 
-/* DOCS */
-.hidden-file {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
+  .section-subtitle {
+    color: #777;
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-.docs-field-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-radius: 12px;
-  border: 1px dashed #b0bec5;
-  padding: 10px 12px;
-  background: linear-gradient(135deg, #f9fbff 0%, #f3f6ff 100%);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  font-family: inherit;
-}
+  .section-icon {
+    color: #1976d2;
+  }
 
-.chips-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding-top: 4px;
-  max-height: 92px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
+  .section-title {
+    font-family: inherit;
+    font-weight: 700;
+  }
 
-.chip-existing {
-  background: #c8dae1 !important;
-  color: #000 !important;
-}
+  /* DOCS */
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
 
-.chip-outline {
-  background: #e3f2fd;
-}
+  .docs-field-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-radius: 12px;
+    border: 1px dashed #b0bec5;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #f9fbff 0%, #f3f6ff 100%);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    font-family: inherit;
+  }
 
-.docs-counter-chip {
-  font-family: inherit;
-  font-weight: 600;
-}
+  .chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 4px;
+    max-height: 92px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
 
-/* picture hover tools */
-.pic-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
+  .chip-existing {
+    background: #c8dae1 !important;
+    color: #000 !important;
+  }
 
-.pic-thumb {
-  display: inline-flex;
-  cursor: pointer;
-  position: relative;
-}
+  .chip-outline {
+    background: #e3f2fd;
+  }
 
-.pic-overlay {
-  position: absolute;
-  inset: -6px -16px auto auto;
-  display: none;
-  gap: 2px;
-  background: rgba(0, 0, 0, 0.55);
-  padding: 6px;
-  border-radius: 8px;
-  transform: translateY(-20%);
-  white-space: nowrap;
-}
+  .docs-counter-chip {
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-.pic-thumb:hover .pic-overlay {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 8px;
-}
+  /* picture hover tools */
+  .pic-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
 
-.pic-overlay :deep(.v-btn) {
-  color: #fff;
-}
+  .pic-thumb {
+    display: inline-flex;
+    cursor: pointer;
+    position: relative;
+  }
 
-/* Form actions */
-.form-actions {
-  margin-top: 4px;
-}
+  .pic-overlay {
+    position: absolute;
+    inset: -6px -16px auto auto;
+    display: none;
+    gap: 2px;
+    background: rgba(0, 0, 0, 0.55);
+    padding: 6px;
+    border-radius: 8px;
+    transform: translateY(-20%);
+    white-space: nowrap;
+  }
 
-/* Compact inputs */
-:deep(.v-field-label),
-:deep(.v-label),
-:deep(input::placeholder) {
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  color: #555 !important;
-  font-family: inherit !important;
-  font-weight: 600;
-}
+  .pic-thumb:hover .pic-overlay {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
 
-:deep(.v-field__input) {
-  min-height: 30px !important;
-  padding: 3px 8px !important;
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  font-family: inherit !important;
-}
+  .pic-overlay :deep(.v-btn) {
+    color: #fff;
+  }
 
-/* Buttons & chips font */
-:deep(.v-btn),
-:deep(.v-chip),
-:deep(.v-snackbar),
-:deep(.v-card-title),
-:deep(.v-card-subtitle),
-:deep(.v-list-item-title),
-:deep(.v-list-item-subtitle) {
-  font-family: inherit !important;
-}
+  /* Form actions */
+  .form-actions {
+    margin-top: 4px;
+  }
 
-/* Small gap helper */
-.gap-2 {
-  gap: 8px;
-}
+  /* Compact inputs */
+  :deep(.v-field-label),
+  :deep(.v-label),
+  :deep(input::placeholder) {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    color: #555 !important;
+    font-family: inherit !important;
+    font-weight: 600;
+  }
+
+  :deep(.v-field__input) {
+    min-height: 30px !important;
+    padding: 3px 8px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    font-family: inherit !important;
+  }
+
+  /* Buttons & chips font */
+  :deep(.v-btn),
+  :deep(.v-chip),
+  :deep(.v-snackbar),
+  :deep(.v-card-title),
+  :deep(.v-card-subtitle),
+  :deep(.v-list-item-title),
+  :deep(.v-list-item-subtitle) {
+    font-family: inherit !important;
+  }
+
+  /* Small gap helper */
+  .gap-2 {
+    gap: 8px;
+  }
 </style>

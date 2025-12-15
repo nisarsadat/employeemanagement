@@ -44,32 +44,102 @@
         </v-col>
       </v-row>
     </v-container>
-
     <!-- STATS CARDS -->
-    <v-row class="px-2" :dir="isRtl ? 'rtl' : 'ltr'">
-      <v-col cols="12" md="6" lg="3">
+    <v-row class="px-2 d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
+      <!-- 1) Total Resources -->
+      <v-col cols="12" sm="2">
         <v-card
           class="stat-card cursor-pointer"
-          @click="filterByStat('all')"
-          :class="{ 'active-stat': activeStat === 'all' }"
+          @click="filterByStat('resources')"
+          :class="{ 'active-stat': activeStat === 'resources' }"
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-primary fontfamily">
-                {{ totalCount }}
+                {{ totalResourcesCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
                 {{ t('کل اطلاعات') }}
               </div>
             </div>
             <v-avatar color="primary" variant="tonal" size="48">
-              <v-icon color="primary">mdi-database</v-icon>
+              <v-icon color="primary">mdi-account-multiple</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="6" lg="3">
+      <!-- 2) ساعین فساد -->
+      <v-col cols="12" sm="2">
+        <v-card
+          class="stat-card cursor-pointer"
+          @click="filterByStat('saeen')"
+          :class="{ 'active-stat': activeStat === 'saeen' }"
+        >
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-amber fontfamily">
+                {{ saeenFasadCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('ساعین فساد') }}
+              </div>
+            </div>
+            <v-avatar color="amber" variant="tonal" size="48">
+              <v-icon color="amber">mdi-alert-circle</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- 3) شر او فساد -->
+      <v-col cols="12" sm="2">
+        <v-card
+          class="stat-card cursor-pointer"
+          @click="filterByStat('shar')"
+          :class="{ 'active-stat': activeStat === 'shar' }"
+        >
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-purple fontfamily">
+                {{ sharOFasadCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('شر او فساد') }}
+              </div>
+            </div>
+            <v-avatar color="purple" variant="tonal" size="48">
+              <v-icon color="purple">mdi-fire</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- 4) جاسوسی -->
+      <v-col cols="12" sm="2">
+        <v-card
+          class="stat-card cursor-pointer"
+          @click="filterByStat('spy')"
+          :class="{ 'active-stat': activeStat === 'spy' }"
+        >
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-green fontfamily">
+                {{ jasosiCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('جاسوسی') }}
+              </div>
+            </div>
+            <v-avatar color="green" variant="tonal" size="48">
+              <v-icon color="green">mdi-shield-search</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- 5) Today -->
+      <v-col cols="12" sm="2">
         <v-card
           class="stat-card cursor-pointer"
           @click="filterByStat('today')"
@@ -77,59 +147,15 @@
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-green fontfamily">
+              <div class="text-h5 font-weight-bold text-primary fontfamily">
                 {{ todayCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
                 {{ t('امروز ثبت شده') }}
               </div>
             </div>
-            <v-avatar color="green" variant="tonal" size="48">
-              <v-icon color="green">mdi-calendar-today</v-icon>
-            </v-avatar>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" md="6" lg="3">
-        <v-card
-          class="stat-card cursor-pointer"
-          @click="filterByStat('docs')"
-          :class="{ 'active-stat': activeStat === 'docs' }"
-        >
-          <v-card-text class="pa-4 d-flex align-center justify-space-between">
-            <div>
-              <div class="text-h5 font-weight-bold text-amber fontfamily">
-                {{ withDocumentsCount }}
-              </div>
-              <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('دارای اسناد') }}
-              </div>
-            </div>
-            <v-avatar color="amber" variant="tonal" size="48">
-              <v-icon color="amber">mdi-paperclip</v-icon>
-            </v-avatar>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" md="6" lg="3">
-        <v-card
-          class="stat-card cursor-pointer"
-          @click="filterByStat('political')"
-          :class="{ 'active-stat': activeStat === 'political' }"
-        >
-          <v-card-text class="pa-4 d-flex align-center justify-space-between">
-            <div>
-              <div class="text-h5 font-weight-bold text-purple fontfamily">
-                {{ politicalCount }}
-              </div>
-              <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('اطلاعات سیاسی') }}
-              </div>
-            </div>
-            <v-avatar color="purple" variant="tonal" size="48">
-              <v-icon color="purple">mdi-shield-account</v-icon>
+            <v-avatar color="primary" variant="tonal" size="48">
+              <v-icon color="primary">mdi-calendar-today</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
@@ -363,24 +389,42 @@
 
   /* ===== Stats Calculations ===== */
   const allRows = computed(() => toArray(repo.Informations));
-  const totalCount = computed(() => allRows.value.length);
+
+  const resourcesRows = computed(() => {
+    const src =
+      repo.Informations
+
+    return toArray(src);
+  });
+
+  const totalResourcesCount = computed(() => resourcesRows.value.length);
 
   const todayCount = computed(() => {
     const today = new Date().toISOString().split('T')[0];
     return allRows.value.filter((item) => item.information_saved_date === today).length;
   });
 
-  const withDocumentsCount = computed(() => {
-    return allRows.value.filter(
-      (item) => item.documents && Array.isArray(item.documents) && item.documents.length > 0
-    ).length;
-  });
+  // matches from BOTH types (seyasi + jenayee) as you requested
+  function matchType(item, wanted) {
+    const a = (item?.syasi_info_type ?? '').toString().trim();
+    const b = (item?.jenayee_info_type ?? '').toString().trim();
+    const w = wanted.toString().trim();
+    return a === w || b === w;
+  }
 
-  const politicalCount = computed(() => {
-    return allRows.value.filter(
-      (item) => item.syasi_info_type && item.syasi_info_type !== '' && item.syasi_info_type !== null
-    ).length;
-  });
+  // Your 3 cards (from your options list)
+  const saeenFasadCount = computed(
+    () => allRows.value.filter((item) => matchType(item, 'ساعین بالفساد')).length
+  );
+
+  const sharOFasadCount = computed(
+    () => allRows.value.filter((item) => matchType(item, 'شر و فساد')).length
+  );
+
+  const jasosiCount = computed(
+    () =>
+      allRows.value.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی')).length
+  );
 
   /* ===== Filtered Rows based on active stat ===== */
   const filteredRows = computed(() => {
@@ -389,25 +433,23 @@
     if (activeStat.value === 'today') {
       const today = new Date().toISOString().split('T')[0];
       rows = rows.filter((item) => item.information_saved_date === today);
-    } else if (activeStat.value === 'docs') {
-      rows = rows.filter(
-        (item) => item.documents && Array.isArray(item.documents) && item.documents.length > 0
-      );
-    } else if (activeStat.value === 'political') {
-      rows = rows.filter(
-        (item) =>
-          item.syasi_info_type && item.syasi_info_type !== '' && item.syasi_info_type !== null
-      );
+    } else if (activeStat.value === 'saeen') {
+      rows = rows.filter((item) => matchType(item, 'ساعین بالفساد'));
+    } else if (activeStat.value === 'shar') {
+      rows = rows.filter((item) => matchType(item, 'شر و فساد'));
+    } else if (activeStat.value === 'spy') {
+      rows = rows.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی'));
+    } else if (activeStat.value === 'resources') {
+      // this card is just for total resources count (not a list filter),
+      // so we keep informations list unchanged.
+      rows = allRows.value;
     }
+
     return rows;
   });
 
   function filterByStat(stat) {
-    if (activeStat.value === stat) {
-      activeStat.value = null;
-    } else {
-      activeStat.value = stat;
-    }
+    activeStat.value = activeStat.value === stat ? null : stat;
   }
 
   /* ===== Headers for FilterableTable ===== */

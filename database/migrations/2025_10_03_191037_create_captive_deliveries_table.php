@@ -51,6 +51,11 @@ return new class extends Migration {
             $table->text('suspect_tools')->nullable();
 
             $table->text('notes')->nullable();
+            $table->text('captive_reason')->nullable();
+            $table->text('taslimi_warkawonky_person')->nullable();
+            $table->text('taslimi_akhistonky_person')->nullable();
+            $table->text('taslimi_akhistonky_organ')->nullable();
+            $table->text('maznonyat_type')->nullable();
             $table->text('coordinates')->nullable();
             $table->string('Province_addr')->nullable();
 

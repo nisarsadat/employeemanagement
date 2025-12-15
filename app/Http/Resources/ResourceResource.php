@@ -6,67 +6,78 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ResourceResource extends JsonResource
 {
+    private function relCount(string $attr, string $relation): int
+    {
+        // If controller used withCount, use it (fast)
+        if (isset($this->{$attr})) return (int) $this->{$attr};
+
+        // Fallback to counting relation
+        return (int) $this->{$relation}()->count();
+    }
+
     public function toArray($request): array
     {
-        // 🔢 Sum of all "56 formats" related to this resource
-        $fiftySixFormatsCount =
-              $this->fasads()->count()
-            + $this->saeenFasads()->count()
-            + $this->heists()->count()
-            + $this->captives()->count()
-            + $this->mulkanos()->count()
-            + $this->entryExits()->count()
-            + $this->sarafyanos()->count()
-            + $this->clubs()->count()
-            + $this->mahajerats()->count()
-            + $this->soldiers()->count()
-            + $this->mawads()->count()
-            + $this->lostmujremeens()->count()
-            + $this->oldSoldiersHomes()->count()
-            + $this->robbers()->count()
-            + $this->nonResponsablePeople()->count()
-            + $this->mashkokHomes()->count()
-            + $this->damagePlaces()->count()
-            + $this->damageRasanPlaces()->count()
-            + $this->mashkokShops()->count()
-            + $this->luchakano()->count()
-            + $this->workshops()->count()
-            + $this->hosppitals()->count()
-            + $this->rahnomaMamlats()->count()
-            + $this->apartments()->count()
-            + $this->banks()->count()
-            + $this->transportCompanies()->count()
-            + $this->hadoBusStops()->count()
-            + $this->carSalesCompanies()->count()
-            + $this->schools()->count()
-            + $this->parkings()->count()
-            + $this->wakilanos()->count()
-            + $this->universities()->count()
-            + $this->masjids()->count()
-            + $this->highways()->count()
-            + $this->companies()->count()
-            + $this->donelostplaces()->count()
-            + $this->econemyProjects()->count()
-            + $this->criminalCapturePlaces()->count()
-            + $this->pumps()->count()
-            + $this->shoras()->count()
-            + $this->checkpoints()->count()
-            + $this->governmentplaces()->count()
-            + $this->supermarkets()->count()
-            + $this->parks()->count()
-            + $this->complexes()->count()
-            + $this->deplomaticplaces()->count()
-            // ⭐ NEW: Fifthy Format Three (10) – just added, nothing removed
-            + $this->badmashanos()->count()
-            + $this->emaratOffices()->count()
-            + $this->hostels()->count()
-            + $this->hotels()->count()
-            + $this->madrasas()->count()
-            + $this->mashkokPeople()->count()
-            + $this->mujahedinos()->count()
-            + $this->oldJahadis()->count()
-            + $this->sarayanos()->count()
-            + $this->tujarans()->count();
+        // ✅ Prefer precomputed value if present
+        $fiftySixFormatsCount = isset($this->fifty_six_formats_count)
+            ? (int) $this->fifty_six_formats_count
+            : (
+                  $this->fasads()->count()
+                + $this->saeenFasads()->count()
+                + $this->heists()->count()
+                + $this->captives()->count()
+                + $this->mulkanos()->count()
+                + $this->entryExits()->count()
+                + $this->sarafyanos()->count()
+                + $this->clubs()->count()
+                + $this->mahajerats()->count()
+                + $this->soldiers()->count()
+                + $this->mawads()->count()
+                + $this->lostmujremeens()->count()
+                + $this->oldSoldiersHomes()->count()
+                + $this->robbers()->count()
+                + $this->nonResponsablePeople()->count()
+                + $this->mashkokHomes()->count()
+                + $this->damagePlaces()->count()
+                + $this->damageRasanPlaces()->count()
+                + $this->mashkokShops()->count()
+                + $this->luchakano()->count()
+                + $this->workshops()->count()
+                + $this->hosppitals()->count()
+                + $this->rahnomaMamlats()->count()
+                + $this->apartments()->count()
+                + $this->banks()->count()
+                + $this->transportCompanies()->count()
+                + $this->hadoBusStops()->count()
+                + $this->carSalesCompanies()->count()
+                + $this->schools()->count()
+                + $this->parkings()->count()
+                + $this->wakilanos()->count()
+                + $this->universities()->count()
+                + $this->masjids()->count()
+                + $this->highways()->count()
+                + $this->companies()->count()
+                + $this->donelostplaces()->count()
+                + $this->econemyProjects()->count()
+                + $this->criminalCapturePlaces()->count()
+                + $this->pumps()->count()
+                + $this->shoras()->count()
+                + $this->checkpoints()->count()
+                + $this->governmentplaces()->count()
+                + $this->supermarkets()->count()
+                + $this->parks()->count()
+                + $this->complexes()->count()
+                + $this->deplomaticplaces()->count()
+                + $this->badmashanos()->count()
+                + $this->emaratOffices()->count()
+                + $this->hostels()->count()
+                + $this->hotels()->count()
+                + $this->madrasas()->count()
+                + $this->mashkokPeople()->count()
+                + $this->mujahedinos()->count()
+                + $this->oldJahadis()->count()
+                + $this->sarayanos()->count()
+                + $this->tujarans()->count()
+            );
 
         return [
             'id'       => $this->id,
@@ -123,10 +134,9 @@ class ResourceResource extends JsonResource
             'Province_addr'          => $this->Province_addr,
 
             // ✅ Counts
-            'events_count'           => $this->events()->count(),
-            // 🔁 if you have an informations() relation, this will work out of the box
-            'informations_count'     => $this->informations()->count(),
-            'fifty_six_formats_count'=> $fiftySixFormatsCount,
+            'events_count'            => $this->relCount('events_count', 'events'),
+            'informations_count'      => $this->relCount('informations_count', 'informations'),
+            'fifty_six_formats_count' => $fiftySixFormatsCount,
 
             // embedded office employee (minimal)
             'office_employee' => $this->whenLoaded('officeEmployee', function () {
@@ -136,6 +146,7 @@ class ResourceResource extends JsonResource
                     'code_number' => $this->officeEmployee->code_number,
                     'father_name' => $this->officeEmployee->father_name,
                     'nick_name'   => $this->officeEmployee->nickname,
+                    'phone_number'=> $this->officeEmployee->phone_number ?? null,
                 ];
             }),
         ];

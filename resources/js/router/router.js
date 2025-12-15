@@ -169,6 +169,8 @@ import InformationPrintDialog from '../pages/Informations/InformationPrintDialog
 import NotificationsPage from '../components/NotificationsPage.vue';
 import ActiveEmployeesIndex from '../pages/ActiveInactive/ActiveEmployeesIndex.vue';
 import InactiveEmployeesIndex from '../pages/ActiveInactive/InactiveEmployeesIndex.vue';
+import ActiveResource from '../pages/ActiveInactiveResource/ActiveResource.vue';
+import InactiveResource from '../pages/ActiveInactiveResource/InactiveResource.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -247,6 +249,16 @@ const router = createRouter({
           path: 'resources',
           component: Resources,
           meta: { requiresAuth: true, perm: permFor('resources') },
+        },
+        {
+          path: '/app/activeresource',
+          name: 'ActiveResource',
+          component: ActiveResource,
+        },
+        {
+          path: '/app/inactiveresource',
+          name: 'InactiveResource',
+          component: InactiveResource,
         },
         {
           path: 'resourcesform',

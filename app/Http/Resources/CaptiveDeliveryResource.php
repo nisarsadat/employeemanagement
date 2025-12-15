@@ -48,7 +48,12 @@ class CaptiveDeliveryResource extends JsonResource
             'Province_addr'               => $this->Province_addr,
 
             'notes'                => $this->notes,
-
+            'maznonyat_type'                 => $this->maznonyat_type,
+            'captive_reason'                 => $this->captive_reason,
+            'taslimi_warkawonky_person'      => $this->taslimi_warkawonky_person,
+            'taslimi_akhistonky_person'      => $this->taslimi_akhistonky_person,
+            'taslimi_akhistonky_organ'       => $this->taslimi_akhistonky_organ,
+            'taslimi_akhistonky_organ'       => $this->taslimi_akhistonky_organ,
             'documents'            => CaptiveDeliveryDocumentResource::collection($this->whenLoaded('documents')),
 
             'created_at'           => $this->created_at,

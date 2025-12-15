@@ -49,7 +49,7 @@
 
     <!-- 📊 STATS CARDS -->
     <v-row class="px-2 mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
-      <!-- Total resources (click = clear quick filter) -->
+      <!-- Total resources (filters table: all) -->
       <v-col cols="12" md="3" lg="3">
         <v-card
           class="stat-card"
@@ -72,53 +72,45 @@
         </v-card>
       </v-col>
 
-      <!-- This week (employees added this week / last 7 days) -->
+      <!-- Active resources (ROUTE) -->
       <v-col cols="12" md="3" lg="3">
-        <v-card
-          class="stat-card"
-          :class="{ 'stat-card-active': quickFilter === 'week' }"
-          @click="applyQuickFilter('week')"
-        >
+        <v-card class="stat-card" @click="goActiveResources">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-green fontfamily">
-                {{ thisWeekCount }}
+                {{ activeCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('این هفته ثبت شده') }}
+                {{ t('منابع فعال') }}
               </div>
             </div>
             <v-avatar color="green" variant="tonal" size="48">
-              <v-icon color="green">mdi-calendar-week</v-icon>
+              <v-icon color="green">mdi-check-circle</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <!-- This month (employees added this month) -->
+      <!-- Inactive resources (ROUTE) -->
       <v-col cols="12" md="3" lg="3">
-        <v-card
-          class="stat-card"
-          :class="{ 'stat-card-active': quickFilter === 'month' }"
-          @click="applyQuickFilter('month')"
-        >
+        <v-card class="stat-card" @click="goInactiveResources">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-purple fontfamily">
-                {{ thisMonthCount }}
+                {{ inactiveCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('این ماه ثبت شده') }}
+                {{ t('منابع غیر فعال') }}
               </div>
             </div>
             <v-avatar color="purple" variant="tonal" size="48">
-              <v-icon color="purple">mdi-calendar-month</v-icon>
+              <v-icon color="purple">mdi-cancel</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <!-- Today added -->
+      <!-- Today added (filters table: today) -->
       <v-col cols="12" md="3" lg="3">
         <v-card
           class="stat-card"
@@ -512,21 +504,25 @@
       .length;
   });
 
-  // "This week" = last 7 days
-  const thisWeekCount = computed(
-    () =>
-      rowsFT.value.filter((r) => isWithinLastDays(r.resource_saved_date || r.created_at, 7)).length
-  );
+  function isActiveResource(r) {
+    const v = (r?.activity ?? r?.status ?? r?.is_active ?? '').toString().trim().toLowerCase();
+    // handles: "فعال", "active", 1, true, etc.
+    return v === 'فعال' || v === 'active' || v === '1' || v === 'true';
+  }
 
-  // "This month" = same calendar month
-  const thisMonthCount = computed(() => {
-    const today = new Date();
-    return rowsFT.value.filter((r) => isSameMonth(r.resource_saved_date || r.created_at, today))
-      .length;
-  });
+  const activeCount = computed(() => rowsFT.value.filter((r) => isActiveResource(r)).length);
+  const inactiveCount = computed(() => rowsFT.value.filter((r) => !isActiveResource(r)).length);
+
+  function goActiveResources() {
+    router.push('/app/activeresource');
+  }
+
+  function goInactiveResources() {
+    router.push('/app/inactiveresource');
+  }
 
   /* ===== Quick filter for stats cards ===== */
-  const quickFilter = ref('all'); // 'all' | 'today' | 'week' | 'month'
+  const quickFilter = ref('all'); // 'all' | 'today'
 
   function applyQuickFilter(mode) {
     quickFilter.value = mode;
@@ -538,12 +534,6 @@
 
     if (quickFilter.value === 'today') {
       data = data.filter((r) => isSameDate(r.resource_saved_date || r.created_at, today));
-    } else if (quickFilter.value === 'week') {
-      data = data.filter((r) => isWithinLastDays(r.resource_saved_date || r.created_at, 7));
-    } else if (quickFilter.value === 'month') {
-      data = data.filter((r) => isSameMonth(r.resource_saved_date || r.created_at, today));
-    } else {
-      // 'all' – no extra filter
     }
 
     return data;

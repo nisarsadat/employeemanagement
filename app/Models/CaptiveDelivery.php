@@ -40,6 +40,11 @@ class CaptiveDelivery extends Model
         'captive_halat',
         'suspect_tools',
         'notes',
+        'captive_reason',
+        'taslimi_warkawonky_person',
+        'taslimi_akhistonky_person',
+        'taslimi_akhistonky_organ',
+        'maznonyat_type',
         'Province_addr',
         'picture',
     ];

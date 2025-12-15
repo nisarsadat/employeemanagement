@@ -50,7 +50,12 @@ class StoreCaptiveDeliveryRequest extends FormRequest
             'notes' => ['nullable','string'],
             'coordinates' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
-
+            'note' => ['nullable','string'],
+            'maznonyat_type' => ['sometimes','nullable','string'],
+            'captive_reason' => ['nullable','string'],
+            'taslimi_warkawonky_person' => ['nullable','string'],
+            'taslimi_akhistonky_person' => ['nullable','string'],
+            'taslimi_akhistonky_organ' => ['nullable','string'],
             // multiple docs on create
             'documents'   => ['sometimes','array'],
             'documents.*' => ['file'], // 20MB each

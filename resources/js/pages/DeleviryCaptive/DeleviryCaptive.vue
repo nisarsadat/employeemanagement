@@ -403,6 +403,11 @@
     { title: t('ولایت فعلی'), key: 'now_province' },
     { title: t('ولسوالی فعلی'), key: 'now_district' },
     { title: t('قریه/گذر فعلی'), key: 'now_village' },
+    { title: t('علت اسارت'), key: 'captive_reason' },
+    { title: t('نوع مظنونیت'), key: 'maznonyat_type' },
+    { title: t('تسلیمی ورکونکی شخص'), key: 'taslimi_warkawonky_person' },
+    { title: t('تسلیمی اخیستونکی شخص'), key: 'taslimi_akhistonky_person' },
+    { title: t('تسلیمی اخیستونکی ارگان'), key: 'taslimi_akhistonky_organ' },
 
     { title: t('محل دستگیری'), key: 'captive_place' },
     { title: t('کوردینات محل دستگیری'), key: 'coordinates' },
@@ -410,7 +415,6 @@
     { title: t('تاریخ دستگیری'), key: 'captive_date' },
     { title: t('ساعت دستگیری'), key: 'captive_hour' },
 
-    { title: t('نوعیت مظنونیت'), key: 'suspect_type' },
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('حالت دستگیری'), key: 'captive_halat' },
     { title: t('وسایل و شواهد گرفته شده'), key: 'suspect_tools' },
@@ -435,7 +439,17 @@
     },
     {
       title: t('مظنون/تماس'),
-      keys: ['suspect_type', 'phone_number', 'captive_halat', 'suspect_tools'],
+      keys: [
+        ,
+        'phone_number',
+        'captive_halat',
+        'suspect_tools',
+        'maznonyat_type',
+        'captive_reason',
+        'taslimi_warkawonky_person',
+        'taslimi_akhistonky_person',
+        'taslimi_akhistonky_organ',
+      ],
     },
   ]);
 

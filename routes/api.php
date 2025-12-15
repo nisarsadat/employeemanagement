@@ -134,6 +134,7 @@ use App\Models\OfficeEmployee;
 use App\Http\Controllers\Reports\FiftyFormatsReportController;
 use App\Http\Controllers\Api\InformationReportController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\ResourceActivityController;
 use App\Http\Controllers\CaptiveDocumentController;
 use App\Http\Controllers\EmployeeManagementDashboardController;
 
@@ -485,6 +486,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
+    // the resource for the active and inactive 
+
+    Route::get('/resource-activity/counts', [ResourceActivityController::class, 'counts']);
+    Route::get('/resource-activity', [ResourceActivityController::class, 'index']);
+    Route::get('/resource-activity/{id}', [ResourceActivityController::class, 'show']);
 
 
 
