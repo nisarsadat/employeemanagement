@@ -455,7 +455,8 @@
   /* ===== Headers for FilterableTable ===== */
   const headersFT = computed(() => [
     { title: t('کود منبع'), key: 'resource_code_number' },
-    { title: t('کود کارمند'), key: 'office_employee_code_number' },
+    { title: t('کود کارمند مربوطه'), key: 'office_employee_code_number' },
+    { title: t('کود کارمند تدابیری مربوطه'), key: 'office_employee_tadabiri_id' },
     { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },
     { title: t('نام پدر'), key: 'father_name' },

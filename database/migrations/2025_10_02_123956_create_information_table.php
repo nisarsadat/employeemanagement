@@ -12,7 +12,9 @@ return new class extends Migration {
 
             // Foreign keys
             $table->unsignedBigInteger('resource_id')->nullable();
-            $table->unsignedBigInteger('office_employee_id')->nullable();
+            $table->unsignedBigInteger('office_employee_id')->nullable(); // کود کارمند مربوطه
+            $table->unsignedBigInteger('office_employee_tadabiri_id')->nullable(); // کود کارمند تدابیری مربوطه
+            $table->unsignedBigInteger('office_employee_info_id')->nullable(); // کود کارمند اطلاع گیرنده
 
             // Personal info
             $table->string('name')->nullable();

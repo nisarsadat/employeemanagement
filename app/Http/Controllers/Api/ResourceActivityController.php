@@ -1,3 +1,4 @@
+```php
 <?php
 
 namespace App\Http\Controllers\Api;
@@ -11,9 +12,9 @@ class ResourceActivityController extends Controller
 {
     /**
      * What counts as "activity"?
-     * - Any Event in last 7 days
-     * - OR any Information in last 7 days
-     * - OR any record in any of the 56-format relations in last 7 days
+     * - Any Event in last 1 month
+     * - OR any Information in last 1 month
+     * - OR any record in any of the 56-format relations in last 1 month
      */
     private function applyActiveScope($query, $since)
     {
@@ -37,7 +38,7 @@ class ResourceActivityController extends Controller
                 $qq->where('created_at', '>=', $since);
             });
 
-            // ✅ INFORMATIONS  ← 🔥 THIS WAS MISSING
+            // ✅ INFORMATIONS
             $q->orWhereHas('informations', function ($qq) use ($since) {
                 $qq->where('created_at', '>=', $since);
             });
@@ -50,7 +51,6 @@ class ResourceActivityController extends Controller
             }
         });
     }
-
 
     private function applySearch($query, ?string $search)
     {
@@ -100,7 +100,8 @@ class ResourceActivityController extends Controller
 
     public function counts(Request $request)
     {
-        $since = now()->subDays(7);
+        // ✅ last 1 month (instead of 7 days)
+        $since = now()->subMonth();
 
         $base = Resource::query();
         $total = (clone $base)->count();
@@ -134,7 +135,8 @@ class ResourceActivityController extends Controller
         $perPage = $request->get('perPage', 25); // 10/25/50 or "all"
         $search = $request->get('search', null);
 
-        $since = now()->subDays(7);
+        // ✅ last 1 month (instead of 7 days)
+        $since = now()->subMonth();
 
         $q = Resource::query()
             ->with(['officeEmployee:id,name,code_number,phone_number,father_name,nick_name'])
@@ -192,3 +194,4 @@ class ResourceActivityController extends Controller
         return new ResourceResource($row);
     }
 }
+```

@@ -13,6 +13,8 @@ class UpdateInformationRequest extends FormRequest
         return [
             'resource_id'        => ['sometimes','nullable','integer','exists:resources,id'],
             'office_employee_id' => ['sometimes','nullable','integer','exists:office_employees,id'],
+            'office_employee_tadabiri_id' => ['nullable','integer','exists:office_employee_tadabiri_id,id'],
+            'office_employee_info_id' => ['nullable','integer','exists:office_employee_info_id,id'],
 
             'name'              => ['sometimes','nullable','string'],
             'nick_name'         => ['sometimes','nullable','string'],

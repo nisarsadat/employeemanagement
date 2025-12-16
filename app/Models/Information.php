@@ -13,6 +13,8 @@ class Information extends Model
     protected $fillable = [
         'resource_id',
         'office_employee_id',
+        'office_employee_tadabiri_id',
+        'office_employee_info_id',
 
         'name',
         'nick_name',

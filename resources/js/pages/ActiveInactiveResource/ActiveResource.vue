@@ -80,7 +80,7 @@
 
         <v-col cols="12" md="4" class="d-flex justify-center">
           <v-alert type="info" variant="tonal" density="compact" rounded="lg" class="w-100">
-            {{ t('معیار فعال بودن: داشتن واقعه یا اطلاعات یا ۵۶ فارمت در ۷ روز اخیر') }}
+            {{ t('معیار فعال بودن: داشتن واقعه یا اطلاعات یا ۵۶ فارمت در ۳۰ روز اخیر') }}
           </v-alert>
         </v-col>
       </v-row>

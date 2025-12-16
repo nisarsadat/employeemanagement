@@ -191,12 +191,41 @@
                   :items="officeEmployeesItems"
                   item-title="code_number"
                   item-value="id"
-                  :label="t('کود کارمند اداری')"
+                  :label="t('کود کارمند مربوطه')"
                   density="compact"
                   variant="outlined"
                   clearable
                   :error="hasError('office_employee_id')"
                   :error-messages="getErrorMessages('office_employee_id')"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-autocomplete
+                  class="primary-select"
+                  v-model="form.office_employee_tadabiri_id"
+                  :items="officeEmployeesItems"
+                  item-title="code_number"
+                  item-value="id"
+                  :label="t('کود کارمند تدابیری مربوطه')"
+                  density="compact"
+                  variant="outlined"
+                  clearable
+                  :error="hasError('office_employee_tadabiri_id')"
+                  :error-messages="getErrorMessages('office_employee_tadabiri_id')"
+                />
+              </v-col><v-col cols="12" md="6">
+                <v-autocomplete
+                  class="primary-select"
+                  v-model="form.office_employee_info_id"
+                  :items="officeEmployeesItems"
+                  item-title="code_number"
+                  item-value="id"
+                  :label="t('کود کارمند  اطلاع گیرنده')"
+                  density="compact"
+                  variant="outlined"
+                  clearable
+                  :error="hasError('office_employee_info_id')"
+                  :error-messages="getErrorMessages('office_employee_info_id')"
                 />
               </v-col>
             </v-row>
@@ -782,7 +811,8 @@
     id: null,
     resource_id: null,
     office_employee_id: null,
-
+    office_employee_tadabiri_id: null,
+    office_employee_info_id: null,
     name: '',
     nick_name: '',
     father_name: '',
@@ -893,7 +923,8 @@
 
     base.resource_id = x.resource_id ?? null;
     base.office_employee_id = x.office_employee_id ?? null;
-
+    base.office_employee_tadabiri_id = x.office_employee_tadabiri_id ?? null;
+    base.office_employee_info_id = x.office_employee_info_id ?? null;
     base.name = x.name ?? '';
     base.nick_name = x.nick_name ?? '';
     base.father_name = x.father_name ?? '';

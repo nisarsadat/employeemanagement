@@ -140,7 +140,7 @@ class OfficeEmployee extends Model
 
     public function informations()
     {
-        return $this->hasMany(Information::class, 'office_employee_id');
+        return $this->hasMany(Information::class, 'office_employee_id' , 'office_employee_tadabiri_id' ,'office_employee_info_id', 'id');
     }
 
     public function events()

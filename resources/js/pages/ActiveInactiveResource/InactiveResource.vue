@@ -81,7 +81,7 @@
 
         <v-col cols="12" md="4" class="d-flex justify-center">
           <v-alert type="warning" variant="tonal" density="compact" rounded="lg" class="w-100">
-            {{ t('غیر فعال: هیچ واقعه/اطلاعات/۵۶ فارمت در ۷ روز اخیر ندارد') }}
+            {{ t('غیر فعال: هیچ واقعه/اطلاعات/۵۶ فارمت در ۳۰ روز اخیر ندارد') }}
           </v-alert>
         </v-col>
       </v-row>
