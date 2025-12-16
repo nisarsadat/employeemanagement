@@ -12,6 +12,7 @@ class Information extends Model
 
     protected $fillable = [
         'resource_id',
+
         'office_employee_id',
         'office_employee_tadabiri_id',
         'office_employee_info_id',
@@ -42,37 +43,52 @@ class Information extends Model
         'lead_drirection',
         'talks',
         'note',
+        'docs_note',
         'result',
     ];
 
-    // ✅ Casts (helps with month-based checks if you use information_saved_date)
     protected $casts = [
         'information_saved_date' => 'date',
     ];
 
-    // 🧭 Relations
+    /* =========================================================
+     | RELATIONSHIPS
+     ========================================================= */
+
     public function resource(): BelongsTo
     {
-        return $this->belongsTo(Resource::class, 'resource_id');
+        return $this->belongsTo(Resource::class, 'resource_id', 'id');
     }
 
     public function officeEmployee(): BelongsTo
     {
-        return $this->belongsTo(OfficeEmployee::class, 'office_employee_id');
+        return $this->belongsTo(OfficeEmployee::class, 'office_employee_id', 'id');
+    }
+
+    public function tadabiriEmployee(): BelongsTo
+    {
+        return $this->belongsTo(OfficeEmployee::class, 'office_employee_tadabiri_id', 'id');
+    }
+
+    public function infoEmployee(): BelongsTo
+    {
+        return $this->belongsTo(OfficeEmployee::class, 'office_employee_info_id', 'id');
     }
 
     public function documents(): HasMany
     {
-        return $this->hasMany(InformationDocument::class, 'information_id');
+        return $this->hasMany(InformationDocument::class, 'information_id', 'id');
     }
 
-    // ✅ NEW: instant flip employee to فعال when a new information row is created
+    /* =========================================================
+     | AUTO-ACTIVATE EMPLOYEE ON CREATE
+     ========================================================= */
+
     protected static function booted()
     {
         static::created(function ($row) {
-            $empId = $row->office_employee_id ?? null;
-            if ($empId) {
-                OfficeEmployee::where('id', $empId)
+            if ($row->office_employee_id) {
+                OfficeEmployee::whereKey($row->office_employee_id)
                     ->where('activity', '!=', OfficeEmployee::ACTIVE)
                     ->update(['activity' => OfficeEmployee::ACTIVE]);
             }

@@ -11,41 +11,45 @@ class StoreInformationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'resource_id'        => ['nullable','integer','exists:resources,id'],
-            'office_employee_id' => ['nullable','integer','exists:office_employees,id'],
-            'office_employee_tadabiri_id' => ['nullable','integer','exists:office_employee_tadabiri_id,id'],
-            'office_employee_info_id' => ['nullable','integer','exists:office_employee_info_id,id'],
+            'resource_id' => ['nullable','integer','exists:resources,id'],
 
-            'name'              => ['required','string'],
-            'nick_name'         => ['nullable','string'],
-            'father_name'       => ['nullable','string'],
+            // ✅ ALL employee references point to office_employees table
+            'office_employee_id' => ['nullable','integer','exists:office_employees,id'],
+            'office_employee_tadabiri_id' => ['nullable','integer','exists:office_employees,id'],
+            'office_employee_info_id' => ['nullable','integer','exists:office_employees,id'],
+
+            'name' => ['required','string'],
+            'nick_name' => ['nullable','string'],
+            'father_name' => ['nullable','string'],
             'grand_father_name' => ['nullable','string'],
 
-            'main_province'  => ['nullable','string'],
+            'main_province' => ['nullable','string'],
             'main_districts' => ['nullable','string'],
-            'main_village'   => ['nullable','string'],
+            'main_village' => ['nullable','string'],
 
             'now_province' => ['nullable','string'],
             'now_district' => ['nullable','string'],
-            'now_village'  => ['nullable','string'],
+            'now_village' => ['nullable','string'],
 
-            'syasi_info_type'   => ['nullable','string'],
+            'syasi_info_type' => ['nullable','string'],
             'jenayee_info_type' => ['nullable','string'],
 
             'information_saved_date' => ['nullable','string'],
             'information_saved_hour' => ['nullable','string'],
-            'information_degree'     => ['nullable','string'],
+            'information_degree' => ['nullable','string'],
 
-            'tafseel'         => ['nullable','string'],
+            'tafseel' => ['nullable','string'],
             'manager_comment' => ['nullable','string'],
             'lead_drirection' => ['nullable','string'],
-            'talks'           => ['nullable','string'],
-            'note'            => ['nullable','string'],
-            'result'            => ['nullable','string'],
+            'talks' => ['nullable','string'],
+            'note' => ['nullable','string'],
+            'docs_note' => ['nullable','string'],
+            'result' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
 
-            'documents'   => ['nullable','array'],
+            'documents' => ['nullable','array'],
             'documents.*' => ['file'],
         ];
     }
+
 }

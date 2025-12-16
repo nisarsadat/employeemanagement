@@ -212,8 +212,8 @@
                   clearable
                   :error="hasError('office_employee_tadabiri_id')"
                   :error-messages="getErrorMessages('office_employee_tadabiri_id')"
-                />
-              </v-col><v-col cols="12" md="6">
+                /> </v-col
+              ><v-col cols="12" md="6">
                 <v-autocomplete
                   class="primary-select"
                   v-model="form.office_employee_info_id"
@@ -695,6 +695,16 @@
                 </div>
               </div>
             </div>
+            <v-row class="pa-3">
+              <v-col cols="12" md="12">
+                <v-text-field
+                  v-model="form.docs_note"
+                  :label="t('نوت راجع به اسناد')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+            </v-row>
           </v-sheet>
 
           <!-- ACTIONS -->
@@ -838,6 +848,7 @@
     lead_drirection: '',
     talks: '',
     note: '',
+    docs_note: '',
     result: '',
 
     existingDocs: [],
@@ -950,6 +961,7 @@
     base.lead_drirection = x.lead_drirection ?? '';
     base.talks = x.talks ?? '';
     base.note = x.note ?? '';
+    base.docs_note = x.docs_note ?? '';
     base.result = x.result ?? '';
 
     base.existingDocs = Array.isArray(x.documents) ? x.documents : [];
@@ -1051,34 +1063,47 @@
     saving.value = true;
 
     try {
+      // ✅ CREATE
       if (!isEdit.value) {
         const fd = buildCreateFormData();
+
         const created = await repo.CreateInformation(fd).catch((e) => {
           if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
           return null;
         });
 
         if (created?.id) {
-          router.push({ path: '/app/informations' }).showSuccessMessage(t('اطلاع موفقانه ثبت شد'));
+          // ✅ show snackbar here (this page)
+          showSuccessMessage(t('اطلاع موفقانه ثبت شد'));
+
+          // ✅ reset form
           resetForm();
+
+          // ✅ navigate safely
+          await router.push({ path: '/app/informations' });
         } else {
           showErrorMessage(t('ثبت معلومات ناکام شد'));
         }
-      } else {
-        const fd = buildUpdateFormData();
-        const updated = await repo.UpdateInformation(form.value.id, fd).catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
 
-        if (updated?.id) {
-          router
-            .push({ path: '/app/informations' })
-            .showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-          await loadForEdit();
-        } else {
-          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-        }
+        return;
+      }
+
+      // ✅ UPDATE
+      const fd = buildUpdateFormData();
+
+      const updated = await repo.UpdateInformation(form.value.id, fd).catch((e) => {
+        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+        return null;
+      });
+
+      if (updated?.id) {
+        // ✅ show snackbar here (this page)
+        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+
+        // ✅ navigate safely
+        await router.push({ path: '/app/informations' });
+      } else {
+        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
       }
     } catch (e) {
       console.error('onSubmit error', e);

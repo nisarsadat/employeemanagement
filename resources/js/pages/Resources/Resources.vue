@@ -55,6 +55,7 @@
           class="stat-card"
           :class="{ 'stat-card-active': quickFilter === 'all' }"
           @click="applyQuickFilter('all')"
+          rounded="xl"
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
@@ -74,7 +75,7 @@
 
       <!-- Active resources (ROUTE) -->
       <v-col cols="12" md="3" lg="3">
-        <v-card class="stat-card" @click="goActiveResources">
+        <v-card class="stat-card" @click="goActiveResources" rounded="xl">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-green fontfamily">
@@ -93,7 +94,7 @@
 
       <!-- Inactive resources (ROUTE) -->
       <v-col cols="12" md="3" lg="3">
-        <v-card class="stat-card" @click="goInactiveResources">
+        <v-card class="stat-card" @click="goInactiveResources" rounded="xl">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-purple fontfamily">
@@ -116,6 +117,7 @@
           class="stat-card"
           :class="{ 'stat-card-active': quickFilter === 'today' }"
           @click="applyQuickFilter('today')"
+          rounded="xl"
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>

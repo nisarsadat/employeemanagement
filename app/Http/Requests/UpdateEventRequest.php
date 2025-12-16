@@ -27,10 +27,13 @@ class UpdateEventRequest extends FormRequest
             'event_specific_place'  => 'sometimes|nullable|string',
             'talafat_jani'          => 'sometimes|nullable|string',
             'talafat_mali'          => 'sometimes|nullable|string',
+            'injured'               => 'sometimes|nullable|string',
+            'killed'                => 'sometimes|nullable|string',
             'tafseel'               => 'sometimes|nullable|string',
             'talks'                 => 'sometimes|nullable|string',
             'coordinates'           => 'sometimes|nullable|string',
             'note'                  => 'sometimes|nullable|string',
+            'docs_note'             => 'sometimes|nullable|string',
             'Province_addr' => ['nullable','string'],
 
             'documents.*'           => 'sometimes|file',

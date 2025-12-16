@@ -370,7 +370,7 @@
                     />
                   </v-col>
 
-                  <v-col cols="12" md="3">
+                  <v-col cols="12" md="12">
                     <v-text-field
                       v-model="form.new_job"
                       :label="t('وظیفه فعلی')"
@@ -498,29 +498,29 @@
 
               <v-col cols="12" md="4">
                 <v-select
-                  v-model="form.captive_reason"
+                  v-model="form.maznonyat_type"
                   :items="repo.captiveResons"
                   item-title="title"
                   item-value="value"
-                  :label="t('علت اسارت')"
+                  :label="t('نوع مظنونیت')"
                   variant="outlined"
                   density="compact"
                   clearable
                   :loading="repo.loadingCaptiveReasons"
-                  :error="hasError('captive_reason')"
-                  :error-messages="getErrorMessages('captive_reason')"
+                  :error="hasError('maznonyat_type')"
+                  :error-messages="getErrorMessages('maznonyat_type')"
                 />
               </v-col>
 
               <!-- Maznonyat type -->
               <v-col cols="12" md="4">
                 <v-text-field
-                  v-model="form.maznonyat_type"
-                  :label="t('نوع مظنونیت')"
+                  v-model="form.captive_reason"
+                  :label="t('علت اسارت')"
                   variant="outlined"
                   density="compact"
-                  :error="hasError('maznonyat_type')"
-                  :error-messages="getErrorMessages('maznonyat_type')"
+                  :error="hasError('captive_reason')"
+                  :error-messages="getErrorMessages('captive_reason')"
                 />
               </v-col>
 
@@ -646,9 +646,7 @@
             <v-divider />
 
             <v-row class="pa-3">
-              
-
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.captive_halat"
                   :label="t('حالت دستگیری')"
@@ -659,7 +657,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.suspect_tools"
                   :label="t('وسایل و شواهد گرفته شده')"

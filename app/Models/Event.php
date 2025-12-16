@@ -23,11 +23,14 @@ class Event extends Model
         'event_specific_place',
         'talafat_jani',
         'talafat_mali',
+        'injured',
+        'killed',
         'tafseel',
         'Province_addr',
         'talks',
         'coordinates',
         'note',
+        'docs_note',
     ];
 
     // ✅ Casts (helps with "current month" filters if you use event_date)

@@ -47,6 +47,7 @@ return new class extends Migration {
             $table->text('lead_drirection')->nullable();
             $table->text('talks')->nullable();
             $table->text('note')->nullable();
+            $table->text('docs_note')->nullable();
             $table->text('result')->nullable();
             $table->string('Province_addr')->nullable();
 

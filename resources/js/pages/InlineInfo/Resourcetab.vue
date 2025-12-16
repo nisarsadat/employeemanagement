@@ -53,7 +53,6 @@
                 />
               </v-card-text>
             </v-col>
-
             <!-- name (moved up from Identity row) -->
             <v-col cols="12" md="4">
               <v-card-item>
@@ -71,6 +70,41 @@
                   prepend-inner-icon="mdi-account"
                 />
               </v-card-text>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{
+                  t('کود کارمند تدابیری مربوطه')
+                }}</v-card-subtitle>
+              </v-card-item>
+              <v-autocomplete
+                class="primary-select"
+                v-model="draft.office_employee_tadabiri_id"
+                :items="officeEmployeesItems"
+                item-title="code_number"
+                item-value="id"
+                :label="t('کود کارمند تدابیری مربوطه')"
+                density="compact"
+                variant="outlined"
+                clearable
+              /> </v-col
+            ><v-col cols="12" md="6">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{
+                  t('کود کارمند اطلاع گیرنده')
+                }}</v-card-subtitle>
+              </v-card-item>
+              <v-autocomplete
+                class="primary-select"
+                v-model="draft.office_employee_info_id"
+                :items="officeEmployeesItems"
+                item-title="code_number"
+                item-value="id"
+                :label="t('کود کارمند اطلاع گیرنده')"
+                density="compact"
+                variant="outlined"
+                clearable
+              />
             </v-col>
           </v-row>
 
@@ -275,11 +309,13 @@
                 <v-card-subtitle class="field-label">{{ t('تاریخ اطلاع') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
-                <DateInput
-                  v-model="draft.information_saved_date"
-                  :rules="[rules.required]"
-                  :label="t('تاریخ اطلاع')"
-                />
+                <div class="dateinput">
+                  <DateInput
+                    v-model="draft.information_saved_date"
+                    :rules="[rules.required]"
+                    :label="t('تاریخ اطلاع')"
+                  />
+                </div>
               </v-card-text>
             </v-col>
 
@@ -487,6 +523,16 @@
                   </v-alert>
                 </v-col>
               </v-row>
+              <v-row class="pa-3">
+                <v-col cols="12" md="12">
+                  <v-text-field
+                    v-model="draft.docs_note"
+                    :label="t('نوت راجع به اسناد')"
+                    density="compact"
+                    variant="outlined"
+                  />
+                </v-col>
+              </v-row>
             </v-card-text>
           </v-card>
         </v-card-text>
@@ -557,7 +603,8 @@
     // codes
     resource_id: null,
     office_employee_id: null,
-
+    office_employee_tadabiri_id: null,
+    office_employee_info_id: null,
     // identity
     name: '',
     nick_name: '',
@@ -585,6 +632,7 @@
     lead_drirection: '',
     talks: '',
     note: '',
+    docs_note: '',
     Province_addr: '',
 
     // files
@@ -737,7 +785,9 @@
     opacity: 0;
     pointer-events: none;
   }
-
+  .dateinput {
+    width: 100% !important;
+  }
   /* Tighter grid gutters */
   .tight-grid {
     --v-gutter-x: 8px;

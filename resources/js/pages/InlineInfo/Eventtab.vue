@@ -241,9 +241,8 @@
                 <v-card-subtitle class="field-label">{{ t('تلفات جانی') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
-                <v-autocomplete
+                <v-text-field
                   v-model="draft.talafat_jani"
-                  :items="janiTalafatItems"
                   item-title="name"
                   item-value="id"
                   variant="outlined"
@@ -261,9 +260,8 @@
                 <v-card-subtitle class="field-label">{{ t('تلفات مالی') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
-                <v-autocomplete
+                <v-text-field
                   v-model="draft.talafat_mali"
-                  :items="maliTalafatItems"
                   item-title="name"
                   item-value="id"
                   variant="outlined"
@@ -291,6 +289,23 @@
                   prepend-inner-icon="mdi-crosshairs-gps"
                 />
               </v-card-text>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="draft.killed"
+                :label="t('کشته شده')"
+                density="compact"
+                variant="outlined"
+              />
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="draft.injured"
+                :label="t('زخمی شده')"
+                density="compact"
+                variant="outlined"
+              />
             </v-col>
             <!-- ghost to keep 3-up layout -->
             <v-col cols="12" md="4" class="ghost-col" />
@@ -409,6 +424,16 @@
                   </v-alert>
                 </v-col>
               </v-row>
+              <v-row class="pa-3">
+                <v-col cols="12" md="12">
+                  <v-text-field
+                    v-model="draft.docs_note"
+                    :label="t('نوت راجع به اسناد')"
+                    density="compact"
+                    variant="outlined"
+                  />
+                </v-col>
+              </v-row>
             </v-card-text>
           </v-card>
         </v-card-text>
@@ -500,13 +525,15 @@
     event_specific_place: '',
     coordinates: '',
 
-    talafat_jani: null,
-    talafat_mali: null,
-
+    talafat_jani: '',
+    talafat_mali: '',
+    killed: '',
+    injured: '',
     tafseel: '',
     talks: '',
     Province_addr: '',
     note: '',
+    docs_note: '',
 
     _newDocs: [],
   });

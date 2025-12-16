@@ -11,34 +11,42 @@ class InformationResource extends JsonResource
         /** @var \App\Models\Information $info */
         $info = $this->resource;
 
-        // 🔹 Related models
-        $resource       = $info ? $info->resource : null;
-        $officeEmployee = $info ? $info->officeEmployee : null;
-        $documents      = $info ? $info->documents : collect();
+        $resource  = $info ? $info->resource : null;
+        $documents = $info ? $info->documents : collect();
 
-        // ===================== 🔹 FIXED DATE =====================
-        // Always convert to YYYY/MM/DD without T, Z, seconds...
-        $rawDate = $info ? (string) $info->information_saved_date : null;
-        $cleanDate = $rawDate ? substr($rawDate, 0, 10) : null; // "2025-12-06"
-        $formattedDate = $cleanDate ? str_replace('-', '/', $cleanDate) : null; // "2025/12/06"
-        // =========================================================
+        // ✅ Pick the correct office employee (fallback to tadabiri/info)
+        $officeEmployee = null;
+        if ($info) {
+            $officeEmployee =
+                $info->officeEmployee
+                ?? $info->tadabiriEmployee
+                ?? $info->infoEmployee;
+        }
+
+        // Date formatting
+        $rawDate       = $info ? (string) $info->information_saved_date : null;
+        $cleanDate     = $rawDate ? substr($rawDate, 0, 10) : null;
+        $formattedDate = $cleanDate ? str_replace('-', '/', $cleanDate) : null;
 
         return [
-            // --------------------------------------------------
-            // 🔹 IDs + flat codes
-            // --------------------------------------------------
             'id'                 => $info ? $info->id : null,
             'resource_id'        => $info ? $info->resource_id : null,
-            'office_employee_id' => $info ? $info->office_employee_id : null,
 
-            'office_employee_tadabiri_id' => $info ? $info->office_employee_tadabiri_id : null,
-            'office_employee_info_id' => $info ? $info->office_employee_info_id : null,
+            'office_employee_id' => $info ? $info->office_employee_id : null,
+            'office_employee_tadabiri_id' => $info && $info->tadabiriEmployee
+                ? $info->tadabiriEmployee->code_number
+                : null,
+
+            'office_employee_info_id' => $info && $info->infoEmployee
+                ? $info->infoEmployee->code_number
+                : null,
+
+
             'resource_code_number'        => $resource ? $resource->code_number : null,
+
+            // ✅ This will now return the code_number of whichever employee is linked
             'office_employee_code_number' => $officeEmployee ? $officeEmployee->code_number : null,
 
-            // --------------------------------------------------
-            // 🔹 Nested RESOURCE
-            // --------------------------------------------------
             'resource' => $resource ? [
                 'id'          => $resource->id,
                 'name'        => $resource->name,
@@ -46,9 +54,7 @@ class InformationResource extends JsonResource
                 'father_name' => $resource->father_name,
             ] : null,
 
-            // --------------------------------------------------
-            // 🔹 Nested OFFICE EMPLOYEE
-            // --------------------------------------------------
+            // ✅ Nested office_employee now also follows the same fallback
             'office_employee' => $officeEmployee ? [
                 'id'          => $officeEmployee->id,
                 'name'        => $officeEmployee->name,
@@ -56,9 +62,6 @@ class InformationResource extends JsonResource
                 'father_name' => $officeEmployee->father_name,
             ] : null,
 
-            // --------------------------------------------------
-            // 🔹 Information fields
-            // --------------------------------------------------
             'name'              => $info ? $info->name : null,
             'nick_name'         => $info ? $info->nick_name : null,
             'father_name'       => $info ? $info->father_name : null,
@@ -76,10 +79,8 @@ class InformationResource extends JsonResource
             'jenayee_info_type' => $info ? $info->jenayee_info_type : null,
             'Province_addr'     => $info ? $info->Province_addr : null,
 
-            // ===================== 🔹 DATE FIX =====================
-            'information_saved_date'      => $cleanDate,     // 2025-12-06
-            'information_saved_date_ymd'  => $formattedDate, // 2025/12/06
-            // ======================================================
+            'information_saved_date'     => $cleanDate,
+            'information_saved_date_ymd' => $formattedDate,
 
             'information_saved_hour' => $info ? $info->information_saved_hour : null,
             'information_degree'     => $info ? $info->information_degree : null,
@@ -89,16 +90,11 @@ class InformationResource extends JsonResource
             'lead_drirection' => $info ? $info->lead_drirection : null,
             'talks'           => $info ? $info->talks : null,
             'note'            => $info ? $info->note : null,
+            'docs_note'       => $info ? $info->docs_note : null,
             'result'          => $info ? $info->result : null,
 
-            // --------------------------------------------------
-            // 🔹 Documents
-            // --------------------------------------------------
             'documents' => InformationDocumentResource::collection($documents),
 
-            // --------------------------------------------------
-            // 🔹 Timestamps
-            // --------------------------------------------------
             'created_at' => $info ? $info->created_at : null,
             'updated_at' => $info ? $info->updated_at : null,
         ];

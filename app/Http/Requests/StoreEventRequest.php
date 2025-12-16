@@ -27,10 +27,13 @@ class StoreEventRequest extends FormRequest
             'event_specific_place'  => 'nullable|string',
             'talafat_jani'          => 'nullable|string',
             'talafat_mali'          => 'nullable|string',
+            'injured'               => 'nullable|string',
+            'killed'                => 'nullable|string',
             'tafseel'               => 'nullable|string',
             'talks'                 => 'nullable|string',
             'coordinates'           => 'nullable|string',
             'note'                  => 'nullable|string',
+            'docs_note'             => 'nullable|string',
             'Province_addr' => ['nullable','string'],
 
             'documents.*'           => 'nullable|file',

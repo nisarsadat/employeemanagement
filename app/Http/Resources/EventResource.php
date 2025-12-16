@@ -25,10 +25,13 @@ class EventResource extends JsonResource
             'event_specific_place' => $this->event_specific_place,
             'talafat_jani'         => $this->talafat_jani,
             'talafat_mali'         => $this->talafat_mali,
+            'injured'              => $this->injured,
+            'killed'               => $this->killed,
             'tafseel'              => $this->tafseel,
             'talks'                => $this->talks,
             'coordinates'          => $this->coordinates,
             'note'                 => $this->note,
+            'docs_note'            => $this->docs_note,
             'Province_addr'        => $this->Province_addr,
 
             // Flattened FK / helper fields

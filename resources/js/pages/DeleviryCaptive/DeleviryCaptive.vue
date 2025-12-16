@@ -50,13 +50,13 @@
       </v-row>
 
       <!-- 📊 Filter Cards -->
-      <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
-        <!-- All -->
-        <v-col cols="12" sm="6" md="3" :dir="isRtl ? 'rtl' : 'ltr'">
+      <v-row class="mt-2 d-flex justify-between" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- 1) All -->
+        <v-col cols="12" sm="2" md="4">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'all' }"
-            elevation="cardFilter === 'all' ? 6 : 1"
+            :elevation="cardFilter === 'all' ? 6 : 1"
             @click="cardFilter = 'all'"
           >
             <div class="stat-card-body">
@@ -64,70 +64,88 @@
                 <v-icon>mdi-account-group</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('همه زندانی های تسلیم شده') }}</div>
+                <div class="stat-card-title">{{ t('همه') }}</div>
                 <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
           </v-card>
         </v-col>
 
-        <!-- With documents -->
-        <v-col cols="12" sm="6" md="3" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- 2) جاسوسی -->
+        <v-col cols="12" sm="2" >
           <v-card
             class="stat-card"
-            :class="{ 'stat-card--active': cardFilter === 'withDocs' }"
-            elevation="cardFilter === 'withDocs' ? 6 : 1"
-            @click="cardFilter = 'withDocs'"
+            :class="{ 'stat-card--active': cardFilter === 'spy' }"
+            :elevation="cardFilter === 'spy' ? 6 : 1"
+            @click="cardFilter = 'spy'"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
-                <v-icon>mdi-file-document-multiple</v-icon>
+                <v-icon>mdi-shield-search</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('دارای اسناد') }}</div>
-                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withDocs }}</div>
+                <div class="stat-card-title">{{ t('جاسوسی') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.spy }}</div>
               </div>
             </div>
           </v-card>
         </v-col>
 
-        <!-- With coordinates -->
-        <v-col cols="12" sm="6" md="3" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- 3) ساعین بالفساد -->
+        <v-col cols="12" sm="2" >
           <v-card
             class="stat-card"
-            :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
-            elevation="cardFilter === 'withCoordinates' ? 6 : 1"
-            @click="cardFilter = 'withCoordinates'"
+            :class="{ 'stat-card--active': cardFilter === 'saeen' }"
+            :elevation="cardFilter === 'saeen' ? 6 : 1"
+            @click="cardFilter = 'saeen'"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
-                <v-icon>mdi-map-marker-radius</v-icon>
+                <v-icon>mdi-account-alert</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
+                <div class="stat-card-title">{{ t('ساعین بالفساد') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.saeen }}</div>
               </div>
             </div>
           </v-card>
         </v-col>
 
-        <!-- With criminal history -->
-        <v-col cols="12" sm="6" md="3" :dir="isRtl ? 'rtl' : 'ltr'">
+        <!-- 4) شر او فساد -->
+        <v-col cols="12" sm="2" >
           <v-card
             class="stat-card"
-            :class="{ 'stat-card--active': cardFilter === 'withCriminalHistory' }"
-            elevation="cardFilter === 'withCriminalHistory' ? 6 : 1"
-            @click="cardFilter = 'withCriminalHistory'"
+            :class="{ 'stat-card--active': cardFilter === 'sharFasad' }"
+            :elevation="cardFilter === 'sharFasad' ? 6 : 1"
+            @click="cardFilter = 'sharFasad'"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
-                <v-icon>mdi-gavel</v-icon>
+                <v-icon>mdi-fire-alert</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('سابقه جرمی') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCriminalHistory }}
-                </div>
+                <div class="stat-card-title">{{ t('شر او فساد') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.sharFasad }}</div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+
+        <!-- 5) Today -->
+        <v-col cols="12" sm="2" >
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'today' }"
+            :elevation="cardFilter === 'today' ? 6 : 1"
+            @click="cardFilter = 'today'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-calendar-today</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('امروز') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.today }}</div>
               </div>
             </div>
           </v-card>
@@ -344,34 +362,82 @@
 
   /* 🔢 Filter cards state */
   const cardFilter = ref('all');
+  const normalizeText = (v) =>
+    String(v ?? '')
+      .trim()
+      .toLowerCase();
+
+  function isTodayDate(value) {
+    if (!value) return false;
+
+    const raw = String(value).trim();
+
+    // try: YYYY-MM-DD (or starts with it)
+    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      const y = Number(m[1]);
+      const mo = Number(m[2]) - 1;
+      const d = Number(m[3]);
+
+      const dt = new Date(y, mo, d);
+      const now = new Date();
+      return (
+        dt.getFullYear() === now.getFullYear() &&
+        dt.getMonth() === now.getMonth() &&
+        dt.getDate() === now.getDate()
+      );
+    }
+
+    // fallback: Date parse
+    const dt = new Date(raw);
+    if (Number.isNaN(dt.getTime())) return false;
+
+    const now = new Date();
+    return (
+      dt.getFullYear() === now.getFullYear() &&
+      dt.getMonth() === now.getMonth() &&
+      dt.getDate() === now.getDate()
+    );
+  }
 
   const stats = computed(() => {
     const rows = rowsFT.value || [];
     const total = rows.length;
-    const withDocs = rows.filter(
-      (r) => Array.isArray(r.documents) && r.documents.length > 0
-    ).length;
-    const withCoordinates = rows.filter(
-      (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
-    ).length;
-    const withCriminalHistory = rows.filter(
-      (r) => r && r.criminal_history && String(r.criminal_history).trim() !== ''
+
+    const spy = rows.filter(
+      (r) => normalizeText(r?.maznonyat_type) === normalizeText('جاسوسی')
     ).length;
 
-    return { total, withDocs, withCoordinates, withCriminalHistory };
+    const saeen = rows.filter(
+      (r) => normalizeText(r?.maznonyat_type) === normalizeText('ساعین بالفساد')
+    ).length;
+
+    const sharFasad = rows.filter(
+      (r) => normalizeText(r?.maznonyat_type) === normalizeText('شر او فساد')
+    ).length;
+
+    const today = rows.filter((r) => isTodayDate(r?.captive_date)).length;
+
+    return { total, spy, saeen, sharFasad, today };
   });
-
   const filteredRowsFT = computed(() => {
     const base = rowsFT.value || [];
+
     switch (cardFilter.value) {
-      case 'withDocs':
-        return base.filter((r) => Array.isArray(r.documents) && r.documents.length > 0);
-      case 'withCoordinates':
-        return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
-      case 'withCriminalHistory':
+      case 'spy':
+        return base.filter((r) => normalizeText(r?.maznonyat_type) === normalizeText('جاسوسی'));
+
+      case 'saeen':
         return base.filter(
-          (r) => r && r.criminal_history && String(r.criminal_history).trim() !== ''
+          (r) => normalizeText(r?.maznonyat_type) === normalizeText('ساعین بالفساد')
         );
+
+      case 'sharFasad':
+        return base.filter((r) => normalizeText(r?.maznonyat_type) === normalizeText('شر او فساد'));
+
+      case 'today':
+        return base.filter((r) => isTodayDate(r?.captive_date));
+
       default:
         return base;
     }

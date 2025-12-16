@@ -51,7 +51,7 @@
     <v-row class="px-2 mt-2 d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
       <!-- 1) Total employees -->
       <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" @click="applyJobTypeFilter(null)">
+        <v-card class="stat-card" rounded="xl" @click="applyJobTypeFilter(null)">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-primary fontfamily">
@@ -70,7 +70,7 @@
 
       <!-- 2) اداری -->
       <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" @click="applyJobTypeFilter('اداری')">
+        <v-card class="stat-card" rounded="xl" @click="applyJobTypeFilter('اداری')">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-indigo fontfamily">
@@ -89,7 +89,7 @@
 
       <!-- 3) اوپراتیفی -->
       <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" @click="applyJobTypeFilter('اوپراتیفی')">
+        <v-card class="stat-card" rounded="xl" @click="applyJobTypeFilter('اوپراتیفی')">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-cyan fontfamily">
@@ -108,7 +108,7 @@
 
       <!-- 4) Active employees (click -> /app/activeemployees) -->
       <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" @click="goActiveEmployees">
+        <v-card class="stat-card" rounded="xl" @click="goActiveEmployees">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-green fontfamily">
@@ -127,7 +127,7 @@
 
       <!-- 5) Inactive employees (click -> /app/inactiveemployees) -->
       <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" @click="goInactiveEmployees">
+        <v-card class="stat-card" rounded="xl" @click="goInactiveEmployees">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-red fontfamily">

@@ -7,57 +7,50 @@ use Illuminate\Support\Facades\Storage;
 
 class OfficeEmployeeResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array<string, mixed>
-     */
     public function toArray($request): array
     {
         return [
-            'id'           => $this->id,
+            'id' => $this->id,
 
-           // 🔹 Picture (normalized URL if stored in disk)
+            // 🔹 Picture (ORIGINAL logic – unchanged)
             'picture' => $this->picture
                 ? (preg_match('#^https?://#', $this->picture)
                     ? $this->picture
                     : (function ($path) {
-                        // ✅ if value in DB starts with "storage/", strip it ONCE
+                        // if value in DB starts with "storage/", strip it ONCE
                         if (str_starts_with($path, 'storage/')) {
                             $path = substr($path, strlen('storage/'));
                         }
 
-                        // now $path is like "uploads/office-employees/..." or "office_employees/5/..."
-                        return Storage::url($path); // → "/storage/uploads/..." (correct)
+                        // now $path is like "uploads/office-employees/..."
+                        return Storage::url($path); // → "/storage/uploads/..."
                     })($this->picture)
                 )
                 : null,
 
-
             // 🔹 Identity
-            'name'                => $this->name,
-            'father_name'         => $this->father_name,
-            'grand_father_name'   => $this->grand_father_name,
-            'nick_name'           => $this->nick_name,
-            'code_number'         => $this->code_number,
+            'name'              => $this->name,
+            'father_name'       => $this->father_name,
+            'grand_father_name' => $this->grand_father_name,
+            'nick_name'         => $this->nick_name,
+            'code_number'       => $this->code_number,
 
             // 🔹 Rank / Level
-            'bast'                => $this->bast,
-            'level'               => $this->level,
+            'bast'  => $this->bast,
+            'level' => $this->level,
 
             // 🔹 Background
-            'history_jahad'            => $this->history_jahad,
-            'dilgay_mesher'            => $this->dilgay_mesher,
-            'jahadi_mawaqaf'           => $this->jahadi_mawaqaf,
-            'jahad_time_responsibility'=> $this->jahad_time_responsibility,
-            'tazkira'                  => $this->tazkira,
-            'jahad_place'              => $this->jahad_place,
+            'history_jahad'             => $this->history_jahad,
+            'dilgay_mesher'             => $this->dilgay_mesher,
+            'jahadi_mawaqaf'            => $this->jahadi_mawaqaf,
+            'jahad_time_responsibility' => $this->jahad_time_responsibility,
+            'tazkira'                   => $this->tazkira,
+            'jahad_place'               => $this->jahad_place,
 
             // 🔹 Main address
-            'main_province'      => $this->main_province,
-            'main_district'      => $this->main_district,
-            'main_village'       => $this->main_village,
+            'main_province' => $this->main_province,
+            'main_district' => $this->main_district,
+            'main_village'  => $this->main_village,
 
             // 🔹 Current address
             'now_province'       => $this->now_province,
@@ -67,46 +60,46 @@ class OfficeEmployeeResource extends JsonResource
             'now_street_number'  => $this->now_street_number,
             'now_home_number'    => $this->now_home_number,
 
-            // 🔹 Related province (Province_addr)
-            'Province_addr'      => $this->Province_addr,
+            // 🔹 Related province
+            'Province_addr' => $this->Province_addr,
 
             // 🔹 Job / Org
-            'specific_job'       => $this->specific_job,
-            'qisem'              => $this->qisem,
-            'zone'               => $this->zone,
-            'hawza'              => $this->hawza,
+            'specific_job' => $this->specific_job,
+            'qisem'        => $this->qisem,
+            'zone'         => $this->zone,
+            'hawza'        => $this->hawza,
 
             // 🔹 Status & Education
-            'madani_halat'       => $this->madani_halat,
-            'activity'           => $this->activity,
-            'relegy_study'       => $this->relegy_study,
-            'new_study'          => $this->new_study,
-            'faculty'            => $this->faculty,
-            'nizami'             => $this->nizami,
-            'job_type'             => $this->job_type,
-            'gun_knowledge'      => $this->gun_knowledge,
+            'madani_halat'  => $this->madani_halat,
+            'activity'      => $this->activity,
+            'relegy_study'  => $this->relegy_study,
+            'new_study'     => $this->new_study,
+            'faculty'       => $this->faculty,
+            'nizami'        => $this->nizami,
+            'job_type'      => $this->job_type,
+            'gun_knowledge' => $this->gun_knowledge,
 
             // 🔹 Demographic
-            'age'                => $this->age,
-            'specific_skills'    => $this->specific_skills,
-            'language'           => $this->language,
-            'nation'             => $this->nation,
+            'age'             => $this->age,
+            'specific_skills' => $this->specific_skills,
+            'language'        => $this->language,
+            'nation'          => $this->nation,
 
             // 🔹 Contact & misc
-            'phone_number'       => $this->phone_number,
-            'coordinates'        => $this->coordinates,
-            'join_date'          => $this->join_date,
-            'left_date'          => $this->left_date,
-            'note'               => $this->note,
+            'phone_number' => $this->phone_number,
+            'coordinates'  => $this->coordinates,
+            'join_date'    => $this->join_date,
+            'left_date'    => $this->left_date,
+            'note'         => $this->note,
 
-            // 🔹 Documents (for chips + DownloadAll)
+            // 🔹 Documents
             'documents' => $this->whenLoaded('documents', function () {
                 return $this->documents->map(function ($doc) {
                     $path = $doc->file_path ?? $doc->path ?? $doc->file_name;
 
                     return [
                         'id'        => $doc->id,
-                        'file_name' => $doc->file_name ?? basename($path),
+                        'file_name' => $doc->file_name ?? basename((string) $path),
                         'url'       => $path
                             ? (preg_match('#^https?://#', $path)
                                 ? $path
@@ -116,19 +109,28 @@ class OfficeEmployeeResource extends JsonResource
                 })->toArray();
             }, []),
 
-            // 🔹 Counters
-            'resources_count'    => $this->resources_count
+            // 🔹 Counters (ALL)
+            'resources_count' => $this->resources_count
                 ?? ($this->relationLoaded('resources') ? $this->resources->count() : 0),
 
-            'events_count'       => $this->events_count
+            'events_count' => $this->events_count
                 ?? ($this->relationLoaded('events') ? $this->events->count() : 0),
 
             'informations_count' => $this->informations_count
                 ?? ($this->relationLoaded('informations') ? $this->informations->count() : 0),
 
+            'tadabiri_informations_count' => $this->tadabiri_informations_count
+                ?? ($this->relationLoaded('tadabiriInformations') ? $this->tadabiriInformations->count() : 0),
+
+            'info_informations_count' => $this->info_informations_count
+                ?? ($this->relationLoaded('infoInformations') ? $this->infoInformations->count() : 0),
+
+            'documents_count' => $this->documents_count
+                ?? ($this->relationLoaded('documents') ? $this->documents->count() : 0),
+
             // 🔹 Timestamps
-            'created_at'         => optional($this->created_at)->toISOString(),
-            'updated_at'         => optional($this->updated_at)->toISOString(),
+            'created_at' => optional($this->created_at)->toISOString(),
+            'updated_at' => optional($this->updated_at)->toISOString(),
         ];
     }
 }

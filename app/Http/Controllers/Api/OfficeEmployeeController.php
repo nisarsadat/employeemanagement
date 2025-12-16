@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OfficeEmployeeRequest;
-use App\Http\Requests\StoreOfficeEmployeeRequest;
 use App\Http\Requests\UpdateOfficeEmployeeRequest;
 use App\Http\Resources\OfficeEmployeeResource;
 use App\Models\OfficeEmployee;
@@ -37,7 +36,12 @@ class OfficeEmployeeController extends Controller
             ->withCount([
                 'events',
                 'resources',
+
+                // ✅ ALL INFORMATION TYPES
                 'informations',
+                'tadabiriInformations',
+                'infoInformations',
+
                 'documents',
             ])
             ->when($search, function ($q) use ($search) {
@@ -49,8 +53,8 @@ class OfficeEmployeeController extends Controller
             })
             // ✅ filter by activity (accepts both Dari and English)
             ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
-                $activeVals   = ['active', OfficeEmployee::ACTIVE];     // 'active' | 'فعال'
-                $inactiveVals = ['inactive', OfficeEmployee::INACTIVE]; // 'inactive' | 'غیر فعال'
+                $activeVals   = ['active', OfficeEmployee::ACTIVE];
+                $inactiveVals = ['inactive', OfficeEmployee::INACTIVE];
 
                 if (in_array($status, $activeVals, true)) {
                     $q->where('activity', OfficeEmployee::ACTIVE);
@@ -62,8 +66,7 @@ class OfficeEmployeeController extends Controller
 
         // Return ALL if perPage missing / "all" / 0
         if (is_null($rawPerPage) || $rawPerPage === '' || strtolower((string) $rawPerPage) === 'all' || (int) $rawPerPage === 0) {
-            $items = $query->get();
-            return OfficeEmployeeResource::collection($items);
+            return OfficeEmployeeResource::collection($query->get());
         }
 
         $perPage = max(1, (int) $rawPerPage);
@@ -76,7 +79,17 @@ class OfficeEmployeeController extends Controller
     public function show($id)
     {
         $officeEmployee = OfficeEmployee::with(['documents'])
-            ->withCount(['events', 'resources', 'informations', 'documents'])
+            ->withCount([
+                'events',
+                'resources',
+
+                // ✅ ALL INFORMATION TYPES
+                'informations',
+                'tadabiriInformations',
+                'infoInformations',
+
+                'documents',
+            ])
             ->findOrFail($id);
 
         return new OfficeEmployeeResource($officeEmployee);
@@ -102,9 +115,8 @@ class OfficeEmployeeController extends Controller
         DB::beginTransaction();
 
         try {
-            $user = $request->user(); // 🔔 who did this action
+            $user = $request->user();
 
-            // Create the employee (without picture first)
             $employee = OfficeEmployee::create($request->validated());
 
             // Picture
@@ -126,7 +138,6 @@ class OfficeEmployeeController extends Controller
                 }
             }
 
-            // 🔔 Notification: CREATED → for ALL users (including actor)
             NotificationService::recordForAllUsers(
                 actor: $user,
                 module: 'کارمند دفتر',
@@ -155,11 +166,6 @@ class OfficeEmployeeController extends Controller
         }
     }
 
-    /**
-     * Update an existing office employee.
-     *
-     * Here we also compute the field changes and store them in notification.changes.
-     */
     public function update(UpdateOfficeEmployeeRequest $request, $id)
     {
         DB::beginTransaction();
@@ -167,16 +173,12 @@ class OfficeEmployeeController extends Controller
         try {
             $user = $request->user();
 
-            // Load the employee
             $officeEmployee = OfficeEmployee::with(['documents'])->findOrFail($id);
 
-            // Keep original values for diff
             $original = $officeEmployee->getOriginal();
 
-            // Apply validated fields (in memory)
             $officeEmployee->fill($request->validated());
 
-            // Compute which fields changed
             $dirty   = $officeEmployee->getDirty();
             $changes = [];
 
@@ -187,7 +189,6 @@ class OfficeEmployeeController extends Controller
                 ];
             }
 
-            // Save updated base fields
             $officeEmployee->save();
 
             // Picture replace
@@ -199,7 +200,6 @@ class OfficeEmployeeController extends Controller
                 $path = $request->file('picture')->store('uploads/office-employees', 'public');
                 $officeEmployee->update(['picture' => $path]);
 
-                // also track in changes array
                 $changes['picture'] = [
                     'old' => $original['picture'] ?? null,
                     'new' => $path,
@@ -218,14 +218,12 @@ class OfficeEmployeeController extends Controller
                     ]);
                 }
 
-                // simple flag to show there were document changes
                 $changes['documents'] = [
                     'old' => null,
                     'new' => 'updated',
                 ];
             }
 
-            // 🔔 Notification: UPDATED → for ALL users
             NotificationService::recordForAllUsers(
                 actor: $user,
                 module: 'کارمند دفتر',
@@ -243,7 +241,17 @@ class OfficeEmployeeController extends Controller
             return new OfficeEmployeeResource(
                 $officeEmployee
                     ->load(['documents'])
-                    ->loadCount(['events', 'resources', 'informations', 'documents'])
+                    ->loadCount([
+                        'events',
+                        'resources',
+
+                        // ✅ ALL INFORMATION TYPES
+                        'informations',
+                        'tadabiriInformations',
+                        'infoInformations',
+
+                        'documents',
+                    ])
             );
 
         } catch (\Throwable $e) {
@@ -256,9 +264,6 @@ class OfficeEmployeeController extends Controller
         }
     }
 
-    /**
-     * Delete an office employee and their documents.
-     */
     public function destroy(Request $request, $id)
     {
         DB::beginTransaction();
@@ -267,15 +272,12 @@ class OfficeEmployeeController extends Controller
             $officeEmployee = OfficeEmployee::with('documents')->findOrFail($id);
             $user           = $request->user();
 
-            // keep code_number before delete
             $code = $officeEmployee->code_number;
 
-            // Delete files from storage
             foreach ($officeEmployee->documents as $doc) {
                 Storage::disk('public')->delete($doc->file_path);
             }
 
-            // Delete DB rows (documents + picture)
             $officeEmployee->documents()->delete();
 
             if ($officeEmployee->picture) {
@@ -284,7 +286,6 @@ class OfficeEmployeeController extends Controller
 
             $officeEmployee->delete();
 
-            // 🔔 Notification: DELETED → for ALL users
             NotificationService::recordForAllUsers(
                 actor: $user,
                 module: 'کارمند دفتر',
@@ -317,9 +318,19 @@ class OfficeEmployeeController extends Controller
     public function inactive(Request $request)
     {
         $query = OfficeEmployee::query()
-            ->where('activity', 'غیر فعال')
+            ->where('activity', OfficeEmployee::INACTIVE)
             ->with(['documents'])
-            ->withCount(['events', 'resources', 'informations', 'documents'])
+            ->withCount([
+                'events',
+                'resources',
+
+                // ✅ ALL INFORMATION TYPES
+                'informations',
+                'tadabiriInformations',
+                'infoInformations',
+
+                'documents',
+            ])
             ->orderByDesc('id');
 
         if ($search = $request->input('search')) {
@@ -331,10 +342,11 @@ class OfficeEmployeeController extends Controller
         }
 
         $perPage = $request->input('perPage', 0);
-        if (!$perPage || strtolower($perPage) === 'all') {
+
+        if (!$perPage || strtolower((string) $perPage) === 'all') {
             return OfficeEmployeeResource::collection($query->get());
         }
 
-        return OfficeEmployeeResource::collection($query->paginate($perPage));
+        return OfficeEmployeeResource::collection($query->paginate((int) $perPage));
     }
 }

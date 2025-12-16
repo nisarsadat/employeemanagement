@@ -17,7 +17,7 @@
         variant="outlined"
         density="compact"
         rounded="lg"
-        class="date-cell"
+        class="date-cell dateinput"
         :class="rtl ? 'date-cell-rtl' : 'date-cell-ltr'"
         hide-details="auto"
         readonly
@@ -341,9 +341,11 @@
 
 <style scoped>
   .date-cell {
-    min-width: 350px;
-    max-width: 190px;
+    width: 100%;
+    min-width: 445;
+    max-width: none;
   }
+
   .date-cell-ltr :deep(.v-field__input),
   .date-cell-rtl :deep(.v-field__input) {
     padding-left: 8px;
@@ -412,4 +414,5 @@
     visibility: hidden;
     pointer-events: none;
   }
+
 </style>

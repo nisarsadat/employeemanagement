@@ -29,12 +29,15 @@ return new class extends Migration {
 
                 $table->string('talafat_jani')->nullable();
                 $table->string('talafat_mali')->nullable();
+                $table->string('injured')->nullable();
+                $table->string('killed')->nullable();
 
                 $table->text('tafseel')->nullable();
                 $table->text('talks')->nullable();
                 $table->string('coordinates')->nullable();
                 $table->text('note')->nullable();
-            $table->string('Province_addr')->nullable();
+                $table->text('docs_note')->nullable();
+                $table->string('Province_addr')->nullable();
 
 
 

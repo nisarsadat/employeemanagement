@@ -12,9 +12,10 @@ class UpdateInformationRequest extends FormRequest
     {
         return [
             'resource_id'        => ['sometimes','nullable','integer','exists:resources,id'],
-            'office_employee_id' => ['sometimes','nullable','integer','exists:office_employees,id'],
-            'office_employee_tadabiri_id' => ['nullable','integer','exists:office_employee_tadabiri_id,id'],
-            'office_employee_info_id' => ['nullable','integer','exists:office_employee_info_id,id'],
+            // ✅ ALL employee references point to office_employees table
+            'office_employee_id' => ['nullable','integer','exists:office_employees,id'],
+            'office_employee_tadabiri_id' => ['nullable','integer','exists:office_employees,id'],
+            'office_employee_info_id' => ['nullable','integer','exists:office_employees,id'],
 
             'name'              => ['sometimes','nullable','string'],
             'nick_name'         => ['sometimes','nullable','string'],
@@ -41,6 +42,7 @@ class UpdateInformationRequest extends FormRequest
             'lead_drirection' => ['sometimes','nullable','string'],
             'talks'           => ['sometimes','nullable','string'],
             'note'            => ['sometimes','nullable','string'],
+            'docs_note'       => ['sometimes','nullable','string'],
             'result'            => ['sometimes','nullable','string'],
             'Province_addr' => ['nullable','string'],
 

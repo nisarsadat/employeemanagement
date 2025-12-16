@@ -439,9 +439,12 @@ const headersFT = computed(() => [
   { title: t('کوردینات'), key: 'coordinates' },
   { title: t('تلفات جانی'), key: 'talafat_jani' },
   { title: t('تلفات مالی'), key: 'talafat_mali' },
+  { title: t('کشته شده'), key: 'injured' },
+  { title: t('زخمی شده'), key: 'killed' },
   { title: t('تفصیل'), key: 'tafseel' },
   { title: t('وضاحت'), key: 'talks' },
   { title: t('ملاحظات'), key: 'note', width: 300 },
+  { title: t('نوت راجع به اسناد'), key: 'docs_note', width: 300 },
   { title: t('ولایت مربوطه'), key: 'Province_addr' },
   { title: t('نقشه'), key: 'map', sortable: false },
 ]);
