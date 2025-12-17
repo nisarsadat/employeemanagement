@@ -33,7 +33,7 @@
           :loading="repo.bootLoading"
           @click="onActivatorClick"
         >
-          <v-icon size="22" color="primary">mdi-forum</v-icon>
+          <v-icon size="22" color="primary">mdi-whatsapp</v-icon>
         </v-btn>
       </v-badge>
     </template>

@@ -127,6 +127,15 @@
           دانلود Excel/CSV
         </span>
       </button>
+
+      <!-- ✅ Word export button (added) -->
+      <button
+        type="button"
+        class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-slate-700 to-slate-900 text-white hover:from-slate-600 hover:to-slate-800 transition-all duration-200 shadow-sm hover:shadow"
+        @click="downloadWord"
+      >
+        دانلود Word
+      </button>
     </div>
 
     <!-- Table (zoomed 67%) -->
@@ -144,7 +153,7 @@
             <col
               v-for="h in headers"
               :key="'col-' + colKey(h)"
-              :style="colWidth(h) ? { width: colWidth(h) } : undefined"
+              :style="colWidth(h) ? { width: colWidth(h), minWidth: colWidth(h) } : undefined"
             />
           </colgroup>
 
@@ -243,8 +252,6 @@
                       <div class="whitespace-nowrap text-xs font-medium text-white">
                         {{ h.title }}
                       </div>
-
-                      <!-- ❌ Filter icon removed – only the title is visible -->
 
                       <!-- Column checkbox for print columns -->
                       <div v-if="!isComposite(h) && hKey(h)" class="print:hidden" @click.stop>
@@ -385,7 +392,7 @@
                           <label
                             v-for="opt in getFilteredOptions(openDropdown || '')"
                             :key="opt || '__EMPTY__'"
-                            class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-blue-50 cursor-pointer select-none transition-colors	duration-150 group/option"
+                            class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-blue-50 cursor-pointer select-none transition-colors duration-150 group/option"
                             @click.stop
                           >
                             <div class="relative">
@@ -533,9 +540,24 @@
                   </template>
 
                   <template v-else>
-                    <div v-if="!isComposite(h)" class="font-medium">
-                      {{ displayValueByKey(h.key, row[h.key]) }}
+                    <div v-if="!isComposite(h)" class="cell-box">
+                      <div
+                        class="cell-text"
+                        :class="isExpanded(getRowId(row, i), h.key) ? '' : 'cell-clamp'"
+                      >
+                        {{ displayValueByKey(h.key, row[h.key]) }}
+                      </div>
+
+                      <button
+                        v-if="shouldShowMore(displayValueByKey(h.key, row[h.key]))"
+                        class="cell-more print:hidden"
+                        @click.stop="toggleExpand(getRowId(row, i), h.key)"
+                        type="button"
+                      >
+                        {{ isExpanded(getRowId(row, i), h.key) ? 'کمتر' : 'بیشتر' }}
+                      </button>
                     </div>
+
                     <div v-else class="space-y-1">
                       <div v-for="sub in h.key" :key="'v-' + sub" class="text-[11px]">
                         {{ displayValueByKey(sub, row[sub]) }}
@@ -582,6 +604,7 @@
                       v-if="hasActiveFilters"
                       @click="clearAllFilters"
                       class="mt-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 transition-all duration-200"
+                      type="button"
                     >
                       حذف فیلترها
                     </button>
@@ -1151,6 +1174,112 @@
     URL.revokeObjectURL(url);
   }
 
+  /* ✅ Word (DOC) export (added) */
+  function escapeHtml(val) {
+    return String(val ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function getSelectedColumnDefs() {
+    // base columns from headers
+    const all = headersFlatKeys(); // [{key,title}]
+
+    // if user selected columns → keep only those
+    if (selectedCols.value.size > 0) {
+      return all.filter((c) => selectedCols.value.has(c.key));
+    }
+
+    // otherwise → all
+    return all;
+  }
+
+  function buildListHtmlForWord(cols, rowsToUse) {
+    const dir = rtl.value ? 'rtl' : 'ltr';
+    const align = rtl.value ? 'right' : 'left';
+
+    // Example output:
+    // 1) نام: X | نام پدر: Y
+    // 2) نام: ...
+    return `
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <style>
+        body { font-family: Arial, Tahoma; direction: ${dir}; text-align: ${align}; padding: 16px; }
+        .item { padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+        .num { font-weight: 700; margin-${rtl.value ? 'left' : 'right'}: 8px; color:#111827; }
+        .pair { display:inline; font-size: 12px; color:#111827; }
+        .label { font-weight: 700; color:#374151; }
+        .val { font-weight: 500; color:#111827; }
+        .sep { color:#9ca3af; margin: 0 6px; }
+      </style>
+    </head>
+    <body>
+      ${rowsToUse
+        .map((r, idx) => {
+          const line = cols
+            .map((c) => {
+              const v = displayValueByKey(c.key, r[c.key]);
+              return `<span class="pair"><span class="label">${escapeHtml(
+                c.title
+              )}:</span> <span class="val">${escapeHtml(v)}</span></span>`;
+            })
+            .join(`<span class="sep">|</span>`);
+
+          return `<div class="item"><span class="num">${idx + 1})</span>${line}</div>`;
+        })
+        .join('')}
+    </body>
+  </html>`;
+  }
+  function downloadWord() {
+    const cols = getSelectedColumnDefs();
+
+    // rows: if selected rows → only those, else filteredRows
+    const rowsToUse =
+      selectedSet.value.size > 0
+        ? filteredRows.value.filter((r, i) => selectedSet.value.has(getRowId(r, i)))
+        : filteredRows.value;
+
+    const html = buildListHtmlForWord(cols, rowsToUse);
+
+    const blob = new Blob(['\uFEFF' + html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+
+    a.href = url;
+    a.download = `list-export-${ts}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* ✅ WhatsApp style "more/less" for long cell values (added) */
+  const expandedCells = ref(new Set());
+
+  function cellKey(rowId, col) {
+    return `${rowId}__${col}`;
+  }
+
+  function isExpanded(rowId, col) {
+    return expandedCells.value.has(cellKey(rowId, col));
+  }
+
+  function toggleExpand(rowId, col) {
+    const k = cellKey(rowId, col);
+    expandedCells.value.has(k) ? expandedCells.value.delete(k) : expandedCells.value.add(k);
+  }
+
+  function shouldShowMore(val) {
+    if (val == null) return false;
+    const s = String(val);
+    return s.length > 120 || s.includes('\n');
+  }
+
   /* === Lifecycle === */
   onMounted(() => {
     window.addEventListener('scroll', handleReposition, true);
@@ -1266,6 +1395,7 @@
   .overflow-x-auto::-webkit-scrollbar-thumb:hover {
     background: #a1a1a1;
   }
+
   /* ===========================
    TABLE LAYOUT – remove gaps
    =========================== */
@@ -1317,6 +1447,7 @@
   tbody tr:hover {
     background-color: rgba(0, 0, 0, 0.03);
   }
+
   .overflow-x-auto::-webkit-scrollbar {
     width: 6px; /* 👈 vertical scrollbar width */
     height: 8px; /* 👈 horizontal scrollbar height (keep as you like) */
@@ -1335,12 +1466,14 @@
   .overflow-x-auto::-webkit-scrollbar-thumb:hover {
     background: #a1a1a1;
   }
+
   /* Make the whole header block sticky inside the scroll area */
   .overflow-x-auto > table > thead.table-header {
     position: sticky;
     top: 0;
     z-index: 40; /* above body rows */
   }
+
   /* Default: hide scrollbars but scroll works */
   .overflow-x-auto::-webkit-scrollbar {
     width: 0px;
@@ -1365,6 +1498,7 @@
   .overflow-x-auto::-webkit-scrollbar-track {
     background: transparent;
   }
+
   /* Default: hide */
   .overflow-x-auto {
     scrollbar-width: none;
@@ -1374,5 +1508,38 @@
   .overflow-x-auto:hover {
     scrollbar-width: thin;
     scrollbar-color: #b9b6b6 transparent;
+  }
+
+  /* ✅ Auto cell sizing + WhatsApp style (added) */
+  td,
+  th {
+    max-width: 450px;
+  }
+
+  .cell-box {
+    max-width: 450px;
+    margin: auto;
+  }
+
+  .cell-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.6;
+  }
+
+  /* clamp to 3 lines */
+  .cell-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .cell-more {
+    font-size: 11px;
+    font-weight: bold;
+    color: #2563eb;
+    cursor: pointer;
+    margin-top: 4px;
   }
 </style>

@@ -1,4 +1,3 @@
-```php
 <?php
 
 namespace App\Http\Controllers\Api;
@@ -194,4 +193,3 @@ class ResourceActivityController extends Controller
         return new ResourceResource($row);
     }
 }
-```

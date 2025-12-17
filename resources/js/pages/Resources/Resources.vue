@@ -225,7 +225,7 @@
             </template>
           </v-tooltip>
         </div>
-        <span v-else class="text-xs text-grey">-</span>
+        <span v-else class="text-xs text-red"> 0 </span>
       </template>
 
       <!-- 🧩 Informations count -->
@@ -251,7 +251,7 @@
             </template>
           </v-tooltip>
         </div>
-        <span v-else class="text-xs text-grey">-</span>
+        <span v-else class="text-xs text-red">0</span>
       </template>
 
       <!-- 📑 Fifty-six formats count -->
@@ -277,7 +277,7 @@
             </template>
           </v-tooltip>
         </div>
-        <span v-else class="text-xs text-grey">-</span>
+        <span v-else class="text-xs text-red">0</span>
       </template>
 
       <!-- 🗺 Map cell -->
@@ -587,7 +587,7 @@
     { title: t('قوم'), key: 'nation' },
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('کوردینات'), key: 'coordinates' },
-    { title: t('نوت'), key: 'note' },
+    { title: t('نوت'), key: 'note' , width: 350 },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('تعداد واقعات'), key: 'events_count' },
     { title: t(' تعداد اطلاعات'), key: 'informations_count' },

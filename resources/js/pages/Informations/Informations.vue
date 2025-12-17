@@ -529,13 +529,13 @@
     { title: t('تاریخ اطلاع'), key: 'information_saved_date' },
     { title: t('ساعت اطلاع'), key: 'information_saved_hour' },
     { title: t('درجه موثقیت اطلاع'), key: 'information_degree' },
-    { title: t('تفصیل'), key: 'tafseel' },
-    { title: t('نظر مدیر'), key: 'manager_comment' },
-    { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
-    { title: t('گفت‌وگوها'), key: 'talks' },
-    { title: t('نتیجه'), key: 'result' },
+    { title: t('تفصیل'), key: 'tafseel' , width: 400 },
+    { title: t('نظر مدیر'), key: 'manager_comment' , width: 300 },
+    { title: t('رهنمود رهبریت'), key: 'lead_drirection', width: 300},
+    { title: t('گفت‌وگوها'), key: 'talks' , width: 400 },
+    { title: t('نتیجه'), key: 'result' , width: 400 },
     { title: t('ملاحظات'), key: 'note', width: 400 },
-    { title: t('نوت راجع به اسناد'), key: 'docs_note', width: 400 },
+    { title: t('نوت راجع به اسناد'), key: 'docs_note', width: 140 },
   ]);
 
   const topGroups = computed(() => [

@@ -20,6 +20,19 @@
               >
                 PDF
               </v-btn>
+
+              <!-- ✅ Word Download -->
+              <v-btn
+                color="primary"
+                variant="text"
+                size="small"
+                @click="downloadWord"
+                class="download-btn"
+                prepend-icon="mdi-file-word-outline"
+              >
+                Word
+              </v-btn>
+
               <v-btn
                 v-if="closable"
                 icon
@@ -52,7 +65,7 @@
               <v-icon icon="mdi-alert-circle" size="48" color="grey" />
               <div>هیڅ معلومات نشته</div>
             </div>
-            
+
             <div v-else class="layout-container">
               <!-- Column 1: Image -->
               <div class="col-image" :style="{ '--image-w': imageWidth, '--image-h': imageHeight }">
@@ -69,7 +82,7 @@
                   <div v-else class="icon-placeholder">
                     <v-icon icon="mdi-account" size="48" color="white" />
                   </div>
-                  
+
                   <!-- Name under image -->
                   <div v-if="displayName" class="image-name">
                     <div class="name-text">{{ displayName }}</div>
@@ -100,7 +113,7 @@
         <!-- Footer -->
         <div v-if="closable" class="panel-footer">
           <v-spacer />
-          <v-btn color="grey-darken-1" variant="outlined" size="small" @click="close">
+          <v-btn color="grey-darken-1" variant="tonal" size="default" @click="close">
             تړل
           </v-btn>
         </div>
@@ -110,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useCalendar } from '../../composables/useCalendar';
 
@@ -157,51 +170,31 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'fetch', 'close']);
 
-// Debug: Log when component receives props
-console.log('InlinePanel Debug:', {
-  id: props.id,
-  modelValue: props.modelValue,
-  item: props.item,
-  fields: props.fields,
-  loading: props.loading
-});
-
 const { locale } = useI18n();
 const { formatDisplay } = useCalendar();
 
 /* state */
 const expanded = ref(props.modelValue);
 
-// Watch for modelValue changes from parent
 watch(
   () => props.modelValue,
   (newVal) => {
-    console.log('modelValue changed:', newVal);
     expanded.value = newVal;
-    
-    // If panel is opening and item is null, emit fetch event
-    if (newVal && !props.item && !props.loading) {
-      emit('fetch', props.id);
-    }
+    if (newVal && !props.item && !props.loading) emit('fetch', props.id);
   },
   { immediate: true }
 );
 
-// Watch expanded and emit to parent
 watch(expanded, (newVal) => {
-  console.log('expanded changed:', newVal);
   emit('update:modelValue', newVal);
 });
 
 function close() {
-  console.log('Closing panel');
   expanded.value = false;
   emit('close');
 }
 
-// Manual open function - can be called from parent via ref
 function open() {
-  console.log('Opening panel manually');
   expanded.value = true;
   emit('update:modelValue', true);
 }
@@ -212,17 +205,11 @@ function onKeydown(e) {
 }
 
 onMounted(() => {
-  console.log('Panel mounted, adding keydown listener');
   window.addEventListener('keydown', onKeydown);
-  
-  // Auto-open if modelValue is true on mount
-  if (props.modelValue && !props.item && !props.loading) {
-    emit('fetch', props.id);
-  }
+  if (props.modelValue && !props.item && !props.loading) emit('fetch', props.id);
 });
 
 onUnmounted(() => {
-  console.log('Panel unmounted, removing keydown listener');
   window.removeEventListener('keydown', onKeydown);
 });
 
@@ -276,7 +263,6 @@ function isDateKeyOrIso(key, val) {
 
 function displayValue(key) {
   const raw = getByPath(props.item, key);
-  console.log(`Getting value for ${key}:`, raw); // Debug
   if (isDateKeyOrIso(key, raw)) return formatDisplay(raw, locale.value || 'fa') || '—';
   return raw == null || raw === '' ? '—' : String(raw);
 }
@@ -284,82 +270,71 @@ function displayValue(key) {
 /* Fix RTL text splitting */
 function fixRtlText(text) {
   if (!text) return text;
-  
+
   const compoundWords = [
-    'نام مستعار', 'نام پدر', 'تخلص', 'آدرس', 'ایمیل', 'تلفن', 'موبایل',
-    'شماره', 'تاریخ', 'زمان', 'مکان', 'نمبر', 'کود', 'رمز', 'پاسورد'
+    'نام مستعار',
+    'نام پدر',
+    'تخلص',
+    'آدرس',
+    'ایمیل',
+    'تلفن',
+    'موبایل',
+    'شماره',
+    'تاریخ',
+    'زمان',
+    'مکان',
+    'نمبر',
+    'کود',
+    'رمز',
+    'پاسورد',
   ];
-  
+
   let fixedText = String(text);
-  
-  compoundWords.forEach(word => {
+
+  compoundWords.forEach((word) => {
     const regex = new RegExp(word.replace(/\s+/g, '\\s+'), 'g');
     fixedText = fixedText.replace(regex, word.replace(/\s+/g, '\u00A0'));
   });
-  
+
   return fixedText;
 }
 
 /* show fields except excluded and image/doc paths */
 const fieldsToShow = computed(() => {
-  console.log('Computing fieldsToShow:', {
-    propsFields: props.fields,
-    item: props.item,
-    hasItem: !!props.item
-  });
+  if (!props.item) return [];
 
-  if (!props.item) {
-    console.log('No item data, returning empty array');
-    return [];
-  }
-
-  // If fields are provided in props, use them
   if (props.fields && props.fields.length > 0) {
-    const filtered = props.fields
-      .filter(f => {
+    return props.fields
+      .filter((f) => {
         if (!f || !f.key) return false;
-        
-        // Check if key should be excluded
-        const shouldExclude = props.excludeKeys.some(ex => 
-          f.key.toString().startsWith(ex)
-        );
-        
+
+        const shouldExclude = props.excludeKeys.some((ex) => f.key.toString().startsWith(ex));
         if (shouldExclude) return false;
-        
-        // Don't exclude image key if it's not the imageKey prop
+
         if (props.imageKey && f.key === props.imageKey) return false;
-        
+
         return true;
       })
-      .map(f => ({
+      .map((f) => ({
         ...f,
-        title: fixRtlText(f.title || f.key)
+        title: fixRtlText(f.title || f.key),
       }));
-    
-    console.log('Using provided fields, filtered:', filtered);
-    return filtered;
   }
-  
-  // Generate fields from item object
-  console.log('Generating fields from item object');
-  const generatedFields = Object.keys(props.item)
-    .filter(key => {
-      // Skip excluded keys
-      if (props.excludeKeys.some(ex => key.startsWith(ex))) return false;
+
+  return Object.keys(props.item)
+    .filter((key) => {
+      if (props.excludeKeys.some((ex) => key.startsWith(ex))) return false;
       if (props.imageKey && key === props.imageKey) return false;
       if (!key || key === 'id' || key === '_id') return false;
       return true;
     })
-    .map(key => ({
+    .map((key) => ({
       title: fixRtlText(key.replace(/_/g, ' ')),
-      key: key
+      key,
     }));
-  
-  console.log('Generated fields:', generatedFields);
-  return generatedFields;
 });
 
-/* ================= PDF Generation ================ */
+/* ================= PDF Generation (Landscape) ================ */
 async function b64(path) {
   try {
     const res = await fetch(path, { cache: 'no-cache' });
@@ -395,51 +370,41 @@ async function imgB64(url) {
   }
 }
 
-function createFourColumnTable() {
-  const fields = fieldsToShow.value;
-  console.log('Creating PDF table with fields:', fields);
-  
+function buildFourColumnBodyRows() {
+  const fields = fieldsToShow.value || [];
   const rows = [];
-  
+
   for (let i = 0; i < fields.length; i += 4) {
     const row = [];
-    
     for (let j = 0; j < 4; j++) {
-      const fieldIndex = i + j;
-      if (fieldIndex < fields.length) {
-        const field = fields[fieldIndex];
-        const value = displayValue(field.key);
-        
+      const idx = i + j;
+      if (idx < fields.length) {
+        const f = fields[idx];
+        const value = displayValue(f.key);
         row.push({
           stack: [
-            { 
-              text: field.title.replace(/\u00A0/g, ' '),
-              style: 'fieldLabel', 
-              margin: [0, 0, 0, 2], 
-              alignment: 'right' 
+            {
+              text: String(f.title || '').replace(/\u00A0/g, ' '),
+              style: 'fieldLabel',
+              margin: [0, 0, 0, 2],
+              alignment: 'right',
             },
-            { 
-              text: value, 
-              style: 'fieldValue', 
-              alignment: 'right' 
-            }
+            { text: value, style: 'fieldValue', alignment: 'right' },
           ],
-          margin: [4, 4, 4, 4],
+          margin: [6, 6, 6, 6],
         });
       } else {
-        row.push({ text: '', margin: [4, 4, 4, 4] });
+        row.push({ text: '', margin: [6, 6, 6, 6] });
       }
     }
-    
     rows.push(row);
   }
-  
+
   return rows;
 }
 
 async function downloadPdf() {
   try {
-    console.log('Starting PDF download...');
     const pdfMake = (await import('pdfmake/build/pdfmake.js')).default;
 
     const [regular, bold] = await Promise.all([
@@ -463,162 +428,84 @@ async function downloadPdf() {
       };
     }
 
-    const content = [];
     const fullName = displayName.value || 'کارمند';
     const position = displayPosition.value;
 
-    content.push({
-      text: `جزییات ${fullName}`,
-      style: 'header',
-      margin: [0, 0, 0, 16],
-      alignment: 'right',
-    });
-
     const img = await imgB64(imageSrc.value);
-    const columns = [];
 
-    columns.push({
-      width: '*',
-      stack: [
-        { text: fullName, style: 'name', margin: [0, 0, 0, 4], alignment: 'right' },
-        position ? { text: position, style: 'position', margin: [0, 0, 0, 8], alignment: 'right' } : null,
-        { 
-          text: `تاریخ\u00A0تولید: ${new Date().toLocaleDateString('fa-IR')}`,
-          style: 'date',
-          alignment: 'right'
-        },
-      ].filter(Boolean),
-    });
+    // ✅ Landscape layout like your sample (fields wide + image on the RIGHT)
+    const tableRows = buildFourColumnBodyRows();
 
-    if (img) {
-      columns.push({
-        width: 100,
-        image: img,
-        fit: [80, 100],
-        alignment: 'left',
-        margin: [0, 0, 0, 8],
-      });
-    } else {
-      columns.push({
-        width: 100,
-        stack: [
-          {
+    const fieldsTable =
+      tableRows.length > 0
+        ? {
             table: {
-              widths: [80],
-              body: [[{ text: '', fillColor: '#1976d2', height: 100 }]],
+              widths: ['25%', '25%', '25%', '25%'],
+              body: tableRows,
             },
-            layout: 'noBorders',
-            alignment: 'left',
-            margin: [0, 0, 0, 8],
-          },
-          {
-            text: '👤',
-            fontSize: 32,
-            color: '#ffffff',
-            alignment: 'center',
-            absolutePosition: { x: 20, y: 40 },
-          },
-        ],
-      });
-    }
+            layout: {
+              hLineWidth: () => 0,
+              vLineWidth: () => 0,
+              paddingLeft: () => 6,
+              paddingRight: () => 6,
+              paddingTop: () => 4,
+              paddingBottom: () => 4,
+            },
+          }
+        : { text: 'هیڅ معلومات نشته', style: 'fieldValue', alignment: 'right' };
 
-    content.push({
-      columns: columns,
-      margin: [0, 0, 0, 20],
-    });
-
-    const tableRows = createFourColumnTable();
-    
-    if (tableRows.length > 0) {
-      content.push({
-        table: {
-          widths: ['25%', '25%', '25%', '25%'],
-          body: tableRows,
-        },
-        layout: {
-          hLineWidth: () => 0,
-          vLineWidth: () => 0,
-          paddingLeft: () => 8,
-          paddingRight: () => 8,
-          paddingTop: () => 4,
-          paddingBottom: () => 4,
-        },
-        margin: [0, 0, 0, 20],
-      });
-    } else {
-      content.push({
-        text: 'هیڅ معلومات نشته',
-        style: 'fieldValue',
-        alignment: 'right',
-        margin: [0, 0, 0, 20],
-      });
-    }
-
-    content.push({
-      text: `شماره: ${props.id}`,
-      style: 'footer',
-      alignment: 'right',
-      margin: [0, 20, 0, 0],
-    });
+    const imageBlock = {
+      width: 220,
+      stack: [
+        img
+          ? { image: img, fit: [220, 300], alignment: 'center', margin: [0, 0, 0, 10] }
+          : {
+              table: { widths: [220], body: [[{ text: '', fillColor: '#e9eef6', height: 300 }]] },
+              layout: 'noBorders',
+              margin: [0, 0, 0, 10],
+            },
+        { text: fullName, style: 'nameUnder', alignment: 'center', margin: [0, 0, 0, 2] },
+        position ? { text: position, style: 'posUnder', alignment: 'center' } : null,
+      ].filter(Boolean),
+    };
 
     const doc = {
       pageSize: 'A4',
-      pageMargins: [20, 20, 20, 20],
+      pageOrientation: 'landscape', // ✅ مهم
+      pageMargins: [18, 18, 18, 18],
       defaultStyle: {
         font: regular ? 'Amiri' : 'Roboto',
         fontSize: 10,
         color: '#333333',
         alignment: 'right',
       },
-      styles: {
-        header: {
-          fontSize: 16,
-          bold: true,
-          color: '#1976d2',
-          alignment: 'right',
-        },
-        name: {
-          fontSize: 14,
-          bold: true,
-          color: '#333333',
-          alignment: 'right',
-        },
-        position: {
-          fontSize: 12,
-          color: '#666666',
-          alignment: 'right',
-        },
-        date: {
-          fontSize: 10,
-          color: '#888888',
-          margin: [0, 8, 0, 0],
-          alignment: 'right',
-        },
-        fieldLabel: {
-          fontSize: 10,
-          bold: true,
-          color: '#555555',
-          alignment: 'right',
-          margin: [0, 0, 0, 2],
-        },
-        fieldValue: {
-          fontSize: 10,
-          color: '#333333',
-          alignment: 'right',
-        },
-        footer: {
-          fontSize: 9,
-          color: '#999999',
-          alignment: 'right',
-        },
-      },
-      content: content,
       rtl: true,
+      styles: {
+        header: { fontSize: 16, bold: true, color: '#1976d2', alignment: 'right' },
+        fieldLabel: { fontSize: 10, bold: true, color: '#555555', alignment: 'right' },
+        fieldValue: { fontSize: 10, color: '#333333', alignment: 'right' },
+        footer: { fontSize: 9, color: '#999999', alignment: 'right' },
+        nameUnder: { fontSize: 12, bold: true, color: '#222' },
+        posUnder: { fontSize: 10, color: '#666' },
+      },
+      content: [
+        { text: `جزییات ${fullName}`, style: 'header', margin: [0, 0, 0, 12], alignment: 'right' },
+
+        {
+          columns: [
+            { width: '*', stack: [fieldsTable] }, // fields (wide)
+            { width: 220, stack: [imageBlock], margin: [12, 0, 0, 0] }, // image on right
+          ],
+          columnGap: 12,
+          margin: [0, 0, 0, 10],
+        },
+
+        { text: `شماره: ${props.id}`, style: 'footer', alignment: 'right', margin: [0, 10, 0, 0] },
+      ],
     };
 
     const safeName = fullName.replace(/[^\w\u0600-\u06FF\-]+/g, '_');
     const fileName = `${safeName}_جزییات.pdf`;
-    console.log('Downloading PDF:', fileName);
     pdfMake.createPdf(doc).download(fileName);
   } catch (error) {
     console.error('PDF export failed:', error);
@@ -626,11 +513,124 @@ async function downloadPdf() {
   }
 }
 
-// Expose open method to parent component
-defineExpose({
-  open,
-  close
-});
+/* ================= Word Download (Landscape-like layout) ================ */
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function chunkIntoRows(arr, size) {
+  const out = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+async function downloadWord() {
+  try {
+    const fullName = displayName.value || 'کارمند';
+    const position = displayPosition.value || '';
+    const img = await imgB64(imageSrc.value);
+
+    const fields = (fieldsToShow.value || []).map((f) => ({
+      title: String(f.title || '').replace(/\u00A0/g, ' '),
+      value: displayValue(f.key),
+    }));
+
+    const rows = chunkIntoRows(fields, 4);
+
+    const tableHtml = `
+      <table class="fields">
+        <tbody>
+          ${rows
+            .map((r) => {
+              // pad to 4
+              const rr = [...r];
+              while (rr.length < 4) rr.push({ title: '', value: '' });
+
+              // each cell: label + value
+              return `<tr>
+                ${rr
+                  .map(
+                    (c) => `<td>
+                      <div class="lbl">${escapeHtml(c.title || '')}</div>
+                      <div class="val">${escapeHtml(c.value || '—')}</div>
+                    </td>`
+                  )
+                  .join('')}
+              </tr>`;
+            })
+            .join('')}
+        </tbody>
+      </table>
+    `;
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(fullName)}</title>
+  <style>
+    @page { size: A4 landscape; margin: 18mm; }
+    body { direction: rtl; font-family: "Amiri", "Arial", sans-serif; color: #222; }
+    .wrap { width: 100%; }
+    .top { width: 100%; border-collapse: collapse; }
+    .top td { vertical-align: top; }
+    .imgBox { width: 260px; text-align: center; }
+    .imgBox img { width: 260px; max-height: 360px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; }
+    .name { font-size: 18px; font-weight: 700; margin-top: 10px; }
+    .pos { font-size: 14px; color: #666; margin-top: 2px; }
+    .fields { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .fields td { width: 25%; padding: 8px 10px; vertical-align: top; }
+    .lbl { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 4px; }
+    .val { font-size: 13px; font-weight: 500; color: #222; word-break: break-word; overflow-wrap: anywhere; }
+    .footer { margin-top: 16px; font-size: 11px; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <table class="top">
+      <tr>
+        <td>
+          ${tableHtml}
+          <div class="footer">شماره: ${escapeHtml(props.id)}</div>
+        </td>
+        <td class="imgBox">
+          ${img ? `<img src="${img}" />` : `<div style="width:260px;height:360px;border:1px solid #ddd;border-radius:4px;background:#f2f4f8;"></div>`}
+          <div class="name">${escapeHtml(fullName)}</div>
+          ${position ? `<div class="pos">${escapeHtml(position)}</div>` : ''}
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
+    `.trim();
+
+    // Word download
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const safeName = fullName.replace(/[^\w\u0600-\u06FF\-]+/g, '_');
+    const fileName = `${safeName}_جزییات.doc`;
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    console.error('Word export failed:', e);
+    alert('د Word فایل تولید کې ستونزه رامنځ ته شوه. مهرباني وکړئ بیا هڅه وکړئ.');
+  }
+}
+
+defineExpose({ open, close });
 </script>
 
 <style scoped>
@@ -842,57 +842,69 @@ defineExpose({
   background: #f8f9fa;
 }
 
-/* Print styles */
+/* ✅ Print styles (Landscape like sample) */
 @media print {
+  @page {
+    size: A4 landscape; /* ✅ مهم */
+    margin: 12mm;
+  }
+
   .simple-panel {
     border: none !important;
     box-shadow: none !important;
     break-inside: avoid;
     direction: rtl !important;
   }
-  
+
   .panel-header {
     background: white !important;
   }
-  
+
   .header-actions,
   .panel-footer {
     display: none !important;
   }
-  
+
+  /* ✅ Put image on RIGHT, fields on LEFT (like your sample) */
   .layout-container {
-    grid-template-columns: 30% 70% !important;
+    grid-template-columns: 70% 30% !important;
     gap: 12px !important;
   }
-  
+  .col-fields {
+    grid-column: 1 !important;
+  }
+  .col-image {
+    grid-column: 2 !important;
+  }
+
   .image-wrapper,
   .icon-placeholder {
     width: 100% !important;
-    height: 250px !important;
+    height: 260px !important;
   }
-  
+
   .fields-grid {
     grid-template-columns: repeat(4, 1fr) !important;
     gap: 8px 6px !important;
   }
-  
+
   .field-item {
     padding: 4px !important;
     min-height: 40px !important;
   }
-  
+
   .field-label {
     font-size: 10px !important;
   }
-  
+
   .field-value {
     font-size: 11px !important;
   }
-  
+
   .name-text {
     font-size: 14px !important;
   }
-  
+
   .position-text {
     font-size: 12px !important;
   }
@@ -909,13 +921,13 @@ defineExpose({
   .layout-container {
     grid-template-columns: 30vh 1fr;
   }
-  
+
   .image-wrapper,
   .icon-placeholder {
     width: 30vh;
     height: 50vh;
   }
-  
+
   .fields-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -926,11 +938,11 @@ defineExpose({
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .col-fields {
     grid-column: 1;
   }
-  
+
   .image-wrapper,
   .icon-placeholder {
     width: 100%;
@@ -938,7 +950,7 @@ defineExpose({
     height: 400px;
     margin: 0 auto;
   }
-  
+
   .fields-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -948,34 +960,34 @@ defineExpose({
   .layout-container {
     gap: 16px;
   }
-  
+
   .image-wrapper,
   .icon-placeholder {
     height: 350px;
   }
-  
+
   .name-text {
     font-size: 15px;
   }
-  
+
   .position-text {
     font-size: 12px;
   }
-  
+
   .fields-grid {
     grid-template-columns: 1fr;
     gap: 8px;
   }
-  
+
   .field-item {
     padding: 5px;
     min-height: 40px;
   }
-  
+
   .field-label {
     font-size: 11px;
   }
-  
+
   .field-value {
     font-size: 12px;
   }
@@ -985,22 +997,22 @@ defineExpose({
   .panel-header {
     padding: 6px 8px;
   }
-  
+
   .panel-body {
     padding: 12px;
   }
-  
+
   .image-wrapper,
   .icon-placeholder {
     height: 300px;
   }
-  
+
   .header-content {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
   }
-  
+
   .header-actions {
     width: 100%;
     justify-content: flex-end;

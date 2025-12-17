@@ -491,7 +491,7 @@
     { title: t('تاریخ آمدن'), key: 'join_date' },
     { title: t('تاریخ رفتن'), key: 'left_date' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
-    { title: t('ملاحظات'), key: 'note', width: 400 },
+    { title: t('ملاحظات'), key: 'note' , width: "450"},
 
     // Map
     { title: t('نقشه'), key: 'map', sortable: false },
