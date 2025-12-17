@@ -309,10 +309,10 @@
         icon: 'mdi-graph',
         children: [
           {
-            title: t('۵۶ فارمت'),
+            title: t('راپور روزانه سیستم'),
             icon: 'mdi-file-chart',
-            to: { path: '/app/fiftyformatreports' },
-            perm: 'fiftyformatreports.view',
+            to: { path: '/app/dailyfoulreports' },
+            // perm: 'dailyfoulreports',
           },
           {
             title: t(' کارمندان'),

@@ -171,6 +171,7 @@ import ActiveEmployeesIndex from '../pages/ActiveInactive/ActiveEmployeesIndex.v
 import InactiveEmployeesIndex from '../pages/ActiveInactive/InactiveEmployeesIndex.vue';
 import ActiveResource from '../pages/ActiveInactiveResource/ActiveResource.vue';
 import InactiveResource from '../pages/ActiveInactiveResource/InactiveResource.vue';
+import DailyFoulReport from '../pages/reports/DailyFoulReport.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -323,6 +324,13 @@ const router = createRouter({
           component: InformationsForm,
           props: true, // so you get `id` + `relation` as props
           meta: { requiresAuth: true, perm: permFor('informations') },
+        },
+        // reports
+        {
+          path: 'dailyfoulreports',
+          name: 'dailyfoulreports',
+          component: DailyFoulReport,
+          // meta: { requiresAuth: true, perm: permFor('informations') },
         },
 
         // Inline info
