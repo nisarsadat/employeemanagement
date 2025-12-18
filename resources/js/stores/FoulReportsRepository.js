@@ -13,8 +13,12 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   // Daily report payload from backend
   const daily = ref(null);
 
+  // Monthly report payload from backend
+  const monthly = ref(null);
+
   // Filters
   const selectedDate = ref(''); // YYYY-MM-DD
+  const selectedMonth = ref(''); // YYYY-MM
 
   // ===== helpers =====
   function todayIso() {
@@ -23,6 +27,13 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
+  }
+
+  function currentMonthIso() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
   }
 
   function safeNum(val) {
@@ -88,11 +99,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     // same logo path rule as your existing print components
     const logoSrc = `${window.location.origin}/view.png`;
 
-    // ✅ Top row: right meta (کتنه/نېټه) + center bismillah + left checkboxes (exact positioning style)
-    // ✅ Then your existing header-table (stacked texts + logo)
     return `
-
-
       <!-- HEADER: titles + logo (your existing structure) -->
       <table class="header-table">
         <tr>
@@ -120,7 +127,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         </tr>
       </table>
 
-      <!-- (keep your bismillah here too if you want it in this place) -->
       <table class="top-head-table">
         <tr>
           <!-- RIGHT: meta (کتنه / نېټه) -->
@@ -146,27 +152,41 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
           <!-- LEFT: checkboxes -->
           <td class="top-left">
             <div class="check-row">
-
               <span class="check-label">محرمیت درجه:</span>
               <span class="check-box"></span>
               <span class="check-box"></span>
             </div>
 
             <div class="check-row">
-
               <span class="check-label">استعمالات درجه:</span>
               <span class="check-box"></span>
               <span class="check-box"></span>
             </div>
           </td>
         </tr>
-      </table>    `;
+      </table>
+    `;
   }
 
   function buildInformationsTypesLines(report) {
     const types = Array.isArray(report?.informations?.types) ? report.informations.types : [];
 
     // only show existing types with count > 0
+    const valid = types
+      .map((t) => ({
+        label: String(t?.label ?? '').trim(),
+        count: safeNum(t?.count),
+      }))
+      .filter((x) => x.label && x.count > 0);
+
+    if (!valid.length) return '';
+
+    return valid.map((x) => `<li>${escapeHtml(x.label)} ( ${x.count} ).</li>`).join('');
+  }
+
+  function buildEventTypesLines(report) {
+    const types = Array.isArray(report?.events?.types) ? report.events.types : [];
+
     const valid = types
       .map((t) => ({
         label: String(t?.label ?? '').trim(),
@@ -210,7 +230,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
     const infoLines = buildInformationsTypesLines(report);
 
-    // ✅ EXACT TEXT (no additions, same as your current)
     return `
       <div class="letter-body">
         ${buildHeaderHtml()}
@@ -270,10 +289,64 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     `;
   }
 
+  function buildMonthlyBodyHtml(report, monthText) {
+    const resourcesTotal = safeNum(report?.resources?.total);
+
+    const infoLines = buildInformationsTypesLines(report);
+    const eventLines = buildEventTypesLines(report);
+
+    const formats = Array.isArray(report?.formats) ? report.formats : [];
+    const formatsCount = formats.reduce((sum, f) => sum + safeNum(f?.count), 0);
+
+    return `
+      <div class="letter-body">
+        ${buildHeaderHtml()}
+
+        <!-- ✅ gray divider under bismillah like image -->
+        <div class="bismillah-divider"></div>
+
+        <div class="line title">د میاشتني راپور ( ${escapeHtml(monthText || '')} )</div>
+
+        <div class="line bold center">السلام علیکم ورحمة الله وبرکاته</div>
+
+        <div class="line center">
+          الله تعالی مو په ټولو شرعی امورو کې موفق او بریالی لره.
+        </div>
+
+        <div class="line right bold">وروســته:</div>
+
+        <ul class="bullets">
+          <li>
+            د کابل ښار په م ختلفو حوزو کې ( ${resourcesTotal} ) تنه منابع استخدام شوی، وروزل شوی او ارزونه یې تررسه شوه.
+          </li>
+
+          <li class="bold">ثبت شوی اطلاعات:</li>
+          <ul class="sub">
+            ${infoLines || ''}
+          </ul>
+
+          <li class="bold">ثبت شوی پېښې (د نوعیت پر اساس):</li>
+          <ul class="sub">
+            ${eventLines || ''}
+          </ul>
+
+          <li class="bold">د کابل ښار لېبری دوسیه (بنجوسو فارمت) کې ثبت شوی معلومات:</li>
+          <ul class="sub">
+            <li>د کابل ښار په مختلفو حوزو کې د ( ${formatsCount} ) مواردو اړوند معلومات ثبت شول.</li>
+          </ul>
+        </ul>
+
+        <div class="closing">
+          <div class="bold">په درنښت</div>
+          <div class="bold">د ۳۳۳ مدیریت مدیر</div>
+        </div>
+      </div>
+    `;
+  }
+
   function buildDailyDocumentHtml(report, dateText) {
     const body = buildDailyBodyHtml(report);
 
-    // ✅ system font + layout like image
     return `
       <html dir="rtl">
         <head>
@@ -295,157 +368,31 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
             .page { width: 100%; box-sizing: border-box; }
             table { border-collapse: collapse; width: 100%; }
 
-            /* ===== TOP ROW (meta + bismillah + checkboxes) ===== */
-            .top-head-table {
-              table-layout: fixed;
-              width: 100%;
-              margin-bottom: 4px;
-            }
+            .top-head-table { table-layout: fixed; width: 100%; margin-bottom: 4px; }
+            .top-head-table td { vertical-align: top; padding: 0; }
 
-            .top-head-table td {
-              vertical-align: top;
-              padding: 0;
-            }
-
-            .top-right {
-              width: 33%;
-              text-align: right;
-              font-size: 12px;
-              line-height: 1.6;
-              padding-right: 2px;
-              white-space: nowrap;
-            }
-
-            .meta-row {
-              display: flex;
-              justify-content: flex-end;
-              align-items: center;
-              gap: 6px;
-              margin: 2px 0;
-            }
-
+            .top-right { width: 33%; text-align: right; font-size: 12px; line-height: 1.6; padding-right: 2px; white-space: nowrap; }
+            .meta-row { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin: 2px 0; }
             .meta-label { font-weight: 700; }
-            .meta-box {
-              width: 26px;
-              height: 14px;
-              border: 1px solid #000;
-              display: inline-block;
-            }
+            .meta-box { width: 26px; height: 14px; border: 1px solid #000; display: inline-block; }
+            .meta-date { display: inline-flex; align-items: center; gap: 14px; min-width: 60px; justify-content: center; }
 
-            .meta-date {
-              display: inline-flex;
-              align-items: center;
-              gap: 14px;
-              min-width: 60px;
-              justify-content: center;
-            }
+            .top-center { width: 34%; text-align: center; padding-top: 2px; }
+            .bismillah-top { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+            .bismillah-orn { height: 10px; position: relative; margin: 0 auto; width: 90%; }
+            .bismillah-orn::before { content: ""; position: absolute; left: 50%; top: 3px; transform: translateX(-50%); width: 160px; height: 2px; background: #000; border-radius: 2px; opacity: 0.6; }
 
-            .meta-slash {
-              display: inline-block;
-              width: 18px;
-              text-align: center;
-              border-bottom: 1px dotted #000;
-              padding-bottom: 1px;
-            }
-
-            .top-center {
-              width: 34%;
-              text-align: center;
-              padding-top: 2px;
-            }
-
-            .bismillah-top {
-              font-weight: 700;
-              font-size: 14px;
-              margin-bottom: 2px;
-            }
-
-            /* simple ornamental stroke like scan */
-            .bismillah-orn {
-              height: 10px;
-              position: relative;
-              margin: 0 auto;
-              width: 90%;
-            }
-            .bismillah-orn::before {
-              content: "";
-              position: absolute;
-              left: 50%;
-              top: 3px;
-              transform: translateX(-50%);
-              width: 160px;
-              height: 2px;
-              background: #000;
-              border-radius: 2px;
-              opacity: 0.6;
-            }
-
-            .top-left {
-              width: 33%;
-              text-align: left;
-              font-size: 12px;
-              line-height: 1.6;
-              padding-left: 2px;
-              white-space: nowrap;
-            }
-
-            .check-row {
-              display: flex;
-              align-items: center;
-              justify-content: flex-start;
-              gap: 6px;
-              margin: 2px 0;
-            }
-
-            .check-box {
-              width: 16px;
-              height: 12px;
-              border: 1px solid #000;
-              display: inline-block;
-            }
-
+            .top-left { width: 33%; text-align: left; font-size: 12px; line-height: 1.6; padding-left: 2px; white-space: nowrap; }
+            .check-row { display: flex; align-items: center; justify-content: flex-start; gap: 6px; margin: 2px 0; }
+            .check-box { width: 16px; height: 12px; border: 1px solid #000; display: inline-block; }
             .check-label { font-weight: 700; }
 
-            /* ===== HEADER TABLE (stacked texts + logo) ===== */
-            .header-table {
-              width: 90%;
-              border: none;
-              table-layout: fixed;
-              margin: 0 ;
-              margin-right: 20px;
-            }
+            .header-table { width: 90%; border: none; table-layout: fixed; margin: 0; margin-right: 20px; }
+            .header-table td { border: none !important; font-size: 14px; padding: 0 4px !important; vertical-align: middle; }
+            .stack-cell { width: 35%; line-height: 1.35; font-weight: 700; }
+            .logo-cell { width: 30%; text-align: center; }
+            .logo-cell img { width: 70px; height: 55px; object-fit: contain; }
 
-            .header-table td {
-              border: none !important;
-              font-size: 14px;
-              padding: 0 4px !important;
-              vertical-align: middle;
-            }
-
-            .stack-cell {
-              width: 35%;
-              line-height: 1.35;
-              font-weight: 700;
-            }
-
-            .logo-cell {
-              width: 30%;
-              text-align: center;
-            }
-
-            .logo-cell img {
-              width: 70px;
-              height: 55px;
-              object-fit: contain;
-            }
-
-            .bismillah-cell {
-              text-align: center;
-              font-weight: 700;
-              margin: 2px 0 6px;
-            }
-
-            /* ===== GRAY BAR UNDER BISMILLAH (scan) ===== */
             .bismillah-divider {
               width: 100%;
               height: 16px;
@@ -455,7 +402,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               margin: 0 0 10px;
             }
 
-            /* ===== Body text spacing like scan ===== */
             .line { margin: 3px 0; }
             .bold { font-weight: 700; }
             .center { text-align: center; }
@@ -468,45 +414,15 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               margin: 8px 0 6px;
             }
 
-            ul.bullets {
-              margin: 8px 0 0;
-              padding-right: 18px;
-              list-style-type: disc;
-            }
-
+            ul.bullets { margin: 8px 0 0; padding-right: 18px; list-style-type: disc; }
             ul.bullets > li { margin: 10px 0; }
 
-            /* sub bullets use "➢" like scan */
-            ul.sub {
-              margin: 6px 0 0;
-              padding-right: 0;
-              list-style: none;
-            }
+            ul.sub { margin: 6px 0 0; padding-right: 0; list-style: none; }
+            ul.sub > li { margin: 4px 0; padding-right: 18px; position: relative; }
+            ul.sub > li::before { content: "➢"; position: absolute; right: 0; top: 0; font-weight: 700; }
 
-            ul.sub > li {
-              margin: 4px 0;
-              padding-right: 18px;
-              position: relative;
-            }
-
-            ul.sub > li::before {
-              content: "➢";
-              position: absolute;
-              right: 0;
-              top: 0;
-              font-weight: 700;
-            }
-
-            /* ===== Events table ===== */
-            table.events-table {
-              width: 100%;
-              border-collapse: collapse;
-              margin: 8px 0 10px;
-              table-layout: fixed;
-            }
-
-            table.events-table th,
-            table.events-table td {
+            table.events-table { width: 100%; border-collapse: collapse; margin: 8px 0 10px; table-layout: fixed; }
+            table.events-table th, table.events-table td {
               border: 1px solid #000;
               padding: 5px 6px;
               text-align: center;
@@ -514,16 +430,99 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               vertical-align: middle;
               background: #fff;
             }
+            table.events-table th { font-weight: 800; }
 
-            table.events-table th {
+            .closing { margin-top: 16px; text-align: center; font-weight: 700; }
+          </style>
+        </head>
+
+        <body>
+          <div class="page">
+            ${body}
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  function buildMonthlyDocumentHtml(report, monthText) {
+    const body = buildMonthlyBodyHtml(report, monthText);
+
+    return `
+      <html dir="rtl">
+        <head>
+          <meta charset="utf-8" />
+          <title>monthly_report_${monthText || ''}</title>
+          <style>
+            @page { size: A4 portrait; margin: 10mm; }
+
+            html, body {
+              margin: 0;
+              padding: 0;
+              background: #ffffff;
+              color: #000;
+              font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+              font-size: 13px;
+              line-height: 1.85;
+            }
+
+            .page { width: 100%; box-sizing: border-box; }
+            table { border-collapse: collapse; width: 100%; }
+
+            .top-head-table { table-layout: fixed; width: 100%; margin-bottom: 4px; }
+            .top-head-table td { vertical-align: top; padding: 0; }
+
+            .top-right { width: 33%; text-align: right; font-size: 12px; line-height: 1.6; padding-right: 2px; white-space: nowrap; }
+            .meta-row { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin: 2px 0; }
+            .meta-label { font-weight: 700; }
+            .meta-box { width: 26px; height: 14px; border: 1px solid #000; display: inline-block; }
+            .meta-date { display: inline-flex; align-items: center; gap: 14px; min-width: 60px; justify-content: center; }
+
+            .top-center { width: 34%; text-align: center; padding-top: 2px; }
+            .bismillah-top { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+            .bismillah-orn { height: 10px; position: relative; margin: 0 auto; width: 90%; }
+            .bismillah-orn::before { content: ""; position: absolute; left: 50%; top: 3px; transform: translateX(-50%); width: 160px; height: 2px; background: #000; border-radius: 2px; opacity: 0.6; }
+
+            .top-left { width: 33%; text-align: left; font-size: 12px; line-height: 1.6; padding-left: 2px; white-space: nowrap; }
+            .check-row { display: flex; align-items: center; justify-content: flex-start; gap: 6px; margin: 2px 0; }
+            .check-box { width: 16px; height: 12px; border: 1px solid #000; display: inline-block; }
+            .check-label { font-weight: 700; }
+
+            .header-table { width: 90%; border: none; table-layout: fixed; margin: 0; margin-right: 20px; }
+            .header-table td { border: none !important; font-size: 14px; padding: 0 4px !important; vertical-align: middle; }
+            .stack-cell { width: 35%; line-height: 1.35; font-weight: 700; }
+            .logo-cell { width: 30%; text-align: center; }
+            .logo-cell img { width: 70px; height: 55px; object-fit: contain; }
+
+            .bismillah-divider {
+              width: 100%;
+              height: 16px;
+              background: #cfcfcf !important;
+              border-top: 1px solid #000;
+              border-bottom: 1px solid #000;
+              margin: 0 0 10px;
+            }
+
+            .line { margin: 3px 0; }
+            .bold { font-weight: 700; }
+            .center { text-align: center; }
+            .right { text-align: right; }
+
+            .title {
+              font-size: 16px;
               font-weight: 800;
+              text-align: center;
+              margin: 8px 0 6px;
             }
 
-            .closing {
-              margin-top: 16px;
-              text-align: center;
-              font-weight: 700;
-            }
+            ul.bullets { margin: 8px 0 0; padding-right: 18px; list-style-type: disc; }
+            ul.bullets > li { margin: 10px 0; }
+
+            ul.sub { margin: 6px 0 0; padding-right: 0; list-style: none; }
+            ul.sub > li { margin: 4px 0; padding-right: 18px; position: relative; }
+            ul.sub > li::before { content: "➢"; position: absolute; right: 0; top: 0; font-weight: 700; }
+
+            .closing { margin-top: 16px; text-align: center; font-weight: 700; }
           </style>
         </head>
 
@@ -614,14 +613,49 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     }
   };
 
+  const FetchMonthlyFoulReport = async (month) => {
+    try {
+      loading.value = true;
+      error.value = '';
+
+      const finalMonth = month || selectedMonth.value || currentMonthIso();
+      selectedMonth.value = finalMonth;
+
+      const { data } = await axios.get('/reports/foul/monthly', {
+        params: { month: finalMonth },
+      });
+
+      monthly.value = data;
+      return data;
+    } catch (e) {
+      console.error(e);
+      monthly.value = null;
+
+      // keep same normalize behavior
+      error.value = normalizeError(e).replace('روزانه', 'ماهانه');
+      toast.error(error.value);
+
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const ResetDaily = () => {
     daily.value = null;
     error.value = '';
     selectedDate.value = todayIso();
   };
 
-  // Init date default (optional)
+  const ResetMonthly = () => {
+    monthly.value = null;
+    error.value = '';
+    selectedMonth.value = currentMonthIso();
+  };
+
+  // Init defaults
   if (!selectedDate.value) selectedDate.value = todayIso();
+  if (!selectedMonth.value) selectedMonth.value = currentMonthIso();
 
   // ===== EXPORT ACTIONS =====
   const DownloadDailyFoulPdf = () => {
@@ -642,19 +676,47 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     downloadWordFile(html, `daily_report_${dateText}.doc`);
   };
 
+  const DownloadMonthlyFoulPdf = () => {
+    const report = monthly.value;
+    if (!report) return;
+
+    const monthText = selectedMonth.value || currentMonthIso();
+    const html = buildMonthlyDocumentHtml(report, monthText);
+    openPrintWindow(html);
+  };
+
+  const DownloadMonthlyFoulWord = () => {
+    const report = monthly.value;
+    if (!report) return;
+
+    const monthText = selectedMonth.value || currentMonthIso();
+    const html = buildMonthlyDocumentHtml(report, monthText);
+    downloadWordFile(html, `monthly_report_${monthText}.doc`);
+  };
+
   return {
     // state
     loading,
     error,
+
+    // payloads
     daily,
+    monthly,
+
+    // filters
     selectedDate,
+    selectedMonth,
 
     // actions
     FetchDailyFoulReport,
+    FetchMonthlyFoulReport,
     ResetDaily,
+    ResetMonthly,
 
     // export
     DownloadDailyFoulPdf,
     DownloadDailyFoulWord,
+    DownloadMonthlyFoulPdf,
+    DownloadMonthlyFoulWord,
   };
 });

@@ -309,16 +309,14 @@
         icon: 'mdi-graph',
         children: [
           {
-            title: t('راپور روزانه سیستم'),
-            icon: 'mdi-file-chart',
+            title: t('راپور روزانه'),
             to: { path: '/app/dailyfoulreports' },
             // perm: 'dailyfoulreports',
           },
           {
-            title: t(' کارمندان'),
-            icon: 'mdi-cash',
-            to: { path: '/app/officeemployeereports' },
-            perm: 'officeemployeereports.view',
+            title: t(' راپور ماهانه'),
+            to: { path: '/app/monthlyfoulreports' },
+            // perm: 'monthlyfoulreports.view',
           },
           {
             title: t(' واقعات'),

@@ -135,6 +135,7 @@ use App\Http\Controllers\Reports\FiftyFormatsReportController;
 use App\Http\Controllers\Api\InformationReportController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Reports\Foul\DailyFoulReportController;
+use App\Http\Controllers\Api\Reports\Foul\MonthlyFoulReportController;
 use App\Http\Controllers\Api\ResourceActivityController;
 use App\Http\Controllers\CaptiveDocumentController;
 use App\Http\Controllers\EmployeeManagementDashboardController;
@@ -495,12 +496,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-    // dailly report 
+    // dailly report + monthly report 
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reports/foul/daily', DailyFoulReportController::class);
+        Route::get('/reports/foul/monthly', MonthlyFoulReportController::class);
     });
-
 
 
 

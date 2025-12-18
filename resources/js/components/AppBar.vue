@@ -4,7 +4,7 @@
     :class="{ 'dir-rtl': isRtl, 'dir-ltr': !isRtl }"
     :height="72"
     density="comfortable"
-    elevation="2"
+    elevation="0"
     border
   >
     <!-- Title and subtitle -->
