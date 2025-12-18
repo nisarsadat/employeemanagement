@@ -136,6 +136,7 @@ use App\Http\Controllers\Api\InformationReportController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Reports\Foul\DailyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\MonthlyFoulReportController;
+use App\Http\Controllers\Api\Reports\Foul\YearlyFoulReportController;
 use App\Http\Controllers\Api\ResourceActivityController;
 use App\Http\Controllers\CaptiveDocumentController;
 use App\Http\Controllers\EmployeeManagementDashboardController;
@@ -495,13 +496,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/resource-activity/{id}', [ResourceActivityController::class, 'show']);
 
 
-
-    // dailly report + monthly report 
+    // daily report + monthly report + yearly report
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reports/foul/daily', DailyFoulReportController::class);
         Route::get('/reports/foul/monthly', MonthlyFoulReportController::class);
+        Route::get('/reports/foul/yearly', YearlyFoulReportController::class);
     });
+
 
 
 

@@ -319,10 +319,9 @@
             // perm: 'monthlyfoulreports.view',
           },
           {
-            title: t(' واقعات'),
-            icon: 'mdi-cash',
-            to: { path: '/app/eventreports' },
-            perm: 'eventreports.view',
+            title: t(' راپور سالانه'),
+            to: { path: '/app/yearlyfoulreports' },
+            // perm: 'yearlyfoulreports',
           },
           {
             title: t('اطلاعات'),

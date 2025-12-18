@@ -173,6 +173,7 @@ import ActiveResource from '../pages/ActiveInactiveResource/ActiveResource.vue';
 import InactiveResource from '../pages/ActiveInactiveResource/InactiveResource.vue';
 import DailyFoulReport from '../pages/reports/DailyFoulReport.vue';
 import MonthlyFoulReport from '../pages/reports/MonthlyFoulReport.vue';
+import YearlyFoulReport from '../pages/reports/YearlyFoulReport.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -337,6 +338,11 @@ const router = createRouter({
           path: 'monthlyfoulreports',
           name: 'monthlyfoulreports',
           component: MonthlyFoulReport,
+          // meta: { requiresAuth: true, perm: permFor('informations') },
+        },        {
+          path: 'yearlyfoulreports',
+          name: 'yearlyfoulreports',
+          component: YearlyFoulReport,
           // meta: { requiresAuth: true, perm: permFor('informations') },
         },
         // Inline info
