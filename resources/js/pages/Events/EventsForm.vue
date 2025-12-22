@@ -201,9 +201,23 @@
                   :error-messages="getErrorMessages('office_employee_id')"
                 />
               </v-col>
+              <v-col cols="12" md="3">
+                <v-autocomplete
+                  v-model="form.office_employee_akhistonky_id"
+                  :items="officeEmployeesCodeItems"
+                  item-title="display"
+                  item-value="id"
+                  :label="t('کود کارمند واقعه گیرنده')"
+                  density="compact"
+                  variant="outlined"
+                  clearable
+                  :error="hasError('office_employee_akhistonky_id')"
+                  :error-messages="getErrorMessages('office_employee_akhistonky_id')"
+                />
+              </v-col>
 
               <!-- هدف -->
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.target_person"
                   :label="t('هدف کی بود/مکان بود؟')"
@@ -363,7 +377,7 @@
             <v-divider />
 
             <v-row class="pa-3">
-              <v-col cols="12" md="3">
+              <!-- <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.talafat_jani"
                   :label="t('تلفات جانی')"
@@ -372,9 +386,9 @@
                   :error="hasError('talafat_jani')"
                   :error-messages="getErrorMessages('talafat_jani')"
                 />
-              </v-col>
+              </v-col> -->
 
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.talafat_mali"
                   :label="t('تلفات مالی')"
@@ -615,7 +629,7 @@
   };
 
   /* options */
-  const eventTypeOptions = ['سیاسی', 'جنایی', 'الهی'];
+  const eventTypeOptions = ['سیاسی', 'جنایی', 'الهی' , 'ترافیکی'];
   const eventSpecificTypeOptions = ['قتل', 'چاودنه', 'ټکر', 'سرقت', 'مسلحانه برید'];
 
   const toArray = (v) => {
@@ -651,6 +665,7 @@
 
     resource_id: null,
     office_employee_id: null,
+    office_employee_akhistonky_id: null,
 
     event_type: '',
     event_specific_type: '',
@@ -666,7 +681,7 @@
     Province_addr: '',
     coordinates: '',
 
-    talafat_jani: '',
+    // talafat_jani: '',
     talafat_mali: '',
     killed: '',
     injured: '',
@@ -724,6 +739,7 @@
 
     f.resource_id = x.resource_id ?? x.resource?.id ?? null;
     f.office_employee_id = x.office_employee_id ?? x.office_employee?.id ?? null;
+    f.office_employee_akhistonky_id = x.office_employee_akhistonky_id ?? null;
 
     f.event_type = x.event_type ?? '';
     f.event_specific_type = x.event_specific_type ?? '';
@@ -739,7 +755,7 @@
     f.Province_addr = x.Province_addr ?? '';
     f.coordinates = x.coordinates ?? '';
 
-    f.talafat_jani = x.talafat_jani ?? '';
+    // f.talafat_jani = x.talafat_jani ?? '';
     f.talafat_mali = x.talafat_mali ?? '';
     f.injured = x.injured ?? '';
     f.killed = x.killed ?? '';

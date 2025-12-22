@@ -51,6 +51,27 @@
                   clearable
                   prepend-inner-icon="mdi-badge-account"
                 />
+              </v-card-text> </v-col
+            ><!-- office_employee_akhistonky_id -->
+            <v-col cols="12" md="4">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{
+                  t('کود مارمند واقعه گیرنده')
+                }}</v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <v-autocomplete
+                  v-model="draft.office_employee_akhistonky_id"
+                  :items="officeEmployeesCodeItems"
+                  item-title="code_number"
+                  item-value="id"
+                  variant="outlined"
+                  rounded="lg"
+                  class="cell"
+                  density="compact"
+                  clearable
+                  prepend-inner-icon="mdi-badge-account"
+                />
               </v-card-text>
             </v-col>
 
@@ -457,6 +478,15 @@
             <v-icon start>mdi-content-save</v-icon>
             {{ t('اظافه کردن واقعه') }}
           </v-btn>
+          <v-btn variant="text" color="primary" @click="printInformationForm">
+            <v-icon start>mdi-printer</v-icon>
+            پرنټ / PDF
+          </v-btn>
+
+          <v-btn variant="text" color="primary" @click="downloadInformationFormWord">
+            <v-icon start>mdi-file-word</v-icon>
+            Word
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-form>
@@ -506,11 +536,72 @@
   /* fixed options — mirror the editor */
   const eventTypeOptions = ['سیاسی', 'جنایی', 'الهی'];
   const eventSpecificTypeOptions = ['قتل', 'چاودنه', 'ټکر', 'سرقت', 'مسلحانه برید'];
+  function printInformationForm() {
+    repo.DownloadInformationFormPdf({
+      logo_url: '/logo.png', // یا هر لوگویی که داری
+      form_number: '',
+
+      source_code: draft.resource_id,
+      employee_code: draft.office_employee_id,
+
+      info_date: draft.event_date,
+      info_time: draft.event_hour,
+
+      credibility_degree: '',
+      trust_level: '',
+      info_type: draft.event_type,
+      hamghaji: '',
+
+      name: draft.target_person,
+      alias_name: '',
+      father_name: '',
+      grandfather_name: '',
+      civil_status: '',
+      job: '',
+      age: '',
+
+      current_province: draft.Province_addr,
+      current_district: '',
+      current_village: '',
+      original_province: '',
+      original_district: '',
+      original_village: '',
+      related_province: '',
+
+      evidence_text: draft.docs_note,
+      tafseel_text: draft.tafseel,
+      manager_note: draft.note,
+    });
+  }
+
+  function downloadInformationFormWord() {
+    repo.DownloadInformationFormWord(
+      {
+        logo_url: '/logo.png',
+
+        source_code: draft.resource_id,
+        employee_code: draft.office_employee_id,
+
+        info_date: draft.event_date,
+        info_time: draft.event_hour,
+        info_type: draft.event_type,
+
+        name: draft.target_person,
+        current_province: draft.Province_addr,
+
+        evidence_text: draft.docs_note,
+        tafseel_text: draft.tafseel,
+        manager_note: draft.note,
+      },
+      'information_form.doc'
+    );
+  }
 
   /* form model (EXACT keys as the editor) */
   const baseDraft = () => ({
     resource_id: null,
     office_employee_id: null,
+    office_employee_akhistonky_id: null,
 
     event_type: '',
     event_specific_type: '',

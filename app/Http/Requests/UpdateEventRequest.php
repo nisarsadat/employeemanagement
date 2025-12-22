@@ -16,6 +16,7 @@ class UpdateEventRequest extends FormRequest
         return [
             'resource_id'           => 'sometimes|nullable|exists:resources,id',
             'office_employee_id'    => 'sometimes|nullable|exists:office_employees,id',
+            'office_employee_akhistonky_id'    => 'sometimes|nullable|exists:office_employees,id',
             'event_type'            => 'sometimes|nullable|string',
             'event_specific_type'   => 'sometimes|nullable|string',
             'target_person'         => 'sometimes|nullable|string',

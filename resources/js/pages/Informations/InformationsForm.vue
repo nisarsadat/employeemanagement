@@ -199,35 +199,6 @@
                   :error-messages="getErrorMessages('office_employee_id')"
                 />
               </v-col>
-              <v-col cols="12" md="6">
-                <v-autocomplete
-                  class="primary-select"
-                  v-model="form.office_employee_tadabiri_id"
-                  :items="officeEmployeesItems"
-                  item-title="code_number"
-                  item-value="id"
-                  :label="t('کود کارمند تدابیری مربوطه')"
-                  density="compact"
-                  variant="outlined"
-                  clearable
-                  :error="hasError('office_employee_tadabiri_id')"
-                  :error-messages="getErrorMessages('office_employee_tadabiri_id')"
-                /> </v-col
-              ><v-col cols="12" md="6">
-                <v-autocomplete
-                  class="primary-select"
-                  v-model="form.office_employee_info_id"
-                  :items="officeEmployeesItems"
-                  item-title="code_number"
-                  item-value="id"
-                  :label="t('کود کارمند  اطلاع گیرنده')"
-                  density="compact"
-                  variant="outlined"
-                  clearable
-                  :error="hasError('office_employee_info_id')"
-                  :error-messages="getErrorMessages('office_employee_info_id')"
-                />
-              </v-col>
             </v-row>
           </v-sheet>
 
@@ -421,6 +392,21 @@
                   :error-messages="getErrorMessages('Province_addr')"
                 />
               </v-col>
+              <v-col cols="12" md="8">
+                <v-autocomplete
+                  class="primary-select"
+                  v-model="form.office_employee_info_id"
+                  :items="officeEmployeesItems"
+                  item-title="code_number"
+                  item-value="id"
+                  :label="t('کود کارمند  اطلاع گیرنده')"
+                  density="compact"
+                  variant="outlined"
+                  clearable
+                  :error="hasError('office_employee_info_id')"
+                  :error-messages="getErrorMessages('office_employee_info_id')"
+                />
+              </v-col>
             </v-row>
           </v-sheet>
 
@@ -493,7 +479,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="8">
                 <v-text-field
                   v-model="form.information_degree"
                   :label="t('درجه موثقیت اطلاع')"

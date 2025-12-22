@@ -324,10 +324,14 @@
             // perm: 'yearlyfoulreports',
           },
           {
-            title: t('اطلاعات'),
-            icon: 'mdi-cash',
-            to: { path: '/app/informationreports' },
-            perm: 'informationreports.view',
+            title: t('راپور هفته وار'),
+            to: { path: '/app/weeklyfoulreports' },
+            // perm: 'weeklyfoulreports',
+          },
+          {
+            title: t('راپور ربعه وار'),
+            to: { path: '/app/quarterlyfoulreports' },
+            // perm: 'weeklyfoulreports',
           },
         ],
       },

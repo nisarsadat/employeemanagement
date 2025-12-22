@@ -16,6 +16,7 @@ class StoreEventRequest extends FormRequest
         return [
             'resource_id'           => 'nullable|exists:resources,id',
             'office_employee_id'    => 'nullable|exists:office_employees,id',
+            'office_employee_akhistonky_id'    => 'nullable|exists:office_employees,id',
             'event_type'            => 'nullable|string',
             'event_specific_type'   => 'nullable|string',
             'target_person'         => 'nullable|string',

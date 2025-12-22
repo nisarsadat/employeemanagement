@@ -136,6 +136,8 @@ use App\Http\Controllers\Api\InformationReportController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Reports\Foul\DailyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\MonthlyFoulReportController;
+use App\Http\Controllers\Api\Reports\Foul\QuarterlyFoulReportController;
+use App\Http\Controllers\Api\Reports\Foul\WeeklyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\YearlyFoulReportController;
 use App\Http\Controllers\Api\ResourceActivityController;
 use App\Http\Controllers\CaptiveDocumentController;
@@ -502,6 +504,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reports/foul/daily', DailyFoulReportController::class);
         Route::get('/reports/foul/monthly', MonthlyFoulReportController::class);
         Route::get('/reports/foul/yearly', YearlyFoulReportController::class);
+        Route::get('/reports/foul/weekly', WeeklyFoulReportController::class);
+        Route::get('/reports/foul/quarterly', QuarterlyFoulReportController::class);
     });
 
 

@@ -430,7 +430,7 @@
               </v-card-text>
             </v-col>
 
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('رهنمود رهبریت') }}</v-card-subtitle>
               </v-card-item>
@@ -445,9 +445,9 @@
                   auto-grow
                 />
               </v-card-text>
-            </v-col>
+            </v-col> -->
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="8">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('ملاحظات') }}</v-card-subtitle>
               </v-card-item>
@@ -539,13 +539,25 @@
 
         <v-divider class="my-3" />
 
-        <!-- Actions -->
         <v-card-actions class="pa-0">
           <v-spacer />
+
+          <!-- ✅ NEW: PDF + Word (beside Create button) -->
+          <v-btn variant="tonal" color="primary" class="mr-2" @click="onDownloadPdf">
+            <v-icon start>mdi-file-pdf-box</v-icon>
+            PDF
+          </v-btn>
+
+          <v-btn variant="tonal" color="primary" class="mr-2" @click="onDownloadWord">
+            <v-icon start>mdi-file-word-box</v-icon>
+            Word
+          </v-btn>
+
           <v-btn variant="text" color="grey-darken-1" @click="onReset" :disabled="submitting">
             <v-icon start>mdi-delete</v-icon>
             {{ t('پاک کردن فرم') }}
           </v-btn>
+
           <v-btn
             color="primary"
             type="submit"
@@ -664,6 +676,19 @@
   }
   function removeFile(index) {
     draft._newDocs.splice(index, 1);
+  }
+
+  function onDownloadPdf() {
+    repo.DownloadInformationPdf(draft, {
+      dir: isRtl.value ? 'rtl' : 'ltr',
+      // logoCenter: 'data:image/png;base64,...'
+    });
+  }
+
+  function onDownloadWord() {
+    repo.DownloadInformationWord(draft, {
+      dir: isRtl.value ? 'rtl' : 'ltr',
+    });
   }
 
   /* FormData (unchanged) */

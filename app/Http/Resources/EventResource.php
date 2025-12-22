@@ -40,6 +40,7 @@ class EventResource extends JsonResource
             'resource_phone'            => $resource ? $resource->phone_number ?? null : null,
 
             'office_employee_id'        => $this->office_employee_id,
+            'office_employee_akhistonky_id'        => $this->office_employee_akhistonky_id,
             'office_employee_code'      => $officeEmployee ? $officeEmployee->code_number ?? null : null,
             'office_employee_phone'     => $officeEmployee ? $officeEmployee->phone_number ?? null : null,
 

@@ -39,7 +39,6 @@ class OfficeEmployeeController extends Controller
 
                 // ✅ ALL INFORMATION TYPES
                 'informations',
-                'tadabiriInformations',
                 'infoInformations',
 
                 'documents',
@@ -85,7 +84,6 @@ class OfficeEmployeeController extends Controller
 
                 // ✅ ALL INFORMATION TYPES
                 'informations',
-                'tadabiriInformations',
                 'infoInformations',
 
                 'documents',
@@ -247,7 +245,7 @@ class OfficeEmployeeController extends Controller
 
                         // ✅ ALL INFORMATION TYPES
                         'informations',
-                        'tadabiriInformations',
+    
                         'infoInformations',
 
                         'documents',
@@ -326,7 +324,6 @@ class OfficeEmployeeController extends Controller
 
                 // ✅ ALL INFORMATION TYPES
                 'informations',
-                'tadabiriInformations',
                 'infoInformations',
 
                 'documents',

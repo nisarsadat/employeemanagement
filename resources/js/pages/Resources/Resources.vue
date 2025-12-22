@@ -544,7 +544,9 @@
   /* ===== Headers for FilterableTable ===== */
   const headersFT = computed(() => [
     { title: t('تصویر'), key: 'picture', sortable: false },
-
+    { title: t('تعداد واقعات'), key: 'events_count' },
+    { title: t(' تعداد اطلاعات'), key: 'informations_count' },
+    { title: t(' تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
@@ -587,11 +589,8 @@
     { title: t('قوم'), key: 'nation' },
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('کوردینات'), key: 'coordinates' },
-    { title: t('نوت'), key: 'note' , width: 350 },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-    { title: t('تعداد واقعات'), key: 'events_count' },
-    { title: t(' تعداد اطلاعات'), key: 'informations_count' },
-    { title: t(' تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
+    { title: t('نوت'), key: 'note', width: 350 },
+    // { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);
@@ -729,7 +728,7 @@
     const empId = row.office_employee_id || row.office_employee?.id;
     if (!empId) return;
 
-    router.push(`/app/officeemployeeform/${empId}`);
+    router.push(`/app/officeemployee`);
   }
 
   /* ===== Download documents ZIP ===== */

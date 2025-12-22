@@ -770,5 +770,347 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       a.remove();
       URL.revokeObjectURL(url);
     },
+    // ✅ Add THESE actions inside: actions: { ... }  (no design changes — same HTML/CSS you provided)
+
+    escapeHtml(v) {
+      return String(v ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    },
+
+    buildInformationFormHTML(data = {}) {
+      // ✅ helper: safe text
+      const t = (k) => this.escapeHtml(data?.[k] ?? '');
+      // ✅ logo: you can pass data.logo_url OR keep LOGO_URL_HERE
+      const logo = data?.logo_url ? String(data.logo_url) : 'LOGO_URL_HERE';
+
+      return `<!DOCTYPE html>
+<html lang="ps" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>د اطلاعات ثبت فورم</title>
+
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm;
+      }
+
+      body {
+        font-family: 'Tahoma', 'Arial', sans-serif;
+        font-size: 12px;
+        color: #000;
+      }
+
+      .page {
+        padding: 10px;
+      }
+
+      /* ===== HEADER ===== */
+      .header {
+        display: grid;
+        grid-template-columns: 1fr 120px 1fr;
+        align-items: center;
+        column-gap: 110px;
+        margin-bottom: 8px;
+      }
+
+      .header-block {
+        line-height: 1.6;
+        font-weight: bold;
+        max-width: 220px;
+      }
+
+      .header-block:first-child {
+        text-align: center;
+        justify-self: end;
+      }
+
+      .header-block:last-child {
+        text-align: center;
+        justify-self: start;
+      }
+
+      .header-center {
+        text-align: center;
+      }
+
+      .header-center img {
+        width: 95px;
+        height: 95px;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .form-title {
+        text-align: right;
+        font-weight: bold;
+        margin: 8px 0;
+      }
+
+      /* ===== INFO ROW ===== */
+      .info-row {
+        border: 1px solid #000;
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .info-row div {
+        border-left: 1px solid #000;
+        padding: 4px;
+      }
+
+      /* ===== TABLE ===== */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 6px;
+      }
+
+      th,
+      td {
+        border: 1px solid #000;
+        padding: 4px;
+        height: 26px;
+        text-align: center;
+        vertical-align: middle;
+      }
+
+      th {
+        font-weight: bold;
+      }
+
+      /* ===== SECTION TITLE ===== */
+      .section-title {
+        margin-top: 8px;
+        font-weight: bold;
+      }
+
+      /* ===== LINED AREA ===== */
+      .lined-box {
+        height: 240px;
+        background-image: repeating-linear-gradient(
+          to bottom,
+          transparent,
+          transparent 18px,
+          #000 19px
+        );
+        border-bottom: 1px solid black;
+      }
+      .lined-box2 {
+        height: 50px;
+        background-image: repeating-linear-gradient(
+          to bottom,
+          transparent,
+          transparent 18px,
+          #000 19px
+        );
+        border-bottom: 1px solid black;
+      }
+
+      /* ===== FOOTER ===== */
+      .footer {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .footer-box {
+        border: 1px solid #000;
+        height: 40px;
+        padding: 4px;
+        font-weight: bold;
+      }
+
+      .note {
+        margin-top: 12px;
+        padding-top: 12px;
+        padding-right: 6px;
+        font-size: 11px;
+        font-weight: bold;
+        border-top: 4px solid black;
+      }
+      .borderall {
+        border: 3px solid black;
+        padding-left: 6px;
+        padding-right: 6px;
+      }
+
+      /* ✅ Fillable text inside lines (no design change; just makes text show nicely) */
+      .fill-text {
+        font-weight: normal;
+        margin-top: 6px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <!-- HEADER -->
+      <div class="borderall">
+        <div class="header">
+          <div class="header-block">
+            د ریاست عمومی استخبارات<br />
+            د استخباراتو لوی ریاست<br />
+            ریاست استخبارات ۶۹<br />
+            مدیریت ۳۳۳
+          </div>
+
+          <div class="header-center">
+            <img src="${logo}" alt="logo" />
+            <div>۳۳۳</div>
+          </div>
+
+          <div class="header-block">
+            د ریاست عمومی استخبارات<br />
+            د استخباراتو لوی ریاست<br />
+            د استخباراتو ۶۹ ریاست<br />
+            مدیریت ۳۳۳
+          </div>
+        </div>
+
+        <div class="form-title">د اطلاعات ثبت فورم:</div>
+        <div class="form-title">شمیره: ( ${t('form_number')} )</div>
+
+        <table>
+          <tr>
+            <th>د منبع کوډ</th>
+            <th>د کارمند کود</th>
+            <th>د اطلاع د ثبت نېټه</th>
+            <th>د اطلاع د ثبت ساعت</th>
+            <th>د موثقیت درجه</th>
+            <th>د اعتماد میزان</th>
+            <th>د اطلاع نوعیت</th>
+            <th>همغژی</th>
+          </tr>
+          <tr>
+            <td>${t('source_code')}</td>
+            <td>${t('employee_code')}</td>
+            <td>${t('info_date')}</td>
+            <td>${t('info_time')}</td>
+            <td>${t('credibility_degree')}</td>
+            <td>${t('trust_level')}</td>
+            <td>${t('info_type')}</td>
+            <td>${t('hamghaji')}</td>
+          </tr>
+
+          <tr>
+            <th colspan="8">د متهم شهرت</th>
+          </tr>
+          <tr>
+            <th>نوم</th>
+            <th>مستعار نوم</th>
+            <th>د پلار نوم</th>
+            <th>د نیکه نوم</th>
+            <th>مدنی حالت</th>
+            <th>دنده</th>
+            <th colspan="2">عمر</th>
+          </tr>
+          <tr>
+            <td>${t('name')}</td>
+            <td>${t('alias_name')}</td>
+            <td>${t('father_name')}</td>
+            <td>${t('grandfather_name')}</td>
+            <td>${t('civil_status')}</td>
+            <td>${t('job')}</td>
+            <td colspan="2">${t('age')}</td>
+          </tr>
+
+          <tr>
+            <th colspan="4">فعلاً د هستوګنې ځای</th>
+            <th colspan="4">اصلاً د هستوګنې ځای</th>
+          </tr>
+          <tr>
+            <th>ولایت</th>
+            <th>ولسوالی / ناحیه</th>
+            <th>کلی / کوڅه</th>
+            <th>ولایت</th>
+            <th>ولسوالی / ناحیه</th>
+            <th>کلی / کوڅه</th>
+            <th colspan="2">مربوطه ولایت</th>
+          </tr>
+          <tr>
+            <td>${t('current_province')}</td>
+            <td>${t('current_district')}</td>
+            <td>${t('current_village')}</td>
+            <td>${t('original_province')}</td>
+            <td>${t('original_district')}</td>
+            <td>${t('original_village')}</td>
+            <td colspan="2">${t('related_province')}</td>
+          </tr>
+        </table>
+
+        <!-- ✅ Evidence (د اطلاع شواهد) -->
+        <div class="section-title">
+          د اطلاع شواهد
+          <div class="lined-box2"></div>
+          <div class="fill-text">${t('evidence_text')}</div>
+        </div>
+
+        <!-- ✅ Tafseel -->
+        <div class="section-title">تفصیل:</div>
+        <div class="lined-box"></div>
+        <div class="fill-text">${t('tafseel_text')}</div>
+
+        <!-- ✅ Manager comment -->
+        <div class="section-title">
+          د مدیر نظر
+          <div class="lined-box2"></div>
+          <div class="fill-text">${t('manager_note')}</div>
+        </div>
+      </div>
+
+      <div class="note">پاملرنه: د دې سند افشا کول جرم بلل کېږي.</div>
+    </div>
+  </body>
+</html>`;
+    },
+
+    /** ✅ PDF (via print dialog) — call this from Vue button */
+    DownloadInformationFormPdf(data = {}) {
+      const html = this.buildInformationFormHTML(data);
+      const w = window.open('', '_blank', 'width=900,height=1200');
+      if (!w) {
+        toast.error('Popup بند دی، لطفاً اجازه ورکړئ');
+        return;
+      }
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+
+      // wait a bit for images/fonts
+      setTimeout(() => {
+        w.focus();
+        w.print();
+      }, 400);
+    },
+
+    /** ✅ Word download (.doc) — same HTML */
+    DownloadInformationFormWord(data = {}, filename = 'information_form.doc') {
+      const html = this.buildInformationFormHTML(data);
+      const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+      const url = window.URL.createObjectURL(blob);
+
+      const safe = (s) =>
+        String(s || 'information_form.doc')
+          .replace(/\s+/g, '_')
+          .replace(/[^\w.\-]/g, '');
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = safe(filename);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    },
   },
 });

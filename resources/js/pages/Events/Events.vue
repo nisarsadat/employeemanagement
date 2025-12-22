@@ -427,6 +427,7 @@ const rowsFT = computed(() =>
 const headersFT = computed(() => [
   { title: t('منبع'), key: 'resource_display' },
   { title: t('کارمند دفتر'), key: 'office_employee_display' },
+  { title: t('کود کارمند واقعه گیرنده'), key: 'office_employee_akhistonky_id' },
   { title: t('نوعیت واقعه'), key: 'event_type' },
   { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
   { title: t('هدف کی بود؟/مکان بود؟'), key: 'target_person' },
@@ -437,7 +438,7 @@ const headersFT = computed(() => [
   { title: t('حوزه'), key: 'event_hawza' },
   { title: t('محل مشخص'), key: 'event_specific_place' },
   { title: t('کوردینات'), key: 'coordinates' },
-  { title: t('تلفات جانی'), key: 'talafat_jani' },
+  // { title: t('تلفات جانی'), key: 'talafat_jani' },
   { title: t('تلفات مالی'), key: 'talafat_mali' },
   { title: t('کشته شده'), key: 'injured' },
   { title: t('زخمی شده'), key: 'killed' },
@@ -450,7 +451,7 @@ const headersFT = computed(() => [
 ]);
 
 const topGroups = computed(() => [
-  { title: t('شناسه‌ها'), keys: ['resource_display', 'office_employee_display'] },
+  { title: t('شناسه‌ها'), keys: ['resource_display', 'office_employee_display' , 'office_employee_akhistonky_id'] },
   { title: t('نوع واقعه'), keys: ['event_type', 'event_specific_type'] },
   { title: t('هدف و عامل'), keys: ['target_person', 'criminal'] },
   {

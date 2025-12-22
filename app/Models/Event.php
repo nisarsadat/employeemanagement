@@ -12,6 +12,7 @@ class Event extends Model
     protected $fillable = [
         'resource_id',
         'office_employee_id',
+        'office_employee_akhistonky',
         'event_type',
         'event_specific_type',
         'target_person',

@@ -14,7 +14,6 @@ class Information extends Model
         'resource_id',
 
         'office_employee_id',
-        'office_employee_tadabiri_id',
         'office_employee_info_id',
 
         'name',

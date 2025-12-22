@@ -471,7 +471,7 @@
             </v-row>
 
             <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="4">
+              <!-- <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.Province_addr"
                   :label="t('ولایت مربوطه')"
@@ -480,9 +480,9 @@
                   :error="hasError('Province_addr')"
                   :error-messages="getErrorMessages('Province_addr')"
                 />
-              </v-col>
+              </v-col> -->
 
-              <v-col cols="12" md="8">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.coordinates"
                   :label="t('کوردینات')"
@@ -854,7 +854,7 @@
     now_specific_place: '',
     now_street_number: '',
     now_home_number: '',
-    Province_addr: '',
+    // Province_addr: '',
     coordinates: '',
     train: '',
     elmi_level: '',
@@ -981,7 +981,7 @@
     b.now_specific_place = x.now_specific_place ?? '';
     b.now_street_number = x.now_street_number ?? '';
     b.now_home_number = x.now_home_number ?? '';
-    b.Province_addr = x.Province_addr ?? '';
+    // b.Province_addr = x.Province_addr ?? '';
     b.coordinates = x.coordinates ?? '';
     b.elmi_level = x.elmi_level ?? '';
     b.faculty = x.faculty ?? '';

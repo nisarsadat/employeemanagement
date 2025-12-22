@@ -14,7 +14,6 @@ class UpdateInformationRequest extends FormRequest
             'resource_id'        => ['sometimes','nullable','integer','exists:resources,id'],
             // ✅ ALL employee references point to office_employees table
             'office_employee_id' => ['nullable','integer','exists:office_employees,id'],
-            'office_employee_tadabiri_id' => ['nullable','integer','exists:office_employees,id'],
             'office_employee_info_id' => ['nullable','integer','exists:office_employees,id'],
 
             'name'              => ['sometimes','nullable','string'],

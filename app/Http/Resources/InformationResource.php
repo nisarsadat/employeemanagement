@@ -33,13 +33,7 @@ class InformationResource extends JsonResource
             'resource_id'        => $info ? $info->resource_id : null,
 
             'office_employee_id' => $info ? $info->office_employee_id : null,
-            'office_employee_tadabiri_id' => $info && $info->tadabiriEmployee
-                ? $info->tadabiriEmployee->code_number
-                : null,
-
-            'office_employee_info_id' => $info && $info->infoEmployee
-                ? $info->infoEmployee->code_number
-                : null,
+            'office_employee_info_id' => $info ? $info->office_employee_info_id : null,
 
 
             'resource_code_number'        => $resource ? $resource->code_number : null,

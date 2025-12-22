@@ -2,140 +2,163 @@
   <div :dir="rtl ? 'rtl' : 'ltr'" class="max-w-full">
     <!-- Toolbar -->
     <div
-      class="mb-4 flex flex-wrap gap-1.5 justify-end print:hidden p-3 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-100 shadow-sm"
+      class="mb-4 flex items-center justify-between gap-2 print:hidden p-3 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-100 shadow-sm"
       :dir="rtl ? 'ltr' : 'rtl'"
     >
-      <button
-        type="button"
-        class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm hover:shadow"
-        @click="printAll"
+      <!-- ✅ Records Counter (START side) -->
+      <div
+        class="flex items-center gap-3 px-4 py-2 text-sm font-bold border rounded-full shadow-md whitespace-nowrap"
+        :class="
+          hasActiveFilters
+            ? 'bg-amber-50 border-amber-300 text-amber-900'
+            : 'bg-emerald-50 border-emerald-300 text-emerald-900'
+        "
       >
-        <span class="flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-            />
-          </svg>
-          چاپ همه
-        </span>
-      </button>
+        <span
+          class="w-2.5 h-2.5 rounded-full"
+          :class="hasActiveFilters ? 'bg-amber-500' : 'bg-emerald-500'"
+        ></span>
 
-      <!-- Print selected ROWS -->
-      <button
-        type="button"
-        class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-40 disabled:cursor-not-allowed"
-        :disabled="selectedCount === 0"
-        @click="printSelected"
-      >
-        <span class="flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
-          </svg>
-          چاپ ردیف‌های انتخاب‌شده
-          <span v-if="selectedCount > 0" class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full">
-            {{ selectedCount }}
+        <span>{{ recordCounterText }}</span>
+      </div>
+
+      <!-- ✅ Buttons group (END side) -->
+      <div class="flex flex-wrap gap-1.5 justify-end">
+        <button
+          type="button"
+          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm hover:shadow"
+          @click="printAll"
+        >
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+              />
+            </svg>
+            چاپ همه
           </span>
-        </span>
-      </button>
+        </button>
 
-      <!-- Print selected COLUMNS -->
-      <button
-        type="button"
-        class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-500 hover:to-purple-500 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-40 disabled:cursor-not-allowed"
-        :disabled="selectedColsCount === 0"
-        @click="printSelectedColumns"
-      >
-        <span class="flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 10h16M4 14h16M4 18h16"
-            />
-          </svg>
-          چاپ ستون‌های انتخابی
-          <span
-            v-if="selectedColsCount > 0"
-            class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full"
-          >
-            {{ selectedColsCount }}
+        <!-- Print selected ROWS -->
+        <button
+          type="button"
+          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-40 disabled:cursor-not-allowed"
+          :disabled="selectedCount === 0"
+          @click="printSelected"
+        >
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+            چاپ ردیف‌های انتخاب‌شده
+            <span
+              v-if="selectedCount > 0"
+              class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full"
+            >
+              {{ selectedCount }}
+            </span>
           </span>
-        </span>
-      </button>
+        </button>
 
-      <!-- Clear filters button -->
-      <button
-        type="button"
-        class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 transition-all duration-200 shadow-sm hover:shadow"
-        @click="clearAllFilters"
-        :disabled="!hasActiveFilters"
-      >
-        <span class="flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-            />
-          </svg>
-          حذف فیلترها
-        </span>
-      </button>
+        <!-- Print selected COLUMNS -->
+        <button
+          type="button"
+          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-500 hover:to-purple-500 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-40 disabled:cursor-not-allowed"
+          :disabled="selectedColsCount === 0"
+          @click="printSelectedColumns"
+        >
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 10h16M4 14h16M4 18h16"
+              />
+            </svg>
+            چاپ ستون‌های انتخابی
+            <span
+              v-if="selectedColsCount > 0"
+              class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full"
+            >
+              {{ selectedColsCount }}
+            </span>
+          </span>
+        </button>
 
-      <button
-        type="button"
-        class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 transition-all duration-200 shadow-sm hover:shadow"
-        @click="downloadPdf"
-      >
-        <span class="flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          دانلود PDF
-        </span>
-      </button>
+        <!-- Clear filters button -->
+        <button
+          type="button"
+          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 transition-all duration-200 shadow-sm hover:shadow"
+          @click="clearAllFilters"
+          :disabled="!hasActiveFilters"
+        >
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            حذف فیلترها
+          </span>
+        </button>
 
-      <button
-        type="button"
-        class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 transition-all duration-200 shadow-sm hover:shadow"
-        @click="downloadExcel"
-      >
-        <span class="flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          دانلود Excel/CSV
-        </span>
-      </button>
+        <button
+          type="button"
+          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 transition-all duration-200 shadow-sm hover:shadow"
+          @click="downloadPdf"
+        >
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            دانلود PDF
+          </span>
+        </button>
 
-      <!-- ✅ Word export button (added) -->
-      <button
-        type="button"
-        class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-slate-700 to-slate-900 text-white hover:from-slate-600 hover:to-slate-800 transition-all duration-200 shadow-sm hover:shadow"
-        @click="downloadWord"
-      >
-        دانلود Word
-      </button>
+        <button
+          type="button"
+          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 transition-all duration-200 shadow-sm hover:shadow"
+          @click="downloadExcel"
+        >
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            دانلود Excel/CSV
+          </span>
+        </button>
+
+        <!-- ✅ Word export button (added) -->
+        <button
+          type="button"
+          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-slate-700 to-slate-900 text-white hover:from-slate-600 hover:to-slate-800 transition-all duration-200 shadow-sm hover:shadow"
+          @click="downloadWord"
+        >
+          دانلود Word
+        </button>
+      </div>
     </div>
 
     <!-- Table (zoomed 67%) -->
@@ -620,13 +643,6 @@
       <div
         class="flex items-center justify-between px-4 py-2 text-[11px] text-gray-600 bg-white/80 border-t border-gray-100 print:hidden"
       >
-        <div>
-          تعداد ردیف‌ها بعد از فیلتر:
-          <span class="font-bold text-gray-900">{{ filteredRows.length }}</span>
-          از
-          <span class="font-medium text-gray-700">{{ rows.length }}</span>
-        </div>
-
         <div v-if="selectedCount > 0" class="text-[11px] text-gray-700">
           ردیف‌های انتخاب‌شده:
           <span class="font-semibold text-blue-700">{{ selectedCount }}</span>
@@ -832,6 +848,18 @@
   const hasActiveFilters = computed(() => {
     const filters = localFilters.value || {};
     return Object.values(filters).some((arr) => Array.isArray(arr) && arr.length > 0);
+  });
+  const recordCounterText = computed(() => {
+    const total = rows.value.length;
+    const filtered = filteredRows.value.length;
+
+    // Always show total
+    if (!hasActiveFilters.value) {
+      return `تعداد کل ردیف‌ها: ${total}`;
+    }
+
+    // When filters active → show total + filtered result
+    return `تعداد کل ردیف‌ها: ${total} و  نتیجه بعد از فیلتر: ${filtered}`;
   });
 
   function clearAllFilters() {
