@@ -245,6 +245,55 @@
         </v-tooltip>
         <span v-else class="text-red">0</span>
       </template>
+      <!-- ✅ Active resources count -->
+      <template #cell-resources_active_count="{ row }">
+        <v-tooltip
+          v-if="getRow(row).resources_active_count && getRow(row).resources_active_count > 0"
+          text="منابع فعال این کارمند — کلیک کنید"
+          location="top"
+        >
+          <template #activator="{ props: tooltipProps }">
+            <div
+              v-bind="tooltipProps"
+              class="count-pill count-pill--active"
+              role="button"
+              tabindex="0"
+              @click.stop="goActiveResources(row)"
+              @keydown.enter.stop="goActiveResources(row)"
+            >
+              <v-icon size="18" class="mr-1">mdi-check-decagram</v-icon>
+              <span class="count-pill__num">{{ getRow(row).resources_active_count }}</span>
+            </div>
+          </template>
+        </v-tooltip>
+
+        <span v-else class="text-red">0</span>
+      </template>
+
+      <!-- ✅ Inactive resources count -->
+      <template #cell-resources_inactive_count="{ row }">
+        <v-tooltip
+          v-if="getRow(row).resources_inactive_count && getRow(row).resources_inactive_count > 0"
+          text="منابع غیر فعال این کارمند — کلیک کنید"
+          location="top"
+        >
+          <template #activator="{ props: tooltipProps }">
+            <div
+              v-bind="tooltipProps"
+              class="count-pill count-pill--inactive"
+              role="button"
+              tabindex="0"
+              @click.stop="goInactiveResources(row)"
+              @keydown.enter.stop="goInactiveResources(row)"
+            >
+              <v-icon size="18" class="mr-1">mdi-close-octagon</v-icon>
+              <span class="count-pill__num">{{ getRow(row).resources_inactive_count }}</span>
+            </div>
+          </template>
+        </v-tooltip>
+
+        <span v-else class="text-red">0</span>
+      </template>
 
       <!-- 🔢 Resources count -->
       <template #cell-resources_count="{ row }">
@@ -436,6 +485,8 @@
     { title: t('اطلاعات'), key: 'informations_count', sortable: false },
     { title: t('حوادث'), key: 'events_count', sortable: false },
     { title: t('منابع'), key: 'resources_count', sortable: false },
+    { title: t('تعداد منابع فعال'), key: 'resources_active_count', sortable: false },
+    { title: t('تعداد منابع غیر فعال'), key: 'resources_inactive_count', sortable: false },
 
     // Identity
     { title: t('نام'), key: 'name' },
@@ -491,7 +542,7 @@
     { title: t('تاریخ آمدن'), key: 'join_date' },
     { title: t('تاریخ رفتن'), key: 'left_date' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
-    { title: t('ملاحظات'), key: 'note' , width: "450"},
+    { title: t('ملاحظات'), key: 'note', width: '450' },
 
     // Map
     { title: t('نقشه'), key: 'map', sortable: false },
@@ -676,6 +727,21 @@
     const row = getRow(rowPayload);
     router.push({
       path: '/app/resources',
+      query: { office_employee_id: row.id },
+    });
+  }
+  function goActiveResources(rowPayload) {
+    const row = getRow(rowPayload);
+    router.push({
+      path: '/app/activeresource',
+      query: { office_employee_id: row.id },
+    });
+  }
+
+  function goInactiveResources(rowPayload) {
+    const row = getRow(rowPayload);
+    router.push({
+      path: '/app/inactiveresource',
       query: { office_employee_id: row.id },
     });
   }

@@ -64,7 +64,11 @@
           <v-icon icon="mdi-account-details" class="mr-2"></v-icon>
           {{ t('مشخصات منبع') }}
           <v-spacer></v-spacer>
-          <v-chip :color="statusChipColor" size="default" class="status-chip fontfamily white">
+          <v-chip
+            :color="statusChipColor"
+            size="large"
+            class="status-chip fontfamily white font-extrabold text-xl px-6 py-2.5"
+          >
             {{ model.activity || t('نامشخص') }}
           </v-chip>
         </v-card-title>
@@ -167,7 +171,12 @@
                   <h3 class="text-body-2 font-weight-bold mb-1 fontfamily">
                     {{ t('واقعات') }}
                   </h3>
-                  <v-chip color="primary" variant="outlined" size="small" class="count-chip fontfamily">
+                  <v-chip
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                    class="count-chip fontfamily"
+                  >
                     {{ model.events_count }}
                   </v-chip>
                   <v-btn
@@ -195,7 +204,12 @@
                   <h3 class="text-body-2 font-weight-bold mb-1 fontfamily">
                     {{ t('اطلاعات') }}
                   </h3>
-                  <v-chip color="primary" variant="outlined" size="small" class="count-chip fontfamily">
+                  <v-chip
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                    class="count-chip fontfamily"
+                  >
                     {{ model.informations_count }}
                   </v-chip>
                   <v-btn
@@ -223,7 +237,12 @@
                   <h3 class="text-body-2 font-weight-bold mb-1 fontfamily">
                     {{ t('۵۶ فارمت') }}
                   </h3>
-                  <v-chip color="primary" variant="outlined" size="small" class="count-chip fontfamily">
+                  <v-chip
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                    class="count-chip fontfamily"
+                  >
                     {{ model.fifty_six_formats_count }}
                   </v-chip>
                   <v-btn

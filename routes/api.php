@@ -506,6 +506,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reports/foul/yearly', YearlyFoulReportController::class);
         Route::get('/reports/foul/weekly', WeeklyFoulReportController::class);
         Route::get('/reports/foul/quarterly', QuarterlyFoulReportController::class);
+        Route::get('/reports/foul/all-time', YearlyFoulReportController::class);
     });
 
 

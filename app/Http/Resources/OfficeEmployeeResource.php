@@ -113,6 +113,13 @@ class OfficeEmployeeResource extends JsonResource
             'resources_count' => $this->resources_count
                 ?? ($this->relationLoaded('resources') ? $this->resources->count() : 0),
 
+            // ✅ Resources by activity
+            'resources_active_count' => $this->resources_active_count
+                ?? ($this->relationLoaded('resources') ? $this->resources->where('activity', 'فعال')->count() : 0),
+
+            'resources_inactive_count' => $this->resources_inactive_count
+                ?? ($this->relationLoaded('resources') ? $this->resources->where('activity', 'غیر فعال')->count() : 0),
+
             'events_count' => $this->events_count
                 ?? ($this->relationLoaded('events') ? $this->events->count() : 0),
 

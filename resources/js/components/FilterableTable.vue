@@ -23,141 +23,275 @@
       </div>
 
       <!-- ✅ Buttons group (END side) -->
-      <div class="flex flex-wrap gap-1.5 justify-end">
-        <button
-          type="button"
-          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm hover:shadow"
-          @click="printAll"
+      <div class="flex flex-wrap items-center gap-2 justify-end">
+        <!-- ✅ Alert-style helper text -->
+        <div
+          class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-amber-50 border border-amber-300 text-amber-900 rounded-full shadow-sm whitespace-nowrap"
         >
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-              />
-            </svg>
-            چاپ همه
-          </span>
-        </button>
+          <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+          برای فیلتر هر کالم بالای آن کالم لطفا کلیک نمایید
+        </div>
 
-        <!-- Print selected ROWS -->
-        <button
-          type="button"
-          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-40 disabled:cursor-not-allowed"
-          :disabled="selectedCount === 0"
-          @click="printSelected"
-        >
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
-            چاپ ردیف‌های انتخاب‌شده
-            <span
-              v-if="selectedCount > 0"
-              class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full"
+        <!-- ✅ Buttons group (END side) -->
+        <div class="flex flex-wrap gap-1.5 justify-end">
+          <!-- ✅ NEW: Columns display button -->
+          <div class="relative" ref="colsBtnWrap">
+            <button
+              type="button"
+              class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-slate-800 to-slate-900 text-white hover:from-slate-700 hover:to-slate-800 transition-all duration-200 shadow-sm hover:shadow"
+              @click="toggleColumnsPanel"
             >
-              {{ selectedCount }}
-            </span>
-          </span>
-        </button>
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+                ستون‌ها
+                <span
+                  class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full"
+                  :title="'تعداد ستون‌های نمایش داده شده'"
+                >
+                  {{ visibleHeaders.length }}
+                </span>
+              </span>
+            </button>
 
-        <!-- Print selected COLUMNS -->
-        <button
-          type="button"
-          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-500 hover:to-purple-500 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-40 disabled:cursor-not-allowed"
-          :disabled="selectedColsCount === 0"
-          @click="printSelectedColumns"
-        >
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 10h16M4 14h16M4 18h16"
-              />
-            </svg>
-            چاپ ستون‌های انتخابی
-            <span
-              v-if="selectedColsCount > 0"
-              class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full"
+            <!-- dropdown -->
+            <div
+              v-show="showColumnsPanel"
+              class="absolute z-[9999] mt-2 w-[320px] max-w-[92vw] bg-white border border-gray-200 shadow-2xl rounded-xl overflow-hidden"
+              :class="rtl ? 'left-0' : 'right-0'"
+              @click.stop
             >
-              {{ selectedColsCount }}
+              <div class="p-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="text-sm font-bold text-gray-900">نمایش/عدم نمایش ستون‌ها</div>
+                  <button
+                    type="button"
+                    class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                    @click="closeColumnsPanel"
+                  >
+                    <svg
+                      class="w-4 h-4 text-gray-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="relative">
+                  <svg
+                    class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    v-model.trim="columnsQuery"
+                    placeholder="جستجوی ستون…"
+                    class="w-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-9 py-2 text-sm outline-none transition-all bg-white"
+                    type="text"
+                  />
+                </div>
+
+                <div class="flex gap-2 mt-2">
+                  <button
+                    type="button"
+                    class="flex-1 text-xs px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200 font-medium text-gray-700"
+                    @click="showAllColumns"
+                  >
+                    نمایش همه
+                  </button>
+                  <button
+                    type="button"
+                    class="flex-1 text-xs px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200 font-medium text-gray-700"
+                    @click="hideAllColumns"
+                  >
+                    مخفی کردن همه
+                  </button>
+                </div>
+              </div>
+
+              <div class="p-2 max-h-[55vh] overflow-auto">
+                <label
+                  v-for="h in filteredColumnsForPanel"
+                  :key="'vis-' + colKey(h)"
+                  class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-50 cursor-pointer select-none transition-colors duration-150"
+                >
+                  <input
+                    type="checkbox"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer transition"
+                    :checked="visibleCols.has(colKey(h))"
+                    @change="setColumnVisible(colKey(h), $event.target.checked)"
+                  />
+                  <span class="text-sm text-gray-800 font-medium break-all">
+                    {{ h.title ?? colKey(h) }}
+                  </span>
+                </label>
+
+                <div
+                  v-if="filteredColumnsForPanel.length === 0"
+                  class="text-center text-sm text-gray-500 py-6"
+                >
+                  {{ noResults }}
+                </div>
+              </div>
+
+              <div
+                class="border-t border-gray-100 px-3 py-2 bg-gradient-to-r from-gray-50 to-white/50"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="text-[11px] text-gray-500 font-medium">برای بستن بیرون کلیک کنید</div>
+                  <button
+                    type="button"
+                    class="text-xs px-3 py-2 rounded-lg bg-gradient-to-r from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 transition-all duration-200 font-medium"
+                    @click="closeColumnsPanel"
+                  >
+                    انجام شد
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm hover:shadow"
+            @click="printAll"
+          >
+            <span class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                />
+              </svg>
+              چاپ همه
             </span>
-          </span>
-        </button>
+          </button>
 
-        <!-- Clear filters button -->
-        <button
-          type="button"
-          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 transition-all duration-200 shadow-sm hover:shadow"
-          @click="clearAllFilters"
-          :disabled="!hasActiveFilters"
-        >
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-            حذف فیلترها
-          </span>
-        </button>
+          <!-- Print selected ROWS -->
+          <button
+            type="button"
+            class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="selectedCount === 0"
+            @click="printSelected"
+          >
+            <span class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+              چاپ ردیف‌های انتخاب‌شده
+              <span
+                v-if="selectedCount > 0"
+                class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full"
+              >
+                {{ selectedCount }}
+              </span>
+            </span>
+          </button>
 
-        <button
-          type="button"
-          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 transition-all duration-200 shadow-sm hover:shadow"
-          @click="downloadPdf"
-        >
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            دانلود PDF
-          </span>
-        </button>
+          <!-- ✅ NEW: Clear selected rows -->
+          <button
+            type="button"
+            class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-rose-600 to-red-600 text-white hover:from-rose-500 hover:to-red-500 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="selectedCount === 0"
+            @click="clearSelectedRows"
+          >
+            حذف انتخاب‌ها
+          </button>
 
-        <button
-          type="button"
-          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 transition-all duration-200 shadow-sm hover:shadow"
-          @click="downloadExcel"
-        >
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            دانلود Excel/CSV
-          </span>
-        </button>
+          <!-- Clear filters button -->
+          <button
+            type="button"
+            class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 transition-all duration-200 shadow-sm hover:shadow"
+            @click="clearAllFilters"
+            :disabled="!hasActiveFilters"
+          >
+            <span class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              حذف فیلترها
+            </span>
+          </button>
 
-        <!-- ✅ Word export button (added) -->
-        <button
-          type="button"
-          class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-slate-700 to-slate-900 text-white hover:from-slate-600 hover:to-slate-800 transition-all duration-200 shadow-sm hover:shadow"
-          @click="downloadWord"
-        >
-          دانلود Word
-        </button>
+          <button
+            type="button"
+            class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 transition-all duration-200 shadow-sm hover:shadow"
+            @click="downloadPdf"
+          >
+            <span class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              دانلود PDF
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 transition-all duration-200 shadow-sm hover:shadow"
+            @click="downloadExcel"
+          >
+            <span class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              دانلود Excel/CSV
+            </span>
+          </button>
+
+          <!-- ✅ Word export button -->
+          <button
+            type="button"
+            class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-slate-700 to-slate-900 text-white hover:from-slate-600 hover:to-slate-800 transition-all duration-200 shadow-sm hover:shadow"
+            @click="downloadWord"
+          >
+            دانلود Word
+          </button>
+        </div>
       </div>
     </div>
 
@@ -173,17 +307,21 @@
             <col v-if="selectable" style="width: 48px" />
             <col v-if="showIndex" style="width: 72px" />
             <col v-if="showActions" style="width: 290px" />
+
             <col
-              v-for="h in headers"
+              v-for="h in visibleHeaders"
               :key="'col-' + colKey(h)"
-              :style="colWidth(h) ? { width: colWidth(h), minWidth: colWidth(h) } : undefined"
+              :style="
+                colWidth(h)
+                  ? { width: colWidth(h), minWidth: colWidth(h), maxWidth: colWidth(h) }
+                  : undefined
+              "
             />
           </colgroup>
 
           <thead class="table-header">
             <!-- Row 1 -->
             <tr>
-              <!-- Select column header – no select-all / print icon -->
               <th
                 v-if="selectable"
                 rowspan="2"
@@ -195,7 +333,6 @@
                 </div>
               </th>
 
-              <!-- Index column -->
               <th
                 v-if="showIndex"
                 rowspan="2"
@@ -218,7 +355,6 @@
                 </div>
               </th>
 
-              <!-- Actions header -->
               <th
                 v-if="showActions"
                 rowspan="2"
@@ -229,13 +365,15 @@
                 </slot>
               </th>
 
-              <!-- Group or single headers -->
-              <template v-for="h in headers" :key="'top-' + colKey(h)">
+              <template v-for="h in visibleHeaders" :key="'top-' + colKey(h)">
                 <th
                   v-if="isFirstKeyOfGroup(hKey(h))"
                   :colspan="groupColspan(hKey(h))"
-                  class="px-2 py-2 text-center align-top"
-                  :class="{ 'print-col-hidden': printOnlyCols && !groupHasAnySelected(hKey(h)) }"
+                  class="px-2 py-2 text-center align-top group-head"
+                  :class="[
+                    'top-divider',
+                    { 'print-col-hidden': printOnlyCols && !groupHasAnySelected(hKey(h)) },
+                  ]"
                 >
                   <div class="cell-wrap whitespace-nowrap text-xs font-bold text-white py-1">
                     {{ groupByKey.get(hKey(h))?.title || '' }}
@@ -246,7 +384,7 @@
 
                 <th
                   v-else
-                  class="px-2 py-2 text-center align-top"
+                  class="px-2 py-2 text-center align-top top-divider"
                   :class="{ 'print-col-hidden': printOnlyCols && !isColKeySelected(hKey(h)) }"
                 >
                   <div class="cell-wrap whitespace-nowrap text-xs font-bold text-white">
@@ -258,7 +396,7 @@
 
             <!-- Row 2 -->
             <tr>
-              <template v-for="h in headers" :key="'sub-' + colKey(h)">
+              <template v-for="h in visibleHeaders" :key="'sub-' + colKey(h)">
                 <th
                   class="px-2 py-2 text-center align-top"
                   :class="[
@@ -276,7 +414,6 @@
                         {{ h.title }}
                       </div>
 
-                      <!-- Column checkbox for print columns -->
                       <div v-if="!isComposite(h) && hKey(h)" class="print:hidden" @click.stop>
                         <input
                           type="checkbox"
@@ -288,7 +425,6 @@
                       </div>
                     </div>
 
-                    <!-- Printed value -->
                     <div
                       class="hidden print:block text-[11px] text-gray-700 mt-1 font-medium px-2 py-0.5 bg-gray-50/70 rounded"
                     >
@@ -296,7 +432,6 @@
                     </div>
                   </div>
 
-                  <!-- Filter dropdown -->
                   <Teleport to="body" v-if="dropdownSet.has(hKey(h)) && showFilterFor(hKey(h))">
                     <div
                       v-show="openDropdown === hKey(h)"
@@ -311,7 +446,6 @@
                         role="dialog"
                         aria-modal="true"
                       >
-                        <!-- Sticky header -->
                         <div
                           class="sticky top-0 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 shadow-sm"
                         >
@@ -390,7 +524,6 @@
                           </div>
                         </div>
 
-                        <!-- Options -->
                         <div class="p-2 overflow-auto" :style="{ maxHeight: '60vh' }">
                           <div
                             v-if="getFilteredOptionsCount(openDropdown || '') === 0"
@@ -474,14 +607,13 @@
           </thead>
 
           <tbody>
-            <!-- Loading state -->
             <tr v-if="loading">
               <td
                 :colspan="
                   (selectable ? 1 : 0) +
                   (showIndex ? 1 : 0) +
                   (showActions ? 1 : 0) +
-                  headers.length
+                  visibleHeaders.length
                 "
                 class="text-center py-10"
               >
@@ -502,10 +634,9 @@
               </td>
             </tr>
 
-            <!-- Data rows -->
             <template v-else>
               <tr
-                v-for="(row, i) in filteredRows"
+                v-for="(row, i) in pinnedFirstRows"
                 :key="getRowId(row, i)"
                 :class="[
                   'transition-colors duration-200 group/row print:hover:bg-transparent hover:bg-slate-100/80 text-xs',
@@ -516,7 +647,6 @@
                   },
                 ]"
               >
-                <!-- select checkbox cell -->
                 <td
                   v-if="selectable"
                   class="px-2 py-3 text-center align-top"
@@ -533,29 +663,35 @@
                   </div>
                 </td>
 
-                <!-- index cell -->
                 <td
                   v-if="showIndex"
                   class="px-2 py-3 text-center align-top text-xs font-medium text-gray-700"
                   :class="{ 'print-col-hidden': printOnlyCols && !selectedCols.has(INDEX_KEY) }"
                 >
-                  <span
-                    class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-300 text-gray-800 font-bold shadow-sm"
+                  <!-- ✅ NEW: Pin row by clicking the number (toggle) -->
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center gap-1 w-9 h-7 rounded-full bg-gray-300 text-gray-800 font-bold shadow-sm hover:shadow transition"
+                    @click.stop="togglePinRow(getRowId(row, i))"
+                    :title="pinnedRows.has(getRowId(row, i)) ? 'برداشتن پین' : 'پین کردن ردیف'"
                   >
-                    {{ i + 1 }}
-                  </span>
+                    <!-- active dot beside the number when pinned -->
+                    <span
+                      v-if="pinnedRows.has(getRowId(row, i))"
+                      class="w-2 h-2 rounded-full bg-emerald-500 shadow"
+                    ></span>
+                    <span>{{ pinnedIndexNumber(getRowId(row, i), i) }}</span>
+                  </button>
                 </td>
 
-                <!-- Actions cell -->
                 <td v-if="showActions" class="px-2 py-3 text-center align-top print:hidden">
-                  <slot name="actions" :item="row" />
+                  <slot name="actions" :item="row" :printRow="() => printRowSimple(row, i)" />
                 </td>
 
-                <!-- data cells -->
                 <td
-                  v-for="h in headers"
+                  v-for="h in visibleHeaders"
                   :key="'cell-' + colKey(h) + '-' + getRowId(row, i)"
-                  class="px-2 py-3 align-top whitespace-pre-wrap break-words text-[11px] text-gray-800 text-center group-hover/row:text-gray-900 transition-colors duration-200"
+                  class="px-2 py-3 align-top whitespace-pre-wrap break-words text-[11px] text-gray-800 text-center group-hover/row:text-gray-900 transition-colors duration-200 max-w-full overflow-hidden"
                   :class="{ 'print-col-hidden': printOnlyCols && !isColKeySelected(hKey(h)) }"
                 >
                   <template v-if="$slots['cell-' + colKey(h)]">
@@ -563,10 +699,17 @@
                   </template>
 
                   <template v-else>
-                    <div v-if="!isComposite(h)" class="cell-box">
+                    <div
+                      v-if="!isComposite(h)"
+                      class="cell-box"
+                      :ref="(el) => setCellRef(getRowId(row, i), h.key, el)"
+                    >
                       <div
                         class="cell-text"
-                        :class="isExpanded(getRowId(row, i), h.key) ? '' : 'cell-clamp'"
+                        :style="getCellLockStyle(getRowId(row, i), h.key)"
+                        :class="
+                          isExpanded(getRowId(row, i), h.key) ? 'cell-expanded' : 'cell-collapsed'
+                        "
                       >
                         {{ displayValueByKey(h.key, row[h.key]) }}
                       </div>
@@ -590,14 +733,13 @@
                 </td>
               </tr>
 
-              <!-- Empty state -->
-              <tr v-if="filteredRows.length === 0">
+              <tr v-if="pinnedFirstRows.length === 0">
                 <td
                   :colspan="
                     (selectable ? 1 : 0) +
                     (showIndex ? 1 : 0) +
                     (showActions ? 1 : 0) +
-                    headers.length
+                    visibleHeaders.length
                   "
                   class="text-center py-10"
                 >
@@ -639,13 +781,18 @@
         </table>
       </div>
 
-      <!-- ✅ Footer: record count after filters (no other changes) -->
       <div
         class="flex items-center justify-between px-4 py-2 text-[11px] text-gray-600 bg-white/80 border-t border-gray-100 print:hidden"
       >
         <div v-if="selectedCount > 0" class="text-[11px] text-gray-700">
           ردیف‌های انتخاب‌شده:
           <span class="font-semibold text-blue-700">{{ selectedCount }}</span>
+        </div>
+
+        <!-- optional: pinned count info (kept tiny, no design change) -->
+        <div v-if="pinnedRows.size > 0" class="text-[11px] text-gray-700">
+          ردیف‌های پین‌شده:
+          <span class="font-semibold text-emerald-700">{{ pinnedRows.size }}</span>
         </div>
       </div>
     </div>
@@ -769,7 +916,6 @@
   const includeEmptyOption = computed(() => props.includeEmptyOption ?? true);
   const selectable = computed(() => props.selectable !== false);
 
-  /* helper: stable row id (fix selecting all when rowKey is missing/same) */
   function getRowId(row, index) {
     const k = rowKey.value;
     const v = k && row ? row[k] : undefined;
@@ -779,6 +925,57 @@
     return v;
   }
 
+  /* === Header helpers === */
+  const isComposite = (h) => Array.isArray(h?.key);
+  const colKey = (h) => (isComposite(h) ? h.key.join('__') : h.key);
+  const hKey = (h) => (isComposite(h) ? null : h.key);
+
+  /* ✅ NEW: Visible columns (display) */
+  const visibleCols = ref(new Set());
+
+  const visibleHeaders = computed(() => {
+    const all = props.headers ?? [];
+    // initialize once if empty
+    if (visibleCols.value.size === 0 && all.length) {
+      visibleCols.value = new Set(all.map((h) => colKey(h)));
+    }
+    return all.filter((h) => visibleCols.value.has(colKey(h)));
+  });
+
+  const showColumnsPanel = ref(false);
+  const columnsQuery = ref('');
+  const colsBtnWrap = ref(null);
+
+  const filteredColumnsForPanel = computed(() => {
+    const q = (columnsQuery.value || '').toLowerCase();
+    const list = props.headers ?? [];
+    if (!q) return list;
+    return list.filter((h) => ((h?.title ?? colKey(h)) + '').toLowerCase().includes(q));
+  });
+
+  function setColumnVisible(key, checked) {
+    if (!key) return;
+    if (checked) visibleCols.value.add(key);
+    else visibleCols.value.delete(key);
+  }
+
+  function showAllColumns() {
+    visibleCols.value = new Set((props.headers ?? []).map((h) => colKey(h)));
+  }
+
+  function hideAllColumns() {
+    visibleCols.value = new Set(); // user can re-enable from panel list (still shows list)
+  }
+
+  function toggleColumnsPanel() {
+    showColumnsPanel.value = !showColumnsPanel.value;
+  }
+
+  function closeColumnsPanel() {
+    showColumnsPanel.value = false;
+  }
+
+  /* === Auto options (unchanged logic) === */
   const autoOptions = computed(() => {
     const map = {};
     const add = (k) => {
@@ -821,6 +1018,37 @@
     });
   });
 
+  /* ✅ NEW: pin rows (display on top) */
+  const pinnedRows = ref(new Set());
+
+  function togglePinRow(rowId) {
+    if (!rowId) return;
+    if (pinnedRows.value.has(rowId)) pinnedRows.value.delete(rowId);
+    else pinnedRows.value.add(rowId);
+  }
+
+  // keep pinned ones first, rest after, keep current filtered view
+  const pinnedFirstRows = computed(() => {
+    const list = filteredRows.value || [];
+    if (pinnedRows.value.size === 0) return list;
+
+    const pinned = [];
+    const rest = [];
+    list.forEach((r, idx) => {
+      const id = getRowId(r, idx);
+      if (pinnedRows.value.has(id)) pinned.push(r);
+      else rest.push(r);
+    });
+    return [...pinned, ...rest];
+  });
+
+  function pinnedIndexNumber(rowId, fallbackIndexInLoop) {
+    // when pinned -> show its original index in filteredRows for consistency
+    const list = filteredRows.value || [];
+    const found = list.findIndex((r, idx) => getRowId(r, idx) === rowId);
+    return found >= 0 ? found + 1 : fallbackIndexInLoop + 1;
+  }
+
   /* === Texts === */
   const allLabel = computed(() => props.allLabel ?? 'همه');
   const indexLabel = 'ردیف';
@@ -844,21 +1072,23 @@
     else selectedSet.value.delete(id);
   }
 
+  function clearSelectedRows() {
+    selectedSet.value = new Set();
+    selectedCols.value = new Set();
+    printOnlySelected.value = false;
+    printOnlyCols.value = false;
+  }
+
   /* === Active filters === */
   const hasActiveFilters = computed(() => {
     const filters = localFilters.value || {};
     return Object.values(filters).some((arr) => Array.isArray(arr) && arr.length > 0);
   });
+
   const recordCounterText = computed(() => {
     const total = rows.value.length;
     const filtered = filteredRows.value.length;
-
-    // Always show total
-    if (!hasActiveFilters.value) {
-      return `تعداد کل ردیف‌ها: ${total}`;
-    }
-
-    // When filters active → show total + filtered result
+    if (!hasActiveFilters.value) return `تعداد کل ردیف‌ها: ${total}`;
     return `تعداد کل ردیف‌ها: ${total} و  نتیجه بعد از فیلتر: ${filtered}`;
   });
 
@@ -867,7 +1097,7 @@
     localFilters.value = empty;
   }
 
-  /* === Column selection === */
+  /* === Column selection (print) === */
   const selectedCols = ref(new Set());
   const selectedColsCount = computed(() => selectedCols.value.size);
 
@@ -883,68 +1113,6 @@
     return !printOnlyCols.value ? true : !!(key && selectedCols.value.has(key));
   }
 
-  function groupHasAnySelected(firstKey) {
-    if (!printOnlyCols.value) return true;
-    if (!firstKey) return false;
-    const grp = groupByKey.value.get(firstKey);
-    if (!grp) return selectedCols.value.has(firstKey);
-    return (grp.keys || []).some((k) => selectedCols.value.has(k));
-  }
-
-  /* === Dropdown state === */
-  const openDropdown = ref(null);
-  const dropdownQuery = ref({});
-  const triggerRefs = ref({});
-  const panelEl = ref(null);
-  const overlayEl = ref(null);
-  const panelStyle = ref({ display: 'none' });
-
-  function openDropdownAt(key) {
-    if (!key) return;
-    if (openDropdown.value === key) {
-      closeDropdown();
-      return;
-    }
-    openDropdown.value = key;
-    if (dropdownQuery.value[key] == null) dropdownQuery.value[key] = '';
-    nextTick(() => positionPanelFor(key));
-  }
-
-  function closeDropdown() {
-    openDropdown.value = null;
-    panelStyle.value = { display: 'none' };
-  }
-
-  function positionPanelFor(key) {
-    if (!key) return;
-    const trigger = triggerRefs.value[key];
-    if (!trigger || !overlayEl.value) return;
-    const rect = trigger.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const gap = 8;
-    const isRTL = rtl.value;
-    const topPx = rect.top - gap;
-    const base = {
-      display: 'block',
-      position: 'absolute',
-      bottom: `calc(100vh - ${topPx}px)`,
-      maxHeight: '60vh',
-      minWidth: `${Math.max(rect.width, 320)}px`,
-    };
-    panelStyle.value = isRTL
-      ? { ...base, right: `${vw - rect.right}px`, left: '' }
-      : { ...base, left: `${rect.left}px`, right: '' };
-  }
-
-  function handleReposition() {
-    if (openDropdown.value) positionPanelFor(openDropdown.value);
-  }
-
-  /* === Header helpers === */
-  const isComposite = (h) => Array.isArray(h?.key);
-  const colKey = (h) => (isComposite(h) ? h.key.join('__') : h.key);
-  const hKey = (h) => (isComposite(h) ? null : h.key);
-
   /* === Grouping === */
   const groupByKey = computed(() => {
     const map = new Map();
@@ -958,7 +1126,7 @@
     if (!key) return false;
     const grp = groupByKey.value.get(key);
     if (!grp) return false;
-    for (const h of props.headers) {
+    for (const h of visibleHeaders.value) {
       const k = hKey(h);
       if (k && (grp.keys || []).includes(k)) return k === key;
     }
@@ -969,7 +1137,7 @@
     if (!key) return 1;
     const grp = groupByKey.value.get(key);
     if (!grp) return 1;
-    const keysInOrder = props.headers.map((h) => hKey(h)).filter(Boolean);
+    const keysInOrder = visibleHeaders.value.map((h) => hKey(h)).filter(Boolean);
     return (grp.keys || []).filter((k) => keysInOrder.includes(k)).length || 1;
   }
 
@@ -977,6 +1145,14 @@
     if (!key) return false;
     if (!groupedKeys.value.has(key)) return false;
     return !isFirstKeyOfGroup(key);
+  }
+
+  function groupHasAnySelected(firstKey) {
+    if (!printOnlyCols.value) return true;
+    if (!firstKey) return false;
+    const grp = groupByKey.value.get(firstKey);
+    if (!grp) return selectedCols.value.has(firstKey);
+    return (grp.keys || []).some((k) => selectedCols.value.has(k));
   }
 
   /* === Dropdown keys === */
@@ -1071,6 +1247,55 @@
     return sel === 0 ? `0 از ${t} انتخاب شده` : `${sel} از ${t} انتخاب شده`;
   }
 
+  /* === Dropdown state === */
+  const openDropdown = ref(null);
+  const dropdownQuery = ref({});
+  const triggerRefs = ref({});
+  const panelEl = ref(null);
+  const overlayEl = ref(null);
+  const panelStyle = ref({ display: 'none' });
+
+  function openDropdownAt(key) {
+    if (!key) return;
+    if (openDropdown.value === key) {
+      closeDropdown();
+      return;
+    }
+    openDropdown.value = key;
+    if (dropdownQuery.value[key] == null) dropdownQuery.value[key] = '';
+    nextTick(() => positionPanelFor(key));
+  }
+
+  function closeDropdown() {
+    openDropdown.value = null;
+    panelStyle.value = { display: 'none' };
+  }
+
+  function positionPanelFor(key) {
+    if (!key) return;
+    const trigger = triggerRefs.value[key];
+    if (!trigger || !overlayEl.value) return;
+    const rect = trigger.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const gap = 8;
+    const isRTL = rtl.value;
+    const topPx = rect.top - gap;
+    const base = {
+      display: 'block',
+      position: 'absolute',
+      bottom: `calc(100vh - ${topPx}px)`,
+      maxHeight: '60vh',
+      minWidth: `${Math.max(rect.width, 320)}px`,
+    };
+    panelStyle.value = isRTL
+      ? { ...base, right: `${vw - rect.right}px`, left: '' }
+      : { ...base, left: `${rect.left}px`, right: '' };
+  }
+
+  function handleReposition() {
+    if (openDropdown.value) positionPanelFor(openDropdown.value);
+  }
+
   /* === Column widths === */
   function colWidth(h) {
     const w = h && h.width;
@@ -1079,36 +1304,13 @@
     return null;
   }
 
-  /* === Print flags === */
+  /* === Print flags (kept) === */
   const printOnlySelected = ref(false);
   const printOnlyCols = ref(false);
 
   function handleAfterPrint() {
     printOnlySelected.value = false;
     printOnlyCols.value = false;
-  }
-
-  async function printAll() {
-    printOnlySelected.value = false;
-    printOnlyCols.value = false;
-    await nextTick();
-    window.print();
-  }
-
-  async function printSelected() {
-    if (selectedSet.value.size === 0) return;
-    printOnlyCols.value = false;
-    printOnlySelected.value = true;
-    await nextTick();
-    window.print();
-  }
-
-  async function printSelectedColumns() {
-    if (selectedCols.value.size === 0) return;
-    printOnlySelected.value = false;
-    printOnlyCols.value = true;
-    await nextTick();
-    window.print();
   }
 
   function getPrintedFilterValue(key) {
@@ -1120,27 +1322,36 @@
 
   /* === Click outside dropdown === */
   function handleClickOutsideDoc(e) {
-    if (!openDropdown.value) return;
-    const t = e.target;
-    const key = openDropdown.value;
-    const trigger = triggerRefs.value[key];
-    const p = panelEl.value;
+    // close filter dropdown
+    if (openDropdown.value) {
+      const t = e.target;
+      const key = openDropdown.value;
+      const trigger = triggerRefs.value[key];
+      const p = panelEl.value;
 
-    const panelContainsTarget = Array.isArray(p)
-      ? p.some((el) => el && typeof el.contains === 'function' && el.contains(t))
-      : !!(p && typeof p.contains === 'function' && p.contains(t));
+      const panelContainsTarget = Array.isArray(p)
+        ? p.some((el) => el && typeof el.contains === 'function' && el.contains(t))
+        : !!(p && typeof p.contains === 'function' && p.contains(t));
 
-    const insideTrigger = !!(
-      trigger &&
-      typeof trigger.contains === 'function' &&
-      trigger.contains(t)
-    );
+      const insideTrigger = !!(
+        trigger &&
+        typeof trigger.contains === 'function' &&
+        trigger.contains(t)
+      );
+      if (!panelContainsTarget && !insideTrigger) closeDropdown();
+    }
 
-    if (!panelContainsTarget && !insideTrigger) closeDropdown();
+    // close columns panel
+    if (showColumnsPanel.value) {
+      const wrap = colsBtnWrap.value;
+      if (wrap && typeof wrap.contains === 'function' && wrap.contains(e.target)) return;
+      closeColumnsPanel();
+    }
   }
 
-  /* === PDF/Excel === */
+  /* === PDF/Excel/Print HTML === */
   function headersFlatKeys() {
+    // IMPORTANT: export uses all headers (original logic). Visible columns only affect display.
     return props.headers
       .filter((h) => !isComposite(h) && h.key && !['picture', 'actions'].includes(h.key))
       .map((h) => ({ key: h.key, title: h.title ?? h.key }));
@@ -1167,16 +1378,142 @@
     return [headerLine, ...dataLines].join('\n');
   }
 
-  function downloadPdf() {
-    if (selectedCols.value.size > 0) {
-      printSelectedColumns();
-      return;
-    }
+  function escapeHtml(val) {
+    return String(val ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function getRowsForExport() {
     if (selectedSet.value.size > 0) {
-      printSelected();
-      return;
+      return filteredRows.value.filter((r, i) => selectedSet.value.has(getRowId(r, i)));
     }
-    printAll();
+    return filteredRows.value;
+  }
+
+  function getColsForExport() {
+    const all = headersFlatKeys();
+    const selectedDataCols = all.filter((c) => selectedCols.value.has(c.key));
+    if (selectedDataCols.length > 0) return selectedDataCols;
+    return all;
+  }
+
+  function buildSimpleTableHtml(cols, rowsToUse, indexValues = null) {
+    const dir = rtl.value ? 'rtl' : 'ltr';
+    const align = rtl.value ? 'right' : 'left';
+    const includeIndex = selectedCols.value.has(INDEX_KEY);
+
+    const ths =
+      (includeIndex ? `<th style="width:60px">ردیف</th>` : '') +
+      cols.map((c) => `<th>${escapeHtml(c.title)}</th>`).join('');
+
+    const trs = rowsToUse
+      .map((r, idx) => {
+        const showIdx = Array.isArray(indexValues) ? indexValues[idx] : idx + 1;
+        const tds =
+          (includeIndex ? `<td>${showIdx}</td>` : '') +
+          cols
+            .map((c) => {
+              const v = displayValueByKey(c.key, r?.[c.key]);
+              return `<td>${escapeHtml(v ?? '')}</td>`;
+            })
+            .join('');
+        return `<tr>${tds}</tr>`;
+      })
+      .join('');
+
+    return `
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <title>Export</title>
+      <style>
+        body { font-family: Arial, Tahoma, sans-serif; direction: ${dir}; text-align: ${align}; padding: 16px; color: #111; }
+        h2 { margin: 0 0 12px 0; font-size: 14px; font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th, td { border: 1px solid #d1d5db; padding: 8px; font-size: 12px; vertical-align: top; word-break: break-word; white-space: pre-wrap; }
+        th { background: #f3f4f6; font-weight: 700; }
+        @media print { body { padding: 0; } h2 { margin-bottom: 8px; } }
+      </style>
+    </head>
+    <body>
+      <h2>گزارش جدول</h2>
+      <table>
+        <thead><tr>${ths}</tr></thead>
+        <tbody>
+          ${
+            trs ||
+            `<tr><td colspan="${
+              (includeIndex ? 1 : 0) + cols.length
+            }">هیچ داده‌ای موجود نیست</td></tr>`
+          }
+        </tbody>
+      </table>
+    </body>
+  </html>`;
+  }
+
+  function openPrintWindow(html) {
+    const w = window.open('', '_blank');
+    if (!w) return;
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+
+    const doPrint = async () => {
+      try {
+        if (w.document.fonts && w.document.fonts.ready) await w.document.fonts.ready;
+      } catch {}
+      setTimeout(() => {
+        w.focus();
+        w.print();
+        w.onafterprint = () => w.close();
+      }, 150);
+    };
+
+    w.onload = doPrint;
+  }
+
+  async function printAll() {
+    printOnlySelected.value = false;
+    printOnlyCols.value = false;
+
+    const cols = getColsForExport();
+    const rowsToUse = filteredRows.value;
+    const html = buildSimpleTableHtml(cols, rowsToUse);
+    openPrintWindow(html);
+  }
+
+  async function printSelected() {
+    if (selectedSet.value.size === 0) return;
+
+    printOnlyCols.value = false;
+    printOnlySelected.value = true;
+
+    const cols = getColsForExport();
+
+    const rowsToUse = [];
+    const indexValues = [];
+    filteredRows.value.forEach((r, idx) => {
+      const id = getRowId(r, idx);
+      if (selectedSet.value.has(id)) {
+        rowsToUse.push(r);
+        indexValues.push(idx + 1);
+      }
+    });
+
+    const html = buildSimpleTableHtml(cols, rowsToUse, indexValues);
+    openPrintWindow(html);
+  }
+
+  function downloadPdf() {
+    const cols = getColsForExport();
+    const rowsToUse = getRowsForExport();
+    const html = buildSimpleTableHtml(cols, rowsToUse);
+    openPrintWindow(html);
   }
 
   function downloadExcel() {
@@ -1202,76 +1539,10 @@
     URL.revokeObjectURL(url);
   }
 
-  /* ✅ Word (DOC) export (added) */
-  function escapeHtml(val) {
-    return String(val ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-  function getSelectedColumnDefs() {
-    // base columns from headers
-    const all = headersFlatKeys(); // [{key,title}]
-
-    // if user selected columns → keep only those
-    if (selectedCols.value.size > 0) {
-      return all.filter((c) => selectedCols.value.has(c.key));
-    }
-
-    // otherwise → all
-    return all;
-  }
-
-  function buildListHtmlForWord(cols, rowsToUse) {
-    const dir = rtl.value ? 'rtl' : 'ltr';
-    const align = rtl.value ? 'right' : 'left';
-
-    // Example output:
-    // 1) نام: X | نام پدر: Y
-    // 2) نام: ...
-    return `
-  <html>
-    <head>
-      <meta charset="utf-8" />
-      <style>
-        body { font-family: Arial, Tahoma; direction: ${dir}; text-align: ${align}; padding: 16px; }
-        .item { padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
-        .num { font-weight: 700; margin-${rtl.value ? 'left' : 'right'}: 8px; color:#111827; }
-        .pair { display:inline; font-size: 12px; color:#111827; }
-        .label { font-weight: 700; color:#374151; }
-        .val { font-weight: 500; color:#111827; }
-        .sep { color:#9ca3af; margin: 0 6px; }
-      </style>
-    </head>
-    <body>
-      ${rowsToUse
-        .map((r, idx) => {
-          const line = cols
-            .map((c) => {
-              const v = displayValueByKey(c.key, r[c.key]);
-              return `<span class="pair"><span class="label">${escapeHtml(
-                c.title
-              )}:</span> <span class="val">${escapeHtml(v)}</span></span>`;
-            })
-            .join(`<span class="sep">|</span>`);
-
-          return `<div class="item"><span class="num">${idx + 1})</span>${line}</div>`;
-        })
-        .join('')}
-    </body>
-  </html>`;
-  }
   function downloadWord() {
-    const cols = getSelectedColumnDefs();
-
-    // rows: if selected rows → only those, else filteredRows
-    const rowsToUse =
-      selectedSet.value.size > 0
-        ? filteredRows.value.filter((r, i) => selectedSet.value.has(getRowId(r, i)))
-        : filteredRows.value;
-
-    const html = buildListHtmlForWord(cols, rowsToUse);
+    const cols = getColsForExport();
+    const rowsToUse = getRowsForExport();
+    const html = buildSimpleTableHtml(cols, rowsToUse);
 
     const blob = new Blob(['\uFEFF' + html], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
@@ -1279,18 +1550,31 @@
     const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
 
     a.href = url;
-    a.download = `list-export-${ts}.doc`;
+    a.download = `table-export-${ts}.doc`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }
 
-  /* ✅ WhatsApp style "more/less" for long cell values (added) */
+  function printRowSimple(row, rowIndexInFiltered = 0) {
+    const cols = getColsForExport();
+    const html = buildSimpleTableHtml(cols, [row], [rowIndexInFiltered + 1]);
+    openPrintWindow(html);
+  }
+
+  /* ✅ "More/Less" keep dynamic width: lock to first measured width on expand */
   const expandedCells = ref(new Set());
+  const cellRefs = ref({});
+  const cellLockedWidths = ref({});
 
   function cellKey(rowId, col) {
     return `${rowId}__${col}`;
+  }
+
+  function setCellRef(rowId, col, el) {
+    if (!rowId || !col || !el) return;
+    cellRefs.value[cellKey(rowId, col)] = el;
   }
 
   function isExpanded(rowId, col) {
@@ -1299,7 +1583,23 @@
 
   function toggleExpand(rowId, col) {
     const k = cellKey(rowId, col);
-    expandedCells.value.has(k) ? expandedCells.value.delete(k) : expandedCells.value.add(k);
+
+    if (!expandedCells.value.has(k)) {
+      const el = cellRefs.value[k];
+      const w = el && el.getBoundingClientRect ? Math.round(el.getBoundingClientRect().width) : 0;
+      if (w > 0 && !cellLockedWidths.value[k]) cellLockedWidths.value[k] = w;
+      expandedCells.value.add(k);
+      return;
+    }
+
+    expandedCells.value.delete(k);
+  }
+
+  function getCellLockStyle(rowId, col) {
+    const k = cellKey(rowId, col);
+    if (!expandedCells.value.has(k)) return null;
+    const w = cellLockedWidths.value[k];
+    return w ? { minWidth: `${w}px` } : null;
   }
 
   function shouldShowMore(val) {
@@ -1336,23 +1636,19 @@
     }
   }
 
-  /* Header color */
   .table-header {
     background-color: #08989f;
   }
 
-  /* ✅ header cells border color = header background */
   .table-header th {
     background-color: #08989f;
     border-color: #08989f !important;
   }
 
-  /* ✅ no cell border for rows */
   tbody td {
     border-color: transparent !important;
   }
 
-  /* Print overrides */
   @media print {
     body * {
       visibility: hidden !important;
@@ -1424,22 +1720,15 @@
     background: #a1a1a1;
   }
 
-  /* ===========================
-   TABLE LAYOUT – remove gaps
-   =========================== */
   #print-this-table table {
     border-collapse: separate;
-    border-spacing: 0; /* 🔥 removes white gaps between header cells */
+    border-spacing: 0;
   }
 
-  /* ===========================
-   HEADER COLORS (PRIMARY)
-   =========================== */
   .table-header {
     background-color: #08989f !important;
   }
 
-  /* all header cells: same background + same border color */
   .table-header th {
     background-color: #08989f !important;
     border-top: 1px solid #08989f !important;
@@ -1449,36 +1738,28 @@
     color: #ffffff !important;
   }
 
-  /* ===========================
-   ROW STYLE (Vuetify inset bar)
-   =========================== */
-
-  /* Remove all default borders from body cells */
   tbody td {
     border: none !important;
   }
 
-  /* LTR inset primary border inside every row */
   tbody tr {
     position: relative;
-    box-shadow: inset 4px 0 0 0 #08989f; /* left vertical color bar */
+    box-shadow: inset 4px 0 0 0 #08989f;
     border-bottom: 1px solid white !important;
   }
 
-  /* RTL inset primary border (right side) */
   [dir='rtl'] tbody tr {
-    box-shadow: inset -4px 0 0 0 #08989f; /* right side */
+    box-shadow: inset -4px 0 0 0 #08989f;
     border-bottom: 1px solid white !important;
   }
 
-  /* Optional hover */
   tbody tr:hover {
     background-color: rgba(0, 0, 0, 0.03);
   }
 
   .overflow-x-auto::-webkit-scrollbar {
-    width: 6px; /* 👈 vertical scrollbar width */
-    height: 8px; /* 👈 horizontal scrollbar height (keep as you like) */
+    width: 6px;
+    height: 8px;
   }
 
   .overflow-x-auto::-webkit-scrollbar-track {
@@ -1495,23 +1776,20 @@
     background: #a1a1a1;
   }
 
-  /* Make the whole header block sticky inside the scroll area */
   .overflow-x-auto > table > thead.table-header {
     position: sticky;
     top: 0;
-    z-index: 40; /* above body rows */
+    z-index: 40;
   }
 
-  /* Default: hide scrollbars but scroll works */
   .overflow-x-auto::-webkit-scrollbar {
     width: 0px;
     height: 0px;
   }
 
-  /* On hover: show scrollbars */
   .overflow-x-auto:hover::-webkit-scrollbar {
-    width: 4px; /* vertical */
-    height: 4px; /* horizontal */
+    width: 4px;
+    height: 4px;
   }
 
   .overflow-x-auto::-webkit-scrollbar-thumb {
@@ -1527,40 +1805,37 @@
     background: transparent;
   }
 
-  /* Default: hide */
   .overflow-x-auto {
     scrollbar-width: none;
   }
 
-  /* On hover: show */
   .overflow-x-auto:hover {
     scrollbar-width: thin;
     scrollbar-color: #b9b6b6 transparent;
   }
 
-  /* ✅ Auto cell sizing + WhatsApp style (added) */
-  td,
-  th {
-    max-width: 450px;
-  }
-
-  .cell-box {
-    max-width: 450px;
-    margin: auto;
+  td .cell-box {
+    display: inline-block;
+    width: fit-content;
+    max-width: 400px;
+    min-width: 80px;
   }
 
   .cell-text {
-    white-space: pre-wrap;
-    word-break: break-word;
+    max-width: 400px;
     line-height: 1.6;
+    word-break: break-word;
   }
 
-  /* clamp to 3 lines */
-  .cell-clamp {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
+  .cell-collapsed {
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cell-expanded {
+    white-space: pre-wrap;
+    overflow: visible;
   }
 
   .cell-more {
@@ -1569,5 +1844,51 @@
     color: #2563eb;
     cursor: pointer;
     margin-top: 4px;
+  }
+
+  .group-head {
+    position: relative;
+  }
+
+  [dir='ltr'] .group-head.group-divider::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  [dir='rtl'] .group-head.group-divider::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    right: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  .top-divider {
+    position: relative;
+  }
+
+  .top-divider::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  thead tr:first-child th.top-divider:first-child::before {
+    display: none;
+  }
+
+  .top-divider::after {
+    display: none;
   }
 </style>

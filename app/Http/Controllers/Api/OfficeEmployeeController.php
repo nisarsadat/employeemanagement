@@ -37,6 +37,10 @@ class OfficeEmployeeController extends Controller
                 'events',
                 'resources',
 
+                // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
+                'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
+                'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
+
                 // ✅ ALL INFORMATION TYPES
                 'informations',
                 'infoInformations',
@@ -82,10 +86,12 @@ class OfficeEmployeeController extends Controller
                 'events',
                 'resources',
 
-                // ✅ ALL INFORMATION TYPES
+                // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
+                'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
+                'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
+
                 'informations',
                 'infoInformations',
-
                 'documents',
             ])
             ->findOrFail($id);
@@ -151,7 +157,18 @@ class OfficeEmployeeController extends Controller
             DB::commit();
 
             return new OfficeEmployeeResource(
-                $employee->load(['documents'])
+                $employee->load(['documents'])->loadCount([
+                    'events',
+                    'resources',
+
+                    // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
+                    'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
+                    'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
+
+                    'informations',
+                    'infoInformations',
+                    'documents',
+                ])
             );
 
         } catch (\Throwable $e) {
@@ -243,9 +260,12 @@ class OfficeEmployeeController extends Controller
                         'events',
                         'resources',
 
+                        // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
+                        'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
+                        'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
+
                         // ✅ ALL INFORMATION TYPES
                         'informations',
-    
                         'infoInformations',
 
                         'documents',
@@ -321,6 +341,10 @@ class OfficeEmployeeController extends Controller
             ->withCount([
                 'events',
                 'resources',
+
+                // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
+                'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
+                'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
 
                 // ✅ ALL INFORMATION TYPES
                 'informations',

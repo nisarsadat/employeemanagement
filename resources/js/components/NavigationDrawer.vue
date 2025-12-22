@@ -333,6 +333,11 @@
             to: { path: '/app/quarterlyfoulreports' },
             // perm: 'weeklyfoulreports',
           },
+          {
+            title: t('آرشیف'),
+            to: { path: '/app/alltimefoulreports' },
+            // perm: 'weeklyfoulreports',
+          },
         ],
       },
     ].map(withPerms)

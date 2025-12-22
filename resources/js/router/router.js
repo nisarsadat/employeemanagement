@@ -176,6 +176,7 @@ import MonthlyFoulReport from '../pages/reports/MonthlyFoulReport.vue';
 import YearlyFoulReport from '../pages/reports/YearlyFoulReport.vue';
 import WeeklyFoulReports from '../pages/reports/WeeklyFoulReports.vue';
 import FoulQuarterlyReports from '../pages/reports/FoulQuarterlyReports.vue';
+import AllTimeFoulReports from '../pages/reports/AllTimeFoulReports.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -353,10 +354,17 @@ const router = createRouter({
           name: 'weeklyfoulreports',
           component: WeeklyFoulReports,
           // meta: { requiresAuth: true, perm: permFor('informations') },
-        },        {
+        },
+        {
           path: 'quarterlyfoulreports',
           name: 'quarterlyfoulreports',
           component: FoulQuarterlyReports,
+          // meta: { requiresAuth: true, perm: permFor('informations') },
+        },
+        {
+          path: 'alltimefoulreports',
+          name: 'alltimefoulreports',
+          component: AllTimeFoulReports,
           // meta: { requiresAuth: true, perm: permFor('informations') },
         },
         // Inline info
