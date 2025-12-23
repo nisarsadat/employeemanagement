@@ -121,13 +121,6 @@
                   >
                     نمایش همه
                   </button>
-                  <button
-                    type="button"
-                    class="flex-1 text-xs px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200 font-medium text-gray-700"
-                    @click="hideAllColumns"
-                  >
-                    مخفی کردن همه
-                  </button>
                 </div>
               </div>
 
@@ -961,10 +954,6 @@
 
   function showAllColumns() {
     visibleCols.value = new Set((props.headers ?? []).map((h) => colKey(h)));
-  }
-
-  function hideAllColumns() {
-    visibleCols.value = new Set(); // user can re-enable from panel list (still shows list)
   }
 
   function toggleColumnsPanel() {

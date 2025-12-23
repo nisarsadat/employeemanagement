@@ -8,7 +8,7 @@ import Login from '@/pages/Login.vue';
 import Home from '@/pages/Home.vue';
 
 // ---------- Protected Child Pages (render inside Home.vue <router-view/>) ----------
-import Dashboard from '@/pages/Dashboard/MainDashboard.vue';
+import Dashboard from '@/pages/Dashboard/Dashboard.vue';
 import ActiveAndInactiveEmployees from '@/pages/ActiveInactive/ActiveAndInactiveEmployees.vue';
 
 import User from '@/pages/User/User.vue';

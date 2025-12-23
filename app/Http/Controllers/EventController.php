@@ -17,6 +17,7 @@ class EventController extends Controller
         $query = Event::with([
             'resource',
             'officeEmployee',
+            'akhistonkyEmployee',
             'documents',
         ])->when($request->search, function ($q) use ($request) {
             $s = $request->search;

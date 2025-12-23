@@ -124,6 +124,7 @@ use App\Http\Controllers\RbacController;
 use App\Http\Controllers\Api\ActiveInactiveOfficeEmployeeController as AE; // ✅ NEW
 use App\Http\Controllers\Api\ChatAttachmentController;
 use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EventControllerReport;
 use App\Http\Controllers\Api\EventReportController;
 use App\Http\Controllers\Api\FifthyFormatsCountController;
@@ -509,6 +510,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reports/foul/all-time', YearlyFoulReportController::class);
     });
 
+
+    // dashboard 
+
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 
 
 

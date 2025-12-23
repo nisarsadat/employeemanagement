@@ -8,9 +8,10 @@ class EventResource extends JsonResource
 {
     public function toArray($request)
     {
-        $resource       = $this->whenLoaded('resource');
-        $officeEmployee = $this->whenLoaded('officeEmployee');
-        $documents      = $this->whenLoaded('documents');
+        $resource           = $this->whenLoaded('resource');
+        $officeEmployee     = $this->whenLoaded('officeEmployee');
+        $akhistonkyEmployee = $this->whenLoaded('akhistonkyEmployee');
+        $documents          = $this->whenLoaded('documents');
 
         return [
             'id'                   => $this->id,
@@ -35,14 +36,18 @@ class EventResource extends JsonResource
             'Province_addr'        => $this->Province_addr,
 
             // Flattened FK / helper fields
-            'resource_id'               => $this->resource_id,
-            'resource_code'             => $resource ? $resource->code_number ?? null : null,
-            'resource_phone'            => $resource ? $resource->phone_number ?? null : null,
+            'resource_id'    => $this->resource_id,
+            'resource_code'  => $resource ? ($resource->code_number ?? null) : null,
+            'resource_phone' => $resource ? ($resource->phone_number ?? null) : null,
 
-            'office_employee_id'        => $this->office_employee_id,
-            'office_employee_akhistonky_id'        => $this->office_employee_akhistonky_id,
-            'office_employee_code'      => $officeEmployee ? $officeEmployee->code_number ?? null : null,
-            'office_employee_phone'     => $officeEmployee ? $officeEmployee->phone_number ?? null : null,
+            'office_employee_id'    => $this->office_employee_id,
+            'office_employee_code'  => $officeEmployee ? ($officeEmployee->code_number ?? null) : null,
+            'office_employee_phone' => $officeEmployee ? ($officeEmployee->phone_number ?? null) : null,
+
+            // ✅ Aghistonky: ID + code + phone
+            'office_employee_akhistonky_id'    => $this->office_employee_akhistonky_id,
+            'office_employee_akhistonky_code'  => $akhistonkyEmployee ? ($akhistonkyEmployee->code_number ?? null) : null,
+            'office_employee_akhistonky_phone' => $akhistonkyEmployee ? ($akhistonkyEmployee->phone_number ?? null) : null,
 
             // Embedded resource
             'resource' => $this->when($resource, function () use ($resource) {

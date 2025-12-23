@@ -49,7 +49,7 @@
 
     <!-- 📊 STATS CARDS (clickable filters) -->
     <v-row class="px-2 mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
-      <!-- Total events -->
+      <!-- All -->
       <v-col cols="12" md="3" lg="3">
         <v-card
           class="stat-card"
@@ -58,67 +58,66 @@
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-primary fontfamily">
+              <div class="text-h5 font-weight-bold text-purple fontfamily">
                 {{ totalCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
                 {{ t('کل واقعات') }}
               </div>
             </div>
+            <v-avatar color="purple" variant="tonal" size="48">
+              <v-icon color="purple">mdi-alert-circle-outline</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <!-- سیاسی -->
+      <v-col cols="12" md="3" lg="3">
+        <v-card
+          class="stat-card"
+          :class="{ 'stat-card--active': activeCard === 'syasi' }"
+          @click="setCardFilter('syasi')"
+        >
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-primary fontfamily">
+                {{ syasiCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('سیاسی') }}
+              </div>
+            </div>
             <v-avatar color="primary" variant="tonal" size="48">
-              <v-icon color="primary">mdi-alert-circle-outline</v-icon>
+              <v-icon color="primary">mdi-scale-balance</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <!-- With documents -->
+      <!-- جینایی -->
       <v-col cols="12" md="3" lg="3">
         <v-card
           class="stat-card"
-          :class="{ 'stat-card--active': activeCard === 'docs' }"
-          @click="setCardFilter('docs')"
+          :class="{ 'stat-card--active': activeCard === 'jenayee' }"
+          @click="setCardFilter('jenayee')"
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-green fontfamily">
-                {{ withDocumentsCount }}
+                {{ jenayeeCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('دارای اسناد ضمیمه') }}
+                {{ t('جینایی') }}
               </div>
             </div>
             <v-avatar color="green" variant="tonal" size="48">
-              <v-icon color="green">mdi-paperclip</v-icon>
+              <v-icon color="green">mdi-gavel</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <!-- With coordinates -->
-      <v-col cols="12" md="3" lg="3">
-        <v-card
-          class="stat-card"
-          :class="{ 'stat-card--active': activeCard === 'coords' }"
-          @click="setCardFilter('coords')"
-        >
-          <v-card-text class="pa-4 d-flex align-center justify-space-between">
-            <div>
-              <div class="text-h5 font-weight-bold text-purple fontfamily">
-                {{ withCoordinatesCount }}
-              </div>
-              <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('دارای کوردینات') }}
-              </div>
-            </div>
-            <v-avatar color="purple" variant="tonal" size="48">
-              <v-icon color="purple">mdi-map-marker-radius</v-icon>
-            </v-avatar>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- Today added -->
+      <!-- Today -->
       <v-col cols="12" md="3" lg="3">
         <v-card
           class="stat-card"
@@ -207,6 +206,23 @@
             >
               <v-icon size="16" class="mr-1">mdi-account-badge</v-icon>
               {{ getRow(row).office_employee_display || t('کارمند') }}
+            </v-btn>
+          </template>
+        </v-tooltip>
+      </template> <!-- 🔗 Office employee cell: route to OfficeEmployee page -->
+      <template #cell-office_employee_akhistonky_code="{ row }">
+        <v-tooltip :text="t('برای رفتن به صفحه کارمند کلیک کنید')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              color="deep-purple"
+              variant="tonal"
+              size="default"
+              class="text-none"
+              @click.stop="goOfficeEmployee(row)"
+            >
+              <v-icon size="16" class="mr-1">mdi-account-badge</v-icon>
+              {{ getRow(row).office_employee_akhistonky_code || t('کارمند') }}
             </v-btn>
           </template>
         </v-tooltip>
@@ -303,362 +319,389 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+  import { ref, onMounted, watch, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FlyToMapButton from '@/components/FlyToMapButton.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-import { useDatabaseRepository } from '@/stores/DatabaseRepository';
-import { useLoginRepository } from '@/stores/LoginRepository';
+  import { useDatabaseRepository } from '@/stores/DatabaseRepository';
+  import { useLoginRepository } from '@/stores/LoginRepository';
 
-const repo = useDatabaseRepository();
-const auth = useLoginRepository();
-const router = useRouter();
+  const repo = useDatabaseRepository();
+  const auth = useLoginRepository();
+  const router = useRouter();
 
-/* i18n / RTL */
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (newLocale) => {
-  isRtl.value = newLocale === 'fa';
-});
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (newLocale) => {
+    isRtl.value = newLocale === 'fa';
+  });
 
-/* snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showErrorMessage = (m) => {
-  errorMessage.value = m;
-  showError.value = true;
-};
+  /* snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
+  };
 
-/* helpers */
-const getRow = (s) => (s && s.raw ? s.raw : s);
+  /* helpers */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
 
-/* === Card filter state === */
-const activeCard = ref('all'); // 'all' | 'docs' | 'coords' | 'today'
-const setCardFilter = (type) => {
-  activeCard.value = type;
-};
+  /* === Card filter state === */
+  const activeCard = ref('all'); // 'syasi' | 'jenayee' | 'today' | 'all'
+  const setCardFilter = (type) => {
+    activeCard.value = type;
+  };
 
-/* === Base events from API === */
-const baseEvents = computed(() => repo.Events || []);
+  /* === Base events from API === */
+  const baseEvents = computed(() => repo.Events || []);
 
-/* date helper for display YYYY-MM-DD */
-function formatDateYMD(value) {
-  if (!value) return '';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) {
-    // fallback: try first 10 chars if it is already string
-    const s = String(value);
-    return s.length >= 10 ? s.slice(0, 10) : s;
+  /* date helper for display YYYY-MM-DD */
+  function formatDateYMD(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) {
+      // fallback: try first 10 chars if it is already string
+      const s = String(value);
+      return s.length >= 10 ? s.slice(0, 10) : s;
+    }
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+  function normalizeText(v) {
+    return String(v || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+  }
 
-/* Type helpers used both for stats and card filtering */
-function hasDocsRow(r) {
-  return Array.isArray(r.documents) && r.documents.length > 0;
-}
-function hasCoordsRow(r) {
-  return !!(r.coordinates && String(r.coordinates).trim());
-}
-function isSameDate(dateValue, today) {
-  if (!dateValue) return false;
-  const d = new Date(dateValue);
-  if (Number.isNaN(d.getTime())) return false;
-  return (
-    d.getFullYear() === today.getFullYear() &&
-    d.getMonth() === today.getMonth() &&
-    d.getDate() === today.getDate()
+  function isSyasiType(eventType) {
+    const s = normalizeText(eventType);
+    return s === 'سیاسی' || s === 'syasi' || s.includes('سیاسی') || s.includes('syasi');
+  }
+
+  function isJenayeeType(eventType) {
+    const s = normalizeText(eventType);
+    // supports both جینایی and جنایی spellings + latin
+    return (
+      s === 'جینایی' ||
+      s === 'جنایی' ||
+      s === 'jinayee' ||
+      s === 'jenayee' ||
+      s.includes('جینایی') ||
+      s.includes('جنایی') ||
+      s.includes('jinayee') ||
+      s.includes('jenayee')
+    );
+  }
+  const syasiCount = computed(
+    () => baseEvents.value.filter((r) => isSyasiType(r.event_type)).length
   );
-}
 
-/* === Stats (always based on ALL events) === */
-const totalCount = computed(() => baseEvents.value.length);
+  const jenayeeCount = computed(
+    () => baseEvents.value.filter((r) => isJenayeeType(r.event_type)).length
+  );
 
-const withDocumentsCount = computed(
-  () => baseEvents.value.filter((r) => hasDocsRow(r)).length,
-);
-
-const withCoordinatesCount = computed(
-  () => baseEvents.value.filter((r) => hasCoordsRow(r)).length,
-);
-
-const todayAddedCount = computed(() => {
-  const today = new Date();
-  return baseEvents.value.filter((r) => isSameDate(r.created_at, today)).length;
-});
-
-/* === Filtered list for table based on activeCard === */
-const filteredEvents = computed(() => {
-  const all = baseEvents.value;
-  if (activeCard.value === 'docs') {
-    return all.filter((r) => hasDocsRow(r));
+  function isSameDate(dateValue, today) {
+    if (!dateValue) return false;
+    const d = new Date(dateValue);
+    if (Number.isNaN(d.getTime())) return false;
+    return (
+      d.getFullYear() === today.getFullYear() &&
+      d.getMonth() === today.getMonth() &&
+      d.getDate() === today.getDate()
+    );
   }
-  if (activeCard.value === 'coords') {
-    return all.filter((r) => hasCoordsRow(r));
-  }
-  if (activeCard.value === 'today') {
+
+  /* === Stats (always based on ALL events) === */
+  const totalCount = computed(() => baseEvents.value.length);
+
+  const withDocumentsCount = computed(() => baseEvents.value.filter((r) => hasDocsRow(r)).length);
+
+  const withCoordinatesCount = computed(
+    () => baseEvents.value.filter((r) => hasCoordsRow(r)).length
+  );
+
+  const todayAddedCount = computed(() => {
     const today = new Date();
-    return all.filter((r) => isSameDate(r.created_at, today));
-  }
-  return all;
-});
-
-/* rows for FilterableTable (uses filteredEvents) */
-const rowsFT = computed(() =>
-  (filteredEvents.value || []).map((e) => ({
-    ...e,
-    // formatted date for display
-    event_date: formatDateYMD(e.event_date),
-    resource_display: e.resource_code || e.resource_id || '',
-    office_employee_display: e.office_employee_code || e.office_employee_id || '',
-  })),
-);
-
-/* headers */
-const headersFT = computed(() => [
-  { title: t('منبع'), key: 'resource_display' },
-  { title: t('کارمند دفتر'), key: 'office_employee_display' },
-  { title: t('کود کارمند واقعه گیرنده'), key: 'office_employee_akhistonky_id' },
-  { title: t('نوعیت واقعه'), key: 'event_type' },
-  { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
-  { title: t('هدف کی بود؟/مکان بود؟'), key: 'target_person' },
-  { title: t('کی جرم را انجام داده؟'), key: 'criminal' },
-  { title: t('تاریخ واقعه'), key: 'event_date' },
-  { title: t('ساعت واقعه'), key: 'event_hour' },
-  { title: t('زون'), key: 'event_zone' },
-  { title: t('حوزه'), key: 'event_hawza' },
-  { title: t('محل مشخص'), key: 'event_specific_place' },
-  { title: t('کوردینات'), key: 'coordinates' },
-  // { title: t('تلفات جانی'), key: 'talafat_jani' },
-  { title: t('تلفات مالی'), key: 'talafat_mali' },
-  { title: t('کشته شده'), key: 'injured' },
-  { title: t('زخمی شده'), key: 'killed' },
-  { title: t('تفصیل'), key: 'tafseel' },
-  { title: t('وضاحت'), key: 'talks' },
-  { title: t('ملاحظات'), key: 'note', width: 300 },
-  { title: t('نوت راجع به اسناد'), key: 'docs_note', width: 300 },
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
-  { title: t('نقشه'), key: 'map', sortable: false },
-]);
-
-const topGroups = computed(() => [
-  { title: t('شناسه‌ها'), keys: ['resource_display', 'office_employee_display' , 'office_employee_akhistonky_id'] },
-  { title: t('نوع واقعه'), keys: ['event_type', 'event_specific_type'] },
-  { title: t('هدف و عامل'), keys: ['target_person', 'criminal'] },
-  {
-    title: t('زمان'),
-    keys: ['event_date', 'event_hour'],
-  },
-  {
-    title: t('مکان'),
-    keys: ['event_zone', 'event_hawza', 'event_specific_place', 'coordinates'],
-  },
-  { title: t('تلفات'), keys: ['talafat_jani', 'talafat_mali'] },
-  { title: t('متن‌ها'), keys: ['tafseel', 'talks', 'note'] },
-]);
-
-const filters = ref({});
-
-/* Peek / single fetch */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loadingOne.value = true;
-  try {
-    if (typeof repo.FetchEventData === 'function') {
-      await repo.FetchEventData(id);
-      detail.value =
-        (repo.Event && Array.isArray(repo.Event) ? repo.Event[0] : repo.Event) || {};
-    } else {
-      await fetchAll();
-      const list = rowsFT.value || [];
-      detail.value = list.find((r) => r.id === id) || {};
-    }
-  } catch (e) {
-    console.error('FetchOne event error:', e);
-    showErrorMessage(t('خطا در دریافت معلومات واقعه'));
-  } finally {
-    loadingOne.value = false;
-  }
-}
-
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
-
-/* navigation */
-function goCreate() {
-  router.push('/app/eventsform');
-}
-
-function goEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/eventsform/${row.id}`);
-}
-
-// 🔗 Go to office employee from event row
-function goOfficeEmployee(payload) {
-  const row = getRow(payload);
-  if (!row?.office_employee_id) return;
-  router.push({
-    path: '/app/officeemployee',
-    query: { office_employee_id: row.office_employee_id },
+    return baseEvents.value.filter((r) => isSameDate(r.created_at, today)).length;
   });
-}
 
-// 🔗 Go to resource from event row
-function goResource(payload) {
-  const row = getRow(payload);
-  if (!row?.resource_id) return;
-  router.push({
-    path: '/app/resources',
-    query: { resource_id: row.resource_id },
-  });
-}
+  /* === Filtered list for table based on activeCard === */
+  const filteredEvents = computed(() => {
+    const all = baseEvents.value;
 
-/* documents */
-function hasDocuments(payload) {
-  const row = getRow(payload);
-  const docs = row?.documents;
-  return Array.isArray(docs) && docs.length > 0;
-}
-
-async function downloadEventDocs(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  try {
-    if (typeof repo.DownloadEventZip === 'function') {
-      await repo.DownloadEventZip(row.id);
-    } else {
-      showErrorMessage(t('دانلود اسناد برای این واقعه هنوز تنظیم نشده است'));
+    if (activeCard.value === 'syasi') {
+      return all.filter((r) => isSyasiType(r.event_type));
     }
-  } catch (e) {
-    console.error('downloadEventDocs error', e);
-    showErrorMessage(t('خطا در دانلود اسناد واقعه'));
+    if (activeCard.value === 'jenayee') {
+      return all.filter((r) => isJenayeeType(r.event_type));
+    }
+    if (activeCard.value === 'today') {
+      const today = new Date();
+      return all.filter((r) => isSameDate(r.created_at, today));
+    }
+    return all; // 'all'
+  });
+
+  /* rows for FilterableTable (uses filteredEvents) */
+  const rowsFT = computed(() =>
+    (filteredEvents.value || []).map((e) => ({
+      ...e,
+      // formatted date for display
+      event_date: formatDateYMD(e.event_date),
+      resource_display: e.resource_code || e.resource_id || '',
+      office_employee_display: e.office_employee_code || e.office_employee_id || '',
+    }))
+  );
+
+  /* headers */
+  const headersFT = computed(() => [
+    { title: t('منبع'), key: 'resource_display' },
+    { title: t('کارمند دفتر'), key: 'office_employee_display' },
+    { title: t('کود کارمند واقعه گیرنده'), key: 'office_employee_akhistonky_code' },
+    { title: t('نوعیت واقعه'), key: 'event_type' },
+    { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
+    { title: t('هدف کی بود؟/مکان بود؟'), key: 'target_person' },
+    { title: t('کی جرم را انجام داده؟'), key: 'criminal' },
+    { title: t('تاریخ واقعه'), key: 'event_date' },
+    { title: t('ساعت واقعه'), key: 'event_hour' },
+    { title: t('زون'), key: 'event_zone' },
+    { title: t('حوزه'), key: 'event_hawza' },
+    { title: t('محل مشخص'), key: 'event_specific_place' },
+    { title: t('کوردینات'), key: 'coordinates' },
+    // { title: t('تلفات جانی'), key: 'talafat_jani' },
+    { title: t('تلفات مالی'), key: 'talafat_mali' },
+    { title: t('کشته شده'), key: 'injured' },
+    { title: t('زخمی شده'), key: 'killed' },
+    { title: t('تفصیل'), key: 'tafseel' },
+    { title: t('وضاحت'), key: 'talks' },
+    { title: t('ملاحظات'), key: 'note' },
+    { title: t('نوت راجع به اسناد'), key: 'docs_note' },
+    // { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('نقشه'), key: 'map', sortable: false },
+  ]);
+
+  const topGroups = computed(() => [
+    {
+      title: t('شناسه‌ها'),
+      keys: ['resource_display', 'office_employee_display', 'office_employee_akhistonky_id'],
+    },
+    { title: t('نوع واقعه'), keys: ['event_type', 'event_specific_type'] },
+    { title: t('هدف و عامل'), keys: ['target_person', 'criminal'] },
+    {
+      title: t('زمان'),
+      keys: ['event_date', 'event_hour'],
+    },
+    {
+      title: t('مکان'),
+      keys: ['event_zone', 'event_hawza', 'event_specific_place', 'coordinates'],
+    },
+    { title: t('تلفات'), keys: ['talafat_jani', 'talafat_mali'] },
+    { title: t('متن‌ها'), keys: ['tafseel', 'talks', 'note'] },
+  ]);
+
+  const filters = ref({});
+
+  /* Peek / single fetch */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      if (typeof repo.FetchEventData === 'function') {
+        await repo.FetchEventData(id);
+        detail.value = (repo.Event && Array.isArray(repo.Event) ? repo.Event[0] : repo.Event) || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } catch (e) {
+      console.error('FetchOne event error:', e);
+      showErrorMessage(t('خطا در دریافت معلومات واقعه'));
+    } finally {
+      loadingOne.value = false;
+    }
   }
-}
 
-/* ===== Delete with dialog ===== */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
-
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
-
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  if (!row?.id) {
-    deleteDialog.value = false;
-    deleteTarget.value = null;
-    return;
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
   }
 
-  try {
-    if (typeof repo.DeleteEvent === 'function') {
-      await repo.DeleteEvent(row.id);
-    } else {
-      showErrorMessage(t('حذف برای این واقعه هنوز تنظیم نشده است'));
+  /* navigation */
+  function goCreate() {
+    router.push('/app/eventsform');
+  }
+
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/eventsform/${row.id}`);
+  }
+
+  // 🔗 Go to office employee from event row
+  function goOfficeEmployee(payload) {
+    const row = getRow(payload);
+    if (!row?.office_employee_id) return;
+    router.push({
+      path: '/app/officeemployee',
+      query: { office_employee_id: row.office_employee_id },
+    });
+  }
+
+  // 🔗 Go to resource from event row
+  function goResource(payload) {
+    const row = getRow(payload);
+    if (!row?.resource_id) return;
+    router.push({
+      path: '/app/resources',
+      query: { resource_id: row.resource_id },
+    });
+  }
+
+  /* documents */
+  function hasDocuments(payload) {
+    const row = getRow(payload);
+    const docs = row?.documents;
+    return Array.isArray(docs) && docs.length > 0;
+  }
+
+  async function downloadEventDocs(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    try {
+      if (typeof repo.DownloadEventZip === 'function') {
+        await repo.DownloadEventZip(row.id);
+      } else {
+        showErrorMessage(t('دانلود اسناد برای این واقعه هنوز تنظیم نشده است'));
+      }
+    } catch (e) {
+      console.error('downloadEventDocs error', e);
+      showErrorMessage(t('خطا در دانلود اسناد واقعه'));
+    }
+  }
+
+  /* ===== Delete with dialog ===== */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
+
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
+
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    if (!row?.id) {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
       return;
     }
+
+    try {
+      if (typeof repo.DeleteEvent === 'function') {
+        await repo.DeleteEvent(row.id);
+      } else {
+        showErrorMessage(t('حذف برای این واقعه هنوز تنظیم نشده است'));
+        return;
+      }
+      await fetchAll();
+    } catch (error) {
+      console.error('Delete event error', error);
+      showErrorMessage(t('خطا در حذف واقعه') + ': ' + (error.message || t('خطای ناشناخته')));
+    } finally {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+    }
+  }
+
+  /* Fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchEventsData({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search,
+      });
+    } catch (e) {
+      console.error('fetchAll events error', e);
+      showErrorMessage(t('خطا در دریافت فهرست واقعات'));
+    }
+  }
+
+  function clearSearch() {
+    repo.Search = '';
+    fetchAll();
+  }
+
+  /* init */
+  onMounted(async () => {
     await fetchAll();
-  } catch (error) {
-    console.error('Delete event error', error);
-    showErrorMessage(t('خطا در حذف واقعه') + ': ' + (error.message || t('خطای ناشناخته')));
-  } finally {
-    deleteDialog.value = false;
-    deleteTarget.value = null;
-  }
-}
-
-/* Fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchEventsData({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search,
-    });
-  } catch (e) {
-    console.error('fetchAll events error', e);
-    showErrorMessage(t('خطا در دریافت فهرست واقعات'));
-  }
-}
-
-function clearSearch() {
-  repo.Search = '';
-  fetchAll();
-}
-
-/* init */
-onMounted(async () => {
-  await fetchAll();
-});
+  });
 </script>
 
 <style scoped>
-.ga-2 {
-  gap: 8px;
-}
+  .ga-2 {
+    gap: 8px;
+  }
 
-.stat-card {
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: 2px solid transparent;
-  height: 100px;
-  font-family: var(--app-font) !important;
-}
+  .stat-card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+    height: 100px;
+    font-family: var(--app-font) !important;
+  }
 
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
-}
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+  }
 
-/* active card highlight */
-.stat-card--active {
-  border-color: #1976d2 !important;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.25) !important;
-}
+  /* active card highlight */
+  .stat-card--active {
+    border-color: #1976d2 !important;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.25) !important;
+  }
 
-.text-green {
-  color: #4caf50 !important;
-}
+  .text-green {
+    color: #4caf50 !important;
+  }
 
-.text-amber {
-  color: #ff9800 !important;
-}
+  .text-amber {
+    color: #ff9800 !important;
+  }
 
-.text-purple {
-  color: #9c27b0 !important;
-}
+  .text-purple {
+    color: #9c27b0 !important;
+  }
 
-/* 🔹 make search field height similar to large button */
-.search-field :deep(.v-field) {
-  min-height: 48px;
-}
+  /* 🔹 make search field height similar to large button */
+  .search-field :deep(.v-field) {
+    min-height: 48px;
+  }
 
-.fontfamily {
-  font-family: var(--app-font) !important;
-}
+  .fontfamily {
+    font-family: var(--app-font) !important;
+  }
 </style>
