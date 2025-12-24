@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreAccountRequest;
-use App\Http\Requests\UpdateAccountRequest;
 use App\Http\Resources\AccountResource;
 use App\Models\Account;
 use Illuminate\Http\Request;
@@ -13,41 +11,56 @@ class AccountController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = (int)($request->integer('perPage') ?: 15);
-        $search  = trim((string)$request->get('search',''));
-        $typeId  = $request->integer('account_type_id');
+        $perPage = (int) $request->get('perPage', 25);
+        $search  = $request->get('search');
 
-        $q = Account::query()->with(['accountType:id,name']);
+        $query = Account::query()
+            ->with(['accountType:id,name'])
+            ->search($search)
+            ->latest('id');
 
-        if ($search !== '') {
-            $q->where(function ($w) use ($search) {
-                $w->where('name','like',"%{$search}%")
-                  ->orWhere('details','like',"%{$search}%");
-            });
-        }
-
-        if ($typeId) {
-            $q->where('account_type_id', $typeId);
-        }
-
-        return AccountResource::collection($q->paginate($perPage));
-    }
-
-    public function store(StoreAccountRequest $request)
-    {
-        $account = Account::create($request->validated());
-        return new AccountResource($account->load(['accountType:id,name']));
+        return AccountResource::collection($query->paginate($perPage));
     }
 
     public function show(Account $account)
     {
-        return new AccountResource($account->load(['accountType:id,name']));
+        $account->load(['accountType:id,name']);
+        return new AccountResource($account);
     }
 
-    public function update(UpdateAccountRequest $request, Account $account)
+    public function store(Request $request)
     {
-        $account->update($request->validated());
-        return new AccountResource($account->load(['accountType:id,name']));
+        $data = $this->validatePayload($request);
+
+        $row = Account::create($data);
+        $row->load(['accountType:id,name']);
+
+        return new AccountResource($row);
+    }
+
+    public function update(Request $request, Account $account)
+    {
+        $data = $this->validatePayload($request);
+
+        $account->update($data);
+        $account->load(['accountType:id,name']);
+
+        return new AccountResource($account);
+    }
+
+    public function destroy(Account $account)
+    {
+        $account->delete();
+        return response()->json(['message' => 'Deleted successfully']);
+    }
+
+    private function validatePayload(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'price' => ['nullable', 'numeric'],
+            'account_type_id' => ['nullable', 'integer', 'exists:account_types,id'],
+            'details' => ['nullable', 'string'],
+        ]);
     }
 }
-

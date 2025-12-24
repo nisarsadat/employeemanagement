@@ -128,6 +128,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EventControllerReport;
 use App\Http\Controllers\Api\EventReportController;
 use App\Http\Controllers\Api\FifthyFormatsCountController;
+use App\Http\Controllers\Api\FinanceController;
 use App\Http\Controllers\Api\MapPointController;
 use App\Http\Controllers\Api\Reports\FiftyFormatsReportController as ReportsFiftyFormatsReportController;
 use App\Http\Controllers\Api\OfficeEmployeeControllerReport;
@@ -322,13 +323,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ---------------------- Finance ----------------------
     protectResource('account-types', 'account_types', AccountTypeController::class);
-    protectResource('accounts',      'accounts',      AccountController::class);
+    Route::apiResource('finances', FinanceController::class);
+    Route::apiResource('incomes', IncomeController::class);
+    Route::apiResource('accounts', AccountController::class);
 
-    Route::get ('incomes',   [IncomeController::class, 'index']);
-    Route::post('incomes',   [IncomeController::class, 'store']);
-
-    Route::get ('expenses',  [ExpenseController::class, 'index']);
-    Route::post('expenses',  [ExpenseController::class, 'store']);
 
     // Oil
     protectResource('oil-accounts', 'oil_accounts',  OilAccountController::class);

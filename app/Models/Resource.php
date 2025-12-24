@@ -276,7 +276,6 @@ class Resource extends Model
         return $this->hasMany(Tujaran::class, 'resource_id', 'id');
     }
 
-    public function expenses() { return $this->morphMany(Expense::class, 'payee'); }
 
     // ✅ NEW: instant flip employee to فعال when a new resource is created
     protected static function booted()
@@ -290,4 +289,9 @@ class Resource extends Model
             }
         });
     }
+    public function finances()
+    {
+        return $this->hasMany(Finance::class, 'resource_id', 'id');
+    }
+
 }

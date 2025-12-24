@@ -161,10 +161,7 @@ class OfficeEmployee extends Model
         return $this->hasMany(OfficeEmployeeDocument::class, 'office_employee_id', 'id');
     }
 
-    public function expenses()
-    {
-        return $this->morphMany(Expense::class, 'payee');
-    }
+
 
     /* =========================================================
      | ACTIVITY SCOPES
@@ -179,4 +176,9 @@ class OfficeEmployee extends Model
     {
         return $q->where('activity', self::INACTIVE);
     }
+    public function finances()
+    {
+        return $this->hasMany(Finance::class, 'office_employee_id', 'id');
+    }
+
 }

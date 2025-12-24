@@ -1,230 +1,249 @@
 <template>
   <v-container fluid class="pt-4" :dir="isRtl ? 'rtl' : 'ltr'">
-    <!-- Top Bar -->
+
+    <!-- Top Bar (like Oil) -->
     <v-row class="align-center mb-4" dense>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="4">
         <v-text-field
           v-model.trim="repo.Search"
-          :label="t('د حساباتو لټون')"
+          :label="t('جستجو حساب‌ها')"
           prepend-inner-icon="mdi-magnify"
-          density="compact"
           variant="outlined"
+          density="compact"
           clearable
           @keyup.enter="fetchAll()"
-          @click:clear="
-            () => {
-              repo.Search = '';
-              fetchAll();
-            }
-          "
+          @click:clear="() => { repo.Search=''; fetchAll(); }"
         />
       </v-col>
-      <v-col cols="12" md="6" class="text-md-right">
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate()">
-          {{ t('نوی حساب') }}
+
+      <v-col cols="12" md="8" class="text-md-right">
+        <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
+          {{ t('حساب جدید') }}
         </v-btn>
       </v-col>
     </v-row>
 
-    <!-- Table -->
-    <v-card elevation="2">
-      <v-data-table
-        :headers="headers"
-        :items="repo.Accounts"
-        :items-length="repo.totalItems"
-        :items-per-page="repo.itemsPerPage"
-        :page="repo.page"
-        :loading="repo.loading"
-        item-key="id"
-        @update:page="onPage"
-        @update:items-per-page="onItemsPerPage"
-        class="elevation-0"
-        :dir="isRtl ? 'rtl' : 'ltr'"
-      >
-        <template #loading>
-          <div class="pa-6 text-center">{{ t('لېست د پورته کېدو په حال کې دی…') }}</div>
-        </template>
+    <!-- List (FilterableTable) -->
+    <FilterableTable
+      :title="t('لیست حساب‌ها')"
+      :subtitle="t('جستجو و مشاهده همه حساب‌ها')"
+      :headers="headersFT"
+      :rows="rowsFT"
+      :filters="{ search: repo.Search }"
+      :topGroups="[]"
+      :loading="repo.loading"
+      @edit="openEdit"
+      @peek="startPeek"
+      @refresh="fetchAll"
+      @delete="askDelete"
+    />
 
-        <template #item.price="{ item }">
-          <span>{{ formatMoney(item.price) }}</span>
-        </template>
+    <!-- Pagination bottom (like Oil) -->
+    <v-card elevation="2" class="mt-3">
+      <div class="px-4 py-3 d-flex align-center justify-space-between">
+        <div class="text-caption">
+          {{ t('ټول') }}: <strong>{{ repo.totalItems }}</strong>
+        </div>
 
-        <template #item.account_type="{ item }">
-          <span>{{ item?.account_type?.name ?? '—' }}</span>
-        </template>
-
-        <template #item.details="{ item }">
-          <span class="text-truncate d-inline-block" style="max-width: 360px">{{
-            item?.details
-          }}</span>
-        </template>
-
-        <template #item.actions="{ item }">
-          <v-btn
-            size="small"
-            variant="text"
-            color="primary"
-            icon="mdi-pencil"
-            :aria-label="t('سمون')"
-            @click="openEdit(item.id)"
-          />
-          <v-btn
-            size="small"
-            variant="text"
-            color="error"
-            icon="mdi-delete"
-            :aria-label="t('حذف')"
-            @click="deleteAccount(item)"
-          />
-        </template>
-
-        <template #bottom>
-          <div class="px-4 py-3 d-flex align-center justify-space-between">
-            <div class="text-caption">
-              {{ t('ټول') }}: <strong>{{ repo.totalItems }}</strong>
-            </div>
-            <v-pagination
-              v-model="repo.page"
-              :length="pageCount"
-              total-visible="7"
-              @update:modelValue="fetchAll"
-            />
-          </div>
-        </template>
-      </v-data-table>
+        <v-pagination
+          v-model="repo.page"
+          :length="pageCount"
+          total-visible="7"
+          @update:modelValue="fetchAll"
+        />
+      </div>
     </v-card>
 
     <!-- Create/Edit Dialog -->
-    <AccountFormDialog
-      v-model="dialogCreateEdit"
+    <AccountsFormDialog
+      v-model="dialog"
       :editMode="editMode"
       :value="draft"
-      :accountTypeItems="accountTypeItems"
-      :loadingTypes="loadingTypes"
       :busy="repo.loading"
-      @save="onFormSave"
+      @save="onSave"
     />
+
+    <!-- Peek -->
+    <PeekButton
+      v-if="peek.open"
+      :open="peek.open"
+      :title="t('جزئیات حساب')"
+      :loading="peek.loading"
+      @close="peek.open = false"
+    >
+      <div class="pa-4">
+        <div class="text-subtitle-2 font-weight-bold mb-2">{{ peek.data?.name || '—' }}</div>
+        <div class="text-caption">{{ t('موجودی') }}: {{ money(peek.data?.price) }}</div>
+        <div class="text-caption">
+          {{ t('نوع حساب') }}: {{ peek.data?.account_type_name || peek.data?.account_type_id || '—' }}
+        </div>
+        <div class="text-caption mt-2">{{ t('جزئیات') }}: {{ peek.data?.details || '—' }}</div>
+      </div>
+    </PeekButton>
+
+    <!-- Delete confirm -->
+    <DeleteConfirmDialog
+      v-model="deleteDialog.open"
+      :title="t('حذف رکورد')"
+      :subtitle="t('آیا مطمئن هستید؟')"
+      @confirm="confirmDelete"
+    />
+
+    <v-snackbar v-model="snack.open" :color="snack.color" timeout="2500">
+      {{ snack.text }}
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, reactive, computed, onMounted } from 'vue';
-  import axios from 'axios';
-  import { useI18n } from 'vue-i18n';
-  import { useAccountsRepository } from '@/stores/AccountsRepository';
-  import AccountFormDialog from './AccountFormDialog.vue';
+import { ref, reactive, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 
-  const repo = useAccountsRepository();
+import AppBar from "@/components/AppBar.vue";
+import FilterableTable from "@/components/FilterableTable.vue";
+import PeekButton from "@/components/PeekButton.vue";
+import DeleteConfirmDialog from "@/components/DeleteConfirmDialog.vue";
 
-  const { t, locale } = useI18n();
-  const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
+import AccountsFormDialog from "./AccountsFormDialog.vue";
+import { useAccountsRepository } from "@/stores/AccountsRepository";
 
-  // headers (localized)
-  const headers = computed(() => [
-    { title: t('نوم'), key: 'name', sortable: false },
-    { title: t('بیه / قیمت'), key: 'price', sortable: false },
-    { title: t('د حساب ډول'), key: 'account_type', sortable: false },
-    { title: t('تفصیل'), key: 'details', sortable: false },
-    { title: t('کړنې'), key: 'actions', sortable: false, align: 'end' },
-  ]);
+const repo = useAccountsRepository();
+const { t, locale } = useI18n();
+const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ""));
 
-  const pageCount = computed(() => {
-    const per = Number(repo.itemsPerPage || 10);
-    return Math.max(1, Math.ceil(Number(repo.totalItems || 0) / per));
-  });
+const dialog = ref(false);
+const editMode = ref(false);
 
-  const dialogCreateEdit = ref(false);
-  const editMode = ref(false);
+const snack = reactive({ open: false, text: "", color: "primary" });
+const peek = reactive({ open: false, loading: false, data: null });
+const deleteDialog = reactive({ open: false, id: null });
 
-  // draft used by the dialog
-  const draft = reactive({
+const draft = reactive({
+  id: null,
+  name: "",
+  price: 0,
+  account_type_id: null,
+  details: "",
+});
+
+const headersFT = computed(() => [
+  { title: t("ID"), key: "id" },
+  { title: t("نام"), key: "name" },
+  { title: t("موجودی"), key: "price_display" },
+  { title: t("نوع"), key: "account_type_name" },
+  { title: t("جزئیات"), key: "details" },
+  { title: t("عملیات"), key: "actions", sortable: false },
+]);
+
+const rowsFT = computed(() => {
+  const rows = repo.Accounts || [];
+  return rows.map((r) => ({
+    ...r,
+    price_display: money(r?.price),
+    account_type_name: r?.account_type_name ?? r?.account_type_id ?? "—",
+  }));
+});
+
+const pageCount = computed(() => {
+  const per = Number(repo.itemsPerPage || 10);
+  return Math.max(1, Math.ceil(Number(repo.totalItems || 0) / per));
+});
+
+function showSnack(text, color = "primary") {
+  snack.text = text;
+  snack.color = color;
+  snack.open = true;
+}
+
+function money(n) {
+  const v = Number(n ?? 0);
+  return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+const fetchAll = async () => {
+  await repo.FetchAccountsData({ page: repo.page, itemsPerPage: repo.itemsPerPage });
+};
+
+const openCreate = () => {
+  editMode.value = false;
+  Object.assign(draft, {
     id: null,
-    name: '',
+    name: "",
     price: 0,
     account_type_id: null,
-    details: '',
+    details: "",
+  });
+  dialog.value = true;
+};
+
+const openEdit = async (rowPayload) => {
+  const row = rowPayload?.row || rowPayload;
+  if (!row?.id) return;
+
+  editMode.value = true;
+  await repo.FetchAccountData(row.id);
+
+  const d = repo.Account || {};
+  Object.assign(draft, {
+    id: d.id ?? null,
+    name: d.name ?? "",
+    price: d.price ?? 0,
+    account_type_id: d.account_type_id ?? null,
+    details: d.details ?? "",
   });
 
-  // account types for select
-  const accountTypeItems = ref([]);
-  const loadingTypes = ref(false);
-  const loadAccountTypes = async () => {
-    loadingTypes.value = true;
-    const resp = await axios.get(`/account-types?perPage=1000`);
-    accountTypeItems.value = resp?.data?.data ?? [];
-    loadingTypes.value = false;
-  };
+  dialog.value = true;
+};
 
-  // money format
-  const formatMoney = (n) => {
-    const num = Number(n ?? 0);
-    return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
+const onSave = async (payload) => {
+  try {
+    const p = { ...(payload || {}) };
 
-  // fetch list
-  const fetchAll = async () => {
-    await repo.FetchAccountsData({ page: repo.page, itemsPerPage: repo.itemsPerPage });
-  };
+    if (editMode.value && p.id) await repo.UpdateAccount(p.id, p);
+    else await repo.CreateAccount(p);
 
-  const onPage = async (p) => {
-    repo.page = p || 1;
+    dialog.value = false;
+    showSnack(t("ثبت شد"));
     await fetchAll();
-  };
-  const onItemsPerPage = async (pp) => {
-    repo.itemsPerPage = pp || 10;
-    repo.page = 1;
+  } catch (e) {
+    showSnack(t("خطا در ثبت دیتا"), "error");
+  }
+};
+
+const startPeek = async (rowPayload) => {
+  const row = rowPayload?.row || rowPayload;
+  if (!row?.id) return;
+
+  peek.open = true;
+  peek.loading = true;
+  try {
+    await repo.FetchAccountData(row.id);
+    peek.data = repo.Account;
+  } finally {
+    peek.loading = false;
+  }
+};
+
+const askDelete = (rowPayload) => {
+  const row = rowPayload?.row || rowPayload;
+  if (!row?.id) return;
+  deleteDialog.id = row.id;
+  deleteDialog.open = true;
+};
+
+const confirmDelete = async () => {
+  const id = deleteDialog.id;
+  deleteDialog.open = false;
+  if (!id) return;
+
+  try {
+    await repo.DeleteAccount(id);
+    showSnack(t("حذف شد"));
     await fetchAll();
-  };
+  } catch {
+    showSnack(t("خطا در حذف"), "error");
+  }
+};
 
-  // open create
-  const openCreate = async () => {
-    editMode.value = false;
-    Object.assign(draft, { id: null, name: '', price: 0, account_type_id: null, details: '' });
-    if (!accountTypeItems.value.length) await loadAccountTypes();
-    dialogCreateEdit.value = true;
-  };
-
-  // open edit
-  const openEdit = async (id) => {
-    editMode.value = true;
-    await repo.FetchAccountData(id);
-    const a = repo.Account || {};
-    Object.assign(draft, {
-      id: a.id ?? null,
-      name: a.name ?? '',
-      price: a.price ?? 0,
-      account_type_id: a.account_type_id ?? null,
-      details: a.details ?? '',
-    });
-    if (!accountTypeItems.value.length) await loadAccountTypes();
-    dialogCreateEdit.value = true;
-  };
-
-  // save (create or update)
-  const onFormSave = async (payload) => {
-    if (editMode.value && payload.id) {
-      await repo.UpdateAccount(payload.id, payload);
-    } else {
-      await repo.CreateAccount(payload);
-    }
-    dialogCreateEdit.value = false;
-    await fetchAll();
-  };
-
-  // delete with 3 confirms
-  const deleteAccount = async (item) => {
-    if (!item?.id) return;
-    const m = (s) => `${t('ایا د حذف کولو ډاډ لرئ؟')} "${item.name}"? (${s}/3)`;
-    if (!window.confirm(m(1))) return;
-    if (!window.confirm(m(2))) return;
-    if (!window.confirm(m(3))) return;
-    await repo.DeleteAccount(item.id);
-    await fetchAll();
-  };
-
-  onMounted(async () => {
-    await fetchAll();
-    loadAccountTypes();
-  });
-  fetchAll();
+onMounted(fetchAll);
 </script>

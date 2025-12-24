@@ -20,7 +20,6 @@
           <v-tab value="accounts">{{ t('حسابونه') }}</v-tab>
           <v-tab value="cashflow">{{ t('عاید او مصرف') }}</v-tab>
           <v-tab value="oil">{{ t('تیل') }}</v-tab>
-          <v-tab value="report">{{ t('راپورونه') }}</v-tab>
         </v-tabs>
 
         <v-window v-model="mainTab">
@@ -35,15 +34,11 @@
                 density="comfortable"
               >
                 <v-tab value="list">{{ t('حسابونه') }}</v-tab>
-                <v-tab value="types">{{ t('د حساب ډولونه') }}</v-tab>
               </v-tabs>
 
               <v-window v-model="accountsTab" v-if="auth.can('finincalindex.view')">
                 <v-window-item value="list">
                   <AccountsIndex />
-                </v-window-item>
-                <v-window-item value="types">
-                  <AccountTypesIndex />
                 </v-window-item>
               </v-window>
             </v-card>
@@ -68,7 +63,7 @@
                   <IncomesIndex />
                 </v-window-item>
                 <v-window-item value="expense">
-                  <ExpensesIndex />
+                  <Finances />
                 </v-window-item>
               </v-window>
             </v-card>
@@ -102,32 +97,6 @@
               </v-window>
             </v-card>
           </v-window-item>
-
-          <!-- ========== Reports Window ========== -->
-          <v-window-item value="report">
-            <v-card elevation="2" class="pa-2 rounded-xl">
-              <v-tabs
-                v-model="reportTab"
-                grow
-                class="mb-2 rounded-lg"
-                color="primary"
-                density="comfortable"
-              >
-                <v-tab value="oilreport">{{ t('د تیلو راپور') }}</v-tab>
-                <v-tab value="moneyreport">{{ t('د پیسو راپور') }}</v-tab>
-              </v-tabs>
-
-              <!-- bind to reportTab (fixed) -->
-              <v-window v-model="reportTab" v-if="auth.can('finincalindex.delete')">
-                <v-window-item value="oilreport">
-                  <OilReport />
-                </v-window-item>
-                <v-window-item value="moneyreport">
-                  <MoneyReport />
-                </v-window-item>
-              </v-window>
-            </v-card>
-          </v-window-item>
         </v-window>
       </v-col>
     </v-row>
@@ -142,20 +111,15 @@
 
   // Accounts area
   import AccountsIndex from './Accounts/AccountsIndex.vue';
-  import AccountTypesIndex from './Accounts/AccountTypesIndex.vue';
 
   // Cashflow area
   import IncomesIndex from './IncomeOutcome/IncomesIndex.vue';
-  import ExpensesIndex from './IncomeOutcome/ExpensesIndex.vue';
+  import Finances from './IncomeOutcome/Finances.vue';
 
   // Oil area (normalized PascalCase)
   import OilIndex from './oil/oilindex.vue';
   import OilIncomeIndex from './oil/oilIncomeIndex.vue';
   import OilExpenseIndex from './oil/expenseOil.vue';
-
-  // Reports
-  import OilReport from './Report/OilReport.vue';
-  import MoneyReport from './Report/MoneyReport.vue';
 
   import { useLoginRepository } from '../../stores/LoginRepository';
   const auth = useLoginRepository();

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreIncomeRequest;
 use App\Http\Resources\IncomeResource;
 use App\Models\Account;
 use App\Models\Income;
@@ -14,92 +13,90 @@ class IncomeController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = (int)($request->integer('perPage') ?: 15);
-        $search  = trim((string)$request->get('search',''));
-        $from    = $request->date('from');
-        $to      = $request->date('to');
+        $perPage = (int) $request->get('perPage', 25);
+        $search  = $request->get('search');
 
-        $q = Income::query()
+        $query = Income::query()
             ->with(['account:id,name,price'])
-            ->when($from, fn($w) => $w->whereDate('received_at', '>=', $from))
-            ->when($to,   fn($w) => $w->whereDate('received_at', '<=', $to))
-            ->orderBy('received_at','desc')->orderBy('id','desc');
+            ->search($search)
+            ->latest('id');
 
-        if ($search !== '') {
-            $q->where(function($w) use ($search) {
-                $w->where('note','like',"%{$search}%");
-            });
-        }
-
-        return IncomeResource::collection($q->paginate($perPage));
+        return IncomeResource::collection($query->paginate($perPage));
     }
 
-    public function store(StoreIncomeRequest $request)
+    public function show(Income $income)
     {
-        $data = $request->validated();
+        $income->load(['account:id,name,price']);
+        return new IncomeResource($income);
+    }
 
-        $income = DB::transaction(function () use ($data) {
-            $account = Account::whereKey($data['account_id'])->lockForUpdate()->firstOrFail();
+    public function store(Request $request)
+    {
+        $data = $this->validatePayload($request);
 
-            $inc = Income::create($data);
+        $row = DB::transaction(function () use ($data) {
+            $account = Account::lockForUpdate()->findOrFail($data['account_id']);
 
-            // add to account price
-            $account->price = bcadd((string)$account->price, (string)$data['amount'], 2);
-            $account->save();
+            $amount = (float) $data['amount'];
+            $account->update(['price' => (float)$account->price + $amount]);
 
-            return $inc->load(['account:id,name,price']);
+            return Income::create($data);
         });
 
-        return new IncomeResource($income);
+        $row->load(['account:id,name,price']);
+        return new IncomeResource($row);
     }
 
     public function update(Request $request, Income $income)
     {
-        // validate (simple inline rules; make UpdateIncomeRequest if you prefer)
-        $data = $request->validate([
-            'account_id'  => ['sometimes','exists:accounts,id'],
-            'amount'      => ['sometimes','numeric','min:0.01'],
-            'received_at' => ['sometimes','date'],
-            'note'        => ['nullable','string'],
-        ]);
+        $data = $this->validatePayload($request);
 
-        $income = DB::transaction(function () use ($income, $data) {
-            // lock old account
-            $oldAccount = Account::whereKey($income->account_id)->lockForUpdate()->firstOrFail();
+        $updated = DB::transaction(function () use ($data, $income) {
+            $oldAccount = Account::lockForUpdate()->findOrFail($income->account_id);
+            $newAccount = ($income->account_id == $data['account_id'])
+                ? $oldAccount
+                : Account::lockForUpdate()->findOrFail($data['account_id']);
 
-            // reverse previous effect (subtract old amount)
-            $oldAccount->price = bcsub((string)$oldAccount->price, (string)$income->amount, 2);
-            $oldAccount->save();
+            $oldAmount = (float) $income->amount;
+            $newAmount = (float) $data['amount'];
 
-            // apply incoming changes
-            $income->fill($data);
+            // revert old income
+            $oldAccount->update(['price' => (float)$oldAccount->price - $oldAmount]);
 
-            // lock (possibly new) account
-            $newAccount = Account::whereKey($income->account_id)->lockForUpdate()->firstOrFail();
+            // apply new income
+            $newAccount->update(['price' => (float)$newAccount->price + $newAmount]);
 
-            // apply new effect (add new amount)
-            $newAccount->price = bcadd((string)$newAccount->price, (string)$income->amount, 2);
-            $newAccount->save();
+            $income->update($data);
 
-            $income->save();
-
-            return $income->load(['account:id,name,price']);
+            return $income;
         });
 
-        return new IncomeResource($income);
+        $updated->load(['account:id,name,price']);
+        return new IncomeResource($updated);
     }
 
     public function destroy(Income $income)
     {
         DB::transaction(function () use ($income) {
-            // lock account and reverse effect
-            $account = Account::whereKey($income->account_id)->lockForUpdate()->firstOrFail();
-            $account->price = bcsub((string)$account->price, (string)$income->amount, 2);
-            $account->save();
+            $account = Account::lockForUpdate()->findOrFail($income->account_id);
+
+            // revert income on delete
+            $amount = (float) $income->amount;
+            $account->update(['price' => (float)$account->price - $amount]);
 
             $income->delete();
         });
 
-        return response()->json(['deleted' => true]);
+        return response()->json(['message' => 'Deleted successfully']);
+    }
+
+    private function validatePayload(Request $request): array
+    {
+        return $request->validate([
+            'account_id'   => ['required', 'integer', 'exists:accounts,id'],
+            'amount'       => ['required', 'numeric', 'min:0'],
+            'received_at'  => ['nullable', 'date'],
+            'note'         => ['nullable', 'string'],
+        ]);
     }
 }
