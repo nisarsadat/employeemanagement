@@ -313,6 +313,29 @@
                       :error-messages="getErrorMessages('phone_number')"
                     />
                   </v-col>
+                  <v-col cols="12" md="3">
+                    <v-text-field
+                      v-model="form.phone_number_1"
+                      :label="t('شماره تماس ۱')"
+                      density="compact"
+                      variant="outlined"
+                      :rules="[rules.phone10]"
+                      :error="hasError('phone_number_1')"
+                      :error-messages="getErrorMessages('phone_number_1')"
+                    />
+                  </v-col>
+
+                  <v-col cols="12" md="3">
+                    <v-text-field
+                      v-model="form.phone_number_2"
+                      :label="t('شماره تماس ۲')"
+                      density="compact"
+                      variant="outlined"
+                      :rules="[rules.phone10]"
+                      :error="hasError('phone_number_2')"
+                      :error-messages="getErrorMessages('phone_number_2')"
+                    />
+                  </v-col>
 
                   <v-col cols="12" md="3">
                     <v-text-field
@@ -332,7 +355,7 @@
                     />
                   </v-col>
 
-                  <v-col cols="12" md="6">
+                  <v-col cols="12" md="12">
                     <v-text-field
                       v-model="form.specific_skills"
                       :label="t('مهارت‌های خاص')"
@@ -840,6 +863,9 @@
     tazkira: '',
     age: '',
     phone_number: '',
+
+    phone_number_1: '',
+    phone_number_2: '',
     language: '',
     nation: '',
     specific_skills: '',
@@ -967,6 +993,9 @@
     b.tazkira = x.tazkira ?? '';
     b.age = x.age ?? '';
     b.phone_number = x.phone_number ?? '';
+    b.phone_number_1 = x.phone_number_1 ?? '';
+    b.phone_number_2 = x.phone_number_2 ?? '';
+
     b.language = x.language ?? '';
     b.nation = x.nation ?? '';
     b.specific_skills = x.specific_skills ?? '';

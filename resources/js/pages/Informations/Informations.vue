@@ -249,6 +249,32 @@
           </v-tooltip>
 
           <span v-else class="text-caption text-medium-emphasis"> — </span>
+        </div> </template
+      ><!-- OFFICE EMPLOYEE: فقط کود + tooltip -->
+      <template #cell-office_employee_info_code_number="{ row }">
+        <div class="d-flex flex-column align-start">
+          <v-tooltip
+            v-if="row.office_employee_info_code_number"
+            text="برای رفتن به صفحه کارمندان مدیریت کلیک کنید"
+            location="top"
+          >
+            <template #activator="{ props: tooltipProps }">
+              <v-btn
+                v-bind="tooltipProps"
+                color="deep-orange"
+                variant="tonal"
+                class="text-none px-2 py-1"
+                @click.stop="goToOfficeEmployee(row)"
+              >
+                <v-icon start size="16">mdi-account-badge</v-icon>
+                <span class="text-caption">
+                  {{ row.office_employee_info_code_number }}
+                </span>
+              </v-btn>
+            </template>
+          </v-tooltip>
+
+          <span v-else class="text-caption text-medium-emphasis"> — </span>
         </div>
       </template>
       <template #cell-office_employee_info_id="{ row }">
@@ -486,7 +512,7 @@
   const headersFT = computed(() => [
     { title: t('کود منبع'), key: 'resource_code_number' },
     { title: t('کود کارمند مربوطه'), key: 'office_employee_code_number' },
-    { title: t('کود کارمند  اطلاع گیرنده'), key: 'office_employee_info_id' },
+    { title: t('کود کارمند  اطلاع گیرنده'), key: 'office_employee_info_code_number' },
     { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },
     { title: t('نام پدر'), key: 'father_name' },
@@ -503,11 +529,11 @@
     { title: t('تاریخ اطلاع'), key: 'information_saved_date' },
     { title: t('ساعت اطلاع'), key: 'information_saved_hour' },
     { title: t('درجه موثقیت اطلاع'), key: 'information_degree' },
-    { title: t('تفصیل'), key: 'tafseel'},
+    { title: t('تفصیل'), key: 'tafseel' },
     { title: t('نظر مدیر'), key: 'manager_comment' },
     { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
-    { title: t('گفت‌وگوها'), key: 'talks'},
-    { title: t('نتیجه'), key: 'result'},
+    { title: t('گفت‌وگوها'), key: 'talks' },
+    { title: t('نتیجه'), key: 'result' },
     { title: t('ملاحظات'), key: 'note' },
     { title: t('نوت راجع به اسناد'), key: 'docs_note', width: 140 },
   ]);

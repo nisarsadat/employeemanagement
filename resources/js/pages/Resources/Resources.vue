@@ -589,7 +589,7 @@
     { title: t('قوم'), key: 'nation' },
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('کوردینات'), key: 'coordinates' },
-    { title: t('نوت'), key: 'note', width: 350 },
+    { title: t('نوت'), key: 'note' },
     // { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('نقشه'), key: 'map', sortable: false },

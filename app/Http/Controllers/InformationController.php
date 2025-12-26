@@ -25,7 +25,7 @@ class InformationController extends Controller
         $search = trim((string) $request->query('search', ''));
 
         $q = Information::query()
-            ->with(['resource', 'officeEmployee', 'documents'])
+            ->with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents'])
             ->when($search !== '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('name', 'like', "%{$search}%")
@@ -64,7 +64,7 @@ class InformationController extends Controller
                 }
             }
 
-            $info->load(['resource', 'officeEmployee', 'documents']);
+            $info->load(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents']);
 
             // 🔔 Notification: CREATED
             NotificationService::record(
@@ -86,7 +86,7 @@ class InformationController extends Controller
     public function show($id)
     {
         // 🔹 Fetch by id + relations
-        $information = Information::with(['resource', 'officeEmployee', 'documents'])
+        $information = Information::with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents'])
             ->findOrFail($id);
 
         return new InformationResource($information);
@@ -97,7 +97,7 @@ class InformationController extends Controller
         $user = $request->user(); // 🔔
 
         return DB::transaction(function () use ($request, $id, $user) {
-            $information = Information::with(['resource', 'officeEmployee', 'documents'])
+            $information = Information::with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents'])
                 ->findOrFail($id);
 
             // 🧮 build changes BEFORE update
@@ -136,7 +136,7 @@ class InformationController extends Controller
                 }
             }
 
-            $information->load(['resource', 'officeEmployee', 'documents']);
+            $information->load(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents']);
 
             // 🔔 Notification: UPDATED + changes
             NotificationService::record(

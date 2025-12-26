@@ -68,12 +68,6 @@ class Information extends Model
     {
         return $this->belongsTo(OfficeEmployee::class, 'office_employee_tadabiri_id', 'id');
     }
-
-    public function infoEmployee(): BelongsTo
-    {
-        return $this->belongsTo(OfficeEmployee::class, 'office_employee_info_id', 'id');
-    }
-
     public function documents(): HasMany
     {
         return $this->hasMany(InformationDocument::class, 'information_id', 'id');
@@ -93,4 +87,10 @@ class Information extends Model
             }
         });
     }
+    public function officeEmployeeInfo(): BelongsTo
+    {
+        return $this->belongsTo(OfficeEmployee::class, 'office_employee_info_id', 'id');
+    }
+
+
 }

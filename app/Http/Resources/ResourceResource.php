@@ -128,6 +128,8 @@ class ResourceResource extends JsonResource
             'language'               => $this->language,
             'nation'                 => $this->nation,
             'phone_number'           => $this->phone_number,
+            'phone_number_1'         => $this->phone_number_1,
+            'phone_number_2'         => $this->phone_number_2,
             'resedint_code'          => $this->resedint_code,
             'coordinates'            => $this->coordinates,
             'note'                   => $this->note,

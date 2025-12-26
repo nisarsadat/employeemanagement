@@ -137,9 +137,10 @@
 
                 <v-divider class="mb-3"></v-divider>
 
-                <!-- Contact info (only phone) -->
+                <!-- Contact info (phones) -->
                 <div class="contact-info fontfamily">
                   <v-list lines="two" density="compact" class="bg-transparent">
+                    <!-- Phone (main) -->
                     <v-list-item>
                       <template #prepend>
                         <v-icon color="primary" class="mr-3" size="18">mdi-phone</v-icon>
@@ -149,6 +150,32 @@
                       </v-list-item-title>
                       <v-list-item-subtitle class="text-body-2 fontfamily">
                         {{ model.phone || t('شماره تماس موجود نیست') }}
+                      </v-list-item-subtitle>
+                    </v-list-item>
+
+                    <!-- Phone 1 -->
+                    <v-list-item v-if="model.phone1">
+                      <template #prepend>
+                        <v-icon color="primary" class="mr-3" size="18">mdi-phone</v-icon>
+                      </template>
+                      <v-list-item-title class="font-weight-medium text-body-2 fontfamily">
+                        {{ t('شماره تماس ۱') }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle class="text-body-2 fontfamily">
+                        {{ model.phone1 }}
+                      </v-list-item-subtitle>
+                    </v-list-item>
+
+                    <!-- Phone 2 -->
+                    <v-list-item v-if="model.phone2">
+                      <template #prepend>
+                        <v-icon color="primary" class="mr-3" size="18">mdi-phone</v-icon>
+                      </template>
+                      <v-list-item-title class="font-weight-medium text-body-2 fontfamily">
+                        {{ t('شماره تماس ۲') }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle class="text-body-2 fontfamily">
+                        {{ model.phone2 }}
                       </v-list-item-subtitle>
                     </v-list-item>
                   </v-list>
@@ -359,6 +386,8 @@
       code_number: r.code_number || '',
       activity: r.activity || '',
       phone: r.phone_number || '',
+      phone1: r.phone_number_1 || '',
+      phone2: r.phone_number_2 || '',
       email: r.email || '',
       events_count: r.events_count ?? 0,
       informations_count: r.informations_count ?? 0,

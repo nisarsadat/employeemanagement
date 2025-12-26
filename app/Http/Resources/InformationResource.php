@@ -20,7 +20,7 @@ class InformationResource extends JsonResource
             $officeEmployee =
                 $info->officeEmployee
                 ?? $info->tadabiriEmployee
-                ?? $info->infoEmployee;
+                ?? $info->officeEmployeeInfo;
         }
 
         // Date formatting
@@ -34,6 +34,7 @@ class InformationResource extends JsonResource
 
             'office_employee_id' => $info ? $info->office_employee_id : null,
             'office_employee_info_id' => $info ? $info->office_employee_info_id : null,
+            'office_employee_info_code_number' => $info?->officeEmployeeInfo?->code_number,
 
 
             'resource_code_number'        => $resource ? $resource->code_number : null,

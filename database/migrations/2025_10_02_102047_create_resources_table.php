@@ -60,6 +60,8 @@ return new class extends Migration {
             $table->string('language')->nullable();
             $table->string('nation')->nullable();
             $table->string('phone_number')->nullable();
+            $table->string('phone_number_1')->nullable();
+            $table->string('phone_number_2')->nullable();
             $table->string('Province_addr')->nullable();
 
             $table->string('coordinates')->nullable();

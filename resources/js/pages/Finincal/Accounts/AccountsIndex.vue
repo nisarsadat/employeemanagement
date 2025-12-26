@@ -20,9 +20,7 @@
           </div>
 
           <div class="d-flex gap-2">
-            <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
-              ثبت حساب
-            </v-btn>
+            <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate"> ثبت حساب </v-btn>
           </div>
         </div>
       </v-card-text>
@@ -45,6 +43,37 @@
           @edit="startEdit"
           @delete="askDelete"
         />
+        <!-- ⚙️ ACTIONS -->
+        <template #actions="{ item }">
+          <div class="d-flex align-center ga-2">
+            <!-- ویرایش -->
+            <v-tooltip text="تغییر جزیات " location="top">
+              <template #activator="{ props: tooltipProps }">
+                <v-icon
+                  size="small"
+                  v-bind="tooltipProps"
+                  @click.stop="startEdit(item)"
+                  color="amber-darken-2"
+                >
+                  mdi-pencil
+                </v-icon>
+              </template>
+            </v-tooltip>
+            <!-- حذف -->
+            <v-tooltip text="حذف " location="top">
+              <template #activator="{ props: tooltipProps }">
+                <v-icon
+                  size="small"
+                  v-bind="tooltipProps"
+                  @click.stop="doDelete(item)"
+                  color="red-darken-2"
+                >
+                  mdi-delete
+                </v-icon>
+              </template>
+            </v-tooltip>
+          </div>
+        </template>
       </v-card-text>
     </v-card>
 
@@ -62,101 +91,101 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
-import AppBar from "@/components/AppBar.vue";
-import FilterableTable from "@/components/FilterableTable.vue";
-import DeleteConfirmDialog from "@/components/DeleteConfirmDialog.vue";
-import AccountFormDialog from "./AccountsFormDialog.vue";
-import { useFinanceRepository } from "@/stores/financeRepository";
+  import { computed, ref } from 'vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AccountFormDialog from './AccountsFormDialog.vue';
+  import { useFinanceRepository } from '@/stores/financeRepository';
 
-// RTL (replace with your i18n)
-const rtl = ref(true);
+  // RTL (replace with your i18n)
+  const rtl = ref(true);
 
-const repo = useFinanceRepository();
+  const repo = useFinanceRepository();
 
-const dialog = ref(false);
-const editId = ref(null);
+  const dialog = ref(false);
+  const editId = ref(null);
 
-const deleteDialog = ref(false);
-const deleteId = ref(null);
+  const deleteDialog = ref(false);
+  const deleteId = ref(null);
 
-const headersFT = [
-  { title: "#", key: "index", sortable: false, width: 70 },
-  { title: "نام حساب", key: "name", sortable: true },
-  { title: "موجودی", key: "price", sortable: true },
-  { title: "جزئیات", key: "details", sortable: false },
-  { title: "عملیات", key: "actions", sortable: false, width: 180 },
-];
+  const headersFT = [
+    { title: '#', key: 'index', sortable: false, width: 70 },
+    { title: 'نام حساب', key: 'name', sortable: true },
+    { title: 'موجودی', key: 'price', sortable: true },
+    { title: 'جزئیات', key: 'details', sortable: false },
+    { title: 'عملیات', key: 'actions', sortable: false, width: 180 },
+  ];
 
-const rowsFT = computed(() => {
-  const startIndex = (repo.accountsPage - 1) * repo.accountsPerPage;
-  return (repo.accounts || []).map((it, i) => ({
-    ...it,
-    index: startIndex + i + 1,
-  }));
-});
-
-// keep empty if not used
-const filters = [];
-const topGroups = [];
-
-function fetchAll() {
-  repo.FetchAccountsData({
-    page: repo.accountsPage,
-    perPage: repo.accountsPerPage,
-    search: repo.accountsSearch,
+  const rowsFT = computed(() => {
+    const startIndex = (repo.accountsPage - 1) * repo.accountsPerPage;
+    return (repo.accounts || []).map((it, i) => ({
+      ...it,
+      index: startIndex + i + 1,
+    }));
   });
-}
 
-function resetFilters() {
-  repo.ResetAccountsFilters();
+  // keep empty if not used
+  const filters = [];
+  const topGroups = [];
+
+  function fetchAll() {
+    repo.FetchAccountsData({
+      page: repo.accountsPage,
+      perPage: repo.accountsPerPage,
+      search: repo.accountsSearch,
+    });
+  }
+
+  function resetFilters() {
+    repo.ResetAccountsFilters();
+    fetchAll();
+  }
+
+  function openCreate() {
+    editId.value = null;
+    dialog.value = true;
+  }
+
+  function startEdit(row) {
+    editId.value = row?.id;
+    dialog.value = true;
+  }
+
+  function onSaved() {
+    fetchAll();
+  }
+
+  function askDelete(row) {
+    deleteId.value = row?.id;
+    deleteDialog.value = true;
+  }
+
+  async function doDelete() {
+    if (!deleteId.value) return;
+    await repo.DeleteAccount(deleteId.value);
+    deleteDialog.value = false;
+    deleteId.value = null;
+    fetchAll();
+  }
+
+  function onPage(p) {
+    repo.accountsPage = p;
+    fetchAll();
+  }
+
+  function onPerPage(pp) {
+    repo.accountsPerPage = pp;
+    repo.accountsPage = 1;
+    fetchAll();
+  }
+
+  // initial load
   fetchAll();
-}
-
-function openCreate() {
-  editId.value = null;
-  dialog.value = true;
-}
-
-function startEdit(row) {
-  editId.value = row?.id;
-  dialog.value = true;
-}
-
-function onSaved() {
-  fetchAll();
-}
-
-function askDelete(row) {
-  deleteId.value = row?.id;
-  deleteDialog.value = true;
-}
-
-async function doDelete() {
-  if (!deleteId.value) return;
-  await repo.DeleteAccount(deleteId.value);
-  deleteDialog.value = false;
-  deleteId.value = null;
-  fetchAll();
-}
-
-function onPage(p) {
-  repo.accountsPage = p;
-  fetchAll();
-}
-
-function onPerPage(pp) {
-  repo.accountsPerPage = pp;
-  repo.accountsPage = 1;
-  fetchAll();
-}
-
-// initial load
-fetchAll();
 </script>
 
 <style scoped>
-.gap-2 {
-  gap: 8px;
-}
+  .gap-2 {
+    gap: 8px;
+  }
 </style>

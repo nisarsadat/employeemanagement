@@ -112,6 +112,8 @@ class Resource extends Model
         'language',
         'nation',
         'phone_number',
+        'phone_number_1',
+        'phone_number_2',
         'coordinates',
         'note',
     ];
