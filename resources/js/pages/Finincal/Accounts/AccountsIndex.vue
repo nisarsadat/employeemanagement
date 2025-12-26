@@ -1,249 +1,162 @@
 <template>
-  <v-container fluid class="pt-4" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid class="pt-6" :dir="rtl ? 'rtl' : 'ltr'">
+    <!-- <AppBar title="حساب‌ها" subtitle="ثبت و مدیریت حساب‌ها" /> -->
 
-    <!-- Top Bar (like Oil) -->
-    <v-row class="align-center mb-4" dense>
-      <v-col cols="12" md="4">
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('جستجو حساب‌ها')"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          density="compact"
-          clearable
-          @keyup.enter="fetchAll()"
-          @click:clear="() => { repo.Search=''; fetchAll(); }"
-        />
-      </v-col>
+    <!-- Filters -->
+    <v-card rounded="xl" class="shadow-sm mb-4">
+      <v-card-text class="pa-4">
+        <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+          <div class="d-flex gap-2 flex-wrap">
+            <v-text-field
+              v-model="repo.accountsSearch"
+              label="جستجو"
+              density="compact"
+              variant="outlined"
+              style="max-width: 320px"
+              prepend-inner-icon="mdi-magnify"
+              @keyup.enter="fetchAll"
+            />
+            <v-btn variant="tonal" @click="resetFilters">ریست</v-btn>
+          </div>
 
-      <v-col cols="12" md="8" class="text-md-right">
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
-          {{ t('حساب جدید') }}
-        </v-btn>
-      </v-col>
-    </v-row>
-
-    <!-- List (FilterableTable) -->
-    <FilterableTable
-      :title="t('لیست حساب‌ها')"
-      :subtitle="t('جستجو و مشاهده همه حساب‌ها')"
-      :headers="headersFT"
-      :rows="rowsFT"
-      :filters="{ search: repo.Search }"
-      :topGroups="[]"
-      :loading="repo.loading"
-      @edit="openEdit"
-      @peek="startPeek"
-      @refresh="fetchAll"
-      @delete="askDelete"
-    />
-
-    <!-- Pagination bottom (like Oil) -->
-    <v-card elevation="2" class="mt-3">
-      <div class="px-4 py-3 d-flex align-center justify-space-between">
-        <div class="text-caption">
-          {{ t('ټول') }}: <strong>{{ repo.totalItems }}</strong>
+          <div class="d-flex gap-2">
+            <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
+              ثبت حساب
+            </v-btn>
+          </div>
         </div>
+      </v-card-text>
+    </v-card>
 
-        <v-pagination
-          v-model="repo.page"
-          :length="pageCount"
-          total-visible="7"
-          @update:modelValue="fetchAll"
+    <!-- Table -->
+    <v-card rounded="xl" class="shadow-sm">
+      <v-card-text class="pa-0">
+        <FilterableTable
+          :loading="repo.loading"
+          :headers="headersFT"
+          :rows="rowsFT"
+          :filters="filters"
+          :topGroups="topGroups"
+          :totalItems="repo.accountsTotalItems"
+          :page="repo.accountsPage"
+          :perPage="repo.accountsPerPage"
+          @update:page="onPage"
+          @update:perPage="onPerPage"
+          @edit="startEdit"
+          @delete="askDelete"
         />
-      </div>
+      </v-card-text>
     </v-card>
 
     <!-- Create/Edit Dialog -->
-    <AccountsFormDialog
-      v-model="dialog"
-      :editMode="editMode"
-      :value="draft"
-      :busy="repo.loading"
-      @save="onSave"
-    />
-
-    <!-- Peek -->
-    <PeekButton
-      v-if="peek.open"
-      :open="peek.open"
-      :title="t('جزئیات حساب')"
-      :loading="peek.loading"
-      @close="peek.open = false"
-    >
-      <div class="pa-4">
-        <div class="text-subtitle-2 font-weight-bold mb-2">{{ peek.data?.name || '—' }}</div>
-        <div class="text-caption">{{ t('موجودی') }}: {{ money(peek.data?.price) }}</div>
-        <div class="text-caption">
-          {{ t('نوع حساب') }}: {{ peek.data?.account_type_name || peek.data?.account_type_id || '—' }}
-        </div>
-        <div class="text-caption mt-2">{{ t('جزئیات') }}: {{ peek.data?.details || '—' }}</div>
-      </div>
-    </PeekButton>
+    <AccountFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
 
     <!-- Delete confirm -->
     <DeleteConfirmDialog
-      v-model="deleteDialog.open"
-      :title="t('حذف رکورد')"
-      :subtitle="t('آیا مطمئن هستید؟')"
-      @confirm="confirmDelete"
+      v-model="deleteDialog"
+      :title="'حذف حساب'"
+      :text="'آیا مطمئن هستید که این حساب حذف شود؟'"
+      @confirm="doDelete"
     />
-
-    <v-snackbar v-model="snack.open" :color="snack.color" timeout="2500">
-      {{ snack.text }}
-    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
-import { useI18n } from "vue-i18n";
-
+import { computed, ref } from "vue";
 import AppBar from "@/components/AppBar.vue";
 import FilterableTable from "@/components/FilterableTable.vue";
-import PeekButton from "@/components/PeekButton.vue";
 import DeleteConfirmDialog from "@/components/DeleteConfirmDialog.vue";
+import AccountFormDialog from "./AccountsFormDialog.vue";
+import { useFinanceRepository } from "@/stores/financeRepository";
 
-import AccountsFormDialog from "./AccountsFormDialog.vue";
-import { useAccountsRepository } from "@/stores/AccountsRepository";
+// RTL (replace with your i18n)
+const rtl = ref(true);
 
-const repo = useAccountsRepository();
-const { t, locale } = useI18n();
-const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ""));
+const repo = useFinanceRepository();
 
 const dialog = ref(false);
-const editMode = ref(false);
+const editId = ref(null);
 
-const snack = reactive({ open: false, text: "", color: "primary" });
-const peek = reactive({ open: false, loading: false, data: null });
-const deleteDialog = reactive({ open: false, id: null });
+const deleteDialog = ref(false);
+const deleteId = ref(null);
 
-const draft = reactive({
-  id: null,
-  name: "",
-  price: 0,
-  account_type_id: null,
-  details: "",
-});
-
-const headersFT = computed(() => [
-  { title: t("ID"), key: "id" },
-  { title: t("نام"), key: "name" },
-  { title: t("موجودی"), key: "price_display" },
-  { title: t("نوع"), key: "account_type_name" },
-  { title: t("جزئیات"), key: "details" },
-  { title: t("عملیات"), key: "actions", sortable: false },
-]);
+const headersFT = [
+  { title: "#", key: "index", sortable: false, width: 70 },
+  { title: "نام حساب", key: "name", sortable: true },
+  { title: "موجودی", key: "price", sortable: true },
+  { title: "جزئیات", key: "details", sortable: false },
+  { title: "عملیات", key: "actions", sortable: false, width: 180 },
+];
 
 const rowsFT = computed(() => {
-  const rows = repo.Accounts || [];
-  return rows.map((r) => ({
-    ...r,
-    price_display: money(r?.price),
-    account_type_name: r?.account_type_name ?? r?.account_type_id ?? "—",
+  const startIndex = (repo.accountsPage - 1) * repo.accountsPerPage;
+  return (repo.accounts || []).map((it, i) => ({
+    ...it,
+    index: startIndex + i + 1,
   }));
 });
 
-const pageCount = computed(() => {
-  const per = Number(repo.itemsPerPage || 10);
-  return Math.max(1, Math.ceil(Number(repo.totalItems || 0) / per));
-});
+// keep empty if not used
+const filters = [];
+const topGroups = [];
 
-function showSnack(text, color = "primary") {
-  snack.text = text;
-  snack.color = color;
-  snack.open = true;
+function fetchAll() {
+  repo.FetchAccountsData({
+    page: repo.accountsPage,
+    perPage: repo.accountsPerPage,
+    search: repo.accountsSearch,
+  });
 }
 
-function money(n) {
-  const v = Number(n ?? 0);
-  return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
+function resetFilters() {
+  repo.ResetAccountsFilters();
+  fetchAll();
 }
 
-const fetchAll = async () => {
-  await repo.FetchAccountsData({ page: repo.page, itemsPerPage: repo.itemsPerPage });
-};
-
-const openCreate = () => {
-  editMode.value = false;
-  Object.assign(draft, {
-    id: null,
-    name: "",
-    price: 0,
-    account_type_id: null,
-    details: "",
-  });
+function openCreate() {
+  editId.value = null;
   dialog.value = true;
-};
+}
 
-const openEdit = async (rowPayload) => {
-  const row = rowPayload?.row || rowPayload;
-  if (!row?.id) return;
-
-  editMode.value = true;
-  await repo.FetchAccountData(row.id);
-
-  const d = repo.Account || {};
-  Object.assign(draft, {
-    id: d.id ?? null,
-    name: d.name ?? "",
-    price: d.price ?? 0,
-    account_type_id: d.account_type_id ?? null,
-    details: d.details ?? "",
-  });
-
+function startEdit(row) {
+  editId.value = row?.id;
   dialog.value = true;
-};
+}
 
-const onSave = async (payload) => {
-  try {
-    const p = { ...(payload || {}) };
+function onSaved() {
+  fetchAll();
+}
 
-    if (editMode.value && p.id) await repo.UpdateAccount(p.id, p);
-    else await repo.CreateAccount(p);
+function askDelete(row) {
+  deleteId.value = row?.id;
+  deleteDialog.value = true;
+}
 
-    dialog.value = false;
-    showSnack(t("ثبت شد"));
-    await fetchAll();
-  } catch (e) {
-    showSnack(t("خطا در ثبت دیتا"), "error");
-  }
-};
+async function doDelete() {
+  if (!deleteId.value) return;
+  await repo.DeleteAccount(deleteId.value);
+  deleteDialog.value = false;
+  deleteId.value = null;
+  fetchAll();
+}
 
-const startPeek = async (rowPayload) => {
-  const row = rowPayload?.row || rowPayload;
-  if (!row?.id) return;
+function onPage(p) {
+  repo.accountsPage = p;
+  fetchAll();
+}
 
-  peek.open = true;
-  peek.loading = true;
-  try {
-    await repo.FetchAccountData(row.id);
-    peek.data = repo.Account;
-  } finally {
-    peek.loading = false;
-  }
-};
+function onPerPage(pp) {
+  repo.accountsPerPage = pp;
+  repo.accountsPage = 1;
+  fetchAll();
+}
 
-const askDelete = (rowPayload) => {
-  const row = rowPayload?.row || rowPayload;
-  if (!row?.id) return;
-  deleteDialog.id = row.id;
-  deleteDialog.open = true;
-};
-
-const confirmDelete = async () => {
-  const id = deleteDialog.id;
-  deleteDialog.open = false;
-  if (!id) return;
-
-  try {
-    await repo.DeleteAccount(id);
-    showSnack(t("حذف شد"));
-    await fetchAll();
-  } catch {
-    showSnack(t("خطا در حذف"), "error");
-  }
-};
-
-onMounted(fetchAll);
+// initial load
+fetchAll();
 </script>
+
+<style scoped>
+.gap-2 {
+  gap: 8px;
+}
+</style>

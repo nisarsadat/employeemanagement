@@ -115,8 +115,8 @@ class FinanceController extends Controller
     private function validatePayload(Request $request): array
     {
         return $request->validate([
-            'office_employee_id' => ['required', 'integer', 'exists:office_employees,id'],
-            'resource_id'        => ['required', 'integer', 'exists:resources,id'],
+            'office_employee_id' => ['nullable', 'integer', 'exists:office_employees,id'],
+            'resource_id'        => ['nullable', 'integer', 'exists:resources,id'],
             'account_id'         => ['required', 'integer', 'exists:accounts,id'],
 
             'money_amount_number' => ['required', 'numeric', 'min:0'],
@@ -127,7 +127,6 @@ class FinanceController extends Controller
             'employee_phone' => ['nullable', 'string', 'max:50'],
             'expense_result' => ['nullable', 'string', 'max:255'],
 
-            'money_distributer' => ['nullable', 'string', 'max:255'],
             'payer' => ['nullable', 'string', 'max:255'],
             'receiver' => ['nullable', 'string', 'max:255'],
 

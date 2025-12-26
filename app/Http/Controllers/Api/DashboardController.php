@@ -8,6 +8,13 @@ use App\Models\Resource;
 use App\Models\Information;
 use App\Models\Event;
 use App\Models\CaptiveDelivery;
+
+// ✅ ADDED (ONLY FOR NEW TOTALS)
+use App\Models\Finance;
+use App\Models\Income;
+use App\Models\IncomeOil;
+use App\Models\ExpenseOil;
+
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -114,6 +121,20 @@ class DashboardController extends Controller
         $captiveDeliveriesTotal = CaptiveDelivery::count();
 
         /* -------------------------------------------------
+         | ✅ NEW: MONEY TOTALS (Income / Expense / Balance)
+         |-------------------------------------------------*/
+        $moneyIncomeTotal = (float) (Income::query()->sum('amount') ?? 0);
+        $moneyExpensedTotal = (float) (Finance::query()->sum('money_amount_number') ?? 0);
+        $moneyBalance = $moneyIncomeTotal - $moneyExpensedTotal;
+
+        /* -------------------------------------------------
+         | ✅ NEW: OIL TOTALS (Income / Expense / Balance)
+         |-------------------------------------------------*/
+        $oilIncomeTotal = (float) (IncomeOil::query()->sum('oil_quantity') ?? 0);
+        $oilExpensedTotal = (float) (ExpenseOil::query()->sum('oil_quantity') ?? 0);
+        $oilBalance = $oilIncomeTotal - $oilExpensedTotal;
+
+        /* -------------------------------------------------
          | FORMATS & ZONES
          |-------------------------------------------------*/
         $formatTables = $this->formatsTables();
@@ -146,6 +167,20 @@ class DashboardController extends Controller
 
             'captive_deliveries' => [
                 'total' => $captiveDeliveriesTotal,
+            ],
+
+            // ✅ ADDED (ONLY)
+            'money' => [
+                'income_total'  => $moneyIncomeTotal,
+                'expensed_total'=> $moneyExpensedTotal,
+                'balance'       => $moneyBalance,
+            ],
+
+            // ✅ ADDED (ONLY)
+            'oil' => [
+                'income_total'  => $oilIncomeTotal,
+                'expensed_total'=> $oilExpensedTotal,
+                'balance'       => $oilBalance,
             ],
 
             'formats_by_zone' => $formatsByZone,

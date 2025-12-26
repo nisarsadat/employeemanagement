@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Account extends Model
 {
-    protected $fillable = ['name', 'price', 'account_type_id', 'details'];
+    protected $fillable = ['name', 'price', 'details'];
 
     protected $casts = [
         'price' => 'decimal:2',

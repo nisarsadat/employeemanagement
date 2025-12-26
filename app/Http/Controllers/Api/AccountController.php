@@ -15,7 +15,6 @@ class AccountController extends Controller
         $search  = $request->get('search');
 
         $query = Account::query()
-            ->with(['accountType:id,name'])
             ->search($search)
             ->latest('id');
 
@@ -24,7 +23,6 @@ class AccountController extends Controller
 
     public function show(Account $account)
     {
-        $account->load(['accountType:id,name']);
         return new AccountResource($account);
     }
 
@@ -33,7 +31,6 @@ class AccountController extends Controller
         $data = $this->validatePayload($request);
 
         $row = Account::create($data);
-        $row->load(['accountType:id,name']);
 
         return new AccountResource($row);
     }
@@ -43,7 +40,6 @@ class AccountController extends Controller
         $data = $this->validatePayload($request);
 
         $account->update($data);
-        $account->load(['accountType:id,name']);
 
         return new AccountResource($account);
     }
@@ -51,15 +47,15 @@ class AccountController extends Controller
     public function destroy(Account $account)
     {
         $account->delete();
+
         return response()->json(['message' => 'Deleted successfully']);
     }
 
     private function validatePayload(Request $request): array
     {
         return $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'price' => ['nullable', 'numeric'],
-            'account_type_id' => ['nullable', 'integer', 'exists:account_types,id'],
+            'name'    => ['required', 'string', 'max:255'],
+            'price'   => ['nullable', 'numeric'],
             'details' => ['nullable', 'string'],
         ]);
     }

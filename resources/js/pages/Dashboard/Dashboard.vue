@@ -1,710 +1,791 @@
 <!-- src/pages/Dashboard.vue -->
 <template>
   <div class="dashboard-container" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar :title="t('داشبورد')" :subtitle="t('خلاصه سیستم و درجه‌بندی کارمندان')" />
+    <!-- App Bar -->
+    <AppBar :title="t('داشبورد')" :subtitle="t('خلاصه عملکرد سیستم')" />
 
-    <!-- Glassmorphic Header -->
-    <div class="dashboard-header">
-      <!-- Live Status Bar -->
-      <div class="status-bar">
-        <div class="status-items">
-          <div class="status-item">
-            <v-icon size="16" color="success">mdi-circle</v-icon>
-            <span class="text-caption">{{ t('سیستم آنلاین') }}</span>
-          </div>
-          <v-divider vertical />
-          <div class="status-item">
-            <v-icon size="16" color="primary">mdi-update</v-icon>
-            <span class="text-caption">{{ t('آخرین بروزرسانی') }}: {{ lastUpdateTime }}</span>
-          </div>
-          <v-divider vertical />
-          <div class="status-item">
-            <v-icon size="16" color="amber">mdi-database</v-icon>
-            <span class="text-caption"
-              >{{ t('کل رکوردها') }}: {{ totalRecords.toLocaleString() }}</span
-            >
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Floating Error Alert -->
-    <transition name="slide-fade">
+    <!-- Error Alert -->
+    <transition name="slide-down">
       <v-alert
         v-if="repo.error"
         type="error"
         variant="tonal"
-        rounded="xl"
-        class="error-alert mx-4 mb-4"
+        rounded="lg"
+        class="error-alert mx-4 mt-4"
         :text="readableError"
-        icon="mdi-alert-octagon"
+        icon="mdi-alert"
         border="start"
         closable
         @click:close="repo.error = null"
       />
     </transition>
 
-    <!-- ✅ Stats Grid (FIXED: transition-group wrapper won’t break v-row/v-col) -->
-    <div class="stats-grid px-4 mb-8">
+    <!-- Stats Cards Grid (2 rows / 3 cards each on lg+) -->
+    <div class="stats-grid px-4 py-6">
       <v-row dense>
-        <transition-group name="stats-grid" tag="div" class="stats-grid-group" appear>
-          <!-- Employees Card -->
-          <v-col cols="12" sm="6" md="3" lg="3" key="employees" class="stats-col">
-            <v-card
-              rounded="xl"
-              class="stat-card glass-card"
-              :class="{ pulse: employeesTotal > 0 }"
-              ripple
-              @click="$router.push({ name: 'employees' })"
-            >
-              <div class="card-glow" :style="glowStyle('primary')"></div>
-              <v-card-text class="pa-5">
-                <div class="d-flex align-center justify-space-between">
-                  <div>
-                    <div class="text-caption text-medium-emphasis mb-2 d-flex align-center gap-1">
-                      <v-icon size="16" class="icon-shake">mdi-account-multiple</v-icon>
-                      {{ t('کارمندان') }}
-                    </div>
+        <!-- Employees -->
+        <v-col cols="12" sm="6" md="4" lg="4">
+          <v-card
+            rounded="xl"
+            class="stat-card"
+            :class="{ 'stat-card-hover': !repo.loading }"
+            ripple
+            @click="$router.push({ name: 'employees' })"
+            :disabled="repo.loading"
+          >
+            <div class="stat-accent primary"></div>
 
-                    <div class="text-h3 font-weight-black text-gradient-primary">
-                      {{ employeesTotal.toLocaleString() }}
-                    </div>
-
-                    <div class="trend-indicator">
-                      <v-icon size="18" color="success">mdi-trending-up</v-icon>
-                      <span class="text-caption">{{ t('فعال') }}</span>
-                    </div>
-                  </div>
-
-                  <div class="floating-icon">
-                    <v-avatar size="64" class="avatar-glow-primary">
-                      <v-icon size="32" color="white">mdi-account-group</v-icon>
-                    </v-avatar>
-                  </div>
+            <v-card-text class="pa-5">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <div class="card-icon-wrapper primary">
+                  <v-icon color="primary" size="22">mdi-account-group</v-icon>
                 </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
 
-          <!-- Resources Card -->
-          <v-col cols="12" sm="6" md="3" lg="3" key="resources" class="stats-col">
-            <v-card
-              rounded="xl"
-              class="stat-card glass-card"
-              ripple
-              @click="$router.push({ name: 'resources' })"
-            >
-              <div class="card-glow" :style="glowStyle('teal')"></div>
-              <v-card-text class="pa-5">
-                <div class="d-flex align-center justify-space-between">
-                  <div>
-                    <div class="text-caption text-medium-emphasis mb-2 d-flex align-center gap-1">
-                      <v-icon size="16">mdi-folder-account</v-icon>
-                      {{ t('منابع') }}
-                    </div>
-
-                    <div class="text-h3 font-weight-black text-gradient-teal">
-                      {{ resourcesTotal.toLocaleString() }}
-                    </div>
-
-                    <div class="resource-stats">
-                      <v-chip size="x-small" variant="flat" color="success" class="mr-2">
-                        <v-icon start size="12">mdi-check</v-icon>
-                        {{ resourcesActive }}
-                      </v-chip>
-
-                      <v-chip size="x-small" variant="flat" color="grey" class="mr-2">
-                        <v-icon start size="12">mdi-close</v-icon>
-                        {{ resourcesInactive }}
-                      </v-chip>
-                    </div>
-                  </div>
-
-                  <div class="floating-icon">
-                    <v-avatar size="64" class="avatar-glow-teal">
-                      <v-icon size="32" color="white">mdi-database</v-icon>
-                    </v-avatar>
-                  </div>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-
-          <!-- Informations Card -->
-          <v-col cols="12" sm="6" md="3" lg="3" key="informations" class="stats-col">
-            <v-card
-              rounded="xl"
-              class="stat-card glass-card"
-              ripple
-              @click="$router.push({ name: 'informations' })"
-            >
-              <div class="card-glow" :style="glowStyle('indigo')"></div>
-              <v-card-text class="pa-5">
-                <div class="d-flex align-center justify-space-between">
-                  <div>
-                    <div class="text-caption text-medium-emphasis mb-2 d-flex align-center gap-1">
-                      <v-icon size="16">mdi-file-document-multiple</v-icon>
-                      {{ t('اطلاعات') }}
-                    </div>
-
-                    <div class="text-h3 font-weight-black text-gradient-indigo">
-                      {{ informationsTotal.toLocaleString() }}
-                    </div>
-
-                    <div class="growth-badge">
-                      <v-icon size="16" color="indigo">mdi-chart-line</v-icon>
-                      <span class="text-caption">{{ t('رشد') }} +12%</span>
-                    </div>
-                  </div>
-
-                  <div class="floating-icon">
-                    <v-avatar size="64" class="avatar-glow-indigo">
-                      <v-icon size="32" color="white">mdi-chart-box</v-icon>
-                    </v-avatar>
-                  </div>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-
-          <!-- Events Card -->
-          <v-col cols="12" sm="6" md="3" lg="3" key="events" class="stats-col">
-            <v-card
-              rounded="xl"
-              class="stat-card glass-card"
-              ripple
-              @click="$router.push({ name: 'events' })"
-            >
-              <div class="card-glow" :style="glowStyle('teal-darken-1')"></div>
-              <v-card-text class="pa-5">
-                <div class="d-flex align-center justify-space-between">
-                  <div>
-                    <div class="text-caption text-medium-emphasis mb-2 d-flex align-center gap-1">
-                      <v-icon size="16">mdi-calendar-check</v-icon>
-                      {{ t('رویدادها') }}
-                    </div>
-
-                    <div class="text-h3 font-weight-black text-gradient-teal-darken">
-                      {{ eventsTotal.toLocaleString() }}
-                    </div>
-
-                    <div class="activity-indicator">
-                      <div class="activity-dots">
-                        <div class="dot active"></div>
-                        <div class="dot"></div>
-                        <div class="dot active"></div>
-                      </div>
-                      <span class="text-caption">{{ t('فعال') }}</span>
-                    </div>
-                  </div>
-
-                  <div class="floating-icon">
-                    <v-avatar size="64" class="avatar-glow-teal-darken">
-                      <v-icon size="32" color="white">mdi-calendar-star</v-icon>
-                    </v-avatar>
-                  </div>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </transition-group>
-      </v-row>
-    </div>
-
-    <!-- Main Content with Floating Effect -->
-    <div class="main-content px-4">
-      <v-row dense>
-        <!-- Employees Ranking Card -->
-        <v-col cols="12" lg="7">
-          <v-card rounded="xl" class="main-card floating-card">
-            <div class="card-header-glow"></div>
-            <v-card-text class="pa-4">
-              <!-- Animated Header -->
-              <div class="card-header animated-header">
-                <div class="header-content">
-                  <div class="title-group">
-                    <div class="text-h5 font-weight-bold text-primary mb-1">
-                      <v-icon color="primary" class="mr-2">mdi-trophy</v-icon>
-                      {{ t('درجه‌بندی کارمندان') }}
-                    </div>
-                    <div class="text-caption text-medium-emphasis d-flex align-center gap-2">
-                      <div class="spark-line"></div>
-                      {{ t('به اساس تعداد رویداد، منبع و معلومات') }}
-                    </div>
-                  </div>
-
-                  <!-- Interactive Controls -->
-                  <div class="header-controls">
-                    <v-text-field
-                      v-model="search"
-                      density="compact"
-                      variant="outlined"
-                      rounded="xl"
-                      hide-details
-                      :placeholder="t('جستجو: نام یا کود نمبر')"
-                      clearable
-                      @input="searchEmployees"
-                    >
-                      <template #prepend-inner>
-                        <v-icon color="primary" class="px-6">mdi-magnify</v-icon>
-                      </template>
-                    </v-text-field>
-
-                    <v-btn
-                      :loading="repo.loading"
-                      variant="flat"
-                      color="primary"
-                      rounded="xl"
-                      @click="refreshWithAnimation"
-                      class="refresh-btn"
-                      :disabled="repo.loading"
-                    >
-                      <v-icon>{{ refreshIcon }}</v-icon>
-                      {{ t('تازه‌سازی') }}
-                    </v-btn>
-
-                    <v-btn
-                      icon
-                      variant="tonal"
-                      color="grey"
-                      rounded="lg"
-                      @click="toggleTableDensity"
-                      class="density-toggle"
-                    >
-                      <v-icon>{{ densityIcon }}</v-icon>
-                    </v-btn>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Enhanced Employees Table -->
-              <div class="table-wrapper">
-                <v-data-table
-                  :items="filteredEmployees"
-                  :headers="employeeHeaders"
-                  :loading="repo.loading"
-                  :density="tableDensity"
-                  class="employees-table elevation-0"
-                  item-key="id"
-                  fixed-header
-                  height="520"
-                  :items-per-page="10"
-                  :loading-text="t('در حال بارگذاری...')"
+                <v-chip
+                  v-if="Number(employeesGrowth) > 0"
+                  size="x-small"
+                  variant="tonal"
+                  color="success"
                 >
-                  <!-- Rank Column with Animation -->
-                  <template #item.rank="{ item }">
-                    <div class="rank-cell" :class="`rank-${item.rank}`">
-                      <div class="rank-badge" :style="rankBadgeStyle(item.rank)">
-                        <span class="rank-number">{{ item.rank }}</span>
-                        <div class="rank-crown" v-if="item.rank <= 3">
-                          <v-icon size="14" color="amber">mdi-crown</v-icon>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-
-                  <!-- Employee Info with Hover Effect -->
-                  <template #item.name="{ item }">
-                    <div class="employee-info hover-expand" @click="viewEmployee(item)">
-                      <v-avatar size="40" class="avatar-gradient">
-                        <span class="text-body-1 font-weight-bold text-white">
-                          {{ getInitials(item.name) }}
-                        </span>
-                      </v-avatar>
-                      <div class="employee-details">
-                        <div class="employee-name">{{ item.name || '—' }}</div>
-                        <div class="employee-code">
-                          <v-icon size="12">mdi-identifier</v-icon>
-                          {{ t('کود') }}: {{ item.code_number || '—' }}
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-
-                  <!-- Resources Count with Progress -->
-                  <template #item.resources_count="{ item }">
-                    <div class="metric-cell">
-                      <v-progress-circular
-                        :model-value="(item.resources_count / maxResources) * 100"
-                        size="36"
-                        width="3"
-                        color="primary"
-                        class="mr-2"
-                      >
-                        <v-icon size="16" color="primary">mdi-folder</v-icon>
-                      </v-progress-circular>
-                      <span class="metric-value">{{ num(item.resources_count) }}</span>
-                    </div>
-                  </template>
-
-                  <!-- Informations Count with Progress -->
-                  <template #item.informations_count="{ item }">
-                    <div class="metric-cell">
-                      <v-progress-circular
-                        :model-value="(item.informations_count / maxInformations) * 100"
-                        size="36"
-                        width="3"
-                        color="indigo"
-                        class="mr-2"
-                      >
-                        <v-icon size="16" color="indigo">mdi-file-document</v-icon>
-                      </v-progress-circular>
-                      <span class="metric-value">{{ num(item.informations_count) }}</span>
-                    </div>
-                  </template>
-
-                  <!-- Events Count with Progress -->
-                  <template #item.events_count="{ item }">
-                    <div class="metric-cell">
-                      <v-progress-circular
-                        :model-value="(item.events_count / maxEvents) * 100"
-                        size="36"
-                        width="3"
-                        color="teal"
-                        class="mr-2"
-                      >
-                        <v-icon size="16" color="teal">mdi-calendar</v-icon>
-                      </v-progress-circular>
-                      <span class="metric-value">{{ num(item.events_count) }}</span>
-                    </div>
-                  </template>
-
-                  <!-- Score with Animated Ring -->
-                  <template #item.score="{ item }">
-                    <div class="score-cell">
-                      <div class="score-ring">
-                        <svg width="48" height="48">
-                          <circle
-                            cx="24"
-                            cy="24"
-                            r="20"
-                            fill="transparent"
-                            stroke="rgba(var(--v-theme-primary), 0.1)"
-                            stroke-width="4"
-                          />
-                          <circle
-                            cx="24"
-                            cy="24"
-                            r="20"
-                            fill="transparent"
-                            :stroke="getScoreColor(item.score)"
-                            stroke-width="4"
-                            stroke-linecap="round"
-                            :stroke-dasharray="`${getScorePercentage(item.score) * 1.25} 125`"
-                            transform="rotate(-90 24 24)"
-                            class="score-progress"
-                          />
-                        </svg>
-                        <div class="score-value">
-                          <span class="text-body-2 font-weight-bold">{{ num(item.score) }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-
-                  <!-- Empty State Enhanced -->
-                  <template #no-data>
-                    <div class="empty-state">
-                      <div class="empty-illustration">
-                        <v-icon size="80" color="grey-lighten-2">mdi-account-search</v-icon>
-                      </div>
-                      <div class="empty-text">
-                        <div class="text-h6 text-medium-emphasis mb-2">
-                          {{ t('هیچ کارمند موجود نیست') }}
-                        </div>
-                        <div class="text-caption text-medium-emphasis">
-                          {{ t('کارمند جدید اضافه کنید') }}
-                        </div>
-                      </div>
-                      <v-btn
-                        color="primary"
-                        variant="flat"
-                        rounded="xl"
-                        class="mt-4"
-                        @click="$router.push({ name: 'add-employee' })"
-                      >
-                        <v-icon start>mdi-plus</v-icon>
-                        {{ t('افزودن کارمند') }}
-                      </v-btn>
-                    </div>
-                  </template>
-
-                  <!-- Loading State Enhanced -->
-                  <template #loading>
-                    <div class="loading-state">
-                      <div class="loading-animation">
-                        <v-progress-circular indeterminate color="primary" size="48" />
-                        <div class="loading-text mt-4">
-                          <div class="text-body-1">{{ t('در حال بارگذاری...') }}</div>
-                          <div class="text-caption text-medium-emphasis">
-                            {{ t('لطفاً صبر کنید') }}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                </v-data-table>
+                  <v-icon start size="14">mdi-trending-up</v-icon>
+                  +{{ employeesGrowth }}%
+                </v-chip>
               </div>
 
-              <!-- Table Footer with Stats -->
-              <div class="table-footer">
-                <div class="footer-stats">
-                  <div class="stat-item">
-                    <v-icon size="16" color="primary">mdi-account-multiple</v-icon>
-                    <span class="text-caption"
-                      >{{ t('نمایش') }} {{ Math.min(filteredEmployees.length, 10) }} {{ t('از') }}
-                      {{ filteredEmployees.length }}</span
-                    >
-                  </div>
-                  <div class="stat-item">
-                    <v-icon size="16" color="amber">mdi-trophy</v-icon>
-                    <span class="text-caption">{{ t('بهترین') }}: {{ getTopEmployeeName }}</span>
-                  </div>
+              <div class="text-caption text-medium-emphasis mb-2">{{ t('کارمندان') }}</div>
+
+              <div class="d-flex align-baseline justify-space-between">
+                <div class="text-h3 font-weight-black">{{ employeesTotal.toLocaleString() }}</div>
+                <div class="mini-meta">
+                  <v-icon size="16" color="primary">mdi-account-multiple</v-icon>
+                  <span class="text-caption">{{ t('کل') }}</span>
                 </div>
-                <div class="footer-actions">
-                  <v-pagination
-                    v-model="currentPage"
-                    :length="Math.ceil(filteredEmployees.length / 10)"
-                    total-visible="4"
-                    rounded="circle"
-                    density="compact"
-                  />
+              </div>
+
+              <div class="mt-4 d-flex align-center justify-space-between">
+                <div class="d-flex align-center gap-2">
+                  <div class="dot success"></div>
+                  <span class="text-caption">{{ t('فعال') }}</span>
+                </div>
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('رتبه‌بندی در جدول') }}
                 </div>
               </div>
             </v-card-text>
           </v-card>
         </v-col>
 
-        <!-- Right Side: Charts and Zones -->
-        <v-col cols="12" lg="5">
-          <!-- Formats Pie Chart Enhanced -->
-          <FormatsPieChart
-            class="mb-4 floating-card"
-            :title="t('توزیع فرم‌ها بر اساس زون')"
-            :subtitle="t('تمام زون‌ها بر اساس تعداد فرم')"
-            :total="formatsTotal"
-            :total-label="t('مجموع فرم‌ها')"
-            :empty-text="t('هیچ دیتا موجود نیست')"
-            :data="formatsPieData"
-            :height="340"
-            donut
-            :show-legend="true"
-            :loading="repo.loading"
-            :interactive="true"
-            @refresh="refresh"
-            @zone-click="onZoneClick"
-          />
+        <!-- Resources (Active/Inactive clickable) -->
+        <v-col cols="12" sm="6" md="4" lg="4">
+          <v-card
+            rounded="xl"
+            class="stat-card"
+            :class="{ 'stat-card-hover': !repo.loading }"
+            :disabled="repo.loading"
+          >
+            <div class="stat-accent teal"></div>
 
-          <!-- Zones List Enhanced -->
-          <v-card rounded="xl" class="floating-card zones-card">
-            <div class="card-header-glow"></div>
-            <v-card-text class="pa-4">
-              <!-- Animated Header -->
-              <div class="card-header">
-                <div class="header-content">
-                  <div class="title-group">
-                    <div class="text-h5 font-weight-bold text-primary mb-1">
-                      <v-icon color="primary" class="mr-2">mdi-map-marker</v-icon>
-                      {{ t('آمار زون‌ها') }}
-                    </div>
-                    <div class="text-caption text-medium-emphasis d-flex align-center gap-2">
-                      <div class="pulse-dot"></div>
-                      {{ t('تفکیک بر اساس تعداد فرم') }}
-                    </div>
-                  </div>
+            <v-card-text class="pa-5">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <div class="card-icon-wrapper teal">
+                  <v-icon color="teal" size="22">mdi-database</v-icon>
+                </div>
 
-                  <div class="header-badges">
-                    <v-chip size="small" variant="flat" color="primary" class="px-3 glow-chip">
-                      <v-icon start size="14">mdi-map</v-icon>
-                      {{ t('زون') }}: {{ zones.length }}
-                    </v-chip>
-                    <v-chip size="small" variant="tonal" color="success" class="px-3">
-                      <v-icon start size="14">mdi-chart-bar</v-icon>
-                      {{ t('فعال') }}
-                    </v-chip>
-                  </div>
+                <v-chip size="x-small" variant="tonal" color="teal">
+                  {{ t('منابع') }}
+                </v-chip>
+              </div>
+
+              <div class="text-caption text-medium-emphasis mb-2">{{ t('منابع') }}</div>
+
+              <div class="d-flex align-baseline justify-space-between mb-3">
+                <div class="text-h3 font-weight-black">{{ resourcesTotal.toLocaleString() }}</div>
+                <div class="mini-meta">
+                  <v-icon size="16" color="teal">mdi-chart-donut</v-icon>
+                  <span class="text-caption">{{ resourcesActivePercentage }}%</span>
                 </div>
               </div>
 
-              <!-- Interactive Zones Table -->
-              <div class="zones-container">
-                <div class="zones-list">
-                  <div
-                    v-for="(zone, index) in zonesTop"
-                    :key="zone.zone"
-                    class="zone-item"
-                    :class="{ 'zone-item-highlight': index < 3 }"
-                    @click="viewZoneDetails(zone)"
-                  >
-                    <div class="zone-rank">
-                      <div class="rank-circle" :class="`rank-${index + 1}`">
-                        {{ index + 1 }}
-                      </div>
-                    </div>
-                    <div class="zone-info">
-                      <div class="zone-name">{{ zone.zone || t('نامعلوم') }}</div>
-                      <div class="zone-stats">
-                        <span class="text-caption text-medium-emphasis">
-                          {{ getZonePercentage(zone.total) }}% {{ t('از کل') }}
-                        </span>
-                      </div>
-                    </div>
-                    <div class="zone-progress">
-                      <div class="progress-bar">
-                        <div
-                          class="progress-fill"
-                          :style="{ width: `${getZonePercentage(zone.total)}%` }"
-                          :class="`progress-color-${(index % 4) + 1}`"
-                        ></div>
-                      </div>
-                      <div class="zone-total">
-                        <v-chip size="x-small" variant="flat" class="px-2">
-                          {{ num(zone.total) }}
-                        </v-chip>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <v-progress-linear
+                :model-value="resourcesActivePercentage"
+                height="7"
+                rounded
+                color="teal"
+                bg-color="rgba(var(--v-theme-teal), 0.12)"
+                class="mb-4"
+              />
 
-              <!-- Zones Footer -->
-              <div class="zones-footer">
-                <div class="zones-summary">
-                  <div class="summary-item">
-                    <v-icon size="16" color="primary">mdi-chart-pie</v-icon>
-                    <span class="text-caption"
-                      >{{ t('نمایش') }} {{ zonesTop.length }} {{ t('از') }} {{ zones.length }}</span
-                    >
-                  </div>
-                  <div class="summary-item">
-                    <v-icon size="16" color="teal">mdi-chart-timeline</v-icon>
-                    <span class="text-caption"
-                      >{{ t('تعداد کل') }}: {{ formatsTotal.toLocaleString() }}</span
-                    >
-                  </div>
-                </div>
+              <!-- Active / Inactive chips (clickable routes) -->
+              <div class="d-flex flex-wrap gap-2">
+                <v-chip
+                  size="small"
+                  variant="tonal"
+                  color="success"
+                  class="clickable-chip"
+                  :disabled="repo.loading"
+                  @click.stop="goResources('active')"
+                >
+                  <v-icon start size="16">mdi-check-circle</v-icon>
+                  {{ t('فعال') }}: {{ num(resourcesActive) }}
+                </v-chip>
+
+                <v-chip
+                  size="small"
+                  variant="tonal"
+                  color="error"
+                  class="clickable-chip"
+                  :disabled="repo.loading"
+                  @click.stop="goResources('inactive')"
+                >
+                  <v-icon start size="16">mdi-close-circle</v-icon>
+                  {{ t('غیرفعال') }}: {{ num(resourcesInactive) }}
+                </v-chip>
+
+                <v-spacer />
+
                 <v-btn
                   size="small"
-                  variant="flat"
-                  color="primary"
-                  :to="{ name: 'yearlyfoulreports' }"
-                  class="details-btn"
-                  rounded="xl"
+                  variant="text"
+                  color="teal"
+                  class="px-1"
+                  :disabled="repo.loading"
+                  @click.stop="goResources()"
                 >
-                  {{ t('مشاهده جزئیات') }}
+                  {{ t('مشاهده') }}
                   <v-icon end size="16">mdi-arrow-left</v-icon>
                 </v-btn>
               </div>
             </v-card-text>
           </v-card>
         </v-col>
+
+        <!-- Informations -->
+        <v-col cols="12" sm="6" md="4" lg="4">
+          <v-card
+            rounded="xl"
+            class="stat-card"
+            :class="{ 'stat-card-hover': !repo.loading }"
+            ripple
+            @click="$router.push({ name: 'informations' })"
+            :disabled="repo.loading"
+          >
+            <div class="stat-accent indigo"></div>
+
+            <v-card-text class="pa-5">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <div class="card-icon-wrapper indigo">
+                  <v-icon color="indigo" size="22">mdi-file-document-multiple</v-icon>
+                </div>
+
+                <v-chip
+                  size="x-small"
+                  variant="tonal"
+                  :color="Number(informationsGrowth) >= 0 ? 'success' : 'error'"
+                >
+                  <v-icon start size="14">
+                    {{ Number(informationsGrowth) >= 0 ? 'mdi-trending-up' : 'mdi-trending-down' }}
+                  </v-icon>
+                  {{ Number(informationsGrowth) >= 0 ? '+' : '' }}{{ informationsGrowth }}%
+                </v-chip>
+              </div>
+
+              <div class="text-caption text-medium-emphasis mb-2">{{ t('اطلاعات') }}</div>
+
+              <div class="d-flex align-baseline justify-space-between">
+                <div class="text-h3 font-weight-black">
+                  {{ informationsTotal.toLocaleString() }}
+                </div>
+                <div class="mini-meta">
+                  <v-icon size="16" color="indigo">mdi-file-document</v-icon>
+                  <span class="text-caption">{{ t('رکورد') }}</span>
+                </div>
+              </div>
+
+              <div class="mt-4 d-flex align-center justify-space-between">
+                <div class="d-flex align-center gap-2">
+                  <div
+                    class="dot"
+                    :class="Number(informationsGrowth) >= 0 ? 'success' : 'error'"
+                  ></div>
+                  <span class="text-caption">
+                    {{ Number(informationsGrowth) >= 0 ? t('رو به رشد') : t('کاهش') }}
+                  </span>
+                </div>
+                <div class="text-caption text-medium-emphasis">{{ t('گزارش کامل') }}</div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <!-- Events -->
+        <v-col cols="12" sm="6" md="4" lg="4">
+          <v-card
+            rounded="xl"
+            class="stat-card"
+            :class="{ 'stat-card-hover': !repo.loading }"
+            ripple
+            @click="$router.push({ name: 'events' })"
+            :disabled="repo.loading"
+          >
+            <div class="stat-accent cyan"></div>
+
+            <v-card-text class="pa-5">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <div class="card-icon-wrapper cyan">
+                  <v-icon color="teal-darken-1" size="22">mdi-calendar-multiple</v-icon>
+                </div>
+
+                <div class="activity-dots">
+                  <div class="activity-dot active"></div>
+                  <div class="activity-dot"></div>
+                  <div class="activity-dot active"></div>
+                </div>
+              </div>
+
+              <div class="text-caption text-medium-emphasis mb-2">{{ t('رویدادها') }}</div>
+
+              <div class="d-flex align-baseline justify-space-between">
+                <div class="text-h3 font-weight-black">{{ eventsTotal.toLocaleString() }}</div>
+                <div class="mini-meta">
+                  <v-icon size="16" color="teal-darken-1">mdi-calendar</v-icon>
+                  <span class="text-caption">{{ t('کل') }}</span>
+                </div>
+              </div>
+
+              <div class="mt-4 d-flex align-center justify-space-between">
+                <div class="d-flex align-center gap-2">
+                  <div class="dot success"></div>
+                  <span class="text-caption">{{ t('فعال') }}</span>
+                </div>
+                <div class="text-caption text-medium-emphasis">{{ t('جاری') }}</div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <!-- Money Balance -->
+        <v-col cols="12" sm="6" md="4" lg="4">
+          <v-card
+            rounded="xl"
+            class="stat-card"
+            :class="{ 'stat-card-hover': !repo.loading }"
+            ripple
+            @click="$router.push({ name: 'finance' })"
+            :disabled="repo.loading"
+          >
+            <div class="stat-accent success"></div>
+
+            <v-card-text class="pa-5">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <div class="card-icon-wrapper success">
+                  <v-icon color="success" size="22">mdi-cash-multiple</v-icon>
+                </div>
+
+                <v-chip
+                  size="x-small"
+                  variant="tonal"
+                  :color="moneyBalance >= 0 ? 'success' : 'error'"
+                >
+                  <v-icon start size="14">{{
+                    moneyBalance >= 0 ? 'mdi-plus' : 'mdi-minus'
+                  }}</v-icon>
+                  {{ num(moneyBalance) }}
+                </v-chip>
+              </div>
+
+              <div class="text-caption text-medium-emphasis mb-2">{{ t('بیلانس مالی') }}</div>
+
+              <div class="d-flex align-baseline justify-space-between mb-3">
+                <div class="text-h3 font-weight-black">{{ num(moneyBalance) }}</div>
+                <div class="mini-meta">
+                  <v-icon size="16" color="success">mdi-currency-usd</v-icon>
+                  <span class="text-caption">{{ t('افغانی') }}</span>
+                </div>
+              </div>
+
+              <div class="d-flex justify-space-between mt-2">
+                <div class="d-flex align-center gap-1">
+                  <v-icon size="14" color="success">mdi-arrow-down</v-icon>
+                  <span class="text-caption">{{ num(moneyIncomeTotal) }}</span>
+                </div>
+                <div class="d-flex align-center gap-1">
+                  <v-icon size="14" color="error">mdi-arrow-up</v-icon>
+                  <span class="text-caption">{{ num(moneyExpenseTotal) }}</span>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <!-- Oil Balance -->
+        <v-col cols="12" sm="6" md="4" lg="4">
+          <v-card
+            rounded="xl"
+            class="stat-card"
+            :class="{ 'stat-card-hover': !repo.loading }"
+            ripple
+            @click="$router.push({ name: 'oil' })"
+            :disabled="repo.loading"
+          >
+            <div class="stat-accent warning"></div>
+
+            <v-card-text class="pa-5">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <div class="card-icon-wrapper warning">
+                  <v-icon color="warning" size="22">mdi-fuel</v-icon>
+                </div>
+
+                <v-chip
+                  size="x-small"
+                  variant="tonal"
+                  :color="oilBalance >= 0 ? 'warning' : 'error'"
+                >
+                  <v-icon start size="14">{{ oilBalance >= 0 ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
+                  {{ num(oilBalance) }}
+                </v-chip>
+              </div>
+
+              <div class="text-caption text-medium-emphasis mb-2">{{ t('بیلانس تیل') }}</div>
+
+              <div class="d-flex align-baseline justify-space-between mb-3">
+                <div class="text-h3 font-weight-black">{{ num(oilBalance) }}</div>
+                <div class="mini-meta">
+                  <v-icon size="16" color="warning">mdi-water</v-icon>
+                  <span class="text-caption">{{ t('لیتر') }}</span>
+                </div>
+              </div>
+
+              <div class="d-flex justify-space-between mt-2">
+                <div class="d-flex align-center gap-1">
+                  <v-icon size="14" color="success">mdi-arrow-down</v-icon>
+                  <span class="text-caption">{{ num(oilIncomeTotal) }}</span>
+                </div>
+                <div class="d-flex align-center gap-1">
+                  <v-icon size="14" color="error">mdi-arrow-up</v-icon>
+                  <span class="text-caption">{{ num(oilExpenseTotal) }}</span>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
       </v-row>
     </div>
-    <!-- Floating Action Button -->
-    <v-fab
-      v-model="showFab"
-      location="bottom end"
-      class="fab-container fab-transparent"
-      :style="{ bottom: mobile ? '80px' : '40px' }"
-    >
-      <v-fab-group>
-        <v-btn
-          icon="mdi-refresh"
-          variant="text"
-          color="primary"
-          @click="refreshWithAnimation"
-          :loading="repo.loading"
-          class="fab-icon-only"
-        />
-      </v-fab-group>
-    </v-fab>
 
-    <!-- Toast Notifications -->
-    <v-snackbar v-model="showToast" :timeout="3000" color="primary" rounded="xl">
-      <div class="toast-content">
-        <v-icon class="mr-2">mdi-check-circle</v-icon>
-        {{ toastMessage }}
-      </div>
-    </v-snackbar>
+    <!-- Main Content -->
+    <div class="main-content px-4 pb-10">
+      <v-row>
+        <!-- Left Column - Employee Ranking -->
+        <v-col cols="12" lg="8">
+          <v-card rounded="xl" class="mb-4 fancy-card">
+            <!-- Header -->
+            <div class="table-header pa-4">
+              <div class="d-flex align-center justify-space-between flex-wrap gap-3">
+                <div>
+                  <div class="d-flex align-center gap-2">
+                    <v-avatar size="34" class="bg-soft-primary">
+                      <v-icon color="primary">mdi-trophy</v-icon>
+                    </v-avatar>
+                    <div>
+                      <div class="text-h6 font-weight-black">{{ t('درجه‌بندی کارمندان') }}</div>
+                      <div class="text-caption text-medium-emphasis">
+                        {{ t('بر اساس امتیاز (رویداد + منابع + اطلاعات)') }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="d-flex align-center gap-4 mt-3">
+                    <v-chip size="small" variant="tonal" color="primary">
+                      <v-icon start size="16">mdi-account-multiple</v-icon>
+                      {{ filteredEmployees.length }} {{ t('کارمند') }}
+                    </v-chip>
+
+                    <v-chip size="small" variant="tonal" color="amber">
+                      <v-icon start size="16">mdi-crown</v-icon>
+                      {{ t('بهترین') }}: {{ getTopEmployeeName }}
+                    </v-chip>
+                  </div>
+                </div>
+
+                <div class="d-flex align-center flex-wrap gap-2">
+                  <v-text-field
+                    v-model.trim="search"
+                    density="compact"
+                    variant="outlined"
+                    rounded="xl"
+                    hide-details
+                    :placeholder="t('جستجوی کارمند...')"
+                    clearable
+                    class="search-field"
+                  >
+                    <template #prepend-inner>
+                      <v-icon size="20" color="primary">mdi-magnify</v-icon>
+                    </template>
+                  </v-text-field>
+
+                  <v-select
+                    v-model="sortKey"
+                    density="compact"
+                    variant="outlined"
+                    rounded="xl"
+                    hide-details
+                    class="sort-field"
+                    :items="sortOptions"
+                    item-title="title"
+                    item-value="value"
+                    :label="t('مرتب‌سازی')"
+                  />
+
+                  <v-btn
+                    :loading="repo.loading"
+                    variant="tonal"
+                    color="primary"
+                    rounded="xl"
+                    @click="refreshData"
+                    :disabled="repo.loading"
+                    class="refresh-btn"
+                  >
+                    <v-icon>mdi-refresh</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-shell">
+              <v-data-table
+                :items="pagedEmployees"
+                :headers="employeeHeaders"
+                :loading="repo.loading"
+                class="employees-table cool-table"
+                item-key="id"
+                fixed-header
+                height="520"
+                :items-per-page="itemsPerPage"
+                hide-default-footer
+              >
+                <!-- Rank -->
+                <template #item.rank="{ item }">
+                  <div class="rank-cell">
+                    <div class="rank-badge" :class="`rank-${item.rank}`">
+                      <v-icon v-if="item.rank === 1" size="16">mdi-trophy</v-icon>
+                      <v-icon v-else-if="item.rank === 2" size="16">mdi-medal</v-icon>
+                      <v-icon v-else-if="item.rank === 3" size="16">mdi-medal-outline</v-icon>
+                      <span v-else>{{ item.rank }}</span>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- Employee -->
+                <template #item.name="{ item }">
+                  <div class="employee-cell" @click="viewEmployee(item)">
+                    <v-avatar size="40" class="avatar-glow mr-3">
+                      <span class="text-white text-body-2 font-weight-bold">
+                        {{ getInitials(item.name) }}
+                      </span>
+                    </v-avatar>
+
+                    <div class="min-w-0">
+                      <div class="employee-name text-body-2 font-weight-bold text-truncate">
+                        {{ item.name || '—' }}
+                      </div>
+
+                      <div class="d-flex align-center gap-2 mt-1">
+                        <v-chip size="x-small" variant="tonal" color="primary">
+                          {{ t('کود') }}: {{ item.code_number || '—' }}
+                        </v-chip>
+
+                        <v-tooltip location="top">
+                          <template #activator="{ props }">
+                            <v-btn
+                              v-bind="props"
+                              icon
+                              size="x-small"
+                              variant="text"
+                              color="primary"
+                              @click.stop="copyText(String(item.code_number || ''))"
+                            >
+                              <v-icon size="16">mdi-content-copy</v-icon>
+                            </v-btn>
+                          </template>
+                          <span>{{ t('کپی کود') }}</span>
+                        </v-tooltip>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- Metrics -->
+                <template #item.resources_count="{ item }">
+                  <div class="metric-chip">
+                    <v-icon size="16" color="primary">mdi-folder</v-icon>
+                    <span class="font-weight-bold">{{ num(item.resources_count) }}</span>
+                  </div>
+                </template>
+
+                <template #item.informations_count="{ item }">
+                  <div class="metric-chip">
+                    <v-icon size="16" color="indigo">mdi-file-document</v-icon>
+                    <span class="font-weight-bold">{{ num(item.informations_count) }}</span>
+                  </div>
+                </template>
+
+                <template #item.events_count="{ item }">
+                  <div class="metric-chip">
+                    <v-icon size="16" color="teal">mdi-calendar</v-icon>
+                    <span class="font-weight-bold">{{ num(item.events_count) }}</span>
+                  </div>
+                </template>
+
+                <!-- Score -->
+                <template #item.score="{ item }">
+                  <div class="score-cell">
+                    <v-progress-linear
+                      :model-value="getScorePercentage(item.score)"
+                      height="10"
+                      rounded
+                      :color="getScoreColor(item.score)"
+                      bg-color="rgba(0,0,0,0.06)"
+                      class="score-bar"
+                    />
+                    <div class="score-meta">
+                      <div class="score-number">{{ num(item.score) }}</div>
+                      <div class="score-label text-caption text-medium-emphasis">
+                        {{ getScoreLabel(item.score) }}
+                      </div>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- Actions -->
+                <template #item.actions="{ item }">
+                  <div class="d-flex align-center justify-center gap-1">
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      color="primary"
+                      @click="viewEmployee(item)"
+                    >
+                      <v-icon size="20">mdi-eye</v-icon>
+                    </v-btn>
+                  </div>
+                </template>
+
+                <!-- Empty -->
+                <template #no-data>
+                  <div class="empty-table pa-10 text-center">
+                    <v-icon size="72" color="grey-lighten-2" class="mb-4"
+                      >mdi-account-search</v-icon
+                    >
+                    <div class="text-h6 text-medium-emphasis mb-2">{{ t('کارمندی یافت نشد') }}</div>
+                    <div class="text-caption text-medium-emphasis">
+                      {{ t('هیچ کارمندی مطابق با جستجوی شما وجود ندارد') }}
+                    </div>
+                  </div>
+                </template>
+
+                <!-- Loading -->
+                <template #loading>
+                  <div class="loading-table pa-10 text-center">
+                    <v-progress-circular indeterminate color="primary" size="54" class="mb-4" />
+                    <div class="text-h6 text-medium-emphasis">{{ t('در حال بارگذاری...') }}</div>
+                  </div>
+                </template>
+              </v-data-table>
+            </div>
+
+            <!-- Footer -->
+            <div class="table-footer pa-3">
+              <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('نمایش') }} {{ pageFrom }}-{{ pageTo }} {{ t('از') }}
+                  {{ filteredEmployees.length }}
+                </div>
+
+                <v-pagination
+                  v-model="currentPage"
+                  :length="pageCount"
+                  total-visible="6"
+                  rounded="circle"
+                  density="compact"
+                />
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+
+        <!-- Right Column -->
+        <v-col cols="12" lg="4">
+          <FormatsPieChart
+            class="mb-4"
+            :title="t('توزیع فرم‌ها')"
+            :subtitle="t('بر اساس مناطق مختلف')"
+            :total="formatsTotal"
+            :total-label="t('کل فرم‌ها')"
+            :empty-text="t('داده‌ای موجود نیست')"
+            :data="formatsPieData"
+            :height="280"
+            donut
+            :show-legend="true"
+            :loading="repo.loading"
+            :interactive="true"
+            @refresh="refreshData"
+            @zone-click="onZoneClick"
+          />
+
+          <v-card rounded="xl" class="fancy-card">
+            <v-card-text class="pa-0">
+              <div class="zones-header pa-4">
+                <div class="d-flex align-center justify-space-between mb-2">
+                  <div class="d-flex align-center gap-2">
+                    <v-avatar size="34" class="bg-soft-primary">
+                      <v-icon color="primary">mdi-map-marker</v-icon>
+                    </v-avatar>
+                    <div>
+                      <div class="text-h6 font-weight-black">{{ t('آمار مناطق') }}</div>
+                      <div class="text-caption text-medium-emphasis">
+                        {{ t('بر اساس تعداد فرم') }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <v-chip size="small" variant="tonal" color="primary">
+                    {{ zones.length }} {{ t('منطقه') }}
+                  </v-chip>
+                </div>
+              </div>
+
+              <div class="zones-list pa-2">
+                <div
+                  v-for="(zone, index) in zonesTop"
+                  :key="`${zone.zone}-${index}`"
+                  class="zone-item pa-3"
+                  @click="viewZoneDetails(zone)"
+                >
+                  <div class="d-flex align-center gap-3">
+                    <div class="zone-rank">
+                      <div class="rank-number" :class="`rank-${index + 1}`">{{ index + 1 }}</div>
+                    </div>
+
+                    <div class="zone-info flex-grow-1">
+                      <div class="zone-name text-body-2 font-weight-bold mb-2">
+                        {{ zone.zone || t('نامشخص') }}
+                      </div>
+
+                      <v-progress-linear
+                        :model-value="getZonePercentage(zone.total)"
+                        height="7"
+                        rounded
+                        color="primary"
+                        bg-color="rgba(var(--v-theme-primary), 0.12)"
+                      />
+                    </div>
+
+                    <div class="zone-total text-body-2 font-weight-black">
+                      {{ num(zone.total) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="zones-footer pa-3">
+                <div class="d-flex align-center justify-space-between">
+                  <div class="text-caption text-medium-emphasis">
+                    {{ t('نمایش') }} {{ zonesTop.length }} {{ t('از') }} {{ zones.length }}
+                  </div>
+
+                  <v-btn
+                    size="small"
+                    variant="text"
+                    color="primary"
+                    :to="{ name: 'yearlyfoulreports' }"
+                  >
+                    {{ t('مشاهده همه') }}
+                    <v-icon end size="16">mdi-arrow-left</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
+
+    <!-- Refresh FAB -->
+    <v-fab location="bottom end" class="fab-refresh" :style="{ bottom: mobile ? '80px' : '24px' }">
+      <v-btn fab color="primary" size="small" :loading="repo.loading" @click="refreshData">
+        <v-icon>mdi-refresh</v-icon>
+      </v-btn>
+    </v-fab>
   </div>
 </template>
 
 <script setup>
-  import { computed, onMounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useDisplay } from 'vuetify';
+  import { useRouter } from 'vue-router';
   import AppBar from '@/components/AppBar.vue';
   import FormatsPieChart from '@/components/charts/FormatZonePieChart.vue';
   import { useDashboardRepository } from '@/stores/DashboardRepository';
 
   const { t, locale } = useI18n();
   const { mobile } = useDisplay();
+  const router = useRouter();
+
   const isRtl = computed(() => String(locale.value).toLowerCase().startsWith('fa'));
 
   const repo = useDashboardRepository();
+
   const search = ref('');
-  const lastUpdateTime = ref(new Date().toLocaleTimeString());
-  const tableDensity = ref('comfortable');
   const currentPage = ref(1);
-  const showFab = ref(true);
-  const showToast = ref(false);
-  const toastMessage = ref('');
-  const refreshIcon = ref('mdi-refresh');
-  const isRefreshing = ref(false);
+  const itemsPerPage = 10;
+
+  const sortKey = ref('score_desc');
+  const sortOptions = computed(() => [
+    { title: t('امتیاز (زیاد → کم)'), value: 'score_desc' },
+    { title: t('امتیاز (کم → زیاد)'), value: 'score_asc' },
+    { title: t('رویدادها (زیاد → کم)'), value: 'events_desc' },
+    { title: t('منابع (زیاد → کم)'), value: 'resources_desc' },
+    { title: t('اطلاعات (زیاد → کم)'), value: 'informations_desc' },
+    { title: t('نام (A → Z)'), value: 'name_asc' },
+  ]);
 
   onMounted(async () => {
-    if (!repo.dashboard) {
-      await repo.fetchDashboard();
-    }
-    startAutoRefresh();
+    if (!repo.dashboard) await repo.fetchDashboard();
   });
 
-  function startAutoRefresh() {
-    setInterval(() => {
-      lastUpdateTime.value = new Date().toLocaleTimeString();
-    }, 60000);
-  }
-
-  async function refreshWithAnimation() {
-    isRefreshing.value = true;
-    refreshIcon.value = 'mdi-loading mdi-spin';
-
+  async function refreshData() {
     await repo.fetchDashboard();
-
-    isRefreshing.value = false;
-    refreshIcon.value = 'mdi-refresh';
-
-    showToast.value = true;
-    toastMessage.value = t('دیتا با موفقیت بروزرسانی شد');
-    lastUpdateTime.value = new Date().toLocaleTimeString();
-  }
-
-  function searchEmployees() {
-    // Debounce search if needed
-  }
-
-  function toggleTableDensity() {
-    tableDensity.value = tableDensity.value === 'comfortable' ? 'compact' : 'comfortable';
   }
 
   function viewEmployee(employee) {
-    // Navigate to employee details
-    console.log('View employee:', employee);
+    router.push({ name: 'employee-details', params: { id: employee.id } });
   }
 
-  function editEmployee(employee) {
-    // Navigate to edit employee
-    console.log('Edit employee:', employee);
+  /**
+   * Resources routing
+   * - Default: resources list
+   * - Active/Inactive: resources list with query filter
+   * NOTE: if your app uses a different query key, just change "status" here.
+   */
+  function goResources(status = null) {
+    const query = status ? { status } : {};
+    router.push({ name: 'resources', query });
   }
 
   function onZoneClick(zone) {
-    // Handle zone click
-    console.log('Zone clicked:', zone);
+    router.push({
+      name: 'zone-reports',
+      query: { zone: zone.zone },
+    });
   }
 
   function viewZoneDetails(zone) {
-    // Navigate to zone details
-    console.log('View zone:', zone);
+    router.push({
+      name: 'zone-details',
+      query: { zone: zone.zone },
+    });
   }
 
   const readableError = computed(() => {
@@ -714,7 +795,7 @@
   });
 
   /* ===========================
-  Helper Functions
+Helpers
 =========================== */
   function num(v) {
     const n = Number(v);
@@ -723,37 +804,92 @@
 
   function getInitials(name) {
     if (!name) return '—';
-    return name
+    return String(name)
       .split(' ')
       .filter(Boolean)
-      .map((word) => word[0])
+      .map((w) => w[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
   }
 
-  function glowStyle(color) {
-    return {
-      background: `radial-gradient(circle at center, rgba(var(--v-theme-${color}), 0.3) 0%, transparent 70%)`,
-    };
+  async function copyText(text) {
+    try {
+      if (!text) return;
+      await navigator.clipboard.writeText(text);
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  function getScoreLabel(score) {
+    const percentage = getScorePercentage(score);
+    if (percentage >= 80) return t('عالی');
+    if (percentage >= 60) return t('خوب');
+    if (percentage >= 40) return t('متوسط');
+    return t('نیازمند بهبود');
   }
 
   /* ===========================
-  Stats Computed
+Growth
+=========================== */
+  const employeesGrowth = computed(() => {
+    const growth = repo.dashboard?.growth?.employees;
+    if (growth !== undefined) return growth;
+
+    const trend = repo.employees?.trend;
+    if (trend?.current && trend?.previous) {
+      const prev = Number(trend.previous) || 0;
+      if (!prev) return 0;
+      return (((Number(trend.current) - prev) / prev) * 100).toFixed(1);
+    }
+    return 0;
+  });
+
+  const informationsGrowth = computed(() => {
+    const growth = repo.dashboard?.growth?.informations;
+    if (growth !== undefined) return growth;
+
+    const trend = repo.informations?.trend;
+    if (trend?.current && trend?.previous) {
+      const prev = Number(trend.previous) || 0;
+      if (!prev) return 0;
+      return (((Number(trend.current) - prev) / prev) * 100).toFixed(1);
+    }
+    return 0;
+  });
+
+  /* ===========================
+Stats
 =========================== */
   const employeesTotal = computed(() => repo.employees?.total ?? repo.employeesFlat?.length ?? 0);
-  const resourcesTotal = computed(() => repo.resources?.total ?? 0);
-  const resourcesActive = computed(() => repo.resources?.active ?? 0);
-  const resourcesInactive = computed(() => repo.resources?.inactive ?? 0);
-  const informationsTotal = computed(() => repo.informations?.total ?? 0);
-  const eventsTotal = computed(() => repo.events?.total ?? 0);
 
-  const totalRecords = computed(
-    () => employeesTotal.value + resourcesTotal.value + informationsTotal.value + eventsTotal.value
+  const resourcesTotal = computed(() => Number(repo.resources?.total ?? 0));
+  const resourcesActive = computed(() => Number(repo.resources?.active ?? 0));
+  const resourcesInactive = computed(() => Number(repo.resources?.inactive ?? 0));
+
+  const informationsTotal = computed(() => Number(repo.informations?.total ?? 0));
+  const eventsTotal = computed(() => Number(repo.events?.total ?? 0));
+
+  const resourcesActivePercentage = computed(() => {
+    if (resourcesTotal.value === 0) return 0;
+    return Math.round((resourcesActive.value / resourcesTotal.value) * 100);
+  });
+
+  const moneyIncomeTotal = computed(() => Number(repo.money?.income_total ?? 0));
+  const moneyExpenseTotal = computed(() => Number(repo.money?.expensed_total ?? 0));
+  const moneyBalance = computed(() =>
+    Number(repo.money?.balance ?? moneyIncomeTotal.value - moneyExpenseTotal.value)
+  );
+
+  const oilIncomeTotal = computed(() => Number(repo.oil?.income_total ?? 0));
+  const oilExpenseTotal = computed(() => Number(repo.oil?.expensed_total ?? 0));
+  const oilBalance = computed(() =>
+    Number(repo.oil?.balance ?? oilIncomeTotal.value - oilExpenseTotal.value)
   );
 
   /* ===========================
-  Employees Logic (Unchanged)
+Employees Logic
 =========================== */
   function employeeScoreNumber(item) {
     if (item?.score != null && Number.isFinite(Number(item.score))) return Number(item.score);
@@ -763,15 +899,49 @@
     return events + resources + informations;
   }
 
-  const employees = computed(() => {
+  const baseEmployees = computed(() => {
     const list = Array.isArray(repo.employees?.flat_sorted)
       ? repo.employees.flat_sorted
       : Array.isArray(repo.dashboard?.employees_flat)
       ? repo.dashboard.employees_flat
       : [];
 
-    const sorted = [...list].sort((a, b) => employeeScoreNumber(b) - employeeScoreNumber(a));
+    return [...list].map((x) => ({
+      ...x,
+      score: employeeScoreNumber(x),
+    }));
+  });
 
+  const filteredEmployees = computed(() => {
+    const q = search.value?.trim()?.toLowerCase();
+    const arr = baseEmployees.value;
+
+    const filtered = !q
+      ? arr
+      : arr.filter((e) => {
+          const name = String(e?.name || '').toLowerCase();
+          const code = String(e?.code_number || '').toLowerCase();
+          return name.includes(q) || code.includes(q);
+        });
+
+    // sort
+    const sorted = [...filtered].sort((a, b) => {
+      const ak = sortKey.value;
+      if (ak === 'score_desc') return employeeScoreNumber(b) - employeeScoreNumber(a);
+      if (ak === 'score_asc') return employeeScoreNumber(a) - employeeScoreNumber(b);
+
+      if (ak === 'events_desc')
+        return (Number(b?.events_count) || 0) - (Number(a?.events_count) || 0);
+      if (ak === 'resources_desc')
+        return (Number(b?.resources_count) || 0) - (Number(a?.resources_count) || 0);
+      if (ak === 'informations_desc')
+        return (Number(b?.informations_count) || 0) - (Number(a?.informations_count) || 0);
+
+      if (ak === 'name_asc') return String(a?.name || '').localeCompare(String(b?.name || ''));
+      return 0;
+    });
+
+    // rank after sorting
     return sorted.map((x, i) => ({
       ...x,
       rank: i + 1,
@@ -780,21 +950,11 @@
   });
 
   const maxEmployeeScore = computed(() => {
-    const arr = employees.value;
+    const arr = filteredEmployees.value;
     if (!arr.length) return 100;
     const m = Math.max(...arr.map((e) => employeeScoreNumber(e)));
     return Math.max(m, 100);
   });
-
-  const maxResources = computed(() =>
-    Math.max(...employees.value.map((e) => Number(e.resources_count) || 0))
-  );
-  const maxInformations = computed(() =>
-    Math.max(...employees.value.map((e) => Number(e.informations_count) || 0))
-  );
-  const maxEvents = computed(() =>
-    Math.max(...employees.value.map((e) => Number(e.events_count) || 0))
-  );
 
   function getScorePercentage(score) {
     const s = Number(score) || 0;
@@ -810,64 +970,45 @@
     return 'error';
   }
 
-  const filteredEmployees = computed(() => {
-    const q = search.value?.trim()?.toLowerCase();
-    if (!q) return employees.value;
-
-    return employees.value.filter((e) => {
-      const name = String(e?.name || '').toLowerCase();
-      const code = String(e?.code_number || '').toLowerCase();
-      return name.includes(q) || code.includes(q);
-    });
-  });
-
   const getTopEmployeeName = computed(() => filteredEmployees.value[0]?.name || '—');
 
   const employeeHeaders = computed(() => [
-    { title: t('رتبه'), key: 'rank', width: 80, sortable: false, align: 'center' },
+    { title: t('رتبه'), key: 'rank', width: 90, sortable: false, align: 'center' },
     { title: t('کارمند'), key: 'name', sortable: false },
-    { title: t('منابع'), key: 'resources_count', width: 100, sortable: false, align: 'center' },
+    { title: t('منابع'), key: 'resources_count', width: 110, sortable: false, align: 'center' },
     {
-      title: t('معلومات'),
+      title: t('اطلاعات'),
       key: 'informations_count',
-      width: 100,
+      width: 110,
       sortable: false,
       align: 'center',
     },
-    { title: t('رویداد'), key: 'events_count', width: 100, sortable: false, align: 'center' },
-    { title: t('امتیاز'), key: 'score', width: 100, sortable: false, align: 'center' },
+    { title: t('رویدادها'), key: 'events_count', width: 110, sortable: false, align: 'center' },
+    { title: t('امتیاز'), key: 'score', width: 220, sortable: false, align: 'center' },
+    { title: t('عملیات'), key: 'actions', width: 70, sortable: false, align: 'center' },
   ]);
 
-  function rankBadgeStyle(rank) {
-    const colors = {
-      1: {
-        bg: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-        shadow: '0 0 20px rgba(255, 215, 0, 0.5)',
-      },
-      2: {
-        bg: 'linear-gradient(135deg, #C0C0C0 0%, #808080 100%)',
-        shadow: '0 0 20px rgba(192, 192, 192, 0.5)',
-      },
-      3: {
-        bg: 'linear-gradient(135deg, #CD7F32 0%, #A0522D 100%)',
-        shadow: '0 0 20px rgba(205, 127, 50, 0.5)',
-      },
-    };
+  // Pagination for table
+  const pageCount = computed(() =>
+    Math.max(1, Math.ceil(filteredEmployees.value.length / itemsPerPage))
+  );
 
-    return rank <= 3
-      ? colors[rank]
-      : {
-          bg: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
-          shadow: '0 0 10px rgba(33, 150, 243, 0.3)',
-        };
-  }
+  const pagedEmployees = computed(() => {
+    const page = Math.min(Math.max(1, currentPage.value), pageCount.value);
+    const start = (page - 1) * itemsPerPage;
+    return filteredEmployees.value.slice(start, start + itemsPerPage);
+  });
 
-  const densityIcon = computed(() =>
-    tableDensity.value === 'comfortable' ? 'mdi-view-agenda' : 'mdi-view-stream'
+  const pageFrom = computed(() => {
+    if (!filteredEmployees.value.length) return 0;
+    return (Math.min(currentPage.value, pageCount.value) - 1) * itemsPerPage + 1;
+  });
+  const pageTo = computed(() =>
+    Math.min(pageFrom.value + itemsPerPage - 1, filteredEmployees.value.length)
   );
 
   /* ===========================
-  Formats By Zone Logic (Unchanged)
+Formats By Zone Logic
 =========================== */
   const zones = computed(() => {
     const z = repo.formats_by_zone?.zones;
@@ -886,14 +1027,15 @@
   );
 
   function getZonePercentage(total) {
-    return formatsTotal.value > 0 ? ((Number(total) / formatsTotal.value) * 100).toFixed(1) : '0';
+    if (formatsTotal.value === 0) return 0;
+    return (Number(total) / formatsTotal.value) * 100;
   }
 
   const formatsPieData = computed(() => {
     const list = zones.value
       .map((z) => ({
         value: Number(z?.total) || 0,
-        name: z?.zone || t('نامعلوم'),
+        name: z?.zone || t('نامشخص'),
         itemStyle: { color: getZoneColor(z?.zone) },
       }))
       .filter((x) => x.value > 0)
@@ -903,9 +1045,7 @@
 
     const top = list.slice(0, 9);
     const restSum = list.slice(9).reduce((s, x) => s + x.value, 0);
-    if (restSum > 0) {
-      top.push({ name: t('سایر'), value: restSum, itemStyle: { color: '#9E9E9E' } });
-    }
+    if (restSum > 0) top.push({ name: t('سایر'), value: restSum, itemStyle: { color: '#9E9E9E' } });
     return top;
   });
 
@@ -921,8 +1061,6 @@
       '#673AB7',
       '#009688',
       '#E91E63',
-      '#3F51B5',
-      '#CDDC39',
     ];
     const s = String(zoneName || '');
     let hash = 0;
@@ -932,784 +1070,623 @@
 </script>
 
 <style scoped>
-  .dashboard-header {
-    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.05) 0%, transparent 100%);
-    padding-bottom: 16px;
-    position: relative;
-    overflow: hidden;
+  .dashboard-container {
+    min-height: 100vh;
+    background: radial-gradient(
+        1200px 600px at 0% 0%,
+        rgba(var(--v-theme-primary), 0.06),
+        transparent 60%
+      ),
+      radial-gradient(900px 500px at 100% 10%, rgba(var(--v-theme-teal), 0.06), transparent 55%),
+      #f8f9fa;
   }
 
-  .dashboard-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(var(--v-theme-primary), 0.3), transparent);
+  /* Error Alert */
+  .error-alert {
+    position: sticky;
+    top: 16px;
+    z-index: 100;
   }
 
-  .status-bar {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(var(--v-border-color), 0.1);
-    border-radius: 12px;
-    margin: 0 16px;
-    padding: 8px 16px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  .slide-down-enter-active,
+  .slide-down-leave-active {
+    transition: all 0.25s ease;
   }
-
-  .status-items {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .status-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  /* Stats Grid */
-  .stats-grid-wrapper {
-    position: relative;
-    margin-bottom: 24px;
-  }
-
-  .parallax-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 300px;
-    background: linear-gradient(
-      135deg,
-      rgba(var(--v-theme-primary), 0.05) 0%,
-      rgba(var(--v-theme-secondary), 0.05) 100%
-    );
-    border-radius: 0 0 40px 40px;
-    z-index: 0;
-  }
-
-  .stats-col {
-    z-index: 1;
-  }
-
-  .glass-card {
-    background: rgba(255, 255, 255, 0.9) !important;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .glass-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    border-color: rgba(var(--v-theme-primary), 0.3) !important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 40px rgba(var(--v-theme-primary), 0.1) !important;
-  }
-
-  .card-glow {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-    pointer-events: none;
+  .slide-down-enter-from,
+  .slide-down-leave-to {
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transform: translateY(-16px);
   }
 
-  .glass-card:hover .card-glow {
-    opacity: 1;
-  }
-
-  .floating-icon {
+  /* Cards */
+  .stat-card {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    height: 100%;
     position: relative;
-    animation: float 3s ease-in-out infinite;
+    overflow: hidden;
   }
 
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
+  .stat-accent {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 4px;
+    opacity: 0.9;
+  }
+  .stat-accent.primary {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-primary), 1),
+      rgba(var(--v-theme-secondary), 1)
+    );
+  }
+  .stat-accent.teal {
+    background: linear-gradient(90deg, rgba(var(--v-theme-teal), 1), rgba(var(--v-theme-cyan), 1));
+  }
+  .stat-accent.indigo {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-indigo), 1),
+      rgba(var(--v-theme-primary), 1)
+    );
+  }
+  .stat-accent.cyan {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-teal), 1),
+      rgba(var(--v-theme-primary), 1)
+    );
+  }
+  .stat-accent.success {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-success), 1),
+      rgba(var(--v-theme-primary), 1)
+    );
+  }
+  .stat-accent.warning {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-warning), 1),
+      rgba(var(--v-theme-error), 0.9)
+    );
   }
 
-  .avatar-glow-primary {
-    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
-    box-shadow: 0 0 30px rgba(33, 150, 243, 0.4);
+  .stat-card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.12) !important;
+    border-color: rgba(var(--v-theme-primary), 0.22);
   }
 
-  .avatar-glow-teal {
-    background: linear-gradient(135deg, #009688 0%, #00796b 100%) !important;
-    box-shadow: 0 0 30px rgba(0, 150, 136, 0.4);
-  }
-
-  .avatar-glow-indigo {
-    background: linear-gradient(135deg, #3f51b5 0%, #303f9f 100%) !important;
-    box-shadow: 0 0 30px rgba(63, 81, 181, 0.4);
-  }
-
-  .avatar-glow-teal-darken {
-    background: linear-gradient(135deg, #00796b 0%, #004d40 100%) !important;
-    box-shadow: 0 0 30px rgba(0, 121, 107, 0.4);
-  }
-
-  .text-gradient-primary {
-    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .text-gradient-teal {
-    background: linear-gradient(135deg, #009688 0%, #00796b 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .text-gradient-indigo {
-    background: linear-gradient(135deg, #3f51b5 0%, #303f9f 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .text-gradient-teal-darken {
-    background: linear-gradient(135deg, #00796b 0%, #004d40 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .trend-indicator,
-  .growth-badge,
-  .activity-indicator {
+  .card-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    background: rgba(var(--v-theme-primary), 0.08);
+  }
+  .card-icon-wrapper.primary {
+    background: rgba(var(--v-theme-primary), 0.1);
+  }
+  .card-icon-wrapper.teal {
+    background: rgba(var(--v-theme-teal), 0.1);
+  }
+  .card-icon-wrapper.indigo {
+    background: rgba(var(--v-theme-indigo), 0.1);
+  }
+  .card-icon-wrapper.cyan {
+    background: rgba(var(--v-theme-teal), 0.1);
+  }
+  .card-icon-wrapper.success {
+    background: rgba(var(--v-theme-success), 0.1);
+  }
+  .card-icon-wrapper.warning {
+    background: rgba(var(--v-theme-warning), 0.12);
+  }
+
+  .mini-meta {
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
-    margin-top: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.25);
+  }
+  .dot.success {
+    background: rgba(var(--v-theme-success), 1);
+  }
+  .dot.error {
+    background: rgba(var(--v-theme-error), 1);
   }
 
   .activity-dots {
     display: flex;
-    gap: 3px;
+    gap: 4px;
   }
-
-  .dot {
-    width: 6px;
-    height: 6px;
+  .activity-dot {
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background: rgba(var(--v-theme-primary), 0.3);
+    background: rgba(var(--v-theme-primary), 0.22);
   }
-
-  .dot.active {
+  .activity-dot.active {
     background: rgba(var(--v-theme-primary), 1);
   }
 
-  /* Main Cards */
-  .floating-card {
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
-    transition: all 0.3s ease;
+  .clickable-chip {
+    cursor: pointer;
   }
 
-  .floating-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  /* Fancy cards */
+  .fancy-card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+  }
+  .bg-soft-primary {
+    background: rgba(var(--v-theme-primary), 0.1);
   }
 
-  .card-header-glow {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
+  /* Table */
+  .table-header {
     background: linear-gradient(
       90deg,
-      rgba(var(--v-theme-primary), 0.8),
-      rgba(var(--v-theme-secondary), 0.8)
+      rgba(var(--v-theme-primary), 0.06),
+      rgba(var(--v-theme-teal), 0.04)
     );
-    border-radius: 12px 12px 0 0;
-    opacity: 0.8;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   }
 
-  .animated-header {
-    position: relative;
-    padding-bottom: 16px;
-    margin-bottom: 16px;
+  .table-shell {
+    background: white;
   }
 
-  .animated-header::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(var(--v-theme-primary), 0.3), transparent);
+  .search-field {
+    width: 260px;
   }
-
-  .spark-line {
-    width: 40px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(var(--v-theme-primary), 0.8));
-    border-radius: 1px;
+  .sort-field {
+    width: 210px;
   }
-
-  .header-controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
   .refresh-btn {
-    min-width: auto;
-    transition: all 0.3s ease;
+    min-width: 42px;
+    width: 42px;
+    height: 42px;
   }
 
-  .refresh-btn:disabled {
-    opacity: 0.6;
+  .cool-table :deep(.v-data-table__wrapper) {
+    border-radius: 0;
   }
 
-  /* Table Styling */
-  .table-wrapper {
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid rgba(var(--v-border-color), 0.1);
-    background: rgba(var(--v-theme-surface), 0.5);
+  .cool-table :deep(thead th) {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: white !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.2px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
   }
 
-  .employees-table :deep(.v-data-table__tr) {
-    transition: all 0.2s ease;
+  .cool-table :deep(.v-data-table__tr) {
+    transition: background-color 0.16s ease, transform 0.16s ease;
   }
 
-  .employees-table :deep(.v-data-table__tr:hover) {
+  .cool-table :deep(.v-data-table__tr:hover) {
     background: rgba(var(--v-theme-primary), 0.03) !important;
-    transform: translateX(4px);
+  }
+
+  .cool-table :deep(.v-data-table__td) {
+    padding: 14px 16px !important;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
   }
 
   .rank-cell {
     display: flex;
     justify-content: center;
   }
-
   .rank-badge {
     width: 40px;
     height: 40px;
-    border-radius: 12px;
-    display: flex;
+    border-radius: 14px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    font-weight: bold;
-    color: white;
-    transition: all 0.3s ease;
-  }
-
-  .rank-badge:hover {
-    transform: scale(1.1);
-  }
-
-  .rank-crown {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-  }
-
-  .employee-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 8px;
-    border-radius: 8px;
-  }
-
-  .employee-info:hover {
-    background: rgba(var(--v-theme-primary), 0.05);
-    transform: translateX(4px);
-  }
-
-  .avatar-gradient {
-    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
-  }
-
-  .employee-details {
-    flex: 1;
-  }
-
-  .employee-name {
-    font-weight: 600;
-    margin-bottom: 2px;
-  }
-
-  .employee-code {
-    font-size: 0.75rem;
-    color: rgba(var(--v-theme-on-surface), 0.6);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .metric-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .metric-value {
-    font-weight: 600;
-    min-width: 30px;
-  }
-
-  .score-cell {
-    display: flex;
-    justify-content: center;
-  }
-
-  .score-ring {
-    position: relative;
-  }
-
-  .score-progress {
-    transition: stroke-dasharray 0.8s ease;
-  }
-
-  .score-value {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  /* Empty & Loading States */
-  .empty-state,
-  .loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 0;
-  }
-
-  .empty-illustration {
-    margin-bottom: 16px;
-    opacity: 0.6;
-  }
-
-  .loading-animation {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  /* Table Footer */
-  .table-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 16px;
-    border-top: 1px solid rgba(var(--v-border-color), 0.1);
-  }
-
-  .footer-stats {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .stat-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  /* Zones Card */
-  .zones-card {
-    position: relative;
-  }
-
-  .zones-container {
-    margin: 8px 0;
-  }
-
-  .zone-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: rgba(var(--v-theme-surface), 0.5);
-  }
-
-  .zone-item:hover {
-    background: rgba(var(--v-theme-primary), 0.05);
-    transform: translateX(4px);
-  }
-
-  .zone-item-highlight {
-    border-left: 3px solid rgba(var(--v-theme-primary), 0.8);
-  }
-
-  .zone-rank {
-    flex-shrink: 0;
-  }
-
-  .rank-circle {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    font-size: 0.875rem;
+    font-weight: 900;
+    background: rgba(var(--v-theme-primary), 0.1);
+    color: rgba(var(--v-theme-primary), 0.95);
   }
 
   .rank-1 {
     background: linear-gradient(135deg, #ffd700, #ffa500);
+    color: white;
   }
   .rank-2 {
     background: linear-gradient(135deg, #c0c0c0, #808080);
+    color: white;
   }
   .rank-3 {
     background: linear-gradient(135deg, #cd7f32, #a0522d);
-  }
-  .rank-4 {
-    background: linear-gradient(135deg, #2196f3, #1976d2);
-  }
-  .rank-5 {
-    background: linear-gradient(135deg, #4caf50, #388e3c);
+    color: white;
   }
 
-  .zone-info {
-    flex: 1;
+  .employee-cell {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    min-width: 0;
   }
 
-  .zone-name {
-    font-weight: 500;
-    margin-bottom: 2px;
+  .avatar-glow {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-primary), 1),
+      rgba(var(--v-theme-secondary), 1)
+    );
+    box-shadow: 0 10px 22px rgba(var(--v-theme-primary), 0.22);
   }
 
-  .zone-progress {
+  .employee-name {
+    transition: color 0.16s ease;
+  }
+  .employee-cell:hover .employee-name {
+    color: rgba(var(--v-theme-primary), 1);
+  }
+
+  .metric-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.04);
+    min-width: 86px;
+  }
+
+  .score-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+  }
+  .score-bar {
     width: 120px;
   }
-
-  .progress-bar {
-    height: 6px;
-    background: rgba(var(--v-border-color), 0.2);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 4px;
+  .score-meta {
+    min-width: 78px;
+    text-align: start;
+  }
+  .score-number {
+    font-weight: 900;
+    font-size: 1rem;
   }
 
-  .progress-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.8s ease;
+  .empty-table,
+  .loading-table {
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .progress-color-1 {
-    background: linear-gradient(90deg, #2196f3, #64b5f6);
+  .table-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(var(--v-theme-primary), 0.02);
   }
-  .progress-color-2 {
-    background: linear-gradient(90deg, #4caf50, #81c784);
+
+  /* Zones */
+  .zones-header {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-primary), 0.06),
+      rgba(var(--v-theme-teal), 0.04)
+    );
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   }
-  .progress-color-3 {
-    background: linear-gradient(90deg, #ff9800, #ffb74d);
+
+  .zones-list {
+    max-height: 340px;
+    overflow-y: auto;
   }
-  .progress-color-4 {
-    background: linear-gradient(90deg, #9c27b0, #ba68c8);
+
+  .zone-item {
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.16s ease;
+    border: 1px solid transparent;
+  }
+
+  .zone-item:hover {
+    background: rgba(var(--v-theme-primary), 0.04);
+    border-color: rgba(var(--v-theme-primary), 0.12);
+  }
+
+  .rank-number {
+    width: 38px;
+    height: 38px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    background: rgba(var(--v-theme-primary), 0.1);
+    color: rgba(var(--v-theme-primary), 0.95);
   }
 
   .zones-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 16px;
-    border-top: 1px solid rgba(var(--v-border-color), 0.1);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(var(--v-theme-primary), 0.02);
   }
 
-  .zones-summary {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .summary-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .details-btn {
-    min-width: auto;
-  }
-
-  /* FAB Container */
-  .fab-container {
+  /* FAB */
+  .fab-refresh {
     position: fixed;
-    z-index: 1000;
+    z-index: 100;
   }
 
-  .fab-button {
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
-  }
-
-  .fab-button:hover {
-    transform: scale(1.1);
-  }
-
-  /* Toast */
-  .toast-content {
-    display: flex;
-    align-items: center;
-  }
-
-  /* Animations */
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  .slide-fade-enter-active,
-  .slide-fade-leave-active {
-    transition: all 0.3s ease;
-  }
-
-  .slide-fade-enter-from,
-  .slide-fade-leave-to {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-
-  .stats-grid-move {
-    transition: transform 0.5s ease;
-  }
-
-  .stats-grid-enter-active {
-    transition: all 0.5s ease;
-    transition-delay: calc(var(--v-index) * 0.1s);
-  }
-
-  .stats-grid-leave-active {
-    transition: all 0.3s ease;
-  }
-
-  .stats-grid-enter-from {
-    opacity: 0;
-    transform: scale(0.8) translateY(20px);
-  }
-
-  .stats-grid-leave-to {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-
-  /* Pulse Animation */
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(var(--v-theme-primary), 0.4);
-    }
-    70% {
-      box-shadow: 0 0 0 10px rgba(var(--v-theme-primary), 0);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(var(--v-theme-primary), 0);
-    }
-  }
-
-  .pulse {
-    animation: pulse 2s infinite;
-  }
-
-  /* Icon Shake */
-  @keyframes iconShake {
-    0%,
-    100% {
-      transform: rotate(0deg);
-    }
-    25% {
-      transform: rotate(-5deg);
-    }
-    75% {
-      transform: rotate(5deg);
-    }
-  }
-
-  .icon-shake {
-    animation: iconShake 5s ease-in-out infinite;
-  }
-
-  /* Pulse Dot */
-  .pulse-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(var(--v-theme-primary), 0.8);
-    animation: pulse 1.5s infinite;
-  }
-
-  /* Glow Chip */
-  .glow-chip {
-    box-shadow: 0 0 15px rgba(var(--v-theme-primary), 0.3) !important;
-    animation: glow 2s infinite alternate;
-  }
-
-  @keyframes glow {
-    from {
-      box-shadow: 0 0 10px rgba(var(--v-theme-primary), 0.3);
-    }
-    to {
-      box-shadow: 0 0 20px rgba(var(--v-theme-primary), 0.5);
-    }
-  }
-
-  /* Responsive Design */
+  /* Responsive */
   @media (max-width: 960px) {
-    .main-content .row {
-      flex-direction: row-reverse;
+    .search-field {
+      width: 220px;
     }
-
-    .header-controls {
-      flex-wrap: wrap;
-    }
-
-    .zone-progress {
-      width: 80px;
+    .sort-field {
+      width: 190px;
     }
   }
 
   @media (max-width: 600px) {
-    .status-items {
-      flex-wrap: wrap;
-      gap: 8px;
+    .stats-grid .v-col {
+      padding: 6px !important;
     }
-
-    .text-h3 {
-      font-size: 2rem;
+    .search-field,
+    .sort-field {
+      width: 100%;
     }
-
-    .header-controls {
-      gap: 8px;
+    .refresh-btn {
+      display: none;
     }
-
-    .table-footer {
-      flex-direction: row;
-      gap: 12px;
-      align-items: stretch;
-    }
-
-    .footer-actions {
-      display: flex;
-      justify-content: center;
+    .score-bar {
+      width: 90px;
     }
   }
 
-  /* Scrollbar Styling */
-  .table-wrapper::-webkit-scrollbar,
-  .zones-container::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  /* Dark Mode */
+  :deep(.v-theme--dark) .dashboard-container {
+    background: radial-gradient(
+        1200px 600px at 0% 0%,
+        rgba(var(--v-theme-primary), 0.18),
+        transparent 60%
+      ),
+      radial-gradient(900px 500px at 100% 10%, rgba(var(--v-theme-teal), 0.14), transparent 55%),
+      #121212;
   }
 
-  .table-wrapper::-webkit-scrollbar-track,
-  .zones-container::-webkit-scrollbar-track {
-    background: rgba(var(--v-border-color), 0.1);
-    border-radius: 3px;
+  :deep(.v-theme--dark) .stat-card {
+    background: #1e1e1e;
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
-  .table-wrapper::-webkit-scrollbar-thumb,
-  .zones-container::-webkit-scrollbar-thumb {
-    background: rgba(var(--v-theme-primary), 0.3);
-    border-radius: 3px;
+  :deep(.v-theme--dark) .fancy-card {
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
   }
 
-  .table-wrapper::-webkit-scrollbar-thumb:hover,
-  .zones-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(var(--v-theme-primary), 0.5);
+  :deep(.v-theme--dark) .table-header,
+  :deep(.v-theme--dark) .table-footer,
+  :deep(.v-theme--dark) .zones-header,
+  :deep(.v-theme--dark) .zones-footer {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
-  /* RTL Support */
-  [dir='rtl'] .employee-info:hover,
-  [dir='rtl'] .zone-item:hover {
-    transform: translateX(-4px);
+  :deep(.v-theme--dark) .cool-table :deep(thead th) {
+    background: #1e1e1e !important;
   }
 
-  [dir='rtl'] .employees-table :deep(.v-data-table__tr:hover) {
-    transform: translateX(-4px);
+  :deep(.v-theme--dark) .metric-chip,
+  :deep(.v-theme--dark) .mini-meta {
+    background: rgba(255, 255, 255, 0.06);
   }
 
-  [dir='rtl'] .spark-line {
-    background: linear-gradient(90deg, rgba(var(--v-theme-primary), 0.8), transparent);
+  :deep(.v-theme--dark) .zone-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  /* ✅ Make stat cards shorter without touching logic */
+  .stat-card {
+    height: 100% !important; /* keep equal height in grid */
   }
 
-  [dir='rtl'] .animated-header::after {
-    background: linear-gradient(90deg, transparent, rgba(var(--v-theme-primary), 0.3), transparent);
+  .stat-card :deep(.v-card-text) {
+    padding: 14px 16px !important; /* was pa-5 => too tall */
   }
 
-  /* ✅ MUST ADD: keeps v-col behaving like direct children of v-row */
-  .stats-grid-group {
-    display: contents;
-  }
-  .dashboard-container {
-    font-family: var(--app-font);
+  .stat-card .text-h3 {
+    font-size: 1.75rem !important; /* smaller number */
+    line-height: 1.2 !important;
+    margin: 0 !important;
   }
 
-  .dashboard-container :deep(*) {
-    font-family: inherit;
+  .stat-card .mb-4 {
+    margin-bottom: 10px !important;
   }
-  /* Remove FAB background completely */
-  .fab-transparent :deep(.v-fab__container),
-  .fab-transparent :deep(.v-fab__underlay),
-  .fab-transparent :deep(.v-fab__content) {
-    background: transparent !important;
-    box-shadow: none !important;
+  .stat-card .mt-4 {
+    margin-top: 10px !important;
   }
 
-  /* Icon-only button */
-  .fab-icon-only {
-    background: transparent !important;
-    box-shadow: none !important;
+  /* make progress bars + chips slightly tighter */
+  .stat-card :deep(.v-progress-linear) {
+    margin-bottom: 10px !important;
+  }
+  .stat-card :deep(.v-chip) {
+    height: 24px !important;
+  }
+  /* 🔽 EXTRA compact stat cards */
+  .stat-card :deep(.v-card-text) {
+    padding: 10px 12px !important;
   }
 
-  /* Optional hover effect (nice UX) */
-  .fab-icon-only:hover {
-    background: rgba(var(--v-theme-primary), 0.08) !important;
-    border-radius: 50%;
+  /* numbers smaller */
+  .stat-card .text-h3 {
+    font-size: 1.45rem !important;
+    line-height: 1.15 !important;
   }
+
+  /* remove extra vertical spacing */
+  .stat-card .mb-4 {
+    margin-bottom: 6px !important;
+  }
+  .stat-card .mb-3 {
+    margin-bottom: 6px !important;
+  }
+  .stat-card .mt-4 {
+    margin-top: 6px !important;
+  }
+  .stat-card .mt-3 {
+    margin-top: 6px !important;
+  }
+
+  /* icons tighter */
+  .card-icon-wrapper {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 10px !important;
+  }
+
+  /* chips & meta compact */
+  .stat-card :deep(.v-chip) {
+    height: 22px !important;
+    padding: 0 8px !important;
+    font-size: 0.7rem !important;
+  }
+
+  /* progress bars slimmer */
+  .stat-card :deep(.v-progress-linear) {
+    height: 5px !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* mini meta pill */
+  .mini-meta {
+    padding: 4px 8px !important;
+    font-size: 0.7rem !important;
+  }
+  /* =========================================================
+   🔒 FORCE GLOBAL FONT — NO EXCEPTIONS
+   ========================================================= */
+
+  /* Root + browser */
+  html,
+  body,
+  #app {
+    font-family: var(--app-font) !important;
+  }
+
+  /* Vuetify root */
+  .v-application,
+  .v-application * {
+    font-family: var(--app-font) !important;
+  }
+
+  /* Inputs, buttons, labels */
+  input,
+  textarea,
+  select,
+  button,
+  .v-btn,
+  .v-field,
+  .v-field__input,
+  .v-field-label,
+  .v-label {
+    font-family: var(--app-font) !important;
+  }
+
+  /* Tables */
+  .v-data-table,
+  .v-data-table * {
+    font-family: var(--app-font) !important;
+  }
+
+  /* Chips, badges, alerts */
+  .v-chip,
+  .v-badge,
+  .v-alert,
+  .v-snackbar,
+  .v-tooltip,
+  .v-menu,
+  .v-list,
+  .v-list-item {
+    font-family: var(--app-font) !important;
+  }
+
+  /* Dialogs, cards, overlays */
+  .v-dialog,
+  .v-card,
+  .v-sheet,
+  .v-overlay,
+  .v-navigation-drawer,
+  .v-toolbar,
+  .v-app-bar {
+    font-family: var(--app-font) !important;
+  }
+
+  /* Pagination, tabs */
+  .v-pagination,
+  .v-tab,
+  .v-tabs,
+  .v-tabs-bar {
+    font-family: var(--app-font) !important;
+  }
+
+  /* Icons labels / helper text */
+  .v-icon,
+  .v-messages,
+  .v-messages__message,
+  .v-hint {
+    font-family: var(--app-font) !important;
+  }
+
+  /* Tailwind utility text (just in case) */
+  [class*='text-'],
+  [class*='font-'] {
+    font-family: var(--app-font) !important;
+  }
+  /* ===========================
+   ✅ EMPLOYEE TABLE HEADER (columns)
+   =========================== */
+
+/* Light mode */
+.cool-table :deep(.v-data-table__thead th),
+.cool-table :deep(.v-table thead th) {
+  background-color: #f8fafc !important; /* very light, clean */
+  color: rgba(0, 0, 0, 0.82) !important;
+  font-weight: 800 !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* remove primary accent shadow */
+.cool-table :deep(.v-data-table__thead tr),
+.cool-table :deep(.v-table thead tr) {
+  box-shadow: none !important;
+}
+
+/* Dark mode */
+:deep(.v-theme--dark) .cool-table :deep(.v-data-table__thead th),
+:deep(.v-theme--dark) .cool-table :deep(.v-table thead th) {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
 </style>

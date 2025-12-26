@@ -1,702 +1,772 @@
 <template>
-  <v-dialog v-model="model" max-width="900" scrollable>
-    <v-card rounded="xl" class="overflow-hidden">
+  <v-dialog v-model="model" max-width="980" scrollable>
+    <v-card rounded="xl" class="dialog-card overflow-hidden">
       <!-- Header -->
-      <div class="bg-gradient-primary py-6 px-4">
+      <div class="dialog-header">
         <div class="d-flex align-center justify-space-between">
-          <div class="d-flex align-center">
-            <v-avatar color="white" size="48" class="me-3">
-              <v-icon icon="mdi-cash" color="primary" size="28"></v-icon>
-            </v-avatar>
+          <div class="d-flex align-center gap-3">
+            <div class="icon-badge">
+              <v-icon icon="mdi-cash-minus" size="22" />
+            </div>
+
             <div>
-              <h2 class="text-h5 font-weight-bold text-white mb-1">
-                {{ editMode ? t('ویرایش مصرف') : t('ثبت مصرف جدید') }}
-              </h2>
-              <p class="text-white text-caption opacity-75 mb-0">
-                {{ editMode ? t('اطلاعات مصرف را ویرایش کنید') : t('اطلاعات مصرف جدید را وارد کنید') }}
-              </p>
+              <div class="text-h6 font-weight-bold mb-0">
+                {{ isEdit ? 'ویرایش مصرف' : 'ثبت مصرف جدید' }}
+              </div>
+              <div class="text-caption opacity-90">
+                {{ isEdit ? 'اطلاعات مصرف را ویرایش کنید' : 'اطلاعات مصرف جدید را وارد کنید' }}
+              </div>
             </div>
           </div>
-          <v-btn 
-            icon="mdi-close" 
-            variant="text" 
-            color="white"
+
+          <v-btn
+            icon="mdi-close"
+            variant="text"
             size="small"
-            @click="model = false"
+            class="rounded-lg"
+            @click="close"
           />
         </div>
       </div>
 
-      <v-card-text class="pa-6">
-        <v-form ref="formRef" @submit.prevent="submit" lazy-validation>
-          <!-- Main Information Section -->
-          <div class="mb-8">
-            <div class="d-flex align-center mb-4">
-              <div class="section-title-line bg-primary me-3"></div>
-              <h3 class="text-h6 font-weight-bold text-primary">
-                <v-icon icon="mdi-information" class="me-2" size="20"></v-icon>
-                {{ t('اطلاعات اصلی') }}
-              </h3>
+      <v-divider />
+
+      <v-card-text class="pa-5">
+        <v-form ref="formRef" @submit.prevent="onSubmit">
+          <!-- Section: Main -->
+          <div class="section">
+            <div class="section-title">
+              <v-icon icon="mdi-information-outline" size="18" class="me-2" />
+              اطلاعات اصلی
             </div>
-            
-            <v-row>
+
+            <div class="grid-2">
               <!-- Account -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                    <v-icon icon="mdi-bank" size="16" class="me-1"></v-icon>
-                    {{ t('حساب') }} *
-                  </label>
-                  <v-autocomplete
-                    v-model="editor.account_id"
-                    :items="accountsOptions"
-                    item-title="name"
-                    item-value="id"
-                    :placeholder="t('حساب را انتخاب کنید')"
-                    variant="underlined"
-                    :error="hasError('account_id')"
-                    :error-messages="getErrorMessages('account_id')"
-                    hide-details
-                    :rules="[v => !!v || t('حساب الزامی است')]"
-                    class="mt-1"
-                  />
-                </v-card>
-              </v-col>
+              <v-autocomplete
+                v-model="draft.account_id"
+                :items="accountOptions"
+                item-title="name"
+                item-value="id"
+                label="حساب *"
+                density="compact"
+                variant="outlined"
+                prepend-inner-icon="mdi-bank-outline"
+                :loading="repo.loading"
+                :rules="[rules.required]"
+                :error="hasError('account_id')"
+                :error-messages="getErrorMessages('account_id')"
+                class="field"
+              />
 
               <!-- Date -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                    <v-icon icon="mdi-calendar" size="16" class="me-1"></v-icon>
-                    {{ t('تاریخ') }} *
-                  </label>
-                  <DateInput
-                    v-model="editor.date"
-                    :placeholder="t('تاریخ را انتخاب کنید')"
-                    :error="hasError('date')"
-                    :error-messages="getErrorMessages('date')"
-                    :rules="[v => !!v || t('تاریخ الزامی است')]"
-                    hide-details
-                    variant="underlined"
-                    class="mt-1"
-                  />
-                </v-card>
-              </v-col>
-            </v-row>
+              <DateInput
+                v-model="draft.date"
+                label="تاریخ *"
+                density="compact"
+                :rules="[rules.required]"
+                :error="hasError('date')"
+                :error-messages="getErrorMessages('date')"
+                class="field"
+              />
+
+              <!-- Amount Number -->
+              <v-text-field
+                v-model="draft.money_amount_number"
+                label="مبلغ (عدد) *"
+                density="compact"
+                variant="outlined"
+                type="number"
+                prepend-inner-icon="mdi-currency-usd"
+                :rules="[rules.requiredNumber]"
+                :error="hasError('money_amount_number')"
+                :error-messages="getErrorMessages('money_amount_number')"
+                class="field"
+              />
+
+              <!-- Amount Words -->
+              <v-text-field
+                v-model="draft.money_amount_words"
+                label="مبلغ (حروف)"
+                density="compact"
+                variant="outlined"
+                prepend-inner-icon="mdi-text-box-outline"
+                :error="hasError('money_amount_words')"
+                :error-messages="getErrorMessages('money_amount_words')"
+                class="field"
+              />
+            </div>
           </div>
 
-          <!-- Employee Information Section -->
-          <div class="mb-8">
-            <div class="d-flex align-center mb-4">
-              <div class="section-title-line bg-blue me-3"></div>
-              <h3 class="text-h6 font-weight-bold text-blue">
-                <v-icon icon="mdi-account-tie" class="me-2" size="20"></v-icon>
-                {{ t('اطلاعات کارمند') }}
-              </h3>
+          <v-divider class="my-4" />
+
+          <!-- Section: People & Result -->
+          <div class="section">
+            <div class="section-title">
+              <v-icon icon="mdi-account-group-outline" size="18" class="me-2" />
+              معلومات تکمیلی
             </div>
-            
-            <v-row>
-              <!-- Employee Selection -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                    <v-icon icon="mdi-account-search" size="16" class="me-1"></v-icon>
-                    {{ t('کارمند') }}
-                  </label>
-                  <v-autocomplete
-                    v-model="editor.office_employee_id"
-                    :items="employeesOptions"
-                    item-title="name"
-                    item-value="id"
-                    :placeholder="t('کارمند را انتخاب کنید')"
-                    variant="underlined"
-                    :error="hasError('office_employee_id')"
-                    :error-messages="getErrorMessages('office_employee_id')"
-                    hide-details
-                    @update:model-value="onEmployeeSelected"
-                    class="mt-1"
-                  >
-                    <template #item="{ props, item: it }">
-                      <v-list-item v-bind="props">
-                        <template #prepend>
-                          <v-avatar color="blue" size="32">
-                            <span class="text-white text-caption">{{ it.raw.name?.charAt(0) || '?' }}</span>
-                          </v-avatar>
-                        </template>
-                        <v-list-item-title class="text-body-2 font-weight-medium">{{ it.raw.name }}</v-list-item-title>
-                        <v-list-item-subtitle class="text-caption">
-                          {{ t('کد') }}: {{ it.raw.code_number }}
-                        </v-list-item-subtitle>
-                      </v-list-item>
-                    </template>
-                  </v-autocomplete>
-                </v-card>
-              </v-col>
 
-              <!-- Employee Phone (Auto-filled) -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                    <v-icon icon="mdi-phone" size="16" class="me-1"></v-icon>
-                    {{ t('شماره تماس کارمند') }}
-                  </label>
-                  <v-text-field
-                    v-model="editor.employee_phone"
-                    :placeholder="t('شماره تماس کارمند')"
-                    variant="underlined"
-                    :error="hasError('employee_phone')"
-                    :error-messages="getErrorMessages('employee_phone')"
-                    hide-details
-                    readonly
-                    class="mt-1"
-                  >
-                    <template #append>
-                      <v-icon 
-                        v-if="editor.employee_phone"
-                        icon="mdi-content-copy"
-                        size="small"
-                        @click="copyToClipboard(editor.employee_phone)"
-                        class="cursor-pointer"
-                      ></v-icon>
-                    </template>
-                  </v-text-field>
-                </v-card>
-              </v-col>
-            </v-row>
-          </div>
+            <div class="grid-2">
+              <!-- Employee Phone -->
+              <v-text-field
+                v-model="draft.employee_phone"
+                label="شماره تلفن کارمند"
+                density="compact"
+                variant="outlined"
+                prepend-inner-icon="mdi-phone-outline"
+                :error="hasError('employee_phone')"
+                :error-messages="getErrorMessages('employee_phone')"
+                class="field"
+              />
 
-          <!-- Resource Information Section -->
-          <div class="mb-8">
-            <div class="d-flex align-center mb-4">
-              <div class="section-title-line bg-green me-3"></div>
-              <h3 class="text-h6 font-weight-bold text-green">
-                <v-icon icon="mdi-source" class="me-2" size="20"></v-icon>
-                {{ t('اطلاعات منبع') }}
-              </h3>
-            </div>
-            
-            <v-row>
-              <!-- Resource Selection -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                    <v-icon icon="mdi-source-check" size="16" class="me-1"></v-icon>
-                    {{ t('منبع') }}
-                  </label>
-                  <v-autocomplete
-                    v-model="editor.resource_id"
-                    :items="resourcesOptions"
-                    item-title="name"
-                    item-value="id"
-                    :placeholder="t('منبع را انتخاب کنید')"
-                    variant="underlined"
-                    :error="hasError('resource_id')"
-                    :error-messages="getErrorMessages('resource_id')"
-                    hide-details
-                    @update:model-value="onResourceSelected"
-                    class="mt-1"
-                  >
-                    <template #item="{ props, item: it }">
-                      <v-list-item v-bind="props">
-                        <template #prepend>
-                          <v-avatar color="green" size="32">
-                            <v-icon icon="mdi-source" color="white" size="18"></v-icon>
-                          </v-avatar>
-                        </template>
-                        <v-list-item-title class="text-body-2 font-weight-medium">{{ it.raw.name }}</v-list-item-title>
-                        <v-list-item-subtitle class="text-caption">
-                          {{ t('کد') }}: {{ it.raw.code_number }}
-                        </v-list-item-subtitle>
-                      </v-list-item>
-                    </template>
-                  </v-autocomplete>
-                </v-card>
-              </v-col>
+              <!-- Expense Result -->
+              <v-text-field
+                v-model="draft.expense_result"
+                label="نتیجه مصرف"
+                density="compact"
+                variant="outlined"
+                prepend-inner-icon="mdi-clipboard-check-outline"
+                :error="hasError('expense_result')"
+                :error-messages="getErrorMessages('expense_result')"
+                class="field"
+              />
 
-              <!-- Resource Phone (Auto-filled) -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                    <v-icon icon="mdi-phone" size="16" class="me-1"></v-icon>
-                    {{ t('شماره تماس منبع') }}
-                  </label>
-                  <v-text-field
-                    v-model="resourcePhone"
-                    :placeholder="t('شماره تماس منبع')"
-                    variant="underlined"
-                    hide-details
-                    readonly
-                    class="mt-1"
-                  >
-                    <template #append>
-                      <v-icon 
-                        v-if="resourcePhone"
-                        icon="mdi-content-copy"
-                        size="small"
-                        @click="copyToClipboard(resourcePhone)"
-                        class="cursor-pointer"
-                      ></v-icon>
-                    </template>
-                  </v-text-field>
-                </v-card>
-              </v-col>
-            </v-row>
-          </div>
-
-          <!-- Amount Information Section -->
-          <div class="mb-8">
-            <div class="d-flex align-center mb-4">
-              <div class="section-title-line bg-amber me-3"></div>
-              <h3 class="text-h6 font-weight-bold text-amber-darken-3">
-                <v-icon icon="mdi-cash-multiple" class="me-2" size="20"></v-icon>
-                {{ t('اطلاعات مبلغ') }}
-              </h3>
-            </div>
-            
-            <v-row>
-              <!-- Amount in Numbers -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                    <v-icon icon="mdi-numeric" size="16" class="me-1"></v-icon>
-                    {{ t('مبلغ (عدد)') }} *
-                  </label>
-                  <v-text-field
-                    v-model="editor.money_amount_number"
-                    type="number"
-                    :placeholder="t('مبلغ را وارد کنید')"
-                    variant="underlined"
-                    :error="hasError('money_amount_number')"
-                    :error-messages="getErrorMessages('money_amount_number')"
-                    hide-details
-                    :rules="[v => v > 0 || t('مبلغ باید بیشتر از صفر باشد')]"
-                    class="mt-1"
-                  >
-                    <template #append>
-                      <span class="text-caption text-grey">افغانی</span>
-                    </template>
-                  </v-text-field>
-                </v-card>
-              </v-col>
-
-              <!-- Amount in Words -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                    <v-icon icon="mdi-alphabetical" size="16" class="me-1"></v-icon>
-                    {{ t('مبلغ (حروف)') }}
-                  </label>
-                  <v-text-field
-                    v-model="editor.money_amount_words"
-                    :placeholder="t('مبلغ به حروف')"
-                    variant="underlined"
-                    :error="hasError('money_amount_words')"
-                    :error-messages="getErrorMessages('money_amount_words')"
-                    hide-details
-                    class="mt-1"
-                  />
-                </v-card>
-              </v-col>
-
-              <!-- Expense Purpose -->
-              <v-col cols="12">
-                <v-card variant="flat" class="border rounded-lg pa-4">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                    <v-icon icon="mdi-text-box-check" size="16" class="me-1"></v-icon>
-                    {{ t('جهت مصرف') }}
-                  </label>
-                  <v-textarea
-                    v-model="editor.expense_result"
-                    :placeholder="t('جهت مصرف را توضیح دهید')"
-                    variant="underlined"
-                    :error="hasError('expense_result')"
-                    :error-messages="getErrorMessages('expense_result')"
-                    hide-details
-                    rows="2"
-                    auto-grow
-                    class="mt-1"
-                  />
-                </v-card>
-              </v-col>
-            </v-row>
-          </div>
-
-          <!-- Transaction Parties Section -->
-          <div class="mb-8">
-            <div class="d-flex align-center mb-4">
-              <div class="section-title-line bg-purple me-3"></div>
-              <h3 class="text-h6 font-weight-bold text-purple">
-                <v-icon icon="mdi-account-switch" class="me-2" size="20"></v-icon>
-                {{ t('طرفین معامله') }}
-              </h3>
-            </div>
-            
-            <v-row>
               <!-- Payer -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                    <v-icon icon="mdi-account-arrow-right" size="16" class="me-1"></v-icon>
-                    {{ t('پرداخت کننده') }}
-                  </label>
-                  <v-text-field
-                    v-model="editor.payer"
-                    :placeholder="t('نام پرداخت کننده')"
-                    variant="underlined"
-                    :error="hasError('payer')"
-                    :error-messages="getErrorMessages('payer')"
-                    hide-details
-                    class="mt-1"
-                  />
-                </v-card>
-              </v-col>
+              <v-text-field
+                v-model="draft.payer"
+                label="پرداخت کننده"
+                density="compact"
+                variant="outlined"
+                prepend-inner-icon="mdi-account-arrow-right-outline"
+                :error="hasError('payer')"
+                :error-messages="getErrorMessages('payer')"
+                class="field"
+              />
 
               <!-- Receiver -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                    <v-icon icon="mdi-account-arrow-left" size="16" class="me-1"></v-icon>
-                    {{ t('دریافت کننده') }}
-                  </label>
-                  <v-text-field
-                    v-model="editor.receiver"
-                    :placeholder="t('نام دریافت کننده')"
-                    variant="underlined"
-                    :error="hasError('receiver')"
-                    :error-messages="getErrorMessages('receiver')"
-                    hide-details
-                    class="mt-1"
-                  />
-                </v-card>
-              </v-col>
-            </v-row>
+              <v-text-field
+                v-model="draft.receiver"
+                label="دریافت کننده"
+                density="compact"
+                variant="outlined"
+                prepend-inner-icon="mdi-account-arrow-left-outline"
+                :error="hasError('receiver')"
+                :error-messages="getErrorMessages('receiver')"
+                class="field"
+              />
+            </div>
           </div>
 
-          <!-- Notes Section -->
-          <div class="mb-2">
-            <div class="d-flex align-center mb-4">
-              <div class="section-title-line bg-grey-darken-2 me-3"></div>
-              <h3 class="text-h6 font-weight-bold text-grey-darken-2">
-                <v-icon icon="mdi-note-text" class="me-2" size="20"></v-icon>
-                {{ t('یادداشت‌ها') }}
-              </h3>
+          <v-divider class="my-4" />
+
+          <!-- Section: Link to employee/resource -->
+          <div class="section">
+            <div class="section-title">
+              <v-icon icon="mdi-link-variant" size="18" class="me-2" />
+              ارتباطات (حداقل یکی ضروری)
             </div>
-            
-            <v-card variant="flat" class="border rounded-lg pa-4">
-              <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block">
-                <v-icon icon="mdi-pencil" size="16" class="me-1"></v-icon>
-                {{ t('توضیحات اضافی') }}
-              </label>
-              <v-textarea
-                v-model="editor.notes"
-                :placeholder="t('هرگونه توضیح اضافی درباره این مصرف')"
-                variant="underlined"
-                hide-details
-                rows="3"
-                auto-grow
-                class="mt-1"
+
+            <div class="grid-2">
+              <!-- Office Employee dropdown -->
+              <v-autocomplete
+                v-model="draft.office_employee_id"
+                :items="officeEmployeeOptions"
+                item-title="name"
+                item-value="id"
+                :label="draft.resource_id ? 'کارمند' : 'کارمند *'"
+                density="compact"
+                variant="outlined"
+                prepend-inner-icon="mdi-account-outline"
+                clearable
+                :loading="repo.officeEmployeesLoading"
+                :rules="[conditionalEmployeeRequired]"
+                :error="hasError('office_employee_id')"
+                :error-messages="getErrorMessages('office_employee_id')"
+                class="field"
               />
-            </v-card>
+
+              <!-- Resource dropdown -->
+              <v-autocomplete
+                v-model="draft.resource_id"
+                :items="resourceOptions"
+                item-title="name"
+                item-value="id"
+                :label="draft.office_employee_id ? 'منبع' : 'منبع *'"
+                density="compact"
+                variant="outlined"
+                prepend-inner-icon="mdi-link-box-outline"
+                clearable
+                :loading="repo.resourcesLoading"
+                :rules="[conditionalResourceRequired]"
+                :error="hasError('resource_id')"
+                :error-messages="getErrorMessages('resource_id')"
+                class="field"
+              />
+            </div>
+          </div>
+
+          <v-divider class="my-4" />
+
+          <!-- Notes -->
+          <div class="section">
+            <div class="section-title">
+              <v-icon icon="mdi-note-text-outline" size="18" class="me-2" />
+              یادداشت
+            </div>
+
+            <v-textarea
+              v-model="draft.notes"
+              label="یادداشت"
+              density="compact"
+              variant="outlined"
+              rows="3"
+              auto-grow
+              prepend-inner-icon="mdi-note-text-outline"
+              :error="hasError('notes')"
+              :error-messages="getErrorMessages('notes')"
+              class="field"
+            />
+          </div>
+
+          <!-- General errors -->
+          <div v-if="backendErrors.general?.length" class="mt-4">
+            <v-alert type="error" variant="tonal" density="compact" class="rounded-lg">
+              <div v-for="(m, i) in backendErrors.general" :key="i" class="text-caption">
+                {{ m }}
+              </div>
+            </v-alert>
+          </div>
+
+          <!-- Actions -->
+          <div class="actions mt-6">
+            <v-btn variant="text" class="rounded-lg px-4" color="grey-darken-1" @click="close">
+              انصراف
+            </v-btn>
+
+            <v-btn
+              color="error"
+              :loading="saving"
+              type="submit"
+              class="rounded-lg px-6"
+              prepend-icon="mdi-check"
+              elevation="1"
+            >
+              {{ isEdit ? 'ذخیره تغییرات' : 'ثبت مصرف' }}
+            </v-btn>
           </div>
         </v-form>
       </v-card-text>
-
-      <!-- Footer Actions -->
-      <v-divider />
-
-      <v-card-actions class="pa-4 d-flex justify-end gap-3 bg-grey-lighten-5">
-        <v-btn
-          variant="outlined"
-          color="grey-darken-2"
-          @click="clearLocal"
-          :disabled="busy"
-          prepend-icon="mdi-broom"
-          size="large"
-          class="px-5"
-        >
-          {{ t('پاک کردن فرم') }}
-        </v-btn>
-
-        <v-btn
-          color="primary"
-          variant="flat"
-          @click="submit"
-          :loading="busy"
-          prepend-icon="mdi-content-save-check"
-          size="large"
-          class="px-6"
-          elevation="2"
-        >
-          {{ editMode ? t('ذخیره تغییرات') : t('ثبت مصرف') }}
-        </v-btn>
-      </v-card-actions>
     </v-card>
-
-    <!-- Notification Toast -->
-    <v-snackbar v-model="snack.open" :color="snack.color" timeout="3000" location="top">
-      <div class="d-flex align-center">
-        <v-icon :icon="snack.icon" class="me-2"></v-icon>
-        <span>{{ snack.text }}</span>
-      </div>
-      <template #actions>
-        <v-btn icon="mdi-close" variant="text" @click="snack.open = false"></v-btn>
-      </template>
-    </v-snackbar>
   </v-dialog>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import DateInput from "@/components/DateInput.vue";
+  import { computed, reactive, ref, watch } from 'vue';
+  import { useFinanceRepository } from '@/stores/financeRepository';
+  import DateInput from '@/components/DateInput.vue';
 
-const { t } = useI18n();
-
-const props = defineProps({
-  modelValue: { type: Boolean, default: false },
-  editMode: { type: Boolean, default: false },
-  value: { type: Object, default: () => ({}) },
-  busy: { type: Boolean, default: false },
-
-  accountsOptions: { type: Array, default: () => [] },
-  employeesOptions: { type: Array, default: () => [] },
-  resourcesOptions: { type: Array, default: () => [] },
-});
-
-const emit = defineEmits(["update:modelValue", "save"]);
-
-const model = computed({
-  get: () => props.modelValue,
-  set: (v) => emit("update:modelValue", v),
-});
-
-const formRef = ref(null);
-const itemErrors = reactive({});
-const snack = reactive({ open: false, text: "", color: "primary", icon: "mdi-information" });
-const resourcePhone = ref("");
-
-const blankRow = () => ({
-  id: null,
-  account_id: null,
-  office_employee_id: null,
-  resource_id: null,
-  money_amount_number: 0,
-  money_amount_words: "",
-  date: null,
-  employee_phone: "",
-  expense_result: "",
-  payer: "",
-  receiver: "",
-  notes: "",
-});
-
-const editor = reactive(blankRow());
-
-// Watch for employee selection changes
-function onEmployeeSelected(employeeId) {
-  if (employeeId) {
-    const selectedEmployee = props.employeesOptions.find(emp => emp.id === employeeId);
-    if (selectedEmployee) {
-      editor.employee_phone = selectedEmployee.phone_number || "";
-    }
-  } else {
-    editor.employee_phone = "";
-  }
-}
-
-// Watch for resource selection changes
-function onResourceSelected(resourceId) {
-  if (resourceId) {
-    const selectedResource = props.resourcesOptions.find(res => res.id === resourceId);
-    if (selectedResource) {
-      resourcePhone.value = selectedResource.phone_number || "";
-    }
-  } else {
-    resourcePhone.value = "";
-  }
-}
-
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    showSnack(t("متن در کلیپ‌بورد کپی شد"), "success", "mdi-check");
+  const props = defineProps({
+    modelValue: { type: Boolean, default: false },
+    editId: { type: [Number, String, null], default: null },
   });
-}
 
-function showSnack(text, color = "primary", icon = "mdi-information") {
-  snack.text = text;
-  snack.color = color;
-  snack.icon = icon;
-  snack.open = true;
-}
+  const emit = defineEmits(['update:modelValue', 'saved']);
 
-function clearErrors() {
-  Object.keys(itemErrors).forEach((k) => delete itemErrors[k]);
-}
+  const repo = useFinanceRepository();
 
-function hasError(field) {
-  return !!itemErrors[field]?.length;
-}
-
-function getErrorMessages(field) {
-  return itemErrors[field] || [];
-}
-
-function applyFromProps() {
-  const v = props.value || {};
-  Object.assign(editor, blankRow(), {
-    id: v.id ?? null,
-    account_id: v.account_id ?? null,
-    office_employee_id: v.office_employee_id ?? null,
-    resource_id: v.resource_id ?? null,
-    money_amount_number: v.money_amount_number ?? 0,
-    money_amount_words: v.money_amount_words ?? "",
-    date: v.date ?? null,
-    employee_phone: v.employee_phone ?? "",
-    expense_result: v.expense_result ?? "",
-    payer: v.payer ?? "",
-    receiver: v.receiver ?? "",
-    notes: v.notes ?? "",
+  const model = computed({
+    get: () => props.modelValue,
+    set: (v) => emit('update:modelValue', v),
   });
-  
-  // Also update resource phone if resource is selected
-  if (v.resource_id) {
-    const selectedResource = props.resourcesOptions.find(res => res.id === v.resource_id);
-    if (selectedResource) {
-      resourcePhone.value = selectedResource.phone_number || "";
-    }
-  }
-  
-  clearErrors();
-}
 
-watch(() => props.value, applyFromProps, { deep: true, immediate: true });
-watch(() => props.modelValue, (open) => { if (open) applyFromProps(); });
+  const isEdit = computed(() => !!props.editId);
 
-function clearLocal() {
-  Object.assign(editor, blankRow());
-  resourcePhone.value = "";
-  clearErrors();
-  showSnack(t("همه فیلدها پاک شد"), "info", "mdi-check-circle");
-}
+  const formRef = ref(null);
+  const saving = ref(false);
 
-async function submit() {
-  clearErrors();
+  const draft = reactive({
+    account_id: null,
+    money_amount_number: '',
+    money_amount_words: '',
+    date: '',
+    employee_phone: '',
+    expense_result: '',
+    money_distributer: '',
+    payer: '',
+    receiver: '',
+    account_type: '',
+    notes: '',
+    office_employee_id: null,
+    resource_id: null,
+  });
 
-  const valid = await formRef.value?.validate?.();
-  if (valid === false) {
-    showSnack(t("لطفاً فیلدهای الزامی را تکمیل کنید"), "error", "mdi-alert-circle");
-    return;
-  }
+  const backendErrors = reactive({});
 
-  // Additional validation
-  if (!editor.account_id) {
-    showSnack(t("انتخاب حساب الزامی است"), "error", "mdi-alert-circle");
-    return;
-  }
-
-  if (!editor.date) {
-    showSnack(t("تاریخ الزامی است"), "error", "mdi-alert-circle");
-    return;
-  }
-
-  if (!editor.money_amount_number || editor.money_amount_number <= 0) {
-    showSnack(t("مبلغ باید بیشتر از صفر باشد"), "error", "mdi-alert-circle");
-    return;
-  }
-
-  const payload = {
-    id: editor.id,
-    account_id: editor.account_id,
-    office_employee_id: editor.office_employee_id,
-    resource_id: editor.resource_id,
-    money_amount_number: editor.money_amount_number,
-    money_amount_words: editor.money_amount_words,
-    date: editor.date,
-    employee_phone: editor.employee_phone,
-    expense_result: editor.expense_result,
-    payer: editor.payer,
-    receiver: editor.receiver,
-    notes: editor.notes,
+  const rules = {
+    required: (v) => !!v || v === 0 || 'این فیلد ضروری است',
+    requiredNumber: (v) => {
+      if (v === null || v === undefined || v === '') return 'این فیلد ضروری است';
+      const n = Number(v);
+      return Number.isFinite(n) ? true : 'عدد معتبر وارد کنید';
+    },
   };
 
-  emit("save", payload);
-  showSnack(
-    editMode ? t("اطلاعات با موفقیت ویرایش شد") : t("مصرف جدید با موفقیت ثبت شد"),
-    "success",
-    "mdi-check-circle"
+  const conditionalEmployeeRequired = (v) => {
+    if (!draft.resource_id && !v) return 'حداقل یکی از فیلدهای "کارمند" یا "منبع" باید پر شود';
+    return true;
+  };
+
+  const conditionalResourceRequired = (v) => {
+    if (!draft.office_employee_id && !v) return 'حداقل یکی از فیلدهای "کارمند" یا "منبع" باید پر شود';
+    return true;
+  };
+
+  const accountOptions = computed(() => repo.accounts || []);
+  const officeEmployeeOptions = computed(() => repo.officeEmployees || []);
+  const resourceOptions = computed(() => repo.resources || []);
+
+  function clearErrors() {
+    Object.keys(backendErrors).forEach((k) => delete backendErrors[k]);
+  }
+
+  function hasError(key) {
+    return Array.isArray(backendErrors[key]) && backendErrors[key].length > 0;
+  }
+
+  function getErrorMessages(key) {
+    return backendErrors[key] || [];
+  }
+
+  function resetDraft() {
+    draft.account_id = null;
+    draft.money_amount_number = '';
+    draft.money_amount_words = '';
+    draft.date = '';
+    draft.employee_phone = '';
+    draft.expense_result = '';
+    draft.money_distributer = '';
+    draft.payer = '';
+    draft.receiver = '';
+    draft.account_type = '';
+    draft.notes = '';
+    draft.office_employee_id = null;
+    draft.resource_id = null;
+  }
+
+  async function ensureAccountsLoaded() {
+    if (Array.isArray(repo.accounts) && repo.accounts.length) return;
+    await repo.FetchAccountsData({ page: 1, perPage: 2000, search: '' });
+  }
+
+  async function ensureOfficeEmployeesLoaded() {
+    if (Array.isArray(repo.officeEmployees) && repo.officeEmployees.length) return;
+    await repo.FetchOfficeEmployeesOptions({ search: '' });
+  }
+
+  async function ensureResourcesLoaded() {
+    if (Array.isArray(repo.resources) && repo.resources.length) return;
+    await repo.FetchResourcesOptions({ search: '' });
+  }
+
+  async function loadForEdit() {
+    if (!props.editId) return;
+
+    clearErrors();
+    const item = await repo.FetchFinanceData(props.editId);
+
+    draft.account_id = item?.account_id ?? null;
+    draft.money_amount_number = item?.money_amount_number ?? '';
+    draft.money_amount_words = item?.money_amount_words ?? '';
+    draft.date = item?.date ?? '';
+
+    draft.employee_phone = item?.employee_phone ?? '';
+    draft.expense_result = item?.expense_result ?? '';
+    draft.money_distributer = item?.money_distributer ?? '';
+    draft.payer = item?.payer ?? '';
+    draft.receiver = item?.receiver ?? '';
+    draft.account_type = item?.account_type ?? '';
+    draft.notes = item?.notes ?? '';
+
+    draft.office_employee_id = item?.office_employee_id ?? null;
+    draft.resource_id = item?.resource_id ?? null;
+  }
+
+  watch(
+    () => model.value,
+    async (open) => {
+      if (!open) return;
+
+      resetDraft();
+      clearErrors();
+
+      await ensureAccountsLoaded();
+      await ensureOfficeEmployeesLoaded();
+      await ensureResourcesLoaded();
+
+      if (props.editId) await loadForEdit();
+    }
   );
-}
+
+  watch(
+    () => [draft.office_employee_id, draft.resource_id],
+    () => {
+      if (formRef.value) formRef.value.validate();
+    }
+  );
+
+  function close() {
+    model.value = false;
+  }
+
+  async function onSubmit() {
+    clearErrors();
+
+    const res = await formRef.value?.validate();
+    if (!res?.valid) return;
+
+    if (!draft.office_employee_id && !draft.resource_id) {
+      backendErrors.general = ['حداقل یکی از فیلدهای "کارمند" یا "منبع" باید پر شود'];
+      return;
+    }
+
+    saving.value = true;
+    try {
+      const payload = {
+        account_id: draft.account_id,
+        money_amount_number: draft.money_amount_number,
+        money_amount_words: draft.money_amount_words,
+        date: draft.date,
+        employee_phone: draft.employee_phone,
+        expense_result: draft.expense_result,
+        money_distributer: draft.money_distributer,
+        payer: draft.payer,
+        receiver: draft.receiver,
+        account_type: draft.account_type,
+        notes: draft.notes,
+        office_employee_id: draft.office_employee_id || null,
+        resource_id: draft.resource_id || null,
+      };
+
+      if (isEdit.value) {
+        await repo.UpdateFinance(props.editId, payload);
+      } else {
+        await repo.CreateFinance(payload);
+      }
+
+      emit('saved');
+      close();
+    } catch (e) {
+      const errors = e?.response?.data?.errors;
+      if (errors && typeof errors === 'object') {
+        Object.assign(backendErrors, errors);
+      } else {
+        backendErrors.general = ['خطا رخ داد. دوباره تلاش کنید.'];
+      }
+    } finally {
+      saving.value = false;
+    }
+  }
 </script>
-
 <style scoped>
-/* Gradient background for header */
-.bg-gradient-primary {
-  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
-}
+  /* ... keep previous styles until the input section ... */
 
-/* Custom section title line */
-.section-title-line {
-  width: 4px;
-  height: 24px;
-  border-radius: 2px;
-}
+  /* ================================
+     MODERN INPUT DESIGN
+     ================================ */
 
-/* Custom scrollbar */
-.v-dialog::-webkit-scrollbar {
-  width: 8px;
-}
+  /* Base field surface */
+  .field :deep(.v-field) {
+    border-radius: 12px;
+    background: #ffffff;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    overflow: hidden;
+  }
 
-.v-dialog::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
+  /* Remove default Vuetify outlines since we're using custom borders */
+  .field :deep(.v-field__outline) {
+    display: none;
+  }
 
-.v-dialog::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
-  border-radius: 4px;
-}
+  /* Custom border container */
+  .field :deep(.v-field)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    border: 1.5px solid #e0e0e0;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-.v-dialog::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
-}
+  /* Hover state */
+  .field :deep(.v-field):hover::before {
+    border-color: #bdbdbd;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
 
-/* Smooth hover effect for cards */
-.v-card[class*="border"] {
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-}
+  /* Focus state */
+  .field :deep(.v-field--focused) {
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15);
+  }
+  
+  .field :deep(.v-field--focused)::before {
+    border-color: #d32f2f;
+    border-width: 2px;
+    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.1);
+  }
 
-.v-card[class*="border"]:hover {
-  border-color: var(--v-primary-base);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
-}
+  /* Error state */
+  .field :deep(.v-field--error) {
+    background: #fff5f5;
+  }
+  
+  .field :deep(.v-field--error)::before {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.02);
+  }
+  
+  .field :deep(.v-field--error.v-field--focused) {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  }
 
-/* Underlined input styling */
-:deep(.v-input--underlined) .v-input__control:before {
-  border-color: rgba(0, 0, 0, 0.12);
-}
+  /* Disabled state */
+  .field :deep(.v-field--disabled) {
+    background: #f9fafb;
+  }
+  
+  .field :deep(.v-field--disabled)::before {
+    border-color: #e5e7eb;
+    background: #f9fafb;
+  }
 
-:deep(.v-input--underlined:hover) .v-input__control:before {
-  border-color: var(--v-primary-base);
-}
+  /* Label styling */
+  .field :deep(.v-label) {
+    font-weight: 500;
+    color: #6b7280;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    padding-left: 2px;
+  }
+  
+  .field :deep(.v-field--focused .v-label),
+  .field :deep(.v-field--persistent .v-label) {
+    color: #d32f2f;
+    font-weight: 600;
+  }
 
-:deep(.v-input--underlined.v-input--is-focused) .v-input__control:before {
-  border-color: var(--v-primary-base);
-  border-width: 2px;
-}
+  /* Input text */
+  .field :deep(input),
+  .field :deep(textarea),
+  .field :deep(.v-select__selection-text) {
+    font-weight: 500;
+    color: #111827;
+    font-size: 0.9375rem;
+    padding-top: 2px;
+  }
+  
+  .field :deep(.v-textarea textarea) {
+    line-height: 1.5;
+  }
 
-/* Copy icon hover effect */
-.cursor-pointer {
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
+  /* Placeholder */
+  .field :deep(::placeholder) {
+    color: #9ca3af;
+    font-weight: 400;
+  }
 
-.cursor-pointer:hover {
-  color: var(--v-primary-base);
-}
+  /* Icons */
+  .field :deep(.v-field__prepend-inner),
+  .field :deep(.v-field__append-inner) {
+    padding: 0 12px;
+  }
+  
+  .field :deep(.v-field__prepend-inner .v-icon),
+  .field :deep(.v-field__append-inner .v-icon) {
+    color: #6b7280;
+    transition: all 0.2s ease;
+  }
+  
+  .field :deep(.v-field--focused .v-field__prepend-inner .v-icon),
+  .field :deep(.v-field--focused .v-field__append-inner .v-icon) {
+    color: #d32f2f;
+  }
 
-/* Height utilities */
-.h-100 {
-  height: 100%;
-}
+  /* Hint and error messages */
+  .field :deep(.v-messages) {
+    margin-top: 4px;
+    padding: 0 4px;
+  }
+  
+  .field :deep(.v-messages__message) {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    line-height: 1.2;
+  }
+  
+  .field :deep(.v-messages__message:first-child) {
+    margin-top: 2px;
+  }
+
+  /* Autocomplete specific */
+  .field :deep(.v-autocomplete__menu) {
+    border-radius: 12px;
+    margin-top: 4px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .field :deep(.v-list-item) {
+    border-radius: 8px;
+    margin: 2px 8px;
+    min-height: 40px;
+  }
+  
+  .field :deep(.v-list-item--active) {
+    background: #fef2f2;
+  }
+
+  /* Chips in autocomplete */
+  .field :deep(.v-chip) {
+    border-radius: 8px;
+    font-weight: 500;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+  }
+
+  /* Clear button */
+  .field :deep(.v-field__clearable) .v-icon {
+    color: #9ca3af;
+  }
+  
+  .field :deep(.v-field__clearable) .v-icon:hover {
+    color: #6b7280;
+  }
+
+  /* Textarea specific */
+  .field :deep(.v-textarea .v-field) {
+    padding-top: 12px;
+  }
+  
+  .field :deep(.v-textarea .v-field__input) {
+    min-height: 80px;
+  }
+
+  /* DateInput component compatibility */
+  .field :deep(.date-input .v-field)::before {
+    display: none;
+  }
+  
+  .field :deep(.date-input .v-field) {
+    border: 1.5px solid #e0e0e0;
+  }
+  
+  .field :deep(.date-input .v-field):hover {
+    border-color: #bdbdbd;
+  }
+  
+  .field :deep(.date-input .v-field--focused) {
+    border-color: #d32f2f;
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 600px) {
+    .field :deep(.v-field) {
+      border-radius: 10px;
+    }
+    
+    .field :deep(.v-field)::before {
+      border-radius: 10px;
+    }
+    
+    .field :deep(input),
+    .field :deep(textarea) {
+      font-size: 0.875rem;
+    }
+  }
+
+  /* Keep other existing styles */
+  .dialog-card {
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: #fff;
+  }
+
+  .dialog-header {
+    padding: 18px 18px;
+    background: linear-gradient(135deg, rgba(211, 47, 47, 0.12), rgba(244, 67, 54, 0.06));
+  }
+
+  .icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(211, 47, 47, 0.14);
+    color: #d32f2f;
+    border: 1px solid rgba(211, 47, 47, 0.18);
+  }
+
+  .section {
+    background: #fafafa;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    font-weight: 800;
+    font-size: 13px;
+    margin-bottom: 10px;
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  .grid-1 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  @media (max-width: 960px) {
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .v-btn {
+    text-transform: none;
+    font-weight: 700;
+    letter-spacing: normal;
+  }
 </style>

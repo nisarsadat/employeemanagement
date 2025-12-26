@@ -1,77 +1,146 @@
+// ✅ src/stores/FinancesRepository.js
 import { defineStore } from "pinia";
 import { ref, reactive } from "vue";
 import axios from "axios";
 
-export const useFinanceReportRepository = defineStore("FinanceReportRepository", () => {
+export const useFinancesRepository = defineStore("FinancesRepository", () => {
   const loading = ref(false);
 
-  // Income data
-  const income = reactive({
-    labels: [],
-    series: [],
-    totals: {},
-    range: {},
-  });
+  // dialogs
+  const createDialog = ref(false);
+  const updateDialog = ref(false);
 
-  // Expense data
-  const expense = reactive({
-    labels: [],
-    series: [],
-    totals: {},
-    range: {},
-  });
+  // pagination
+  const page = ref(1);
+  const itemsPerPage = ref(10);
+  const totalItems = ref(0);
 
-  // Accounts data
-  const accounts = reactive({
-    names: [],
-    values: [],
-    total: 0,
-    as_of: null,
-  });
+  // filters
+  const Search = ref("");
 
-  // Fetch income report
-  async function fetchIncome(period = "daily") {
-    loading.value = true;
-    const resp = await axios.get(`/finance-reports/income?period=${period}`);
-    const data = resp.data;
-    income.labels = data.labels || [];
-    income.series = data.series?.income || [];
-    income.totals = data.totals || {};
-    income.range = data.range || {};
-    loading.value = false;
+  // data
+  const Finances = ref([]);
+  const Finance = reactive({});
+
+  const editor = reactive(blankRow());
+
+  function blankRow() {
+    return {
+      id: null,
+      account_id: null,
+      office_employee_id: null,
+      resource_id: null,
+      money_amount_number: 0,
+      money_amount_words: "",
+      date: null,
+      expense_result: "",
+      payer: "",
+      receiver: "",
+      notes: "",
+    };
   }
 
-  // Fetch expense report
-  async function fetchExpense(period = "daily") {
-    loading.value = true;
-    const resp = await axios.get(`/finance-reports/expense?period=${period}`);
-    const data = resp.data;
-    expense.labels = data.labels || [];
-    expense.series = data.series?.expense || [];
-    expense.totals = data.totals || {};
-    expense.range = data.range || {};
-    loading.value = false;
+  function setBlankEditorRow() {
+    Object.assign(editor, blankRow());
   }
 
-  // Fetch accounts report
-  async function fetchAccounts() {
+  function openCreateDialog() {
+    setBlankEditorRow();
+    createDialog.value = true;
+    updateDialog.value = false;
+  }
+
+  async function openEditDialog(id) {
+    await FetchFinanceData(id);
+    Object.assign(editor, blankRow(), Finance);
+    updateDialog.value = true;
+    createDialog.value = false;
+  }
+
+  function closeDialogs() {
+    createDialog.value = false;
+    updateDialog.value = false;
+  }
+
+  async function FetchFinancesData({ page: p, itemsPerPage: ipp }) {
     loading.value = true;
-    const resp = await axios.get(`/finance-reports/accounts`);
-    const data = resp.data;
-    accounts.names = data.accounts?.map((a) => a.name) || [];
-    accounts.values = data.accounts?.map((a) => Number(a.price ?? 0)) || [];
-    accounts.total = data.total || 0;
-    accounts.as_of = data.as_of || null;
-    loading.value = false;
+    try {
+      const resp = await axios.get("/finances", {
+        params: { page: p, perPage: ipp, search: Search.value || "" },
+      });
+      Finances.value = resp.data?.data ?? resp.data ?? [];
+      totalItems.value = resp.data?.total ?? 0;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function FetchFinanceData(id) {
+    loading.value = true;
+    try {
+      const resp = await axios.get(`/finances/${id}`);
+      Object.assign(Finance, resp.data || {});
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function CreateFinance(payload) {
+    loading.value = true;
+    try {
+      await axios.post("/finances", payload);
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function UpdateFinance(id, payload) {
+    loading.value = true;
+    try {
+      await axios.put(`/finances/${id}`, payload);
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function DeleteFinance(id) {
+    loading.value = true;
+    try {
+      await axios.delete(`/finances/${id}`);
+    } finally {
+      loading.value = false;
+    }
   }
 
   return {
     loading,
-    income,
-    expense,
-    accounts,
-    fetchIncome,
-    fetchExpense,
-    fetchAccounts,
+
+    // dialogs
+    createDialog,
+    updateDialog,
+    openCreateDialog,
+    openEditDialog,
+    closeDialogs,
+
+    // pagination & filters
+    page,
+    itemsPerPage,
+    totalItems,
+    Search,
+
+    // data
+    Finances,
+    Finance,
+
+    // editor
+    editor,
+    setBlankEditorRow,
+
+    // api
+    FetchFinancesData,
+    FetchFinanceData,
+    CreateFinance,
+    UpdateFinance,
+    DeleteFinance,
   };
 });

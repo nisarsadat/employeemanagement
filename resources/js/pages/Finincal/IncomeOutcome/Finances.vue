@@ -1,319 +1,200 @@
 <template>
-  <v-container fluid class="pt-4" :dir="isRtl ? 'rtl' : 'ltr'">
+  <v-container fluid class="pt-6" :dir="rtl ? 'rtl' : 'ltr'">
+    <!-- <AppBar title="مصارف" subtitle="ثبت و مدیریت مصارف (Outcome/Expense)" /> -->
 
-    <!-- Top Bar (like Accounts/Oil) -->
-    <v-row class="align-center mb-4" dense>
-      <v-col cols="12" md="4">
-        <v-text-field
-          v-model.trim="financeStore.Search"
-          :label="t('جستجو مصارف')"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          density="compact"
-          clearable
-          @keyup.enter="fetchAll()"
-          @click:clear="() => { financeStore.Search=''; fetchAll(); }"
-        />
-      </v-col>
+    <!-- Filters -->
+    <v-card rounded="xl" class="shadow-sm mb-4">
+      <v-card-text class="pa-4">
+        <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+          <div class="d-flex gap-2 flex-wrap">
+            <v-text-field
+              v-model="repo.financesSearch"
+              label="جستجو"
+              density="compact"
+              variant="outlined"
+              style="max-width: 320px"
+              prepend-inner-icon="mdi-magnify"
+              @keyup.enter="fetchAll"
+            />
 
-      <v-col cols="12" md="8" class="text-md-right d-flex justify-end gap-2">
+            <v-autocomplete
+              v-model="repo.financesAccountId"
+              :items="accountOptions"
+              item-title="name"
+              item-value="id"
+              label="فلتر حساب"
+              density="compact"
+              variant="outlined"
+              style="min-width: 240px"
+              prepend-inner-icon="mdi-bank"
+              clearable
+              @update:modelValue="onAccountFilterChanged"
+            />
 
+            <v-btn variant="tonal" @click="resetFilters">ریست</v-btn>
+          </div>
 
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
-          {{ t('مصرف جدید') }}
-        </v-btn>
-      </v-col>
-    </v-row>
-
-    <!-- List (FilterableTable) -->
-    <FilterableTable
-      :title="t('لیست مصارف')"
-      :subtitle="t('جستجو و مشاهده')"
-      :headers="headersFT"
-      :rows="rowsFT"
-      :filters="{ search: financeStore.Search }"
-      :topGroups="[]"
-      :loading="financeStore.loading"
-      @edit="openEdit"
-      @peek="startPeek"
-      @refresh="fetchAll"
-      @delete="askDelete"
-    />
-
-    <!-- Pagination bottom (like Accounts/Oil) -->
-    <v-card elevation="2" class="mt-3">
-      <div class="px-4 py-3 d-flex align-center justify-space-between">
-        <div class="text-caption">
-          {{ t('ټول') }}: <strong>{{ financeStore.totalItems }}</strong>
+          <div class="d-flex gap-2">
+            <v-btn color="error" prepend-icon="mdi-plus" @click="openCreate">
+              ثبت مصرف
+            </v-btn>
+          </div>
         </div>
+      </v-card-text>
+    </v-card>
 
-        <v-pagination
-          v-model="financeStore.page"
-          :length="pageCount"
-          total-visible="7"
-          @update:modelValue="fetchAll"
+    <!-- Table -->
+    <v-card rounded="xl" class="shadow-sm">
+      <v-card-text class="pa-0">
+        <FilterableTable
+          :loading="repo.loading"
+          :headers="headersFT"
+          :rows="rowsFT"
+          :filters="filters"
+          :topGroups="topGroups"
+          :totalItems="repo.financesTotalItems"
+          :page="repo.financesPage"
+          :perPage="repo.financesPerPage"
+          @update:page="onPage"
+          @update:perPage="onPerPage"
+          @edit="startEdit"
+          @delete="askDelete"
         />
-      </div>
+      </v-card-text>
     </v-card>
 
     <!-- Create/Edit Dialog -->
-    <FinancesFormDialog
-      v-model="dialog"
-      :editMode="editMode"
-      :value="draft"
-      :busy="financeStore.loading"
-      :accountsOptions="accountsOptions"
-      :employeesOptions="employeesOptions"
-      :resourcesOptions="resourcesOptions"
-      @save="onSave"
-    />
-
-    <!-- Peek -->
-    <PeekButton
-      v-if="peek.open"
-      :open="peek.open"
-      :title="t('جزئیات مصرف')"
-      :loading="peek.loading"
-      @close="peek.open = false"
-    >
-      <div class="pa-4">
-        <div class="text-subtitle-2 font-weight-bold mb-2">{{ peek.data?.account_name || '—' }}</div>
-        <div class="text-caption">{{ t('مبلغ') }}: {{ money(peek.data?.money_amount_number) }}</div>
-        <div class="text-caption">{{ t('تاریخ') }}: {{ peek.data?.date || '—' }}</div>
-
-        <div class="text-caption mt-2">
-          {{ t('کارمند') }}: {{ peek.data?.office_employee?.name || '—' }} —
-          {{ t('کد') }}: {{ peek.data?.office_employee_code || '—' }}
-        </div>
-
-        <div class="text-caption">
-          {{ t('منبع') }}: {{ peek.data?.resource?.name || '—' }} —
-          {{ t('کد') }}: {{ peek.data?.resource_code || '—' }}
-        </div>
-
-        <div class="text-caption mt-2">{{ t('یادداشت') }}: {{ peek.data?.notes || '—' }}</div>
-      </div>
-    </PeekButton>
+    <FinanceFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
 
     <!-- Delete confirm -->
     <DeleteConfirmDialog
-      v-model="deleteDialog.open"
-      :title="t('حذف رکورد')"
-      :subtitle="t('آیا مطمئن هستید؟')"
-      @confirm="confirmDelete"
+      v-model="deleteDialog"
+      :title="'حذف مصرف'"
+      :text="'آیا مطمئن هستید که این مصرف حذف شود؟'"
+      @confirm="doDelete"
     />
-
-    <v-snackbar v-model="snack.open" :color="snack.color" timeout="2500">
-      {{ snack.text }}
-    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
-import { storeToRefs } from "pinia";
-import { useI18n } from "vue-i18n";
-
+import { computed, ref, onMounted } from "vue";
 import AppBar from "@/components/AppBar.vue";
 import FilterableTable from "@/components/FilterableTable.vue";
-import PeekButton from "@/components/PeekButton.vue";
 import DeleteConfirmDialog from "@/components/DeleteConfirmDialog.vue";
-import DateInput from "@/components/DateInput.vue";
+import FinanceFormDialog from "./FinancesFormDialog.vue";
+import { useFinanceRepository } from "@/stores/financeRepository";
 
-import FinancesFormDialog from "./FinancesFormDialog.vue";
+// RTL (replace with i18n)
+const rtl = ref(true);
 
-import { useFinancesRepository } from "@/stores/FinancesRepository";
-import { useAccountsRepository } from "@/stores/AccountsRepository";
-
-const financeStore = useFinancesRepository();
-const accountsStore = useAccountsRepository();
-
-const { t, locale } = useI18n();
-const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ""));
-
-const { Finances, AccountsOptions, EmployeesOptions, ResourcesOptions } = storeToRefs(financeStore);
-
-const accountsOptions = computed(() => AccountsOptions.value || accountsStore.Accounts || []);
-const employeesOptions = computed(() => EmployeesOptions.value || []);
-const resourcesOptions = computed(() => ResourcesOptions.value || []);
+const repo = useFinanceRepository();
 
 const dialog = ref(false);
-const editMode = ref(false);
+const editId = ref(null);
 
-const snack = reactive({ open: false, text: "", color: "primary" });
-const peek = reactive({ open: false, loading: false, data: null });
-const deleteDialog = reactive({ open: false, id: null });
+const deleteDialog = ref(false);
+const deleteId = ref(null);
 
-const draft = reactive({
-  id: null,
-  account_id: null,
-  office_employee_id: null,
-  resource_id: null,
-  money_amount_number: 0,
-  money_amount_words: "",
-  date: null,
-  employee_phone: "",
-  expense_result: "",
-  money_distributer: "",
-  payer: "",
-  receiver: "",
-  account_type: "",
-  notes: "",
-});
+const accountOptions = computed(() => repo.accounts || []);
 
-const headersFT = computed(() => [
-  { title: t("ID"), key: "id" },
-  { title: t("حساب"), key: "account_name" },
-  { title: t("مبلغ"), key: "money_amount_number_display" },
-  { title: t("تاریخ"), key: "date" },
-  { title: t("کارمند"), key: "office_employee_name" },
-  { title: t("کد کارمند"), key: "office_employee_code" },
-  { title: t("منبع"), key: "resource_name" },
-  { title: t("کد منبع"), key: "resource_code" },
-  { title: t("نتیجه"), key: "expense_result" },
-  { title: t("عملیات"), key: "actions", sortable: false },
-]);
+const headersFT = [
+  { title: "#", key: "index", sortable: false, width: 70 },
+  { title: "حساب", key: "account_name", sortable: true },
+  { title: "مبلغ", key: "money_amount_number", sortable: true },
+  { title: "تاریخ", key: "date", sortable: true },
+  { title: "پرداخت کننده", key: "payer", sortable: false },
+  { title: "دریافت کننده", key: "receiver", sortable: false },
+  { title: "نتیجه", key: "expense_result", sortable: false },
+  { title: "یادداشت", key: "notes", sortable: false },
+  { title: "عملیات", key: "actions", sortable: false, width: 180 },
+];
 
 const rowsFT = computed(() => {
-  const rows = Finances.value || [];
-  return rows.map((r) => ({
-    ...r,
-    money_amount_number_display: money(r?.money_amount_number),
-    office_employee_name: r?.office_employee?.name ?? "—",
-    resource_name: r?.resource?.name ?? "—",
+  const startIndex = (repo.financesPage - 1) * repo.financesPerPage;
+
+  return (repo.finances || []).map((it, i) => ({
+    ...it,
+    index: startIndex + i + 1,
+    account_name: it?.account?.name ?? it?.account_name ?? "",
+    date: (it?.date ?? "").toString().slice(0, 10),
   }));
 });
 
-const pageCount = computed(() => {
-  const per = Number(financeStore.itemsPerPage || 10);
-  return Math.max(1, Math.ceil(Number(financeStore.totalItems || 0) / per));
-});
+// keep empty if you don't use them
+const filters = [];
+const topGroups = [];
 
-function showSnack(text, color = "primary") {
-  snack.text = text;
-  snack.color = color;
-  snack.open = true;
-}
-
-function money(n) {
-  const v = Number(n ?? 0);
-  return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
-}
-
-const fetchAll = async () => {
-  await financeStore.FetchFinancesData({ page: financeStore.page, itemsPerPage: financeStore.itemsPerPage });
-};
-
-async function fetchOptions() {
-  await financeStore.FetchAllOptions();
-  accountsStore.itemsPerPage = 500;
-  await accountsStore.FetchAccountsData({ page: 1, itemsPerPage: 500 });
-}
-
-const openCreate = () => {
-  editMode.value = false;
-  Object.assign(draft, {
-    id: null,
-    account_id: null,
-    office_employee_id: null,
-    resource_id: null,
-    money_amount_number: 0,
-    money_amount_words: "",
-    date: null,
-    employee_phone: "",
-    expense_result: "",
-    money_distributer: "",
-    payer: "",
-    receiver: "",
-    account_type: "",
-    notes: "",
+function fetchAll() {
+  repo.FetchFinancesData({
+    page: repo.financesPage,
+    perPage: repo.financesPerPage,
+    search: repo.financesSearch,
+    account_id: repo.financesAccountId,
+    office_employee_id: repo.financesOfficeEmployeeId, // optional
   });
+}
+
+async function ensureAccountsLoaded() {
+  if (Array.isArray(repo.accounts) && repo.accounts.length) return;
+  await repo.FetchAccountsData({ page: 1, perPage: 2000, search: "" });
+}
+
+function resetFilters() {
+  repo.ResetFinancesFilters();
+  fetchAll();
+}
+
+function onAccountFilterChanged() {
+  repo.financesPage = 1;
+  fetchAll();
+}
+
+function openCreate() {
+  editId.value = null;
   dialog.value = true;
-};
+}
 
-const openEdit = async (rowPayload) => {
-  const row = rowPayload?.row || rowPayload;
-  if (!row?.id) return;
-
-  editMode.value = true;
-  await financeStore.FetchFinanceData(row.id);
-
-  const d = financeStore.Finance || {};
-  Object.assign(draft, {
-    id: d.id ?? null,
-    account_id: d.account_id ?? null,
-    office_employee_id: d.office_employee_id ?? null,
-    resource_id: d.resource_id ?? null,
-    money_amount_number: d.money_amount_number ?? 0,
-    money_amount_words: d.money_amount_words ?? "",
-    date: d.date ?? null,
-    employee_phone: d.employee_phone ?? "",
-    expense_result: d.expense_result ?? "",
-    money_distributer: d.money_distributer ?? "",
-    payer: d.payer ?? "",
-    receiver: d.receiver ?? "",
-    account_type: d.account_type ?? "",
-    notes: d.notes ?? "",
-  });
-
+function startEdit(row) {
+  editId.value = row?.id;
   dialog.value = true;
-};
+}
 
-const onSave = async (payload) => {
-  try {
-    const p = { ...(payload || {}) };
+function onSaved() {
+  fetchAll();
+}
 
-    if (editMode.value && p.id) await financeStore.UpdateFinance(p.id, p);
-    else await financeStore.CreateFinance(p);
+function askDelete(row) {
+  deleteId.value = row?.id;
+  deleteDialog.value = true;
+}
 
-    dialog.value = false;
-    showSnack(t("ثبت شد"));
+async function doDelete() {
+  if (!deleteId.value) return;
+  await repo.DeleteFinance(deleteId.value);
+  deleteDialog.value = false;
+  deleteId.value = null;
+  fetchAll();
+}
 
-    await fetchAll();
-    await fetchOptions(); // balances changed
-  } catch (e) {
-    showSnack(t("خطا در ثبت دیتا"), "error");
-  }
-};
+function onPage(p) {
+  repo.financesPage = p;
+  fetchAll();
+}
 
-const startPeek = async (rowPayload) => {
-  const row = rowPayload?.row || rowPayload;
-  if (!row?.id) return;
-
-  peek.open = true;
-  peek.loading = true;
-  try {
-    await financeStore.FetchFinanceData(row.id);
-    peek.data = financeStore.Finance;
-  } finally {
-    peek.loading = false;
-  }
-};
-
-const askDelete = (rowPayload) => {
-  const row = rowPayload?.row || rowPayload;
-  if (!row?.id) return;
-  deleteDialog.id = row.id;
-  deleteDialog.open = true;
-};
-
-const confirmDelete = async () => {
-  const id = deleteDialog.id;
-  deleteDialog.open = false;
-  if (!id) return;
-
-  try {
-    await financeStore.DeleteFinance(id);
-    showSnack(t("حذف شد"));
-    await fetchAll();
-    await fetchOptions(); // balances changed
-  } catch {
-    showSnack(t("خطا در حذف"), "error");
-  }
-};
+function onPerPage(pp) {
+  repo.financesPerPage = pp;
+  repo.financesPage = 1;
+  fetchAll();
+}
 
 onMounted(async () => {
-  await fetchOptions();
-  await fetchAll();
+  await ensureAccountsLoaded();
+  fetchAll();
 });
 </script>
+
+<style scoped>
+.gap-2 {
+  gap: 8px;
+}
+</style>

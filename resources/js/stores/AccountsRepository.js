@@ -1,17 +1,17 @@
-import { defineStore } from "pinia";
-import { reactive } from "vue";
-import { useRouter } from "vue-router";
-import axios from "axios";
+import { defineStore } from 'pinia';
+import { reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 function setContentType(type) {
   if (!type) {
-    delete axios.defaults.headers.common["Content-Type"];
+    delete axios.defaults.headers.common['Content-Type'];
     return;
   }
-  axios.defaults.headers.common["Content-Type"] = type;
+  axios.defaults.headers.common['Content-Type'] = type;
 }
 
-export const useAccountsRepository = defineStore("AccountsRepository", {
+export const useAccountsRepository = defineStore('AccountsRepository', {
   state() {
     return {
       router: useRouter(),
@@ -23,7 +23,7 @@ export const useAccountsRepository = defineStore("AccountsRepository", {
       loading: false,
 
       // data
-      Accounts: reactive([]),
+      Accounts: [],
       Account: reactive({}),
 
       // ui
@@ -31,15 +31,15 @@ export const useAccountsRepository = defineStore("AccountsRepository", {
       updateDialog: false,
 
       // filters
-      Search: "",
-      clearSearch: "",
+      Search: '',
+      clearSearch: '',
     };
   },
 
   actions: {
     async FetchAccountsData({ page, itemsPerPage } = {}) {
       this.loading = true;
-      setContentType("application/json");
+      setContentType('application/json');
 
       const p = page ?? this.page;
       const pp = itemsPerPage ?? this.itemsPerPage;
@@ -48,7 +48,7 @@ export const useAccountsRepository = defineStore("AccountsRepository", {
         params: {
           page: p,
           perPage: pp,
-          search: this.Search || "",
+          search: this.Search || '',
         },
       });
 
@@ -62,20 +62,20 @@ export const useAccountsRepository = defineStore("AccountsRepository", {
     },
 
     async FetchAccountData(id) {
-      setContentType("application/json");
+      setContentType('application/json');
       const resp = await axios.get(`/accounts/${id}`);
       this.Account = resp?.data?.data ?? {};
     },
 
     async CreateAccount(payload) {
-      setContentType("application/json");
+      setContentType('application/json');
       await axios.post(`/accounts`, payload);
       this.createDialog = false;
       await this.FetchAccountsData({ page: this.page, itemsPerPage: this.itemsPerPage });
     },
 
     async UpdateAccount(id, payload) {
-      setContentType("application/json");
+      setContentType('application/json');
       await axios.put(`/accounts/${id}`, payload);
       this.updateDialog = false;
       await this.FetchAccountsData({ page: this.page, itemsPerPage: this.itemsPerPage });
@@ -87,7 +87,7 @@ export const useAccountsRepository = defineStore("AccountsRepository", {
     },
 
     ResetFilters() {
-      this.Search = "";
+      this.Search = '';
     },
   },
 });

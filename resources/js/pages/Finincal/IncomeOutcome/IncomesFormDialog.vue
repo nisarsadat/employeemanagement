@@ -1,517 +1,251 @@
 <template>
-  <v-dialog v-model="model" max-width="800" dir="rtl">
+  <v-dialog v-model="model" max-width="820" scrollable>
     <v-card rounded="xl" class="overflow-hidden">
-      <!-- Header with Gradient -->
-      <div class="bg-gradient-success py-5 px-4">
+      <!-- Header -->
+      <div class="bg-gradient-success py-6 px-4">
         <div class="d-flex align-center justify-space-between">
           <div class="d-flex align-center">
-            <v-avatar color="white" size="44" class="ms-3">
-              <v-icon icon="mdi-cash-plus" color="success" size="24"></v-icon>
+            <v-avatar color="white" size="48" class="me-3">
+              <v-icon icon="mdi-cash-plus" color="success" size="28" />
             </v-avatar>
             <div>
               <h2 class="text-h5 font-weight-bold text-white mb-1">
-                {{ editMode ? t('ویرایش عاید') : t('ثبت عاید جدید') }}
+                {{ isEdit ? "ویرایش عاید" : "ثبت عاید جدید" }}
               </h2>
-              <p class="text-white text-caption opacity-85 mb-0">
-                {{ editMode ? t('اطلاعات عاید را ویرایش کنید') : t('عاید جدید را ثبت کنید') }}
+              <p class="text-white text-caption opacity-75 mb-0">
+                {{ isEdit ? "اطلاعات عاید را ویرایش کنید" : "اطلاعات عاید جدید را وارد کنید" }}
               </p>
             </div>
           </div>
-          <v-btn 
-            icon="mdi-close" 
-            variant="text" 
-            color="white"
-            size="small"
-            @click="model = false"
-          />
+
+          <v-btn icon="mdi-close" variant="text" color="white" size="small" @click="close" />
         </div>
       </div>
 
-      <v-card-text class="pa-5">
-        <v-form ref="formRef" @submit.prevent="submit" lazy-validation>
-          <!-- Main Information Section -->
-          <div class="mb-6">
-            <div class="d-flex align-center mb-4">
-              <div class="section-title-line bg-success ms-3"></div>
-              <h3 class="text-h6 font-weight-bold text-success">
-                <v-icon icon="mdi-information" class="ms-2" size="20"></v-icon>
-                {{ t('اطلاعات اصلی عاید') }}
-              </h3>
-            </div>
-            
-            <v-row>
-              <!-- Account Selection -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100 elevation-1">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block text-right">
-                    <v-icon icon="mdi-bank" size="16" class="ms-1"></v-icon>
-                    {{ t('حساب') }} *
-                  </label>
-                  <v-autocomplete
-                    v-model="editor.account_id"
-                    :items="accountsOptions"
-                    item-title="name"
-                    item-value="id"
-                    :placeholder="t('حساب را انتخاب کنید')"
-                    variant="outlined"
-                    :error="hasError('account_id')"
-                    :error-messages="getErrorMessages('account_id')"
-                    hide-details
-                    :rules="[v => !!v || t('حساب الزامی است')]"
-                    class="mt-1"
-                    density="comfortable"
-                    dir="rtl"
-                    prepend-inner-icon="mdi-chevron-down"
-                  >
-                    <template #item="{ props, item: it }">
-                      <v-list-item v-bind="props" dir="rtl">
-                        <template #prepend>
-                          <v-avatar color="success-lighten-4" size="36" class="ms-3">
-                            <v-icon icon="mdi-bank" color="success"></v-icon>
-                          </v-avatar>
-                        </template>
-                        <v-list-item-title class="text-body-2 font-weight-medium text-right">
-                          {{ it.raw.name }}
-                        </v-list-item-title>
-                      </v-list-item>
-                    </template>
-                  </v-autocomplete>
-                </v-card>
-              </v-col>
-
-              <!-- Date -->
-              <v-col cols="12" md="6">
-                <v-card variant="flat" class="border rounded-lg pa-4 h-100 elevation-1">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block text-right">
-                    <v-icon icon="mdi-calendar-check" size="16" class="ms-1"></v-icon>
-                    {{ t('تاریخ دریافت') }} *
-                  </label>
-                  <DateInput
-                    v-model="editor.received_at"
-                    :placeholder="t('تاریخ را انتخاب کنید')"
-                    :error="hasError('received_at')"
-                    :error-messages="getErrorMessages('received_at')"
-                    :rules="[v => !!v || t('تاریخ دریافت الزامی است')]"
-                    hide-details
-                    variant="outlined"
-                    class="mt-1"
-                    density="comfortable"
-                    dir="rtl"
-                  />
-                </v-card>
-              </v-col>
-            </v-row>
-          </div>
-
-          <!-- Amount Section -->
-          <div class="mb-6">
-            <div class="d-flex align-center mb-4">
-              <div class="section-title-line bg-amber ms-3"></div>
-              <h3 class="text-h6 font-weight-bold text-amber-darken-3">
-                <v-icon icon="mdi-cash" class="ms-2" size="20"></v-icon>
-                {{ t('مبلغ عاید') }}
-              </h3>
-            </div>
-            
-            <v-row>
-              <!-- Amount Input -->
-              <v-col cols="12">
-                <v-card variant="flat" class="border rounded-lg pa-4 elevation-1">
-                  <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block text-right">
-                    <v-icon icon="mdi-currency-usd" size="16" class="ms-1"></v-icon>
-                    {{ t('مبلغ') }} *
-                  </label>
-                  <div class="d-flex align-center gap-3">
-                    <v-text-field
-                      v-model="editor.amount"
-                      type="number"
-                      :placeholder="t('مبلغ را وارد کنید')"
-                      variant="outlined"
-                      :error="hasError('amount')"
-                      :error-messages="getErrorMessages('amount')"
-                      hide-details
-                      :rules="[
-                        v => !!v || t('مبلغ الزامی است'),
-                        v => v > 0 || t('مبلغ باید بیشتر از صفر باشد')
-                      ]"
-                      class="flex-grow-1"
-                      density="comfortable"
-                      dir="ltr"
-                    >
-                      <template #append>
-                        <span class="text-caption text-grey">افغانی</span>
-                      </template>
-                    </v-text-field>
-                    
-                    <!-- Amount Display Card -->
-                    <v-card 
-                      variant="flat" 
-                      color="amber-lighten-5" 
-                      class="pa-3 rounded-lg border d-flex align-center"
-                      style="min-width: 140px"
-                    >
-                      <div class="text-center">
-                        <div class="text-caption text-grey mb-1">{{ t('مبلغ') }}</div>
-                        <div class="text-h6 font-weight-bold text-amber-darken-3">
-                          {{ formatNumber(editor.amount) }}
-                        </div>
-                        <div class="text-caption text-grey">افغانی</div>
-                      </div>
-                    </v-card>
-                  </div>
-                  <div class="text-caption text-grey mt-3 text-right">
-                    {{ t('مبلغ به صورت عددی وارد شود') }}
-                  </div>
-                </v-card>
-              </v-col>
-            </v-row>
-          </div>
-
-          <!-- Notes Section -->
-          <div class="mb-2">
-            <div class="d-flex align-center mb-4">
-              <div class="section-title-line bg-blue-grey ms-3"></div>
-              <h3 class="text-h6 font-weight-bold text-blue-grey">
-                <v-icon icon="mdi-note-text" class="ms-2" size="20"></v-icon>
-                {{ t('توضیحات و یادداشت') }}
-              </h3>
-            </div>
-            
-            <v-card variant="flat" class="border rounded-lg pa-4 elevation-1">
-              <label class="text-subtitle-2 text-grey-darken-2 mb-2 d-block text-right">
-                <v-icon icon="mdi-pencil" size="16" class="ms-1"></v-icon>
-                {{ t('یادداشت') }}
-              </label>
-              <v-textarea
-                v-model="editor.note"
-                :placeholder="t('توضیحات مربوط به این عاید را وارد کنید...')"
-                variant="outlined"
-                :error="hasError('note')"
-                :error-messages="getErrorMessages('note')"
-                hide-details
-                rows="3"
-                auto-grow
-                class="mt-1"
-                dir="rtl"
-                counter
-                :maxlength="500"
-              />
-              <div class="text-caption text-grey mt-2 text-right">
-                {{ t('توضیحاتی مانند منبع عاید، نحوه دریافت و سایر اطلاعات مرتبط') }}
-              </div>
-            </v-card>
-          </div>
-
-          <!-- Summary Card -->
-          <v-card variant="flat" color="success-lighten-5" class="border rounded-lg pa-4 mt-6" dir="rtl">
-            <div class="d-flex align-center justify-space-between">
-              <div>
-                <div class="text-subtitle-2 text-grey-darken-2 mb-1">{{ t('خلاصه اطلاعات') }}</div>
-                <div class="text-caption text-grey">
-                  {{ t('اطلاعات وارد شده را بررسی کنید') }}
-                </div>
-              </div>
-              <v-icon icon="mdi-clipboard-check" color="success" size="24"></v-icon>
-            </div>
-            
-            <v-divider class="my-3" />
-            
-            <v-row>
-              <v-col cols="12" md="6">
-                <div class="d-flex align-center mb-3">
-                  <v-icon icon="mdi-bank" size="18" class="ms-2 text-grey"></v-icon>
-                  <div>
-                    <div class="text-caption text-grey">{{ t('حساب') }}</div>
-                    <div class="text-body-2 font-weight-medium">
-                      {{ getAccountName(editor.account_id) || t('انتخاب نشده') }}
-                    </div>
-                  </div>
-                </div>
-              </v-col>
-              
-              <v-col cols="12" md="6">
-                <div class="d-flex align-center mb-3">
-                  <v-icon icon="mdi-calendar" size="18" class="ms-2 text-grey"></v-icon>
-                  <div>
-                    <div class="text-caption text-grey">{{ t('تاریخ') }}</div>
-                    <div class="text-body-2 font-weight-medium">
-                      {{ editor.received_at || t('تعیین نشده') }}
-                    </div>
-                  </div>
-                </div>
-              </v-col>
-              
-              <v-col cols="12" md="6">
-                <div class="d-flex align-center">
-                  <v-icon icon="mdi-cash" size="18" class="ms-2 text-grey"></v-icon>
-                  <div>
-                    <div class="text-caption text-grey">{{ t('مبلغ') }}</div>
-                    <div class="text-body-2 font-weight-medium text-success">
-                      {{ formatNumber(editor.amount) }} افغانی
-                    </div>
-                  </div>
-                </div>
-              </v-col>
-            </v-row>
-          </v-card>
-        </v-form>
-      </v-card-text>
-
-      <!-- Footer Actions -->
       <v-divider />
 
-      <v-card-actions class="pa-4 d-flex justify-end gap-3 bg-grey-lighten-5" dir="rtl">
-        <v-btn
-          variant="outlined"
-          color="grey-darken-2"
-          @click="clearLocal"
-          :disabled="busy"
-          prepend-icon="mdi-delete-sweep"
-          size="large"
-          class="px-5"
-        >
-          {{ t('پاک کردن') }}
-        </v-btn>
+      <v-card-text class="pa-4">
+        <v-form ref="formRef" @submit.prevent="onSubmit">
+          <div class="d-grid gap-3">
+            <!-- Account -->
+            <v-autocomplete
+              v-model="draft.account_id"
+              :items="accountOptions"
+              item-title="name"
+              item-value="id"
+              label="حساب"
+              density="compact"
+              variant="outlined"
+              prepend-inner-icon="mdi-bank"
+              :rules="[rules.required]"
+              :error="hasError('account_id')"
+              :error-messages="getErrorMessages('account_id')"
+            />
 
-        <v-btn
-          color="success"
-          variant="flat"
-          @click="submit"
-          :loading="busy"
-          prepend-icon="mdi-content-save-check"
-          size="large"
-          class="px-6"
-          elevation="2"
-        >
-          {{ editMode ? t('ذخیره تغییرات') : t('ثبت عاید') }}
-        </v-btn>
-      </v-card-actions>
+            <!-- Amount -->
+            <v-text-field
+              v-model="draft.amount"
+              label="مبلغ"
+              density="compact"
+              variant="outlined"
+              type="number"
+              prepend-inner-icon="mdi-currency-usd"
+              :rules="[rules.requiredNumber]"
+              :error="hasError('amount')"
+              :error-messages="getErrorMessages('amount')"
+            />
+
+            <!-- Received at with DateInput -->
+            <DateInput
+              v-model="draft.received_at"
+              label="تاریخ دریافت"
+              density="compact"
+              :rules="[rules.required]"
+              :error="hasError('received_at')"
+              :error-messages="getErrorMessages('received_at')"
+            />
+
+            <!-- Note -->
+            <v-textarea
+              v-model="draft.note"
+              label="یادداشت"
+              density="compact"
+              variant="outlined"
+              rows="3"
+              auto-grow
+              prepend-inner-icon="mdi-note-text"
+              :error="hasError('note')"
+              :error-messages="getErrorMessages('note')"
+            />
+          </div>
+
+          <div v-if="backendErrors.general?.length" class="mt-3">
+            <v-alert type="error" variant="tonal" density="compact">
+              <div v-for="(m, i) in backendErrors.general" :key="i">{{ m }}</div>
+            </v-alert>
+          </div>
+
+          <div class="d-flex justify-end gap-2 mt-4">
+            <v-btn variant="text" @click="close">انصراف</v-btn>
+            <v-btn color="success" :loading="saving" type="submit">
+              {{ isEdit ? "ذخیره تغییرات" : "ثبت عاید" }}
+            </v-btn>
+          </div>
+        </v-form>
+      </v-card-text>
     </v-card>
-
-    <!-- Notification Toast -->
-    <v-snackbar v-model="snack.open" :color="snack.color" timeout="3000" location="top" dir="rtl">
-      <div class="d-flex align-center">
-        <v-icon :icon="snack.icon" class="ms-2"></v-icon>
-        <span>{{ snack.text }}</span>
-      </div>
-      <template #actions>
-        <v-btn icon="mdi-close" variant="text" @click="snack.open = false"></v-btn>
-      </template>
-    </v-snackbar>
   </v-dialog>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import DateInput from "@/components/DateInput.vue";
-
-const { t } = useI18n();
+import { computed, reactive, ref, watch } from "vue";
+import { useFinanceRepository } from "@/stores/financeRepository";
+import DateInput from "@/components/DateInput.vue"; // Import DateInput component
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
-  editMode: { type: Boolean, default: false },
-  value: { type: Object, default: () => ({}) },
-  busy: { type: Boolean, default: false },
-  accountsOptions: { type: Array, default: () => [] },
+  editId: { type: [Number, String, null], default: null },
 });
 
-const emit = defineEmits(["update:modelValue", "save"]);
+const emit = defineEmits(["update:modelValue", "saved"]);
+
+const repo = useFinanceRepository();
 
 const model = computed({
   get: () => props.modelValue,
   set: (v) => emit("update:modelValue", v),
 });
 
-const formRef = ref(null);
-const itemErrors = reactive({});
-const snack = reactive({ open: false, text: "", color: "primary", icon: "mdi-information" });
+const isEdit = computed(() => !!props.editId);
 
-const blankRow = () => ({
-  id: null,
+const formRef = ref(null);
+const saving = ref(false);
+
+const draft = reactive({
   account_id: null,
-  amount: 0,
-  received_at: null,
+  amount: "",
+  received_at: "",
   note: "",
 });
 
-const editor = reactive(blankRow());
+const backendErrors = reactive({});
 
-// Helper functions
-function formatNumber(num) {
-  return new Intl.NumberFormat('fa-AF').format(num || 0);
-}
+const rules = {
+  required: (v) => (!!v || v === 0) || "این فیلد ضروری است",
+  requiredNumber: (v) => {
+    if (v === null || v === undefined || v === "") return "این فیلد ضروری است";
+    const n = Number(v);
+    return Number.isFinite(n) ? true : "عدد معتبر وارد کنید";
+  },
+};
 
-function getAccountName(accountId) {
-  const account = props.accountsOptions.find(acc => acc.id === accountId);
-  return account ? account.name : null;
-}
-
-function showSnack(text, color = "primary", icon = "mdi-information") {
-  snack.text = text;
-  snack.color = color;
-  snack.icon = icon;
-  snack.open = true;
-}
+const accountOptions = computed(() => repo.accounts || []);
 
 function clearErrors() {
-  Object.keys(itemErrors).forEach((k) => delete itemErrors[k]);
+  Object.keys(backendErrors).forEach((k) => delete backendErrors[k]);
 }
 
-function hasError(field) {
-  return !!itemErrors[field]?.length;
+function hasError(key) {
+  return Array.isArray(backendErrors[key]) && backendErrors[key].length > 0;
+}
+function getErrorMessages(key) {
+  return backendErrors[key] || [];
 }
 
-function getErrorMessages(field) {
-  return itemErrors[field] || [];
+function resetDraft() {
+  draft.account_id = null;
+  draft.amount = "";
+  draft.received_at = "";
+  draft.note = "";
 }
 
-function applyFromProps() {
-  const v = props.value || {};
-  Object.assign(editor, blankRow(), {
-    id: v.id ?? null,
-    account_id: v.account_id ?? null,
-    amount: v.amount ?? 0,
-    received_at: v.received_at ?? null,
-    note: v.note ?? "",
+async function ensureAccountsLoaded() {
+  // Load accounts once if empty (for autocomplete)
+  if (Array.isArray(repo.accounts) && repo.accounts.length) return;
+
+  await repo.FetchAccountsData({
+    page: 1,
+    perPage: 2000, // enough for dropdown
+    search: "",
   });
-  clearErrors();
 }
 
-watch(() => props.value, applyFromProps, { deep: true, immediate: true });
-watch(() => props.modelValue, (open) => { if (open) applyFromProps(); });
-
-function clearLocal() {
-  Object.assign(editor, blankRow());
+async function loadForEdit() {
+  if (!props.editId) return;
   clearErrors();
-  showSnack(t("همه فیلدها پاک شد"), "info", "mdi-check-circle");
+  const item = await repo.FetchIncomeData(props.editId);
+
+  draft.account_id = item?.account_id ?? null;
+  draft.amount = item?.amount ?? "";
+  // DateInput expects date string, no need to slice
+  draft.received_at = item?.received_at ?? "";
+  draft.note = item?.note ?? "";
 }
 
-async function submit() {
+watch(
+  () => model.value,
+  async (open) => {
+    if (!open) return;
+
+    resetDraft();
+    clearErrors();
+    await ensureAccountsLoaded();
+
+    if (props.editId) await loadForEdit();
+  }
+);
+
+function close() {
+  model.value = false;
+}
+
+async function onSubmit() {
   clearErrors();
 
-  const valid = await formRef.value?.validate?.();
-  if (valid === false) {
-    showSnack(t("لطفاً فیلدهای الزامی را تکمیل کنید"), "error", "mdi-alert-circle");
-    return;
+  const res = await formRef.value?.validate();
+  if (!res?.valid) return;
+
+  saving.value = true;
+  try {
+    const payload = {
+      account_id: draft.account_id,
+      amount: draft.amount,
+      received_at: draft.received_at,
+      note: draft.note,
+    };
+
+    if (isEdit.value) {
+      await repo.UpdateIncome(props.editId, payload);
+    } else {
+      await repo.CreateIncome(payload);
+    }
+
+    emit("saved");
+    close();
+  } catch (e) {
+    const errors = e?.response?.data?.errors;
+    if (errors && typeof errors === "object") {
+      Object.assign(backendErrors, errors);
+    } else {
+      backendErrors.general = ["خطا رخ داد. دوباره تلاش کنید."];
+    }
+  } finally {
+    saving.value = false;
   }
-
-  // Additional validation
-  if (!editor.account_id) {
-    showSnack(t("انتخاب حساب الزامی است"), "error", "mdi-alert-circle");
-    return;
-  }
-
-  if (!editor.received_at) {
-    showSnack(t("تاریخ دریافت الزامی است"), "error", "mdi-alert-circle");
-    return;
-  }
-
-  if (!editor.amount || editor.amount <= 0) {
-    showSnack(t("مبلغ باید بیشتر از صفر باشد"), "error", "mdi-alert-circle");
-    return;
-  }
-
-  const payload = {
-    id: editor.id,
-    account_id: editor.account_id,
-    amount: editor.amount,
-    received_at: editor.received_at,
-    note: editor.note,
-  };
-
-  emit("save", payload);
-  showSnack(
-    editMode ? t("عاید با موفقیت ویرایش شد") : t("عاید جدید با موفقیت ثبت شد"),
-    "success",
-    "mdi-check-circle"
-  );
 }
 </script>
 
 <style scoped>
-/* Gradient background for header */
 .bg-gradient-success {
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  background: linear-gradient(135deg, rgba(46, 125, 50, 1), rgba(76, 175, 80, 0.9));
 }
-
-/* Custom section title line */
-.section-title-line {
-  width: 4px;
-  height: 24px;
-  border-radius: 2px;
+.d-grid {
+  display: grid;
 }
-
-/* Custom scrollbar */
-.v-dialog::-webkit-scrollbar {
-  width: 8px;
+.gap-3 {
+  gap: 12px;
 }
-
-.v-dialog::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.v-dialog::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-  border-radius: 4px;
-}
-
-.v-dialog::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-}
-
-/* Smooth hover effect for cards */
-.v-card[class*="border"] {
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-.v-card[class*="border"]:hover {
-  border-color: var(--v-success-base);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
-}
-
-/* RTL specific adjustments */
-[dir="rtl"] .v-input__prepend-inner {
-  margin-left: 8px;
-  margin-right: 0;
-}
-
-[dir="rtl"] .v-input__append-inner {
-  margin-right: 8px;
-  margin-left: 0;
-}
-
-/* Text alignment for RTL */
-.text-right {
-  text-align: right;
-}
-
-/* Height utilities */
-.h-100 {
-  height: 100%;
-}
-
-/* Success color variations */
-.bg-success-lighten-4 {
-  background-color: rgba(16, 185, 129, 0.08);
-}
-
-/* Amount display styling */
-.amount-display {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  letter-spacing: 0.5px;
-}
-
-/* Focus effects */
-.v-input--is-focused .v-field {
-  border-color: var(--v-success-base) !important;
-}
-
-/* Button hover effects */
-.v-btn:hover {
-  transform: translateY(-1px);
-  transition: transform 0.2s ease;
+.gap-2 {
+  gap: 8px;
 }
 </style>

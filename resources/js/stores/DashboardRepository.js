@@ -17,6 +17,10 @@ export const useDashboardRepository = defineStore('DashboardRepository', {
     events: null,
     captive_deliveries: null,
     formats_by_zone: null,
+
+    // ✅ ADDED ONLY
+    money: null,
+    oil: null,
   }),
 
   getters: {
@@ -31,6 +35,27 @@ export const useDashboardRepository = defineStore('DashboardRepository', {
     },
     zones(state) {
       return state.formats_by_zone?.zones || []
+    },
+
+    // ✅ ADDED ONLY (optional convenience)
+    moneyIncomeTotal(state) {
+      return state.money?.income_total ?? 0
+    },
+    moneyExpensedTotal(state) {
+      return state.money?.expensed_total ?? 0
+    },
+    moneyBalance(state) {
+      return state.money?.balance ?? 0
+    },
+
+    oilIncomeTotal(state) {
+      return state.oil?.income_total ?? 0
+    },
+    oilExpensedTotal(state) {
+      return state.oil?.expensed_total ?? 0
+    },
+    oilBalance(state) {
+      return state.oil?.balance ?? 0
     },
   },
 
@@ -47,6 +72,10 @@ export const useDashboardRepository = defineStore('DashboardRepository', {
       this.events = null
       this.captive_deliveries = null
       this.formats_by_zone = null
+
+      // ✅ ADDED ONLY
+      this.money = null
+      this.oil = null
     },
 
     async fetchDashboard() {
@@ -88,6 +117,10 @@ export const useDashboardRepository = defineStore('DashboardRepository', {
       this.events = data?.events || null
       this.captive_deliveries = data?.captive_deliveries || null
       this.formats_by_zone = data?.formats_by_zone || null
+
+      // ✅ ADDED ONLY
+      this.money = data?.money || null
+      this.oil = data?.oil || null
     },
   },
 })
