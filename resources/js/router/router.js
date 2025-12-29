@@ -177,6 +177,8 @@ import YearlyFoulReport from '../pages/reports/YearlyFoulReport.vue';
 import WeeklyFoulReports from '../pages/reports/WeeklyFoulReports.vue';
 import FoulQuarterlyReports from '../pages/reports/FoulQuarterlyReports.vue';
 import AllTimeFoulReports from '../pages/reports/AllTimeFoulReports.vue';
+import OutgoingIncomingForm from '../pages/OutgoingIncoming/OutgoingIncomingForm.vue';
+import OutgoingIncomingIndex from '../pages/OutgoingIncoming/OutgoingIncomingIndex.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -388,11 +390,40 @@ const router = createRouter({
           component: Eventtab,
           meta: { requiresAuth: true, perm: permFor('eventtabl') },
         },
+        // outgoing incomming
+        {
+          path: 'outgoingincommings',
+          component: OutgoingIncomingIndex,
+          // meta: { requiresAuth: true, perm: permFor('outgoingincomming') },
+        },
+        {
+          path: '/app/outgoingincomingform',
+          name: 'OutgoingIncomingCreate',
+          component: OutgoingIncomingForm,
+
+          // meta: {
+          //   requiresAuth: true,
+          //   title: 'Create Outgoing / Incoming',
+          // },
+        },
+
+        {
+          path: '/app/outgoingincomingform/:id',
+          name: 'OutgoingIncomingEdit',
+          component: OutgoingIncomingForm,
+
+          // meta: {
+          //   requiresAuth: true,
+          //   title: 'Edit Outgoing / Incoming',
+          // },
+          props: true,
+        },
 
         // 56 Formats hub
         {
           path: 'fifthyformatsroute',
           component: FifthyFormatsRoute,
+
           meta: { requiresAuth: true, perm: permFor('fifthyformatsroute') },
         },
 

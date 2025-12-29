@@ -136,6 +136,7 @@ use App\Models\OfficeEmployee;
 use App\Http\Controllers\Reports\FiftyFormatsReportController;
 use App\Http\Controllers\Api\InformationReportController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OutgoingIncomingController;
 use App\Http\Controllers\Api\Reports\Foul\DailyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\MonthlyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\QuarterlyFoulReportController;
@@ -514,8 +515,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
 
+    // Outgoing/Incoming CRUD
+
+    Route::apiResource('outgoing-incomings', OutgoingIncomingController::class);
 
 
+    // ✅ ZIP Download (ALL docs for one record)
+    Route::get('/outgoing-incomings/{id}/documents-zip', [OutgoingIncomingController::class, 'downloadDocumentsZip']);
 
 
 });

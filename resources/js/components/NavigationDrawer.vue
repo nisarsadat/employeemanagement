@@ -300,6 +300,12 @@
         to: { path: '/app/finincalindex' },
         perm: 'finincalindex.view',
       },
+      {
+        title: t('صادره وارده'),
+        icon: 'mdi-cash-multiple',
+        to: { path: '/app/outgoingincommings' },
+        // perm: 'outgoingincommings.view',
+      },
 
       { title: t('نقش ها'), icon: 'mdi-home', to: { path: '/app/roles' }, perm: 'roles.view' },
 
