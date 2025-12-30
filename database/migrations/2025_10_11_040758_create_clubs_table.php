@@ -29,12 +29,23 @@ return new class extends Migration {
             $table->string('pm_students')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             // relation to resources (code/phone derived from resource)
             $table->foreignId('resource_id')
-                  ->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
+
+            // ✅ UNIQUE (as you requested)
+            $table->unique([
+                'name',
+                'club_name',
+                'club_type',
+                'father_name',
+                'phone_number',
+                'zone',
+                'district',
+                'province',
+            ], 'clubs_identity_unique');
 
             $table->timestamps();
         });

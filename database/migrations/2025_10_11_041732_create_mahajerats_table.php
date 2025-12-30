@@ -36,14 +36,22 @@ return new class extends Migration {
             $table->string('phone_number')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             // relation to resources (resource_code/phone come from here)
             $table->foreignId('resource_id')
-                  ->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             $table->text('note')->nullable();
+
+            // ✅ UNIQUE (as you requested)
+            $table->unique([
+                'name',
+                'father_name',
+                'main_province',
+                'main_district',
+                'main_village',
+            ], 'mahajerats_identity_unique');
 
             $table->timestamps();
         });

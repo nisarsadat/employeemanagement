@@ -382,7 +382,7 @@
             </div>
             <v-divider />
             <v-row class="pa-3">
-              <v-col cols="12" md="4">
+              <!-- <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.Province_addr"
                   :label="t('ولایت مربوطه')"
@@ -391,8 +391,8 @@
                   :error="hasError('Province_addr')"
                   :error-messages="getErrorMessages('Province_addr')"
                 />
-              </v-col>
-              <v-col cols="12" md="8">
+              </v-col> -->
+              <v-col cols="12" md="12">
                 <v-autocomplete
                   class="primary-select"
                   v-model="form.office_employee_info_id"

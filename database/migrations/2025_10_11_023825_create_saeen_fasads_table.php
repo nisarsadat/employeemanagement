@@ -44,12 +44,20 @@ return new class extends Migration {
             $table->string('Province_addr')->nullable();
             $table->string('coordinates')->nullable();
 
-
             // relation to resources
             $table->foreignId('resource_id')
                   ->nullable()
                   ->constrained('resources')
                   ->cascadeOnDelete();
+
+            // ✅ composite unique constraint (same logic as Fasad)
+            $table->unique([
+                'name',
+                'father_name',
+                'main_province',
+                'main_district',
+                'main_village',
+            ], 'saeen_fasads_identity_unique');
 
             $table->timestamps();
         });

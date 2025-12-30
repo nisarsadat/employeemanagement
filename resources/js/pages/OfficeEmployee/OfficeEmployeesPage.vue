@@ -164,7 +164,7 @@
     <!-- 📋 MAIN TABLE -->
     <FilterableTable
       :headers="headersFT"
-      :rows="rowsFT"
+      :rows="focusedRowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
@@ -423,6 +423,8 @@
   import { ref, computed, watch, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
   import { useI18n } from 'vue-i18n';
+  import { useRoute } from 'vue-router';
+  const route = useRoute();
 
   import AppBar from '@/components/AppBar.vue';
   import PeekButton from '@/components/PeekButton.vue';
@@ -437,6 +439,15 @@
   const { t, locale } = useI18n();
   const repo = useEmployeOfficeRepository();
   const auth = useLoginRepository();
+  const focusId = computed(() => {
+    const id = route.query?.id;
+    return id ? Number(id) : null;
+  });
+
+  const focusedRowsFT = computed(() => {
+    if (!focusId.value) return rowsFT.value;
+    return rowsFT.value.filter((r) => Number(r.id) === focusId.value);
+  });
 
   /* ===== RTL ===== */
   const isRtl = ref(locale.value === 'fa');

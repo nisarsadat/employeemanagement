@@ -8,7 +8,10 @@ use App\Http\Requests\fifthyFormats\UpdateSaeenFasadRequest;
 use App\Http\Resources\fifthyFormats\SaeenFasadResource;
 use App\Models\fifthyFormats\SaeenFasad;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
+use App\Services\NotificationService; // 🔔 notifications
 
 class SaeenFasadController extends Controller
 {
@@ -17,17 +20,31 @@ class SaeenFasadController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 15);
-        $search  = $request->input('search');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
 
-        $q = SaeenFasad::query()->with('resource');
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
-        if ($search) {
-            // keep it simple like Fasad (you can extend to other fields if you want)
-            $q->where('name', 'like', "%{$search}%");
+        $search = trim((string) $request->query('search', ''));
+
+        $q = SaeenFasad::query()
+            ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '', function ($sub) use ($search) {
+                $sub->where(function ($x) use ($search) {
+                    $x->where('name', 'like', "%{$search}%")
+                      ->orWhere('father_name', 'like', "%{$search}%")
+                      ->orWhere('nick_name', 'like', "%{$search}%");
+                });
+            })
+            ->orderByDesc('id');
+
+        if ($isValidPage && $isValidPerPage) {
+            $data = $q->paginate((int) $perPage, ['*'], 'page', (int) $page);
+            return SaeenFasadResource::collection($data);
         }
 
-        return SaeenFasadResource::collection($q->paginate($perPage));
+        return SaeenFasadResource::collection($q->get());
     }
 
     /**
@@ -35,7 +52,7 @@ class SaeenFasadController extends Controller
      */
     public function show(SaeenFasad $saeenFasad)
     {
-        $saeenFasad->load('resource');
+        $saeenFasad->load(['resource:id,name,code_number,phone_number']);
         return new SaeenFasadResource($saeenFasad);
     }
 
@@ -45,26 +62,55 @@ class SaeenFasadController extends Controller
      */
     public function store(StoreSaeenFasadRequest $request)
     {
+        $user = $request->user(); // 🔔 who did this
         $data = $request->validated();
 
-        // If picture is uploaded as a file, store it and save the string path.
-        if ($request->hasFile('picture')) {
-            $path = $request->file('picture')->store('uploads/saeen-fasadas', 'public'); // e.g. uploads/saeen-fasadas/xxx.jpg
-            $data['picture'] = "storage/{$path}";                                        // save string like: storage/uploads/saeen-fasadas/xxx.jpg
-        } else {
-            // If validator allowed 'picture' and it's not a string, drop it to avoid "must be a string" errors
-            if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
-                unset($data['picture']);
+        try {
+            return DB::transaction(function () use ($request, $data, $user) {
+                // picture: file OR string
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/saeen-fasads', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $item = SaeenFasad::create($data);
+                $item->load(['resource:id,name,code_number,phone_number']);
+
+                // 🔔 Notification: CREATED
+                NotificationService::record(
+                    $user,
+                    module: 'سعین فساد',
+                    action: 'created',
+                    title: 'نوی ریکارډ ثبت شو',
+                    message: 'نوم: ' . ($item->name ?? ''),
+                    routeName: 'saeen-fasads',          // ⚠️ adjust to your real route name
+                    routeParams: ['id' => $item->id],
+                    level: 'success',
+                    changes: null
+                );
+
+                return (new SaeenFasadResource($item))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
+            });
+        } catch (QueryException $e) {
+            // ✅ Duplicate unique constraint (MySQL: 1062)
+            if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
+                return response()->json([
+                    'message' => 'دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).',
+                    'errors'  => [
+                        'duplicate' => ['دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).'],
+                    ],
+                ], 422);
             }
+
+            throw $e;
         }
-
-        $item = SaeenFasad::create($data);
-        $item->load('resource');
-
-        return (new SaeenFasadResource($item))
-            ->additional(['message' => 'Created'])
-            ->response()
-            ->setStatusCode(201);
     }
 
     /**
@@ -73,36 +119,87 @@ class SaeenFasadController extends Controller
      */
     public function update(UpdateSaeenFasadRequest $request, SaeenFasad $saeenFasad)
     {
+        $user = $request->user(); // 🔔
         $data = $request->validated();
 
-        if ($request->hasFile('picture')) {
-            // Delete old stored picture if we had one saved under /storage
-            if ($saeenFasad->picture && str_starts_with($saeenFasad->picture, 'storage/')) {
-                $old = str_replace('storage/', '', $saeenFasad->picture);
-                Storage::disk('public')->delete($old);
+        try {
+            return DB::transaction(function () use ($request, $data, $saeenFasad, $user) {
+                // 🧮 build changes BEFORE update
+                $original = $saeenFasad->getOriginal();
+                $changes  = [];
+
+                foreach ($data as $field => $newValue) {
+                    if (array_key_exists($field, $original)) {
+                        $oldValue = $original[$field];
+                        if ($oldValue != $newValue) {
+                            $changes[$field] = ['old' => $oldValue, 'new' => $newValue];
+                        }
+                    }
+                }
+
+                // picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+                    if ($saeenFasad->picture && str_starts_with($saeenFasad->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $saeenFasad->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/saeen-fasads', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    // reflect change in changes array
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $saeenFasad->update($data);
+                $saeenFasad->load(['resource:id,name,code_number,phone_number']);
+
+                // 🔔 Notification: UPDATED + changes
+                NotificationService::record(
+                    $user,
+                    module: 'سعین فساد',
+                    action: 'updated',
+                    title: 'ریکارډ اصلاح شو',
+                    message: 'نوم: ' . ($saeenFasad->name ?? ''),
+                    routeName: 'saeen-fasads',          // ⚠️ adjust if needed
+                    routeParams: ['id' => $saeenFasad->id],
+                    level: 'info',
+                    changes: !empty($changes) ? $changes : null
+                );
+
+                return new SaeenFasadResource($saeenFasad);
+            });
+        } catch (QueryException $e) {
+            if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
+                return response()->json([
+                    'message' => 'دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).',
+                    'errors'  => [
+                        'duplicate' => ['دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).'],
+                    ],
+                ], 422);
             }
 
-            $path = $request->file('picture')->store('uploads/saeen-fasadas', 'public');
-            $data['picture'] = "storage/{$path}";
-        } else {
-            // If picture is not a string (e.g. null/object), don't override with invalid type
-            if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
-                unset($data['picture']);
-            }
+            throw $e;
         }
-
-        $saeenFasad->update($data);
-        $saeenFasad->load('resource');
-
-        return new SaeenFasadResource($saeenFasad);
     }
 
     /**
      * DELETE /saeen-fasadas/{saeenFasad}
      */
-    public function destroy(SaeenFasad $saeenFasad)
+    public function destroy(Request $request, SaeenFasad $saeenFasad)
     {
-        try {
+        $user = $request->user(); // 🔔
+
+        return DB::transaction(function () use ($saeenFasad, $user) {
+            $name = $saeenFasad->name;
+
             // ✅ Remove the stored file if it lives under /storage
             if ($saeenFasad->picture && str_starts_with($saeenFasad->picture, 'storage/')) {
                 $old = str_replace('storage/', '', $saeenFasad->picture);
@@ -111,17 +208,20 @@ class SaeenFasadController extends Controller
 
             $saeenFasad->delete();
 
-            return response()->json([
-                'message' => 'Deleted',
-            ], 200);
-        } catch (\Throwable $e) {
-            // Log the error for debugging
-            report($e);
+            // 🔔 Notification: DELETED
+            NotificationService::record(
+                $user,
+                module: 'سعین فساد',
+                action: 'deleted',
+                title: 'ریکارډ حذف شو',
+                message: 'نوم: ' . ($name ?? ''),
+                routeName: null,
+                routeParams: ['saeen-fasads'],
+                level: 'warning',
+                changes: null
+            );
 
-            return response()->json([
-                'message' => 'Unable to delete record.',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
-            ], 500);
-        }
+            return response()->noContent();
+        });
     }
 }

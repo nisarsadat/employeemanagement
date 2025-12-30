@@ -8,55 +8,63 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('fasads', function (Blueprint $table) {
-            $table->id();
-            $table->string('name'); // required
+        $table->id();
 
-            // Optional profile/contact fields (from your picture)
-            $table->string('picture')->nullable();
-            $table->string('nick_name')->nullable();
-            $table->string('father_name')->nullable();
+        $table->string('name');
+        $table->string('picture')->nullable();
+        $table->string('nick_name')->nullable();
+        $table->string('father_name')->nullable();
 
-            // Main address
-            $table->string('main_province')->nullable();
-            $table->string('main_district')->nullable();
-            $table->string('main_village')->nullable();
+        // Main address
+        $table->string('main_province')->nullable();
+        $table->string('main_district')->nullable();
+        $table->string('main_village')->nullable();
 
-            // Current address
-            $table->string('now_province')->nullable();
-            $table->string('now_zone')->nullable();
-            $table->string('now_district')->nullable();
-            $table->string('now_village')->nullable();
-            $table->string('specific_place')->nullable();
-            $table->string('street_number')->nullable();
-            $table->string('home_number')->nullable();
+        // Current address
+        $table->string('now_province')->nullable();
+        $table->string('now_zone')->nullable();
+        $table->string('now_district')->nullable();
+        $table->string('now_village')->nullable();
+        $table->string('specific_place')->nullable();
+        $table->string('street_number')->nullable();
+        $table->string('home_number')->nullable();
 
-            // Misc
-            $table->string('jabha')->nullable();
-            $table->string('supplier_name')->nullable();
-            $table->string('responsibility')->nullable(); // normalized
+        // Misc
+        $table->string('jabha')->nullable();
+        $table->string('supplier_name')->nullable();
+        $table->string('responsibility')->nullable();
 
-            // Right column fields
-            $table->string('activity_zone')->nullable();
-            $table->string('friends_number')->nullable();
-            $table->string('phone_number')->nullable();
-            $table->string('bond_distance')->nullable(); // normalized
-            $table->string('last_band_reason')->nullable();
-            $table->string('band_place')->nullable();
-            $table->string('now_job')->nullable();
-            $table->string('resource_code')->nullable();
-            $table->string('resource_phone')->nullable();
-            $table->string('Province_addr')->nullable();
-            $table->string('coordinates')->nullable();
+        // Right column
+        $table->string('activity_zone')->nullable();
+        $table->string('friends_number')->nullable();
+        $table->string('phone_number')->nullable();
+        $table->string('bond_distance')->nullable();
+        $table->string('last_band_reason')->nullable();
+        $table->string('band_place')->nullable();
+        $table->string('now_job')->nullable();
+        $table->string('resource_code')->nullable();
+        $table->string('resource_phone')->nullable();
+        $table->string('Province_addr')->nullable();
+        $table->string('coordinates')->nullable();
 
+        // FK
+        $table->foreignId('resource_id')
+            ->nullable()
+            ->constrained('resources')
+            ->cascadeOnDelete();
 
-            // Link to existing resources table
-            $table->foreignId('resource_id')
-                ->nullable()
-                ->constrained('resources')
-                ->cascadeOnDelete();
+        // ✅ composite unique constraint
+        $table->unique([
+            'name',
+            'father_name',
+            'main_province',
+            'main_district',
+            'main_village'
+        ], 'fasads_identity_unique');
 
-            $table->timestamps();
-        });
+        $table->timestamps();
+    });
+
     }
 
     public function down(): void

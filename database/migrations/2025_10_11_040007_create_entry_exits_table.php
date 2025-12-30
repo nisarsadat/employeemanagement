@@ -28,15 +28,17 @@ return new class extends Migration {
             $table->string('where_come')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             // relation to resources (resource_code/phone are derived from this)
             $table->foreignId('resource_id')
-                  ->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             // extra
             $table->text('notes')->nullable();
+
+            // ✅ UNIQUE: name + village + way_type
+            $table->unique(['name', 'village', 'way_type'], 'entry_exits_name_village_type_unique');
 
             $table->timestamps();
         });

@@ -13,9 +13,13 @@ return new class extends Migration {
 
             $table->string('picture')->nullable();
             $table->string('father_name')->nullable();
+
+            // main address
             $table->string('main_province')->nullable();
             $table->string('main_district')->nullable();
             $table->string('main_village')->nullable();
+
+            // current address
             $table->string('now_province')->nullable();
             $table->string('now_zone')->nullable();
             $table->string('now_district')->nullable();
@@ -23,6 +27,7 @@ return new class extends Migration {
             $table->string('specific_place')->nullable();
             $table->string('street_number')->nullable();
             $table->string('home_number')->nullable();
+
             $table->string('coordinates')->nullable();
             $table->string('old_job')->nullable();
             $table->string('now_job')->nullable();
@@ -31,14 +36,23 @@ return new class extends Migration {
             $table->string('gun_type')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             // resource relation
             $table->foreignId('resource_id')
-                  ->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             $table->text('note')->nullable();
+
+            // ✅ composite unique constraint
+            $table->unique([
+                'name',
+                'father_name',
+                'main_province',
+                'main_district',
+                'main_village',
+            ], 'heists_identity_unique');
+
             $table->timestamps();
         });
     }

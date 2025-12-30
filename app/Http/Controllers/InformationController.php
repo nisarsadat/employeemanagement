@@ -121,6 +121,20 @@ class InformationController extends Controller
 
             // 🔄 apply update
             $information->update($validated);
+            // 🔔 Reset missing-result notification tracking when result is provided
+            if (
+                array_key_exists('result', $validated) &&
+                !is_null($validated['result']) &&
+                trim((string) $validated['result']) !== ''
+            ) {
+                $information->forceFill([
+                    'result_missing_first_notified_at' => null,
+                    'result_missing_last_notified_at'  => null,
+                    'result_missing_notify_count'      => 0,
+                ]);
+                $information->save(); // still a 2nd query, but cleaner on model state
+            }
+
 
             // 📎 new documents
             if ($request->hasFile('documents')) {

@@ -394,7 +394,7 @@
 
 <script setup>
   import { ref, computed, watch, onMounted } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { useRouter, useRoute } from 'vue-router';
   import { useI18n } from 'vue-i18n';
 
   import AppBar from '@/components/AppBar.vue';
@@ -405,7 +405,7 @@
 
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
-
+  const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();
   const repo = useDatabaseRepository();
@@ -533,6 +533,11 @@
   const displayedRowsFT = computed(() => {
     let data = rowsFT.value || [];
     const today = new Date();
+
+    // ✅ if we came here from Events by resource_id
+    if (routeResourceId.value) {
+      data = data.filter((r) => Number(r.id) === routeResourceId.value);
+    }
 
     if (quickFilter.value === 'today') {
       data = data.filter((r) => isSameDate(r.resource_saved_date || r.created_at, today));
@@ -725,10 +730,14 @@
   function goOfficeEmployee(payload) {
     const row = getRow(payload);
     if (!row) return;
+
     const empId = row.office_employee_id || row.office_employee?.id;
     if (!empId) return;
 
-    router.push(`/app/officeemployee`);
+    router.push({
+      path: '/app/officeemployee',
+      query: { office_employee_id: empId },
+    });
   }
 
   /* ===== Download documents ZIP ===== */
@@ -786,6 +795,10 @@
       deleteTarget.value = null;
     }
   }
+  const routeResourceId = computed(() => {
+    const v = route.query?.resource_id;
+    return v ? Number(v) : null;
+  });
 
   /* ===== Init ===== */
   onMounted(async () => {

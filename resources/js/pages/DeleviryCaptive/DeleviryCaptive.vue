@@ -486,7 +486,7 @@
     { title: t('وسایل و شواهد گرفته شده'), key: 'suspect_tools' },
 
     { title: t('ملاحظات'), key: 'notes' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    // { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);

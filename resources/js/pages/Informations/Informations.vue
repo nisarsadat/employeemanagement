@@ -404,6 +404,8 @@
   import { useI18n } from 'vue-i18n';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+  import { useRoute } from 'vue-router';
+  const route = useRoute();
 
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
@@ -433,6 +435,35 @@
     if (!row?.id) return;
     router.push(`/app/informations/print/${row.id}`);
   }
+  const filterOfficeEmployeeId = computed(() => {
+    const v = route.query?.office_employee_id;
+    return v ? Number(v) : null;
+  });
+
+  const filteredRows = computed(() => {
+    let rows = allRows.value;
+
+    // ✅ URL filter (from OfficeEmployee page)
+    if (filterOfficeEmployeeId.value) {
+      rows = rows.filter((r) => Number(r.office_employee_id) === filterOfficeEmployeeId.value);
+    }
+
+    // ✅ Stat filters
+    if (activeStat.value === 'today') {
+      const today = new Date().toISOString().split('T')[0];
+      rows = rows.filter((item) => item.information_saved_date === today);
+    } else if (activeStat.value === 'saeen') {
+      rows = rows.filter((item) => matchType(item, 'ساعین بالفساد'));
+    } else if (activeStat.value === 'shar') {
+      rows = rows.filter((item) => matchType(item, 'شر و فساد'));
+    } else if (activeStat.value === 'spy') {
+      rows = rows.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی'));
+    } else if (activeStat.value === 'resources') {
+      rows = allRows.value; // keep list unchanged
+    }
+
+    return rows;
+  });
 
   /* ===== Data sources to arrays ===== */
   const toArray = (v) => {
@@ -483,26 +514,26 @@
   );
 
   /* ===== Filtered Rows based on active stat ===== */
-  const filteredRows = computed(() => {
-    let rows = allRows.value;
+  // const filteredRows = computed(() => {
+  //   let rows = allRows.value;
 
-    if (activeStat.value === 'today') {
-      const today = new Date().toISOString().split('T')[0];
-      rows = rows.filter((item) => item.information_saved_date === today);
-    } else if (activeStat.value === 'saeen') {
-      rows = rows.filter((item) => matchType(item, 'ساعین بالفساد'));
-    } else if (activeStat.value === 'shar') {
-      rows = rows.filter((item) => matchType(item, 'شر و فساد'));
-    } else if (activeStat.value === 'spy') {
-      rows = rows.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی'));
-    } else if (activeStat.value === 'resources') {
-      // this card is just for total resources count (not a list filter),
-      // so we keep informations list unchanged.
-      rows = allRows.value;
-    }
+  //   if (activeStat.value === 'today') {
+  //     const today = new Date().toISOString().split('T')[0];
+  //     rows = rows.filter((item) => item.information_saved_date === today);
+  //   } else if (activeStat.value === 'saeen') {
+  //     rows = rows.filter((item) => matchType(item, 'ساعین بالفساد'));
+  //   } else if (activeStat.value === 'shar') {
+  //     rows = rows.filter((item) => matchType(item, 'شر و فساد'));
+  //   } else if (activeStat.value === 'spy') {
+  //     rows = rows.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی'));
+  //   } else if (activeStat.value === 'resources') {
+  //     // this card is just for total resources count (not a list filter),
+  //     // so we keep informations list unchanged.
+  //     rows = allRows.value;
+  //   }
 
-    return rows;
-  });
+  //   return rows;
+  // });
 
   function filterByStat(stat) {
     activeStat.value = activeStat.value === stat ? null : stat;
@@ -523,7 +554,7 @@
     { title: t('ولایت فعلی'), key: 'now_province' },
     { title: t('ولسوالی فعلی'), key: 'now_district' },
     { title: t('قریه فعلی'), key: 'now_village' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    // { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('سیاسی'), key: 'syasi_info_type' },
     { title: t('جنایی'), key: 'jenayee_info_type' },
     { title: t('تاریخ اطلاع'), key: 'information_saved_date' },
@@ -704,13 +735,31 @@
   }
 
   // 🔹 Go to RESOURCE page (listing / main page)
-  function goToResource(_row) {
-    router.push('/app/resources');
+  function goToResource(payload) {
+    const row = getRow(payload);
+    const id = row?.resource_id;
+    if (!id) return;
+
+    router.push({
+      path: '/app/resources',
+      query: { id: String(id), open: 'peek' },
+    });
   }
 
   // 🔹 Go to OFFICE EMPLOYEE page (listing / main page)
-  function goToOfficeEmployee(_row) {
-    router.push('/app/officeemployee');
+  function goToOfficeEmployee(payload) {
+    const row = getRow(payload);
+
+    // choose the correct key you have in Informations rows
+    const id =
+      row?.office_employee_id || row?.office_employee_info_id || row?.office_employee_info_id; // keep only what exists in your API
+
+    if (!id) return;
+
+    router.push({
+      path: '/app/officeemployee',
+      query: { id: String(id), open: 'peek' }, // open=peek is optional
+    });
   }
 
   function clearSearch() {

@@ -8,23 +8,31 @@ use App\Http\Requests\fifthyFormats\UpdateCaptiveRequest;
 use App\Http\Resources\fifthyFormats\CaptiveResource;
 use App\Models\fifthyFormats\Captive;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
+use App\Services\NotificationService; // 🔔 notifications
 
 class CaptiveController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = (int) $request->get('perPage', 15);
-        $search  = $request->get('search');
-        $rid     = $request->get('resource_id');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search = trim((string) $request->query('search', ''));
+        $rid    = $request->query('resource_id');
 
         $sortable = ['id', 'name', 'created_at', 'updated_at'];
-        $sortBy   = in_array($request->get('sort_by', 'created_at'), $sortable, true)
-            ? $request->get('sort_by', 'created_at')
+        $sortBy   = in_array($request->query('sort_by', 'created_at'), $sortable, true)
+            ? $request->query('sort_by', 'created_at')
             : 'created_at';
 
-        $sortDir  = $request->get('sort_dir', 'desc');
-        if (!in_array(strtolower($sortDir), ['asc', 'desc'], true)) {
+        $sortDir  = strtolower((string) $request->query('sort_dir', 'desc'));
+        if (!in_array($sortDir, ['asc', 'desc'], true)) {
             $sortDir = 'desc';
         }
 
@@ -36,32 +44,34 @@ class CaptiveController extends Controller
                 'resources.phone_number as resource_phone_number',
             ])
             ->with([
-                'resource' => function ($qr) {
-                    $qr->select('id', 'name', 'code_number', 'phone_number');
-                },
-                'documents', // ✅ eager-load docs
-            ]);
+                'resource:id,name,code_number,phone_number',
+                'documents',
+            ])
+            ->when($search !== '', function ($sub) use ($search) {
+                $sub->where(function ($x) use ($search) {
+                    $x->where('captives.name', 'like', "%{$search}%")
+                      ->orWhere('captives.father_name', 'like', "%{$search}%")
+                      ->orWhere('captives.nick_name', 'like', "%{$search}%")
+                      ->orWhere('captives.note', 'like', "%{$search}%");
+                });
+            })
+            ->when($rid, fn ($sub) => $sub->where('captives.resource_id', $rid))
+            ->orderBy($sortBy, $sortDir);
 
-        if ($search) {
-            $q->where('name', 'like', "%{$search}%");
+        if ($isValidPage && $isValidPerPage) {
+            return CaptiveResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
         }
 
-        if ($rid) {
-            $q->where('resource_id', $rid);
-        }
-
-        $q->orderBy($sortBy, $sortDir);
-
-        return CaptiveResource::collection($q->paginate($perPage));
+        return CaptiveResource::collection($q->get());
     }
 
     public function show(Captive $captive)
     {
         $captive->load([
-            'resource' => function ($qr) {
-                $qr->select('id', 'name', 'code_number', 'phone_number');
-            },
-            'documents', // ✅
+            'resource:id,name,code_number,phone_number',
+            'documents',
         ]);
 
         return new CaptiveResource($captive);
@@ -69,121 +79,216 @@ class CaptiveController extends Controller
 
     public function store(StoreCaptiveRequest $request)
     {
+        $user = $request->user(); // 🔔
         $data = $request->validated();
 
-        if ($request->hasFile('picture')) {
-            $path = $request->file('picture')->store('uploads/captives', 'public');
-            $data['picture'] = "storage/{$path}";
-        } else {
-            if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
-                unset($data['picture']);
-            }
-        }
+        try {
+            return DB::transaction(function () use ($request, $data, $user) {
 
-        $captive = Captive::create($data);
-
-        // ✅ save uploaded documents[]
-        if ($request->hasFile('documents')) {
-            foreach ((array) $request->file('documents') as $file) {
-                if (!$file || !$file->isValid()) {
-                    continue;
+                // ✅ picture
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/captives', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
                 }
 
-                $docPath = $file->store('uploads/captive-documents', 'public');
+                $captive = Captive::create($data);
 
-                $captive->documents()->create([
-                    'file_name'  => $file->getClientOriginalName(),
-                    'file_path'  => $docPath,
-                    'mime_type'  => $file->getClientMimeType(),
-                    'size_bytes' => $file->getSize(),
+                // ✅ documents[]
+                if ($request->hasFile('documents')) {
+                    foreach ((array) $request->file('documents') as $file) {
+                        if (!$file || !$file->isValid()) continue;
+
+                        $docPath = $file->store("uploads/captive-documents/{$captive->id}", 'public');
+
+                        $captive->documents()->create([
+                            'file_name'  => $file->getClientOriginalName(),
+                            'file_path'  => $docPath,
+                            'mime_type'  => $file->getClientMimeType(),
+                            'size_bytes' => $file->getSize(),
+                        ]);
+                    }
+                }
+
+                $captive->load([
+                    'resource:id,name,code_number,phone_number',
+                    'documents',
                 ]);
+
+                // 🔔 Notification: CREATED
+                NotificationService::record(
+                    $user,
+                    module: 'اسیر',
+                    action: 'created',
+                    title: 'نوی ریکارډ ثبت شو',
+                    message: 'نوم: ' . ($captive->name ?? ''),
+                    routeName: 'captives',
+                    routeParams: ['id' => $captive->id],
+                    level: 'success',
+                    changes: null
+                );
+
+                return (new CaptiveResource($captive))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
+            });
+        } catch (QueryException $e) {
+            if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
+                return response()->json([
+                    'message' => 'دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).',
+                    'errors'  => [
+                        'duplicate' => ['دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).'],
+                    ],
+                ], 422);
             }
+            throw $e;
         }
-
-        $captive->load([
-            'resource' => function ($qr) {
-                $qr->select('id', 'name', 'code_number', 'phone_number');
-            },
-            'documents',
-        ]);
-
-        return (new CaptiveResource($captive))
-            ->additional(['message' => 'Created'])
-            ->response()
-            ->setStatusCode(201);
     }
 
     public function update(UpdateCaptiveRequest $request, Captive $captive)
     {
+        $user = $request->user(); // 🔔
         $data = $request->validated();
 
-        if ($request->hasFile('picture')) {
-            if ($captive->picture && str_starts_with($captive->picture, 'storage/')) {
-                $oldDiskPath = str_replace('storage/', '', $captive->picture);
-                Storage::disk('public')->delete($oldDiskPath);
+        try {
+            return DB::transaction(function () use ($request, $data, $captive, $user) {
+
+                // 🧮 changes BEFORE update
+                $original = $captive->getOriginal();
+                $changes  = [];
+
+                foreach ($data as $field => $newValue) {
+                    if (array_key_exists($field, $original) && $original[$field] != $newValue) {
+                        $changes[$field] = [
+                            'old' => $original[$field],
+                            'new' => $newValue,
+                        ];
+                    }
+                }
+
+                // ✅ picture replace
+                if ($request->hasFile('picture')) {
+                    if ($captive->picture && str_starts_with($captive->picture, 'storage/')) {
+                        Storage::disk('public')->delete(str_replace('storage/', '', $captive->picture));
+                    }
+
+                    $path = $request->file('picture')->store('uploads/captives', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $captive->update($data);
+
+                // ✅ delete selected old documents
+                $removed = (array) $request->input('removed_document_ids', []);
+                if (!empty($removed)) {
+                    $docs = $captive->documents()->whereIn('id', $removed)->get();
+                    foreach ($docs as $doc) {
+                        if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
+                            Storage::disk('public')->delete($doc->file_path);
+                        }
+                        $doc->delete();
+                    }
+                }
+
+                // ✅ add new documents[]
+                if ($request->hasFile('documents')) {
+                    foreach ((array) $request->file('documents') as $file) {
+                        if (!$file || !$file->isValid()) continue;
+
+                        $docPath = $file->store("uploads/captive-documents/{$captive->id}", 'public');
+
+                        $captive->documents()->create([
+                            'file_name'  => $file->getClientOriginalName(),
+                            'file_path'  => $docPath,
+                            'mime_type'  => $file->getClientMimeType(),
+                            'size_bytes' => $file->getSize(),
+                        ]);
+                    }
+                }
+
+                $captive->load([
+                    'resource:id,name,code_number,phone_number',
+                    'documents',
+                ]);
+
+                // 🔔 Notification: UPDATED
+                NotificationService::record(
+                    $user,
+                    module: 'اسیر',
+                    action: 'updated',
+                    title: 'ریکارډ اصلاح شو',
+                    message: 'نوم: ' . ($captive->name ?? ''),
+                    routeName: 'captives',
+                    routeParams: ['id' => $captive->id],
+                    level: 'info',
+                    changes: !empty($changes) ? $changes : null
+                );
+
+                return new CaptiveResource($captive);
+            });
+        } catch (QueryException $e) {
+            if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
+                return response()->json([
+                    'message' => 'دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).',
+                    'errors'  => [
+                        'duplicate' => ['دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).'],
+                    ],
+                ], 422);
             }
-            $path = $request->file('picture')->store('uploads/captives', 'public');
-            $data['picture'] = "storage/{$path}";
-        } else {
-            if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
-                unset($data['picture']);
-            }
+            throw $e;
         }
+    }
 
-        $captive->update($data);
+    public function destroy(Request $request, Captive $captive)
+    {
+        $user = $request->user(); // 🔔
 
-        // ✅ delete selected old documents if front sends removed_document_ids[]
-        $removed = (array) $request->input('removed_document_ids', []);
-        if (!empty($removed)) {
-            $docs = $captive->documents()->whereIn('id', $removed)->get();
-            foreach ($docs as $doc) {
+        return DB::transaction(function () use ($captive, $user) {
+
+            // delete picture file if stored locally
+            if ($captive->picture && str_starts_with($captive->picture, 'storage/')) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $captive->picture));
+            }
+
+            // delete docs files + rows (safe even if you already do it in model booted())
+            $captive->load('documents');
+            foreach ($captive->documents as $doc) {
                 if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
                     Storage::disk('public')->delete($doc->file_path);
                 }
                 $doc->delete();
             }
-        }
 
-        // ✅ add new documents[]
-        if ($request->hasFile('documents')) {
-            foreach ((array) $request->file('documents') as $file) {
-                if (!$file || !$file->isValid()) {
-                    continue;
-                }
+            $name = $captive->name;
+            $captive->delete();
 
-                $docPath = $file->store('uploads/captive-documents', 'public');
+            // 🔔 Notification: DELETED
+            NotificationService::record(
+                $user,
+                module: 'اسیر',
+                action: 'deleted',
+                title: 'ریکارډ حذف شو',
+                message: 'نوم: ' . ($name ?? ''),
+                routeName: null,
+                routeParams: ['captives'],
+                level: 'warning',
+                changes: null
+            );
 
-                $captive->documents()->create([
-                    'file_name'  => $file->getClientOriginalName(),
-                    'file_path'  => $docPath,
-                    'mime_type'  => $file->getClientMimeType(),
-                    'size_bytes' => $file->getSize(),
-                ]);
-            }
-        }
-
-        $captive->load([
-            'resource' => function ($qr) {
-                $qr->select('id', 'name', 'code_number', 'phone_number');
-            },
-            'documents',
-        ]);
-
-        return new CaptiveResource($captive);
-    }
-
-    public function destroy(Captive $captive)
-    {
-        // delete picture file if stored locally
-        if ($captive->picture && str_starts_with($captive->picture, 'storage/')) {
-            $oldDiskPath = str_replace('storage/', '', $captive->picture);
-            Storage::disk('public')->delete($oldDiskPath);
-        }
-
-        // docs files are removed by Captive::booted() + rows by FK cascade
-        $captive->delete();
-
-        return response()->noContent();
+            return response()->noContent();
+        });
     }
 }
-    

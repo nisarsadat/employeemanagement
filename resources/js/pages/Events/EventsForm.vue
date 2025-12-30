@@ -283,7 +283,7 @@
 
             <v-row class="pa-3">
               <!-- تاریخ -->
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="8">
                 <DateInput v-model="form.event_date" :label="t('تاریخ واقعه *')" />
               </v-col>
 
@@ -302,7 +302,7 @@
               </v-col>
 
               <!-- ولایت مربوطه -->
-              <v-col cols="12" md="4">
+              <!-- <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.Province_addr"
                   :label="t('ولایت مربوطه')"
@@ -311,7 +311,7 @@
                   :error="hasError('Province_addr')"
                   :error-messages="getErrorMessages('Province_addr')"
                 />
-              </v-col>
+              </v-col> -->
             </v-row>
 
             <v-row class="px-3 pb-3 pt-0">

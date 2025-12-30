@@ -209,7 +209,8 @@
             </v-btn>
           </template>
         </v-tooltip>
-      </template> <!-- 🔗 Office employee cell: route to OfficeEmployee page -->
+      </template>
+      <!-- 🔗 Office employee cell: route to OfficeEmployee page -->
       <template #cell-office_employee_akhistonky_code="{ row }">
         <v-tooltip :text="t('برای رفتن به صفحه کارمند کلیک کنید')" location="top">
           <template #activator="{ props: tooltipProps }">
@@ -559,20 +560,24 @@
   // 🔗 Go to office employee from event row
   function goOfficeEmployee(payload) {
     const row = getRow(payload);
-    if (!row?.office_employee_id) return;
+    const empId = row?.office_employee_id;
+    if (!empId) return;
+
     router.push({
       path: '/app/officeemployee',
-      query: { office_employee_id: row.office_employee_id },
+      query: { office_employee_id: empId },
     });
   }
 
   // 🔗 Go to resource from event row
   function goResource(payload) {
     const row = getRow(payload);
-    if (!row?.resource_id) return;
+    const resId = row?.resource_id;
+    if (!resId) return;
+
     router.push({
       path: '/app/resources',
-      query: { resource_id: row.resource_id },
+      query: { resource_id: resId },
     });
   }
 

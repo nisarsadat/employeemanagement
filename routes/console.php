@@ -12,3 +12,8 @@ Artisan::command('inspire', function () {
 // Rule: ACTIVE if any resource has >= 5 events in last 7 days
 Schedule::command('office-employees:refresh-activity --days=7 --min=5')
     ->dailyAt('01:30');
+
+    
+Schedule::command('informations:check-missing-results')
+    ->dailyAt('09:00')
+    ->withoutOverlapping();

@@ -10,37 +10,51 @@ return new class extends Migration {
         Schema::create('information', function (Blueprint $table) {
             $table->id();
 
+            // ===============================
             // Foreign keys
+            // ===============================
             $table->unsignedBigInteger('resource_id')->nullable();
-            $table->unsignedBigInteger('office_employee_id')->nullable(); // کود کارمند مربوطه
+            $table->unsignedBigInteger('office_employee_id')->nullable();      // کود کارمند مربوطه
             $table->unsignedBigInteger('office_employee_info_id')->nullable(); // کود کارمند اطلاع گیرنده
 
+            // ===============================
             // Personal info
+            // ===============================
             $table->string('name')->nullable();
             $table->string('nick_name')->nullable();
             $table->string('father_name')->nullable();
             $table->string('grand_father_name')->nullable();
 
+            // ===============================
             // Main address
+            // ===============================
             $table->string('main_province')->nullable();
             $table->string('main_districts')->nullable();
             $table->string('main_village')->nullable();
 
+            // ===============================
             // Current address
+            // ===============================
             $table->string('now_province')->nullable();
             $table->string('now_district')->nullable();
             $table->string('now_village')->nullable();
 
+            // ===============================
             // Info types
+            // ===============================
             $table->string('syasi_info_type')->nullable();
             $table->string('jenayee_info_type')->nullable();
 
+            // ===============================
             // Info details
+            // ===============================
             $table->string('information_saved_date')->nullable();
             $table->string('information_saved_hour')->nullable();
             $table->string('information_degree')->nullable();
 
+            // ===============================
             // Text areas
+            // ===============================
             $table->text('tafseel')->nullable();
             $table->text('manager_comment')->nullable();
             $table->text('lead_drirection')->nullable();
@@ -48,14 +62,36 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->text('docs_note')->nullable();
             $table->text('result')->nullable();
-            $table->string('Province_addr')->nullable();
 
+            // ===============================
+            // RESULT MISSING NOTIFICATION TRACKING  🔔
+            // ===============================
+            $table->timestamp('result_missing_first_notified_at')->nullable();
+            $table->timestamp('result_missing_last_notified_at')->nullable();
+            $table->unsignedTinyInteger('result_missing_notify_count')->default(0);
+            // 0 = never notified
+            // 1 = notified after 7 days
+            // 2 = notified after 3 months (STOP)
+
+            // ===============================
+            // Extra
+            // ===============================
+            $table->string('Province_addr')->nullable();
 
             $table->timestamps();
 
-            // FK constraints
-            $table->foreign('resource_id')->references('id')->on('resources')->nullOnDelete();
-            $table->foreign('office_employee_id')->references('id')->on('office_employees')->nullOnDelete();
+            // ===============================
+            // Foreign key constraints
+            // ===============================
+            $table->foreign('resource_id')
+                ->references('id')
+                ->on('resources')
+                ->nullOnDelete();
+
+            $table->foreign('office_employee_id')
+                ->references('id')
+                ->on('office_employees')
+                ->nullOnDelete();
         });
     }
 

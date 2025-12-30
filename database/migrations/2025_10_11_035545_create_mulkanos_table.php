@@ -43,12 +43,22 @@ return new class extends Migration {
             $table->string('Province_addr')->nullable();
             $table->string('coordinates')->nullable();
 
-
-            // relation to resources (code/phone come from this, not stored here)
-            $table->foreignId('resource_id')->nullable()
-                  ->constrained('resources')->cascadeOnDelete();
+            // relation to resources
+            $table->foreignId('resource_id')
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             $table->text('notes')->nullable();
+
+            // ✅ composite unique constraint (same logic)
+            $table->unique([
+                'name',
+                'father_name',
+                'main_province',
+                'main_district',
+                'main_village',
+            ], 'mulkanos_identity_unique');
 
             $table->timestamps();
         });

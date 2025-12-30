@@ -34,14 +34,24 @@ return new class extends Migration {
             $table->string('employee_quantity')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             // relation to resources (code/phone derived from here)
             $table->foreignId('resource_id')
-                  ->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             $table->text('notes')->nullable();
+
+            // ✅ composite unique constraint (as you requested)
+            $table->unique([
+                'name',
+                'sarafi_name',
+                'sarafi_type',
+                'father_name',
+                'zone',
+                'district',
+                'village',
+            ], 'sarafyanos_identity_unique');
 
             $table->timestamps();
         });
