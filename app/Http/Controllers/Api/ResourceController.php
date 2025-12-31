@@ -18,6 +18,8 @@ class ResourceController extends Controller
 
         $q = Resource::query()
             ->with(['officeEmployee:id,name,code_number,father_name'])
+            // ✅ NEW: sum of all finance money for each resource
+            ->withSum('finances as payed_money', 'money_amount_number')
             ->when($search !== '', function ($w) use ($search) {
                 $w->where(function ($q2) use ($search) {
                     $q2->where('name', 'like', "%{$search}%")
@@ -58,7 +60,10 @@ class ResourceController extends Controller
 
     public function show($id)
     {
-        $row = Resource::with(['officeEmployee:id,name,code_number,father_name,nick_name'])
+        $row = Resource::query()
+            ->with(['officeEmployee:id,name,code_number,father_name,nick_name'])
+            // ✅ NEW: sum for single record too
+            ->withSum('finances as payed_money', 'money_amount_number')
             ->findOrFail($id);
 
         return new ResourceResource($row);

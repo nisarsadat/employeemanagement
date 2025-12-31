@@ -505,6 +505,7 @@
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
     { title: t('نام مستعار'), key: 'nick_name' },
     { title: t('کود نمبر'), key: 'code_number' },
+    { title: t('پول داده شده'), key: 'payed_money' },
 
     // Rank/levels
     { title: t('نوعیت وظیفه'), key: 'job_type' },

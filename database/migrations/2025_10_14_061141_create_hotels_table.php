@@ -26,19 +26,28 @@ return new class extends Migration {
             $table->string('district')->nullable();
             $table->string('village')->nullable();
             $table->string('specific_place')->nullable();
-            $table->string('cordenate')->nullable(); // note: spelled as requested
+            $table->string('cordenate')->nullable(); // kept spelling as provided
 
             // Other
             $table->string('employee_quantity')->nullable();
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             // Link to resources
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
+
+            // ✅ unique composite (exact fields you listed)
+            $table->unique([
+                'hotel_name',
+                'type',
+                'province',
+                'zone',
+                'district',
+                'village',
+            ], 'hotels_unique_key');
 
             $table->timestamps();
         });

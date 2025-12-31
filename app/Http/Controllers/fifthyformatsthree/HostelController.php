@@ -7,10 +7,30 @@ use App\Models\fifthyformatsthree\Hostel;
 use App\Http\Resources\fifthyformatsthree\HostelResource;
 use App\Http\Requests\fifthyformatsthree\StoreHostelRequest;
 use App\Http\Requests\fifthyformatsthree\UpdateHostelRequest;
+use App\Services\NotificationService; // 🔔 notifications
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class HostelController extends Controller
 {
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        // MySQL duplicate key
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    private function duplicateResponse()
+    {
+        return response()->json([
+            'message' => 'دا ریکارډ مخکې ثبت شوی دی.',
+            'errors'  => [
+                'duplicate' => [
+                    'د همدې معلوماتو سره (لیلیه نوم، ډول، د اوسېدونکو معلومات او ادرس) ریکارډ مخکې له مخکې موجود دی.',
+                ],
+            ],
+        ], 422);
+    }
+
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
@@ -33,10 +53,32 @@ class HostelController extends Controller
 
     public function store(StoreHostelRequest $request)
     {
-        $item = Hostel::create($request->validated())
-            ->load(['resource:id,name,code_number,phone_number']);
+        $user = $request->user(); // 🔔 who did this
 
-        return HostelResource::make($item);
+        try {
+            $item = Hostel::create($request->validated())
+                ->load(['resource:id,name,code_number,phone_number']);
+
+            // 🔔 Notification: CREATED
+            NotificationService::record(
+                $user,
+                module: 'لیلیه',
+                action: 'created',
+                title: 'نوې لیلیه ثبت شوه',
+                message: 'نوم: ' . ($item->hostel_name ?? ''),
+                routeName: 'hostels',              // ⚠️ set to your real route name
+                routeParams: ['id' => $item->id],
+                level: 'success',
+                changes: null
+            );
+
+            return HostelResource::make($item);
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponse();
+            }
+            throw $e;
+        }
     }
 
     public function show(Hostel $hostel)
@@ -47,22 +89,95 @@ class HostelController extends Controller
 
     public function update(UpdateHostelRequest $request, Hostel $hostel)
     {
-        $hostel->update($request->validated());
-        $hostel->load(['resource:id,name,code_number,phone_number']);
+        $user = $request->user(); // 🔔
 
-        return HostelResource::make($hostel);
+        try {
+            // 🧮 build changes BEFORE update
+            $original  = $hostel->getOriginal();
+            $validated = $request->validated();
+            $changes   = [];
+
+            foreach ($validated as $field => $newValue) {
+                if (array_key_exists($field, $original)) {
+                    $oldValue = $original[$field];
+                    if ($oldValue != $newValue) {
+                        $changes[$field] = [
+                            'old' => $oldValue,
+                            'new' => $newValue,
+                        ];
+                    }
+                }
+            }
+
+            $hostel->update($validated);
+            $hostel->load(['resource:id,name,code_number,phone_number']);
+
+            // 🔔 Notification: UPDATED
+            NotificationService::record(
+                $user,
+                module: 'لیلیه',
+                action: 'updated',
+                title: 'لیلیه اصلاح شوه',
+                message: 'نوم: ' . ($hostel->hostel_name ?? ''),
+                routeName: 'hostels',              // ⚠️ set to your real route name
+                routeParams: ['id' => $hostel->id],
+                level: 'info',
+                changes: !empty($changes) ? $changes : null
+            );
+
+            return HostelResource::make($hostel);
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponse();
+            }
+            throw $e;
+        }
     }
 
-    public function destroy(Hostel $hostel)
+    public function destroy(Request $request, Hostel $hostel)
     {
+        $user = $request->user(); // 🔔
+
+        $name = $hostel->hostel_name;
+
         $hostel->delete();
+
+        // 🔔 Notification: DELETED
+        NotificationService::record(
+            $user,
+            module: 'لیلیه',
+            action: 'deleted',
+            title: 'لیلیه حذف شوه',
+            message: 'نوم: ' . ($name ?? ''),
+            routeName: null,
+            routeParams: ['hostels'],
+            level: 'warning',
+            changes: null
+        );
+
         return response()->noContent();
     }
 
     public function bulkDelete(Request $request)
     {
+        $user = $request->user(); // 🔔
+
         $ids = (array) $request->input('ids', []);
         Hostel::destroy($ids);
+
+        // 🔔 Notification: BULK DELETED
+        NotificationService::record(
+            $user,
+            module: 'لیلیه',
+            action: 'bulk_deleted',
+            title: 'ډله‌ییز حذف ترسره شو',
+            message: 'حذف شوي ریکارډونه: ' . count($ids),
+            routeName: null,
+            routeParams: ['hostels'],
+            level: 'warning',
+            changes: null
+        );
+
         return response()->noContent();
     }
 }

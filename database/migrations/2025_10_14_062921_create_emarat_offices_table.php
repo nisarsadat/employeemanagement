@@ -25,11 +25,21 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
+
+            // ✅ unique composite (exact fields you listed)
+            $table->unique([
+                'province',
+                'zone',
+                'district',
+                'village',
+                'specific_place',
+                'street_number',
+                'home_number',
+            ], 'emarat_offices_unique_key');
 
             $table->timestamps();
         });

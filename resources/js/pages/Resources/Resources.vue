@@ -562,6 +562,7 @@
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی'), key: 'main_district' },
     { title: t('قریه'), key: 'main_village' },
+    { title: t('پول داده شده'), key: 'payed_money' },
 
     { title: t('ولایت فعلی'), key: 'now_province' },
     { title: t('ولسوالی فعلی'), key: 'now_district' },

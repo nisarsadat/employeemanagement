@@ -38,12 +38,21 @@ return new class extends Migration {
             $table->text('coordinates')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             // Link to resource
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
+
+            // ✅ unique composite (exact fields you listed)
+            $table->unique([
+                'nickname',
+                'name',
+                'father_name',
+                'main_province',
+                'main_district',
+                'main_village',
+            ], 'mujahedinos_unique_key');
 
             $table->timestamps();
         });

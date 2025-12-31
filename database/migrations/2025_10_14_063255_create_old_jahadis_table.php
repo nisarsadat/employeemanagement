@@ -40,11 +40,20 @@ return new class extends Migration {
             $table->text('coordinates')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
+
+            // ✅ unique composite (exact fields you specified)
+            $table->unique([
+                'nick_name',
+                'name',
+                'father_name',
+                'main_province',
+                'main_district',
+                'main_village',
+            ], 'old_jahadis_unique_key');
 
             $table->timestamps();
         });

@@ -30,11 +30,18 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
+
+            // ✅ unique composite (exact fields you listed)
+            $table->unique([
+                'workshop_name',
+                'workshop_type',
+                'province',
+                'zone',
+            ], 'work_shops_unique_key');
 
             $table->timestamps();
         });

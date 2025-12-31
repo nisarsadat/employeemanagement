@@ -84,6 +84,7 @@ class OfficeEmployeeResource extends JsonResource
             'specific_skills' => $this->specific_skills,
             'language'        => $this->language,
             'nation'          => $this->nation,
+            'payed_money' => (float) ($this->payed_money ?? 0),
 
             // 🔹 Contact & misc
             'phone_number' => $this->phone_number,

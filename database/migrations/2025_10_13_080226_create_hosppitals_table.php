@@ -34,11 +34,21 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
+
+            // ✅ unique composite (exact fields you listed)
+            $table->unique([
+                'name',
+                'specific_past',
+                'hospita_type',
+                'province',
+                'zone',
+                'district',
+                'village',
+            ], 'hosppitals_unique_key');
 
             $table->timestamps();
         });

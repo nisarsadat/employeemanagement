@@ -7,10 +7,30 @@ use App\Models\fifthyformatsthree\Hotel;
 use App\Http\Resources\fifthyformatsthree\HotelResource;
 use App\Http\Requests\fifthyformatsthree\StoreHotelRequest;
 use App\Http\Requests\fifthyformatsthree\UpdateHotelRequest;
+use App\Services\NotificationService; // 🔔 notifications
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class HotelController extends Controller
 {
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        // MySQL duplicate key
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    private function duplicateResponse()
+    {
+        return response()->json([
+            'message' => 'دا ریکارډ مخکې ثبت شوی دی.',
+            'errors'  => [
+                'duplicate' => [
+                    'د همدې معلوماتو سره (هوټل نوم، ډول او ادرس) ریکارډ مخکې له مخکې موجود دی.',
+                ],
+            ],
+        ], 422);
+    }
+
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
@@ -33,10 +53,32 @@ class HotelController extends Controller
 
     public function store(StoreHotelRequest $request)
     {
-        $hotel = Hotel::create($request->validated())
-            ->load(['resource:id,name,code_number,phone_number']);
+        $user = $request->user(); // 🔔 who did this
 
-        return HotelResource::make($hotel);
+        try {
+            $hotel = Hotel::create($request->validated())
+                ->load(['resource:id,name,code_number,phone_number']);
+
+            // 🔔 Notification: CREATED
+            NotificationService::record(
+                $user,
+                module: 'هوټل',
+                action: 'created',
+                title: 'نوی هوټل ثبت شو',
+                message: 'نوم: ' . ($hotel->hotel_name ?? ''),
+                routeName: 'hotels',               // ⚠️ set to your real route name
+                routeParams: ['id' => $hotel->id],
+                level: 'success',
+                changes: null
+            );
+
+            return HotelResource::make($hotel);
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponse();
+            }
+            throw $e;
+        }
     }
 
     public function show(Hotel $hotel)
@@ -47,22 +89,95 @@ class HotelController extends Controller
 
     public function update(UpdateHotelRequest $request, Hotel $hotel)
     {
-        $hotel->update($request->validated());
-        $hotel->load(['resource:id,name,code_number,phone_number']);
+        $user = $request->user(); // 🔔
 
-        return HotelResource::make($hotel);
+        try {
+            // 🧮 build changes BEFORE update
+            $original  = $hotel->getOriginal();
+            $validated = $request->validated();
+            $changes   = [];
+
+            foreach ($validated as $field => $newValue) {
+                if (array_key_exists($field, $original)) {
+                    $oldValue = $original[$field];
+                    if ($oldValue != $newValue) {
+                        $changes[$field] = [
+                            'old' => $oldValue,
+                            'new' => $newValue,
+                        ];
+                    }
+                }
+            }
+
+            $hotel->update($validated);
+            $hotel->load(['resource:id,name,code_number,phone_number']);
+
+            // 🔔 Notification: UPDATED
+            NotificationService::record(
+                $user,
+                module: 'هوټل',
+                action: 'updated',
+                title: 'هوټل اصلاح شو',
+                message: 'نوم: ' . ($hotel->hotel_name ?? ''),
+                routeName: 'hotels',               // ⚠️ set to your real route name
+                routeParams: ['id' => $hotel->id],
+                level: 'info',
+                changes: !empty($changes) ? $changes : null
+            );
+
+            return HotelResource::make($hotel);
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponse();
+            }
+            throw $e;
+        }
     }
 
-    public function destroy(Hotel $hotel)
+    public function destroy(Request $request, Hotel $hotel)
     {
+        $user = $request->user(); // 🔔
+
+        $name = $hotel->hotel_name;
+
         $hotel->delete();
+
+        // 🔔 Notification: DELETED
+        NotificationService::record(
+            $user,
+            module: 'هوټل',
+            action: 'deleted',
+            title: 'هوټل حذف شو',
+            message: 'نوم: ' . ($name ?? ''),
+            routeName: null,
+            routeParams: ['hotels'],
+            level: 'warning',
+            changes: null
+        );
+
         return response()->noContent();
     }
 
     public function bulkDelete(Request $request)
     {
+        $user = $request->user(); // 🔔
+
         $ids = (array) $request->input('ids', []);
         Hotel::destroy($ids);
+
+        // 🔔 Notification: BULK DELETED
+        NotificationService::record(
+            $user,
+            module: 'هوټل',
+            action: 'bulk_deleted',
+            title: 'ډله‌ییز حذف ترسره شو',
+            message: 'حذف شوي ریکارډونه: ' . count($ids),
+            routeName: null,
+            routeParams: ['hotels'],
+            level: 'warning',
+            changes: null
+        );
+
         return response()->noContent();
     }
 }

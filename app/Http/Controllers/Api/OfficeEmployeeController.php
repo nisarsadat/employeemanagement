@@ -33,6 +33,8 @@ class OfficeEmployeeController extends Controller
 
         $query = OfficeEmployee::query()
             ->with(['documents'])
+            // ✅ NEW: sum of all finance money for each office employee
+            ->withSum('finances as payed_money', 'money_amount_number')
             ->withCount([
                 'events',
                 'resources',
@@ -81,7 +83,10 @@ class OfficeEmployeeController extends Controller
 
     public function show($id)
     {
-        $officeEmployee = OfficeEmployee::with(['documents'])
+        $officeEmployee = OfficeEmployee::query()
+            ->with(['documents'])
+            // ✅ NEW: sum for single record too
+            ->withSum('finances as payed_money', 'money_amount_number')
             ->withCount([
                 'events',
                 'resources',
@@ -157,18 +162,21 @@ class OfficeEmployeeController extends Controller
             DB::commit();
 
             return new OfficeEmployeeResource(
-                $employee->load(['documents'])->loadCount([
-                    'events',
-                    'resources',
+                $employee->load(['documents'])
+                    // ✅ NEW: compute payed_money for response after create
+                    ->loadSum('finances as payed_money', 'money_amount_number')
+                    ->loadCount([
+                        'events',
+                        'resources',
 
-                    // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
-                    'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
-                    'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
+                        // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
+                        'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
+                        'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
 
-                    'informations',
-                    'infoInformations',
-                    'documents',
-                ])
+                        'informations',
+                        'infoInformations',
+                        'documents',
+                    ])
             );
 
         } catch (\Throwable $e) {
@@ -256,6 +264,8 @@ class OfficeEmployeeController extends Controller
             return new OfficeEmployeeResource(
                 $officeEmployee
                     ->load(['documents'])
+                    // ✅ NEW: compute payed_money for response after update
+                    ->loadSum('finances as payed_money', 'money_amount_number')
                     ->loadCount([
                         'events',
                         'resources',
@@ -338,6 +348,8 @@ class OfficeEmployeeController extends Controller
         $query = OfficeEmployee::query()
             ->where('activity', OfficeEmployee::INACTIVE)
             ->with(['documents'])
+            // ✅ NEW: sum for inactive list too
+            ->withSum('finances as payed_money', 'money_amount_number')
             ->withCount([
                 'events',
                 'resources',

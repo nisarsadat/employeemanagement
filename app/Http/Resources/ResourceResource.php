@@ -117,6 +117,7 @@ class ResourceResource extends JsonResource
             'faculty'            => $this->faculty,
             'specific_skills'    => $this->specific_skills,
             'train'              => $this->train,
+            'payed_money' => (float) ($this->payed_money ?? 0),
 
             // misc
             'resource_saved_date' => $this->resource_saved_date

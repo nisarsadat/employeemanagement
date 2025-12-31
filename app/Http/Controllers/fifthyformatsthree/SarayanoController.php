@@ -7,10 +7,30 @@ use App\Models\fifthyformatsthree\Sarayano;
 use App\Http\Resources\fifthyformatsthree\SarayanoResource;
 use App\Http\Requests\fifthyformatsthree\StoreSarayanoRequest;
 use App\Http\Requests\fifthyformatsthree\UpdateSarayanoRequest;
+use App\Services\NotificationService; // 🔔 notifications
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class SarayanoController extends Controller
 {
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        // MySQL duplicate key
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    private function duplicateResponse()
+    {
+        return response()->json([
+            'message' => 'دا ریکارډ مخکې ثبت شوی دی.',
+            'errors'  => [
+                'duplicate' => [
+                    'د همدې معلوماتو سره (سراي نوم، ډول، او ادرس) ریکارډ مخکې له مخکې موجود دی.',
+                ],
+            ],
+        ], 422);
+    }
+
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
@@ -32,37 +52,3 @@ class SarayanoController extends Controller
     }
 
     public function store(StoreSarayanoRequest $request)
-    {
-        $sarayano = Sarayano::create($request->validated())
-            ->load(['resource:id,name,code_number,phone_number']);
-
-        return SarayanoResource::make($sarayano);
-    }
-
-    public function show(Sarayano $sarayano)
-    {
-        $sarayano->load(['resource:id,name,code_number,phone_number']);
-        return SarayanoResource::make($sarayano);
-    }
-
-    public function update(UpdateSarayanoRequest $request, Sarayano $sarayano)
-    {
-        $sarayano->update($request->validated());
-        $sarayano->load(['resource:id,name,code_number,phone_number']);
-
-        return SarayanoResource::make($sarayano);
-    }
-
-    public function destroy(Sarayano $sarayano)
-    {
-        $sarayano->delete();
-        return response()->noContent();
-    }
-
-    public function bulkDelete(Request $request)
-    {
-        $ids = (array) $request->input('ids', []);
-        Sarayano::destroy($ids);
-        return response()->noContent();
-    }
-}

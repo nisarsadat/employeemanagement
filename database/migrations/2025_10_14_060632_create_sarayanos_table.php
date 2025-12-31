@@ -33,12 +33,21 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             // Resource relation
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
+
+            // ✅ unique composite (exact fields you listed)
+            $table->unique([
+                'saray_name',
+                'saray_type',
+                'province',
+                'zone',
+                'district',
+                'village',
+            ], 'sarayanos_unique_key');
 
             $table->timestamps();
         });
