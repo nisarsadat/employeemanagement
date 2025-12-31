@@ -34,7 +34,7 @@ return new class extends Migration {
             $table->string('supplier_phone')->nullable();
 
             // Misc from sheet
-            $table->string('emarat_tarfdary')->nullable();          // mirrored as read
+            $table->string('emarat_tarfdary')->nullable();
 
             // Location block
             $table->string('shora_province')->nullable();
@@ -47,6 +47,17 @@ return new class extends Migration {
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();
 
             $table->timestamps();
+
+            // ✅ UNIQUE SIGNATURE (composite unique)
+            $table->unique([
+                'shora_village',
+                'shora_name',
+                'shora_goal',
+                'people_quantity',
+                'week_meeting_quantity',
+                'regester',
+                'shora_meeting_place',
+            ], 'shoras_unique_signature');
         });
     }
 

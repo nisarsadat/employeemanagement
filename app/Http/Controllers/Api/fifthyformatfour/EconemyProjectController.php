@@ -7,11 +7,32 @@ use App\Http\Requests\fifthyformatfour\StoreEconemyProjectRequest;
 use App\Http\Requests\fifthyformatfour\UpdateEconemyProjectRequest;
 use App\Http\Resources\fifthyformatfour\EconemyProjectResource;
 use App\Models\fifthyformatfour\EconemyProject;
+use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EconemyProjectController extends Controller
 {
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        // MySQL duplicate key code = 1062
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    private function duplicateResponse()
+    {
+        return response()->json([
+            'message' => 'این پروژه اقتصادی قبلاً ثبت شده است.',
+            'errors' => [
+                'duplicate' => [
+                    'پروژه با همین مشخصات (نام، نوع و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
+                ],
+            ],
+        ], 422);
+    }
+
     public function index(Request $request)
     {
         $query = EconemyProject::query()
@@ -50,35 +71,110 @@ class EconemyProjectController extends Controller
 
     public function store(StoreEconemyProjectRequest $request)
     {
-        $row = EconemyProject::create($request->validated());
+        $user = $request->user(); // 🔔
 
-        // eager-load minimal resource for frontend
-        $row->load(['resource:id,name,code_number,phone_number']);
+        try {
+            return DB::transaction(function () use ($request, $user) {
+                $row = EconemyProject::create($request->validated());
+                $row->load(['resource:id,name,code_number,phone_number']);
 
-        return new EconemyProjectResource($row);
+                // 🔔 Notification: CREATED
+                NotificationService::record(
+                    $user,
+                    module: 'پروژه اقتصادی',
+                    action: 'created',
+                    title: 'پروژه اقتصادی جدید ثبت شد',
+                    message: 'نام پروژه: ' . ($row->name ?? ''),
+                    routeName: 'econemy-projects',        // ✅ set your real route name
+                    routeParams: ['id' => $row->id],
+                    level: 'success',
+                    changes: null
+                );
+
+                return new EconemyProjectResource($row);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
+            throw $e;
+        }
     }
 
     public function show(EconemyProject $econemyProject)
     {
         $econemyProject->load(['resource:id,name,code_number,phone_number']);
-
         return new EconemyProjectResource($econemyProject);
     }
 
     public function update(UpdateEconemyProjectRequest $request, EconemyProject $econemyProject)
     {
-        $econemyProject->update($request->validated());
-        $econemyProject->load(['resource:id,name,code_number,phone_number']);
+        $user = $request->user(); // 🔔
 
-        return new EconemyProjectResource($econemyProject);
+        try {
+            return DB::transaction(function () use ($request, $econemyProject, $user) {
+                // 🧮 changes BEFORE update (like InformationController)
+                $original  = $econemyProject->getOriginal();
+                $validated = $request->validated();
+                $changes   = [];
+
+                foreach ($validated as $field => $newValue) {
+                    if (array_key_exists($field, $original)) {
+                        $oldValue = $original[$field];
+                        if ($oldValue != $newValue) {
+                            $changes[$field] = [
+                                'old' => $oldValue,
+                                'new' => $newValue,
+                            ];
+                        }
+                    }
+                }
+
+                $econemyProject->update($validated);
+                $econemyProject->load(['resource:id,name,code_number,phone_number']);
+
+                // 🔔 Notification: UPDATED + changes
+                NotificationService::record(
+                    $user,
+                    module: 'پروژه اقتصادی',
+                    action: 'updated',
+                    title: 'پروژه اقتصادی اصلاح شد',
+                    message: 'نام پروژه: ' . ($econemyProject->name ?? ''),
+                    routeName: 'econemy-projects',        // ✅ set your real route name
+                    routeParams: ['id' => $econemyProject->id],
+                    level: 'info',
+                    changes: !empty($changes) ? $changes : null
+                );
+
+                return new EconemyProjectResource($econemyProject);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
+            throw $e;
+        }
     }
 
-    public function destroy(EconemyProject $econemyProject)
+    public function destroy(Request $request, EconemyProject $econemyProject)
     {
-        $econemyProject->delete();
+        $user = $request->user(); // 🔔
 
-        return response()->json([
-            'message' => 'Deleted',
-        ]);
+        return DB::transaction(function () use ($econemyProject, $user) {
+            $name = $econemyProject->name;
+
+            $econemyProject->delete();
+
+            // 🔔 Notification: DELETED
+            NotificationService::record(
+                $user,
+                module: 'پروژه اقتصادی',
+                action: 'deleted',
+                title: 'پروژه اقتصادی حذف شد',
+                message: 'نام پروژه: ' . ($name ?? ''),
+                routeName: null,
+                routeParams: ['econemy-projects'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->json(['message' => 'Deleted']);
+        });
     }
 }

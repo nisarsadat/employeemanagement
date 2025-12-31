@@ -34,6 +34,18 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE SIGNATURE (composite unique)
+            $table->unique([
+                'supermarket_name',
+                'market_activity_type',
+                'daily_clientele',
+                'shops_quantity',
+                'province',
+                'zone',
+                'district',
+                'village',
+            ], 'super_markets_unique_signature');
         });
     }
 

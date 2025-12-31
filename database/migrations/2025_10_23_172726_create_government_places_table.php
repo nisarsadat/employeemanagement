@@ -34,6 +34,21 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE SIGNATURE (composite unique)
+            $table->unique([
+                'government_place_name',
+                'daily_clientele',
+                'responsible_name',
+                'responsible_f_name',
+                'responsible_possition',
+                'responsible_phone',
+                'province',
+                'zone',
+                'district',
+                'village',
+                'specefic_place',
+            ], 'government_places_unique_signature');
         });
     }
 

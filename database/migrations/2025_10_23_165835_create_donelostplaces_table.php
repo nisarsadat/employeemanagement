@@ -46,6 +46,18 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE SIGNATURE (composite unique) based on your selected fields
+            $table->unique([
+                'place_name',
+                'lost_person_name',
+                'lost_person_f_name',
+                'lost_person_phone',
+                'lost_person_job',
+                'main_province',
+                'main_district',
+                'main_village',
+            ], 'donelostplaces_unique_signature');
         });
     }
 

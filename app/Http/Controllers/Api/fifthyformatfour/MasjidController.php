@@ -7,11 +7,32 @@ use App\Http\Requests\fifthyformatfour\StoreMasjidRequest;
 use App\Http\Requests\fifthyformatfour\UpdateMasjidRequest;
 use App\Http\Resources\fifthyformatfour\MasjidResource;
 use App\Models\fifthyformatfour\Masjid;
+use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MasjidController extends Controller
 {
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        // MySQL duplicate key code = 1062
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    private function duplicateResponse()
+    {
+        return response()->json([
+            'message' => 'این مسجد قبلاً ثبت شده است.',
+            'errors' => [
+                'duplicate' => [
+                    'مسجد با همین مشخصات (نام، نوع، ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
+                ],
+            ],
+        ], 422);
+    }
+
     /**
      * GET /masjids
      */
@@ -52,15 +73,34 @@ class MasjidController extends Controller
      */
     public function store(StoreMasjidRequest $request)
     {
-        // Only fields from masjids table (including resource_id)
-        $data = $request->validated();
+        $user = $request->user(); // 🔔 who did this
 
-        $row = Masjid::create($data);
+        try {
+            return DB::transaction(function () use ($request, $user) {
+                $data = $request->validated();
 
-        // Eager-load resource so resource_code/resource_phone flatten correctly
-        $row->load(['resource:id,name,code_number,phone_number']);
+                $row = Masjid::create($data);
+                $row->load(['resource:id,name,code_number,phone_number']);
 
-        return new MasjidResource($row);
+                // 🔔 Notification: CREATED
+                NotificationService::record(
+                    $user,
+                    module: 'مسجد',
+                    action: 'created',
+                    title: 'مسجد جدید ثبت شد',
+                    message: 'نام مسجد: ' . ($row->masjid_name ?? ''),
+                    routeName: 'masjids',              // ✅ set your real route name
+                    routeParams: ['id' => $row->id],
+                    level: 'success',
+                    changes: null
+                );
+
+                return new MasjidResource($row);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
+            throw $e;
+        }
     }
 
     /**
@@ -69,7 +109,6 @@ class MasjidController extends Controller
     public function show(Masjid $masjid)
     {
         $masjid->load(['resource:id,name,code_number,phone_number']);
-
         return new MasjidResource($masjid);
     }
 
@@ -78,42 +117,99 @@ class MasjidController extends Controller
      */
     public function update(UpdateMasjidRequest $request, Masjid $masjid)
     {
-        // 1️⃣ Update Masjid fields (including resource_id)
-        $data = $request->validated();
-        $masjid->update($data);
+        $user = $request->user(); // 🔔
 
-        // 2️⃣ (Optional) update linked Resource code/phone if frontend sends them
-        $resourceCode  = $request->input('resource_code');   // not in validated(), extra field
-        $resourcePhone = $request->input('resource_phone');  // same
+        try {
+            return DB::transaction(function () use ($request, $masjid, $user) {
+                // 🧮 build changes BEFORE update (like InformationController)
+                $original  = $masjid->getOriginal();
+                $validated = $request->validated();
+                $changes   = [];
 
-        if (($resourceCode !== null || $resourcePhone !== null) && $masjid->resource) {
-            $updates = [];
+                foreach ($validated as $field => $newValue) {
+                    if (array_key_exists($field, $original)) {
+                        $oldValue = $original[$field];
+                        if ($oldValue != $newValue) {
+                            $changes[$field] = [
+                                'old' => $oldValue,
+                                'new' => $newValue,
+                            ];
+                        }
+                    }
+                }
 
-            if ($resourceCode !== null) {
-                $updates['code_number'] = $resourceCode;
-            }
-            if ($resourcePhone !== null) {
-                $updates['phone_number'] = $resourcePhone;
-            }
+                // 1️⃣ Update Masjid fields (including resource_id)
+                $masjid->update($validated);
 
-            if (!empty($updates)) {
-                $masjid->resource->update($updates);
-            }
+                // 2️⃣ (Optional) update linked Resource code/phone if frontend sends them
+                $resourceCode  = $request->input('resource_code');   // extra field
+                $resourcePhone = $request->input('resource_phone');  // extra field
+
+                if (($resourceCode !== null || $resourcePhone !== null) && $masjid->resource) {
+                    $updates = [];
+
+                    if ($resourceCode !== null) {
+                        $updates['code_number'] = $resourceCode;
+                    }
+                    if ($resourcePhone !== null) {
+                        $updates['phone_number'] = $resourcePhone;
+                    }
+
+                    if (!empty($updates)) {
+                        $masjid->resource->update($updates);
+                    }
+                }
+
+                // 3️⃣ Reload
+                $masjid->load(['resource:id,name,code_number,phone_number']);
+
+                // 🔔 Notification: UPDATED + changes
+                NotificationService::record(
+                    $user,
+                    module: 'مسجد',
+                    action: 'updated',
+                    title: 'مسجد اصلاح شد',
+                    message: 'نام مسجد: ' . ($masjid->masjid_name ?? ''),
+                    routeName: 'masjids',              // ✅ set your real route name
+                    routeParams: ['id' => $masjid->id],
+                    level: 'info',
+                    changes: !empty($changes) ? $changes : null
+                );
+
+                return new MasjidResource($masjid);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
+            throw $e;
         }
-
-        // 3️⃣ Reload with fresh relation so resource_code/resource_phone are up-to-date
-        $masjid->load(['resource:id,name,code_number,phone_number']);
-
-        return new MasjidResource($masjid);
     }
 
     /**
      * DELETE /masjids/{masjid}
      */
-    public function destroy(Masjid $masjid)
+    public function destroy(Request $request, Masjid $masjid)
     {
-        $masjid->delete();
+        $user = $request->user(); // 🔔
 
-        return response()->json(['message' => 'Deleted']);
+        return DB::transaction(function () use ($masjid, $user) {
+            $name = $masjid->masjid_name;
+
+            $masjid->delete();
+
+            // 🔔 Notification: DELETED
+            NotificationService::record(
+                $user,
+                module: 'مسجد',
+                action: 'deleted',
+                title: 'مسجد حذف شد',
+                message: 'نام مسجد: ' . ($name ?? ''),
+                routeName: null,
+                routeParams: ['masjids'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->json(['message' => 'Deleted']);
+        });
     }
 }

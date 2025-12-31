@@ -51,8 +51,17 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->timestamps();
+
+            // ✅ UNIQUE SIGNATURE (composite unique) based on your selected fields
+            $table->unique([
+                'masjid_name',
+                'masjid_type',
+                'masjid_province',
+                'masjid_zone',
+                'masjid_district',
+                'masjid_village',
+            ], 'masjids_unique_signature');
         });
     }
 

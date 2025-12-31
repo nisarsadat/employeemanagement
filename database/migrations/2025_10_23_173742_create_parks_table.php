@@ -32,6 +32,15 @@ return new class extends Migration {
             $table->text('notes')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE SIGNATURE (composite unique)
+            $table->unique([
+                'park_name',
+                'park_type',
+                'province',
+                'zone',
+                'village',
+            ], 'parks_unique_signature');
         });
     }
 

@@ -69,6 +69,18 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+            // ✅ Prevent duplicate resource identity (composite unique)
+            $table->unique([
+                'name',
+                'father_name',
+                'grand_father_name',
+                'nick_name',
+                'code_number',
+                'main_province',
+                'main_district',
+                'main_village',
+            ], 'resources_identity_unique');
+
         });
     }
 

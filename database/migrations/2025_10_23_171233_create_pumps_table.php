@@ -34,6 +34,17 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE SIGNATURE (composite unique)
+            $table->unique([
+                'pump_name',
+                'pump_type',
+                'main_owner',
+                'province',
+                'zone',
+                'district',
+                'village',
+            ], 'pumps_unique_signature');
         });
     }
 

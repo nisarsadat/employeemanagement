@@ -9,9 +9,30 @@ use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\NotificationService;
+use Illuminate\Database\QueryException; // ✅ ADDED
 
 class ResourceController extends Controller
 {
+    // =========================
+    // ✅ DUPLICATE HELPERS
+    // =========================
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    private function duplicateResponsePashto()
+    {
+        return response()->json([
+            'message' => 'دا منبع مخکې ثبت شوی دی.',
+            'errors'  => [
+                'duplicate' => [
+                    'په همدې نوم، د پلار نوم، د نيکه نوم، مستعار نوم، کوډ نمبر او د اصلي استوګنې ځای (ولايت/ولسوالي/کلی) سره منبع مخکې په سیستم کې موجوده ده.',
+                ],
+            ],
+        ], 422);
+    }
+
     public function index(Request $req)
     {
         $search = trim((string) $req->get('search', ''));
@@ -33,7 +54,6 @@ class ResourceController extends Controller
             })
             ->latest('id');
 
-        // If perPage is provided and valid (>0), paginate (honors ?page=)
         $perPage = $req->filled('perPage') ? (int) $req->get('perPage') : null;
 
         if ($perPage !== null && $perPage > 0) {
@@ -47,7 +67,6 @@ class ResourceController extends Controller
                 ]);
         }
 
-        // Otherwise return all
         $rows = $q->get();
 
         return ResourceResource::collection($rows)
@@ -71,73 +90,97 @@ class ResourceController extends Controller
 
     public function store(ResourceRequest $req)
     {
-        $data = $req->validated();
-        $user = $req->user(); // 👈 who did this action
+        try {
+            $data = $req->validated();
+            $user = $req->user(); // 👈 who did this action
 
-        // Image upload (optional)
-        if ($req->hasFile('picture')) {
-            $path = $req->file('picture')->store('uploads/resources', 'public');
-            $data['picture'] = "storage/{$path}";
+            // Image upload (optional)
+            if ($req->hasFile('picture')) {
+                $path = $req->file('picture')->store('uploads/resources', 'public');
+                $data['picture'] = "storage/{$path}";
+            }
+
+            $row = Resource::create($data);
+
+            // 🔔 create notification (ONLY code_number in message)
+            NotificationService::record(
+                $user,
+                module: 'resources',
+                action: 'created',
+                title: 'منبع جدید ثبت شد',
+                message: 'کد منبع: ' . ($row->code_number ?? ''),
+                routeName: 'resources.edit',              // 👈 edit page route
+                routeParams: ['id' => $row->id],
+                level: 'success',
+            );
+
+            return (new ResourceResource(
+                $row->loadMissing('officeEmployee:id,name,code_number,father_name')
+            ))
+                ->additional(['message' => 'Created'])
+                ->response()
+                ->setStatusCode(201);
+
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponsePashto();
+            }
+
+            return response()->json([
+                'message' => 'Resource creation failed',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
-
-        $row = Resource::create($data);
-
-        // 🔔 create notification (ONLY code_number in message)
-        NotificationService::record(
-            $user,
-            module: 'resources',
-            action: 'created',
-            title: 'منبع جدید ثبت شد',
-            message: 'کد منبع: ' . ($row->code_number ?? ''),
-            routeName: 'resources.edit',              // 👈 edit page route
-            routeParams: ['id' => $row->id],
-            level: 'success',
-        );
-
-        return (new ResourceResource(
-            $row->loadMissing('officeEmployee:id,name,code_number,father_name')
-        ))
-            ->additional(['message' => 'Created'])
-            ->response()
-            ->setStatusCode(201);
     }
 
     public function update(ResourceRequest $req, $id)
     {
-        $row  = Resource::findOrFail($id);
-        $data = $req->validated();
-        $user = $req->user(); // 👈
+        try {
+            $row  = Resource::findOrFail($id);
+            $data = $req->validated();
+            $user = $req->user(); // 👈
 
-        // Replace image if a new one is provided
-        if ($req->hasFile('picture')) {
-            if ($row->picture && str_starts_with($row->picture, 'storage/')) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $row->picture));
+            // Replace image if a new one is provided
+            if ($req->hasFile('picture')) {
+                if ($row->picture && str_starts_with($row->picture, 'storage/')) {
+                    Storage::disk('public')->delete(str_replace('storage/', '', $row->picture));
+                }
+
+                $path = $req->file('picture')->store('uploads/resources', 'public');
+                $data['picture'] = "storage/{$path}";
+            } else {
+                // don't null out existing if not sent
+                unset($data['picture']);
             }
 
-            $path = $req->file('picture')->store('uploads/resources', 'public');
-            $data['picture'] = "storage/{$path}";
-        } else {
-            // don't null out existing if not sent
-            unset($data['picture']);
+            $row->fill($data)->save();
+
+            // 🔔 notification for update (ONLY code_number in message)
+            NotificationService::record(
+                $user,
+                module: 'resources',
+                action: 'updated',
+                title: 'منبع اصلاح شد',
+                message: 'کد منبع: ' . ($row->code_number ?? ''),
+                routeName: 'resources',              // if you want edit page: 'resources.edit'
+                routeParams: ['id' => $row->id],
+                level: 'info',
+            );
+
+            return new ResourceResource(
+                $row->loadMissing('officeEmployee:id,name,code_number,father_name')
+            );
+
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponsePashto();
+            }
+
+            return response()->json([
+                'message' => 'Resource update failed',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
-
-        $row->fill($data)->save();
-
-        // 🔔 notification for update (ONLY code_number in message)
-        NotificationService::record(
-            $user,
-            module: 'resources',
-            action: 'updated',
-            title: 'منبع اصلاح شد',
-            message: 'کد منبع: ' . ($row->code_number ?? ''),
-            routeName: 'resources',              // if you want edit page: 'resources.edit'
-            routeParams: ['id' => $row->id],
-            level: 'info',
-        );
-
-        return new ResourceResource(
-            $row->loadMissing('officeEmployee:id,name,code_number,father_name')
-        );
     }
 
     public function destroy(Request $request, $id)

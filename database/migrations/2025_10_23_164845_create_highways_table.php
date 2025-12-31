@@ -23,6 +23,15 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE SIGNATURE (composite unique) based on your selected fields
+            $table->unique([
+                'high_way_name',
+                'province',
+                'zone',
+                'district',
+                'village',
+            ], 'highways_unique_signature');
         });
     }
 

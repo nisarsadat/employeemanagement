@@ -79,6 +79,16 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+            // ✅ Prevent duplicate employee identity (composite unique)
+            $table->unique([
+                'name',
+                'father_name',
+                'grand_father_name',
+                'main_province',
+                'main_district',
+                'main_village',
+            ], 'office_employees_identity_unique');
+
         });
     }
 

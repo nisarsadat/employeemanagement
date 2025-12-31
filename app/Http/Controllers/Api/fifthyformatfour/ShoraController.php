@@ -7,11 +7,31 @@ use App\Http\Requests\fifthyformatfour\StoreShoraRequest;
 use App\Http\Requests\fifthyformatfour\UpdateShoraRequest;
 use App\Http\Resources\fifthyformatfour\ShoraResource;
 use App\Models\fifthyformatfour\Shora;
+use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ShoraController extends Controller
 {
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        return (int) ($e->errorInfo[1] ?? 0) === 1062; // MySQL duplicate key
+    }
+
+    private function duplicateResponse()
+    {
+        return response()->json([
+            'message' => 'این شورا قبلاً ثبت شده است.',
+            'errors' => [
+                'duplicate' => [
+                    'شورا با همین مشخصات (قریه، نام، هدف، تعداد افراد/جلسات، ثبت و محل جلسه) قبلاً در سیستم موجود است.',
+                ],
+            ],
+        ], 422);
+    }
+
     public function index(Request $request)
     {
         $query = Shora::query()
@@ -43,9 +63,32 @@ class ShoraController extends Controller
 
     public function store(StoreShoraRequest $request)
     {
-        $row = Shora::create($request->validated());
-        $row->load(['resource:id,name,code_number,phone_number']);
-        return new ShoraResource($row);
+        $user = $request->user(); // 🔔
+
+        try {
+            return DB::transaction(function () use ($request, $user) {
+                $row = Shora::create($request->validated());
+                $row->load(['resource:id,name,code_number,phone_number']);
+
+                // 🔔 Notification: CREATED
+                NotificationService::record(
+                    $user,
+                    module: 'شورا',
+                    action: 'created',
+                    title: 'شورا جدید ثبت شد',
+                    message: 'نام شورا: ' . ($row->shora_name ?? ''),
+                    routeName: 'shoras',              // ✅ set your real route name
+                    routeParams: ['id' => $row->id],
+                    level: 'success',
+                    changes: null
+                );
+
+                return new ShoraResource($row);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
+            throw $e;
+        }
     }
 
     public function show(Shora $shora)
@@ -54,17 +97,76 @@ class ShoraController extends Controller
         return ShoraResource::make($shora);
     }
 
-
     public function update(UpdateShoraRequest $request, Shora $shora)
     {
-        $shora->update($request->validated());
-        $shora->load(['resource:id,name,code_number,phone_number']);
-        return new ShoraResource($shora);
+        $user = $request->user(); // 🔔
+
+        try {
+            return DB::transaction(function () use ($request, $shora, $user) {
+                // 🧮 changes BEFORE update
+                $original  = $shora->getOriginal();
+                $validated = $request->validated();
+                $changes   = [];
+
+                foreach ($validated as $field => $newValue) {
+                    if (array_key_exists($field, $original)) {
+                        $oldValue = $original[$field];
+                        if ($oldValue != $newValue) {
+                            $changes[$field] = [
+                                'old' => $oldValue,
+                                'new' => $newValue,
+                            ];
+                        }
+                    }
+                }
+
+                $shora->update($validated);
+                $shora->load(['resource:id,name,code_number,phone_number']);
+
+                // 🔔 Notification: UPDATED
+                NotificationService::record(
+                    $user,
+                    module: 'شورا',
+                    action: 'updated',
+                    title: 'شورا اصلاح شد',
+                    message: 'نام شورا: ' . ($shora->shora_name ?? ''),
+                    routeName: 'shoras',              // ✅ set your real route name
+                    routeParams: ['id' => $shora->id],
+                    level: 'info',
+                    changes: !empty($changes) ? $changes : null
+                );
+
+                return new ShoraResource($shora);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
+            throw $e;
+        }
     }
 
-    public function destroy(Shora $shora)
+    public function destroy(Request $request, Shora $shora)
     {
-        $shora->delete();
-        return response()->json(['message' => 'Deleted']);
+        $user = $request->user(); // 🔔
+
+        return DB::transaction(function () use ($shora, $user) {
+            $name = $shora->shora_name;
+
+            $shora->delete();
+
+            // 🔔 Notification: DELETED
+            NotificationService::record(
+                $user,
+                module: 'شورا',
+                action: 'deleted',
+                title: 'شورا حذف شد',
+                message: 'نام شورا: ' . ($name ?? ''),
+                routeName: null,
+                routeParams: ['shoras'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->json(['message' => 'Deleted']);
+        });
     }
 }

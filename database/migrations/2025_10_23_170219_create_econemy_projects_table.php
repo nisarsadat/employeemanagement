@@ -39,6 +39,16 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE SIGNATURE (composite unique) based on your selected fields
+            $table->unique([
+                'name',
+                'type',
+                'province',
+                'zone',
+                'district',
+                'village',
+            ], 'econemy_projects_unique_signature');
         });
     }
 

@@ -31,6 +31,18 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE SIGNATURE
+            $table->unique([
+                'name',
+                'father_name',
+                'job',
+                'jorm_type',
+                'province',
+                'zone',
+                'district',
+                'village',
+            ], 'criminal_capture_places_unique_signature');
         });
     }
 

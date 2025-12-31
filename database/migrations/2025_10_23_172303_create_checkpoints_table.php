@@ -35,6 +35,19 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE SIGNATURE (composite unique)
+            $table->unique([
+                'checkpoint_name',
+                'employee_quantity',
+                'organ',
+                'create_reason',
+                'gun_type',
+                'province',
+                'zone',
+                'district',
+                'village',
+            ], 'checkpoints_unique_signature');
         });
     }
 

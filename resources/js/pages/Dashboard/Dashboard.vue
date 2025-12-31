@@ -466,11 +466,8 @@
                 <!-- Rank -->
                 <template #item.rank="{ item }">
                   <div class="rank-cell">
-                    <div class="rank-badge" :class="`rank-${item.rank}`">
-                      <v-icon v-if="item.rank === 1" size="16">mdi-trophy</v-icon>
-                      <v-icon v-else-if="item.rank === 2" size="16">mdi-medal</v-icon>
-                      <v-icon v-else-if="item.rank === 3" size="16">mdi-medal-outline</v-icon>
-                      <span v-else>{{ item.rank }}</span>
+                    <div class="rank-badge">
+                      {{ item.rank }}
                     </div>
                   </div>
                 </template>
@@ -1666,27 +1663,26 @@ Formats By Zone Logic
    ✅ EMPLOYEE TABLE HEADER (columns)
    =========================== */
 
-/* Light mode */
-.cool-table :deep(.v-data-table__thead th),
-.cool-table :deep(.v-table thead th) {
-  background-color: #f8fafc !important; /* very light, clean */
-  color: rgba(0, 0, 0, 0.82) !important;
-  font-weight: 800 !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-}
+  /* Light mode */
+  .cool-table :deep(.v-data-table__thead th),
+  .cool-table :deep(.v-table thead th) {
+    background-color: #f8fafc !important; /* very light, clean */
+    color: rgba(0, 0, 0, 0.82) !important;
+    font-weight: 800 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  }
 
-/* remove primary accent shadow */
-.cool-table :deep(.v-data-table__thead tr),
-.cool-table :deep(.v-table thead tr) {
-  box-shadow: none !important;
-}
+  /* remove primary accent shadow */
+  .cool-table :deep(.v-data-table__thead tr),
+  .cool-table :deep(.v-table thead tr) {
+    box-shadow: none !important;
+  }
 
-/* Dark mode */
-:deep(.v-theme--dark) .cool-table :deep(.v-data-table__thead th),
-:deep(.v-theme--dark) .cool-table :deep(.v-table thead th) {
-  background-color: rgba(255, 255, 255, 0.06) !important;
-  color: rgba(255, 255, 255, 0.88) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-}
-
+  /* Dark mode */
+  :deep(.v-theme--dark) .cool-table :deep(.v-data-table__thead th),
+  :deep(.v-theme--dark) .cool-table :deep(.v-table thead th) {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    color: rgba(255, 255, 255, 0.88) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  }
 </style>

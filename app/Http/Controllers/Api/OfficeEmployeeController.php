@@ -11,9 +11,30 @@ use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException; // ✅ ADDED
 
 class OfficeEmployeeController extends Controller
 {
+    // =========================
+    // ✅ DUPLICATE HELPERS
+    // =========================
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    private function duplicateResponsePashto()
+    {
+        return response()->json([
+            'message' => 'دا کارمند مخکې ثبت شوی دی.',
+            'errors'  => [
+                'duplicate' => [
+                    'په همدې نوم، د پلار نوم، د نيکه نوم او د اصلي استوګنې ځای (ولايت، ولسوالۍ، کلی) سره کارمند مخکې په سیستم کې موجود دی.',
+                ],
+            ],
+        ], 422);
+    }
+
     /**
      * List all office employees with search and documents.
      */
@@ -21,9 +42,9 @@ class OfficeEmployeeController extends Controller
     {
         $request->validate([
             'page'    => 'sometimes|integer|min:1',
-            'perPage' => 'sometimes', // int | "all" | missing
+            'perPage' => 'sometimes',
             'search'  => 'nullable|string',
-            'status'  => 'nullable|string', // 'active' | 'inactive' | 'فعال' | 'غیر فعال' | 'all'
+            'status'  => 'nullable|string',
         ]);
 
         $search     = $request->input('search');
@@ -33,20 +54,14 @@ class OfficeEmployeeController extends Controller
 
         $query = OfficeEmployee::query()
             ->with(['documents'])
-            // ✅ NEW: sum of all finance money for each office employee
             ->withSum('finances as payed_money', 'money_amount_number')
             ->withCount([
                 'events',
                 'resources',
-
-                // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
                 'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
                 'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
-
-                // ✅ ALL INFORMATION TYPES
                 'informations',
                 'infoInformations',
-
                 'documents',
             ])
             ->when($search, function ($q) use ($search) {
@@ -56,7 +71,6 @@ class OfficeEmployeeController extends Controller
                        ->orWhere('phone_number', 'like', "%{$search}%");
                 });
             })
-            // ✅ filter by activity (accepts both Dari and English)
             ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
                 $activeVals   = ['active', OfficeEmployee::ACTIVE];
                 $inactiveVals = ['inactive', OfficeEmployee::INACTIVE];
@@ -69,15 +83,12 @@ class OfficeEmployeeController extends Controller
             })
             ->orderByDesc('id');
 
-        // Return ALL if perPage missing / "all" / 0
         if (is_null($rawPerPage) || $rawPerPage === '' || strtolower((string) $rawPerPage) === 'all' || (int) $rawPerPage === 0) {
             return OfficeEmployeeResource::collection($query->get());
         }
 
-        $perPage = max(1, (int) $rawPerPage);
-
         return OfficeEmployeeResource::collection(
-            $query->paginate($perPage, ['*'], 'page', $page)
+            $query->paginate(max(1, (int) $rawPerPage), ['*'], 'page', $page)
         );
     }
 
@@ -85,16 +96,12 @@ class OfficeEmployeeController extends Controller
     {
         $officeEmployee = OfficeEmployee::query()
             ->with(['documents'])
-            // ✅ NEW: sum for single record too
             ->withSum('finances as payed_money', 'money_amount_number')
             ->withCount([
                 'events',
                 'resources',
-
-                // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
                 'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
                 'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
-
                 'informations',
                 'infoInformations',
                 'documents',
@@ -104,14 +111,11 @@ class OfficeEmployeeController extends Controller
         return new OfficeEmployeeResource($officeEmployee);
     }
 
-    /**
-     * ✅ quick counts for UI badges
-     */
     public function counts()
     {
         return response()->json([
-            'active'   => OfficeEmployee::query()->where('activity', OfficeEmployee::ACTIVE)->count(),
-            'inactive' => OfficeEmployee::query()->where('activity', OfficeEmployee::INACTIVE)->count(),
+            'active'   => OfficeEmployee::where('activity', OfficeEmployee::ACTIVE)->count(),
+            'inactive' => OfficeEmployee::where('activity', OfficeEmployee::INACTIVE)->count(),
             'total'    => OfficeEmployee::count(),
         ]);
     }
@@ -128,13 +132,11 @@ class OfficeEmployeeController extends Controller
 
             $employee = OfficeEmployee::create($request->validated());
 
-            // Picture
             if ($request->hasFile('picture')) {
                 $path = $request->file('picture')->store('uploads/office-employees', 'public');
                 $employee->update(['picture' => $path]);
             }
 
-            // Documents
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("office_employees/{$employee->id}", 'public');
@@ -163,21 +165,29 @@ class OfficeEmployeeController extends Controller
 
             return new OfficeEmployeeResource(
                 $employee->load(['documents'])
-                    // ✅ NEW: compute payed_money for response after create
                     ->loadSum('finances as payed_money', 'money_amount_number')
                     ->loadCount([
                         'events',
                         'resources',
-
-                        // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
                         'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
                         'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
-
                         'informations',
                         'infoInformations',
                         'documents',
                     ])
             );
+
+        } catch (QueryException $e) {
+            DB::rollBack();
+
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponsePashto();
+            }
+
+            return response()->json([
+                'message' => 'Office employee creation failed',
+                'error'   => $e->getMessage(),
+            ], 500);
 
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -195,11 +205,9 @@ class OfficeEmployeeController extends Controller
 
         try {
             $user = $request->user();
-
             $officeEmployee = OfficeEmployee::with(['documents'])->findOrFail($id);
 
             $original = $officeEmployee->getOriginal();
-
             $officeEmployee->fill($request->validated());
 
             $dirty   = $officeEmployee->getDirty();
@@ -214,7 +222,6 @@ class OfficeEmployeeController extends Controller
 
             $officeEmployee->save();
 
-            // Picture replace
             if ($request->hasFile('picture')) {
                 if ($officeEmployee->picture) {
                     Storage::disk('public')->delete($officeEmployee->picture);
@@ -229,7 +236,6 @@ class OfficeEmployeeController extends Controller
                 ];
             }
 
-            // New documents
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("office_employees/{$officeEmployee->id}", 'public');
@@ -264,23 +270,29 @@ class OfficeEmployeeController extends Controller
             return new OfficeEmployeeResource(
                 $officeEmployee
                     ->load(['documents'])
-                    // ✅ NEW: compute payed_money for response after update
                     ->loadSum('finances as payed_money', 'money_amount_number')
                     ->loadCount([
                         'events',
                         'resources',
-
-                        // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
                         'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
                         'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
-
-                        // ✅ ALL INFORMATION TYPES
                         'informations',
                         'infoInformations',
-
                         'documents',
                     ])
             );
+
+        } catch (QueryException $e) {
+            DB::rollBack();
+
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponsePashto();
+            }
+
+            return response()->json([
+                'message' => 'Office employee update failed',
+                'error'   => $e->getMessage(),
+            ], 500);
 
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -300,8 +312,6 @@ class OfficeEmployeeController extends Controller
             $officeEmployee = OfficeEmployee::with('documents')->findOrFail($id);
             $user           = $request->user();
 
-            $code = $officeEmployee->code_number;
-
             foreach ($officeEmployee->documents as $doc) {
                 Storage::disk('public')->delete($doc->file_path);
             }
@@ -319,7 +329,7 @@ class OfficeEmployeeController extends Controller
                 module: 'کارمند دفتر',
                 action: 'deleted',
                 title: 'کارمند دفتر حذف شد',
-                message: 'کد کارمند: ' . ($code ?? ''),
+                message: 'کد کارمند: ' . ($officeEmployee->code_number ?? ''),
                 routeName: null,
                 routeParams: ['officeemployee'],
                 level: 'warning',
@@ -340,28 +350,18 @@ class OfficeEmployeeController extends Controller
         }
     }
 
-    /**
-     * List of NON-ACTIVE office employees.
-     */
     public function inactive(Request $request)
     {
-        $query = OfficeEmployee::query()
-            ->where('activity', OfficeEmployee::INACTIVE)
+        $query = OfficeEmployee::where('activity', OfficeEmployee::INACTIVE)
             ->with(['documents'])
-            // ✅ NEW: sum for inactive list too
             ->withSum('finances as payed_money', 'money_amount_number')
             ->withCount([
                 'events',
                 'resources',
-
-                // ✅ Active/Inactive resources for THIS employee (Option B: STRING values)
                 'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
                 'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
-
-                // ✅ ALL INFORMATION TYPES
                 'informations',
                 'infoInformations',
-
                 'documents',
             ])
             ->orderByDesc('id');

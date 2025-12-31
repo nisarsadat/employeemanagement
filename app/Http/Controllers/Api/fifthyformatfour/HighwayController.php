@@ -7,11 +7,32 @@ use App\Http\Requests\fifthyformatfour\StoreHighwayRequest;
 use App\Http\Requests\fifthyformatfour\UpdateHighwayRequest;
 use App\Http\Resources\fifthyformatfour\HighwayResource;
 use App\Models\fifthyformatfour\Highway;
+use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class HighwayController extends Controller
 {
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        // MySQL duplicate key code = 1062
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    private function duplicateResponse()
+    {
+        return response()->json([
+            'message' => 'این شاهراه قبلاً ثبت شده است.',
+            'errors' => [
+                'duplicate' => [
+                    'شاهراه با همین مشخصات (نام شاهراه و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
+                ],
+            ],
+        ], 422);
+    }
+
     public function index(Request $request)
     {
         $query = Highway::query()
@@ -46,35 +67,110 @@ class HighwayController extends Controller
 
     public function store(StoreHighwayRequest $request)
     {
-        $row = Highway::create($request->validated());
+        $user = $request->user(); // 🔔 who did this
 
-        // ✅ eager-load resource for flattened fields
-        $row->load(['resource:id,name,code_number,phone_number']);
+        try {
+            return DB::transaction(function () use ($request, $user) {
+                $row = Highway::create($request->validated());
+                $row->load(['resource:id,name,code_number,phone_number']);
 
-        return new HighwayResource($row);
+                // 🔔 Notification: CREATED
+                NotificationService::record(
+                    $user,
+                    module: 'شاهراه',
+                    action: 'created',
+                    title: 'شاهراه جدید ثبت شد',
+                    message: 'نام شاهراه: ' . ($row->high_way_name ?? ''),
+                    routeName: 'highways',            // ✅ set your real route name
+                    routeParams: ['id' => $row->id],
+                    level: 'success',
+                    changes: null
+                );
+
+                return new HighwayResource($row);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
+            throw $e;
+        }
     }
 
     public function show(Highway $highway)
     {
         $highway->load(['resource:id,name,code_number,phone_number']);
-
         return new HighwayResource($highway);
     }
 
     public function update(UpdateHighwayRequest $request, Highway $highway)
     {
-        $highway->update($request->validated());
+        $user = $request->user(); // 🔔
 
-        // ✅ reload for fresh resource_code / resource_phone
-        $highway->load(['resource:id,name,code_number,phone_number']);
+        try {
+            return DB::transaction(function () use ($request, $highway, $user) {
+                // 🧮 build changes BEFORE update (like InformationController)
+                $original  = $highway->getOriginal();
+                $validated = $request->validated();
+                $changes   = [];
 
-        return new HighwayResource($highway);
+                foreach ($validated as $field => $newValue) {
+                    if (array_key_exists($field, $original)) {
+                        $oldValue = $original[$field];
+                        if ($oldValue != $newValue) {
+                            $changes[$field] = [
+                                'old' => $oldValue,
+                                'new' => $newValue,
+                            ];
+                        }
+                    }
+                }
+
+                $highway->update($validated);
+                $highway->load(['resource:id,name,code_number,phone_number']);
+
+                // 🔔 Notification: UPDATED + changes
+                NotificationService::record(
+                    $user,
+                    module: 'شاهراه',
+                    action: 'updated',
+                    title: 'شاهراه اصلاح شد',
+                    message: 'نام شاهراه: ' . ($highway->high_way_name ?? ''),
+                    routeName: 'highways',            // ✅ set your real route name
+                    routeParams: ['id' => $highway->id],
+                    level: 'info',
+                    changes: !empty($changes) ? $changes : null
+                );
+
+                return new HighwayResource($highway);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
+            throw $e;
+        }
     }
 
-    public function destroy(Highway $highway)
+    public function destroy(Request $request, Highway $highway)
     {
-        $highway->delete();
+        $user = $request->user(); // 🔔
 
-        return response()->json(['message' => 'Deleted']);
+        return DB::transaction(function () use ($highway, $user) {
+            $name = $highway->high_way_name;
+
+            $highway->delete();
+
+            // 🔔 Notification: DELETED
+            NotificationService::record(
+                $user,
+                module: 'شاهراه',
+                action: 'deleted',
+                title: 'شاهراه حذف شد',
+                message: 'نام شاهراه: ' . ($name ?? ''),
+                routeName: null,
+                routeParams: ['highways'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->json(['message' => 'Deleted']);
+        });
     }
 }
