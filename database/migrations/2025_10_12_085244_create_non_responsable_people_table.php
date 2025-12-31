@@ -14,10 +14,12 @@ return new class extends Migration {
             $table->string('name');
             $table->string('father_name')->nullable();
 
+            // main address (identity)
             $table->string('main_province')->nullable();
             $table->string('main_district')->nullable();
             $table->string('main_village')->nullable();
 
+            // current address
             $table->string('now_province')->nullable();
             $table->string('now_zone')->nullable();
             $table->string('now_district')->nullable();
@@ -42,13 +44,20 @@ return new class extends Migration {
             $table->string('Province_addr')->nullable();
             $table->string('coordinates')->nullable();
 
-
             $table->foreignId('resource_id')
-                  ->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite identity)
+             */
+            $table->unique(
+                ['name', 'father_name', 'main_province', 'main_district', 'main_village'],
+                'non_responsable_people_identity_unique'
+            );
         });
     }
 

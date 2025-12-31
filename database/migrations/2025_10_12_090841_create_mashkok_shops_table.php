@@ -29,13 +29,31 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
-                  ->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) exactly as you requested:
+             * identity + shop_type + location + market_name
+             */
+            $table->unique(
+                [
+                    'name',
+                    'father_name',
+                    'main_province',
+                    'phone_numbers',
+                    'shop_type',
+                    'district',
+                    'village',
+                    'specific_place',
+                    'market_name',
+                ],
+                'mashkok_shops_identity_unique'
+            );
         });
     }
 

@@ -31,13 +31,26 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
 
             $table->timestamps();
+
+            // ✅ UNIQUE constraints (as you requested)
+            $table->unique('block_name');
+            $table->unique('apartments_quantity');
+            $table->unique('shahrak_name');
+
+            $table->unique('responsible_name');
+            $table->unique('responsible_f_name');
+            $table->unique('responsible_position');
+            $table->unique('responsible_phone');
+
+            $table->unique('province');
+            $table->unique('zone');
+            $table->unique('district');
         });
     }
 

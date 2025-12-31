@@ -36,13 +36,21 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
-                  ->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) for:
+             * name + father_name + main_province + main_district + main_village
+             */
+            $table->unique(
+                ['name', 'father_name', 'main_province', 'main_district', 'main_village'],
+                'robbers_identity_unique'
+            );
         });
     }
 

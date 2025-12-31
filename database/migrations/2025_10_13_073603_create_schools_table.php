@@ -33,13 +33,33 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) exactly as you requested:
+             * school + principle + address block
+             */
+            $table->unique(
+                [
+                    'school_name',
+                    'school_type',
+                    'principle_name',
+                    'principle_f_name',
+                    'principle_phone',
+                    'province',
+                    'zone',
+                    'district',
+                    'specific_place',
+                    'village',
+                    'street_number',
+                ],
+                'schools_identity_unique'
+            );
         });
     }
 

@@ -27,13 +27,30 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) exactly as you requested
+             */
+            $table->unique(
+                [
+                    'car_sales_company_name',
+                    'responsible_name',
+                    'responsible_f_name',
+                    'responsible_position',
+                    'responsible_phone',
+                    'province',
+                    'zone',
+                    'district',
+                    'village',
+                ],
+                'car_sales_companies_identity_unique'
+            );
         });
     }
 

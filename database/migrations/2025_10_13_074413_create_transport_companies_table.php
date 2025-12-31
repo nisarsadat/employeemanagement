@@ -29,13 +29,32 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) exactly as you requested:
+             * company + type + responsible + address
+             */
+            $table->unique(
+                [
+                    'transport_company_name',
+                    'type',
+                    'responsible_name',
+                    'responsible_f_name',
+                    'responsible_position',
+                    'responsible_phone',
+                    'province',
+                    'zone',
+                    'district',
+                    'village',
+                ],
+                'transport_companies_identity_unique'
+            );
         });
     }
 

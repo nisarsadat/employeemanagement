@@ -2,15 +2,39 @@
 
 namespace App\Http\Controllers\fifthyformatone;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\fifthyformatone\Mawad;
-use App\Http\Resources\fifthyformatone\MawadResource;
 use App\Http\Requests\fifthyformatone\StoreMawadRequest;
 use App\Http\Requests\fifthyformatone\UpdateMawadRequest;
+use App\Http\Resources\fifthyformatone\MawadResource;
+use App\Models\fifthyformatone\Mawad;
+use App\Services\NotificationService; // 🔔 notifications
+use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MawadController extends Controller
 {
+    /**
+     * Pashto duplicate error message (unique constraint)
+     */
+    private function duplicateErrorPashto(): array
+    {
+        return [
+            'message' => 'دا ریکارډ مخکې ثبت شوی دی. مهرباني وکړئ تکراري معلومات مه داخلوی.',
+            'errors'  => [
+                'duplicate' => [
+                    'دا مواد مخکې ثبت شوی دی (نوع، نوم، د پلار نوم او اصلي پته).',
+                ],
+            ],
+        ];
+    }
+
+    private function isDuplicateKeyException(QueryException $e): bool
+    {
+        // MySQL duplicate entry = 1062
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
     /**
      * GET /mawads
      */
@@ -18,13 +42,25 @@ class MawadController extends Controller
     {
         $perPage = (int) $request->input('perPage', 10);
         $search  = $request->input('search');
+        $rid     = $request->input('resource_id');
 
-        $q = Mawad::query()->with('resource')->latest();
+        $sortBy  = $request->input('sort_by', 'created_at');
+        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true) ? $request->input('sort_dir') : 'desc';
+
+        $q = Mawad::query()->with([
+            'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+        ]);
 
         if ($search) {
-            // same as Fasad: search by name only
+            // keep your simple style: search by name only
             $q->where('name', 'like', "%{$search}%");
         }
+
+        if ($rid) {
+            $q->where('resource_id', $rid);
+        }
+
+        $q->orderBy($sortBy, $sortDir);
 
         return MawadResource::collection($q->paginate($perPage));
     }
@@ -34,11 +70,42 @@ class MawadController extends Controller
      */
     public function store(StoreMawadRequest $request)
     {
-        $data = $request->validated();
+        $user = $request->user(); // 🔔 who did this
 
-        $mawad = Mawad::create($data)->load('resource');
+        try {
+            return DB::transaction(function () use ($request, $user) {
+                $data = $request->validated();
 
-        return MawadResource::make($mawad);
+                $mawad = Mawad::create($data);
+
+                $mawad->load([
+                    'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+                ]);
+
+                // 🔔 Notification: CREATED
+                NotificationService::record(
+                    $user,
+                    module: 'مواد',
+                    action: 'created',
+                    title: 'مواد جدید ثبت شد',
+                    message: 'نام مواد: ' . ($mawad->name ?? ''),
+                    routeName: 'mawads',               // ⚠️ set your real route name
+                    routeParams: ['id' => $mawad->id],
+                    level: 'success',
+                    changes: null
+                );
+
+                return (new MawadResource($mawad))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKeyException($e)) {
+                return response()->json($this->duplicateErrorPashto(), 422);
+            }
+            throw $e;
+        }
     }
 
     /**
@@ -46,7 +113,10 @@ class MawadController extends Controller
      */
     public function show(Mawad $mawad)
     {
-        $mawad->load('resource');
+        $mawad->load([
+            'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+        ]);
+
         return MawadResource::make($mawad);
     }
 
@@ -55,31 +125,118 @@ class MawadController extends Controller
      */
     public function update(UpdateMawadRequest $request, Mawad $mawad)
     {
-        $data = $request->validated();
+        $user = $request->user(); // 🔔
 
-        $mawad->update($data);
-        $mawad->load('resource');
+        try {
+            return DB::transaction(function () use ($request, $mawad, $user) {
+                $validated = $request->validated();
 
-        return MawadResource::make($mawad);
+                // 🧮 build changes BEFORE update (same style as your InformationController)
+                $original = $mawad->getOriginal();
+                $changes  = [];
+
+                foreach ($validated as $field => $newValue) {
+                    if (array_key_exists($field, $original)) {
+                        $oldValue = $original[$field];
+                        if ($oldValue != $newValue) {
+                            $changes[$field] = [
+                                'old' => $oldValue,
+                                'new' => $newValue,
+                            ];
+                        }
+                    }
+                }
+
+                $mawad->update($validated);
+
+                $mawad->load([
+                    'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+                ]);
+
+                // 🔔 Notification: UPDATED + changes
+                NotificationService::record(
+                    $user,
+                    module: 'مواد',
+                    action: 'updated',
+                    title: 'مواد اصلاح شد',
+                    message: 'نام مواد: ' . ($mawad->name ?? ''),
+                    routeName: 'mawads',               // ⚠️ set your real route name
+                    routeParams: ['id' => $mawad->id],
+                    level: 'info',
+                    changes: !empty($changes) ? $changes : null
+                );
+
+                return MawadResource::make($mawad);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKeyException($e)) {
+                return response()->json($this->duplicateErrorPashto(), 422);
+            }
+            throw $e;
+        }
     }
 
     /**
      * DELETE /mawads/{mawad}
      */
-    public function destroy(Mawad $mawad)
+    public function destroy(Request $request, Mawad $mawad)
     {
-        $mawad->delete();
-        return response()->noContent();
+        $user = $request->user(); // 🔔
+
+        return DB::transaction(function () use ($mawad, $user) {
+            $name = $mawad->name;
+
+            $mawad->delete();
+
+            // 🔔 Notification: DELETED
+            NotificationService::record(
+                $user,
+                module: 'مواد',
+                action: 'deleted',
+                title: 'مواد حذف شد',
+                message: 'نام مواد: ' . ($name ?? ''),
+                routeName: null,
+                routeParams: ['mawads'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->noContent();
+        });
     }
 
     /**
-     * Optional bulk delete to match your style:
+     * Optional bulk delete:
      * POST /mawads/bulk-delete  with { "ids": [1,2,3] }
      */
     public function bulkDelete(Request $request)
     {
+        $user = $request->user(); // 🔔
+
         $ids = $request->input('ids', []);
-        Mawad::destroy($ids);
-        return response()->noContent();
+        $ids = is_array($ids) ? array_values(array_filter($ids)) : [];
+
+        return DB::transaction(function () use ($ids, $user) {
+            if (empty($ids)) {
+                return response()->noContent();
+            }
+
+            // (optional) you can record 1 notification for bulk delete
+            Mawad::whereIn('id', $ids)->delete();
+
+            NotificationService::record(
+                $user,
+                module: 'مواد',
+                action: 'deleted',
+                title: 'مواد به‌صورت گروهی حذف شد',
+                message: 'تعداد: ' . count($ids),
+                routeName: null,
+                routeParams: ['mawads'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->noContent();
+        });
     }
 }

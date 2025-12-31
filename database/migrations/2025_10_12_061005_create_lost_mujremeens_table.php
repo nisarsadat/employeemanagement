@@ -41,13 +41,21 @@ return new class extends Migration {
             $table->string('Province_addr')->nullable();
             $table->string('coordinates')->nullable();
 
-
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) for:
+             * name + father_name + main_province + main_district + main_village
+             */
+            $table->unique(
+                ['name', 'father_name', 'main_province', 'main_district', 'main_village'],
+                'lost_mujremeens_identity_unique'
+            );
         });
     }
 

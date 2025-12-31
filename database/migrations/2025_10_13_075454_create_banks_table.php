@@ -31,13 +31,32 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ COMPOSITE UNIQUE (as requested)
+             */
+            $table->unique(
+                [
+                    'bank_name',
+                    'bank_type',
+                    'bank_owner',
+                    'responsible_name',
+                    'responsible_f_name',
+                    'responsible_position',
+                    'responsible_phone',
+                    'province',
+                    'zone',
+                    'district',
+                    'village',
+                ],
+                'banks_identity_unique'
+            );
         });
     }
 

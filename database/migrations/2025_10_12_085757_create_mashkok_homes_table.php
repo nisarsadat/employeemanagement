@@ -25,13 +25,21 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
-                  ->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) exactly as you requested:
+             * province + zone + district + village + specific_place
+             */
+            $table->unique(
+                ['province', 'zone', 'district', 'village', 'specific_place'],
+                'mashkok_homes_location_unique'
+            );
         });
     }
 

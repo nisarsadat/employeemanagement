@@ -33,7 +33,7 @@ return new class extends Migration
             // Job / Activity
             $table->string('old_job')->nullable();
             $table->string('job')->nullable();
-            $table->string('gun_type')->nullable();  // আফغানি field for weapon type
+            $table->string('gun_type')->nullable();
             $table->string('phone_number')->nullable();
 
             // History / Notes
@@ -43,9 +43,21 @@ return new class extends Migration
             $table->string('Province_addr')->nullable();
 
             // Relation with Resource
-            $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();
+            $table->foreignId('resource_id')
+                ->nullable()
+                ->constrained('resources')
+                ->nullOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) exactly as you requested:
+             * nickname + name + father_name + main_province + main_district + main_village
+             */
+            $table->unique(
+                ['nickname', 'name', 'father_name', 'main_province', 'main_district', 'main_village'],
+                'luchakanos_identity_unique'
+            );
         });
     }
 

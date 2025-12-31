@@ -34,16 +34,25 @@ return new class extends Migration {
             $table->string('Province_addr')->nullable();
             $table->string('coordinates')->nullable();
 
-
             // relation to resources (code/phone derived from this)
             $table->foreignId('resource_id')
-                  ->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             $table->text('notes')->nullable();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) for:
+             * name + father_name + main_province + main_district + main_village
+             * (so the full identity block is unique, not each field alone)
+             */
+            $table->unique(
+                ['name', 'father_name', 'main_province', 'main_district', 'main_village'],
+                'soldiers_identity_unique'
+            );
         });
     }
 

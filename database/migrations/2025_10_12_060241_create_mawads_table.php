@@ -40,12 +40,20 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) for:
+             * mawad_type + name + father_name + main_province + main_district + main_village
+             */
+            $table->unique(
+                ['mawad_type', 'name', 'father_name', 'main_province', 'main_district', 'main_village'],
+                'mawads_identity_unique'
+            );
         });
     }
 

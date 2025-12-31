@@ -33,13 +33,34 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
-                  ->nullable()
-                  ->constrained('resources')
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained('resources')
+                ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) exactly as you requested:
+             * location + tahdid_type + masool fields
+             */
+            $table->unique(
+                [
+                    'province',
+                    'zone',
+                    'district',
+                    'village',
+                    'specific_place',
+                    'specific_dot',
+                    'coordinates',
+                    'tahdid_type',
+                    'masool_name',
+                    'masool_f_name',
+                    'masool_position',
+                    'masool_phone',
+                ],
+                'damage_places_identity_unique'
+            );
         });
     }
 

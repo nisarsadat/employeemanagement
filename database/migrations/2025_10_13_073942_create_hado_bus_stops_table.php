@@ -29,13 +29,31 @@ return new class extends Migration {
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
 
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (composite) – exactly as requested
+             */
+            $table->unique(
+                [
+                    'name',
+                    'hada_type',
+                    'responsible_name',
+                    'responsible_f_name',
+                    'responsible_position',
+                    'responsible_phone',
+                    'province',
+                    'zone',
+                    'district',
+                    'village',
+                ],
+                'hado_bus_stops_identity_unique'
+            );
         });
     }
 

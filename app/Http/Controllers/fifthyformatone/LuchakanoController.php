@@ -7,19 +7,43 @@ use App\Http\Requests\fifthyformatone\StoreLuchakanoRequest;
 use App\Http\Requests\fifthyformatone\UpdateLuchakanoRequest;
 use App\Http\Resources\fifthyformatone\LuchakanoResource;
 use App\Models\fifthyformatone\Luchakano;
+use App\Services\NotificationService; // 🔔 notifications
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LuchakanoController extends Controller
 {
+    private function duplicateErrorPashto(): array
+    {
+        return [
+            'message' => 'دا ریکارډ مخکې ثبت شوی دی. مهرباني وکړئ تکراري معلومات مه داخلوی.',
+            'errors'  => [
+                'duplicate' => [
+                    'دا کس مخکې ثبت شوی دی (لقب/نوم، د پلار نوم او اصلي پته یو شان دي).',
+                ],
+            ],
+        ];
+    }
+
+    private function isDuplicateKeyException(QueryException $e): bool
+    {
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
     /** GET /luchakano */
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
         $search  = $request->input('search');
+        $rid     = $request->input('resource_id');
 
-        $q = Luchakano::query()
-            ->with(['resource:id,name,code_number,phone_number'])
-            ->latest();
+        $sortBy  = $request->input('sort_by', 'created_at');
+        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true) ? $request->input('sort_dir') : 'desc';
+
+        $q = Luchakano::query()->with([
+            'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+        ]);
 
         if ($search) {
             $q->where(function ($w) use ($search) {
@@ -33,44 +57,167 @@ class LuchakanoController extends Controller
             });
         }
 
+        if ($rid) {
+            $q->where('resource_id', $rid);
+        }
+
+        $q->orderBy($sortBy, $sortDir);
+
         return LuchakanoResource::collection($q->paginate($perPage));
     }
 
     /** POST /luchakano */
     public function store(StoreLuchakanoRequest $request)
     {
-        $record = Luchakano::create($request->validated())
-            ->load(['resource:id,name,code_number,phone_number']);
+        $user = $request->user(); // 🔔
 
-        return LuchakanoResource::make($record);
+        try {
+            return DB::transaction(function () use ($request, $user) {
+                $record = Luchakano::create($request->validated());
+
+                $record->load([
+                    'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+                ]);
+
+                NotificationService::record(
+                    $user,
+                    module: 'لوچکانو',
+                    action: 'created',
+                    title: 'ریکارډ جدید ثبت شد',
+                    message: 'نام: ' . ($record->name ?? '') . ' | لقب: ' . ($record->nickname ?? ''),
+                    routeName: 'luchakano',                // ⚠️ set your real route name
+                    routeParams: ['id' => $record->id],
+                    level: 'success',
+                    changes: null
+                );
+
+                return (new LuchakanoResource($record))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKeyException($e)) {
+                return response()->json($this->duplicateErrorPashto(), 422);
+            }
+            throw $e;
+        }
     }
 
     /** GET /luchakano/{luchakano} */
     public function show(Luchakano $luchakano)
     {
-        $luchakano->load(['resource:id,name,code_number,phone_number']);
+        $luchakano->load([
+            'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+        ]);
+
         return LuchakanoResource::make($luchakano);
     }
 
     /** PUT /luchakano/{luchakano} */
     public function update(UpdateLuchakanoRequest $request, Luchakano $luchakano)
     {
-        $luchakano->update($request->validated());
-        $luchakano->load(['resource:id,name,code_number,phone_number']);
-        return LuchakanoResource::make($luchakano);
+        $user = $request->user(); // 🔔
+
+        try {
+            return DB::transaction(function () use ($request, $luchakano, $user) {
+                $validated = $request->validated();
+
+                // 🧮 changes BEFORE update
+                $original = $luchakano->getOriginal();
+                $changes  = [];
+
+                foreach ($validated as $field => $newValue) {
+                    if (array_key_exists($field, $original) && $original[$field] != $newValue) {
+                        $changes[$field] = [
+                            'old' => $original[$field],
+                            'new' => $newValue,
+                        ];
+                    }
+                }
+
+                $luchakano->update($validated);
+
+                $luchakano->load([
+                    'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+                ]);
+
+                NotificationService::record(
+                    $user,
+                    module: 'لوچکانو',
+                    action: 'updated',
+                    title: 'ریکارډ اصلاح شد',
+                    message: 'نام: ' . ($luchakano->name ?? '') . ' | لقب: ' . ($luchakano->nickname ?? ''),
+                    routeName: 'luchakano',                // ⚠️ set your real route name
+                    routeParams: ['id' => $luchakano->id],
+                    level: 'info',
+                    changes: !empty($changes) ? $changes : null
+                );
+
+                return LuchakanoResource::make($luchakano);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKeyException($e)) {
+                return response()->json($this->duplicateErrorPashto(), 422);
+            }
+            throw $e;
+        }
     }
 
     /** DELETE /luchakano/{luchakano} */
-    public function destroy(Luchakano $luchakano)
+    public function destroy(Request $request, Luchakano $luchakano)
     {
-        $luchakano->delete();
-        return response()->noContent();
+        $user = $request->user(); // 🔔
+
+        return DB::transaction(function () use ($luchakano, $user) {
+            $name = $luchakano->name;
+
+            $luchakano->delete();
+
+            NotificationService::record(
+                $user,
+                module: 'لوچکانو',
+                action: 'deleted',
+                title: 'ریکارډ حذف شد',
+                message: 'نام: ' . ($name ?? ''),
+                routeName: null,
+                routeParams: ['luchakano'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->noContent();
+        });
     }
 
     /** POST /luchakano/bulk-delete  { "ids": [1,2,3] } */
     public function bulkDelete(Request $request)
     {
-        Luchakano::destroy($request->input('ids', []));
-        return response()->noContent();
+        $user = $request->user(); // 🔔
+
+        $ids = $request->input('ids', []);
+        $ids = is_array($ids) ? array_values(array_filter($ids)) : [];
+
+        return DB::transaction(function () use ($ids, $user) {
+            if (empty($ids)) {
+                return response()->noContent();
+            }
+
+            Luchakano::whereIn('id', $ids)->delete();
+
+            NotificationService::record(
+                $user,
+                module: 'لوچکانو',
+                action: 'deleted',
+                title: 'ریکارډونه په ډله‌ییز ډول حذف شول',
+                message: 'تعداد: ' . count($ids),
+                routeName: null,
+                routeParams: ['luchakano'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->noContent();
+        });
     }
 }
