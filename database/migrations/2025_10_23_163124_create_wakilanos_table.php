@@ -40,7 +40,6 @@ return new class extends Migration {
             $table->string('history_form')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             // Link to resources
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();
 
@@ -48,6 +47,16 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE (composite) for requested fields
+            $table->unique([
+                'name',
+                'f_name',
+                'grand_father_name',
+                'main_province',
+                'main_district',
+                'main_village',
+            ], 'wakilanos_unique_key');
         });
     }
 

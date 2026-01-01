@@ -41,6 +41,20 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE (composite) for requested fields
+            $table->unique([
+                'deplomatic_place_name',
+                'activity_type',
+                'activity_place',
+                'province',
+                'zone',
+                'district',
+                'village',
+                'specefic_place',
+                'street_number',
+                'home_number',
+            ], 'deplomatic_places_unique_key');
         });
     }
 

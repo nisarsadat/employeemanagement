@@ -39,13 +39,25 @@ return new class extends Migration {
             $table->string('coordinates')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             // Resource link
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();
 
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE (composite) for: uni_name + uni_type + location fields
+            $table->unique([
+                'uni_name',
+                'uni_type',
+                'province',
+                'zone',
+                'district',
+                'village',
+                'specific_place',
+                'street_number',
+                'home_number',
+            ], 'universities_unique_key');
         });
     }
 

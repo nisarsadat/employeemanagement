@@ -47,6 +47,20 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamps();
+
+            // ✅ UNIQUE (composite) for: Location + Complex info fields you listed
+            $table->unique([
+                'province',
+                'zone',
+                'district',
+                'village',
+                'specefic_place',
+                'street_number',
+                'home_number',
+                'complex_name',
+                'activity_type',
+                'activity_place',
+            ], 'complexes_location_info_unique');
         });
     }
 
