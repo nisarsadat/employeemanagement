@@ -59,6 +59,15 @@ return [
         'eventreports',
         'informationreports',
 
+        //
+        'dailyfoulreports',
+        'monthlyfoulreports',
+        'yearlyfoulreports',
+        'weeklyfoulreports',
+        'quarterlyfoulreports',
+        'alltimefoulreports',
+        'rolepermissions',
+
         // ---- 56 Formats (match your API resource names / page slugs) ----
         // Base
         'fasads','saeen_fasads','heists','captives','mulkanos','entry_exits',

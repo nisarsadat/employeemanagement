@@ -179,6 +179,7 @@ import FoulQuarterlyReports from '../pages/reports/FoulQuarterlyReports.vue';
 import AllTimeFoulReports from '../pages/reports/AllTimeFoulReports.vue';
 import OutgoingIncomingForm from '../pages/OutgoingIncoming/OutgoingIncomingForm.vue';
 import OutgoingIncomingIndex from '../pages/OutgoingIncoming/OutgoingIncomingIndex.vue';
+import RolePermissions from '../pages/rbac/RolePermissions.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -1400,12 +1401,24 @@ const router = createRouter({
         },
 
         // RBAC pages
-        { path: 'roles', component: Roles, meta: { requiresAuth: true, perm: permFor('roles') } },
+        {
+          path: 'roles',
+          name: 'roles',
+          component: Roles,
+          meta: { requiresAuth: true, perm: permFor('roles') },
+        },
         // {
         //   path: 'permissions',
         //   component: Permission,
         //   meta: { requiresAuth: true, perm: permFor('permissions') },
         // },
+        // router.js (snippet)
+        {
+          path: '/rbac/roles/:id/permissions',
+          name: 'RolePermissions',
+          component: RolePermissions,
+          meta: { requiresAuth: true, perm: permFor('rolepermissions') },
+        },
 
         // No-access page
         { path: 'no-access', component: NoAccess, meta: { requiresAuth: true } },

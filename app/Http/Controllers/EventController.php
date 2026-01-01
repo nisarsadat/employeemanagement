@@ -9,9 +9,29 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Http\Resources\EventResource;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
+use App\Services\NotificationService; // 🔔
 
 class EventController extends Controller
 {
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        // MySQL duplicate key error code
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    private function duplicateResponse()
+    {
+        return response()->json([
+            'message' => 'این رویداد قبلاً ثبت شده است.',
+            'errors'  => [
+                'duplicate' => [
+                    'رویداد با همین مشخصات (نوع رویداد، نوع مشخص، شخص هدف، مجرم و موقعیت) قبلاً در سیستم موجود است.',
+                ],
+            ],
+        ], 422);
+    }
+
     public function index(Request $request)
     {
         $query = Event::with([
@@ -20,14 +40,17 @@ class EventController extends Controller
             'akhistonkyEmployee',
             'documents',
         ])->when($request->search, function ($q) use ($request) {
-            $s = $request->search;
+            $s = trim((string) $request->search);
             $q->where(function ($qq) use ($s) {
                 $qq->where('event_type', 'like', "%{$s}%")
                     ->orWhere('event_specific_type', 'like', "%{$s}%")
                     ->orWhere('target_person', 'like', "%{$s}%")
-                    ->orWhere('criminal', 'like', "%{$s}%");
+                    ->orWhere('criminal', 'like', "%{$s}%")
+                    ->orWhere('event_zone', 'like', "%{$s}%")
+                    ->orWhere('event_hawza', 'like', "%{$s}%")
+                    ->orWhere('event_specific_place', 'like', "%{$s}%");
             });
-        });
+        })->orderByDesc('id');
 
         $perPage = $request->integer('perPage');
         $page    = $request->integer('page');
@@ -43,40 +66,54 @@ class EventController extends Controller
 
     public function store(StoreEventRequest $request)
     {
-        DB::beginTransaction();
+        $user = $request->user(); // 🔔 who created
 
         try {
-            $event = Event::create($request->validated());
+            return DB::transaction(function () use ($request, $user) {
+                $event = Event::create($request->validated());
 
-            if ($request->hasFile('documents')) {
-                foreach ($request->file('documents') as $file) {
-                    $path = $file->store("events/{$event->id}", 'public');
+                if ($request->hasFile('documents')) {
+                    foreach ($request->file('documents') as $file) {
+                        $path = $file->store("events/{$event->id}", 'public');
 
-                    $event->documents()->create([
-                        'file_name'  => $file->getClientOriginalName(),
-                        'file_path'  => $path,
-                        'mime_type'  => $file->getClientMimeType(),
-                        'size_bytes' => $file->getSize(),
-                    ]);
+                        $event->documents()->create([
+                            'file_name'  => $file->getClientOriginalName(),
+                            'file_path'  => $path,
+                            'mime_type'  => $file->getClientMimeType(),
+                            'size_bytes' => $file->getSize(),
+                        ]);
+                    }
                 }
+
+                $event->load([
+                    'resource',
+                    'officeEmployee',
+                    'akhistonkyEmployee',
+                    'documents',
+                ]);
+
+                // 🔔 Notification: CREATED
+                if ($user) {
+                    NotificationService::record(
+                        $user,
+                        module: 'event',
+                        action: 'created',
+                        title: 'رویداد جدید ثبت شد',
+                        message: 'نوع رویداد: ' . ($event->event_type ?? ''),
+                        routeName: 'events',              // adjust to your real route name/form route if needed
+                        routeParams: ['id' => $event->id],
+                        level: 'success',
+                        changes: null
+                    );
+                }
+
+                return new EventResource($event);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponse();
             }
-
-            DB::commit();
-
-            $event->load([
-                'resource',
-                'officeEmployee',
-                'documents',
-            ]);
-
-            return new EventResource($event);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'message' => 'Event creation failed',
-                'error'   => $e->getMessage(),
-            ], 500);
+            throw $e;
         }
     }
 
@@ -85,6 +122,7 @@ class EventController extends Controller
         $event = Event::with([
             'resource',
             'officeEmployee',
+            'akhistonkyEmployee',
             'documents',
         ])->findOrFail($id);
 
@@ -93,58 +131,109 @@ class EventController extends Controller
 
     public function update(UpdateEventRequest $request, $id)
     {
-        DB::beginTransaction();
+        $user = $request->user(); // 🔔 who updated
 
         try {
-            $event = Event::with('documents')->findOrFail($id);
+            return DB::transaction(function () use ($request, $id, $user) {
+                $event = Event::with('documents')->findOrFail($id);
 
-            $event->update($request->validated());
+                // 🧮 build changes BEFORE update (same style as InformationController)
+                $original  = $event->getOriginal();
+                $validated = $request->validated();
+                $changes   = [];
 
-            if ($request->hasFile('documents')) {
-                foreach ($request->file('documents') as $file) {
-                    $path = $file->store("events/{$event->id}", 'public');
-
-                    $event->documents()->create([
-                        'file_name'  => $file->getClientOriginalName(),
-                        'file_path'  => $path,
-                        'mime_type'  => $file->getClientMimeType(),
-                        'size_bytes' => $file->getSize(),
-                    ]);
+                foreach ($validated as $field => $newValue) {
+                    if (array_key_exists($field, $original)) {
+                        $oldValue = $original[$field];
+                        if ($oldValue != $newValue) {
+                            $changes[$field] = [
+                                'old' => $oldValue,
+                                'new' => $newValue,
+                            ];
+                        }
+                    }
                 }
+
+                $event->update($validated);
+
+                if ($request->hasFile('documents')) {
+                    foreach ($request->file('documents') as $file) {
+                        $path = $file->store("events/{$event->id}", 'public');
+
+                        $event->documents()->create([
+                            'file_name'  => $file->getClientOriginalName(),
+                            'file_path'  => $path,
+                            'mime_type'  => $file->getClientMimeType(),
+                            'size_bytes' => $file->getSize(),
+                        ]);
+                    }
+                }
+
+                $event->load([
+                    'resource',
+                    'officeEmployee',
+                    'akhistonkyEmployee',
+                    'documents',
+                ]);
+
+                // 🔔 Notification: UPDATED
+                if ($user) {
+                    NotificationService::record(
+                        $user,
+                        module: 'event',
+                        action: 'updated',
+                        title: 'رویداد اصلاح شد',
+                        message: 'نوع رویداد: ' . ($event->event_type ?? ''),
+                        routeName: 'events',              // adjust if you use a form route like 'eventform'
+                        routeParams: ['id' => $event->id],
+                        level: 'info',
+                        changes: !empty($changes) ? $changes : null
+                    );
+                }
+
+                return new EventResource($event);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponse();
             }
-
-            DB::commit();
-
-            $event->load([
-                'resource',
-                'officeEmployee',
-                'documents',
-            ]);
-
-            return new EventResource($event);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'message' => 'Event update failed',
-                'error'   => $e->getMessage(),
-            ], 500);
+            throw $e;
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $event = Event::with('documents')->findOrFail($id);
+        $user = $request->user(); // 🔔 who deleted
 
-        foreach ($event->documents as $doc) {
-            Storage::disk('public')->delete($doc->file_path);
-        }
+        return DB::transaction(function () use ($id, $user) {
+            $event = Event::with('documents')->findOrFail($id);
+            $type  = $event->event_type;
 
-        $event->documents()->delete();
-        $event->delete();
+            foreach ($event->documents as $doc) {
+                Storage::disk('public')->delete($doc->file_path);
+            }
 
-        return response()->json([
-            'message' => 'Event deleted successfully',
-        ]);
+            $event->documents()->delete();
+            $event->delete();
+
+            // 🔔 Notification: DELETED
+            if ($user) {
+                NotificationService::record(
+                    $user,
+                    module: 'event',
+                    action: 'deleted',
+                    title: 'رویداد حذف شد',
+                    message: 'نوع رویداد: ' . ($type ?? ''),
+                    routeName: null,
+                    routeParams: [],
+                    level: 'warning',
+                    changes: null
+                );
+            }
+
+            return response()->json([
+                'message' => 'Event deleted successfully',
+            ]);
+        });
     }
 }

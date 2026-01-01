@@ -30,7 +30,7 @@
             class="stat-card"
             :class="{ 'stat-card-hover': !repo.loading }"
             ripple
-            @click="$router.push({ name: 'employees' })"
+            @click="goEmployees"
             :disabled="repo.loading"
           >
             <div class="stat-accent primary"></div>
@@ -122,11 +122,10 @@
                   variant="tonal"
                   color="success"
                   class="clickable-chip"
-                  :disabled="repo.loading"
-                  @click.stop="goResources('active')"
+                  @click.stop="goActiveEmployees"
                 >
                   <v-icon start size="16">mdi-check-circle</v-icon>
-                  {{ t('فعال') }}: {{ num(resourcesActive) }}
+                  {{ t('فعال') }}
                 </v-chip>
 
                 <v-chip
@@ -134,11 +133,10 @@
                   variant="tonal"
                   color="error"
                   class="clickable-chip"
-                  :disabled="repo.loading"
-                  @click.stop="goResources('inactive')"
+                  @click.stop="goInactiveEmployees"
                 >
                   <v-icon start size="16">mdi-close-circle</v-icon>
-                  {{ t('غیرفعال') }}: {{ num(resourcesInactive) }}
+                  {{ t('غیرفعال') }}
                 </v-chip>
 
                 <v-spacer />
@@ -166,7 +164,7 @@
             class="stat-card"
             :class="{ 'stat-card-hover': !repo.loading }"
             ripple
-            @click="$router.push({ name: 'informations' })"
+            @click="goInformations"
             :disabled="repo.loading"
           >
             <div class="stat-accent indigo"></div>
@@ -224,7 +222,7 @@
             class="stat-card"
             :class="{ 'stat-card-hover': !repo.loading }"
             ripple
-            @click="$router.push({ name: 'events' })"
+            @click="goEvents"
             :disabled="repo.loading"
           >
             <div class="stat-accent cyan"></div>
@@ -270,7 +268,7 @@
             class="stat-card"
             :class="{ 'stat-card-hover': !repo.loading }"
             ripple
-            @click="$router.push({ name: 'finance' })"
+            @click="goFinance"
             :disabled="repo.loading"
           >
             <div class="stat-accent success"></div>
@@ -324,7 +322,7 @@
             class="stat-card"
             :class="{ 'stat-card-hover': !repo.loading }"
             ripple
-            @click="$router.push({ name: 'oil' })"
+            @click="goOil"
             :disabled="repo.loading"
           >
             <div class="stat-accent warning"></div>
@@ -721,14 +719,12 @@
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useDisplay } from 'vuetify';
-  import { useRouter } from 'vue-router';
   import AppBar from '@/components/AppBar.vue';
   import FormatsPieChart from '@/components/charts/FormatZonePieChart.vue';
   import { useDashboardRepository } from '@/stores/DashboardRepository';
 
   const { t, locale } = useI18n();
   const { mobile } = useDisplay();
-  const router = useRouter();
 
   const isRtl = computed(() => String(locale.value).toLowerCase().startsWith('fa'));
 
@@ -756,33 +752,84 @@
     await repo.fetchDashboard();
   }
 
+  import { useRouter } from 'vue-router';
+
+  const router = useRouter();
+
+  /** Small helper */
+  function go(path, query = {}) {
+    router.push({ path, query });
+  }
+
+  /* ===========================
+   DASHBOARD CARD ROUTES
+=========================== */
+
+  // Employees list
+  function goEmployees() {
+    go('/app/officeemployee');
+  }
+
+  // Active / Inactive employees pages
+  function goActiveEmployees() {
+    go('/app/activeemployees');
+  }
+  function goInactiveEmployees() {
+    go('/app/inactiveemployees');
+  }
+
+  // Resources list (with optional filter)
+  function goResources(status = null) {
+    const query = status ? { status } : {};
+    go('/app/resources', query);
+  }
+
+  // Active / Inactive resources pages (you already have named routes, but path is safest)
+  function goActiveResources() {
+    go('/app/activeresource');
+  }
+  function goInactiveResources() {
+    go('/app/inactiveresource');
+  }
+
+  // Informations list
+  function goInformations() {
+    go('/app/informations');
+  }
+
+  // Events list
+  function goEvents() {
+    go('/app/events');
+  }
+
+  // Finance index (your route path is: 'finincalindex')
+  function goFinance() {
+    go('/app/finincalindex');
+  }
+
+  // Oil page (⚠️ you DON'T have an oil route in router)
+  // If oil is inside finance, keep this:
+  function goOil() {
+    go('/app/finincalindex', { tab: 'oil' }); // change tab key if you use a different one
+  }
+
+  /* ===========================
+   TABLE / OTHER ROUTES
+=========================== */
+
+  // Employee details (⚠️ You must have this route, otherwise change it)
   function viewEmployee(employee) {
+    // if you DO NOT have a route named employee-details, change to your real path
     router.push({ name: 'employee-details', params: { id: employee.id } });
   }
 
-  /**
-   * Resources routing
-   * - Default: resources list
-   * - Active/Inactive: resources list with query filter
-   * NOTE: if your app uses a different query key, just change "status" here.
-   */
-  function goResources(status = null) {
-    const query = status ? { status } : {};
-    router.push({ name: 'resources', query });
-  }
-
+  // Zones clicks
   function onZoneClick(zone) {
-    router.push({
-      name: 'zone-reports',
-      query: { zone: zone.zone },
-    });
+    go('/app/zone-reports', { zone: zone.zone }); // ⚠️ only if you really have this path
   }
 
   function viewZoneDetails(zone) {
-    router.push({
-      name: 'zone-details',
-      query: { zone: zone.zone },
-    });
+    go('/app/zone-details', { zone: zone.zone }); // ⚠️ only if you really have this path
   }
 
   const readableError = computed(() => {

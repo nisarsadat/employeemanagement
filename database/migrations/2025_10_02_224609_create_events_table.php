@@ -40,9 +40,26 @@ return new class extends Migration {
                 $table->text('docs_note')->nullable();
                 $table->string('Province_addr')->nullable();
 
-
-
                 $table->timestamps();
+
+                /**
+                 * ✅ UNIQUE (Composite)
+                 * Based on the fields you specified:
+                 * event_type + event_specific_type + target_person + criminal
+                 * + event_zone + event_hawza + event_specific_place
+                 */
+                $table->unique(
+                    [
+                        'event_type',
+                        'event_specific_type',
+                        'target_person',
+                        'criminal',
+                        'event_zone',
+                        'event_hawza',
+                        'event_specific_place',
+                    ],
+                    'events_core_unique'
+                );
             });
         }
     }

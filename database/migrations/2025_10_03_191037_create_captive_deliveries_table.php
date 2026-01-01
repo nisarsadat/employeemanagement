@@ -59,8 +59,25 @@ return new class extends Migration {
             $table->text('coordinates')->nullable();
             $table->string('Province_addr')->nullable();
 
-
             $table->timestamps();
+
+            /**
+             * ✅ UNIQUE (Composite)
+             * Uniqueness is based on the exact fields you listed:
+             * intro + main address
+             */
+            $table->unique(
+                [
+                    'name',
+                    'father_name',
+                    'nickname',
+                    'grand_father_name',
+                    'main_province',
+                    'main_district',
+                    'main_village',
+                ],
+                'captive_deliveries_intro_mainaddr_unique'
+            );
         });
     }
 
