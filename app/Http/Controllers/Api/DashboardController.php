@@ -9,37 +9,55 @@ use App\Models\Information;
 use App\Models\Event;
 use App\Models\CaptiveDelivery;
 
-// ✅ ADDED (ONLY FOR NEW TOTALS)
 use App\Models\Finance;
 use App\Models\Income;
 use App\Models\IncomeOil;
 use App\Models\ExpenseOil;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     /**
-     * GET /api/dashboard
+     * GET /api/dashboard?period=daily|weekly|monthly|yearly
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         /* -------------------------------------------------
-         | EMPLOYEES  ✅ (MODIFIED ONLY THIS PART)
+         | ✅ PERIOD FILTER
+         |-------------------------------------------------*/
+        $period = strtolower((string) $request->query('period', 'yearly'));
+        [$from, $to] = $this->resolvePeriodRange($period);
+
+        /* -------------------------------------------------
+         | EMPLOYEES (counts filtered by period)
          |-------------------------------------------------*/
         $employees = OfficeEmployee::query()
             ->select('id', 'name', 'code_number')
-            ->withCount(['resources', 'informations', 'events'])
+            ->withCount([
+                'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to),
+                'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to),
+                'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to),
+            ])
             ->orderByDesc('events_count')
             ->orderByDesc('resources_count')
             ->orderByDesc('informations_count')
             ->orderBy('name')
             ->get();
 
+        // ✅ keep only employees that have activity in this period
+        $employeesForDashboard = $employees
+            ->filter(function ($e) {
+                return ((int) $e->events_count + (int) $e->resources_count + (int) $e->informations_count) > 0;
+            })
+            ->values();
+
         // ✅ Score = events + resources + informations
-        $employeesScored = $employees->map(function ($e) {
+        $employeesScored = $employeesForDashboard->map(function ($e) {
             $events = (int) $e->events_count;
             $resources = (int) $e->resources_count;
             $infos = (int) $e->informations_count;
@@ -83,7 +101,6 @@ class DashboardController extends Controller
             return $row;
         })->values();
 
-        // ✅ Grouping by (events|resources|infos) as before, but upgraded
         $employeesGrouped = collect($employeesRanked)
             ->groupBy(fn ($e) => $e['events_count'] . '|' . $e['resources_count'] . '|' . $e['informations_count'])
             ->map(function ($group, $key) {
@@ -107,45 +124,87 @@ class DashboardController extends Controller
             ->values();
 
         /* -------------------------------------------------
-         | RESOURCES
+         | RESOURCES (filtered)
          |-------------------------------------------------*/
-        $resourcesTotal    = Resource::count();
-        $resourcesActive   = Resource::where('activity', 'فعال')->count();
-        $resourcesInactive = Resource::where('activity', 'غیر فعال')->count();
+        $resourcesTotal = Resource::query()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->count();
+
+        $resourcesActive = Resource::query()
+            ->where('activity', 'فعال')
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->count();
+
+        $resourcesInactive = Resource::query()
+            ->where('activity', 'غیر فعال')
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->count();
 
         /* -------------------------------------------------
-         | INFORMATIONS / EVENTS / CAPTIVE
+         | INFORMATIONS / EVENTS / CAPTIVE (filtered)
          |-------------------------------------------------*/
-        $informationsTotal      = Information::count();
-        $eventsTotal            = Event::count();
-        $captiveDeliveriesTotal = CaptiveDelivery::count();
+        $informationsTotal = Information::query()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->count();
+
+        $eventsTotal = Event::query()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->count();
+
+        $captiveDeliveriesTotal = CaptiveDelivery::query()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->count();
 
         /* -------------------------------------------------
-         | ✅ NEW: MONEY TOTALS (Income / Expense / Balance)
+         | MONEY TOTALS (filtered)
          |-------------------------------------------------*/
-        $moneyIncomeTotal = (float) (Income::query()->sum('amount') ?? 0);
-        $moneyExpensedTotal = (float) (Finance::query()->sum('money_amount_number') ?? 0);
+        $incomeDateCol  = $this->detectModelDateColumn(new Income(),  ['debut', 'date', 'income_date', 'paid_at', 'created_at']);
+        $financeDateCol = $this->detectModelDateColumn(new Finance(), ['debut', 'date', 'finance_date', 'created_at']);
+
+        $moneyIncomeTotal = (float) Income::query()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $incomeDateCol, $from, $to))
+            ->sum('amount');
+
+        $moneyExpensedTotal = (float) Finance::query()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $financeDateCol, $from, $to))
+            ->sum('money_amount_number');
+
         $moneyBalance = $moneyIncomeTotal - $moneyExpensedTotal;
 
         /* -------------------------------------------------
-         | ✅ NEW: OIL TOTALS (Income / Expense / Balance)
+         | OIL TOTALS (filtered)
          |-------------------------------------------------*/
-        $oilIncomeTotal = (float) (IncomeOil::query()->sum('oil_quantity') ?? 0);
-        $oilExpensedTotal = (float) (ExpenseOil::query()->sum('oil_quantity') ?? 0);
+        $incomeOilDateCol  = $this->detectModelDateColumn(new IncomeOil(),  ['debut', 'date', 'oil_date', 'created_at']);
+        $expenseOilDateCol = $this->detectModelDateColumn(new ExpenseOil(), ['debut', 'date', 'oil_date', 'created_at']);
+
+        $oilIncomeTotal = (float) IncomeOil::query()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $incomeOilDateCol, $from, $to))
+            ->sum('oil_quantity');
+
+        $oilExpensedTotal = (float) ExpenseOil::query()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $expenseOilDateCol, $from, $to))
+            ->sum('oil_quantity');
+
         $oilBalance = $oilIncomeTotal - $oilExpensedTotal;
 
         /* -------------------------------------------------
-         | FORMATS & ZONES
+         | FORMATS & ZONES (filtered)
          |-------------------------------------------------*/
-        $formatTables = $this->formatsTables();
-        $formatsByZone = $this->countFormatsByZoneSafely($formatTables);
+        $formatTables  = $this->formatsTables();
+        $formatsByZone = $this->countFormatsByZoneSafely($formatTables, $from, $to);
 
         /* -------------------------------------------------
          | RESPONSE
          |-------------------------------------------------*/
         return response()->json([
+            'period' => [
+                'key'  => $period,
+                'from' => $from?->toDateTimeString(),
+                'to'   => $to?->toDateTimeString(),
+            ],
+
             'employees' => [
-                'total'        => $employees->count(),
+                'total'        => $employeesForDashboard->count(),
                 'max_total'    => $maxTotal,
                 'grouped'      => $employeesGrouped,
                 'flat_sorted'  => $employeesRanked->values(),
@@ -169,22 +228,94 @@ class DashboardController extends Controller
                 'total' => $captiveDeliveriesTotal,
             ],
 
-            // ✅ ADDED (ONLY)
             'money' => [
-                'income_total'  => $moneyIncomeTotal,
-                'expensed_total'=> $moneyExpensedTotal,
-                'balance'       => $moneyBalance,
+                'income_total'   => $moneyIncomeTotal,
+                'expensed_total' => $moneyExpensedTotal,
+                'balance'        => $moneyBalance,
             ],
 
-            // ✅ ADDED (ONLY)
             'oil' => [
-                'income_total'  => $oilIncomeTotal,
-                'expensed_total'=> $oilExpensedTotal,
-                'balance'       => $oilBalance,
+                'income_total'   => $oilIncomeTotal,
+                'expensed_total' => $oilExpensedTotal,
+                'balance'        => $oilBalance,
             ],
 
             'formats_by_zone' => $formatsByZone,
         ]);
+    }
+
+    /* =====================================================
+     | ✅ PERIOD RANGE
+     |=====================================================*/
+    private function resolvePeriodRange(string $period): array
+    {
+        $now = Carbon::now();
+
+        return match ($period) {
+            // ✅ FIX: use full-day range so daily/weekly/monthly works reliably
+            'daily'   => [$now->copy()->subDay()->startOfDay(),    $now->copy()->endOfDay()],
+            'weekly'  => [$now->copy()->subDays(7)->startOfDay(),  $now->copy()->endOfDay()],
+            'monthly' => [$now->copy()->subDays(30)->startOfDay(), $now->copy()->endOfDay()],
+            default   => [$now->copy()->subDays(365)->startOfDay(), $now->copy()->endOfDay()],
+        };
+    }
+
+    private function applyDateRange($query, string $col, ?Carbon $from, ?Carbon $to)
+    {
+        if (!$from || !$to) return $query;
+        return $query->whereBetween($col, [$from, $to]);
+    }
+
+    /**
+     * detect which date column the model/table really uses
+     */
+    private function detectModelDateColumn($model, array $candidates): string
+    {
+        $table = method_exists($model, 'getTable') ? $model->getTable() : null;
+
+        if (!$table || !Schema::hasTable($table)) {
+            return 'created_at';
+        }
+
+        foreach ($candidates as $col) {
+            if ($col && Schema::hasColumn($table, $col)) {
+                return $col;
+            }
+        }
+
+        return Schema::hasColumn($table, 'created_at') ? 'created_at' : ($candidates[0] ?? 'created_at');
+    }
+
+    /**
+     * ✅ detect date column for a plain table (formats tables)
+     */
+    private function detectTableDateColumn(string $table, array $candidates): ?string
+    {
+        if (!Schema::hasTable($table)) return null;
+
+        foreach ($candidates as $col) {
+            if ($col && Schema::hasColumn($table, $col)) {
+                return $col;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * ✅ OPTIONAL BUT GUARANTEED:
+     * If you want 100% filter coverage for all 56 tables even when their date column
+     * names are weird, add overrides here (table => date_column).
+     *
+     * Leaving it empty causes auto-detection to be used.
+     */
+    private function formatDateOverrides(): array
+    {
+        return [
+            // 'heists' => 'debut',
+            // 'captives' => 'date',
+            // ...
+        ];
     }
 
     /* =====================================================
@@ -211,14 +342,89 @@ class DashboardController extends Controller
     }
 
     /* =====================================================
-     | ZONE COUNTING (NO SQL GROUP BY)
+     | FORMAT LABELS
      |=====================================================*/
-    private function countFormatsByZoneSafely(array $tables): array
+    private function formatLabels(): array
+    {
+        return [
+            'fasads' => 'فساد',
+            'saeen_fasads' => 'سعین فساد',
+            'heists' => 'سرقت',
+            'captives' => 'اسیران',
+            'mulkanos' => 'ملکانو',
+            'entry_exits' => 'داخل/خارج',
+            'sarafyanos' => 'صرافی‌ها',
+            'clubs' => 'کلب‌ها',
+            'mahajerats' => 'مهاجرات',
+            'soldiers' => 'سربازان',
+            'mawads' => 'مواد',
+            'lost_mujremeens' => 'مجرمین گمشده',
+            'old_soldiers_homes' => 'خانه‌های عسکر قدیم',
+            'robbers' => 'دزدان',
+            'non_responsable_people' => 'افراد غیرمسؤول',
+            'mashkok_homes' => 'خانه‌های مشکوک',
+            'damage_places' => 'محلات آسیب‌دیده',
+            'damage_rasan_places' => 'محلات رسان آسیب',
+            'mashkok_shops' => 'دکان‌های مشکوک',
+            'luchakanos' => 'لوچکانو',
+            'schools' => 'مکاتب',
+            'hado_bus_stops' => 'ایستگاه بس',
+            'transport_companies' => 'شرکت‌های ترانسپورت',
+            'car_sales_companies' => 'فروشگاه موتر',
+            'parkings' => 'پارکینگ',
+            'banks' => 'بانک‌ها',
+            'apartments' => 'اپارتمان‌ها',
+            'rahnoma_mamlats' => 'رهنمایی مملات',
+            'hosppitals' => 'شفاخانه‌ها',
+            'work_shops' => 'ورکشاپ‌ها',
+            'badmashanos' => 'بدماشانو',
+            'emarat_offices' => 'دفاتر امارت',
+            'hostels' => 'هاستل‌ها',
+            'hotels' => 'هوتل‌ها',
+            'madrasas' => 'مدرسه‌ها',
+            'mashkok_people' => 'افراد مشکوک',
+            'mujahedinos' => 'مجاهدین',
+            'old_jahadis' => 'جهادی‌های قدیم',
+            'sarayanos' => 'سرایانو',
+            'tujarans' => 'تاجران',
+            'checkpoints' => 'چک‌پوینت‌ها',
+            'highways' => 'شاهراه‌ها',
+            'donelostplaces' => 'محلات گمشده',
+            'econemy_projects' => 'پروژه‌های اقتصادی',
+            'criminal_capture_places' => 'محلات گرفتاری مجرم',
+            'pumps' => 'پمپ‌ها',
+            'parks' => 'پارک‌ها',
+            'complexes' => 'کمپلکس‌ها',
+            'universities' => 'پوهنتون‌ها',
+            'wakilanos' => 'وکیلان',
+        ];
+    }
+
+    /* =====================================================
+     | ✅ ZONE COUNTING (FILTERS FOR ALL 56 TABLES)
+     |=====================================================*/
+    private function countFormatsByZoneSafely(array $tables, ?Carbon $from = null, ?Carbon $to = null): array
     {
         $zoneMap = [];
         $usedTables = [];
         $missingTables = [];
         $noZoneColumn = [];
+        $noCreatedAtColumn = [];
+        $labels = $this->formatLabels();
+
+        // ✅ candidates to support all formats (created_at OR debut OR date OR ...)
+        $dateCandidates = [
+            'created_at',
+            'debut',
+            'date',
+            'event_date',
+            'occurred_at',
+            'registered_at',
+            'reported_at',
+            'paid_at',
+        ];
+
+        $overrides = $this->formatDateOverrides();
 
         foreach ($tables as $table) {
             if (!Schema::hasTable($table)) {
@@ -232,39 +438,77 @@ class DashboardController extends Controller
                 continue;
             }
 
+            // ✅ GUARANTEE: override date column if configured; otherwise auto-detect
+            $dateCol = null;
+
+            if (isset($overrides[$table]) && is_string($overrides[$table]) && $overrides[$table] !== '') {
+                $overrideCol = $overrides[$table];
+                if (Schema::hasColumn($table, $overrideCol)) {
+                    $dateCol = $overrideCol;
+                } else {
+                    // fallback to detection if override is wrong
+                    $dateCol = $this->detectTableDateColumn($table, $dateCandidates);
+                }
+            } else {
+                $dateCol = $this->detectTableDateColumn($table, $dateCandidates);
+            }
+
+            if (!$dateCol) {
+                // keep the same meta key name (no other changes)
+                $noCreatedAtColumn[] = $table;
+            }
+
             $usedTables[] = $table;
 
-            DB::table($table)
-                ->select($zoneCol)
-                ->cursor()
-                ->each(function ($row) use (&$zoneMap, $table, $zoneCol) {
-                    $zone = is_string($row->{$zoneCol})
-                        ? trim($row->{$zoneCol})
-                        : '';
+            $q = DB::table($table)->select($zoneCol);
 
-                    if ($zone === '') {
-                        $zone = 'نامعلوم';
-                    }
+            // ✅ Apply period filter if any supported date column exists
+            if ($dateCol && $from && $to) {
+                $q->whereBetween($dateCol, [$from, $to]);
+            }
 
-                    if (!isset($zoneMap[$zone])) {
-                        $zoneMap[$zone] = [
-                            'zone'      => $zone,
-                            'total'     => 0,
-                            'breakdown' => [],
-                        ];
-                    }
+            $q->cursor()->each(function ($row) use (&$zoneMap, $table, $zoneCol) {
+                $zone = is_string($row->{$zoneCol}) ? trim($row->{$zoneCol}) : '';
 
-                    $zoneMap[$zone]['total']++;
+                if ($zone === '') {
+                    $zone = 'نامعلوم';
+                }
 
-                    if (!isset($zoneMap[$zone]['breakdown'][$table])) {
-                        $zoneMap[$zone]['breakdown'][$table] = 0;
-                    }
-                    $zoneMap[$zone]['breakdown'][$table]++;
-                });
+                if (!isset($zoneMap[$zone])) {
+                    $zoneMap[$zone] = [
+                        'zone'      => $zone,
+                        'total'     => 0,
+                        'breakdown' => [],
+                    ];
+                }
+
+                $zoneMap[$zone]['total']++;
+
+                if (!isset($zoneMap[$zone]['breakdown'][$table])) {
+                    $zoneMap[$zone]['breakdown'][$table] = 0;
+                }
+                $zoneMap[$zone]['breakdown'][$table]++;
+            });
         }
 
         $zones = array_values($zoneMap);
         usort($zones, fn ($a, $b) => $b['total'] <=> $a['total']);
+
+        foreach ($zones as &$z) {
+            $items = [];
+
+            foreach (($z['breakdown'] ?? []) as $table => $count) {
+                $items[] = [
+                    'key'   => $table,
+                    'name'  => $labels[$table] ?? $table,
+                    'count' => (int) $count,
+                ];
+            }
+
+            usort($items, fn ($a, $b) => $b['count'] <=> $a['count']);
+            $z['breakdown_items'] = $items;
+        }
+        unset($z);
 
         return [
             'zones' => $zones,
@@ -272,6 +516,7 @@ class DashboardController extends Controller
                 'used_tables' => $usedTables,
                 'missing_tables' => $missingTables,
                 'tables_without_zone' => $noZoneColumn,
+                'tables_without_created_at' => $noCreatedAtColumn,
                 'strategy' => 'php_counting_no_group_by',
             ],
         ];

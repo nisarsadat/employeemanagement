@@ -247,6 +247,14 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('officeemployee') },
           name: 'officeemployee',
         },
+        // example
+        {
+          path: '/app/officeemployee/:id',
+          name: 'officeemployee.show',
+          component: OfficeEmployeesPage,
+          meta: { requiresAuth: true },
+        },
+
         {
           path: 'officeemployeeform/:id?',
           name: 'officeemployeeform',

@@ -1,8 +1,55 @@
 <!-- src/pages/Dashboard.vue -->
 <template>
+  <!-- Employee Details Popup -->
+  <EmployeeDetailsDialog
+    v-model="employeeDialog"
+    :employee="selectedEmployee"
+    :loading="employeeDialogLoading"
+    @close="closeEmployeeDialog"
+  />
+  <!-- Zone Details Popup -->
+  <ZoneFormatsDialog
+    v-model="zoneDialog"
+    :zone="selectedZone"
+    :loading="zoneDialogLoading"
+    @close="closeZoneDialog"
+  />
+
   <div class="dashboard-container" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- App Bar -->
-    <AppBar :title="t('داشبورد')" :subtitle="t('خلاصه عملکرد سیستم')" />
+    <AppBar :title="t('داشبورد')" :subtitle="t('خلاصه عملکرد سیستم')">
+      <template #actions>
+        <div class="period-wrap ml-6" :dir="isRtl ? 'rtl' : 'ltr'">
+          <v-btn-toggle
+            v-model="period"
+            density="compact"
+            mandatory
+            class="period-toggle"
+            @update:modelValue="onPeriodChanged"
+          >
+            <v-btn value="daily" class="period-btn">
+              <v-icon start size="16">mdi-calendar-today</v-icon>
+              {{ t('روزانه') }}
+            </v-btn>
+
+            <v-btn value="weekly" class="period-btn">
+              <v-icon start size="16">mdi-calendar-week</v-icon>
+              {{ t('هفته‌وار') }}
+            </v-btn>
+
+            <v-btn value="monthly" class="period-btn">
+              <v-icon start size="16">mdi-calendar-month</v-icon>
+              {{ t('ماهانه') }}
+            </v-btn>
+
+            <v-btn value="yearly" class="period-btn">
+              <v-icon start size="16">mdi-calendar</v-icon>
+              {{ t('سالانه') }}
+            </v-btn>
+          </v-btn-toggle>
+        </div>
+      </template>
+    </AppBar>
 
     <!-- Error Alert -->
     <transition name="slide-down">
@@ -472,7 +519,7 @@
 
                 <!-- Employee -->
                 <template #item.name="{ item }">
-                  <div class="employee-cell" @click="viewEmployee(item)">
+                  <div class="employee-cell" @click="openEmployeeDialog(item)">
                     <v-avatar size="40" class="avatar-glow mr-3">
                       <span class="text-white text-body-2 font-weight-bold">
                         {{ getInitials(item.name) }}
@@ -559,7 +606,7 @@
                       size="small"
                       variant="text"
                       color="primary"
-                      @click="viewEmployee(item)"
+                      @click.stop="openEmployeeDialog(item)"
                     >
                       <v-icon size="20">mdi-eye</v-icon>
                     </v-btn>
@@ -722,6 +769,11 @@
   import AppBar from '@/components/AppBar.vue';
   import FormatsPieChart from '@/components/charts/FormatZonePieChart.vue';
   import { useDashboardRepository } from '@/stores/DashboardRepository';
+  import EmployeeDetailsDialog from './EmployeeDetailsDialog.vue';
+  import ZoneFormatsDialog from './ZoneFormatsDialog.vue';
+  const zoneDialog = ref(false);
+  const selectedZone = ref(null);
+  const zoneDialogLoading = ref(false);
 
   const { t, locale } = useI18n();
   const { mobile } = useDisplay();
@@ -743,13 +795,43 @@
     { title: t('اطلاعات (زیاد → کم)'), value: 'informations_desc' },
     { title: t('نام (A → Z)'), value: 'name_asc' },
   ]);
+  const employeeDialog = ref(false);
+  const selectedEmployee = ref(null);
+  const employeeDialogLoading = ref(false);
+
+  async function openEmployeeDialog(employee) {
+    // minimal data is already in table item
+    selectedEmployee.value = employee;
+    employeeDialog.value = true;
+
+    // OPTIONAL: if you have a repo method to fetch more details, use it:
+    // It will enrich the popup with full data (documents, more fields, etc.)
+    if (typeof repo.fetchEmployeeDetails === 'function') {
+      try {
+        employeeDialogLoading.value = true;
+        const full = await repo.fetchEmployeeDetails(employee.id);
+        selectedEmployee.value = full || employee;
+      } catch (_) {
+        // keep fallback
+        selectedEmployee.value = employee;
+      } finally {
+        employeeDialogLoading.value = false;
+      }
+    }
+  }
+
+  function closeEmployeeDialog() {
+    employeeDialog.value = false;
+    // keep selectedEmployee for a smoother reopen, or reset after close:
+    // selectedEmployee.value = null;
+  }
 
   onMounted(async () => {
-    if (!repo.dashboard) await repo.fetchDashboard();
+    if (!repo.dashboard) await repo.fetchDashboard({ period: period.value });
   });
 
   async function refreshData() {
-    await repo.fetchDashboard();
+    await repo.fetchDashboard({ period: period.value });
   }
 
   import { useRouter } from 'vue-router';
@@ -825,11 +907,34 @@
 
   // Zones clicks
   function onZoneClick(zone) {
-    go('/app/zone-reports', { zone: zone.zone }); // ⚠️ only if you really have this path
+    // zone might be { zone: 'X', total: n } or { name: 'X', value: n } depending on your chart
+    const zName = zone?.zone || zone?.name;
+
+    const found = zones.value.find((x) => String(x.zone) === String(zName));
+    viewZoneDetails(found || { zone: zName, total: zone?.total ?? zone?.value ?? 0 });
   }
 
-  function viewZoneDetails(zone) {
-    go('/app/zone-details', { zone: zone.zone }); // ⚠️ only if you really have this path
+  async function viewZoneDetails(zone) {
+    selectedZone.value = zone;
+    zoneDialog.value = true;
+
+    // OPTIONAL: if you have an API to fetch full zone breakdown, use it
+    // Example: repo.fetchZoneDetails(zone.zone)
+    if (typeof repo.fetchZoneDetails === 'function') {
+      try {
+        zoneDialogLoading.value = true;
+        const full = await repo.fetchZoneDetails(zone.zone);
+        selectedZone.value = full || zone;
+      } catch (_) {
+        selectedZone.value = zone;
+      } finally {
+        zoneDialogLoading.value = false;
+      }
+    }
+  }
+
+  function closeZoneDialog() {
+    zoneDialog.value = false;
   }
 
   const readableError = computed(() => {
@@ -837,6 +942,14 @@
     if (!e) return '';
     return e?.response?.data?.message || e?.message || String(e);
   });
+  // fiters
+  const period = ref('monthly'); // default
+
+  async function onPeriodChanged() {
+    currentPage.value = 1; // optional (good UX)
+    search.value = ''; // optional (if you want)
+    await repo.fetchDashboard({ period: period.value });
+  }
 
   /* ===========================
 Helpers
@@ -1268,9 +1381,9 @@ Formats By Zone Logic
     background: rgba(var(--v-theme-primary), 1);
   }
 
-  .clickable-chip {
+  /* .clickable-chip {
     cursor: pointer;
-  }
+  } */
 
   /* Fancy cards */
   .fancy-card {
@@ -1731,5 +1844,434 @@ Formats By Zone Logic
     background-color: rgba(255, 255, 255, 0.06) !important;
     color: rgba(255, 255, 255, 0.88) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  }
+  /* ===========================
+   ✅ PERIOD TOGGLE (AppBar)
+   =========================== */
+  /* ===========================
+ ✅ PERIOD TOGGLE (AppBar) — PREMIUM PILL
+=========================== */
+
+  .period-wrap {
+    display: flex;
+    align-items: center;
+  }
+
+  ig/* ===========================
+   ⭐ ULTRA-PREMIUM PERIOD TOGGLE
+=========================== */
+
+.period-wrap {
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  /* Outer glow effect */
+  .period-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    background: radial-gradient(
+      circle at 50% 0%,
+      rgba(var(--v-theme-primary), 0.25) 0%,
+      transparent 70%
+    );
+    filter: blur(20px);
+    opacity: 0.6;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .period-toggle {
+    position: relative;
+    z-index: 1;
+    border-radius: 16px;
+    gap: 4px;
+    overflow: hidden;
+
+    /* Glass morphism with gradient */
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.25) 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      rgba(255, 255, 255, 0.05) 100%
+    ) !important;
+
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    /* Double shadow for depth */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25), 0 8px 16px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .period-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3), 0 12px 24px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  /* Shine overlay */
+  .period-toggle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+    z-index: 2;
+  }
+
+  /* Base button - Floating effect */
+  .period-btn {
+    border-radius: 12px !important;
+    height: 40px !important;
+    padding: 0 20px !important;
+    min-width: 90px !important;
+
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+
+    /* Inactive state - Frosted glass */
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.4)
+    ) !important;
+
+    color: rgba(0, 0, 0, 0.85) !important;
+
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Hover effect with shine */
+  .period-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.8),
+      rgba(255, 255, 255, 0.6)
+    ) !important;
+
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+    border-color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Active button - Premium gradient */
+  .period-toggle :deep(.v-btn--active) {
+    background: linear-gradient(
+      135deg,
+      #667eea 0%,
+      #764ba2 25%,
+      #f093fb 50%,
+      #f5576c 75%,
+      #ff5858 100%
+    ) !important;
+
+    color: white !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+
+    box-shadow: 0 16px 32px rgba(102, 126, 234, 0.4), 0 8px 16px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+
+    transform: translateY(-2px) scale(1.05);
+    animation: buttonGlow 2s infinite alternate;
+  }
+
+  /* Glow animation for active button */
+  @keyframes buttonGlow {
+    0% {
+      box-shadow: 0 16px 32px rgba(102, 126, 234, 0.4), 0 8px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+    100% {
+      box-shadow: 0 16px 32px rgba(102, 126, 234, 0.6), 0 8px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+  }
+
+  /* Icon styling */
+  .period-btn .v-icon {
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+
+  .period-toggle :deep(.v-btn--active) .v-icon {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    transform: scale(1.1);
+  }
+
+  /* Dark mode adjustments */
+  :deep(.v-theme--dark) .period-toggle {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.04) 100%
+    ) !important;
+
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  :deep(.v-theme--dark) .period-btn {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.15),
+      rgba(255, 255, 255, 0.08)
+    ) !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  :deep(.v-theme--dark) .period-btn:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.25),
+      rgba(255, 255, 255, 0.15)
+    ) !important;
+  }
+  /* ===========================
+   ⭐ PREMIUM STATUS CHIPS
+=========================== */
+
+  .status-chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    border-radius: 14px;
+    cursor: pointer;
+    overflow: hidden;
+    min-width: 120px;
+    height: 44px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    border: 1.5px solid transparent;
+  }
+
+  .status-chip:hover {
+    transform: translateY(-2px) scale(1.05);
+  }
+
+  .status-chip:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* Glow effect */
+  .chip-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, currentColor 0%, transparent 70%);
+    opacity: 0.15;
+    z-index: 0;
+  }
+
+  /* Active chip */
+  .active-chip {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-success), 0.15),
+      rgba(var(--v-theme-success), 0.08)
+    );
+    border-color: rgba(var(--v-theme-success), 0.3);
+    box-shadow: 0 8px 20px rgba(var(--v-theme-success), 0.2), 0 4px 12px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  .active-chip:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-success), 0.25),
+      rgba(var(--v-theme-success), 0.15)
+    );
+    border-color: rgba(var(--v-theme-success), 0.5);
+    box-shadow: 0 12px 28px rgba(var(--v-theme-success), 0.3), 0 6px 16px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  /* Inactive chip */
+  .inactive-chip {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-error), 0.15),
+      rgba(var(--v-theme-error), 0.08)
+    );
+    border-color: rgba(var(--v-theme-error), 0.3);
+    box-shadow: 0 8px 20px rgba(var(--v-theme-error), 0.2), 0 4px 12px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  .inactive-chip:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-error), 0.25),
+      rgba(var(--v-theme-error), 0.15)
+    );
+    border-color: rgba(var(--v-theme-error), 0.5);
+    box-shadow: 0 12px 28px rgba(var(--v-theme-error), 0.3), 0 6px 16px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  /* Chip content */
+  .chip-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+  }
+
+  .chip-icon {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+
+  .chip-text {
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+  }
+
+  .chip-count {
+    margin-left: auto;
+    font-weight: 900;
+    font-size: 0.9rem;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 4px 8px;
+    border-radius: 20px;
+    min-width: 36px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+  }
+
+  .active-chip .chip-count {
+    background: rgba(var(--v-theme-success), 0.2);
+    color: rgba(var(--v-theme-success), 0.95);
+  }
+
+  .inactive-chip .chip-count {
+    background: rgba(var(--v-theme-error), 0.2);
+    color: rgba(var(--v-theme-error), 0.95);
+  }
+
+  /* Arrow indicator */
+  .chip-arrow {
+    padding: 0 12px;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+  }
+
+  .status-chip:hover .chip-arrow {
+    opacity: 1;
+    transform: translateX(-2px);
+  }
+
+  /* View all button */
+  .view-all-btn {
+    border-radius: 12px !important;
+    height: 44px !important;
+    padding: 0 20px !important;
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-teal), 0.1),
+      rgba(var(--v-theme-teal), 0.05)
+    ) !important;
+    border: 1.5px solid rgba(var(--v-theme-teal), 0.2) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .view-all-btn:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-teal), 0.2),
+      rgba(var(--v-theme-teal), 0.1)
+    ) !important;
+    border-color: rgba(var(--v-theme-teal), 0.4) !important;
+    transform: translateY(-2px);
+  }
+
+  .btn-text {
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-icon {
+    transition: transform 0.3s ease;
+  }
+
+  .view-all-btn:hover .btn-icon {
+    transform: translateX(4px);
+  }
+
+  /* Loading state */
+  .status-chip.loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .status-chip.loading .chip-content::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Dark mode adjustments */
+  :deep(.v-theme--dark) .active-chip {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-success), 0.2),
+      rgba(var(--v-theme-success), 0.1)
+    );
+    border-color: rgba(var(--v-theme-success), 0.4);
+  }
+
+  :deep(.v-theme--dark) .inactive-chip {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-error), 0.2),
+      rgba(var(--v-theme-error), 0.1)
+    );
+    border-color: rgba(var(--v-theme-error), 0.4);
+  }
+
+  :deep(.v-theme--dark) .chip-count {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  :deep(.v-theme--dark) .view-all-btn {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-teal), 0.15),
+      rgba(var(--v-theme-teal), 0.08)
+    ) !important;
+    border-color: rgba(var(--v-theme-teal), 0.3) !important;
   }
 </style>

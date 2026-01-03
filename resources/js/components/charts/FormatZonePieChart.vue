@@ -49,22 +49,16 @@
           <!-- Filter Controls -->
           <v-menu v-model="showFilterMenu" :close-on-content-click="false">
             <template v-slot:activator="{ props }">
-              <v-btn
-                icon
-                size="small"
-                variant="tonal"
-                color="primary"
-                rounded="lg"
-                v-bind="props"
-              >
+              <v-btn icon size="small" variant="tonal" color="primary" rounded="lg" v-bind="props">
                 <v-icon>mdi-filter</v-icon>
               </v-btn>
             </template>
+
             <v-card min-width="280" rounded="xl">
               <v-card-text>
                 <div class="filter-options">
                   <div class="text-caption text-medium-emphasis mb-3">{{ t('فیلترها') }}</div>
-                  
+
                   <!-- Min Value Filter -->
                   <div class="mb-4">
                     <div class="text-caption mb-2">{{ t('حداقل تعداد فرم') }}</div>
@@ -88,21 +82,9 @@
                   <div class="mb-4">
                     <div class="text-caption mb-2">{{ t('مرتب‌سازی') }}</div>
                     <v-radio-group v-model="sortBy" hide-details density="compact">
-                      <v-radio
-                        :label="t('بیشترین به کمترین')"
-                        value="desc"
-                        density="compact"
-                      />
-                      <v-radio
-                        :label="t('کمترین به بیشترین')"
-                        value="asc"
-                        density="compact"
-                      />
-                      <v-radio
-                        :label="t('حروف الفبا')"
-                        value="name"
-                        density="compact"
-                      />
+                      <v-radio :label="t('بیشترین به کمترین')" value="desc" density="compact" />
+                      <v-radio :label="t('کمترین به بیشترین')" value="asc" density="compact" />
+                      <v-radio :label="t('حروف الفبا')" value="name" density="compact" />
                     </v-radio-group>
                   </div>
 
@@ -116,6 +98,7 @@
                   />
                 </div>
               </v-card-text>
+
               <v-card-actions class="px-4 pb-4">
                 <v-spacer />
                 <v-btn variant="text" @click="resetFilters">
@@ -164,6 +147,7 @@
               <span class="text-caption font-weight-medium">{{ maxZoneValue }}</span>
             </div>
           </div>
+
           <v-chip size="small" variant="tonal" color="primary">
             <v-icon start size="14">mdi-chart-pie</v-icon>
             {{ t('تعداد زون‌ها') }}: {{ displayData.length }}
@@ -173,48 +157,49 @@
 
       <!-- Main Content Area -->
       <div class="chart-container" :style="{ height: chartHeight }">
-        <!-- Pie/Bar Chart View -->
-        <div v-if="viewMode !== 'list' && hasData" ref="chartEl" class="chart" />
+        <!-- ✅ IMPORTANT: keep chart DOM alive (v-show instead of v-if) -->
+        <div ref="chartEl" class="chart" v-show="viewMode !== 'list' && hasData" />
 
         <!-- List View -->
-        <div v-else-if="viewMode === 'list' && hasData" class="list-view">
+        <div v-show="viewMode === 'list' && hasData" class="list-view">
           <div class="list-header">
             <div class="text-subtitle-2 font-weight-medium">{{ t('زون') }}</div>
             <div class="text-subtitle-2 font-weight-medium">{{ t('تعداد فرم') }}</div>
             <div class="text-subtitle-2 font-weight-medium">{{ t('درصد') }}</div>
           </div>
-          
+
           <div class="list-items">
             <div
-              v-for="(item, index) in sortedData"
-              :key="item.name"
+              v-for="(item, index) in paginatedDataEnhanced"
+              :key="`${item.name}-${index}`"
               class="list-item"
-              :class="{ 'highlighted': index < 3 }"
+              :class="{ highlighted: index + (currentPage - 1) * itemsPerPage < 3 }"
               @click="selectZone(item)"
             >
               <div class="zone-info">
                 <div class="rank-circle" :class="`rank-${index + 1}`">
-                  {{ index + 1 }}
+                  {{ index + 1 + (currentPage - 1) * itemsPerPage }}
                 </div>
+
                 <div class="zone-name">
                   <div class="name">{{ item.name || t('نامعلوم') }}</div>
                   <div class="text-caption text-medium-emphasis">
-                    {{ t('رتبه') }} {{ index + 1 }}
+                    {{ t('رتبه') }} {{ index + 1 + (currentPage - 1) * itemsPerPage }}
                   </div>
                 </div>
               </div>
-              
+
               <div class="zone-count">
                 <span class="count">{{ Number(item.value || 0).toLocaleString() }}</span>
                 <v-progress-linear
-                  :model-value="(Number(item.value) / maxValue) * 100"
+                  :model-value="maxValue ? (Number(item.value) / maxValue) * 100 : 0"
                   height="6"
                   rounded
-                  :color="getZoneColor(index)"
+                  :color="item.color"
                   class="mt-1"
                 />
               </div>
-              
+
               <div class="zone-percentage">
                 <v-chip size="small" variant="flat" :color="getPercentageColor(item.percentage)">
                   {{ item.percentage }}%
@@ -225,7 +210,7 @@
         </div>
 
         <!-- Empty State -->
-        <div v-else class="empty-state">
+        <div v-show="!hasData" class="empty-state">
           <v-icon size="80" color="grey-lighten-2" class="mb-3">mdi-chart-donut-variant</v-icon>
           <div class="text-body-1 text-medium-emphasis mb-2">{{ emptyText }}</div>
           <div class="text-caption text-medium-emphasis mb-4">
@@ -238,13 +223,14 @@
         </div>
       </div>
 
-      <!-- Chart Controls & Pagination -->
+      <!-- List Pagination Controls -->
       <div v-if="hasData && viewMode === 'list'" class="chart-controls mt-4">
         <div class="d-flex align-center justify-space-between">
           <div class="text-caption text-medium-emphasis">
-            {{ t('نمایش') }} {{ showingFrom }}-{{ showingTo }} {{ t('از') }} {{ displayData.length }} {{ t('زون') }}
+            {{ t('نمایش') }} {{ showingFrom }}-{{ showingTo }} {{ t('از') }}
+            {{ displayData.length }} {{ t('زون') }}
           </div>
-          
+
           <div class="d-flex align-center gap-2">
             <v-btn
               icon
@@ -256,11 +242,11 @@
             >
               <v-icon>{{ isRtl ? 'mdi-chevron-right' : 'mdi-chevron-left' }}</v-icon>
             </v-btn>
-            
+
             <div class="text-caption font-weight-medium">
               {{ t('صفحه') }} {{ currentPage }} {{ t('از') }} {{ totalPages }}
             </div>
-            
+
             <v-btn
               icon
               size="small"
@@ -282,13 +268,7 @@
             {{ t('رنگ‌ها نشان‌دهنده زون‌های مختلف هستند') }}
           </div>
           <div class="d-flex align-center gap-2">
-            <v-btn
-              size="x-small"
-              variant="text"
-              color="primary"
-              @click="downloadChart"
-              class="px-2"
-            >
+            <v-btn size="x-small" variant="text" color="primary" @click="downloadChart" class="px-2">
               <v-icon start size="14">mdi-download</v-icon>
               {{ t('ذخیره') }}
             </v-btn>
@@ -357,10 +337,10 @@ let resizeObserver = null
 // Data Processing
 const safeData = computed(() => {
   const arr = Array.isArray(props.data) ? props.data : []
-  return arr.map((d) => ({
+  return arr.map((d, idx) => ({
     name: d?.name || t('نامعلوم'),
     value: Number(d?.value) || 0,
-    color: d?.itemStyle?.color || getZoneColor(arr.indexOf(d) % 12),
+    color: d?.itemStyle?.color || getZoneColor(idx),
     raw: d,
   }))
 })
@@ -368,22 +348,21 @@ const safeData = computed(() => {
 // Apply filters
 const filteredData = computed(() => {
   let data = [...safeData.value]
-  
-  // Filter by minimum value
+
   if (minValueFilter.value !== null && minValueFilter.value !== '') {
     const minValue = Number(minValueFilter.value)
     if (!isNaN(minValue)) {
-      data = data.filter(item => item.value >= minValue)
+      data = data.filter((item) => item.value >= minValue)
     }
   }
-  
+
   return data
 })
 
 // Sort data
 const sortedData = computed(() => {
   const data = [...filteredData.value]
-  
+
   switch (sortBy.value) {
     case 'asc':
       return data.sort((a, b) => a.value - b.value)
@@ -395,25 +374,16 @@ const sortedData = computed(() => {
   }
 })
 
-// Paginated data for list view
+// Display data (chart modes can be limited)
 const displayData = computed(() => {
   if (!showAllZones.value && viewMode.value !== 'list') {
-    // Limit to top zones for chart views
     return sortedData.value.slice(0, 15)
   }
   return sortedData.value
 })
 
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return displayData.value.slice(start, end)
-})
-
 // Statistics
-const totalFormats = computed(() => {
-  return displayData.value.reduce((sum, item) => sum + item.value, 0)
-})
+const totalFormats = computed(() => displayData.value.reduce((sum, item) => sum + item.value, 0))
 
 const averageFormats = computed(() => {
   if (displayData.value.length === 0) return 0
@@ -422,38 +392,51 @@ const averageFormats = computed(() => {
 
 const maxValue = computed(() => {
   if (displayData.value.length === 0) return 1
-  return Math.max(...displayData.value.map(item => item.value), 1)
+  return Math.max(...displayData.value.map((item) => item.value), 1)
 })
 
 const maxZoneValue = computed(() => {
   if (displayData.value.length === 0) return '0'
-  const maxItem = displayData.value.reduce((max, item) => 
-    item.value > max.value ? item : max
-  )
+  const maxItem = displayData.value.reduce((max, item) => (item.value > max.value ? item : max))
   return maxItem.value.toLocaleString()
 })
 
-// Enhanced data with percentages
+// Enhanced data with percentages (for charts)
 const enhancedData = computed(() => {
   const total = totalFormats.value || 1
-  return displayData.value.map(item => ({
+  return displayData.value.map((item) => ({
     ...item,
-    percentage: ((item.value / total) * 100).toFixed(1)
+    percentage: ((item.value / total) * 100).toFixed(1),
   }))
 })
 
 const hasData = computed(() => displayData.value.length > 0)
 
-const totalPages = computed(() => {
-  return Math.ceil(displayData.value.length / itemsPerPage.value)
-})
+// Pagination (list view)
+const totalPages = computed(() => Math.max(1, Math.ceil(displayData.value.length / itemsPerPage.value)))
 
 const showingFrom = computed(() => {
-  return ((currentPage.value - 1) * itemsPerPage.value) + 1
+  if (!displayData.value.length) return 0
+  return (currentPage.value - 1) * itemsPerPage.value + 1
 })
 
 const showingTo = computed(() => {
   return Math.min(currentPage.value * itemsPerPage.value, displayData.value.length)
+})
+
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return displayData.value.slice(start, end)
+})
+
+// make paginated data already contains percentage (for list chips)
+const paginatedDataEnhanced = computed(() => {
+  const total = totalFormats.value || 1
+  return paginatedData.value.map((item) => ({
+    ...item,
+    percentage: ((item.value / total) * 100).toFixed(1),
+  }))
 })
 
 const chartHeight = computed(() => {
@@ -464,10 +447,26 @@ const chartHeight = computed(() => {
 // Helper Functions
 function getZoneColor(index) {
   const colors = [
-    '#2196F3', '#4CAF50', '#FF9800', '#9C27B0', '#00BCD4',
-    '#8BC34A', '#FF5722', '#673AB7', '#009688', '#E91E63',
-    '#3F51B5', '#CDDC39', '#FF5252', '#448AFF', '#FF4081',
-    '#7C4DFF', '#00E676', '#FF9100', '#2962FF', '#D500F9'
+    '#2196F3',
+    '#4CAF50',
+    '#FF9800',
+    '#9C27B0',
+    '#00BCD4',
+    '#8BC34A',
+    '#FF5722',
+    '#673AB7',
+    '#009688',
+    '#E91E63',
+    '#3F51B5',
+    '#CDDC39',
+    '#FF5252',
+    '#448AFF',
+    '#FF4081',
+    '#7C4DFF',
+    '#00E676',
+    '#FF9100',
+    '#2962FF',
+    '#D500F9',
   ]
   return colors[index % colors.length]
 }
@@ -482,10 +481,13 @@ function getPercentageColor(percentage) {
 
 // Chart Rendering
 async function renderChart() {
-  if (!chartEl.value || !hasData.value) return
+  if (!chartEl.value) return
+  if (!hasData.value) return
+  if (viewMode.value === 'list') return
 
   await nextTick()
 
+  // init once (DOM is kept alive via v-show)
   if (!chart.value) {
     chart.value = echarts.init(chartEl.value, 'macarons', {
       renderer: 'canvas',
@@ -493,14 +495,17 @@ async function renderChart() {
     })
   }
 
-  const option = buildChartOption()
-  chart.value.setOption(option, { notMerge: true, lazyUpdate: true })
-  chart.value.resize()
+  chart.value.setOption(buildChartOption(), { notMerge: true, lazyUpdate: true })
+
+  // ✅ ensure correct size after layout settles
+  requestAnimationFrame(() => {
+    if (chart.value) chart.value.resize()
+  })
 }
 
 function buildChartOption() {
   const isBarChart = viewMode.value === 'bar'
-  
+
   const baseOptions = {
     backgroundColor: 'transparent',
     tooltip: {
@@ -515,13 +520,15 @@ function buildChartOption() {
       },
       formatter: isBarChart ? barTooltipFormatter : pieTooltipFormatter,
     },
-    grid: isBarChart ? {
-      left: '3%',
-      right: '4%',
-      bottom: '10%',
-      top: '10%',
-      containLabel: true
-    } : undefined,
+    grid: isBarChart
+      ? {
+          left: '3%',
+          right: '4%',
+          bottom: '10%',
+          top: '10%',
+          containLabel: true,
+        }
+      : undefined,
   }
 
   if (isBarChart) {
@@ -529,7 +536,7 @@ function buildChartOption() {
       ...baseOptions,
       xAxis: {
         type: 'category',
-        data: enhancedData.value.map(item => item.name),
+        data: enhancedData.value.map((item) => item.name),
         axisLabel: {
           interval: 0,
           rotate: 45,
@@ -556,7 +563,7 @@ function buildChartOption() {
           data: enhancedData.value.map((item, index) => ({
             value: item.value,
             itemStyle: {
-              color: getZoneColor(index),
+              color: item.color || getZoneColor(index),
               borderRadius: [4, 4, 0, 0],
             },
             name: item.name,
@@ -583,102 +590,97 @@ function buildChartOption() {
           },
         },
       ],
-      dataZoom: enhancedData.value.length > 10 ? [
-        {
-          type: 'inside',
-          start: 0,
-          end: 100,
-        },
-        {
-          show: true,
-          type: 'slider',
-          top: '90%',
-          start: 0,
-          end: 100,
-        },
-      ] : undefined,
+      dataZoom:
+        enhancedData.value.length > 10
+          ? [
+              { type: 'inside', start: 0, end: 100 },
+              { show: true, type: 'slider', top: '90%', start: 0, end: 100 },
+            ]
+          : undefined,
     }
-  } else {
-    // Pie Chart
-    return {
-      ...baseOptions,
-      legend: props.showLegend ? {
-        orient: 'vertical',
-        left: 'left',
-        top: 'middle',
-        textStyle: {
-          color: 'rgb(var(--v-theme-on-surface))',
-          fontSize: 11,
-          fontFamily: 'Vazirmatn, sans-serif',
-        },
-        itemWidth: 12,
-        itemHeight: 12,
-        itemGap: 6,
-        formatter: function (name) {
-          const item = enhancedData.value.find(d => d.name === name)
-          if (!item) return name
-          return `${name} - ${item.value} (${item.percentage}%)`
-        },
-        type: 'scroll',
-        pageIconColor: 'rgb(var(--v-theme-primary))',
-        pageIconInactiveColor: 'rgba(var(--v-theme-on-surface), 0.3)',
-        pageTextStyle: {
-          color: 'rgb(var(--v-theme-on-surface))',
-        },
-      } : undefined,
-      series: [
-        {
-          name: props.title,
-          type: 'pie',
-          radius: ['40%', '70%'],
-          center: props.showLegend ? ['60%', '50%'] : ['50%', '50%'],
-          avoidLabelOverlap: true,
-          itemStyle: {
-            borderRadius: 6,
-            borderColor: 'rgb(var(--v-theme-surface))',
-            borderWidth: 2,
-          },
-          label: {
-            show: true,
-            formatter: '{b}: {c}',
+  }
+
+  // Pie Chart
+  return {
+    ...baseOptions,
+    legend: props.showLegend
+      ? {
+          orient: 'vertical',
+          left: 'left',
+          top: 'middle',
+          textStyle: {
             color: 'rgb(var(--v-theme-on-surface))',
-            fontFamily: 'Vazirmatn, sans-serif',
             fontSize: 11,
-            fontWeight: 500,
+            fontFamily: 'Vazirmatn, sans-serif',
           },
-          labelLine: {
-            show: true,
-            length: 15,
-            length2: 20,
-            smooth: true,
+          itemWidth: 12,
+          itemHeight: 12,
+          itemGap: 6,
+          formatter: function (name) {
+            const item = enhancedData.value.find((d) => d.name === name)
+            if (!item) return name
+            return `${name} - ${item.value} (${item.percentage}%)`
           },
-          emphasis: {
-            scale: true,
-            scaleSize: 10,
-            itemStyle: {
-              shadowBlur: 20,
-              shadowOffsetX: 0,
-              shadowColor: 'rgba(0, 0, 0, 0.2)',
-            },
+          type: 'scroll',
+          pageIconColor: 'rgb(var(--v-theme-primary))',
+          pageIconInactiveColor: 'rgba(var(--v-theme-on-surface), 0.3)',
+          pageTextStyle: {
+            color: 'rgb(var(--v-theme-on-surface))',
           },
-          data: enhancedData.value.map((item, index) => ({
-            name: item.name,
-            value: item.value,
-            itemStyle: {
-              color: item.color || getZoneColor(index),
-            },
-            percentage: item.percentage,
-          })),
-          animationType: 'scale',
-          animationEasing: 'elasticOut',
+        }
+      : undefined,
+    series: [
+      {
+        name: props.title,
+        type: 'pie',
+        radius: ['40%', '70%'],
+        center: props.showLegend ? ['60%', '50%'] : ['50%', '50%'],
+        avoidLabelOverlap: true,
+        itemStyle: {
+          borderRadius: 6,
+          borderColor: 'rgb(var(--v-theme-surface))',
+          borderWidth: 2,
         },
-      ],
-    }
+        label: {
+          show: true,
+          formatter: '{b}: {c}',
+          color: 'rgb(var(--v-theme-on-surface))',
+          fontFamily: 'Vazirmatn, sans-serif',
+          fontSize: 11,
+          fontWeight: 500,
+        },
+        labelLine: {
+          show: true,
+          length: 15,
+          length2: 20,
+          smooth: true,
+        },
+        emphasis: {
+          scale: true,
+          scaleSize: 10,
+          itemStyle: {
+            shadowBlur: 20,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.2)',
+          },
+        },
+        data: enhancedData.value.map((item, index) => ({
+          name: item.name,
+          value: item.value,
+          itemStyle: {
+            color: item.color || getZoneColor(index),
+          },
+          percentage: item.percentage,
+        })),
+        animationType: 'scale',
+        animationEasing: 'elasticOut',
+      },
+    ],
   }
 }
 
 function pieTooltipFormatter(params) {
-  const item = enhancedData.value.find(d => d.name === params.name)
+  const item = enhancedData.value.find((d) => d.name === params.name)
   return `
     <div style="padding: 12px; min-width: 200px; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15)">
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px">
@@ -698,17 +700,18 @@ function pieTooltipFormatter(params) {
 }
 
 function barTooltipFormatter(params) {
-  const data = params[0]
+  const data = params?.[0]
+  const perc = data?.data?.percentage || '0'
   return `
     <div style="padding: 12px; min-width: 180px; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15)">
-      <div style="font-weight: 600; font-size: 13px; color: #333; margin-bottom: 8px">${data.name}</div>
+      <div style="font-weight: 600; font-size: 13px; color: #333; margin-bottom: 8px">${data?.name || ''}</div>
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div style="color: #666">${t('تعداد')}:</div>
-        <div style="font-weight: 600; color: #2196F3">${Number(data.value || 0).toLocaleString()}</div>
+        <div style="font-weight: 600; color: #2196F3">${Number(data?.value || 0).toLocaleString()}</div>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px">
         <div style="color: #666">${t('درصد')}:</div>
-        <div style="font-weight: 600; color: #4CAF50">${data.data.percentage || '0'}%</div>
+        <div style="font-weight: 600; color: #4CAF50">${perc}%</div>
       </div>
     </div>
   `
@@ -718,7 +721,7 @@ function barTooltipFormatter(params) {
 async function handleRefresh() {
   localLoading.value = true
   try {
-    await emit('refresh')
+    emit('refresh') // ✅ emit is not awaitable
     showToastMessage(t('دیتا با موفقیت بروزرسانی شد'))
   } catch (error) {
     console.error('Refresh error:', error)
@@ -734,8 +737,9 @@ function selectZone(zone) {
 
 function applyFilters() {
   showFilterMenu.value = false
-  currentPage.value = 1 // Reset to first page
+  currentPage.value = 1
   showToastMessage(t('فیلترها اعمال شدند'))
+  renderChart()
 }
 
 function resetFilters() {
@@ -743,35 +747,32 @@ function resetFilters() {
   sortBy.value = 'desc'
   showAllZones.value = true
   currentPage.value = 1
+  renderChart()
 }
 
 function downloadChart() {
   if (!chart.value) return
-  
+
   const url = chart.value.getDataURL({
     type: 'png',
     pixelRatio: 2,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   })
-  
+
   const link = document.createElement('a')
   link.href = url
   link.download = `formats-chart-${new Date().toISOString().split('T')[0]}.png`
   link.click()
-  
+
   showToastMessage(t('چارت با موفقیت ذخیره شد'))
 }
 
 function fullscreenChart() {
   if (!chart.value) return
-  chart.value.dispatchAction({
-    type: 'takeGlobalCursor',
-    key: 'dataZoomSelect',
-    dataZoomSelectActive: true
-  })
+  chart.value.resize()
 }
 
-function showToastMessage(message, type = 'success') {
+function showToastMessage(message) {
   toastMessage.value = message
   showToast.value = true
 }
@@ -779,10 +780,13 @@ function showToastMessage(message, type = 'success') {
 // Lifecycle
 onMounted(async () => {
   await nextTick()
-  if (hasData.value) {
+
+  // render if already has data
+  if (hasData.value && viewMode.value !== 'list') {
     await renderChart()
   }
 
+  // resize observer for container changes
   if (chartEl.value && 'ResizeObserver' in window) {
     resizeObserver = new ResizeObserver(() => {
       if (chart.value) chart.value.resize()
@@ -792,37 +796,44 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  if (resizeObserver) {
-    resizeObserver.disconnect()
-  }
-  if (chart.value) {
-    chart.value.dispose()
-  }
+  if (resizeObserver) resizeObserver.disconnect()
+  if (chart.value) chart.value.dispose()
 })
 
 // Watchers
-watch(() => [viewMode.value, showAllZones.value, minValueFilter.value, sortBy.value], async () => {
-  await renderChart()
-}, { deep: false })
-
-watch(() => props.data, async () => {
-  if (chart.value && hasData.value) {
+watch(
+  () => [viewMode.value, showAllZones.value, minValueFilter.value, sortBy.value],
+  async () => {
+    currentPage.value = 1
     await renderChart()
   }
-}, { deep: true })
+)
 
-watch(() => props.loading, (newVal) => {
-  if (!newVal) {
-    localLoading.value = false
+watch(
+  () => props.data,
+  async () => {
+    // ✅ render even if it was empty before and now has data
+    await renderChart()
+  },
+  { deep: true }
+)
+
+watch(
+  () => props.loading,
+  (newVal) => {
+    if (!newVal) localLoading.value = false
   }
+)
+
+// ✅ if data becomes available after mount
+watch(hasData, async (v) => {
+  if (v) await renderChart()
 })
 
+// list page changes scroll
 watch(currentPage, () => {
-  // Scroll to top of list when page changes
-  const container = document.querySelector('.list-view')
-  if (container) {
-    container.scrollTop = 0
-  }
+  const container = document.querySelector('.list-view .list-items')
+  if (container) container.scrollTop = 0
 })
 </script>
 
@@ -944,17 +955,17 @@ watch(currentPage, () => {
 }
 
 .rank-1 {
-  background: linear-gradient(135deg, #FFD700, #FFA500);
+  background: linear-gradient(135deg, #ffd700, #ffa500);
   box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
 }
 
 .rank-2 {
-  background: linear-gradient(135deg, #C0C0C0, #808080);
+  background: linear-gradient(135deg, #c0c0c0, #808080);
   box-shadow: 0 0 15px rgba(192, 192, 192, 0.4);
 }
 
 .rank-3 {
-  background: linear-gradient(135deg, #CD7F32, #A0522D);
+  background: linear-gradient(135deg, #cd7f32, #a0522d);
   box-shadow: 0 0 15px rgba(205, 127, 50, 0.4);
 }
 
@@ -965,7 +976,7 @@ watch(currentPage, () => {
 .rank-8,
 .rank-9,
 .rank-10 {
-  background: linear-gradient(135deg, #2196F3, #1976D2);
+  background: linear-gradient(135deg, #2196f3, #1976d2);
   box-shadow: 0 0 10px rgba(33, 150, 243, 0.2);
 }
 
@@ -1053,24 +1064,24 @@ watch(currentPage, () => {
     grid-template-columns: 1fr 1fr 1fr;
     font-size: 0.75rem;
   }
-  
+
   .list-item {
     grid-template-columns: 1fr 1fr 1fr;
     font-size: 0.875rem;
   }
-  
+
   .zone-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .rank-circle {
     width: 24px;
     height: 24px;
     font-size: 0.75rem;
   }
-  
+
   .chart {
     min-height: 250px;
   }
@@ -1081,11 +1092,11 @@ watch(currentPage, () => {
     flex: 1;
     min-width: 100px;
   }
-  
+
   .view-mode-toggle {
     flex-wrap: wrap;
   }
-  
+
   .list-view {
     max-height: 300px;
   }

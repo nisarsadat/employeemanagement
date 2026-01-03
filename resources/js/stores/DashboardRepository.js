@@ -21,6 +21,9 @@ export const useDashboardRepository = defineStore('DashboardRepository', {
     // ✅ ADDED ONLY
     money: null,
     oil: null,
+
+    // ✅ NEW (period meta from backend)
+    period: null,
   }),
 
   getters: {
@@ -76,13 +79,25 @@ export const useDashboardRepository = defineStore('DashboardRepository', {
       // ✅ ADDED ONLY
       this.money = null
       this.oil = null
+
+      // ✅ NEW
+      this.period = null
     },
 
-    async fetchDashboard() {
+    /**
+     * Fetch dashboard with optional period filter
+     * period: 'daily' | 'weekly' | 'monthly' | 'yearly'
+     */
+    async fetchDashboard(payload = {}) {
       this.loading = true
       this.error = null
+
+      const period = payload?.period || 'yearly'
+
       try {
-        const { data } = await axios.get('/dashboard')
+        const { data } = await axios.get('/dashboard', {
+          params: { period },
+        })
         this.applyDashboard(data)
         return data
       } catch (e) {
@@ -93,11 +108,19 @@ export const useDashboardRepository = defineStore('DashboardRepository', {
       }
     },
 
-    async fetchDashboardSilent() {
+    /**
+     * Silent fetch (no UI blocks) with optional period filter
+     */
+    async fetchDashboardSilent(payload = {}) {
       this.silentLoading = true
       this.error = null
+
+      const period = payload?.period || 'yearly'
+
       try {
-        const { data } = await axios.get('/dashboard')
+        const { data } = await axios.get('/dashboard', {
+          params: { period },
+        })
         this.applyDashboard(data)
         return data
       } catch (e) {
@@ -110,6 +133,8 @@ export const useDashboardRepository = defineStore('DashboardRepository', {
 
     applyDashboard(data) {
       this.dashboard = data || null
+
+      this.period = data?.period || null
 
       this.employees = data?.employees || null
       this.resources = data?.resources || null
