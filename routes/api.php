@@ -125,24 +125,33 @@ use App\Http\Controllers\Api\ActiveInactiveOfficeEmployeeController as AE; // âœ
 use App\Http\Controllers\Api\ChatAttachmentController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DistrictController;
 use App\Http\Controllers\Api\EventControllerReport;
 use App\Http\Controllers\Api\EventReportController;
+use App\Http\Controllers\Api\EventSpecificTypeController;
+use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\FifthyFormatsCountController;
 use App\Http\Controllers\Api\FinanceController;
+use App\Http\Controllers\Api\HawzaController;
 use App\Http\Controllers\Api\MapPointController;
 use App\Http\Controllers\Api\Reports\FiftyFormatsReportController as ReportsFiftyFormatsReportController;
 use App\Http\Controllers\Api\OfficeEmployeeControllerReport;
 use App\Models\OfficeEmployee;
 use App\Http\Controllers\Reports\FiftyFormatsReportController;
 use App\Http\Controllers\Api\InformationReportController;
+use App\Http\Controllers\Api\JenayeeTypeController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OrganController;
 use App\Http\Controllers\Api\OutgoingIncomingController;
+use App\Http\Controllers\Api\ProvinceController;
 use App\Http\Controllers\Api\Reports\Foul\DailyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\MonthlyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\QuarterlyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\WeeklyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\YearlyFoulReportController;
 use App\Http\Controllers\Api\ResourceActivityController;
+use App\Http\Controllers\Api\SeyaseeTypeController;
+use App\Http\Controllers\Api\ZoneController;
 use App\Http\Controllers\CaptiveDocumentController;
 use App\Http\Controllers\EmployeeManagementDashboardController;
 
@@ -522,6 +531,23 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // âœ… ZIP Download (ALL docs for one record)
     Route::get('/outgoing-incomings/{id}/documents-zip', [OutgoingIncomingController::class, 'downloadDocumentsZip']);
+
+
+    // system settings
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::apiResource('provinces', ProvinceController::class);
+        Route::apiResource('districts', DistrictController::class);
+        Route::apiResource('zones', ZoneController::class);
+        Route::apiResource('hawzas', HawzaController::class);
+        Route::get('/event-types/options', [EventTypeController::class, 'options']);
+        Route::apiResource('/event-types', EventTypeController::class);
+        // event specific types
+        Route::apiResource('/event-specific-types', EventSpecificTypeController::class);
+        Route::apiResource('jenayee-types', JenayeeTypeController::class);
+        Route::apiResource('seyasee-types', SeyaseeTypeController::class);
+        Route::apiResource('organs', OrganController::class);
+    });
 
 
 });

@@ -180,6 +180,14 @@ import AllTimeFoulReports from '../pages/reports/AllTimeFoulReports.vue';
 import OutgoingIncomingForm from '../pages/OutgoingIncoming/OutgoingIncomingForm.vue';
 import OutgoingIncomingIndex from '../pages/OutgoingIncoming/OutgoingIncomingIndex.vue';
 import RolePermissions from '../pages/rbac/RolePermissions.vue';
+import ProvincesPage from '../pages/Settings/ProvincesPage.vue';
+import DistrictsPage from '../pages/Settings/DistrictsPage.vue';
+import ZonesIndex from '../pages/Settings/Zones/ZonesIndex.vue';
+import HawzasIndex from '../pages/Settings/Zones/HawzasIndex.vue';
+import EventTypes from '../pages/Settings/EventType/EventTypes.vue';
+import EventSpecificTypes from '../pages/Settings/EventType/EventSpecificTypes.vue';
+import JenayeeTypesIndex from '../pages/Settings/JenayeeTypes/JenayeeTypesIndex.vue';
+import SeyaseeTypesIndex from '../pages/Settings/SeyaseeTypes/SeyaseeTypesIndex.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -1430,6 +1438,51 @@ const router = createRouter({
 
         // No-access page
         { path: 'no-access', component: NoAccess, meta: { requiresAuth: true } },
+
+        // system setting
+        // system setting
+        {
+          path: 'settings/provinces',
+          name: 'settings-provinces',
+          component: ProvincesPage,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: 'settings/districts',
+          name: 'settings-districts',
+          component: DistrictsPage,
+          meta: { requiresAuth: true },
+        },
+
+        // ✅ FIXED (no leading /)
+        {
+          path: 'settings/zones/zones',
+          name: 'settings-zones',
+          component: ZonesIndex,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: 'settings/zones/hawzas',
+          name: 'settings-hawzas',
+          component: HawzasIndex,
+          meta: { requiresAuth: true },
+        },
+        { path: '/app/event-types', name: 'EventTypes', component: EventTypes },
+        {
+          path: '/app/event-specific-types',
+          name: 'EventSpecificTypes',
+          component: EventSpecificTypes,
+        },
+        {
+          path: '/app/jenayee-type',
+          name: 'JenayeeTypes',
+          component: JenayeeTypesIndex,
+        },
+        {
+          path: '/app/seyasee-type',
+          name: 'SeyaseeType',
+          component: SeyaseeTypesIndex,
+        },
       ],
     },
 

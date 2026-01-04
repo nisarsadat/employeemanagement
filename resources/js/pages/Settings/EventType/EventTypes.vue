@@ -1,0 +1,292 @@
+<!-- src/pages/EventTypes/EventTypesIndex.vue -->
+<template>
+  <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <AppBar :title="t('نوع رویداد')" :subtitle="t('مدیریت نوع رویداد')">
+      <template #actions>
+        <v-btn icon></v-btn>
+      </template>
+    </AppBar>
+
+    <!-- Error -->
+    <v-alert
+      v-if="repo.error"
+      type="error"
+      variant="tonal"
+      class="mb-4 mx-2"
+      border="start"
+      closable
+      @click:close="repo.error = null"
+    >
+      {{ repo.error }}
+    </v-alert>
+
+    <!-- Search + Create -->
+    <v-container class="pa-0">
+      <v-row class="align-center">
+        <v-col cols="12" sm="8" md="9" lg="10">
+          <v-text-field
+            v-model.trim="search"
+            :label="t('جستجو در نوع رویداد...')"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            hide-details
+            @keyup.enter="fetchAll"
+            clearable
+            @click:clear="clearSearch"
+            class="bg-white"
+          />
+        </v-col>
+
+        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            size="large"
+            class="text-none"
+            rounded="lg"
+            block
+            @click="openCreate"
+            prepend-icon="mdi-plus"
+          >
+            {{ t('جدید') }}
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
+
+    <!-- Count -->
+    <v-row class="px-2 mt-1" :dir="isRtl ? 'rtl' : 'ltr'">
+      <v-col cols="12" class="d-flex align-center justify-end">
+        <div class="text-caption text-medium-emphasis">
+          {{ t('تعداد') }}: <b>{{ rowsFT.length }}</b>
+        </div>
+      </v-col>
+    </v-row>
+
+    <!-- List -->
+    <FilterableTable
+      :headers="headersFT"
+      :rows="rowsFT"
+      :showIndex="true"
+      :rtl="isRtl"
+      :loading="repo.loading"
+      class="mb-20 mx-2 centered-table"
+    >
+      <!-- Event type name -->
+      <template #cell-name="{ row }">
+        <div class="d-flex align-center justify-center">
+          <v-icon size="16" class="me-1" color="primary">mdi-shape-outline</v-icon>
+          <span class="text-caption">{{ row.name || '—' }}</span>
+        </div>
+      </template>
+
+      <!-- ✅ Specific types as chips -->
+      <template #cell-event_specific_types="{ row }">
+        <div class="d-flex flex-wrap justify-center ga-2 py-1">
+          <template v-if="(row.event_specific_types || []).length">
+            <v-chip
+              v-for="st in row.event_specific_types"
+              :key="st.id"
+              size="small"
+              variant="tonal"
+              color="primary"
+              class="text-caption"
+            >
+              {{ st.name }}
+            </v-chip>
+          </template>
+
+          <template v-else>
+            <span class="text-caption text-medium-emphasis">—</span>
+          </template>
+        </div>
+      </template>
+
+      <!-- Actions: edit/delete with tooltips -->
+      <template #actions="{ item }">
+        <div class="d-flex align-center justify-center ga-2">
+          <v-tooltip :text="t('ویرایش نوع رویداد')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                size="small"
+                v-bind="tooltipProps"
+                color="amber-darken-2"
+                @click.stop="startEdit(item?.raw ?? item)"
+              >
+                mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <v-tooltip :text="t('حذف نوع رویداد')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                size="small"
+                v-bind="tooltipProps"
+                color="red-darken-2"
+                @click.stop="openDeleteDialog(item?.raw ?? item)"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
+    </FilterableTable>
+
+    <!-- Create/Edit Dialog -->
+    <EventTypeFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
+
+    <!-- Delete confirm -->
+    <DeleteConfirmDialog
+      v-model="deleteDialog"
+      :target="deleteTarget"
+      :is-rtl="isRtl"
+      @confirm="handleDeleteConfirmed"
+    />
+
+    <!-- Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="5000">
+      {{ errorMessage }}
+      <template #actions>
+        <v-btn variant="text" @click="showError = false">
+          {{ t('بستن') }}
+        </v-btn>
+      </template>
+    </v-snackbar>
+  </v-container>
+</template>
+
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+import AppBar from '@/components/AppBar.vue'
+import FilterableTable from '@/components/FilterableTable.vue'
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
+
+import EventTypeFormDialog from './EventTypeFormDialog.vue'
+import { useEventRepo } from '@/stores/eventRepo'
+
+const { t, locale } = useI18n()
+const isRtl = ref(locale.value === 'fa')
+watch(locale, (v) => (isRtl.value = v === 'fa'))
+
+const repo = useEventRepo()
+
+const dialog = ref(false)
+const editId = ref(null)
+
+const deleteDialog = ref(false)
+const deleteTarget = ref(null)
+
+const showError = ref(false)
+const errorMessage = ref('')
+function showErrorMessage(msg) {
+  errorMessage.value = msg
+  showError.value = true
+}
+
+const search = ref('')
+const rows = ref([])
+
+const headersFT = computed(() => [
+  { title: t('نام نوع رویداد'), key: 'name' },
+  { title: t('نوع مشخص رویداد'), key: 'event_specific_types' }, // ✅ new column
+])
+
+const rowsFT = computed(() => rows.value || [])
+
+function getRow(payload) {
+  return payload?.raw ?? payload
+}
+
+function openCreate() {
+  editId.value = null
+  dialog.value = true
+}
+
+function startEdit(payload) {
+  const row = getRow(payload)
+  if (!row?.id) return
+  editId.value = row.id
+  dialog.value = true
+}
+
+function onSaved() {
+  fetchAll()
+}
+
+function openDeleteDialog(payload) {
+  const row = getRow(payload)
+  if (!row?.id) return
+  deleteTarget.value = row
+  deleteDialog.value = true
+}
+
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value
+
+  if (!row?.id) {
+    deleteDialog.value = false
+    deleteTarget.value = null
+    return
+  }
+
+  try {
+    await repo.DeleteEventType(row.id)
+    await fetchAll()
+  } catch (e) {
+    console.error('DeleteEventType error', e)
+    showErrorMessage(t('خطا در حذف نوع رویداد'))
+  } finally {
+    deleteDialog.value = false
+    deleteTarget.value = null
+  }
+}
+
+async function fetchAll() {
+  try {
+    const res = await repo.FetchEventTypesData({
+      page: 1,
+      perPage: 100000,
+      search: search.value,
+    })
+    rows.value = res?.data || []
+  } catch (e) {
+    console.error('fetchAll event types error', e)
+    showErrorMessage(t('خطا در دریافت نوع رویداد'))
+  }
+}
+
+function clearSearch() {
+  search.value = ''
+  fetchAll()
+}
+
+watch(search, () => fetchAll())
+
+onMounted(fetchAll)
+</script>
+
+<style scoped>
+/* ✅ Center everything: headers + cells */
+.centered-table :deep(th),
+.centered-table :deep(td) {
+  text-align: center !important;
+}
+
+/* hover + icon animation kept */
+:deep(.v-data-table__tr:hover) {
+  background-color: rgba(33, 150, 243, 0.04) !important;
+}
+:deep(.v-btn--icon) {
+  transition: all 0.2s ease;
+}
+:deep(.v-btn--icon:hover) {
+  transform: scale(1.1);
+}
+</style>

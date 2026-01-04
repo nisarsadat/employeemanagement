@@ -14,8 +14,9 @@
 
     <!-- Scrollable nav -->
     <div class="scrollable-content">
-      <v-list>
-        <template v-for="item in filteredNavigationItems" :key="item.title">
+      <!-- ✅ Control opened groups from ONE place -->
+      <v-list v-model:opened="openedGroups">
+        <template v-for="item in filteredNavigationItems" :key="item.key">
           <!-- Single items -->
           <v-list-item
             v-if="!item.children"
@@ -35,11 +36,7 @@
           </v-list-item>
 
           <!-- Groups -->
-          <v-list-group
-            v-else
-            :value="isGroupOpen(item)"
-            v-if="item.children && item.children.length"
-          >
+          <v-list-group v-else :value="item.key">
             <template #activator="{ props }">
               <v-list-item
                 v-bind="props"
@@ -56,7 +53,9 @@
                     <v-icon :icon="item.icon" />
                   </div>
                 </template>
+
                 <v-list-item-title>{{ item.title }}</v-list-item-title>
+
                 <template #append>
                   <v-icon
                     :icon="isGroupOpen(item) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
@@ -69,12 +68,10 @@
 
             <v-list-item
               v-for="child in item.children"
-              :key="child.title"
+              :key="child.key"
               :to="child.to"
               class="nav-child-item"
-              :class="{
-                'nav-child-active': isActive(child),
-              }"
+              :class="{ 'nav-child-active': isActive(child) }"
               :active="isActive(child)"
             >
               <template #prepend>
@@ -148,10 +145,8 @@
   const auth = useLoginRepository();
   const usersRepo = useUsersRepository(); // kept for future user actions if needed
 
-  // Ensure we have current user info (image/name/username) after reload
   onMounted(async () => {
     try {
-      // call a method that ensures we have /me loaded if missing
       (await auth.ensureMe?.()) ?? auth.fetchUser?.();
     } catch {}
   });
@@ -159,20 +154,44 @@
   // profile menu
   const profileMenu = ref(false);
 
+  // ✅ NEW: opened groups array
+  // Make it single-open (accordion behavior) by keeping at most 1 item.
+  const openedGroups = ref([]);
+
+  // auto-open correct group based on current route
+  watch(
+    () => route.path,
+    () => {
+      const key = groupKeyByRoute(route.path);
+      openedGroups.value = key ? [key] : [];
+    },
+    { immediate: true }
+  );
+
+  function groupKeyByRoute(path) {
+    if (
+      path.startsWith('/app/dailyfoulreports') ||
+      path.startsWith('/app/monthlyfoulreports') ||
+      path.startsWith('/app/yearlyfoulreports') ||
+      path.startsWith('/app/weeklyfoulreports') ||
+      path.startsWith('/app/quarterlyfoulreports') ||
+      path.startsWith('/app/alltimefoulreports')
+    )
+      return 'reports';
+
+    if (path.startsWith('/app/settings/')) return 'system-settings';
+
+    return null;
+  }
+
   // derive profile display
-  // handle { user: {...} } or flat {...}
   const userObj = computed(() => {
     const u = auth.user;
     if (!u) return null;
     return u.name ? u : u.user ?? null;
   });
 
-  const displayName = computed(
-    () =>
-      userObj.value?.name ??
-      userObj.value?.username ?? // fallback if no name set
-      t('Guest')
-  );
+  const displayName = computed(() => userObj.value?.name ?? userObj.value?.username ?? t('Guest'));
 
   const usernameAt = computed(() => {
     const uname = userObj.value?.username;
@@ -180,10 +199,8 @@
   });
 
   const avatarSrc = computed(() => {
-    // API during login gave "image" (relative path) but not "image_url"
     const imgUrl = userObj.value?.image_url;
-    const imgRel = userObj.value?.image; // e.g. "avatars/xxx.png"
-    // If only relative exists, let <v-img> resolve it (or prefix yourself if needed)
+    const imgRel = userObj.value?.image;
     return imgUrl || (imgRel ? `/storage/${imgRel}` : null);
   });
 
@@ -194,25 +211,16 @@
     return parts.map((p) => p[0]?.toUpperCase() || '').join('');
   });
 
-  // Helper to build named route targets that all live under /app
+  // Helper
   const toName = (name) => ({ name });
 
-  /**
-   * Permission helpers
-   * - item.perm: single permission required
-   * - item.anyPerms: at least one of these permissions
-   * - item.allPerms: must have all of these permissions
-   * If none provided, visible by default.
-   */
+  // Permission helpers
   const canView = (item) => {
     if (!item) return false;
-    // Single perm
     if (item.perm && !auth.can(item.perm)) return false;
-    // All-perms
     if (Array.isArray(item.allPerms) && item.allPerms.length) {
       for (const p of item.allPerms) if (!auth.can(p)) return false;
     }
-    // Any-perms
     if (Array.isArray(item.anyPerms) && item.anyPerms.length) {
       const ok = item.anyPerms.some((p) => auth.can(p));
       if (!ok) return false;
@@ -220,153 +228,170 @@
     return true;
   };
 
-  const withPerms = (node) => ({ ...node }); // placeholder if you want to transform
+  const withPerms = (node) => ({ ...node });
 
-  // Base menu (add your permission keys here)
+  // ✅ IMPORTANT: give every item a UNIQUE `key`
   const navigationItems = computed(() =>
     [
       {
+        key: 'dashboard',
         title: t('دشبورد'),
         icon: 'mdi-view-dashboard-outline',
         to: toName('Dashboard'),
         perm: 'dashboards.view',
       },
-
       {
+        key: 'map',
         title: t('نقشه'),
         icon: 'mdi-map',
         to: { path: '/app/map-afg' },
         perm: 'map-afg.view',
       },
       {
+        key: 'inlineinfo',
         title: t('ارتباطی مرکز'),
         icon: 'mdi-menu',
         to: { path: '/app/inlineinfo' },
         perm: 'inlineinfo.view',
       },
-
       {
+        key: 'users',
         title: t('استفاده کننده ها'),
         icon: 'mdi-account',
         to: { path: '/app/users' },
         perm: 'users.view',
       },
-
       {
+        key: 'officeemployee',
         title: t('  کارمندان'),
         icon: 'mdi-account-outline',
         to: { path: '/app/officeemployee' },
         perm: 'officeemployee.view',
       },
-
       {
+        key: 'resources',
         title: t('منابع'),
         icon: 'mdi-pen',
         to: { path: '/app/resources' },
         perm: 'resources.view',
       },
-
       {
+        key: 'informations',
         title: t('اطلاعات'),
         icon: 'mdi-book',
         to: { path: '/app/informations' },
         perm: 'informations.view',
       },
-
       {
+        key: 'events',
         title: t('واقعات'),
         icon: 'mdi-book-outline',
         to: { path: '/app/events' },
         perm: 'events.view',
       },
-
       {
+        key: 'captives',
         title: t('زندانی های تسلیم شده'),
         icon: 'mdi-lock',
         to: { path: '/app/delevirycaptive' },
         perm: 'captives.view',
       },
-
       {
+        key: 'fifthyformats',
         title: t('۵۶ فارمت'),
         icon: 'mdi-view-dashboard-outline',
         to: { path: '/app/fifthyformatsroute' },
         perm: 'fifthyformatsroute.view',
       },
-
       {
+        key: 'finance',
         title: t('بخش حساب مالی'),
         icon: 'mdi-cash-multiple',
         to: { path: '/app/finincalindex' },
         perm: 'finincalindex.view',
       },
       {
+        key: 'outgoingincommings',
         title: t('صادره وارده'),
         icon: 'mdi-cash-multiple',
         to: { path: '/app/outgoingincommings' },
-        // perm: 'outgoingincommings.view',
+      },
+      {
+        key: 'roles',
+        title: t('نقش ها'),
+        icon: 'mdi-home',
+        to: { path: '/app/roles' },
+        perm: 'roles.view',
       },
 
-      { title: t('نقش ها'), icon: 'mdi-home', to: { path: '/app/roles' }, perm: 'roles.view' },
-
-      // 🔹 Reports group (can have many report items)
+      // ✅ Reports group (key is "reports")
       {
+        key: 'reports',
         title: t(' راپورها'),
         icon: 'mdi-graph',
         children: [
+          { key: 'r-daily', title: t('راپور روزانه'), to: { path: '/app/dailyfoulreports' } },
+          { key: 'r-monthly', title: t(' راپور ماهانه'), to: { path: '/app/monthlyfoulreports' } },
+          { key: 'r-yearly', title: t(' راپور سالانه'), to: { path: '/app/yearlyfoulreports' } },
+          { key: 'r-weekly', title: t('راپور هفته وار'), to: { path: '/app/weeklyfoulreports' } },
           {
-            title: t('راپور روزانه'),
-            to: { path: '/app/dailyfoulreports' },
-            // perm: 'dailyfoulreports',
-          },
-          {
-            title: t(' راپور ماهانه'),
-            to: { path: '/app/monthlyfoulreports' },
-            // perm: 'monthlyfoulreports.view',
-          },
-          {
-            title: t(' راپور سالانه'),
-            to: { path: '/app/yearlyfoulreports' },
-            // perm: 'yearlyfoulreports',
-          },
-          {
-            title: t('راپور هفته وار'),
-            to: { path: '/app/weeklyfoulreports' },
-            // perm: 'weeklyfoulreports',
-          },
-          {
+            key: 'r-quarterly',
             title: t('راپور ربعه وار'),
             to: { path: '/app/quarterlyfoulreports' },
-            // perm: 'weeklyfoulreports',
+          },
+          { key: 'r-archive', title: t('آرشیف'), to: { path: '/app/alltimefoulreports' } },
+        ],
+      },
+
+      // ✅ System settings group (key is "system-settings")
+      {
+        key: 'system-settings',
+        title: t('تنظیمات سیستم'),
+        icon: 'mdi-cog-outline',
+        children: [
+          { key: 's-provinces', title: t('ولایت'), to: { path: '/app/settings/provinces' } },
+          { key: 's-districts', title: t('والسوالی'), to: { path: '/app/settings/districts' } },
+          { key: 's-zones', title: t('زون'), to: { path: '/app/settings/zones/zones' } },
+          { key: 's-hawzas', title: t('حوزه'), to: { path: '/app/settings/zones/hawzas' } },
+          {
+            key: 'event-types',
+            title: 'نوع رویداد',
+            to: '/app/event-types',
+            icon: 'mdi-shape-outline',
           },
           {
-            title: t('آرشیف'),
-            to: { path: '/app/alltimefoulreports' },
-            // perm: 'weeklyfoulreports',
+            key: 'event-specific-types',
+            title: 'نوع مشخص رویداد',
+            to: '/app/event-specific-types',
+            icon: 'mdi-shape-plus-outline',
+          },
+          {
+            key: 'jenayee-types',
+            title: 'جینایی',
+            to: '/app/jenayee-type',
+            icon: 'mdi-shape-plus-outline',
+          },
+          {
+            key: 'seyasee-types',
+            title: 'سیاسی',
+            to: '/app/seyasee-type',
+            icon: 'mdi-shape-plus-outline',
           },
         ],
       },
     ].map(withPerms)
   );
 
-  /**
-   * Filter items by permissions (and trim children accordingly).
-   * Groups are shown only if at least one child is visible AND the group itself passes canView().
-   */
   const filteredNavigationItems = computed(() => {
     const result = [];
     for (const item of navigationItems.value) {
-      // If single node (no children)
       if (!item.children) {
         if (canView(item)) result.push(item);
         continue;
       }
-      // Group node
       if (!canView(item)) continue;
       const visibleChildren = item.children.filter((c) => canView(c));
-      if (visibleChildren.length) {
-        result.push({ ...item, children: visibleChildren });
-      }
+      if (visibleChildren.length) result.push({ ...item, children: visibleChildren });
     }
     return result;
   });
@@ -378,10 +403,8 @@
     return false;
   };
 
-  const isGroupOpen = (groupItem) => {
-    if (!groupItem.children?.length) return false;
-    return groupItem.children.some(isActive);
-  };
+  // ✅ group open check based on openedGroups
+  const isGroupOpen = (groupItem) => openedGroups.value.includes(groupItem.key);
 
   // Actions
   const onLogout = async () => {
@@ -408,7 +431,6 @@
     margin-left: 16px;
     margin-right: 0;
   }
-
   .icon-bg-active {
     background-color: rgb(var(--v-theme-primary));
     color: white;
@@ -430,7 +452,6 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid transparent;
   }
-
   .nav-item:hover {
     border-radius: 12px !important;
     background: linear-gradient(
@@ -441,7 +462,6 @@
     border-color: rgba(var(--v-theme-primary), 0.2);
     transform: translateX(2px);
   }
-
   .nav-item-active {
     border-radius: 12px !important;
     background: linear-gradient(
@@ -452,7 +472,6 @@
     border-color: rgba(var(--v-theme-primary), 0.3);
     box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.15);
   }
-
   .nav-item-active .v-list-item-title {
     color: rgb(var(--v-theme-primary));
     font-weight: 700;
@@ -466,12 +485,10 @@
       rgba(var(--v-theme-primary), 0.04) 100%
     );
   }
-
   .group-chevron {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     color: rgba(0, 0, 0, 0.6);
   }
-
   .nav-item-active .group-chevron {
     color: rgb(var(--v-theme-primary));
   }
@@ -484,7 +501,6 @@
     border: 1px solid transparent;
     min-height: 40px;
   }
-
   .nav-child-item:hover {
     background: linear-gradient(
       135deg,
@@ -494,7 +510,6 @@
     border-color: rgba(var(--v-theme-primary), 0.15);
     transform: translateX(1px);
   }
-
   .nav-child-active {
     background: linear-gradient(
       135deg,
@@ -503,7 +518,6 @@
     );
     border-color: rgba(var(--v-theme-primary), 0.25);
   }
-
   .nav-child-active .v-list-item-title {
     color: rgb(var(--v-theme-primary));
     font-weight: 500;
@@ -517,12 +531,10 @@
     justify-content: center;
     margin-right: 12px;
   }
-
   [dir='rtl'] .child-indicator {
     margin-left: 12px;
     margin-right: 0;
   }
-
   .child-dot {
     width: 6px;
     height: 6px;
@@ -530,7 +542,6 @@
     background-color: rgba(0, 0, 0, 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-
   .child-dot-active {
     background-color: rgb(var(--v-theme-primary));
     transform: scale(1.3);
@@ -561,12 +572,12 @@
     background: var(--v-theme-surface);
   }
 
-  /* Smooth transitions for all interactive elements */
+  /* Smooth transitions */
   .v-list-item {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Focus states for accessibility */
+  /* Focus states */
   .nav-item:focus-within,
   .nav-child-item:focus-within {
     outline: 2px solid rgba(var(--v-theme-primary), 0.3);
