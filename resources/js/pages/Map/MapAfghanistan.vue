@@ -1,7 +1,5 @@
 <template>
-  <AppBar title="نقشه">
-
-  </AppBar>
+  <AppBar title="نقشه"></AppBar>
 
   <div class="map-wrap" :dir="isRtl ? 'rtl' : 'ltr'">
     <div ref="mapEl" class="map"></div>
@@ -71,14 +69,6 @@ const pmtilesUrl = '/pmtiles-range/afghanistan.pmtiles';
 // highlighted marker from search
 let highlightMarker = null;
 
-// click marker (when user clicks somewhere to choose coordinates)
-let clickMarker = null;
-
-// static icon markers from basemap (provinces / districts / zones)
-let provinceMarkers = [];
-let districtMarkers = [];
-let zoneMarkers = [];
-
 // saved map-points markers (from map-points table)
 let savedPointMarkers = [];
 
@@ -100,22 +90,14 @@ const loadingAll = ref(false);
 
 /* ============================================================
    ✅ MODULE SOURCES (ALL ROUTES YOU SHARED)
-   Each entry:
-   - type: internal type key
-   - label: shown in drawer header
-   - list: index endpoint
-   - show: show endpoint
-   - title/subtitle builder: simple fallback (works with most)
 ============================================================ */
 const MAP_SOURCES = [
-  // Employee Management core
   { type: 'office_employee', label: 'کارمند', list: '/api/office-employees', show: (id) => `/api/office-employees/${id}` },
   { type: 'resource', label: 'منبع', list: '/api/resources', show: (id) => `/api/resources/${id}` },
   { type: 'information', label: 'اطلاعات', list: '/api/informations', show: (id) => `/api/informations/${id}` },
   { type: 'captive_delivery', label: 'تحویل اسیر', list: '/api/captive-deliveries', show: (id) => `/api/captive-deliveries/${id}` },
   { type: 'event', label: 'رویداد', list: '/api/events', show: (id) => `/api/events/${id}` },
 
-  // 56 Formats (as per your routes)
   { type: 'fasad', label: 'فساد', list: '/api/fasads', show: (id) => `/api/fasads/${id}` },
   { type: 'saeen_fasad', label: 'ساین فساد', list: '/api/saeen-fasads', show: (id) => `/api/saeen-fasads/${id}` },
   { type: 'heist', label: 'سرقت', list: '/api/heists', show: (id) => `/api/heists/${id}` },
@@ -127,7 +109,6 @@ const MAP_SOURCES = [
   { type: 'mahajerat', label: 'مهاجرت', list: '/api/mahajerats', show: (id) => `/api/mahajerats/${id}` },
   { type: 'soldier', label: 'سرباز', list: '/api/soldiers', show: (id) => `/api/soldiers/${id}` },
 
-  // Fifthy format one
   { type: 'mawad', label: 'مواد', list: '/api/mawads', show: (id) => `/api/mawads/${id}` },
   { type: 'lost_mujremeen', label: 'گم مجرمین', list: '/api/lost-mujremeens', show: (id) => `/api/lost-mujremeens/${id}` },
   { type: 'old_soldiers_homes', label: 'خانه‌های سربازان قدیم', list: '/api/old-soldiers-homes', show: (id) => `/api/old-soldiers-homes/${id}` },
@@ -139,7 +120,6 @@ const MAP_SOURCES = [
   { type: 'mashkok_shops', label: 'دکان‌های مشکوک', list: '/api/mashkok-shops', show: (id) => `/api/mashkok-shops/${id}` },
   { type: 'luchakanos', label: 'لوچکانو', list: '/api/luchakanos', show: (id) => `/api/luchakanos/${id}` },
 
-  // Fifthy format two
   { type: 'schools', label: 'مکتب', list: '/api/schools', show: (id) => `/api/schools/${id}` },
   { type: 'hado_bus_stops', label: 'تم‌گاه بس', list: '/api/hado-bus-stops', show: (id) => `/api/hado-bus-stops/${id}` },
   { type: 'transport_companies', label: 'شرکت ترانسپورت', list: '/api/transport-companies', show: (id) => `/api/transport-companies/${id}` },
@@ -151,7 +131,6 @@ const MAP_SOURCES = [
   { type: 'hosppitals', label: 'شفاخانه', list: '/api/hosppitals', show: (id) => `/api/hosppitals/${id}` },
   { type: 'work_shops', label: 'ورکشاپ', list: '/api/work-shops', show: (id) => `/api/work-shops/${id}` },
 
-  // Fifthy format three
   { type: 'badmashanos', label: 'بدماشانو', list: '/api/badmashanos', show: (id) => `/api/badmashanos/${id}` },
   { type: 'emarat_offices', label: 'ادارات امارت', list: '/api/emarat-offices', show: (id) => `/api/emarat-offices/${id}` },
   { type: 'hostels', label: 'لیلیه', list: '/api/hostels', show: (id) => `/api/hostels/${id}` },
@@ -163,7 +142,6 @@ const MAP_SOURCES = [
   { type: 'sarayanos', label: 'سرایانو', list: '/api/sarayanos', show: (id) => `/api/sarayanos/${id}` },
   { type: 'tujarans', label: 'تجاران', list: '/api/tujarans', show: (id) => `/api/tujarans/${id}` },
 
-  // Fifthy format four
   { type: 'checkpoints', label: 'چک‌پاینت', list: '/api/checkpoints', show: (id) => `/api/checkpoints/${id}` },
   { type: 'masjids', label: 'مسجد', list: '/api/masjids', show: (id) => `/api/masjids/${id}` },
   { type: 'highways', label: 'شاهراه', list: '/api/highways', show: (id) => `/api/highways/${id}` },
@@ -184,7 +162,6 @@ const MAP_SOURCES = [
 
 /* ---------- session token helper ---------- */
 function getToken() {
-  // you told me: session storage
   const t = sessionStorage.getItem('token');
   return t ? String(t) : '';
 }
@@ -308,30 +285,7 @@ function createHighlightElement(feature) {
   return el;
 }
 
-/* ---------- small round icon for static province/district/zone markers ---------- */
-function createStaticIconElement(kind) {
-  const el = document.createElement('div');
-  el.style.width = '18px';
-  el.style.height = '18px';
-  el.style.borderRadius = '50%';
-  el.style.background = '#ffffff';
-  el.style.boxShadow = '0 0 0 1px rgba(0,0,0,0.25)';
-  el.style.display = 'flex';
-  el.style.alignItems = 'center';
-  el.style.justifyContent = 'center';
-
-  const img = document.createElement('img');
-  img.src = kind === 'province' ? provinceIcon : kind === 'district' ? districtIcon : zoneIcon;
-  img.style.width = '12px';
-  img.style.height = '12px';
-  img.style.objectFit = 'contain';
-  img.style.pointerEvents = 'none';
-
-  el.appendChild(img);
-  return el;
-}
-
-/* ---------- marker element with optional photo ---------- */
+/* ---------- marker element with optional photo (KEEP AS-IS) ---------- */
 function createMarkerElementFromItem(item) {
   const el = document.createElement('div');
 
@@ -397,14 +351,12 @@ function updateSavedPointMarkers() {
 
   clearMarkerList(savedPointMarkers);
 
-  // include external dbPoints too, if any
   const allPoints = [...(props.dbPoints || []), ...(dbPointsLocal.value || [])];
 
   allPoints.forEach((p) => {
     const coords = parseCoordinates(p.coordinates || p.coordinate || p.coords);
     if (!coords) return;
 
-    // use your photo marker builder
     const el = createMarkerElementFromItem({
       title: p.name || 'بدون نام',
       picture:
@@ -420,7 +372,6 @@ function updateSavedPointMarkers() {
       .setLngLat(coords)
       .addTo(map);
 
-    // click => open drawer with local point info (no api needed)
     el.addEventListener('click', (ev) => {
       ev.stopPropagation();
       openDetailsFromLocalPoint(p);
@@ -430,7 +381,6 @@ function updateSavedPointMarkers() {
   });
 }
 
-/* local saved point => drawer */
 function openDetailsFromLocalPoint(p) {
   selectedItem.value = {
     type: 'map_point',
@@ -446,15 +396,13 @@ function openDetailsFromLocalPoint(p) {
 
   detailsOpen.value = true;
   detailsLoading.value = false;
-
-  // show “all details”
   detailsData.value = p;
 }
 
 /* ============================================================
    ✅ 2) UNIFIED MODULE markers (ALL TABLES)
 ============================================================ */
-const allMapItems = ref([]); // unified points from all tables
+const allMapItems = ref([]);
 
 function buildTitle(row, src) {
   return (
@@ -498,7 +446,6 @@ async function loadAllModulePoints() {
 
       const res = await fetch(url, { headers: authHeaders() }).then((r) => r.json());
 
-      // handle laravel resource pagination or plain arrays
       const rows = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
 
       return rows
@@ -553,7 +500,6 @@ function updateUnifiedMarkers() {
   console.log('Unified markers:', unifiedMarkers.length);
 }
 
-/* open drawer + fetch full record from its API show endpoint */
 async function openDetailsMenu(item) {
   selectedItem.value = item;
   detailsOpen.value = true;
@@ -562,7 +508,7 @@ async function openDetailsMenu(item) {
 
   try {
     const res = await fetch(item._showUrl, { headers: authHeaders() }).then((r) => r.json());
-    detailsData.value = res?.data ?? res; // laravel resources return {data:{...}}
+    detailsData.value = res?.data ?? res;
   } catch (e) {
     console.error('details load failed', e);
     detailsData.value = null;
@@ -571,7 +517,6 @@ async function openDetailsMenu(item) {
   }
 }
 
-/* Drawer asks to fly to item */
 function flyToItem(item) {
   const coords = parseCoordinates(item?.coordinates);
   if (!coords || !map) return;
@@ -585,86 +530,6 @@ function flyToItem(item) {
     speed: 1.3,
     curve: 1.3,
   });
-}
-
-/* ---------- admin icons (provinces / districts / zones) ---------- */
-function updateAdminIcons() {
-  if (!map) return;
-
-  const zoom = map.getZoom();
-
-  clearMarkerList(provinceMarkers);
-  clearMarkerList(districtMarkers);
-  clearMarkerList(zoneMarkers);
-
-  if (zoom >= 4 && map.getLayer('place-state')) {
-    const features = map.queryRenderedFeatures({ layers: ['place-state'] });
-    const seen = new Set();
-    features.forEach((f) => {
-      const props = f.properties || {};
-      const key = props['name:fa'] || props['name'] || props['name:latin'] || f.id;
-      if (!key || seen.has(key)) return;
-      seen.add(key);
-
-      const geom = f.geometry;
-      if (!geom || geom.type !== 'Point') return;
-      const [lng, lat] = geom.coordinates;
-
-      const el = createStaticIconElement('province');
-      const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
-        .setLngLat([lng, lat])
-        .addTo(map);
-      provinceMarkers.push(marker);
-    });
-  }
-
-  if (zoom >= 6) {
-    const districtLayers = ['place-city', 'place-town'].filter((id) => map.getLayer(id));
-    if (districtLayers.length) {
-      const features = map.queryRenderedFeatures({ layers: districtLayers });
-      const seen = new Set();
-      features.forEach((f) => {
-        const props = f.properties || {};
-        const key = props['name:fa'] || props['name'] || props['name:latin'] || f.id;
-        if (!key || seen.has(key)) return;
-        seen.add(key);
-
-        const geom = f.geometry;
-        if (!geom || geom.type !== 'Point') return;
-        const [lng, lat] = geom.coordinates;
-
-        const el = createStaticIconElement('district');
-        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
-          .setLngLat([lng, lat])
-          .addTo(map);
-        districtMarkers.push(marker);
-      });
-    }
-  }
-
-  if (zoom >= 8) {
-    const zoneLayers = ['place-village', 'place-other'].filter((id) => map.getLayer(id));
-    if (zoneLayers.length) {
-      const features = map.queryRenderedFeatures({ layers: zoneLayers });
-      const seen = new Set();
-      features.forEach((f) => {
-        const props = f.properties || {};
-        const key = props['name:fa'] || props['name'] || props['name:latin'] || f.id;
-        if (!key || seen.has(key)) return;
-        seen.add(key);
-
-        const geom = f.geometry;
-        if (!geom || geom.type !== 'Point') return;
-        const [lng, lat] = geom.coordinates;
-
-        const el = createStaticIconElement('zone');
-        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
-          .setLngLat([lng, lat])
-          .addTo(map);
-        zoneMarkers.push(marker);
-      });
-    }
-  }
 }
 
 /* ---------- Initialize map ---------- */
@@ -718,8 +583,6 @@ onMounted(async () => {
   map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
 
   map.on('load', async () => {
-    updateAdminIcons();
-
     // ✅ load saved points + all module points
     await loadSavedMapPoints();
     await loadAllModulePoints();
@@ -728,28 +591,7 @@ onMounted(async () => {
     applyFlyTarget(mapBus.flyTarget);
   });
 
-  map.on('moveend', () => updateAdminIcons());
-
-  /* CLICK ON MAP → pick coordinates + open dialog */
-  map.on('click', (e) => {
-    const lng = e.lngLat.lng.toFixed(6);
-    const lat = e.lngLat.lat.toFixed(6);
-    const value = `${lng},${lat}`;
-
-    selectedCoordinates.value = value;
-    dialogOpen.value = true;
-
-    emit('selectCoordinates', value);
-
-    if (clickMarker) clickMarker.remove();
-    clickMarker = new maplibregl.Marker({ color: '#2563eb' }).setLngLat(e.lngLat).addTo(map);
-
-    // keep your small popup only for clicked coords (not record details)
-    new maplibregl.Popup()
-      .setLngLat(e.lngLat)
-      .setHTML(`<b>Lng:</b> ${lng}<br/><b>Lat:</b> ${lat}`)
-      .addTo(map);
-  });
+  // ✅ REMOVED: map.on('click', ...)  (no more create-person/place popup)
 });
 
 /* ---------- Fly from search + highlight ---------- */
@@ -780,7 +622,6 @@ function flyTo(payload) {
     .addTo(map);
 }
 
-/* ---------- apply flyTarget from MapBusStore ---------- */
 function applyFlyTarget(val) {
   if (!val || !val.coords || !map) return;
 
@@ -805,20 +646,17 @@ function applyFlyTarget(val) {
   });
 }
 
-/* ---------- handle saved point from dialog ---------- */
 function handlePointSaved(point) {
   dbPointsLocal.value.unshift(point);
   updateSavedPointMarkers();
 }
 
-/* ---------- watch external dbPoints (if any parent uses) ---------- */
 watch(
   () => props.dbPoints,
   () => updateSavedPointMarkers(),
   { deep: true }
 );
 
-/* If you want map to reload markers after save/delete in any module */
 watch(
   () => mapBus.reloadTs,
   async (ts) => {
@@ -828,7 +666,6 @@ watch(
   }
 );
 
-/* ===== React to global flyTo requests ===== */
 watch(
   () => mapBus.flyTarget,
   (val) => {
@@ -848,7 +685,6 @@ watch(
       curve: 1.3,
     });
 
-    // For office employees we usually already show a marker; just clear highlight if needed
     const skipHighlight = meta.type === 'office_employee' || meta.disableHighlight === true;
 
     if (skipHighlight) {
@@ -876,25 +712,11 @@ watch(
   { deep: true }
 );
 
-async function reloadAll() {
-  if (!map) return;
-  await loadSavedMapPoints();
-  await loadAllModulePoints();
-}
-
 onBeforeUnmount(() => {
   if (highlightMarker) {
     highlightMarker.remove();
     highlightMarker = null;
   }
-  if (clickMarker) {
-    clickMarker.remove();
-    clickMarker = null;
-  }
-
-  clearMarkerList(provinceMarkers);
-  clearMarkerList(districtMarkers);
-  clearMarkerList(zoneMarkers);
 
   clearMarkerList(savedPointMarkers);
   clearMarkerList(unifiedMarkers);

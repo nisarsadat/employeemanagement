@@ -28,11 +28,6 @@ return [
         'map-afg',
         'offlinemap',
         'roles',
-        // dashboard 
-        'PeopleDashboard',
-        'InfoEnevtDashboard',
-        'FifthyFormatDashboard',
-        'FininaceDashboard',
         // inline info 
         'Eventtab',
 
@@ -90,8 +85,7 @@ return [
         'wakilanos','universities','masjids','highways','companies','donelostplaces',
         'econemyprojects','criminalcaptureplaces','pumps','shoras','checkpoints',
         'governmentplaces','supermarkets','parks','complexes','deplomaticplaces',
-        //reports
-        'fiftyformatreports'
+       
     ],
 
     // Optional role bundles

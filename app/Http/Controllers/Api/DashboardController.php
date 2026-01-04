@@ -32,6 +32,22 @@ class DashboardController extends Controller
          |-------------------------------------------------*/
         $period = strtolower((string) $request->query('period', 'yearly'));
         [$from, $to] = $this->resolvePeriodRange($period);
+        /* -------------------------------------------------
+        | EMPLOYEES SUMMARY (total/active/inactive) filtered by period
+        |-------------------------------------------------*/
+        $employeesTotal = OfficeEmployee::query()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->count();
+
+        $employeesActive = OfficeEmployee::query()
+            ->active()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->count();
+
+        $employeesInactive = OfficeEmployee::query()
+            ->inactive()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->count();
 
         /* -------------------------------------------------
          | EMPLOYEES (counts filtered by period)
@@ -146,8 +162,20 @@ class DashboardController extends Controller
         $informationsTotal = Information::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
+        // -------------------------------------------------
+        // ✅ INFORMATIONS GROWTH (current vs previous period)
+        // -------------------------------------------------
+        [$prevFrom, $prevTo] = $this->resolvePreviousRange($from, $to);
 
-        $eventsTotal = Event::query()
+        $informationsPrevTotal = Information::query()
+            ->when($prevFrom && $prevTo, fn ($q) => $this->applyDateRange($q, 'created_at', $prevFrom, $prevTo))
+            ->count();
+
+        $informationsGrowth = $informationsPrevTotal > 0
+            ? round((($informationsTotal - $informationsPrevTotal) / $informationsPrevTotal) * 100, 1)
+            : ($informationsTotal > 0 ? 100 : 0);
+
+                $eventsTotal = Event::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
 
@@ -203,12 +231,20 @@ class DashboardController extends Controller
                 'to'   => $to?->toDateTimeString(),
             ],
 
-            'employees' => [
-                'total'        => $employeesForDashboard->count(),
-                'max_total'    => $maxTotal,
-                'grouped'      => $employeesGrouped,
-                'flat_sorted'  => $employeesRanked->values(),
-            ],
+        'employees' => [
+            'total'        => $employeesTotal,
+            'active'       => $employeesActive,
+            'inactive'     => $employeesInactive,
+
+            // keep your ranking data exactly as-is
+            'max_total'    => $maxTotal,
+            'grouped'      => $employeesGrouped,
+            'flat_sorted'  => $employeesRanked->values(),
+
+            // optional: if you want to know how many employees had activity in this period
+            'ranked_total' => $employeesForDashboard->count(),
+        ],
+
 
             'resources' => [
                 'total'    => $resourcesTotal,
@@ -218,6 +254,14 @@ class DashboardController extends Controller
 
             'informations' => [
                 'total' => $informationsTotal,
+                'trend' => [
+                    'current'  => $informationsTotal,
+                    'previous' => $informationsPrevTotal,
+                ],
+            ],
+
+            'growth' => [
+                'informations' => $informationsGrowth,
             ],
 
             'events' => [
@@ -258,6 +302,18 @@ class DashboardController extends Controller
             'monthly' => [$now->copy()->subDays(30)->startOfDay(), $now->copy()->endOfDay()],
             default   => [$now->copy()->subDays(365)->startOfDay(), $now->copy()->endOfDay()],
         };
+    }
+    private function resolvePreviousRange(?Carbon $from, ?Carbon $to): array
+    {
+        if (!$from || !$to) return [null, null];
+
+        // same length window, immediately before current window
+        $seconds = $from->diffInSeconds($to) + 1;
+
+        $prevTo = $from->copy()->subSecond();
+        $prevFrom = $prevTo->copy()->subSeconds($seconds)->addSecond();
+
+        return [$prevFrom, $prevTo];
     }
 
     private function applyDateRange($query, string $col, ?Carbon $from, ?Carbon $to)

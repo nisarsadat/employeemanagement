@@ -109,11 +109,31 @@
                 </div>
               </div>
 
-              <div class="mt-4 d-flex align-center justify-space-between">
-                <div class="d-flex align-center gap-2">
-                  <div class="dot success"></div>
-                  <span class="text-caption">{{ t('فعال') }}</span>
+              <div class="mt-4 d-flex align-center justify-space-between flex-wrap gap-2">
+                <div class="d-flex flex-wrap gap-2">
+                  <v-chip
+                    size="small"
+                    variant="tonal"
+                    color="success"
+                    class="clickable-chip"
+                    @click.stop="goActiveEmployees"
+                  >
+                    <v-icon start size="16">mdi-check-circle</v-icon>
+                    {{ t('فعال') }}: {{ num(employeesActive) }}
+                  </v-chip>
+
+                  <v-chip
+                    size="small"
+                    variant="tonal"
+                    color="error"
+                    class="clickable-chip"
+                    @click.stop="goInactiveEmployees"
+                  >
+                    <v-icon start size="16">mdi-close-circle</v-icon>
+                    {{ t('غیرفعال') }}: {{ num(employeesInactive) }}
+                  </v-chip>
                 </div>
+
                 <div class="text-caption text-medium-emphasis">
                   {{ t('رتبه‌بندی در جدول') }}
                 </div>
@@ -169,10 +189,10 @@
                   variant="tonal"
                   color="success"
                   class="clickable-chip"
-                  @click.stop="goActiveEmployees"
+                  @click.stop="goActiveResources"
                 >
                   <v-icon start size="16">mdi-check-circle</v-icon>
-                  {{ t('فعال') }}
+                  {{ t('فعال') }}: {{ num(resourcesActive) }}
                 </v-chip>
 
                 <v-chip
@@ -180,10 +200,10 @@
                   variant="tonal"
                   color="error"
                   class="clickable-chip"
-                  @click.stop="goInactiveEmployees"
+                  @click.stop="goInactiveResources"
                 >
                   <v-icon start size="16">mdi-close-circle</v-icon>
-                  {{ t('غیرفعال') }}
+                  {{ t('غیرفعال') }}: {{ num(resourcesInactive) }}
                 </v-chip>
 
                 <v-spacer />
@@ -851,6 +871,8 @@
   function goEmployees() {
     go('/app/officeemployee');
   }
+  const employeesActive = computed(() => Number(repo.employees?.active ?? 0));
+  const employeesInactive = computed(() => Number(repo.employees?.inactive ?? 0));
 
   // Active / Inactive employees pages
   function goActiveEmployees() {
