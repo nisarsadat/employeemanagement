@@ -343,41 +343,13 @@
         ],
       },
 
-      // ✅ System settings group (key is "system-settings")
-      {
-        key: 'system-settings',
+      // src/router/index.js (or wherever your routes live)
+       {
+        key: 'settings',
         title: t('تنظیمات سیستم'),
-        icon: 'mdi-cog-outline',
-        children: [
-          { key: 's-provinces', title: t('ولایت'), to: { path: '/app/settings/provinces' } },
-          { key: 's-districts', title: t('والسوالی'), to: { path: '/app/settings/districts' } },
-          { key: 's-zones', title: t('زون'), to: { path: '/app/settings/zones/zones' } },
-          { key: 's-hawzas', title: t('حوزه'), to: { path: '/app/settings/zones/hawzas' } },
-          {
-            key: 'event-types',
-            title: 'نوع رویداد',
-            to: '/app/event-types',
-            icon: 'mdi-shape-outline',
-          },
-          {
-            key: 'event-specific-types',
-            title: 'نوع مشخص رویداد',
-            to: '/app/event-specific-types',
-            icon: 'mdi-shape-plus-outline',
-          },
-          {
-            key: 'jenayee-types',
-            title: 'جینایی',
-            to: '/app/jenayee-type',
-            icon: 'mdi-shape-plus-outline',
-          },
-          {
-            key: 'seyasee-types',
-            title: 'سیاسی',
-            to: '/app/seyasee-type',
-            icon: 'mdi-shape-plus-outline',
-          },
-        ],
+        icon: 'mdi-cog',
+        to: { path: '/app/settings' },
+        // perm: 'settings.view',
       },
     ].map(withPerms)
   );

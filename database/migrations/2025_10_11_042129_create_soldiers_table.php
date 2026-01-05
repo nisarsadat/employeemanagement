@@ -8,64 +8,96 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('mawads', function (Blueprint $table) {
+        Schema::create('soldiers', function (Blueprint $table) {
             $table->id();
 
-            // ---------- Identity ----------
-            $table->string('mawad_type')->nullable();
-            $table->string('nickname')->nullable();
-            $table->string('name'); // required
+            /* =====================
+             | Identity
+             |=====================*/
+            $table->string('name');
             $table->string('father_name')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->string('Province_addr')->nullable();
 
-            // ---------- Main address ----------
+            /* =====================
+             | Main address
+             |=====================*/
             $table->string('main_province')->nullable();
             $table->string('main_district')->nullable();
             $table->string('main_village')->nullable();
 
-            // ---------- Current address ----------
+            /* =====================
+             | Current address
+             |=====================*/
             $table->string('now_province')->nullable();
+            $table->string('now_zone')->nullable();
             $table->string('now_district')->nullable();
             $table->string('now_village')->nullable();
 
-            // ---------- Extra location ----------
-            $table->string('province')->nullable();
-            $table->string('zone')->nullable();
-            $table->string('district')->nullable();
-            $table->string('village')->nullable();
-
+            /* =====================
+             | Location details
+             |=====================*/
             $table->string('specific_place')->nullable();
+            $table->string('street_number')->nullable();
+            $table->string('home_number')->nullable();
+
+            /* =====================
+             | Job & guard info
+             |=====================*/
+            $table->string('old_job')->nullable();
+            $table->string('now_job')->nullable();
+            $table->unsignedInteger('guard_amount')->nullable();
+
+            /* =====================
+             | Coordinates
+             |=====================*/
             $table->string('coordinates')->nullable();
 
-            // ---------- Contact & sales ----------
-            $table->string('mawad_sales_phone')->nullable();
-            $table->string('supplier')->nullable();
-            $table->string('Province_addr')->nullable();
-
-            // ---------- History & notes ----------
-            $table->text('history_form')->nullable();
-            $table->text('note')->nullable();
-
-            // ---------- Relation ----------
+            /* =====================
+             | Resource relation
+             |=====================*/
             $table->foreignId('resource_id')
                 ->nullable()
                 ->constrained('resources')
-                ->cascadeOnDelete();
+                ->nullOnDelete();
+
+            /* =====================
+             | Notes
+             |=====================*/
+            $table->text('notes')->nullable();
 
             $table->timestamps();
 
-            /**
-             * ✅ UNIQUE (composite identity)
-             * mawad_type + name + father_name + main_province + main_district + main_village
+            /* =====================
+             | ✅ UNIQUE identity
+             |=====================
+             | A soldier is unique by:
+             | name + father_name + phone_number + Province_addr
+             | + main_province + main_district + main_village
              */
             $table->unique(
-                ['mawad_type', 'name', 'father_name', 'main_province', 'main_district', 'main_village'],
-                'mawads_identity_unique'
+                [
+                    'name',
+                    'father_name',
+                    'phone_number',
+                    'Province_addr',
+                    'main_province',
+                    'main_district',
+                    'main_village',
+                ],
+                'soldiers_identity_unique'
             );
+
+            /* =====================
+             | Indexes
+             |=====================*/
+            $table->index('resource_id');
+            $table->index(['name', 'father_name']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('mawads');
+        Schema::dropIfExists('soldiers');
     }
 };

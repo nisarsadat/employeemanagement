@@ -488,16 +488,16 @@
   const inactiveEmployeesCount = computed(
     () => rowsFT.value.filter((r) => String(r.activity || '').trim() === 'غیر فعال').length
   );
-
-  /* ===== Headers for FilterableTable ===== */
   const headersFT = computed(() => [
+    // Media
     { title: t('تصویر'), key: 'picture', sortable: false },
+
     // Counts
     { title: t('اطلاعات'), key: 'informations_count', sortable: false },
     { title: t('حوادث'), key: 'events_count', sortable: false },
     { title: t('منابع'), key: 'resources_count', sortable: false },
-    { title: t('تعداد منابع فعال'), key: 'resources_active_count', sortable: false },
-    { title: t('تعداد منابع غیر فعال'), key: 'resources_inactive_count', sortable: false },
+    { title: t('منابع فعال'), key: 'resources_active_count', sortable: false },
+    { title: t('منابع غیر فعال'), key: 'resources_inactive_count', sortable: false },
 
     // Identity
     { title: t('نام'), key: 'name' },
@@ -505,96 +505,95 @@
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
     { title: t('نام مستعار'), key: 'nick_name' },
     { title: t('کود نمبر'), key: 'code_number' },
-    { title: t('پول داده شده'), key: 'payed_money' },
-
-    // Rank/levels
-    { title: t('نوعیت وظیفه'), key: 'job_type' },
-    { title: t('بست'), key: 'bast' },
-    { title: t('رتبه/سطح'), key: 'level' },
-
-    // Background
-    { title: t('سابقه جهاد'), key: 'history_jahad' },
-    { title: t('دلګی/مشری'), key: 'dilgay_mesher' },
-    { title: t('مواقف جهادی'), key: 'jahadi_mawaqaf' },
-    { title: t('مسئولیت جهاد'), key: 'jahad_time_responsibility' },
     { title: t('شماره تذکره'), key: 'tazkira' },
-    { title: t('محل جهاد'), key: 'jahad_place' },
+    { title: t('سن'), key: 'age' },
 
-    // Addresses
-    { title: t('آدرس اصلی'), key: 'main_province' },
-    { title: t('آدرس فعلی'), key: 'now_province' },
-    { title: t('محل مشخص فعلی'), key: 'now_specific_place' },
-    { title: t('نمبر سرک'), key: 'now_street_number' },
-    { title: t('نمبر خانه'), key: 'now_home_number' },
-
-    // Job/org
+    // Job / Rank
+    { title: t('نوعیت وظیفه'), key: 'job_type' },
     { title: t('وظیفه مشخص'), key: 'specific_job' },
     { title: t('قسم'), key: 'qisem' },
+    { title: t('بست'), key: 'bast' },
+    { title: t('رتبه/سطح'), key: 'level' },
     { title: t('زون'), key: 'zone' },
     { title: t('حوزه'), key: 'hawza' },
 
-    // Status & education
-    { title: t('حالت مدنی'), key: 'madani_halat' },
-    { title: t('فعالیت'), key: 'activity' },
+    // Jihad background
+    { title: t('سابقه جهاد'), key: 'history_jahad' },
+    { title: t('دلګی مشر'), key: 'dilgay_mesher' },
+    { title: t('موقف جهادی'), key: 'jahadi_mawaqaf' },
+    { title: t('مسئولیت جهاد'), key: 'jahad_time_responsibility' },
+    { title: t('محل جهاد'), key: 'jahad_place' },
+
+    // Addresses
+    { title: t('ولایت اصلی'), key: 'main_province' },
+    { title: t('ولسوالی اصلی'), key: 'main_district' },
+    { title: t('قریه اصلی'), key: 'main_village' },
+
+    { title: t('ولایت فعلی'), key: 'now_province' },
+    { title: t('ولسوالی فعلی'), key: 'now_district' },
+    { title: t('قریه فعلی'), key: 'now_village' },
+    { title: t('محل مشخص فعلی'), key: 'now_specific_place' },
+    { title: t('نمبر سرک'), key: 'now_street_number' },
+    { title: t('نمبر خانه'), key: 'now_home_number' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
+    // Education
     { title: t('تعلیمات دینی'), key: 'relegy_study' },
     { title: t('تعلیمات عصری'), key: 'new_study' },
     { title: t('پوهنحی/رشته'), key: 'faculty' },
     { title: t('نظامی'), key: 'nizami' },
     { title: t('معلومات سلاح'), key: 'gun_knowledge' },
 
-    // Demographic
-    { title: t('سن'), key: 'age' },
-    { title: t('مهارت‌های مشخص'), key: 'specific_skills' },
-    { title: t('زبان'), key: 'language' },
-    { title: t('قوم/ملیت'), key: 'nation' },
-
     // Contact & misc
     { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('زبان'), key: 'language' },
+    { title: t('قوم/ملیت'), key: 'nation' },
+    { title: t('مهارت‌های خاص'), key: 'specific_skills' },
+    { title: t('فعالیت'), key: 'activity' },
     { title: t('مختصات'), key: 'coordinates' },
+
+    // Dates & finance
     { title: t('تاریخ آمدن'), key: 'join_date' },
     { title: t('تاریخ رفتن'), key: 'left_date' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('پول داده شده'), key: 'payed_money' },
     { title: t('ملاحظات'), key: 'note' },
 
     // Map
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);
-  function applyJobTypeFilter(val) {
-    if (!val) {
-      // Total: clear job_type filter
-      const next = { ...(filters.value || {}) };
-      delete next.job_type;
-      filters.value = next;
-      return;
-    }
-
-    filters.value = {
-      ...(filters.value || {}),
-      job_type: val, // must match headersFT key: 'job_type'
-    };
-  }
-
-  /* ===== Top filter groups ===== */
   const topGroups = computed(() => [
     {
-      title: t('معرفت'),
+      title: t('هویت'),
       keys: [
         'name',
         'father_name',
         'grand_father_name',
         'nick_name',
         'code_number',
-        'bast',
-        'level',
-        'history_jahad',
-        'dilgay_mehser',
-        'jahadi_mawaqaf',
-        'jahad_time_responsibility',
         'tazkira',
-        'dilgay_mesher',
+        'age',
+        'language',
+        'nation',
       ],
     },
-    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+    {
+      title: t('وظیفه و رتبه'),
+      keys: ['job_type', 'specific_job', 'qisem', 'bast', 'level', 'zone', 'hawza'],
+    },
+    {
+      title: t('سابقه جهاد'),
+      keys: [
+        'history_jahad',
+        'dilgay_mesher',
+        'jahadi_mawaqaf',
+        'jahad_time_responsibility',
+        'jahad_place',
+      ],
+    },
+    {
+      title: t('آدرس اصلی'),
+      keys: ['main_province', 'main_district', 'main_village'],
+    },
     {
       title: t('آدرس فعلی'),
       keys: [
@@ -609,6 +608,10 @@
     {
       title: t('تحصیلات'),
       keys: ['relegy_study', 'new_study', 'faculty', 'nizami', 'gun_knowledge'],
+    },
+    {
+      title: t('تماس و سایر'),
+      keys: ['phone_number', 'specific_skills', 'activity', 'coordinates', 'note'],
     },
   ]);
 

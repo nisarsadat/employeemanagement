@@ -362,31 +362,18 @@
 
             <!-- Main address -->
             <v-row class="pa-3">
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.main_province"
-                  :label="t('ولایت اصلی *')"
-                  density="compact"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                  :error="hasError('main_province')"
-                  :error-messages="getErrorMessages('main_province')"
+              <v-col cols="12" md="12">
+                <ProvinceDistrictNameSelect
+                  v-model:province="form.main_province"
+                  v-model:district="form.main_district"
+                  :province-label="t('ولایت اصلی *')"
+                  :district-label="t('ولسوالی اصلی *')"
+                  :mdProvince="6"
+                  :mdDistrict="6"
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.main_district"
-                  :label="t('ولسوالی اصلی *')"
-                  density="compact"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                  :error="hasError('main_district')"
-                  :error-messages="getErrorMessages('main_district')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.main_village"
                   :label="t('قریه/گذر اصلی *')"
@@ -401,29 +388,19 @@
 
             <!-- Current address -->
             <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.now_province"
-                  :label="t('ولایت فعلی')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('now_province')"
-                  :error-messages="getErrorMessages('now_province')"
-                />
+              <v-col cols="12" md="12">
+
+              <ProvinceDistrictNameSelect
+                v-model:province="form.now_province"
+                v-model:district="form.now_district"
+                :province-label="t('ولایت فعلی')"
+                :district-label="t('ولسوالی فعلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
+              />
               </v-col>
 
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.now_district"
-                  :label="t('ولسوالی فعلی')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('now_district')"
-                  :error-messages="getErrorMessages('now_district')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.now_village"
                   :label="t('قریه/گذر فعلی')"
@@ -471,7 +448,7 @@
             </v-row>
 
             <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="4">
+              <!-- <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.Province_addr"
                   :label="t('ولایت مربوطه')"
@@ -480,9 +457,9 @@
                   :error="hasError('Province_addr')"
                   :error-messages="getErrorMessages('Province_addr')"
                 />
-              </v-col>
+              </v-col> -->
 
-              <v-col cols="12" md="8">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.coordinates"
                   :label="t('مختصات')"
@@ -554,33 +531,19 @@
                   :error-messages="getErrorMessages('qisem')"
                 />
               </v-col>
+              <v-col cols="12" >
 
-              <v-col cols="12" md="3">
-                <v-select
-                  v-model="form.zone"
-                  :items="repo.getZoneOptions()"
-                  :label="t('زون')"
-                  density="compact"
-                  variant="outlined"
-                  hide-details="auto"
-                  @update:modelValue="onZoneChange"
-                />
+              <ZoneHawzaNameSelect
+                v-model:zone="form.zone"
+                v-model:hawza="form.hawza"
+                :zone-label="t('زون')"
+                :hawza-label="t('حوزه')"
+                :mdZone="6"
+                :mdHawza="6"
+              />
               </v-col>
 
-              <v-col cols="12" md="3">
-                <v-select
-                  v-model="form.hawza"
-                  :items="hawzaItems"
-                  :label="t('حوزه')"
-                  density="compact"
-                  variant="outlined"
-                  hide-details="auto"
-                  :rules="[(v) => hawzaValidForZone(v)]"
-                  @update:modelValue="onHawzaChange"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="6">
                 <v-select
                   v-model="form.madani_halat"
                   :items="repo.getHalatMadaniOptions()"
@@ -591,7 +554,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.activity"
                   :label="t('فعالیت')"
@@ -601,16 +564,9 @@
                 />
               </v-col>
             </v-row>
-              <v-col cols="12" md="12">
-                <v-select
-                  v-model="form.job_type"
-                  :items="repo.getJobTypeOptions()"
-                  :label="t('نوعیت وظیفه')"
-                  density="compact"
-                  variant="outlined"
-                  hide-details="auto"
-                />
-              </v-col>
+            <v-col cols="12" md="12">
+              <JobTypeSelect v-model="form.job_type" :label="t('نوعیت وظیفه')" />
+            </v-col>
             <v-row class="px-3 pb-3 pt-0">
               <v-col cols="6" md="6">
                 <v-text-field
@@ -683,14 +639,7 @@
               </v-col>
 
               <v-col cols="12" md="12">
-                <v-select
-                  v-model="form.jahadi_mawaqaf"
-                  :items="repo.getJahadiMawqafOptions()"
-                  :label="t('موقف جهادی')"
-                  density="compact"
-                  variant="outlined"
-                  hide-details="auto"
-                />
+                <MawqafJahadiSelect v-model="form.jahadi_mawaqaf" :label="t('موقف جهادی')" />
               </v-col>
             </v-row>
 
@@ -911,6 +860,12 @@
   import DateInput from '../../components/DateInput.vue';
   import { useEmployeOfficeRepository } from '../../stores/EmployeeRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+  import ProvinceDistrictNameSelect from '../../components/ProvinceDistrictSelect.vue';
+  import ZoneHawzaNameSelect from '../../components/ZoneHawzaSelect.vue';
+  import JobTypeSelect from '../../components/JobTypeSelect.vue';
+  import MawqafJahadiSelect from '../../components/MawqafJahadiSelect.vue';
+  import { useLookupsRepository } from '../../stores/LookupsRepository';
+  const lookups = useLookupsRepository();
 
   const repo = useEmployeOfficeRepository();
   const auth = useLoginRepository();
@@ -1037,37 +992,6 @@
   });
 
   const form = ref(blankForm());
-
-  /* ===== HAWZA helpers ===== */
-  const hawzaItems = computed(() => {
-    const z = form.value.zone || '';
-    return repo.getHawzaOptionsForZone(z);
-  });
-
-  function onZoneChange() {
-    const { zone, hawza } = repo.normalizeAfterZoneChange(
-      form.value.zone ?? '',
-      form.value.hawza ?? ''
-    );
-    form.value.zone = zone;
-    form.value.hawza = hawza;
-  }
-
-  function onHawzaChange() {
-    const { zone, hawza } = repo.normalizeAfterHawzaChange(
-      form.value.hawza ?? '',
-      form.value.zone ?? ''
-    );
-    form.value.zone = zone;
-    form.value.hawza = hawza;
-  }
-
-  function hawzaValidForZone(value) {
-    return (
-      repo.hawzaIsValidForZone(form.value.zone ?? '', value ?? '') ||
-      t('حوزه انتخابی مربوط به این زون نیست')
-    );
-  }
 
   /* ===== RULES ===== */
   const rules = {
@@ -1435,6 +1359,15 @@
 
   /* ===== INIT ===== */
   onMounted(async () => {
+    await Promise.all([
+      lookups.GetProvinces(),
+      lookups.GetDistricts(),
+      lookups.GetZones(),
+      lookups.GetHawzas(),
+      lookups.GetMawqafJahadis(),
+      lookups.GetJobTypes(),
+    ]);
+
     await loadForEdit();
   });
 

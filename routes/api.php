@@ -140,6 +140,8 @@ use App\Models\OfficeEmployee;
 use App\Http\Controllers\Reports\FiftyFormatsReportController;
 use App\Http\Controllers\Api\InformationReportController;
 use App\Http\Controllers\Api\JenayeeTypeController;
+use App\Http\Controllers\Api\JobTypeController;
+use App\Http\Controllers\Api\MawqafJahadiController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrganController;
 use App\Http\Controllers\Api\OutgoingIncomingController;
@@ -150,6 +152,7 @@ use App\Http\Controllers\Api\Reports\Foul\QuarterlyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\WeeklyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\YearlyFoulReportController;
 use App\Http\Controllers\Api\ResourceActivityController;
+use App\Http\Controllers\Api\ResourceActivityTypeController;
 use App\Http\Controllers\Api\SeyaseeTypeController;
 use App\Http\Controllers\Api\ZoneController;
 use App\Http\Controllers\CaptiveDocumentController;
@@ -542,11 +545,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('hawzas', HawzaController::class);
         Route::get('/event-types/options', [EventTypeController::class, 'options']);
         Route::apiResource('/event-types', EventTypeController::class);
-        // event specific types
         Route::apiResource('/event-specific-types', EventSpecificTypeController::class);
         Route::apiResource('jenayee-types', JenayeeTypeController::class);
         Route::apiResource('seyasee-types', SeyaseeTypeController::class);
         Route::apiResource('organs', OrganController::class);
+        Route::apiResource('job-types', JobTypeController::class);
+        Route::apiResource('resource-activity-types', ResourceActivityTypeController::class);
+        Route::apiResource('mawqaf-jahadis', MawqafJahadiController::class);
     });
 
 

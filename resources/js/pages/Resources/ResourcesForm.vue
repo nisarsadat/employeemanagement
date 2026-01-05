@@ -385,31 +385,18 @@
 
             <!-- Main address -->
             <v-row class="pa-3">
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.main_province"
-                  :label="t('ولایت اصلی *')"
-                  density="compact"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                  :error="hasError('main_province')"
-                  :error-messages="getErrorMessages('main_province')"
+              <v-col cols="12" md="12">
+                <ProvinceDistrictNameSelect
+                  v-model:province="form.main_province"
+                  v-model:district="form.main_district"
+                  :province-label="t('ولایت اصلی *')"
+                  :district-label="t('ولسوالی اصلی *')"
+                  :mdProvince="6"
+                  :mdDistrict="6"
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.main_district"
-                  :label="t('ولسوالی اصلی *')"
-                  density="compact"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                  :error="hasError('main_district')"
-                  :error-messages="getErrorMessages('main_district')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.main_village"
                   :label="t('قریه/گذر اصلی *')"
@@ -424,29 +411,18 @@
 
             <!-- Current address -->
             <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.now_province"
-                  :label="t('ولایت فعلی')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('now_province')"
-                  :error-messages="getErrorMessages('now_province')"
+              <v-col cols="12" md="12">
+                <ProvinceDistrictNameSelect
+                  v-model:province="form.now_province"
+                  v-model:district="form.now_district"
+                  :province-label="t('ولایت فعلی')"
+                  :district-label="t('ولسوالی فعلی')"
+                  :mdProvince="6"
+                  :mdDistrict="6"
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.now_district"
-                  :label="t('ولسوالی فعلی')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('now_district')"
-                  :error-messages="getErrorMessages('now_district')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.now_village"
                   :label="t('قریه/گذر فعلی')"
@@ -567,7 +543,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="3">
+              <!-- <v-col cols="12" md="3">
                 <v-autocomplete
                   v-model="form.activity"
                   :items="repo.activityOptions || []"
@@ -578,9 +554,9 @@
                   :error="hasError('activity')"
                   :error-messages="getErrorMessages('activity')"
                 />
-              </v-col>
+              </v-col> -->
 
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="6">
                 <v-autocomplete
                   v-model="form.halat_madani"
                   :items="repo.halatMadaniOptions || []"
@@ -621,21 +597,15 @@
               </v-col>
 
               <v-col cols="12" md="3">
-                <v-autocomplete
+                <ResourceActivityTypeSelect
                   v-model="form.resource_activity_type"
-                  :items="resourceActivityTypeOptions"
-                  item-title="label"
-                  item-value="value"
                   :label="t('نوع فعالیت منبع')"
-                  density="compact"
-                  variant="outlined"
-                  hide-details="auto"
                   :error="hasError('resource_activity_type')"
                   :error-messages="getErrorMessages('resource_activity_type')"
                 />
               </v-col>
 
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.resource_cover"
                   :label="t('پوشش منبع')"
@@ -646,7 +616,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <v-autocomplete
                   v-model="form.office_employee_id"
                   :items="repo.officeemployees || []"
@@ -661,7 +631,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.resedint_code"
                   :label="t('رزیدنت مربوطه کود')"
@@ -789,6 +759,10 @@
   import DateInput from '../../components/DateInput.vue';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+  import ProvinceDistrictNameSelect from '../../components/ProvinceDistrictSelect.vue';
+  import ResourceActivityTypeSelect from '../../components/ResourceActivityTypeSelect.vue';
+  import { useLookupsRepository } from '../../stores/LookupsRepository';
+  const lookups = useLookupsRepository();
 
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
@@ -890,7 +864,7 @@
     old_job: '',
     now_job: '',
     job_place: '',
-    activity: '',
+    activity: 'فعال',
     halat_madani: '',
     resource_activity_type: '',
     resource_cover: '',
@@ -916,15 +890,6 @@
       return true;
     },
   };
-
-  /* ===== RESOURCE TYPE OPTIONS ===== */
-  const resourceActivityTypeOptions = [
-    { label: 'ثابت', value: 'ثابت' },
-    { label: 'سیار', value: 'سیار' },
-    { label: 'اجنت', value: 'اجنت' },
-    { label: 'ریزیدنت', value: 'ریزیدنت' },
-    { label: 'نفوذی', value: 'نفوذی' },
-  ];
 
   /* ===== PICTURE ===== */
   function triggerPicture() {
@@ -1192,7 +1157,13 @@
 
   /* ===== INIT ===== */
   onMounted(async () => {
-    await Promise.allSettled([repo.GetOfficeEmployee?.()]);
+    await Promise.allSettled([
+      lookups.GetProvinces(),
+      lookups.GetDistricts(),
+      lookups.GetResourceActivityTypes(),
+      repo.GetOfficeEmployee?.(),
+    ]);
+
     await loadForEdit();
   });
 

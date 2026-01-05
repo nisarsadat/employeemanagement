@@ -188,6 +188,11 @@ import EventTypes from '../pages/Settings/EventType/EventTypes.vue';
 import EventSpecificTypes from '../pages/Settings/EventType/EventSpecificTypes.vue';
 import JenayeeTypesIndex from '../pages/Settings/JenayeeTypes/JenayeeTypesIndex.vue';
 import SeyaseeTypesIndex from '../pages/Settings/SeyaseeTypes/SeyaseeTypesIndex.vue';
+import OrgansIndex from '../pages/Settings/Organs/OrgansIndex.vue';
+import JobTypesIndex from '../pages/Settings/JobTypes/JobTypesIndex.vue';
+import ResourceActivityTypesIndex from '../pages/Settings/ResourceActivityTypes/ResourceActivityTypesIndex.vue';
+import SystemSettingsIndex from '../pages/Settings/SystemSettingsIndex.vue';
+import MawqafJahadisIndex from '../pages/Settings/MawqafJahadis/MawqafJahadisIndex.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -1482,6 +1487,31 @@ const router = createRouter({
           path: '/app/seyasee-type',
           name: 'SeyaseeType',
           component: SeyaseeTypesIndex,
+        },
+        {
+          path: '/app/organs',
+          name: 'organs',
+          component: OrgansIndex,
+        },
+        {
+          path: '/app/jobs-type',
+          name: 'JobsType',
+          component: JobTypesIndex,
+        },
+        {
+          path: '/app/resource-activity-types',
+          name: 'ResourceActivityTypes',
+          component: ResourceActivityTypesIndex,
+        },
+        {
+          path: '/app/settings',
+          name: 'SystemSettingsIndex',
+          component: SystemSettingsIndex,
+        },
+        {
+          path: '/app/mawqafjahadi',
+          name: 'MawqafJahadi',
+          component: MawqafJahadisIndex,
         },
       ],
     },
