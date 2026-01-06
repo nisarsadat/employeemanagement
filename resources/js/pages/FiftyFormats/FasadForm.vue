@@ -70,7 +70,7 @@
                 color="primary"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.father_name"
                 :label="t('نام پدر')"
@@ -79,7 +79,7 @@
                 hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <!-- <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -87,7 +87,7 @@
                 variant="outlined"
                 hide-details="auto"
               />
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <!-- آدرس اصلی -->
@@ -101,25 +101,17 @@
           </v-row>
 
           <v-row dense>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_province"
-                :label="t('ولایت اصلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.main_province"
+                v-model:district="form.main_district"
+                :province-label="t('ولایت اصلی')"
+                :district-label="t('ولسوالی اصلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_district"
-                :label="t('ولسوالی اصلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="`12`">
               <v-text-field
                 v-model="form.main_village"
                 :label="t('قریه/ناحیه اصلی')"
@@ -141,16 +133,17 @@
           </v-row>
 
           <v-row dense>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_province"
-                :label="t('ولایت فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.now_province"
+                v-model:district="form.now_district"
+                :province-label="t('ولایت فعلی')"
+                :district-label="t('ولسوالی فعلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.now_zone"
                 :label="t('زون فعلی')"
@@ -159,16 +152,7 @@
                 hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_district"
-                :label="t('ولسوالی فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.now_village"
                 :label="t('قریه/ناحیه فعلی')"
@@ -492,6 +476,7 @@
   import { useRoute, useRouter } from 'vue-router';
   import AppBar from '@/components/AppBar.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -899,6 +884,7 @@
 
   /* Init */
   onMounted(async () => {
+    await Promise.all([lookups.GetProvinces(), lookups.GetDistricts()]);
     await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadExisting();

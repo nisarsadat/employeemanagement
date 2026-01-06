@@ -84,16 +84,17 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.province"
-                :label="t('ولایت')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+             <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.main_province"
+                v-model:district="form.main_district"
+                :province-label="t('ولایت اصلی')"
+                :district-label="t('ولسوالی اصلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.zone"
                 :label="t('زون')"
@@ -102,16 +103,8 @@
                 hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.district"
-                :label="t('ولسوالی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="3">
+            
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.village"
                 :label="t('قریه/ناحیه')"
@@ -123,7 +116,7 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.specific_place"
                 :label="t('موقعیت مشخص')"
@@ -133,7 +126,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="6">
+            <!-- <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -141,7 +134,7 @@
                 variant="outlined"
                 hide-details="auto"
               />
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <!-- امنیتی -->
@@ -208,7 +201,7 @@
 
           <!-- مختصات -->
           <v-row class="mt-2">
-            <v-col cols="12">
+            <v-col cols="12" md="12">
               <h3 class="section-title">
                 {{ t('مختصات و نقشه') }}
               </h3>
@@ -375,6 +368,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import AppBar from '@/components/AppBar.vue';
 import { useFasadRepository } from '@/stores/FasadRepository';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');

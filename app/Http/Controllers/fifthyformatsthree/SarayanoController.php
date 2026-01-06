@@ -52,3 +52,140 @@ class SarayanoController extends Controller
     }
 
     public function store(StoreSarayanoRequest $request)
+    {
+        $user = $request->user(); // 🔔 who did this
+
+        try {
+            $saray = Sarayano::create($request->validated())
+                ->load(['resource:id,name,code_number,phone_number']);
+
+            // 🔔 Notification: CREATED
+            NotificationService::record(
+                $user,
+                module: 'سرايان',
+                action: 'created',
+                title: 'نوی سراي ثبت شو',
+                message: 'نوم: ' . ($saray->saray_name ?? ''),
+                routeName: 'sarayano',               // ⚠️ set to your real route name
+                routeParams: ['id' => $saray->id],
+                level: 'success',
+                changes: null
+            );
+
+            return SarayanoResource::make($saray);
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponse();
+            }
+            throw $e;
+        }
+    }
+
+    public function show(Sarayano $sarayano)
+    {
+        $sarayano->load(['resource:id,name,code_number,phone_number']);
+        return SarayanoResource::make($sarayano);
+    }
+
+    public function update(UpdateSarayanoRequest $request, Sarayano $sarayano)
+    {
+        $user = $request->user(); // 🔔
+
+        try {
+            // 🧮 build changes BEFORE update
+            $original  = $sarayano->getOriginal();
+            $validated = $request->validated();
+            $changes   = [];
+
+            foreach ($validated as $field => $newValue) {
+                if (array_key_exists($field, $original)) {
+                    $oldValue = $original[$field];
+                    if ($oldValue != $newValue) {
+                        $changes[$field] = [
+                            'old' => $oldValue,
+                            'new' => $newValue,
+                        ];
+                    }
+                }
+            }
+
+            $sarayano->update($validated);
+            $sarayano->load(['resource:id,name,code_number,phone_number']);
+
+            // 🔔 Notification: UPDATED
+            NotificationService::record(
+                $user,
+                module: 'سرايان',
+                action: 'updated',
+                title: 'سراي اصلاح شو',
+                message: 'نوم: ' . ($sarayano->saray_name ?? ''),
+                routeName: 'sarayano',               // ⚠️ set to your real route name
+                routeParams: ['id' => $sarayano->id],
+                level: 'info',
+                changes: !empty($changes) ? $changes : null
+            );
+
+            return SarayanoResource::make($sarayano);
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponse();
+            }
+            throw $e;
+        }
+    }
+
+    public function destroy(Request $request, Sarayano $sarayano)
+    {
+        $user = $request->user(); // 🔔
+        $name = $sarayano->saray_name;
+
+        $sarayano->delete();
+
+        // 🔔 Notification: DELETED
+        NotificationService::record(
+            $user,
+            module: 'سرايان',
+            action: 'deleted',
+            title: 'سراي حذف شو',
+            message: 'نوم: ' . ($name ?? ''),
+            routeName: null,
+            routeParams: ['sarayano'],
+            level: 'warning',
+            changes: null
+        );
+
+        return response()->noContent();
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $user = $request->user(); // 🔔
+
+        $ids = $request->input('ids', []);
+        Sarayano::destroy($ids);
+
+        // 🔔 Notification: BULK DELETED
+        NotificationService::record(
+            $user,
+            module: 'سرايان',
+            action: 'bulk_deleted',
+            title: 'ډله‌ییز حذف ترسره شو',
+            message: 'حذف شوي ریکارډونه: ' . count($ids),
+            routeName: null,
+            routeParams: null,
+            level: 'warning',
+            changes: [
+                'ids' => [
+                    'old' => null,
+                    'new' => $ids,
+                ],
+            ]
+        );
+
+        return response()->json([
+            'message' => 'Bulk deleted',
+            'deleted' => count($ids),
+            'ids'     => $ids,
+        ]);
+    }
+}

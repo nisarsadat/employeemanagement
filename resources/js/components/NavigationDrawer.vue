@@ -317,6 +317,13 @@
         to: { path: '/app/outgoingincommings' },
       },
       {
+        key: 'khayratreports',
+        title: t('راپور خیریت'),
+        icon: 'mdi-graph',
+        to: { path: '/app/khayratreports' },
+        // perm: 'roles.view',
+      },
+      {
         key: 'roles',
         title: t('نقش ها'),
         icon: 'mdi-home',
@@ -344,7 +351,7 @@
       },
 
       // src/router/index.js (or wherever your routes live)
-       {
+      {
         key: 'settings',
         title: t('تنظیمات سیستم'),
         icon: 'mdi-cog',

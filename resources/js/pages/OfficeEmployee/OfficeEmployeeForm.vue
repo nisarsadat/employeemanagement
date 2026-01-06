@@ -543,7 +543,7 @@
               />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="12">
                 <v-select
                   v-model="form.madani_halat"
                   :items="repo.getHalatMadaniOptions()"
@@ -554,7 +554,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <!-- <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.activity"
                   :label="t('فعالیت')"
@@ -562,7 +562,7 @@
                   variant="outlined"
                   hide-details="auto"
                 />
-              </v-col>
+              </v-col> -->
             </v-row>
             <v-col cols="12" md="12">
               <JobTypeSelect v-model="form.job_type" :label="t('نوعیت وظیفه')" />
@@ -965,7 +965,7 @@
     zone: '',
     hawza: '',
     madani_halat: '',
-    activity: '',
+    activity: 'فعال',
 
     // education & jahad
     relegy_study: '',

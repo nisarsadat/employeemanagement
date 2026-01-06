@@ -14,8 +14,8 @@ class ActiveInactiveOfficeEmployeeController extends Controller
     public function counts()
     {
         return response()->json([
-            'active'   => OfficeEmployee::active()->count(),
-            'inactive' => OfficeEmployee::inactive()->count(),
+            'active'   => OfficeEmployee::query()->active()->count(),
+            'inactive' => OfficeEmployee::query()->inactive()->count(),
             'total'    => OfficeEmployee::count(),
         ]);
     }
@@ -25,12 +25,12 @@ class ActiveInactiveOfficeEmployeeController extends Controller
      */
     public function active(Request $request)
     {
-        $perPageParam = $request->input('perPage', 15);   // from Vue repo.perPage
+        $perPageParam = $request->input('perPage', 15);
         $search       = trim((string) $request->input('search', ''));
 
         $query = OfficeEmployee::query()
-            ->active()
-            ->search($search) // uses your scopeSearch in the model
+            ->active()            // ✅ now means: >= 100 active resources
+            ->search($search)
             ->with([
                 'resource:id,name,code_number,phone_number',
             ])
@@ -42,7 +42,6 @@ class ActiveInactiveOfficeEmployeeController extends Controller
             ])
             ->orderByDesc('id');
 
-        // support "all" = no pagination
         if ($perPageParam === 'all' || (int) $perPageParam === 0) {
             $items = $query->get();
 
@@ -66,7 +65,7 @@ class ActiveInactiveOfficeEmployeeController extends Controller
         $search       = trim((string) $request->input('search', ''));
 
         $query = OfficeEmployee::query()
-            ->inactive()
+            ->inactive()          // ✅ now means: < 100 active resources
             ->search($search)
             ->with([
                 'resource:id,name,code_number,phone_number',

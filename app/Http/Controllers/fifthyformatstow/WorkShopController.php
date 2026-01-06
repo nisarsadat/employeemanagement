@@ -176,3 +176,20 @@ class WorkShopController extends Controller
             title: 'ډله‌ییز حذف ترسره شو',
             message: 'حذف شوي ریکارډونه: ' . count($ids),
             routeName: null,
+            routeParams: null,
+            level: 'warning',
+            changes: [
+                'ids' => [
+                    'old' => null,
+                    'new' => $ids,
+                ],
+            ]
+        );
+
+        return response()->json([
+            'message' => 'Bulk deleted',
+            'deleted' => count($ids),
+            'ids'     => $ids,
+        ]);
+    }
+}

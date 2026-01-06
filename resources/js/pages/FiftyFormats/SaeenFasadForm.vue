@@ -81,11 +81,7 @@
                       color="secondary"
                       variant="tonal"
                       class="text-none rounded-pill soft-btn"
-                      @click.stop="
-                        openPreview(
-                          form.previewUrl || form.picture_url || form.picture
-                        )
-                      "
+                      @click.stop="openPreview(form.previewUrl || form.picture_url || form.picture)"
                     >
                       <v-icon start size="22">mdi-eye</v-icon>
                       {{ t('نمایش') }}
@@ -146,29 +142,18 @@
               </div>
 
               <v-row>
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.main_province"
-                    :label="t('ولایت اصلی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('main_province')"
-                    :error-messages="getErrorMessages('main_province')"
+                <v-col cols="12" md="12">
+                  <ProvinceDistrictNameSelect
+                    v-model:province="form.main_province"
+                    v-model:district="form.main_district"
+                    :province-label="t('ولایت اصلی')"
+                    :district-label="t('ولسوالی اصلی')"
+                    :mdProvince="6"
+                    :mdDistrict="6"
                   />
                 </v-col>
 
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.main_district"
-                    :label="t('ولسوالی اصلی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('main_district')"
-                    :error-messages="getErrorMessages('main_district')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="12">
                   <v-text-field
                     v-model="form.main_village"
                     :label="t('قریه/ناحیه اصلی')"
@@ -186,14 +171,14 @@
               </div>
 
               <v-row>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.now_province"
-                    :label="t('ولایت فعلی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('now_province')"
-                    :error-messages="getErrorMessages('now_province')"
+                <v-col cols="12" md="12">
+                  <ProvinceDistrictNameSelect
+                    v-model:province="form.now_province"
+                    v-model:district="form.now_district"
+                    :province-label="t('ولایت فعلی')"
+                    :district-label="t('ولسوالی فعلی')"
+                    :mdProvince="6"
+                    :mdDistrict="6"
                   />
                 </v-col>
 
@@ -205,17 +190,6 @@
                     density="compact"
                     :error="hasError('now_zone')"
                     :error-messages="getErrorMessages('now_zone')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.now_district"
-                    :label="t('ولسوالی فعلی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('now_district')"
-                    :error-messages="getErrorMessages('now_district')"
                   />
                 </v-col>
 
@@ -241,7 +215,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="3">
+                <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.street_number"
                     :label="t('سرک نمبر')"
@@ -252,7 +226,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="3">
+                <v-col cols="12" md="8">
                   <v-text-field
                     v-model="form.home_number"
                     :label="t('نمبر خانه')"
@@ -397,7 +371,7 @@
             </v-col>
 
             <!-- Province / coordinates / note -->
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -406,9 +380,9 @@
                 :error="hasError('Province_addr')"
                 :error-messages="getErrorMessages('Province_addr')"
               />
-            </v-col>
+            </v-col> -->
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="8">
               <v-text-field
                 v-model="form.coordinates"
                 :label="t('مختصات')"
@@ -419,7 +393,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.note"
                 :label="t('ملاحظات')"
@@ -440,9 +414,7 @@
                 class="text-none rounded-pill primary-action-btn"
                 :loading="saving"
                 type="submit"
-                :prepend-icon="
-                  isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'
-                "
+                :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت سعین فساد') }}
               </v-btn>
@@ -484,12 +456,7 @@
       <!-- IMAGE PREVIEW DIALOG -->
       <v-dialog v-model="previewOpen" max-width="520">
         <v-card>
-          <v-toolbar
-            density="compact"
-            color="primary"
-            :title="t('پیش نمایش')"
-            class="text-white"
-          />
+          <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
           <v-card-text class="d-flex justify-center">
             <v-img
               :src="normalizePicture(previewSrc)"
@@ -531,362 +498,362 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import { useFasadRepository } from '@/stores/FasadRepository';
+  import AppBar from '@/components/AppBar.vue';
+  import { useFasadRepository } from '@/stores/FasadRepository';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
-const repo = useFasadRepository();
-const route = useRoute();
-const router = useRouter();
+  const repo = useFasadRepository();
+  const route = useRoute();
+  const router = useRouter();
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* ===== ROUTE / MODE ===== */
-const isEdit = computed(() => !!route.params.id);
+  /* ===== ROUTE / MODE ===== */
+  const isEdit = computed(() => !!route.params.id);
 
-/* ===== FORM / STATE ===== */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* ===== FORM / STATE ===== */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
 
-function showErrorMessage(message) {
-  errorMessage.value = message;
-  showError.value = true;
-}
-function showSuccessMessage(message) {
-  successMessage.value = message;
-  showSuccess.value = true;
-}
-
-/* ===== BACKEND ERRORS ===== */
-const backendErrors = ref({});
-function setBackendErrors(errors) {
-  backendErrors.value = errors || {};
-}
-function clearBackendErrors() {
-  backendErrors.value = {};
-}
-function hasError(field) {
-  return !!backendErrors.value?.[field];
-}
-function getErrorMessages(field) {
-  return backendErrors.value?.[field] ?? [];
-}
-
-/* ===== FORM MODEL ===== */
-const blankForm = () => ({
-  id: null,
-
-  // media
-  picture: null,
-  picture_url: null,
-  previewUrl: null,
-
-  // identity
-  name: '',
-  nick_name: '',
-  father_name: '',
-
-  // addresses
-  main_province: '',
-  main_district: '',
-  main_village: '',
-  now_province: '',
-  now_zone: '',
-  now_district: '',
-  now_village: '',
-  specific_place: '',
-  street_number: '',
-  home_number: '',
-
-  // extra details
-  responsiability: '',
-  activity_place: '',
-  friends_number: '',
-  band_distince: '',
-  band_place: '',
-  old_job: '',
-  now_job: '',
-  Province_addr: '',
-  coordinates: '',
-
-  // resource
-  resource_code: '',
-  resource_phone_number: '',
-  resource_id: null,
-
-  // contact & notes
-  phone_number: '',
-  note: '',
-});
-
-const form = ref(blankForm());
-
-/* ===== RULES ===== */
-const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
-  phone10: (v) =>
-    !v || /^[0-9]{10}$/.test(String(v)) || t('شماره تماس باید دقیقاً ۱۰ رقم باشد'),
-  number: (v) => v === '' || v === null || !isNaN(Number(v)) || t('لطفاً عدد وارد کنید'),
-};
-
-/* ===== PICTURE ===== */
-const pictureInput = ref(null);
-const pictureFile = ref(null);
-const pictureChanged = ref(false);
-
-const previewOpen = ref(false);
-const previewSrc = ref(null);
-
-function triggerPicture() {
-  pictureInput.value?.click();
-}
-
-function onPickPicture(e) {
-  const file = e.target.files?.[0] ?? null;
-  pictureFile.value = file;
-  pictureChanged.value = !!file;
-
-  if (file) {
-    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(form.value.previewUrl);
-    }
-    form.value.previewUrl = URL.createObjectURL(file);
-  } else {
-    form.value.previewUrl = form.value.picture_url || null;
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
   }
-  if (e.target) e.target.value = '';
-}
-
-function normalizePicture(src) {
-  if (!src) return null;
-  let clean = String(src).trim();
-
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
-
-  clean = clean.replace(/\\\//g, '/');
-
-  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-  if (clean.startsWith('/')) return clean;
-
-  return '/' + clean.replace(/^\/+/, '');
-}
-
-function openPreview(src) {
-  const base = src || form.value.previewUrl || form.value.picture_url || form.value.picture;
-  const normalized = normalizePicture(base);
-  previewSrc.value = normalized;
-  if (previewSrc.value) previewOpen.value = true;
-}
-
-/* ===== RESOURCES DROPDOWN ===== */
-const resources = computed(() => repo.resourcecode || []);
-
-function onResourceCodeChange(code) {
-  const found = resources.value.find((r) => r.code_number === code);
-  form.value.resource_phone_number = found?.phone_number ?? '';
-  form.value.resource_id = found?.id ?? null;
-}
-
-/* ===== MAP FROM API ===== */
-function mapFromApi(payload = {}) {
-  const x = payload.data ?? payload;
-  const b = blankForm();
-
-  b.id = x.id ?? null;
-
-  const fullUrl = x.picture ?? null;
-  b.picture = x.picture ?? null;
-  b.picture_url = fullUrl;
-  b.previewUrl = fullUrl;
-
-  b.name = x.name ?? '';
-  b.nick_name = x.nick_name ?? '';
-  b.father_name = x.father_name ?? '';
-
-  b.main_province = x.main_province ?? '';
-  b.main_district = x.main_district ?? '';
-  b.main_village = x.main_village ?? '';
-  b.now_province = x.now_province ?? '';
-  b.now_zone = x.now_zone ?? '';
-  b.now_district = x.now_district ?? '';
-  b.now_village = x.now_village ?? '';
-  b.specific_place = x.specific_place ?? '';
-  b.street_number = x.street_number ?? '';
-  b.home_number = x.home_number ?? '';
-
-  b.responsiability = x.responsiability ?? '';
-  b.activity_place = x.activity_place ?? '';
-  b.friends_number = x.friends_number ?? '';
-  b.band_distince = x.band_distince ?? '';
-  b.band_place = x.band_place ?? '';
-  b.old_job = x.old_job ?? '';
-  b.now_job = x.now_job ?? '';
-  b.Province_addr = x.Province_addr ?? '';
-  b.coordinates = x.coordinates ?? '';
-
-  const r = x.resource || {};
-  b.resource_code = x.resource_code ?? r.code_number ?? '';
-  b.resource_phone_number = x.resource_phone_number ?? r.phone_number ?? '';
-  b.resource_id = x.resource_id ?? r.id ?? null;
-
-  b.phone_number = x.phone_number ?? '';
-  b.note = x.note ?? '';
-
-  return b;
-}
-
-async function loadRecord() {
-  const id = route.params.id;
-  if (!id) {
-    form.value = blankForm();
-    pictureFile.value = null;
-    pictureChanged.value = false;
-    return;
+  function showSuccessMessage(message) {
+    successMessage.value = message;
+    showSuccess.value = true;
   }
 
-  try {
-    await repo.FetchSaeenFasadData?.(id);
-    const single = Array.isArray(repo.SaeenFasad) ? repo.SaeenFasad[0] : repo.SaeenFasad || {};
-    if (!single) return;
-
-    const mapped = mapFromApi(single);
-    form.value = { ...mapped };
-    pictureFile.value = null;
-    pictureChanged.value = false;
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات سعین فساد'));
+  /* ===== BACKEND ERRORS ===== */
+  const backendErrors = ref({});
+  function setBackendErrors(errors) {
+    backendErrors.value = errors || {};
   }
-}
+  function clearBackendErrors() {
+    backendErrors.value = {};
+  }
+  function hasError(field) {
+    return !!backendErrors.value?.[field];
+  }
+  function getErrorMessages(field) {
+    return backendErrors.value?.[field] ?? [];
+  }
 
-/* ===== FORM DATA HELPERS ===== */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
+  /* ===== FORM MODEL ===== */
+  const blankForm = () => ({
+    id: null,
+
+    // media
+    picture: null,
+    picture_url: null,
+    previewUrl: null,
+
+    // identity
+    name: '',
+    nick_name: '',
+    father_name: '',
+
+    // addresses
+    main_province: '',
+    main_district: '',
+    main_village: '',
+    now_province: '',
+    now_zone: '',
+    now_district: '',
+    now_village: '',
+    specific_place: '',
+    street_number: '',
+    home_number: '',
+
+    // extra details
+    responsiability: '',
+    activity_place: '',
+    friends_number: '',
+    band_distince: '',
+    band_place: '',
+    old_job: '',
+    now_job: '',
+    Province_addr: '',
+    coordinates: '',
+
+    // resource
+    resource_code: '',
+    resource_phone_number: '',
+    resource_id: null,
+
+    // contact & notes
+    phone_number: '',
+    note: '',
   });
-  return fd;
-}
 
-function buildCreateFormData() {
-  const payload = { ...form.value };
+  const form = ref(blankForm());
 
-  delete payload.previewUrl;
-  delete payload.picture_url;
-  delete payload.picture;
+  /* ===== RULES ===== */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+    phone10: (v) => !v || /^[0-9]{10}$/.test(String(v)) || t('شماره تماس باید دقیقاً ۱۰ رقم باشد'),
+    number: (v) => v === '' || v === null || !isNaN(Number(v)) || t('لطفاً عدد وارد کنید'),
+  };
 
-  const fd = toFormData(payload);
+  /* ===== PICTURE ===== */
+  const pictureInput = ref(null);
+  const pictureFile = ref(null);
+  const pictureChanged = ref(false);
 
-  if (pictureFile.value) {
-    fd.append('picture', pictureFile.value);
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
+
+  function triggerPicture() {
+    pictureInput.value?.click();
   }
 
-  return fd;
-}
+  function onPickPicture(e) {
+    const file = e.target.files?.[0] ?? null;
+    pictureFile.value = file;
+    pictureChanged.value = !!file;
 
-function buildUpdateFormData() {
-  const payload = { ...form.value };
-
-  delete payload.previewUrl;
-  delete payload.picture_url;
-  delete payload.picture;
-
-  const fd = toFormData(payload);
-
-  if (pictureChanged.value && pictureFile.value) {
-    fd.append('picture', pictureFile.value);
+    if (file) {
+      if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(form.value.previewUrl);
+      }
+      form.value.previewUrl = URL.createObjectURL(file);
+    } else {
+      form.value.previewUrl = form.value.picture_url || null;
+    }
+    if (e.target) e.target.value = '';
   }
 
-  return fd;
-}
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
 
-/* ===== SCROLL TO FIRST INVALID ===== */
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-    document.querySelector('.v-messages__message');
-  if (first) {
-    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = first.querySelector('input, textarea, .v-field__input');
-    if (input && typeof input.focus === 'function') input.focus();
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+    clean = clean.replace(/\\\//g, '/');
+
+    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+    if (clean.startsWith('/')) return clean;
+
+    return '/' + clean.replace(/^\/+/, '');
   }
-}
 
-/* =========================
+  function openPreview(src) {
+    const base = src || form.value.previewUrl || form.value.picture_url || form.value.picture;
+    const normalized = normalizePicture(base);
+    previewSrc.value = normalized;
+    if (previewSrc.value) previewOpen.value = true;
+  }
+
+  /* ===== RESOURCES DROPDOWN ===== */
+  const resources = computed(() => repo.resourcecode || []);
+
+  function onResourceCodeChange(code) {
+    const found = resources.value.find((r) => r.code_number === code);
+    form.value.resource_phone_number = found?.phone_number ?? '';
+    form.value.resource_id = found?.id ?? null;
+  }
+
+  /* ===== MAP FROM API ===== */
+  function mapFromApi(payload = {}) {
+    const x = payload.data ?? payload;
+    const b = blankForm();
+
+    b.id = x.id ?? null;
+
+    const fullUrl = x.picture ?? null;
+    b.picture = x.picture ?? null;
+    b.picture_url = fullUrl;
+    b.previewUrl = fullUrl;
+
+    b.name = x.name ?? '';
+    b.nick_name = x.nick_name ?? '';
+    b.father_name = x.father_name ?? '';
+
+    b.main_province = x.main_province ?? '';
+    b.main_district = x.main_district ?? '';
+    b.main_village = x.main_village ?? '';
+    b.now_province = x.now_province ?? '';
+    b.now_zone = x.now_zone ?? '';
+    b.now_district = x.now_district ?? '';
+    b.now_village = x.now_village ?? '';
+    b.specific_place = x.specific_place ?? '';
+    b.street_number = x.street_number ?? '';
+    b.home_number = x.home_number ?? '';
+
+    b.responsiability = x.responsiability ?? '';
+    b.activity_place = x.activity_place ?? '';
+    b.friends_number = x.friends_number ?? '';
+    b.band_distince = x.band_distince ?? '';
+    b.band_place = x.band_place ?? '';
+    b.old_job = x.old_job ?? '';
+    b.now_job = x.now_job ?? '';
+    b.Province_addr = x.Province_addr ?? '';
+    b.coordinates = x.coordinates ?? '';
+
+    const r = x.resource || {};
+    b.resource_code = x.resource_code ?? r.code_number ?? '';
+    b.resource_phone_number = x.resource_phone_number ?? r.phone_number ?? '';
+    b.resource_id = x.resource_id ?? r.id ?? null;
+
+    b.phone_number = x.phone_number ?? '';
+    b.note = x.note ?? '';
+
+    return b;
+  }
+
+  async function loadRecord() {
+    const id = route.params.id;
+    if (!id) {
+      form.value = blankForm();
+      pictureFile.value = null;
+      pictureChanged.value = false;
+      return;
+    }
+
+    try {
+      await repo.FetchSaeenFasadData?.(id);
+      const single = Array.isArray(repo.SaeenFasad) ? repo.SaeenFasad[0] : repo.SaeenFasad || {};
+      if (!single) return;
+
+      const mapped = mapFromApi(single);
+      form.value = { ...mapped };
+      pictureFile.value = null;
+      pictureChanged.value = false;
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات سعین فساد'));
+    }
+  }
+
+  /* ===== FORM DATA HELPERS ===== */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  function buildCreateFormData() {
+    const payload = { ...form.value };
+
+    delete payload.previewUrl;
+    delete payload.picture_url;
+    delete payload.picture;
+
+    const fd = toFormData(payload);
+
+    if (pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+
+    return fd;
+  }
+
+  function buildUpdateFormData() {
+    const payload = { ...form.value };
+
+    delete payload.previewUrl;
+    delete payload.picture_url;
+    delete payload.picture;
+
+    const fd = toFormData(payload);
+
+    if (pictureChanged.value && pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+
+    return fd;
+  }
+
+  /* ===== SCROLL TO FIRST INVALID ===== */
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  /* =========================
    SIMPLE EXPORT (NO IMAGE, NO APP HEADERS)
 ========================= */
-function esc(v) {
-  return String(v ?? '').replace(/[&<>"']/g, (m) => {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return map[m];
-  });
-}
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, (m) => {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return map[m];
+    });
+  }
 
-function exportRows() {
-  return [
-    { label: 'نام', value: form.value.name },
-    { label: 'نام مستعار', value: form.value.nick_name },
-    { label: 'نام پدر', value: form.value.father_name },
+  function exportRows() {
+    return [
+      { label: 'نام', value: form.value.name },
+      { label: 'نام مستعار', value: form.value.nick_name },
+      { label: 'نام پدر', value: form.value.father_name },
 
-    { label: 'ولایت اصلی', value: form.value.main_province },
-    { label: 'ولسوالی اصلی', value: form.value.main_district },
-    { label: 'قریه/ناحیه اصلی', value: form.value.main_village },
+      { label: 'ولایت اصلی', value: form.value.main_province },
+      { label: 'ولسوالی اصلی', value: form.value.main_district },
+      { label: 'قریه/ناحیه اصلی', value: form.value.main_village },
 
-    { label: 'ولایت فعلی', value: form.value.now_province },
-    { label: 'زون فعلی', value: form.value.now_zone },
-    { label: 'ولسوالی فعلی', value: form.value.now_district },
-    { label: 'قریه/ناحیه فعلی', value: form.value.now_village },
+      { label: 'ولایت فعلی', value: form.value.now_province },
+      { label: 'زون فعلی', value: form.value.now_zone },
+      { label: 'ولسوالی فعلی', value: form.value.now_district },
+      { label: 'قریه/ناحیه فعلی', value: form.value.now_village },
 
-    { label: 'موقعیت مشخص', value: form.value.specific_place },
-    { label: 'سرک نمبر', value: form.value.street_number },
-    { label: 'نمبر خانه', value: form.value.home_number },
+      { label: 'موقعیت مشخص', value: form.value.specific_place },
+      { label: 'سرک نمبر', value: form.value.street_number },
+      { label: 'نمبر خانه', value: form.value.home_number },
 
-    { label: 'مسؤولیت', value: form.value.responsiability },
-    { label: 'محل فعالیت', value: form.value.activity_place },
-    { label: 'تعداد دوستان', value: form.value.friends_number },
+      { label: 'مسؤولیت', value: form.value.responsiability },
+      { label: 'محل فعالیت', value: form.value.activity_place },
+      { label: 'تعداد دوستان', value: form.value.friends_number },
 
-    { label: 'فاصله بانډ', value: form.value.band_distince },
-    { label: 'محل بند', value: form.value.band_place },
+      { label: 'فاصله بانډ', value: form.value.band_distince },
+      { label: 'محل بند', value: form.value.band_place },
 
-    { label: 'وظیفه قبلی', value: form.value.old_job },
-    { label: 'وظیفه فعلی', value: form.value.now_job },
+      { label: 'وظیفه قبلی', value: form.value.old_job },
+      { label: 'وظیفه فعلی', value: form.value.now_job },
 
-    { label: 'شماره تماس', value: form.value.phone_number },
+      { label: 'شماره تماس', value: form.value.phone_number },
 
-    { label: 'کود منبع', value: form.value.resource_code },
-    { label: 'شماره منبع', value: form.value.resource_phone_number },
+      { label: 'کود منبع', value: form.value.resource_code },
+      { label: 'شماره منبع', value: form.value.resource_phone_number },
 
-    { label: 'ولایت مربوطه', value: form.value.Province_addr },
-    { label: 'مختصات', value: form.value.coordinates },
-    { label: 'ملاحظات', value: form.value.note },
-  ];
-}
+      { label: 'ولایت مربوطه', value: form.value.Province_addr },
+      { label: 'مختصات', value: form.value.coordinates },
+      { label: 'ملاحظات', value: form.value.note },
+    ];
+  }
 
-function buildSimpleTableHtml() {
-  const rows = exportRows()
-    .map(
-      (r) => `
+  function buildSimpleTableHtml() {
+    const rows = exportRows()
+      .map(
+        (r) => `
       <tr>
         <th>${esc(r.label)}</th>
         <td>${esc(r.value)}</td>
       </tr>
     `
-    )
-    .join('');
+      )
+      .join('');
 
-  return `
+    return `
     <h3 class="title">فورم سعین فساد</h3>
     <table class="simple-table">
       <tbody>
@@ -898,14 +865,14 @@ function buildSimpleTableHtml() {
       <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
     </div>
   `;
-}
+  }
 
-function buildDocumentHtml() {
-  const bodyHtml = buildSimpleTableHtml();
-  const safeId = esc(form.value.id || '');
-  const safeName = esc(form.value.name || '');
+  function buildDocumentHtml() {
+    const bodyHtml = buildSimpleTableHtml();
+    const safeId = esc(form.value.id || '');
+    const safeName = esc(form.value.name || '');
 
-  return `
+    return `
 <!DOCTYPE html>
 <html dir="rtl">
 <head>
@@ -974,192 +941,192 @@ function buildDocumentHtml() {
 </body>
 </html>
 `;
-}
-
-function downloadPdf() {
-  const html = buildDocumentHtml();
-  const w = window.open('', '_blank', 'width=1024,height=768');
-  if (!w) return;
-
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-
-  w.focus();
-  w.print();
-}
-
-function downloadWord() {
-  const html = buildDocumentHtml();
-  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `سعین_فساد_${form.value.name || 'جدید'}_${Date.now()}.doc`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  URL.revokeObjectURL(url);
-  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
-}
-
-/* ===== SUBMIT ===== */
-async function onSubmit() {
-  clearBackendErrors();
-
-  const f = formRef.value;
-  if (!f) return;
-
-  const { valid } = await f.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
   }
 
-  if (!form.value.name?.trim()) {
-    showErrorMessage(t('نام الزامی است'));
-    return;
+  function downloadPdf() {
+    const html = buildDocumentHtml();
+    const w = window.open('', '_blank', 'width=1024,height=768');
+    if (!w) return;
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+
+    w.focus();
+    w.print();
   }
 
-  saving.value = true;
+  function downloadWord() {
+    const html = buildDocumentHtml();
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
 
-  try {
-    if (!isEdit.value) {
-      const fd = buildCreateFormData();
-      const created = await repo.CreateSaeenFasad?.(fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `سعین_فساد_${form.value.name || 'جدید'}_${Date.now()}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-      if (created?.id) {
-        showSuccessMessage(t('موفقانه ثبت شد'));
-        router.push('/app/saeenfasad').catch(() => {});
-      } else {
-        showErrorMessage(t('ثبت معلومات ناکام شد'));
-      }
-    } else {
-      const fd = buildUpdateFormData();
-      const updated = await repo.UpdateSaeenFasad?.(form.value.id, fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
+    URL.revokeObjectURL(url);
+    showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
+  }
 
-      if (updated?.id) {
-        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-        router.push('/app/saeenfasad').catch(() => {});
-      } else {
-        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-      }
+  /* ===== SUBMIT ===== */
+  async function onSubmit() {
+    clearBackendErrors();
+
+    const f = formRef.value;
+    if (!f) return;
+
+    const { valid } = await f.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در ذخیره اطلاعات'));
-  } finally {
-    saving.value = false;
+
+    if (!form.value.name?.trim()) {
+      showErrorMessage(t('نام الزامی است'));
+      return;
+    }
+
+    saving.value = true;
+
+    try {
+      if (!isEdit.value) {
+        const fd = buildCreateFormData();
+        const created = await repo.CreateSaeenFasad?.(fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (created?.id) {
+          showSuccessMessage(t('موفقانه ثبت شد'));
+          router.push('/app/saeenfasad').catch(() => {});
+        } else {
+          showErrorMessage(t('ثبت معلومات ناکام شد'));
+        }
+      } else {
+        const fd = buildUpdateFormData();
+        const updated = await repo.UpdateSaeenFasad?.(form.value.id, fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (updated?.id) {
+          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+          router.push('/app/saeenfasad').catch(() => {});
+        } else {
+          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      saving.value = false;
+    }
   }
-}
 
-/* ===== RESET & NAVIGATION ===== */
-function resetForm() {
-  if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-    URL.revokeObjectURL(form.value.previewUrl);
+  /* ===== RESET & NAVIGATION ===== */
+  function resetForm() {
+    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(form.value.previewUrl);
+    }
+
+    if (isEdit.value) {
+      loadRecord();
+    } else {
+      form.value = blankForm();
+      pictureFile.value = null;
+      pictureChanged.value = false;
+    }
+
+    clearBackendErrors();
+    formRef.value?.resetValidation?.();
+    showSuccessMessage(t('فرم پاک شد'));
   }
 
-  if (isEdit.value) {
-    loadRecord();
-  } else {
-    form.value = blankForm();
-    pictureFile.value = null;
-    pictureChanged.value = false;
+  function goBack() {
+    router.push('/app/saeenfasad');
   }
 
-  clearBackendErrors();
-  formRef.value?.resetValidation?.();
-  showSuccessMessage(t('فرم پاک شد'));
-}
-
-function goBack() {
-  router.push('/app/saeenfasad');
-}
-
-/* ===== INIT ===== */
-onMounted(async () => {
-  await repo.GetResourceCode?.();
-  if (isEdit.value) {
-    await loadRecord();
-  }
-});
+  /* ===== INIT ===== */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
+    if (isEdit.value) {
+      await loadRecord();
+    }
+  });
 </script>
 
 <style scoped>
-.hidden-file {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
 
-/* main card */
-.simple-form-card {
-  padding: 16px 16px 20px;
-  border-radius: 12px;
-}
+  /* main card */
+  .simple-form-card {
+    padding: 16px 16px 20px;
+    border-radius: 12px;
+  }
 
-/* sections */
-.section-header {
-  display: flex;
-  align-items: center;
-  padding-block: 2px;
-}
-.section-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  opacity: 0.8;
-}
+  /* sections */
+  .section-header {
+    display: flex;
+    align-items: center;
+    padding-block: 2px;
+  }
+  .section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.8;
+  }
 
-/* picture */
-.pic-wrap-simple {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.cursor-pointer {
-  cursor: pointer;
-}
-.primary-avatar {
-  border: 2px solid rgba(33, 150, 243, 0.25);
-}
+  /* picture */
+  .pic-wrap-simple {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  .primary-avatar {
+    border: 2px solid rgba(33, 150, 243, 0.25);
+  }
 
-/* small gap utility */
-.gap-2 {
-  gap: 8px;
-}
+  /* small gap utility */
+  .gap-2 {
+    gap: 8px;
+  }
 
-/* slightly tighter fields */
-:deep(.v-field--variant-outlined .v-field__input) {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  min-height: 36px;
-}
+  /* slightly tighter fields */
+  :deep(.v-field--variant-outlined .v-field__input) {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    min-height: 36px;
+  }
 
-/* prettier buttons */
-.soft-btn {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
+  /* prettier buttons */
+  .soft-btn {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
 
-.primary-action-btn {
-  padding-inline: 18px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
-}
+  .primary-action-btn {
+    padding-inline: 18px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+  }
 
-.secondary-action-btn {
-  padding-inline: 14px;
-  font-weight: 500;
-}
+  .secondary-action-btn {
+    padding-inline: 14px;
+    font-weight: 500;
+  }
 </style>

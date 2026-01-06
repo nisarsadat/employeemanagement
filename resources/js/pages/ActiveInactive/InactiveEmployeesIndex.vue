@@ -35,7 +35,11 @@
         {{ repo.loading ? t('در حال بارگیری…') : t('بازخوانی') }}
       </button>
     </div>
-
+    <v-col cols="12" md="4" class="d-flex justify-center">
+      <v-alert type="info" variant="tonal" density="compact" rounded="lg" class="w-120">
+        {{ t('معیار فعال نبودن: نداشتن ۱۰۰ عدد منابع فعال') }}
+      </v-alert>
+    </v-col>
     <!-- Table -->
     <FilterablePrintTable
       :headers="headers"

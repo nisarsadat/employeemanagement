@@ -116,31 +116,26 @@ class OfficeEmployee extends Model
      | RELATIONSHIPS (ALL CORRECT)
      ========================================================= */
 
-    // Resources created/owned by employee
     public function resources()
     {
         return $this->hasMany(Resource::class, 'office_employee_id', 'id');
     }
 
-    // Main resource (if exists)
     public function resource()
     {
         return $this->belongsTo(Resource::class, 'resource_id', 'id');
     }
 
-    // ✅ Primary informations
     public function informations()
     {
         return $this->hasMany(Information::class, 'office_employee_id', 'id');
     }
 
-    // ✅ Tadabiri informations
     public function tadabiriInformations()
     {
         return $this->hasMany(Information::class, 'office_employee_tadabiri_id', 'id');
     }
 
-    // ✅ Info-office informations
     public function infoInformations()
     {
         return $this->hasMany(Information::class, 'office_employee_info_id', 'id');
@@ -161,24 +156,34 @@ class OfficeEmployee extends Model
         return $this->hasMany(OfficeEmployeeDocument::class, 'office_employee_id', 'id');
     }
 
-
-
-    /* =========================================================
-     | ACTIVITY SCOPES
-     ========================================================= */
-
-    public function scopeActive(Builder $q): Builder
-    {
-        return $q->where('activity', self::ACTIVE);
-    }
-
-    public function scopeInactive(Builder $q): Builder
-    {
-        return $q->where('activity', self::INACTIVE);
-    }
     public function finances()
     {
         return $this->hasMany(Finance::class, 'office_employee_id', 'id');
     }
 
+    /* =========================================================
+     | ACTIVITY SCOPES (NEW LOGIC)
+     | ACTIVE if has >= 100 active resources
+     | INACTIVE if has < 100 active resources
+     ========================================================= */
+
+    public function scopeActive(Builder $q): Builder
+    {
+        return $q->whereHas(
+            'resources',
+            fn ($rq) => $rq->where('activity', self::ACTIVE),
+            '>=',
+            100
+        );
+    }
+
+    public function scopeInactive(Builder $q): Builder
+    {
+        return $q->whereHas(
+            'resources',
+            fn ($rq) => $rq->where('activity', self::ACTIVE),
+            '<',
+            100
+        );
+    }
 }

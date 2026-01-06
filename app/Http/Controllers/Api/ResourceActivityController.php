@@ -13,6 +13,7 @@ class ResourceActivityController extends Controller
      * What counts as "activity"?
      * - Any Event in last 1 month
      * - OR any Information in last 1 month
+     * - OR any KhayratReport in last 1 month ✅ NEW
      * - OR any record in any of the 56-format relations in last 1 month
      */
     private function applyActiveScope($query, $since)
@@ -42,6 +43,13 @@ class ResourceActivityController extends Controller
                 $qq->where('created_at', '>=', $since);
             });
 
+            // ✅ KHAYRAT REPORTS (NEW)
+            // NOTE: Resource model must have:
+            // public function khayratReports(){ return $this->hasMany(\App\Models\KhayratReport::class); }
+            $q->orWhereHas('khayratReports', function ($qq) use ($since) {
+                $qq->where('created_at', '>=', $since);
+            });
+
             // ✅ ANY 56 FORMAT
             foreach ($formatRelations as $rel) {
                 $q->orWhereHas($rel, function ($qq) use ($since) {
@@ -65,7 +73,8 @@ class ResourceActivityController extends Controller
 
     private function withCounts($query)
     {
-        $query->withCount(['events', 'informations']);
+        // ✅ add khayratReports_count (NEW)
+        $query->withCount(['events', 'informations', 'khayratReports']);
 
         $query->withCount([
             'fasads','saeenFasads','heists','captives','mulkanos','entryExits','sarafyanos','clubs','mahajerats','soldiers',
@@ -99,7 +108,7 @@ class ResourceActivityController extends Controller
 
     public function counts(Request $request)
     {
-        // ✅ last 1 month (instead of 7 days)
+        // ✅ last 1 month
         $since = now()->subMonth();
 
         $base = Resource::query();
@@ -134,7 +143,7 @@ class ResourceActivityController extends Controller
         $perPage = $request->get('perPage', 25); // 10/25/50 or "all"
         $search = $request->get('search', null);
 
-        // ✅ last 1 month (instead of 7 days)
+        // ✅ last 1 month
         $since = now()->subMonth();
 
         $q = Resource::query()

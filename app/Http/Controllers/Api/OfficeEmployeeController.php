@@ -71,14 +71,14 @@ class OfficeEmployeeController extends Controller
                        ->orWhere('phone_number', 'like', "%{$search}%");
                 });
             })
-            ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
+           ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
                 $activeVals   = ['active', OfficeEmployee::ACTIVE];
                 $inactiveVals = ['inactive', OfficeEmployee::INACTIVE];
 
                 if (in_array($status, $activeVals, true)) {
-                    $q->where('activity', OfficeEmployee::ACTIVE);
+                    $q->active();     // ✅ >= 100 active resources
                 } elseif (in_array($status, $inactiveVals, true)) {
-                    $q->where('activity', OfficeEmployee::INACTIVE);
+                    $q->inactive();   // ✅ < 100 active resources
                 }
             })
             ->orderByDesc('id');
@@ -114,8 +114,8 @@ class OfficeEmployeeController extends Controller
     public function counts()
     {
         return response()->json([
-            'active'   => OfficeEmployee::where('activity', OfficeEmployee::ACTIVE)->count(),
-            'inactive' => OfficeEmployee::where('activity', OfficeEmployee::INACTIVE)->count(),
+            'active'   => OfficeEmployee::query()->active()->count(),
+            'inactive' => OfficeEmployee::query()->inactive()->count(),
             'total'    => OfficeEmployee::count(),
         ]);
     }
@@ -350,9 +350,9 @@ class OfficeEmployeeController extends Controller
         }
     }
 
-    public function inactive(Request $request)
+   public function inactive(Request $request)
     {
-        $query = OfficeEmployee::where('activity', OfficeEmployee::INACTIVE)
+        $query = OfficeEmployee::query()->inactive()
             ->with(['documents'])
             ->withSum('finances as payed_money', 'money_amount_number')
             ->withCount([
@@ -369,8 +369,8 @@ class OfficeEmployeeController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code_number', 'like', "%{$search}%")
-                  ->orWhere('phone_number', 'like', "%{$search}%");
+                ->orWhere('code_number', 'like', "%{$search}%")
+                ->orWhere('phone_number', 'like', "%{$search}%");
             });
         }
 
@@ -382,4 +382,5 @@ class OfficeEmployeeController extends Controller
 
         return OfficeEmployeeResource::collection($query->paginate((int) $perPage));
     }
+
 }

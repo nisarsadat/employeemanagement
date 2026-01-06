@@ -141,6 +141,7 @@ use App\Http\Controllers\Reports\FiftyFormatsReportController;
 use App\Http\Controllers\Api\InformationReportController;
 use App\Http\Controllers\Api\JenayeeTypeController;
 use App\Http\Controllers\Api\JobTypeController;
+use App\Http\Controllers\Api\KhayratReportController;
 use App\Http\Controllers\Api\MawqafJahadiController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrganController;
@@ -552,6 +553,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('job-types', JobTypeController::class);
         Route::apiResource('resource-activity-types', ResourceActivityTypeController::class);
         Route::apiResource('mawqaf-jahadis', MawqafJahadiController::class);
+
+        // khayrat report 
+        Route::apiResource('khayrat-reports', KhayratReportController::class);
     });
 
 

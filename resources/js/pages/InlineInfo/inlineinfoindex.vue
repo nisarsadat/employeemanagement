@@ -16,7 +16,9 @@
               {{ t('اطلاعات') }}
             </v-tab>
             <v-tab color="primary" value="event">
-              {{ t('واقعات') }}
+              {{ t('واقعات') }} </v-tab
+            ><v-tab color="primary" value="khayrat">
+              {{ t('راپور خیریت') }}
             </v-tab>
           </v-tabs>
 
@@ -26,6 +28,9 @@
             </v-window-item>
             <v-window-item value="event">
               <Eventtab />
+            </v-window-item>
+            <v-window-item value="khayrat">
+              <khayratreport />
             </v-window-item>
           </v-window>
         </div>
@@ -42,45 +47,46 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import AppBar from '../../components/AppBar.vue';
-import Resourcetab from './Resourcetab.vue';
-import Eventtab from './Eventtab.vue';
-import ResourceInfo from './ResourceInfo.vue';
-import { useLoginRepository } from '../../stores/LoginRepository';
+  import { ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import AppBar from '../../components/AppBar.vue';
+  import Resourcetab from './Resourcetab.vue';
+  import Eventtab from './Eventtab.vue';
+  import ResourceInfo from './ResourceInfo.vue';
+  import khayratreport from './khayratreport.vue';
+  import { useLoginRepository } from '../../stores/LoginRepository';
 
-const auth = useLoginRepository();
-const { t } = useI18n();
-const drawer = ref(false);
-const tab = ref('resource');
+  const auth = useLoginRepository();
+  const { t } = useI18n();
+  const drawer = ref(false);
+  const tab = ref('resource');
 </script>
 
 <style scoped>
-.border-end {
-  border-inline-end: 3px dotted #a8a7a7;
-}
+  .border-end {
+    border-inline-end: 3px dotted #a8a7a7;
+  }
 
-/* Wrapper just to keep things tidy */
-.split-wrapper {
-  padding-top: 0;
-}
+  /* Wrapper just to keep things tidy */
+  .split-wrapper {
+    padding-top: 0;
+  }
 
-/* 🔹 Each column scrolls independently */
-.column-scroll {
-  max-height: calc(100vh - 120px); /* tune this if needed */
-  overflow-y: auto;
-  padding-bottom: 24px;
-}
+  /* 🔹 Each column scrolls independently */
+  .column-scroll {
+    max-height: calc(100vh - 120px); /* tune this if needed */
+    overflow-y: auto;
+    padding-bottom: 24px;
+  }
 
-/* Optional: slim scrollbar */
-.column-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-.column-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.column-scroll::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-}
+  /* Optional: slim scrollbar */
+  .column-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  .column-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .column-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+  }
 </style>

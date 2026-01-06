@@ -295,6 +295,10 @@ class Resource extends Model
     {
         return $this->hasMany(Finance::class, 'resource_id', 'id');
     }
-    
+    public function khayratReports()
+    {
+        return $this->hasMany(KhayratReport::class);
+    }
+
 
 }

@@ -101,7 +101,7 @@
           </v-row>
 
           <v-row class="mt-1">
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -111,7 +111,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.phone_number"
                 :label="t('شماره تماس')"
@@ -132,25 +132,17 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_province"
-                :label="t('ولایت اصلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.main_province"
+                v-model:district="form.main_district"
+                :province-label="t('ولایت اصلی')"
+                :district-label="t('ولسوالی اصلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_district"
-                :label="t('ولسوالی اصلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.main_village"
                 :label="t('قریه/ناحیه اصلی')"
@@ -169,16 +161,17 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_province"
-                :label="t('ولایت فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.now_province"
+                v-model:district="form.now_district"
+                :province-label="t('ولایت فعلی')"
+                :district-label="t('ولسوالی فعلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.now_zone"
                 :label="t('زون فعلی')"
@@ -187,16 +180,8 @@
                 hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_district"
-                :label="t('ولسوالی فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="3">
+
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.now_village"
                 :label="t('قریه/ناحیه فعلی')"
@@ -251,7 +236,7 @@
           </v-row>
 
           <v-row class="mt-1">
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.guzar"
                 :label="t('گذر')"
@@ -294,7 +279,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.home_quantity"
                 :label="t('تعداد خانه')"
@@ -308,7 +293,7 @@
           </v-row>
 
           <v-row class="mt-1">
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.old_job"
                 :label="t('وظیفه قبلی')"
@@ -317,7 +302,7 @@
                 hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.new_job"
                 :label="t('وظیفه جدید')"
@@ -345,7 +330,7 @@
                 hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.tanzim"
                 :label="t('تنظیم / وابستگی')"
@@ -480,12 +465,7 @@
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت مُلکانو جدید') }}
               </v-btn>
 
-              <v-btn
-                color="secondary"
-                variant="text"
-                class="text-none"
-                @click="resetForm"
-              >
+              <v-btn color="secondary" variant="text" class="text-none" @click="resetForm">
                 {{ t('پاک کردن فرم') }}
               </v-btn>
             </v-col>
@@ -517,158 +497,31 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import { useFasadRepository } from '@/stores/FasadRepository';
+  import AppBar from '@/components/AppBar.vue';
+  import { useFasadRepository } from '@/stores/FasadRepository';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-const route = useRoute();
-const router = useRouter();
-const repo = useFasadRepository();
+  const route = useRoute();
+  const router = useRouter();
+  const repo = useFasadRepository();
 
-const isEdit = computed(() => !!route.params.id);
+  const isEdit = computed(() => !!route.params.id);
 
-/* Form state */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* Form state */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const form = ref({
-  id: null,
-  picture: null,
-
-  name: '',
-  father_name: '',
-  grand_father_name: '',
-  Province_addr: '',
-  phone_number: '',
-
-  main_province: '',
-  main_district: '',
-  main_village: '',
-
-  now_province: '',
-  now_zone: '',
-  now_district: '',
-  now_village: '',
-
-  specific_place: '',
-  street_number: '',
-  home_number: '',
-  guzar: '',
-
-  tafseel_sahi: '',
-  street_amount: '',
-  old_job: '',
-  new_job: '',
-
-  agent_quantity: '',
-  home_quantity: '',
-
-  jorm_history: '',
-  tanzim: '',
-  notes: '',
-
-  coordinates: '',
-
-  resource_code: '',
-  resource_phone_number: '',
-  resource_id: null,
-});
-
-/* image preview */
-const fileInput = ref(null);
-const previewUrl = ref(null);
-
-function triggerFile() {
-  fileInput.value?.click();
-}
-
-function onFileChange(e) {
-  const file = e.target.files?.[0] ?? null;
-  form.value.picture = file;
-
-  if (previewUrl.value && String(previewUrl.value).startsWith('blob:')) {
-    URL.revokeObjectURL(previewUrl.value);
-  }
-  previewUrl.value = file ? URL.createObjectURL(file) : null;
-}
-
-/* Rules */
-const rules = {
-  required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
-
-  // empty OK, otherwise integer >= 0
-  intOptional: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return true;
-    if (!/^\d+$/.test(s)) return t('لطفاً عدد صحیح وارد کنید');
-    return true;
-  },
-
-  // empty OK, otherwise number (12, 12.5, 12,5)
-  numberOptional: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return true;
-    if (!/^\d+([.,]\d+)?$/.test(s)) return t('لطفاً عدد معتبر وارد کنید');
-    return true;
-  },
-
-  // empty OK, otherwise digits (and optional +)
-  phoneOptional: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return true;
-    const clean = s.replace(/\s+/g, '');
-    if (!/^\+?\d{6,20}$/.test(clean)) return t('شماره تماس معتبر نیست');
-    return true;
-  },
-
-  // empty OK, otherwise "lat, lng"
-  coordinatesOptional: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return true;
-    if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
-    return true;
-  },
-};
-
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
-
-function showErrorMessage(msg) {
-  errorMessage.value = msg;
-  showError.value = true;
-}
-
-function showSuccessMsg(msg) {
-  successMessage.value = msg;
-  showSuccess.value = true;
-}
-
-/* Resources dropdown */
-const resources = computed(() => repo.resourcecode || []);
-
-function onResourceCodeChange(code) {
-  const found = resources.value.find((r) => r.code_number === code);
-  form.value.resource_phone_number = found?.phone_number ?? '';
-  form.value.resource_id = found?.id ?? null;
-}
-
-/* Helpers */
-function resetForm() {
-  const id = isEdit.value ? form.value.id : null;
-
-  form.value = {
-    id,
+  const form = ref({
+    id: null,
     picture: null,
 
     name: '',
@@ -708,198 +561,327 @@ function resetForm() {
     resource_code: '',
     resource_phone_number: '',
     resource_id: null,
-  };
+  });
 
-  if (previewUrl.value && String(previewUrl.value).startsWith('blob:')) {
-    URL.revokeObjectURL(previewUrl.value);
+  /* image preview */
+  const fileInput = ref(null);
+  const previewUrl = ref(null);
+
+  function triggerFile() {
+    fileInput.value?.click();
   }
-  previewUrl.value = null;
 
-  formRef.value?.resetValidation?.();
-}
+  function onFileChange(e) {
+    const file = e.target.files?.[0] ?? null;
+    form.value.picture = file;
 
-function fillFormFromRecord(x = {}) {
-  form.value = {
-    id: x.id ?? null,
-    picture: null,
+    if (previewUrl.value && String(previewUrl.value).startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl.value);
+    }
+    previewUrl.value = file ? URL.createObjectURL(file) : null;
+  }
 
-    name: x.name ?? '',
-    father_name: x.father_name ?? '',
-    grand_father_name: x.grand_father_name ?? '',
-    Province_addr: x.Province_addr ?? '',
-    phone_number: x.phone_number ?? '',
+  /* Rules */
+  const rules = {
+    required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
 
-    main_province: x.main_province ?? '',
-    main_district: x.main_district ?? '',
-    main_village: x.main_village ?? '',
+    // empty OK, otherwise integer >= 0
+    intOptional: (v) => {
+      const s = String(v ?? '').trim();
+      if (!s) return true;
+      if (!/^\d+$/.test(s)) return t('لطفاً عدد صحیح وارد کنید');
+      return true;
+    },
 
-    now_province: x.now_province ?? '',
-    now_zone: x.now_zone ?? '',
-    now_district: x.now_district ?? '',
-    now_village: x.now_village ?? '',
+    // empty OK, otherwise number (12, 12.5, 12,5)
+    numberOptional: (v) => {
+      const s = String(v ?? '').trim();
+      if (!s) return true;
+      if (!/^\d+([.,]\d+)?$/.test(s)) return t('لطفاً عدد معتبر وارد کنید');
+      return true;
+    },
 
-    specific_place: x.specific_place ?? '',
-    street_number: x.street_number ?? '',
-    home_number: x.home_number ?? '',
-    guzar: x.guzar ?? '',
+    // empty OK, otherwise digits (and optional +)
+    phoneOptional: (v) => {
+      const s = String(v ?? '').trim();
+      if (!s) return true;
+      const clean = s.replace(/\s+/g, '');
+      if (!/^\+?\d{6,20}$/.test(clean)) return t('شماره تماس معتبر نیست');
+      return true;
+    },
 
-    tafseel_sahi: x.tafseel_sahi ?? '',
-    street_amount: x.street_amount ?? '',
-    old_job: x.old_job ?? '',
-    new_job: x.new_job ?? '',
-
-    agent_quantity: x.agent_quantity ?? '',
-    home_quantity: x.home_quantity ?? '',
-
-    jorm_history: x.jorm_history ?? '',
-    tanzim: x.tanzim ?? '',
-    notes: x.notes ?? '',
-
-    coordinates: x.coordinates ?? '',
-
-    resource_code: x.resource_code ?? '',
-    resource_phone_number: x.resource_phone_number ?? '',
-    resource_id: x.resource_id ?? null,
+    // empty OK, otherwise "lat, lng"
+    coordinatesOptional: (v) => {
+      const s = String(v ?? '').trim();
+      if (!s) return true;
+      if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
+      return true;
+    },
   };
 
-  // show backend image path/url (but export will NOT include it)
-  previewUrl.value = x.picture ?? null;
-}
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
 
-/* Build FormData */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj || {}).forEach(([k, v]) => {
-    if (v === undefined || v === null || v === '') return;
+  function showErrorMessage(msg) {
+    errorMessage.value = msg;
+    showError.value = true;
+  }
 
-    // normalize decimal comma
-    if (k === 'street_amount' && typeof v === 'string') {
-      fd.append(k, v.replace(',', '.'));
+  function showSuccessMsg(msg) {
+    successMessage.value = msg;
+    showSuccess.value = true;
+  }
+
+  /* Resources dropdown */
+  const resources = computed(() => repo.resourcecode || []);
+
+  function onResourceCodeChange(code) {
+    const found = resources.value.find((r) => r.code_number === code);
+    form.value.resource_phone_number = found?.phone_number ?? '';
+    form.value.resource_id = found?.id ?? null;
+  }
+
+  /* Helpers */
+  function resetForm() {
+    const id = isEdit.value ? form.value.id : null;
+
+    form.value = {
+      id,
+      picture: null,
+
+      name: '',
+      father_name: '',
+      grand_father_name: '',
+      Province_addr: '',
+      phone_number: '',
+
+      main_province: '',
+      main_district: '',
+      main_village: '',
+
+      now_province: '',
+      now_zone: '',
+      now_district: '',
+      now_village: '',
+
+      specific_place: '',
+      street_number: '',
+      home_number: '',
+      guzar: '',
+
+      tafseel_sahi: '',
+      street_amount: '',
+      old_job: '',
+      new_job: '',
+
+      agent_quantity: '',
+      home_quantity: '',
+
+      jorm_history: '',
+      tanzim: '',
+      notes: '',
+
+      coordinates: '',
+
+      resource_code: '',
+      resource_phone_number: '',
+      resource_id: null,
+    };
+
+    if (previewUrl.value && String(previewUrl.value).startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl.value);
+    }
+    previewUrl.value = null;
+
+    formRef.value?.resetValidation?.();
+  }
+
+  function fillFormFromRecord(x = {}) {
+    form.value = {
+      id: x.id ?? null,
+      picture: null,
+
+      name: x.name ?? '',
+      father_name: x.father_name ?? '',
+      grand_father_name: x.grand_father_name ?? '',
+      Province_addr: x.Province_addr ?? '',
+      phone_number: x.phone_number ?? '',
+
+      main_province: x.main_province ?? '',
+      main_district: x.main_district ?? '',
+      main_village: x.main_village ?? '',
+
+      now_province: x.now_province ?? '',
+      now_zone: x.now_zone ?? '',
+      now_district: x.now_district ?? '',
+      now_village: x.now_village ?? '',
+
+      specific_place: x.specific_place ?? '',
+      street_number: x.street_number ?? '',
+      home_number: x.home_number ?? '',
+      guzar: x.guzar ?? '',
+
+      tafseel_sahi: x.tafseel_sahi ?? '',
+      street_amount: x.street_amount ?? '',
+      old_job: x.old_job ?? '',
+      new_job: x.new_job ?? '',
+
+      agent_quantity: x.agent_quantity ?? '',
+      home_quantity: x.home_quantity ?? '',
+
+      jorm_history: x.jorm_history ?? '',
+      tanzim: x.tanzim ?? '',
+      notes: x.notes ?? '',
+
+      coordinates: x.coordinates ?? '',
+
+      resource_code: x.resource_code ?? '',
+      resource_phone_number: x.resource_phone_number ?? '',
+      resource_id: x.resource_id ?? null,
+    };
+
+    // show backend image path/url (but export will NOT include it)
+    previewUrl.value = x.picture ?? null;
+  }
+
+  /* Build FormData */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null || v === '') return;
+
+      // normalize decimal comma
+      if (k === 'street_amount' && typeof v === 'string') {
+        fd.append(k, v.replace(',', '.'));
+        return;
+      }
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  /* Submit */
+  async function onSubmit() {
+    if (!formRef.value) return;
+
+    const { valid } = await formRef.value.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
       return;
     }
-    fd.append(k, v);
-  });
-  return fd;
-}
 
-/* Submit */
-async function onSubmit() {
-  if (!formRef.value) return;
+    saving.value = true;
+    try {
+      const fd = toFormData({ ...form.value });
 
-  const { valid } = await formRef.value.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
-    return;
-  }
-
-  saving.value = true;
-  try {
-    const fd = toFormData({ ...form.value });
-
-    if (isEdit.value && form.value.id) {
-      const updated = await repo.UpdateMulkano?.(form.value.id, fd);
-      if (updated?.id) {
-        showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
-        goBack();
-        return;
+      if (isEdit.value && form.value.id) {
+        const updated = await repo.UpdateMulkano?.(form.value.id, fd);
+        if (updated?.id) {
+          showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
+          goBack();
+          return;
+        }
+      } else {
+        const created = await repo.CreateMulkano?.(fd);
+        if (created?.id) {
+          showSuccessMsg(t('مُلکانو جدید موفقانه ثبت شد'));
+          goBack();
+          return;
+        }
       }
-    } else {
-      const created = await repo.CreateMulkano?.(fd);
-      if (created?.id) {
-        showSuccessMsg(t('مُلکانو جدید موفقانه ثبت شد'));
-        goBack();
-        return;
-      }
+
+      showErrorMessage(t('خطا در ذخیره معلومات'));
+    } catch (e) {
+      console.error('Mulkano save error', e);
+      showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
+    } finally {
+      saving.value = false;
     }
-
-    showErrorMessage(t('خطا در ذخیره معلومات'));
-  } catch (e) {
-    console.error('Mulkano save error', e);
-    showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
-  } finally {
-    saving.value = false;
   }
-}
 
-/* Navigation */
-function goBack() {
-  router.push('/app/mulkanos');
-}
-
-/* Load on edit */
-async function loadExisting() {
-  const id = route.params.id;
-  if (!id) return;
-  try {
-    await repo.FetchMulkanoData?.(id);
-    const rec = repo.Mulkano && Array.isArray(repo.Mulkano) ? repo.Mulkano[0] : repo.Mulkano || {};
-    fillFormFromRecord(rec);
-  } catch (e) {
-    console.error('loadExisting error', e);
-    showErrorMessage(t('خطا در دریافت معلومات مُلکانو'));
+  /* Navigation */
+  function goBack() {
+    router.push('/app/mulkanos');
   }
-}
 
-/* =========================
+  /* Load on edit */
+  async function loadExisting() {
+    const id = route.params.id;
+    if (!id) return;
+    try {
+      await repo.FetchMulkanoData?.(id);
+      const rec =
+        repo.Mulkano && Array.isArray(repo.Mulkano) ? repo.Mulkano[0] : repo.Mulkano || {};
+      fillFormFromRecord(rec);
+    } catch (e) {
+      console.error('loadExisting error', e);
+      showErrorMessage(t('خطا در دریافت معلومات مُلکانو'));
+    }
+  }
+
+  /* =========================
    ✅ SIMPLE EXPORT (PDF/Word)
    - Works even if form is blank
    - NO images
    - NO app headers/top bar
    - Clean RTL table + signature lines
 ========================= */
-function escapeHtml(s) {
-  return String(s ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
+  function escapeHtml(s) {
+    return String(s ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
 
-function buildExportHtml() {
-  const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
+  function buildExportHtml() {
+    const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
 
-  const rows = [
-    [t('نام'), form.value.name],
-    [t('نام پدر'), form.value.father_name],
-    [t('نام پدرکلان'), form.value.grand_father_name],
-    [t('ولایت مربوطه'), form.value.Province_addr],
-    [t('شماره تماس'), form.value.phone_number],
+    const rows = [
+      [t('نام'), form.value.name],
+      [t('نام پدر'), form.value.father_name],
+      [t('نام پدرکلان'), form.value.grand_father_name],
+      [t('ولایت مربوطه'), form.value.Province_addr],
+      [t('شماره تماس'), form.value.phone_number],
 
-    [t('ولایت اصلی'), form.value.main_province],
-    [t('ولسوالی اصلی'), form.value.main_district],
-    [t('قریه/ناحیه اصلی'), form.value.main_village],
+      // [t('ولایت اصلی'), form.value.main_province],
+      [t('ولسوالی اصلی'), form.value.main_district],
+      [t('قریه/ناحیه اصلی'), form.value.main_village],
 
-    [t('ولایت فعلی'), form.value.now_province],
-    [t('زون فعلی'), form.value.now_zone],
-    [t('ولسوالی فعلی'), form.value.now_district],
-    [t('قریه/ناحیه فعلی'), form.value.now_village],
+      [t('ولایت فعلی'), form.value.now_province],
+      [t('زون فعلی'), form.value.now_zone],
+      [t('ولسوالی فعلی'), form.value.now_district],
+      [t('قریه/ناحیه فعلی'), form.value.now_village],
 
-    [t('موقعیت مشخص'), form.value.specific_place],
-    [t('سرک نمبر'), form.value.street_number],
-    [t('نمبر خانه'), form.value.home_number],
-    [t('گذر'), form.value.guzar],
+      [t('موقعیت مشخص'), form.value.specific_place],
+      [t('سرک نمبر'), form.value.street_number],
+      [t('نمبر خانه'), form.value.home_number],
+      [t('گذر'), form.value.guzar],
 
-    [t('مقدار سرک'), form.value.street_amount],
-    [t('تعداد عامل'), form.value.agent_quantity],
-    [t('تعداد خانه'), form.value.home_quantity],
+      [t('مقدار سرک'), form.value.street_amount],
+      [t('تعداد عامل'), form.value.agent_quantity],
+      [t('تعداد خانه'), form.value.home_quantity],
 
-    [t('وظیفه قبلی'), form.value.old_job],
-    [t('وظیفه جدید'), form.value.new_job],
+      [t('وظیفه قبلی'), form.value.old_job],
+      [t('وظیفه جدید'), form.value.new_job],
 
-    [t('سابقه جرم'), form.value.jorm_history],
-    [t('تنظیم / وابستگی'), form.value.tanzim],
+      [t('سابقه جرم'), form.value.jorm_history],
+      [t('تنظیم / وابستگی'), form.value.tanzim],
 
-    [t('تفسیر صحیح / توضیحات'), form.value.tafseel_sahi],
-    [t('ملاحظات'), form.value.notes],
+      [t('تفسیر صحیح / توضیحات'), form.value.tafseel_sahi],
+      [t('ملاحظات'), form.value.notes],
 
-    [t('مختصات'), form.value.coordinates],
+      [t('مختصات'), form.value.coordinates],
 
-    [t('کود منبع'), form.value.resource_code],
-    [t('شماره منبع'), form.value.resource_phone_number],
-  ];
+      [t('کود منبع'), form.value.resource_code],
+      [t('شماره منبع'), form.value.resource_phone_number],
+    ];
 
-  return `
+    return `
 <!doctype html>
 <html dir="rtl" lang="fa">
 <head>
@@ -944,50 +926,50 @@ function buildExportHtml() {
 </body>
 </html>
   `.trim();
-}
+  }
 
-function downloadPdf() {
-  const html = buildExportHtml();
-  const w = window.open('', '_blank');
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  setTimeout(() => w.print(), 250);
-}
+  function downloadPdf() {
+    const html = buildExportHtml();
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 250);
+  }
 
-function downloadWord() {
-  const html = buildExportHtml();
-  const blob = new Blob([html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
+  function downloadWord() {
+    const html = buildExportHtml();
+    const blob = new Blob([html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
 
-  const namePart = form.value.id ? `mulkano_${form.value.id}` : 'mulkano_blank';
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${namePart}.doc`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+    const namePart = form.value.id ? `mulkano_${form.value.id}` : 'mulkano_blank';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${namePart}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-}
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
 
-/* Init */
-onMounted(async () => {
-  await repo.GetResourceCode?.();
-  if (isEdit.value) await loadExisting();
-});
+  /* Init */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
+    if (isEdit.value) await loadExisting();
+  });
 </script>
 
 <style scoped>
-.section-title {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: #37474f;
-}
-.ga-2 {
-  gap: 8px;
-}
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #37474f;
+  }
+  .ga-2 {
+    gap: 8px;
+  }
 </style>

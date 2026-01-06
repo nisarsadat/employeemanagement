@@ -193,6 +193,8 @@ import JobTypesIndex from '../pages/Settings/JobTypes/JobTypesIndex.vue';
 import ResourceActivityTypesIndex from '../pages/Settings/ResourceActivityTypes/ResourceActivityTypesIndex.vue';
 import SystemSettingsIndex from '../pages/Settings/SystemSettingsIndex.vue';
 import MawqafJahadisIndex from '../pages/Settings/MawqafJahadis/MawqafJahadisIndex.vue';
+import KhayratReportsIndex from '../pages/KHayratReport/KhayratReportsIndex.vue';
+import Khayratreport from '../pages/InlineInfo/khayratreport.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -1512,6 +1514,20 @@ const router = createRouter({
           path: '/app/mawqafjahadi',
           name: 'MawqafJahadi',
           component: MawqafJahadisIndex,
+        },
+
+        // khayrat report
+        {
+          path: '/app/khayratreports',
+          name: 'KhayratReport',
+          component: KhayratReportsIndex,
+        },
+        // ✅ Add route (example) in your router
+        // src/router/index.js (or wherever you register routes)
+        {
+          path: '/app/khayrat-reports/create',
+          name: 'KhayratReportCreate',
+          component: Khayratreport,
         },
       ],
     },

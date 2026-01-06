@@ -4,11 +4,21 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
+use App\Models\OfficeEmployee;
 
 class OfficeEmployeeResource extends JsonResource
 {
     public function toArray($request): array
     {
+        // ✅ computed activity based on active resources count (>= 100)
+        $activeResourcesCount = (int) ($this->resources_active_count
+            ?? ($this->relationLoaded('resources') ? $this->resources->where('activity', OfficeEmployee::ACTIVE)->count() : 0)
+        );
+
+        $computedActivity = $activeResourcesCount >= 100
+            ? OfficeEmployee::ACTIVE
+            : OfficeEmployee::INACTIVE;
+
         return [
             'id' => $this->id,
 
@@ -17,13 +27,10 @@ class OfficeEmployeeResource extends JsonResource
                 ? (preg_match('#^https?://#', $this->picture)
                     ? $this->picture
                     : (function ($path) {
-                        // if value in DB starts with "storage/", strip it ONCE
                         if (str_starts_with($path, 'storage/')) {
                             $path = substr($path, strlen('storage/'));
                         }
-
-                        // now $path is like "uploads/office-employees/..."
-                        return Storage::url($path); // → "/storage/uploads/..."
+                        return Storage::url($path);
                     })($this->picture)
                 )
                 : null,
@@ -71,7 +78,10 @@ class OfficeEmployeeResource extends JsonResource
 
             // 🔹 Status & Education
             'madani_halat'  => $this->madani_halat,
-            'activity'      => $this->activity,
+
+            // ✅ IMPORTANT: activity now follows your new rule (>=100 active resources)
+            'activity'      => $computedActivity,
+
             'relegy_study'  => $this->relegy_study,
             'new_study'     => $this->new_study,
             'faculty'       => $this->faculty,
@@ -84,7 +94,7 @@ class OfficeEmployeeResource extends JsonResource
             'specific_skills' => $this->specific_skills,
             'language'        => $this->language,
             'nation'          => $this->nation,
-            'payed_money' => (float) ($this->payed_money ?? 0),
+            'payed_money'     => (float) ($this->payed_money ?? 0),
 
             // 🔹 Contact & misc
             'phone_number' => $this->phone_number,
@@ -116,10 +126,10 @@ class OfficeEmployeeResource extends JsonResource
 
             // ✅ Resources by activity
             'resources_active_count' => $this->resources_active_count
-                ?? ($this->relationLoaded('resources') ? $this->resources->where('activity', 'فعال')->count() : 0),
+                ?? ($this->relationLoaded('resources') ? $this->resources->where('activity', OfficeEmployee::ACTIVE)->count() : 0),
 
             'resources_inactive_count' => $this->resources_inactive_count
-                ?? ($this->relationLoaded('resources') ? $this->resources->where('activity', 'غیر فعال')->count() : 0),
+                ?? ($this->relationLoaded('resources') ? $this->resources->where('activity', OfficeEmployee::INACTIVE)->count() : 0),
 
             'events_count' => $this->events_count
                 ?? ($this->relationLoaded('events') ? $this->events->count() : 0),

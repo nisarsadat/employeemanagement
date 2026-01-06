@@ -202,7 +202,7 @@
       </template>
 
       <!-- 🗺 MAP CELL -->
-      <template #cell-map="{ row }">
+      <!-- <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="row.coordinates"
           :title="row.name"
@@ -211,7 +211,7 @@
           :photo-url="row.picture"
           :zoom="16"
         />
-      </template>
+      </template> -->
 
       <!-- ⚙️ ACTIONS (same pattern but Mulkano text) -->
       <template #actions="{ item }">
@@ -362,7 +362,7 @@ const headersFT = computed(() => [
   { title: t('نام پدر'), key: 'father_name' },
   { title: t('نام پدرکلان'), key: 'grand_father_name' },
 
-  { title: t('ولایت اصلی'), key: 'main_province' },
+  // { title: t('ولایت اصلی'), key: 'main_province' },
   { title: t('ولسوالی اصلی'), key: 'main_district' },
   { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
 
