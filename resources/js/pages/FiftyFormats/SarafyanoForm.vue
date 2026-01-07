@@ -95,7 +95,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="9">
               <v-text-field
                 v-model="form.phone_number"
                 :label="t('شماره تماس')"
@@ -104,7 +104,7 @@
                 hide-details="auto"
               />
             </v-col>
-
+            <!-- 
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.Province_addr"
@@ -113,7 +113,7 @@
                 variant="outlined"
                 hide-details="auto"
               />
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <!-- آدرس -->
@@ -126,17 +126,18 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.province"
-                :label="t('ولایت')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.province"
+                v-model:district="form.district"
+                :province-label="t('ولایت اصلی')"
+                :district-label="t('ولسوالی اصلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.zone"
                 :label="t('زون')"
@@ -146,17 +147,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.district"
-                :label="t('ولسوالی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.village"
                 :label="t('قریه/ناحیه')"
@@ -255,7 +246,7 @@
           </v-row>
 
           <v-row class="mt-1">
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.employee_quantity"
                 :label="t('تعداد کارمند')"
@@ -370,12 +361,7 @@
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت صرافیانو جدید') }}
               </v-btn>
 
-              <v-btn
-                color="secondary"
-                variant="text"
-                class="text-none"
-                @click="resetForm"
-              >
+              <v-btn color="secondary" variant="text" class="text-none" @click="resetForm">
                 {{ t('پاک کردن فرم') }}
               </v-btn>
             </v-col>
@@ -407,111 +393,31 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
-import AppBar from '@/components/AppBar.vue';
-import { useFasadRepository } from '@/stores/FasadRepository';
+  import AppBar from '@/components/AppBar.vue';
+  import { useFasadRepository } from '@/stores/FasadRepository';
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-const route = useRoute();
-const router = useRouter();
-const repo = useFasadRepository();
+  const route = useRoute();
+  const router = useRouter();
+  const repo = useFasadRepository();
 
-const isEdit = computed(() => !!route.params.id);
+  const isEdit = computed(() => !!route.params.id);
 
-/* Form state */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* Form state */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const form = ref({
-  id: null,
-  name: '',
-  sarafi_name: '',
-  sarafi_type: '',
-  father_name: '',
-  position: '',
-  phone_number: '',
-  Province_addr: '',
-
-  province: '',
-  zone: '',
-  district: '',
-  village: '',
-  specific_place: '',
-  cordinate: '',
-
-  market_name: '',
-  shop_number: '',
-
-  provinces_hawala: '',
-  countries_hawala: '',
-  employee_quantity: '',
-
-  resource_code: '',
-  resource_phone_number: '',
-  resource_id: null,
-
-  notes: '',
-});
-
-/* Rules */
-const rules = {
-  required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
-
-  // empty OK, otherwise "lat, lng"
-  coordinatesOptional: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return true;
-    if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
-    return true;
-  },
-
-  // empty OK, otherwise must be number >= 0
-  nonNegativeNumberOptional: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return true;
-    const n = Number(s);
-    if (!Number.isFinite(n)) return t('عدد درست نیست');
-    if (n < 0) return t('عدد منفی قبول نیست');
-    return true;
-  },
-};
-
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
-
-function showErrorMessage(msg) {
-  errorMessage.value = msg;
-  showError.value = true;
-}
-
-function showSuccessMsg(msg) {
-  successMessage.value = msg;
-  showSuccess.value = true;
-}
-
-/* Resources dropdown */
-const resources = computed(() => repo.resourcecode || []);
-
-function onResourceCodeChange(code) {
-  const found = resources.value.find((r) => r.code_number === code);
-  form.value.resource_phone_number = found?.phone_number ?? '';
-  form.value.resource_id = found?.id ?? null;
-}
-
-/* Helpers */
-function resetForm() {
-  form.value = {
-    id: isEdit.value ? form.value.id : null,
+  const form = ref({
+    id: null,
     name: '',
     sarafi_name: '',
     sarafi_type: '',
@@ -539,163 +445,242 @@ function resetForm() {
     resource_id: null,
 
     notes: '',
-  };
-  formRef.value?.resetValidation?.();
-}
-
-function fillFormFromRecord(x = {}) {
-  form.value = {
-    id: x.id ?? null,
-    name: x.name ?? '',
-    sarafi_name: x.sarafi_name ?? '',
-    sarafi_type: x.sarafi_type ?? '',
-    father_name: x.father_name ?? '',
-    position: x.position ?? '',
-    phone_number: x.phone_number ?? '',
-    Province_addr: x.Province_addr ?? '',
-
-    province: x.province ?? '',
-    zone: x.zone ?? '',
-    district: x.district ?? '',
-    village: x.village ?? '',
-    specific_place: x.specific_place ?? '',
-    cordinate: x.cordinate ?? '',
-
-    market_name: x.market_name ?? '',
-    shop_number: x.shop_number ?? '',
-
-    provinces_hawala: x.provinces_hawala ?? '',
-    countries_hawala: x.countries_hawala ?? '',
-    employee_quantity: x.employee_quantity ?? '',
-
-    resource_code: x.resource_code ?? '',
-    resource_phone_number: x.resource_phone_number ?? '',
-    resource_id: x.resource_id ?? null,
-
-    notes: x.notes ?? '',
-  };
-}
-
-/* Build FormData */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj || {}).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
   });
-  return fd;
-}
 
-/* Submit */
-async function onSubmit() {
-  if (!formRef.value) return;
-  const { valid } = await formRef.value.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
-    return;
+  /* Rules */
+  const rules = {
+    required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
+
+    // empty OK, otherwise "lat, lng"
+    coordinatesOptional: (v) => {
+      const s = String(v ?? '').trim();
+      if (!s) return true;
+      if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
+      return true;
+    },
+
+    // empty OK, otherwise must be number >= 0
+    nonNegativeNumberOptional: (v) => {
+      const s = String(v ?? '').trim();
+      if (!s) return true;
+      const n = Number(s);
+      if (!Number.isFinite(n)) return t('عدد درست نیست');
+      if (n < 0) return t('عدد منفی قبول نیست');
+      return true;
+    },
+  };
+
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
+
+  function showErrorMessage(msg) {
+    errorMessage.value = msg;
+    showError.value = true;
   }
 
-  saving.value = true;
-  try {
-    const fd = toFormData({ ...form.value });
+  function showSuccessMsg(msg) {
+    successMessage.value = msg;
+    showSuccess.value = true;
+  }
 
-    if (isEdit.value && form.value.id) {
-      const updated = await repo.UpdateSarafyano?.(form.value.id, fd);
-      if (updated?.id) {
-        showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
-        goBack();
-        return;
-      }
-    } else {
-      const created = await repo.CreateSarafyano?.(fd);
-      if (created?.id) {
-        showSuccessMsg(t('صرافیانو جدید موفقانه ثبت شد'));
-        goBack();
-        return;
-      }
+  /* Resources dropdown */
+  const resources = computed(() => repo.resourcecode || []);
+
+  function onResourceCodeChange(code) {
+    const found = resources.value.find((r) => r.code_number === code);
+    form.value.resource_phone_number = found?.phone_number ?? '';
+    form.value.resource_id = found?.id ?? null;
+  }
+
+  /* Helpers */
+  function resetForm() {
+    form.value = {
+      id: isEdit.value ? form.value.id : null,
+      name: '',
+      sarafi_name: '',
+      sarafi_type: '',
+      father_name: '',
+      position: '',
+      phone_number: '',
+      Province_addr: '',
+
+      province: '',
+      zone: '',
+      district: '',
+      village: '',
+      specific_place: '',
+      cordinate: '',
+
+      market_name: '',
+      shop_number: '',
+
+      provinces_hawala: '',
+      countries_hawala: '',
+      employee_quantity: '',
+
+      resource_code: '',
+      resource_phone_number: '',
+      resource_id: null,
+
+      notes: '',
+    };
+    formRef.value?.resetValidation?.();
+  }
+
+  function fillFormFromRecord(x = {}) {
+    form.value = {
+      id: x.id ?? null,
+      name: x.name ?? '',
+      sarafi_name: x.sarafi_name ?? '',
+      sarafi_type: x.sarafi_type ?? '',
+      father_name: x.father_name ?? '',
+      position: x.position ?? '',
+      phone_number: x.phone_number ?? '',
+      Province_addr: x.Province_addr ?? '',
+
+      province: x.province ?? '',
+      zone: x.zone ?? '',
+      district: x.district ?? '',
+      village: x.village ?? '',
+      specific_place: x.specific_place ?? '',
+      cordinate: x.cordinate ?? '',
+
+      market_name: x.market_name ?? '',
+      shop_number: x.shop_number ?? '',
+
+      provinces_hawala: x.provinces_hawala ?? '',
+      countries_hawala: x.countries_hawala ?? '',
+      employee_quantity: x.employee_quantity ?? '',
+
+      resource_code: x.resource_code ?? '',
+      resource_phone_number: x.resource_phone_number ?? '',
+      resource_id: x.resource_id ?? null,
+
+      notes: x.notes ?? '',
+    };
+  }
+
+  /* Build FormData */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  /* Submit */
+  async function onSubmit() {
+    if (!formRef.value) return;
+    const { valid } = await formRef.value.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
+      return;
     }
 
-    showErrorMessage(t('خطا در ذخیره معلومات'));
-  } catch (e) {
-    console.error('Sarafyano save error', e);
-    showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
-  } finally {
-    saving.value = false;
+    saving.value = true;
+    try {
+      const fd = toFormData({ ...form.value });
+
+      if (isEdit.value && form.value.id) {
+        const updated = await repo.UpdateSarafyano?.(form.value.id, fd);
+        if (updated?.id) {
+          showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
+          goBack();
+          return;
+        }
+      } else {
+        const created = await repo.CreateSarafyano?.(fd);
+        if (created?.id) {
+          showSuccessMsg(t('صرافیانو جدید موفقانه ثبت شد'));
+          goBack();
+          return;
+        }
+      }
+
+      showErrorMessage(t('خطا در ذخیره معلومات'));
+    } catch (e) {
+      console.error('Sarafyano save error', e);
+      showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
+    } finally {
+      saving.value = false;
+    }
   }
-}
 
-/* Navigation */
-function goBack() {
-  router.push('/app/sarafyanos');
-}
-
-/* Load on edit */
-async function loadExisting() {
-  const id = route.params.id;
-  if (!id) return;
-  try {
-    await repo.FetchSarafyanoData?.(id);
-    const rec =
-      repo.Sarafyano && Array.isArray(repo.Sarafyano)
-        ? repo.Sarafyano[0]
-        : repo.Sarafyano || {};
-    fillFormFromRecord(rec);
-  } catch (e) {
-    console.error('loadExisting error', e);
-    showErrorMessage(t('خطا در دریافت معلومات صرافیانو'));
+  /* Navigation */
+  function goBack() {
+    router.push('/app/sarafyanos');
   }
-}
 
-/* =========================
+  /* Load on edit */
+  async function loadExisting() {
+    const id = route.params.id;
+    if (!id) return;
+    try {
+      await repo.FetchSarafyanoData?.(id);
+      const rec =
+        repo.Sarafyano && Array.isArray(repo.Sarafyano) ? repo.Sarafyano[0] : repo.Sarafyano || {};
+      fillFormFromRecord(rec);
+    } catch (e) {
+      console.error('loadExisting error', e);
+      showErrorMessage(t('خطا در دریافت معلومات صرافیانو'));
+    }
+  }
+
+  /* =========================
    ✅ SIMPLE EXPORT (PDF/Word)
    - Works even if form is blank
    - NO images
    - NO app headers/top bar
    - Clean RTL table + signature lines
 ========================= */
-function escapeHtml(s) {
-  return String(s ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
+  function escapeHtml(s) {
+    return String(s ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
 
-function buildExportHtml() {
-  const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
+  function buildExportHtml() {
+    const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
 
-  const rows = [
-    [t('نام شخص'), form.value.name],
-    [t('نام صرافی'), form.value.sarafi_name],
-    [t('نوع صرافی'), form.value.sarafi_type],
-    [t('نام پدر'), form.value.father_name],
+    const rows = [
+      [t('نام شخص'), form.value.name],
+      [t('نام صرافی'), form.value.sarafi_name],
+      [t('نوع صرافی'), form.value.sarafi_type],
+      [t('نام پدر'), form.value.father_name],
 
-    [t('وظیفه/موقعیت'), form.value.position],
-    [t('شماره تماس'), form.value.phone_number],
-    [t('ولایت مربوطه'), form.value.Province_addr],
+      [t('وظیفه/موقعیت'), form.value.position],
+      [t('شماره تماس'), form.value.phone_number],
+      [t('ولایت مربوطه'), form.value.Province_addr],
 
-    [t('ولایت'), form.value.province],
-    [t('زون'), form.value.zone],
-    [t('ولسوالی'), form.value.district],
-    [t('قریه/ناحیه'), form.value.village],
-    [t('موقعیت مشخص'), form.value.specific_place],
-    [t('مختصات'), form.value.cordinate],
+      [t('ولایت'), form.value.province],
+      [t('زون'), form.value.zone],
+      [t('ولسوالی'), form.value.district],
+      [t('قریه/ناحیه'), form.value.village],
+      [t('موقعیت مشخص'), form.value.specific_place],
+      [t('مختصات'), form.value.cordinate],
 
-    [t('نام بازار/مارکیټ'), form.value.market_name],
-    [t('نمبر دکان'), form.value.shop_number],
+      [t('نام بازار/مارکیټ'), form.value.market_name],
+      [t('نمبر دکان'), form.value.shop_number],
 
-    [t('حواله به ولایات'), form.value.provinces_hawala],
-    [t('حواله به کشورها'), form.value.countries_hawala],
-    [t('تعداد کارمند'), form.value.employee_quantity],
+      [t('حواله به ولایات'), form.value.provinces_hawala],
+      [t('حواله به کشورها'), form.value.countries_hawala],
+      [t('تعداد کارمند'), form.value.employee_quantity],
 
-    [t('کود منبع'), form.value.resource_code],
-    [t('شماره منبع'), form.value.resource_phone_number],
+      [t('کود منبع'), form.value.resource_code],
+      [t('شماره منبع'), form.value.resource_phone_number],
 
-    [t('ملاحظات'), form.value.notes],
-  ];
+      [t('ملاحظات'), form.value.notes],
+    ];
 
-  return `
+    return `
 <!doctype html>
 <html dir="rtl" lang="fa">
 <head>
@@ -740,50 +725,50 @@ function buildExportHtml() {
 </body>
 </html>
   `.trim();
-}
+  }
 
-function downloadPdf() {
-  const html = buildExportHtml();
-  const w = window.open('', '_blank');
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  setTimeout(() => w.print(), 250);
-}
+  function downloadPdf() {
+    const html = buildExportHtml();
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 250);
+  }
 
-function downloadWord() {
-  const html = buildExportHtml();
-  const blob = new Blob([html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
+  function downloadWord() {
+    const html = buildExportHtml();
+    const blob = new Blob([html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
 
-  const namePart = form.value.id ? `sarafyano_${form.value.id}` : 'sarafyano_blank';
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${namePart}.doc`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+    const namePart = form.value.id ? `sarafyano_${form.value.id}` : 'sarafyano_blank';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${namePart}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-}
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
 
-/* Init */
-onMounted(async () => {
-  await repo.GetResourceCode?.();
-  if (isEdit.value) await loadExisting();
-});
+  /* Init */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
+    if (isEdit.value) await loadExisting();
+  });
 </script>
 
 <style scoped>
-.section-title {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: #37474f;
-}
-.ga-2 {
-  gap: 8px;
-}
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #37474f;
+  }
+  .ga-2 {
+    gap: 8px;
+  }
 </style>

@@ -13,7 +13,11 @@
     >
       {{ repo.error }}
     </v-alert>
-
+    <v-col cols="12" md="12" class="d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
+      <v-alert type="info" variant="tonal" density="compact" rounded="lg" class="w-120">
+        {{ t('هر منبع فقط ماهانه یک عدد راپور خیریت میتواند دشته باشد!') }}
+      </v-alert>
+    </v-col>
     <!-- FORM -->
     <v-form
       ref="formRef"

@@ -44,18 +44,17 @@
 
           <!-- Location -->
           <v-row class="mt-1">
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.province"
-                :label="t('ولایت *')"
-                variant="outlined"
-                density="compact"
-                :rules="[rules.required]"
-                :error="hasError('province')"
-                :error-messages="getErrorMessages('province')"
+             <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.province"
+                v-model:district="form.district"
+                :province-label="t('ولایت ')"
+                :district-label="t('ولسوالی ')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="9">
               <v-text-field
                 v-model="form.zone"
                 :label="t('زون')"
@@ -65,17 +64,7 @@
                 :error-messages="getErrorMessages('zone')"
               />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.district"
-                :label="t('ولسوالی *')"
-                variant="outlined"
-                density="compact"
-                :rules="[rules.required]"
-                :error="hasError('district')"
-                :error-messages="getErrorMessages('district')"
-              />
-            </v-col>
+            
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.village"
@@ -124,7 +113,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.coordinates"
                 :label="t('مختصات')"
@@ -302,6 +291,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
 import AppBar from '@/components/AppBar.vue';
 import { useMawadRepository } from '@/stores/MawadRepository';

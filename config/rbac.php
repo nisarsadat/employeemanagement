@@ -30,6 +30,12 @@ return [
         'roles',
         // inline info 
         'Eventtab',
+        // the notification 
+        'notification',
+        'chatbox',
+        'khayratreport',
+        'systemsetting',
+        'outgiongincomming',
 
         // API resources (exact module slugs for controllers)
         'users',

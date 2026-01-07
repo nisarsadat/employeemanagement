@@ -5,9 +5,7 @@
     <AppBar
       :title="isEdit ? t('ویرایش لچکانو') : t('اضافه کردن لچکانو')"
       :subtitle="
-        isEdit
-          ? t('ویرایش جزئیات یک ریکارډ لچکانو موجود')
-          : t('ثبت یک ریکارډ جدید لچکانو در سیستم')
+        isEdit ? t('ویرایش جزئیات یک ریکارډ لچکانو موجود') : t('ثبت یک ریکارډ جدید لچکانو در سیستم')
       "
     >
       <template #actions>
@@ -77,27 +75,17 @@
             <span class="section-title">{{ t('آدرس اصلی') }}</span>
           </div>
           <v-row>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_province"
-                :label="t('ولایت اصلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('main_province')"
-                :error-messages="getErrorMessages('main_province')"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.main_province"
+                v-model:district="form.main_district"
+                :province-label="t('ولایت اصلی')"
+                :district-label="t('ولسوالی اصلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_district"
-                :label="t('ولسوالی اصلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('main_district')"
-                :error-messages="getErrorMessages('main_district')"
-              />
-            </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.main_village"
                 :label="t('قریه/ناحیه اصلی')"
@@ -116,14 +104,14 @@
             <span class="section-title">{{ t('آدرس فعلی') }}</span>
           </div>
           <v-row>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_province"
-                :label="t('ولایت فعلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('now_province')"
-                :error-messages="getErrorMessages('now_province')"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.now_province"
+                v-model:district="form.now_district"
+                :province-label="t('ولایت فعلی')"
+                :district-label="t('ولسوالی فعلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
             <v-col cols="12" md="3">
@@ -136,16 +124,7 @@
                 :error-messages="getErrorMessages('now_zone')"
               />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_district"
-                :label="t('ولسوالی فعلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('now_district')"
-                :error-messages="getErrorMessages('now_district')"
-              />
-            </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.now_village"
@@ -188,7 +167,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.coordinates"
                 :label="t('مختصات')"
@@ -199,7 +178,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -208,7 +187,7 @@
                 :error="hasError('Province_addr')"
                 :error-messages="getErrorMessages('Province_addr')"
               />
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <v-divider class="my-4" />
@@ -249,7 +228,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.phone_number"
                 :label="t('شماره تماس')"
@@ -326,16 +305,14 @@
                 class="text-none rounded-pill primary-action-btn"
                 :loading="saving"
                 type="submit"
-                :prepend-icon="
-                  isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'
-                "
+                :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ جدید') }}
               </v-btn>
 
               <v-btn
                 color="warning"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-broom"
                 @click="resetForm"
@@ -345,7 +322,7 @@
 
               <v-btn
                 color="red"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-file-pdf-box"
                 @click="downloadPdf"
@@ -355,7 +332,7 @@
 
               <v-btn
                 color="blue"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-file-word-box"
                 @click="downloadWord"
@@ -391,270 +368,271 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
-import AppBar from '@/components/AppBar.vue';
-import { useMawadRepository } from '@/stores/MawadRepository';
+  import AppBar from '@/components/AppBar.vue';
+  import { useMawadRepository } from '@/stores/MawadRepository';
 
-const repo = useMawadRepository();
-const route = useRoute();
-const router = useRouter();
+  const repo = useMawadRepository();
+  const route = useRoute();
+  const router = useRouter();
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* MODE */
-const isEdit = computed(() => !!route.params.id);
+  /* MODE */
+  const isEdit = computed(() => !!route.params.id);
 
-/* FORM / STATE */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* FORM / STATE */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
 
-function showErrorMessage(message) {
-  errorMessage.value = message;
-  showError.value = true;
-}
-function showSuccessMessage(message) {
-  successMessage.value = message;
-  showSuccess.value = true;
-}
-
-/* BACKEND ERRORS */
-const backendErrors = ref({});
-function setBackendErrors(errors) {
-  backendErrors.value = errors || {};
-}
-function clearBackendErrors() {
-  backendErrors.value = {};
-}
-function hasError(field) {
-  return !!backendErrors.value?.[field];
-}
-function getErrorMessages(field) {
-  return backendErrors.value?.[field] ?? [];
-}
-
-/* FORM MODEL */
-const blankForm = () => ({
-  id: null,
-
-  nickname: '',
-  name: '',
-  father_name: '',
-
-  main_province: '',
-  main_district: '',
-  main_village: '',
-
-  now_province: '',
-  now_zone: '',
-  now_district: '',
-  now_village: '',
-  now_specific_place: '',
-  now_street_number: '',
-  now_home_number: '',
-  coordinates: '',
-
-  old_job: '',
-  job: '',
-  gun_type: '',
-  phone_number: '',
-
-  history_jorm: '',
-  note: '',
-  Province_addr: '',
-
-  resource_code: '',
-  resource_phone: '',
-  resource_id: null,
-});
-
-const form = ref(blankForm());
-
-/* RULES */
-const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
-};
-
-/* RESOURCES DROPDOWN (code_number -> phone + id) */
-const resources = computed(() => repo.resourcecode || []);
-
-function onResourceCodeChange(code) {
-  const found = resources.value.find((r) => r.code_number === code);
-  form.value.resource_code = code || '';
-  form.value.resource_phone = found?.phone_number ?? '';
-  form.value.resource_id = found?.id ?? null;
-}
-
-/* MAP FROM API */
-function mapFromApi(payload = {}) {
-  const x = payload.data ?? payload;
-  const b = blankForm();
-
-  b.id = x.id ?? null;
-
-  b.nickname = x.nickname ?? '';
-  b.name = x.name ?? '';
-  b.father_name = x.father_name ?? '';
-
-  b.main_province = x.main_province ?? '';
-  b.main_district = x.main_district ?? '';
-  b.main_village = x.main_village ?? '';
-
-  b.now_province = x.now_province ?? '';
-  b.now_zone = x.now_zone ?? '';
-  b.now_district = x.now_district ?? '';
-  b.now_village = x.now_village ?? '';
-  b.now_specific_place = x.now_specific_place ?? '';
-  b.now_street_number = x.now_street_number ?? '';
-  b.now_home_number = x.now_home_number ?? '';
-  b.coordinates = x.coordinates ?? '';
-
-  b.old_job = x.old_job ?? '';
-  b.job = x.job ?? '';
-  b.gun_type = x.gun_type ?? '';
-  b.phone_number = x.phone_number ?? '';
-
-  b.history_jorm = x.history_jorm ?? '';
-  b.note = x.note ?? '';
-  b.Province_addr = x.Province_addr ?? '';
-
-  const r = x.resource || {};
-  b.resource_id = x.resource_id ?? r.id ?? null;
-  b.resource_code = x.resource_code ?? r.code_number ?? '';
-  b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
-
-  return b;
-}
-
-async function loadRecord() {
-  const id = route.params.id;
-  if (!id) {
-    form.value = blankForm();
-    return;
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
   }
-  try {
-    await repo.FetchLuchakanoData?.(id);
-    const single =
-      repo.Luchakano && Array.isArray(repo.Luchakano) ? repo.Luchakano[0] : repo.Luchakano || {};
-    if (!single) return;
-
-    const mapped = mapFromApi(single);
-    form.value = { ...mapped };
-  } catch (e) {
-    console.error('loadRecord error', e);
-    showErrorMessage(t('خطا در دریافت معلومات لچکانو'));
+  function showSuccessMessage(message) {
+    successMessage.value = message;
+    showSuccess.value = true;
   }
-}
 
-/* FORM DATA HELPERS */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
+  /* BACKEND ERRORS */
+  const backendErrors = ref({});
+  function setBackendErrors(errors) {
+    backendErrors.value = errors || {};
+  }
+  function clearBackendErrors() {
+    backendErrors.value = {};
+  }
+  function hasError(field) {
+    return !!backendErrors.value?.[field];
+  }
+  function getErrorMessages(field) {
+    return backendErrors.value?.[field] ?? [];
+  }
+
+  /* FORM MODEL */
+  const blankForm = () => ({
+    id: null,
+
+    nickname: '',
+    name: '',
+    father_name: '',
+
+    main_province: '',
+    main_district: '',
+    main_village: '',
+
+    now_province: '',
+    now_zone: '',
+    now_district: '',
+    now_village: '',
+    now_specific_place: '',
+    now_street_number: '',
+    now_home_number: '',
+    coordinates: '',
+
+    old_job: '',
+    job: '',
+    gun_type: '',
+    phone_number: '',
+
+    history_jorm: '',
+    note: '',
+    Province_addr: '',
+
+    resource_code: '',
+    resource_phone: '',
+    resource_id: null,
   });
-  return fd;
-}
 
-function buildCreateFormData() {
-  const payload = { ...form.value };
-  delete payload.id;
-  return toFormData(payload);
-}
+  const form = ref(blankForm());
 
-function buildUpdateFormData() {
-  const payload = { ...form.value };
-  delete payload.id;
-  return toFormData(payload);
-}
+  /* RULES */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+  };
 
-/* SCROLL TO FIRST INVALID */
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-    document.querySelector('.v-messages__message');
-  if (first) {
-    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = first.querySelector('input, textarea, .v-field__input');
-    if (input && typeof input.focus === 'function') input.focus();
+  /* RESOURCES DROPDOWN (code_number -> phone + id) */
+  const resources = computed(() => repo.resourcecode || []);
+
+  function onResourceCodeChange(code) {
+    const found = resources.value.find((r) => r.code_number === code);
+    form.value.resource_code = code || '';
+    form.value.resource_phone = found?.phone_number ?? '';
+    form.value.resource_id = found?.id ?? null;
   }
-}
 
-/* =========================
+  /* MAP FROM API */
+  function mapFromApi(payload = {}) {
+    const x = payload.data ?? payload;
+    const b = blankForm();
+
+    b.id = x.id ?? null;
+
+    b.nickname = x.nickname ?? '';
+    b.name = x.name ?? '';
+    b.father_name = x.father_name ?? '';
+
+    b.main_province = x.main_province ?? '';
+    b.main_district = x.main_district ?? '';
+    b.main_village = x.main_village ?? '';
+
+    b.now_province = x.now_province ?? '';
+    b.now_zone = x.now_zone ?? '';
+    b.now_district = x.now_district ?? '';
+    b.now_village = x.now_village ?? '';
+    b.now_specific_place = x.now_specific_place ?? '';
+    b.now_street_number = x.now_street_number ?? '';
+    b.now_home_number = x.now_home_number ?? '';
+    b.coordinates = x.coordinates ?? '';
+
+    b.old_job = x.old_job ?? '';
+    b.job = x.job ?? '';
+    b.gun_type = x.gun_type ?? '';
+    b.phone_number = x.phone_number ?? '';
+
+    b.history_jorm = x.history_jorm ?? '';
+    b.note = x.note ?? '';
+    b.Province_addr = x.Province_addr ?? '';
+
+    const r = x.resource || {};
+    b.resource_id = x.resource_id ?? r.id ?? null;
+    b.resource_code = x.resource_code ?? r.code_number ?? '';
+    b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
+
+    return b;
+  }
+
+  async function loadRecord() {
+    const id = route.params.id;
+    if (!id) {
+      form.value = blankForm();
+      return;
+    }
+    try {
+      await repo.FetchLuchakanoData?.(id);
+      const single =
+        repo.Luchakano && Array.isArray(repo.Luchakano) ? repo.Luchakano[0] : repo.Luchakano || {};
+      if (!single) return;
+
+      const mapped = mapFromApi(single);
+      form.value = { ...mapped };
+    } catch (e) {
+      console.error('loadRecord error', e);
+      showErrorMessage(t('خطا در دریافت معلومات لچکانو'));
+    }
+  }
+
+  /* FORM DATA HELPERS */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  function buildCreateFormData() {
+    const payload = { ...form.value };
+    delete payload.id;
+    return toFormData(payload);
+  }
+
+  function buildUpdateFormData() {
+    const payload = { ...form.value };
+    delete payload.id;
+    return toFormData(payload);
+  }
+
+  /* SCROLL TO FIRST INVALID */
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  /* =========================
    SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
 ========================= */
-function esc(v) {
-  return String(v ?? '').replace(/[&<>"']/g, (m) => {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return map[m];
-  });
-}
-function safeFileName(s) {
-  return String(s ?? '')
-    .replace(/[\\/:*?"<>|]/g, '-')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-function v(x) {
-  return x && String(x).trim() ? x : '—';
-}
-function exportRows() {
-  return [
-    { label: t('نام'), value: v(form.value.name) },
-    { label: t('تخلص'), value: v(form.value.nickname) },
-    { label: t('نام پدر'), value: v(form.value.father_name) },
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, (m) => {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return map[m];
+    });
+  }
+  function safeFileName(s) {
+    return String(s ?? '')
+      .replace(/[\\/:*?"<>|]/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  function v(x) {
+    return x && String(x).trim() ? x : '—';
+  }
+  function exportRows() {
+    return [
+      { label: t('نام'), value: v(form.value.name) },
+      { label: t('تخلص'), value: v(form.value.nickname) },
+      { label: t('نام پدر'), value: v(form.value.father_name) },
 
-    { label: t('ولایت اصلی'), value: v(form.value.main_province) },
-    { label: t('ولسوالی اصلی'), value: v(form.value.main_district) },
-    { label: t('قریه/ناحیه اصلی'), value: v(form.value.main_village) },
+      { label: t('ولایت اصلی'), value: v(form.value.main_province) },
+      { label: t('ولسوالی اصلی'), value: v(form.value.main_district) },
+      { label: t('قریه/ناحیه اصلی'), value: v(form.value.main_village) },
 
-    { label: t('ولایت فعلی'), value: v(form.value.now_province) },
-    { label: t('زون فعلی'), value: v(form.value.now_zone) },
-    { label: t('ولسوالی فعلی'), value: v(form.value.now_district) },
-    { label: t('قریه/ناحیه فعلی'), value: v(form.value.now_village) },
+      { label: t('ولایت فعلی'), value: v(form.value.now_province) },
+      { label: t('زون فعلی'), value: v(form.value.now_zone) },
+      { label: t('ولسوالی فعلی'), value: v(form.value.now_district) },
+      { label: t('قریه/ناحیه فعلی'), value: v(form.value.now_village) },
 
-    { label: t('موقعیت مشخص فعلی'), value: v(form.value.now_specific_place) },
-    { label: t('شماره سرک فعلی'), value: v(form.value.now_street_number) },
-    { label: t('شماره خانه فعلی'), value: v(form.value.now_home_number) },
-    { label: t('مختصات'), value: v(form.value.coordinates) },
+      { label: t('موقعیت مشخص فعلی'), value: v(form.value.now_specific_place) },
+      { label: t('شماره سرک فعلی'), value: v(form.value.now_street_number) },
+      { label: t('شماره خانه فعلی'), value: v(form.value.now_home_number) },
+      { label: t('مختصات'), value: v(form.value.coordinates) },
 
-    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+      { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
 
-    { label: t('وظیفه قبلی'), value: v(form.value.old_job) },
-    { label: t('وظیفه فعلی'), value: v(form.value.job) },
-    { label: t('نوع اسلحه'), value: v(form.value.gun_type) },
-    { label: t('شماره تماس'), value: v(form.value.phone_number) },
+      { label: t('وظیفه قبلی'), value: v(form.value.old_job) },
+      { label: t('وظیفه فعلی'), value: v(form.value.job) },
+      { label: t('نوع اسلحه'), value: v(form.value.gun_type) },
+      { label: t('شماره تماس'), value: v(form.value.phone_number) },
 
-    { label: t('کود منبع'), value: v(form.value.resource_code) },
-    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+      { label: t('کود منبع'), value: v(form.value.resource_code) },
+      { label: t('شماره منبع'), value: v(form.value.resource_phone) },
 
-    { label: t('سابقه جرم'), value: v(form.value.history_jorm) },
-    { label: t('یادداشت'), value: v(form.value.note) },
-  ];
-}
-function buildSimpleTableHtml() {
-  const rows = exportRows()
-    .map(
-      (r) => `
+      { label: t('سابقه جرم'), value: v(form.value.history_jorm) },
+      { label: t('یادداشت'), value: v(form.value.note) },
+    ];
+  }
+  function buildSimpleTableHtml() {
+    const rows = exportRows()
+      .map(
+        (r) => `
       <tr>
         <th>${esc(r.label)}</th>
         <td>${esc(r.value)}</td>
       </tr>
     `
-    )
-    .join('');
+      )
+      .join('');
 
-  return `
+    return `
     <h3 class="title">فورم لچکانو</h3>
     <table class="simple-table">
       <tbody>
@@ -666,13 +644,13 @@ function buildSimpleTableHtml() {
       <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
     </div>
   `;
-}
-function buildDocumentHtml() {
-  const bodyHtml = buildSimpleTableHtml();
-  const safeId = esc(form.value.id || '');
-  const safeName = esc(form.value.name || '');
+  }
+  function buildDocumentHtml() {
+    const bodyHtml = buildSimpleTableHtml();
+    const safeId = esc(form.value.id || '');
+    const safeName = esc(form.value.name || '');
 
-  return `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html dir="rtl" xmlns:o="urn:schemas-microsoft-com:office:office"
       xmlns:w="urn:schemas-microsoft-com:office:word"
       xmlns="http://www.w3.org/TR/REC-html40">
@@ -739,156 +717,156 @@ function buildDocumentHtml() {
   ${bodyHtml}
 </body>
 </html>`;
-}
-
-function downloadPdf() {
-  const html = buildDocumentHtml();
-  const w = window.open('', '_blank', 'width=1024,height=768');
-  if (!w) return;
-
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-
-  setTimeout(() => {
-    w.focus();
-    w.print();
-  }, 350);
-}
-
-function downloadWord() {
-  const html = buildDocumentHtml();
-  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `لچکانو_${safeFileName(form.value.name || 'جدید')}_${Date.now()}.doc`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  URL.revokeObjectURL(url);
-  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
-}
-
-/* SUBMIT */
-async function onSubmit() {
-  clearBackendErrors();
-
-  const f = formRef.value;
-  if (!f) return;
-
-  const { valid } = await f.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
   }
 
-  if (!form.value.name?.trim()) {
-    showErrorMessage(t('نام الزامی است'));
-    return;
+  function downloadPdf() {
+    const html = buildDocumentHtml();
+    const w = window.open('', '_blank', 'width=1024,height=768');
+    if (!w) return;
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+
+    setTimeout(() => {
+      w.focus();
+      w.print();
+    }, 350);
   }
 
-  saving.value = true;
+  function downloadWord() {
+    const html = buildDocumentHtml();
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
 
-  try {
-    if (!isEdit.value) {
-      const fd = buildCreateFormData();
-      const created = await repo.CreateLuchakano?.(fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `لچکانو_${safeFileName(form.value.name || 'جدید')}_${Date.now()}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-      if (created?.id) {
-        showSuccessMessage(t('موفقانه ثبت شد'));
-        router.push('/app/luchakanos').catch(() => {});
-      } else {
-        showErrorMessage(t('ثبت معلومات ناکام شد'));
-      }
-    } else {
-      const fd = buildUpdateFormData();
-      const updated = await repo.UpdateLuchakano?.(form.value.id, fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
+    URL.revokeObjectURL(url);
+    showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
+  }
 
-      if (updated?.id) {
-        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-        router.push('/app/luchakanos').catch(() => {});
-      } else {
-        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-      }
+  /* SUBMIT */
+  async function onSubmit() {
+    clearBackendErrors();
+
+    const f = formRef.value;
+    if (!f) return;
+
+    const { valid } = await f.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
     }
-  } catch (e) {
-    console.error('submit error', e);
-    showErrorMessage(t('خطا در ذخیره اطلاعات'));
-  } finally {
-    saving.value = false;
+
+    if (!form.value.name?.trim()) {
+      showErrorMessage(t('نام الزامی است'));
+      return;
+    }
+
+    saving.value = true;
+
+    try {
+      if (!isEdit.value) {
+        const fd = buildCreateFormData();
+        const created = await repo.CreateLuchakano?.(fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (created?.id) {
+          showSuccessMessage(t('موفقانه ثبت شد'));
+          router.push('/app/luchakanos').catch(() => {});
+        } else {
+          showErrorMessage(t('ثبت معلومات ناکام شد'));
+        }
+      } else {
+        const fd = buildUpdateFormData();
+        const updated = await repo.UpdateLuchakano?.(form.value.id, fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (updated?.id) {
+          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+          router.push('/app/luchakanos').catch(() => {});
+        } else {
+          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        }
+      }
+    } catch (e) {
+      console.error('submit error', e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      saving.value = false;
+    }
   }
-}
 
-/* RESET & NAVIGATION */
-function resetForm() {
-  if (isEdit.value) {
-    loadRecord();
-  } else {
-    form.value = blankForm();
+  /* RESET & NAVIGATION */
+  function resetForm() {
+    if (isEdit.value) {
+      loadRecord();
+    } else {
+      form.value = blankForm();
+    }
+
+    clearBackendErrors();
+    formRef.value?.resetValidation?.();
+    showSuccessMessage(t('فرم پاک شد'));
   }
 
-  clearBackendErrors();
-  formRef.value?.resetValidation?.();
-  showSuccessMessage(t('فرم پاک شد'));
-}
-
-function goBack() {
-  router.push('/app/luchakanos');
-}
-
-/* INIT */
-onMounted(async () => {
-  await repo.GetResourceCode?.();
-  if (isEdit.value) {
-    await loadRecord();
+  function goBack() {
+    router.push('/app/luchakanos');
   }
-});
+
+  /* INIT */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
+    if (isEdit.value) {
+      await loadRecord();
+    }
+  });
 </script>
 
 <style scoped>
-.simple-form-card {
-  padding: 16px 16px 20px;
-  border-radius: 12px;
-}
+  .simple-form-card {
+    padding: 16px 16px 20px;
+    border-radius: 12px;
+  }
 
-/* sections */
-.section-header {
-  display: flex;
-  align-items: center;
-  padding-block: 2px;
-}
-.section-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  opacity: 0.8;
-}
+  /* sections */
+  .section-header {
+    display: flex;
+    align-items: center;
+    padding-block: 2px;
+  }
+  .section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.8;
+  }
 
-/* tighter fields */
-:deep(.v-field--variant-outlined .v-field__input) {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  min-height: 36px;
-}
+  /* tighter fields */
+  :deep(.v-field--variant-outlined .v-field__input) {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    min-height: 36px;
+  }
 
-/* buttons */
-.primary-action-btn {
-  padding-inline: 18px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
-}
-.secondary-action-btn {
-  padding-inline: 14px;
-  font-weight: 500;
-}
+  /* buttons */
+  .primary-action-btn {
+    padding-inline: 18px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+  }
+  .secondary-action-btn {
+    padding-inline: 14px;
+    font-weight: 500;
+  }
 </style>

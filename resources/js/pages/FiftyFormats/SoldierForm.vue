@@ -4,9 +4,7 @@
     <AppBar
       :title="isEdit ? t('اصلاح سرباز') : t('اضافه کردن یک ریکارډ جدید سرباز')"
       :subtitle="
-        isEdit
-          ? t('ویرایش جزئیات یک ریکارډ موجود سرباز')
-          : t('ثبت یک ریکارډ جدید سرباز در سیستم')
+        isEdit ? t('ویرایش جزئیات یک ریکارډ موجود سرباز') : t('ثبت یک ریکارډ جدید سرباز در سیستم')
       "
     >
       <template #actions>
@@ -91,25 +89,17 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_province"
-                :label="t('ولایت اصلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.now_province"
+                v-model:district="form.now_district"
+                :province-label="t('ولایت فعلی')"
+                :district-label="t('ولسوالی فعلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_district"
-                :label="t('ولسوالی اصلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.main_village"
                 :label="t('قریه/ناحیه اصلی')"
@@ -130,16 +120,17 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_province"
-                :label="t('ولایت فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.now_province"
+                v-model:district="form.now_district"
+                :province-label="t('ولایت فعلی')"
+                :district-label="t('ولسوالی فعلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.now_zone"
                 :label="t('زون فعلی')"
@@ -148,16 +139,8 @@
                 hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_district"
-                :label="t('ولسوالی فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="3">
+
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.now_village"
                 :label="t('قریه/ناحیه فعلی')"
@@ -373,12 +356,7 @@
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت سرباز جدید') }}
               </v-btn>
 
-              <v-btn
-                color="secondary"
-                variant="text"
-                class="text-none"
-                @click="resetForm"
-              >
+              <v-btn color="secondary" variant="text" class="text-none" @click="resetForm">
                 {{ t('پاک کردن فرم') }}
               </v-btn>
             </v-col>
@@ -410,104 +388,31 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
-import AppBar from '@/components/AppBar.vue';
-import { useFasadRepository } from '@/stores/FasadRepository';
+  import AppBar from '@/components/AppBar.vue';
+  import { useFasadRepository } from '@/stores/FasadRepository';
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-const route = useRoute();
-const router = useRouter();
-const repo = useFasadRepository();
+  const route = useRoute();
+  const router = useRouter();
+  const repo = useFasadRepository();
 
-const isEdit = computed(() => !!route.params.id);
+  const isEdit = computed(() => !!route.params.id);
 
-/* Form state */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* Form state */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const form = ref({
-  id: null,
-  name: '',
-  father_name: '',
-  main_province: '',
-  main_district: '',
-  main_village: '',
-  now_province: '',
-  now_zone: '',
-  now_district: '',
-  now_village: '',
-  specific_place: '',
-  street_number: '',
-  home_number: '',
-  old_job: '',
-  now_job: '',
-  guard_amount: '',
-  Province_addr: '',
-  phone_number: '',
-  coordinates: '',
-  resource_code: '',
-  resource_phone_number: '',
-  resource_id: null,
-  notes: '',
-});
-
-/* Rules */
-const rules = {
-  required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
-
-  nonNegativeNumberOptional: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return true;
-    const n = Number(s);
-    if (!Number.isFinite(n)) return t('عدد درست نیست');
-    if (n < 0) return t('عدد منفی قبول نیست');
-    return true;
-  },
-
-  coordinatesOptional: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return true;
-    if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
-    return true;
-  },
-};
-
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
-
-function showErrorMessage(msg) {
-  errorMessage.value = msg;
-  showError.value = true;
-}
-
-function showSuccessMsg(msg) {
-  successMessage.value = msg;
-  showSuccess.value = true;
-}
-
-/* Resources dropdown */
-const resources = computed(() => repo.resourcecode || []);
-
-function onResourceCodeChange(code) {
-  const found = resources.value.find((r) => r.code_number === code);
-  form.value.resource_phone_number = found?.phone_number ?? '';
-  form.value.resource_id = found?.id ?? null;
-}
-
-/* Helpers */
-function resetForm() {
-  form.value = {
-    id: isEdit.value ? form.value.id : null,
+  const form = ref({
+    id: null,
     name: '',
     father_name: '',
     main_province: '',
@@ -530,157 +435,231 @@ function resetForm() {
     resource_phone_number: '',
     resource_id: null,
     notes: '',
-  };
-  formRef.value?.resetValidation?.();
-}
-
-function fillFormFromRecord(x = {}) {
-  form.value = {
-    id: x.id ?? null,
-    name: x.name ?? '',
-    father_name: x.father_name ?? '',
-    main_province: x.main_province ?? '',
-    main_district: x.main_district ?? '',
-    main_village: x.main_village ?? '',
-    now_province: x.now_province ?? '',
-    now_zone: x.now_zone ?? '',
-    now_district: x.now_district ?? '',
-    now_village: x.now_village ?? '',
-    specific_place: x.specific_place ?? '',
-    street_number: x.street_number ?? '',
-    home_number: x.home_number ?? '',
-    old_job: x.old_job ?? '',
-    now_job: x.now_job ?? '',
-    guard_amount: x.guard_amount ?? '',
-    Province_addr: x.Province_addr ?? '',
-    phone_number: x.phone_number ?? '',
-    coordinates: x.coordinates ?? '',
-    resource_code: x.resource_code ?? '',
-    resource_phone_number: x.resource_phone_number ?? '',
-    resource_id: x.resource_id ?? null,
-    notes: x.notes ?? '',
-  };
-}
-
-/* Build FormData */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj || {}).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
   });
-  return fd;
-}
 
-/* Submit */
-async function onSubmit() {
-  if (!formRef.value) return;
-  const { valid } = await formRef.value.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
-    return;
+  /* Rules */
+  const rules = {
+    required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
+
+    nonNegativeNumberOptional: (v) => {
+      const s = String(v ?? '').trim();
+      if (!s) return true;
+      const n = Number(s);
+      if (!Number.isFinite(n)) return t('عدد درست نیست');
+      if (n < 0) return t('عدد منفی قبول نیست');
+      return true;
+    },
+
+    coordinatesOptional: (v) => {
+      const s = String(v ?? '').trim();
+      if (!s) return true;
+      if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
+      return true;
+    },
+  };
+
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
+
+  function showErrorMessage(msg) {
+    errorMessage.value = msg;
+    showError.value = true;
   }
 
-  saving.value = true;
-  try {
-    const fd = toFormData({ ...form.value });
+  function showSuccessMsg(msg) {
+    successMessage.value = msg;
+    showSuccess.value = true;
+  }
 
-    if (isEdit.value && form.value.id) {
-      const updated = await repo.UpdateSoldier?.(form.value.id, fd);
-      if (updated?.id) {
-        showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
-        goBack();
-        return;
-      }
-    } else {
-      const created = await repo.CreateSoldier?.(fd);
-      if (created?.id) {
-        showSuccessMsg(t('سرباز جدید موفقانه ثبت شد'));
-        goBack();
-        return;
-      }
+  /* Resources dropdown */
+  const resources = computed(() => repo.resourcecode || []);
+
+  function onResourceCodeChange(code) {
+    const found = resources.value.find((r) => r.code_number === code);
+    form.value.resource_phone_number = found?.phone_number ?? '';
+    form.value.resource_id = found?.id ?? null;
+  }
+
+  /* Helpers */
+  function resetForm() {
+    form.value = {
+      id: isEdit.value ? form.value.id : null,
+      name: '',
+      father_name: '',
+      main_province: '',
+      main_district: '',
+      main_village: '',
+      now_province: '',
+      now_zone: '',
+      now_district: '',
+      now_village: '',
+      specific_place: '',
+      street_number: '',
+      home_number: '',
+      old_job: '',
+      now_job: '',
+      guard_amount: '',
+      Province_addr: '',
+      phone_number: '',
+      coordinates: '',
+      resource_code: '',
+      resource_phone_number: '',
+      resource_id: null,
+      notes: '',
+    };
+    formRef.value?.resetValidation?.();
+  }
+
+  function fillFormFromRecord(x = {}) {
+    form.value = {
+      id: x.id ?? null,
+      name: x.name ?? '',
+      father_name: x.father_name ?? '',
+      main_province: x.main_province ?? '',
+      main_district: x.main_district ?? '',
+      main_village: x.main_village ?? '',
+      now_province: x.now_province ?? '',
+      now_zone: x.now_zone ?? '',
+      now_district: x.now_district ?? '',
+      now_village: x.now_village ?? '',
+      specific_place: x.specific_place ?? '',
+      street_number: x.street_number ?? '',
+      home_number: x.home_number ?? '',
+      old_job: x.old_job ?? '',
+      now_job: x.now_job ?? '',
+      guard_amount: x.guard_amount ?? '',
+      Province_addr: x.Province_addr ?? '',
+      phone_number: x.phone_number ?? '',
+      coordinates: x.coordinates ?? '',
+      resource_code: x.resource_code ?? '',
+      resource_phone_number: x.resource_phone_number ?? '',
+      resource_id: x.resource_id ?? null,
+      notes: x.notes ?? '',
+    };
+  }
+
+  /* Build FormData */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  /* Submit */
+  async function onSubmit() {
+    if (!formRef.value) return;
+    const { valid } = await formRef.value.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
+      return;
     }
 
-    showErrorMessage(t('خطا در ذخیره معلومات'));
-  } catch (e) {
-    console.error('Soldier save error', e);
-    showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
-  } finally {
-    saving.value = false;
+    saving.value = true;
+    try {
+      const fd = toFormData({ ...form.value });
+
+      if (isEdit.value && form.value.id) {
+        const updated = await repo.UpdateSoldier?.(form.value.id, fd);
+        if (updated?.id) {
+          showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
+          goBack();
+          return;
+        }
+      } else {
+        const created = await repo.CreateSoldier?.(fd);
+        if (created?.id) {
+          showSuccessMsg(t('سرباز جدید موفقانه ثبت شد'));
+          goBack();
+          return;
+        }
+      }
+
+      showErrorMessage(t('خطا در ذخیره معلومات'));
+    } catch (e) {
+      console.error('Soldier save error', e);
+      showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
+    } finally {
+      saving.value = false;
+    }
   }
-}
 
-/* Navigation */
-function goBack() {
-  router.push('/app/soldiers');
-}
-
-/* Load on edit */
-async function loadExisting() {
-  const id = route.params.id;
-  if (!id) return;
-  try {
-    await repo.FetchSoldierData?.(id);
-    const rec =
-      repo.Soldier && Array.isArray(repo.Soldier) ? repo.Soldier[0] : repo.Soldier || {};
-    fillFormFromRecord(rec);
-  } catch (e) {
-    console.error('loadExisting error', e);
-    showErrorMessage(t('خطا در دریافت معلومات سرباز'));
+  /* Navigation */
+  function goBack() {
+    router.push('/app/soldiers');
   }
-}
 
-/* =========================
+  /* Load on edit */
+  async function loadExisting() {
+    const id = route.params.id;
+    if (!id) return;
+    try {
+      await repo.FetchSoldierData?.(id);
+      const rec =
+        repo.Soldier && Array.isArray(repo.Soldier) ? repo.Soldier[0] : repo.Soldier || {};
+      fillFormFromRecord(rec);
+    } catch (e) {
+      console.error('loadExisting error', e);
+      showErrorMessage(t('خطا در دریافت معلومات سرباز'));
+    }
+  }
+
+  /* =========================
    ✅ SIMPLE EXPORT (PDF/Word)
    - Works even if form is blank
    - NO images
    - NO app headers/top bar
    - Clean RTL table + signature lines
 ========================= */
-function escapeHtml(s) {
-  return String(s ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
+  function escapeHtml(s) {
+    return String(s ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
 
-function buildExportHtml() {
-  const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
+  function buildExportHtml() {
+    const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
 
-  const rows = [
-    [t('نام'), form.value.name],
-    [t('نام پدر'), form.value.father_name],
-    [t('ولایت مربوطه'), form.value.Province_addr],
-    [t('شماره تماس'), form.value.phone_number],
+    const rows = [
+      [t('نام'), form.value.name],
+      [t('نام پدر'), form.value.father_name],
+      [t('ولایت مربوطه'), form.value.Province_addr],
+      [t('شماره تماس'), form.value.phone_number],
 
-    [t('ولایت اصلی'), form.value.main_province],
-    [t('ولسوالی اصلی'), form.value.main_district],
-    [t('قریه/ناحیه اصلی'), form.value.main_village],
+      [t('ولایت اصلی'), form.value.main_province],
+      [t('ولسوالی اصلی'), form.value.main_district],
+      [t('قریه/ناحیه اصلی'), form.value.main_village],
 
-    [t('ولایت فعلی'), form.value.now_province],
-    [t('زون فعلی'), form.value.now_zone],
-    [t('ولسوالی فعلی'), form.value.now_district],
-    [t('قریه/ناحیه فعلی'), form.value.now_village],
+      [t('ولایت فعلی'), form.value.now_province],
+      [t('زون فعلی'), form.value.now_zone],
+      [t('ولسوالی فعلی'), form.value.now_district],
+      [t('قریه/ناحیه فعلی'), form.value.now_village],
 
-    [t('موقعیت مشخص'), form.value.specific_place],
-    [t('شماره سرک'), form.value.street_number],
-    [t('شماره خانه'), form.value.home_number],
+      [t('موقعیت مشخص'), form.value.specific_place],
+      [t('شماره سرک'), form.value.street_number],
+      [t('شماره خانه'), form.value.home_number],
 
-    [t('وظیفه قبلی'), form.value.old_job],
-    [t('وظیفه فعلی'), form.value.now_job],
-    [t('تعداد محافظ'), form.value.guard_amount],
+      [t('وظیفه قبلی'), form.value.old_job],
+      [t('وظیفه فعلی'), form.value.now_job],
+      [t('تعداد محافظ'), form.value.guard_amount],
 
-    [t('مختصات'), form.value.coordinates],
+      [t('مختصات'), form.value.coordinates],
 
-    [t('کود منبع'), form.value.resource_code],
-    [t('شماره منبع'), form.value.resource_phone_number],
+      [t('کود منبع'), form.value.resource_code],
+      [t('شماره منبع'), form.value.resource_phone_number],
 
-    [t('ملاحظات'), form.value.notes],
-  ];
+      [t('ملاحظات'), form.value.notes],
+    ];
 
-  return `
+    return `
 <!doctype html>
 <html dir="rtl" lang="fa">
 <head>
@@ -725,50 +704,50 @@ function buildExportHtml() {
 </body>
 </html>
   `.trim();
-}
+  }
 
-function downloadPdf() {
-  const html = buildExportHtml();
-  const w = window.open('', '_blank');
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  setTimeout(() => w.print(), 250);
-}
+  function downloadPdf() {
+    const html = buildExportHtml();
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 250);
+  }
 
-function downloadWord() {
-  const html = buildExportHtml();
-  const blob = new Blob([html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
+  function downloadWord() {
+    const html = buildExportHtml();
+    const blob = new Blob([html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
 
-  const namePart = form.value.id ? `soldier_${form.value.id}` : 'soldier_blank';
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${namePart}.doc`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+    const namePart = form.value.id ? `soldier_${form.value.id}` : 'soldier_blank';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${namePart}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-}
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
 
-/* Init */
-onMounted(async () => {
-  await repo.GetResourceCode?.();
-  if (isEdit.value) await loadExisting();
-});
+  /* Init */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
+    if (isEdit.value) await loadExisting();
+  });
 </script>
 
 <style scoped>
-.section-title {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: #37474f;
-}
-.ga-2 {
-  gap: 8px;
-}
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #37474f;
+  }
+  .ga-2 {
+    gap: 8px;
+  }
 </style>
