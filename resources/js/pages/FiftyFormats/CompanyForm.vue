@@ -32,7 +32,7 @@
         <v-card class="simple-form-card" elevation="1">
           <v-row>
             <!-- Identity + addresses -->
-            <v-col cols="12" md="9">
+            <v-col cols="12" md="12">
               <!-- Identity -->
               <div class="section-header">
                 <span class="section-title">
@@ -136,7 +136,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="12">
                   <v-text-field
                     v-model="form.responsible_phone"
                     :label="t('شماره تماس مسوول')"
@@ -154,17 +154,17 @@
                 <span class="section-title">{{ t('آدرس شرکت') }}</span>
               </div>
               <v-row>
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.com_province"
-                    :label="t('ولایت')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('com_province')"
-                    :error-messages="getErrorMessages('com_province')"
+                <v-col cols="12" md="12">
+                  <ProvinceDistrictNameSelect
+                    v-model:province="form.com_province"
+                    v-model:district="form.com_district"
+                    :province-label="t('ولایت')"
+                    :district-label="t('ولسوالی')"
+                    :mdProvince="6"
+                    :mdDistrict="6"
                   />
                 </v-col>
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.com_zone"
                     :label="t('زون')"
@@ -174,18 +174,8 @@
                     :error-messages="getErrorMessages('com_zone')"
                   />
                 </v-col>
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.com_district"
-                    :label="t('ولسوالی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('com_district')"
-                    :error-messages="getErrorMessages('com_district')"
-                  />
-                </v-col>
 
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.com_village"
                     :label="t('قریه')"
@@ -277,7 +267,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model.number="form.guard_quantity"
                 type="number"
@@ -291,7 +281,7 @@
             </v-col>
 
             <!-- Province addr + resource -->
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -300,7 +290,7 @@
                 :error="hasError('Province_addr')"
                 :error-messages="getErrorMessages('Province_addr')"
               />
-            </v-col>
+            </v-col> -->
 
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
@@ -329,7 +319,7 @@
             </v-col>
 
             <!-- Note -->
-            <v-col cols="12" md="8">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.note"
                 :label="t('ملاحظات')"
@@ -357,7 +347,7 @@
 
               <v-btn
                 color="warning"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-broom"
                 @click="resetForm"
@@ -367,7 +357,7 @@
 
               <v-btn
                 color="red"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-file-pdf-box"
                 @click="downloadPdf"
@@ -377,7 +367,7 @@
 
               <v-btn
                 color="blue"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-file-word-box"
                 @click="downloadWord"
@@ -412,6 +402,7 @@
   import { ref, computed, onMounted, watch, nextTick } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
   import AppBar from '@/components/AppBar.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';

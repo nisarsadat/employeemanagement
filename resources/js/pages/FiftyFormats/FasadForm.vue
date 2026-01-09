@@ -109,7 +109,7 @@
                 :district-label="t('ولسوالی اصلی')"
                 :mdProvince="6"
                 :mdDistrict="6"
-              />
+            />
             </v-col>
             <v-col cols="12" md="`12`">
               <v-text-field

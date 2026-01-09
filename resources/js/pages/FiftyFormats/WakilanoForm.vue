@@ -5,9 +5,7 @@
     <AppBar
       :title="isEdit ? t('ویرایش وکیل') : t('ایجاد وکیل جدید')"
       :subtitle="
-        isEdit
-          ? t('ویرایش جزئیات یک ریکارډ وکیل موجود')
-          : t('ثبت یک ریکارډ وکیل جدید در سیستم')
+        isEdit ? t('ویرایش جزئیات یک ریکارډ وکیل موجود') : t('ثبت یک ریکارډ وکیل جدید در سیستم')
       "
     >
       <template #actions>
@@ -81,29 +79,18 @@
           </div>
 
           <v-row>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_province"
-                :label="t('ولایت اصلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('main_province')"
-                :error-messages="getErrorMessages('main_province')"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.main_province"
+                v-model:district="form.main_district"
+                :province-label="t('ولایت اصلی')"
+                :district-label="t('ولسوالی اصلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
 
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_district"
-                :label="t('ولسوالی اصلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('main_district')"
-                :error-messages="getErrorMessages('main_district')"
-              />
-            </v-col>
-
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.main_village"
                 :label="t('قریه اصلی')"
@@ -121,18 +108,17 @@
           </div>
 
           <v-row>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.now_province"
-                :label="t('ولایت فعلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('now_province')"
-                :error-messages="getErrorMessages('now_province')"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.now_province"
+                v-model:district="form.now_district"
+                :province-label="t('ولایت فعلی')"
+                :district-label="t('ولسوالی فعلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
-
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.now_zone"
                 :label="t('زون فعلی')"
@@ -140,17 +126,6 @@
                 density="compact"
                 :error="hasError('now_zone')"
                 :error-messages="getErrorMessages('now_zone')"
-              />
-            </v-col>
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.now_district"
-                :label="t('ولسوالی فعلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('now_district')"
-                :error-messages="getErrorMessages('now_district')"
               />
             </v-col>
 
@@ -295,13 +270,12 @@
             </v-col>
           </v-row>
 
-          <!-- Coordinates / Province_addr -->
           <div class="section-header mt-4">
             <span class="section-title">{{ t('مختصات و ولایت مربوطه') }}</span>
           </div>
 
           <v-row>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.coordinates"
                 :label="t('مختصات')"
@@ -312,7 +286,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="6">
+            <!-- <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -321,7 +295,7 @@
                 :error="hasError('Province_addr')"
                 :error-messages="getErrorMessages('Province_addr')"
               />
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <!-- Resource & Note -->
@@ -397,7 +371,7 @@
 
               <v-btn
                 color="warning"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-broom"
                 @click="resetForm"
@@ -461,347 +435,348 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
-import AppBar from '@/components/AppBar.vue';
-import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import AppBar from '@/components/AppBar.vue';
+  import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
-const repo = useWakilanoRepository();
-const route = useRoute();
-const router = useRouter();
+  const repo = useWakilanoRepository();
+  const route = useRoute();
+  const router = useRouter();
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* MODE */
-const isEdit = computed(() => !!route.params.id);
+  /* MODE */
+  const isEdit = computed(() => !!route.params.id);
 
-/* FORM / STATE */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* FORM / STATE */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
 
-function showErrorMessage(message) {
-  errorMessage.value = message;
-  showError.value = true;
-}
-function showSuccessMessage(message) {
-  successMessage.value = message;
-  showSuccess.value = true;
-}
-
-/* BACKEND ERRORS */
-const backendErrors = ref({});
-function setBackendErrors(errors) {
-  backendErrors.value = errors || {};
-}
-function clearBackendErrors() {
-  backendErrors.value = {};
-}
-function hasError(field) {
-  return !!backendErrors.value?.[field];
-}
-function getErrorMessages(field) {
-  return backendErrors.value?.[field] ?? [];
-}
-
-/* FORM MODEL */
-const blankForm = () => ({
-  id: null,
-
-  name: '',
-  f_name: '',
-  grand_father_name: '',
-
-  main_province: '',
-  main_district: '',
-  main_village: '',
-
-  now_province: '',
-  now_zone: '',
-  now_district: '',
-  now_village: '',
-  now_specific_place: '',
-  now_street_number: '',
-  now_home_number: '',
-  Guzar: '',
-  place_tafseel: '',
-
-  old_job: '',
-  now_job: '',
-  home_quantity: '',
-
-  phone_number: '',
-  history_form: '',
-
-  coordinates: '',
-  Province_addr: '',
-
-  resource_code: '',
-  resource_phone: '',
-  resource_id: '',
-  note: '',
-});
-
-const form = ref(blankForm());
-
-/* ✅ RULES (only validation change: phone exactly 10 digits) */
-const rules = {
-  required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
-  phone10: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return true; // not required; keep your logic
-    if (!/^\d+$/.test(s)) return t('فقط اعداد');
-    if (s.length !== 10) return t('شماره تماس باید دقیقاً ۱۰ رقم باشد');
-    return true;
-  },
-};
-
-/* RESOURCES DROPDOWN */
-const resources = computed(() => repo.resourcecode || []);
-
-function onResourceCodeChange(code) {
-  const found = resources.value.find((r) => r.code_number === code);
-  form.value.resource_phone = found?.phone_number ?? '';
-  form.value.resource_id = found?.id ?? null;
-}
-
-/* MAP FROM API */
-function mapFromApi(payload = {}) {
-  const x = payload.data ?? payload;
-  const b = blankForm();
-
-  b.id = x.id ?? null;
-
-  b.name = x.name ?? '';
-  b.f_name = x.f_name ?? '';
-  b.grand_father_name = x.grand_father_name ?? '';
-
-  b.main_province = x.main_province ?? '';
-  b.main_district = x.main_district ?? '';
-  b.main_village = x.main_village ?? '';
-
-  b.now_province = x.now_province ?? '';
-  b.now_zone = x.now_zone ?? '';
-  b.now_district = x.now_district ?? '';
-  b.now_village = x.now_village ?? '';
-  b.now_specific_place = x.now_specific_place ?? '';
-  b.now_street_number = x.now_street_number ?? '';
-  b.now_home_number = x.now_home_number ?? '';
-  b.Guzar = x.Guzar ?? '';
-  b.place_tafseel = x.place_tafseel ?? '';
-
-  b.old_job = x.old_job ?? '';
-  b.now_job = x.now_job ?? '';
-  b.home_quantity = x.home_quantity ?? '';
-
-  b.phone_number = x.phone_number ?? '';
-  b.history_form = x.history_form ?? '';
-
-  b.coordinates = x.coordinates ?? '';
-  b.Province_addr = x.Province_addr ?? '';
-
-  b.resource_code = x.resource_code ?? '';
-  b.resource_phone = x.resource_phone ?? '';
-  b.resource_id = x.resource_id ?? '';
-  b.note = x.note ?? '';
-
-  return b;
-}
-
-async function loadRecord() {
-  const id = route.params.id;
-  if (!id) {
-    form.value = blankForm();
-    return;
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
   }
-  try {
-    await repo.FetchWakilanoData?.(id);
-    const single = Array.isArray(repo.Wakilano) ? repo.Wakilano[0] : repo.Wakilano || {};
-    if (!single) return;
-    form.value = mapFromApi(single);
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات وکیلالو'));
+  function showSuccessMessage(message) {
+    successMessage.value = message;
+    showSuccess.value = true;
   }
-}
 
-/* FORM DATA HELPERS */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
+  /* BACKEND ERRORS */
+  const backendErrors = ref({});
+  function setBackendErrors(errors) {
+    backendErrors.value = errors || {};
+  }
+  function clearBackendErrors() {
+    backendErrors.value = {};
+  }
+  function hasError(field) {
+    return !!backendErrors.value?.[field];
+  }
+  function getErrorMessages(field) {
+    return backendErrors.value?.[field] ?? [];
+  }
+
+  /* FORM MODEL */
+  const blankForm = () => ({
+    id: null,
+
+    name: '',
+    f_name: '',
+    grand_father_name: '',
+
+    main_province: '',
+    main_district: '',
+    main_village: '',
+
+    now_province: '',
+    now_zone: '',
+    now_district: '',
+    now_village: '',
+    now_specific_place: '',
+    now_street_number: '',
+    now_home_number: '',
+    Guzar: '',
+    place_tafseel: '',
+
+    old_job: '',
+    now_job: '',
+    home_quantity: '',
+
+    phone_number: '',
+    history_form: '',
+
+    coordinates: '',
+    Province_addr: '',
+
+    resource_code: '',
+    resource_phone: '',
+    resource_id: '',
+    note: '',
   });
-  return fd;
-}
 
-function buildCreateFormData() {
-  const payload = { ...form.value };
-  return toFormData(payload);
-}
+  const form = ref(blankForm());
 
-function buildUpdateFormData() {
-  const payload = { ...form.value };
-  return toFormData(payload);
-}
+  /* ✅ RULES (only validation change: phone exactly 10 digits) */
+  const rules = {
+    required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
+    phone10: (v) => {
+      const s = String(v ?? '').trim();
+      if (!s) return true; // not required; keep your logic
+      if (!/^\d+$/.test(s)) return t('فقط اعداد');
+      if (s.length !== 10) return t('شماره تماس باید دقیقاً ۱۰ رقم باشد');
+      return true;
+    },
+  };
 
-/* SCROLL TO FIRST INVALID */
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-    document.querySelector('.v-messages__message');
-  if (first) {
-    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = first.querySelector('input, textarea, .v-field__input');
-    if (input && typeof input.focus === 'function') input.focus();
-  }
-}
+  /* RESOURCES DROPDOWN */
+  const resources = computed(() => repo.resourcecode || []);
 
-/* SUBMIT */
-async function onSubmit() {
-  clearBackendErrors();
-
-  const f = formRef.value;
-  if (!f) return;
-
-  const { valid } = await f.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
+  function onResourceCodeChange(code) {
+    const found = resources.value.find((r) => r.code_number === code);
+    form.value.resource_phone = found?.phone_number ?? '';
+    form.value.resource_id = found?.id ?? null;
   }
 
-  if (!form.value.name?.trim()) {
-    showErrorMessage(t('نام الزامی است'));
-    return;
+  /* MAP FROM API */
+  function mapFromApi(payload = {}) {
+    const x = payload.data ?? payload;
+    const b = blankForm();
+
+    b.id = x.id ?? null;
+
+    b.name = x.name ?? '';
+    b.f_name = x.f_name ?? '';
+    b.grand_father_name = x.grand_father_name ?? '';
+
+    b.main_province = x.main_province ?? '';
+    b.main_district = x.main_district ?? '';
+    b.main_village = x.main_village ?? '';
+
+    b.now_province = x.now_province ?? '';
+    b.now_zone = x.now_zone ?? '';
+    b.now_district = x.now_district ?? '';
+    b.now_village = x.now_village ?? '';
+    b.now_specific_place = x.now_specific_place ?? '';
+    b.now_street_number = x.now_street_number ?? '';
+    b.now_home_number = x.now_home_number ?? '';
+    b.Guzar = x.Guzar ?? '';
+    b.place_tafseel = x.place_tafseel ?? '';
+
+    b.old_job = x.old_job ?? '';
+    b.now_job = x.now_job ?? '';
+    b.home_quantity = x.home_quantity ?? '';
+
+    b.phone_number = x.phone_number ?? '';
+    b.history_form = x.history_form ?? '';
+
+    b.coordinates = x.coordinates ?? '';
+    b.Province_addr = x.Province_addr ?? '';
+
+    b.resource_code = x.resource_code ?? '';
+    b.resource_phone = x.resource_phone ?? '';
+    b.resource_id = x.resource_id ?? '';
+    b.note = x.note ?? '';
+
+    return b;
   }
 
-  saving.value = true;
-
-  try {
-    if (!isEdit.value) {
-      const fd = buildCreateFormData();
-      const created = await repo.CreateWakilano?.(fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
-
-      if (created?.id) {
-        showSuccessMessage(t('موفقانه ثبت شد'));
-        router.push('/app/wakilanos').catch(() => {});
-      } else {
-        showErrorMessage(t('ثبت معلومات ناکام شد'));
-      }
-    } else {
-      const fd = buildUpdateFormData();
-      const updated = await repo.UpdateWakilano?.(form.value.id, fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
-
-      if (updated?.id) {
-        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-        router.push('/app/wakilanos').catch(() => {});
-      } else {
-        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-      }
+  async function loadRecord() {
+    const id = route.params.id;
+    if (!id) {
+      form.value = blankForm();
+      return;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در ذخیره اطلاعات'));
-  } finally {
-    saving.value = false;
-  }
-}
-
-/* RESET & NAVIGATION */
-function resetForm() {
-  if (isEdit.value) {
-    loadRecord();
-  } else {
-    form.value = blankForm();
+    try {
+      await repo.FetchWakilanoData?.(id);
+      const single = Array.isArray(repo.Wakilano) ? repo.Wakilano[0] : repo.Wakilano || {};
+      if (!single) return;
+      form.value = mapFromApi(single);
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات وکیلالو'));
+    }
   }
 
-  clearBackendErrors();
-  formRef.value?.resetValidation?.();
-  showSuccessMessage(t('فرم پاک شد'));
-}
+  /* FORM DATA HELPERS */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
 
-function goBack() {
-  router.push('/app/wakilanos');
-}
+  function buildCreateFormData() {
+    const payload = { ...form.value };
+    return toFormData(payload);
+  }
 
-/* ✅ SIMPLE EXPORT (works for blank too) */
-function normalizeValue(v) {
-  if (v === null || v === undefined) return '';
-  return String(v);
-}
+  function buildUpdateFormData() {
+    const payload = { ...form.value };
+    return toFormData(payload);
+  }
 
-function buildSimpleRows() {
-  const rows = [
-    [t('نام'), form.value.name],
-    [t('نام پدر'), form.value.f_name],
-    [t('نام پدرکلان'), form.value.grand_father_name],
+  /* SCROLL TO FIRST INVALID */
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
 
-    [t('ولایت اصلی'), form.value.main_province],
-    [t('ولسوالی اصلی'), form.value.main_district],
-    [t('قریه اصلی'), form.value.main_village],
+  /* SUBMIT */
+  async function onSubmit() {
+    clearBackendErrors();
 
-    [t('ولایت فعلی'), form.value.now_province],
-    [t('زون فعلی'), form.value.now_zone],
-    [t('ولسوالی فعلی'), form.value.now_district],
-    [t('قریه فعلی'), form.value.now_village],
-    [t('موقعیت مشخص فعلی'), form.value.now_specific_place],
-    [t('شماره سرک'), form.value.now_street_number],
-    [t('شماره خانه'), form.value.now_home_number],
-    [t('گذر'), form.value.Guzar],
-    [t('تفصیل موقعیت'), form.value.place_tafseel],
+    const f = formRef.value;
+    if (!f) return;
 
-    [t('وظیفه قبلی'), form.value.old_job],
-    [t('وظیفه فعلی'), form.value.now_job],
-    [t('تعداد خانه'), form.value.home_quantity],
+    const { valid } = await f.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
 
-    [t('شماره تماس'), form.value.phone_number],
-    [t('سابقه/فرم'), form.value.history_form],
+    if (!form.value.name?.trim()) {
+      showErrorMessage(t('نام الزامی است'));
+      return;
+    }
 
-    [t('مختصات'), form.value.coordinates],
-    [t('ولایت مربوطه'), form.value.Province_addr],
+    saving.value = true;
 
-    [t('کود منبع'), form.value.resource_code],
-    [t('شماره منبع'), form.value.resource_phone],
-    [t('Resource ID'), form.value.resource_id],
+    try {
+      if (!isEdit.value) {
+        const fd = buildCreateFormData();
+        const created = await repo.CreateWakilano?.(fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
 
-    [t('یادداشت'), form.value.note],
-  ];
+        if (created?.id) {
+          showSuccessMessage(t('موفقانه ثبت شد'));
+          router.push('/app/wakilanos').catch(() => {});
+        } else {
+          showErrorMessage(t('ثبت معلومات ناکام شد'));
+        }
+      } else {
+        const fd = buildUpdateFormData();
+        const updated = await repo.UpdateWakilano?.(form.value.id, fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
 
-  return rows.map(([label, value]) => [label, normalizeValue(value).trim()]);
-}
+        if (updated?.id) {
+          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+          router.push('/app/wakilanos').catch(() => {});
+        } else {
+          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      saving.value = false;
+    }
+  }
 
-function buildSimpleExportHtml(docTitle) {
-  const rows = buildSimpleRows();
+  /* RESET & NAVIGATION */
+  function resetForm() {
+    if (isEdit.value) {
+      loadRecord();
+    } else {
+      form.value = blankForm();
+    }
 
-  const tr = rows
-    .map(
-      ([k, v]) => `
+    clearBackendErrors();
+    formRef.value?.resetValidation?.();
+    showSuccessMessage(t('فرم پاک شد'));
+  }
+
+  function goBack() {
+    router.push('/app/wakilanos');
+  }
+
+  /* ✅ SIMPLE EXPORT (works for blank too) */
+  function normalizeValue(v) {
+    if (v === null || v === undefined) return '';
+    return String(v);
+  }
+
+  function buildSimpleRows() {
+    const rows = [
+      [t('نام'), form.value.name],
+      [t('نام پدر'), form.value.f_name],
+      [t('نام پدرکلان'), form.value.grand_father_name],
+
+      [t('ولایت اصلی'), form.value.main_province],
+      [t('ولسوالی اصلی'), form.value.main_district],
+      [t('قریه اصلی'), form.value.main_village],
+
+      [t('ولایت فعلی'), form.value.now_province],
+      [t('زون فعلی'), form.value.now_zone],
+      [t('ولسوالی فعلی'), form.value.now_district],
+      [t('قریه فعلی'), form.value.now_village],
+      [t('موقعیت مشخص فعلی'), form.value.now_specific_place],
+      [t('شماره سرک'), form.value.now_street_number],
+      [t('شماره خانه'), form.value.now_home_number],
+      [t('گذر'), form.value.Guzar],
+      [t('تفصیل موقعیت'), form.value.place_tafseel],
+
+      [t('وظیفه قبلی'), form.value.old_job],
+      [t('وظیفه فعلی'), form.value.now_job],
+      [t('تعداد خانه'), form.value.home_quantity],
+
+      [t('شماره تماس'), form.value.phone_number],
+      [t('سابقه/فرم'), form.value.history_form],
+
+      [t('مختصات'), form.value.coordinates],
+      [t('ولایت مربوطه'), form.value.Province_addr],
+
+      [t('کود منبع'), form.value.resource_code],
+      [t('شماره منبع'), form.value.resource_phone],
+      [t('Resource ID'), form.value.resource_id],
+
+      [t('یادداشت'), form.value.note],
+    ];
+
+    return rows.map(([label, value]) => [label, normalizeValue(value).trim()]);
+  }
+
+  function buildSimpleExportHtml(docTitle) {
+    const rows = buildSimpleRows();
+
+    const tr = rows
+      .map(
+        ([k, v]) => `
         <tr>
           <td class="k">${k}</td>
           <td class="v">${v || '-'}</td>
         </tr>
       `
-    )
-    .join('');
+      )
+      .join('');
 
-  return `
+    return `
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
@@ -837,74 +812,74 @@ function buildSimpleExportHtml(docTitle) {
 </body>
 </html>
   `.trim();
-}
-
-function downloadPdf() {
-  const html = buildSimpleExportHtml(t('فورم وکیل'));
-  const w = window.open('', '_blank');
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  w.print();
-}
-
-function downloadWord() {
-  const html = buildSimpleExportHtml(t('فورم وکیل'));
-  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'wakilano.doc';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  URL.revokeObjectURL(url);
-}
-
-/* INIT */
-onMounted(async () => {
-  await repo.GetResourceCode?.();
-  if (isEdit.value) {
-    await loadRecord();
   }
-});
+
+  function downloadPdf() {
+    const html = buildSimpleExportHtml(t('فورم وکیل'));
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    w.print();
+  }
+
+  function downloadWord() {
+    const html = buildSimpleExportHtml(t('فورم وکیل'));
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'wakilano.doc';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+  }
+
+  /* INIT */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
+    if (isEdit.value) {
+      await loadRecord();
+    }
+  });
 </script>
 
 <style scoped>
-.simple-form-card {
-  padding: 16px 16px 20px;
-  border-radius: 12px;
-}
+  .simple-form-card {
+    padding: 16px 16px 20px;
+    border-radius: 12px;
+  }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  padding-block: 2px;
-}
-.section-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  opacity: 0.8;
-}
+  .section-header {
+    display: flex;
+    align-items: center;
+    padding-block: 2px;
+  }
+  .section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.8;
+  }
 
-/* tighter fields */
-:deep(.v-field--variant-outlined .v-field__input) {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  min-height: 36px;
-}
+  /* tighter fields */
+  :deep(.v-field--variant-outlined .v-field__input) {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    min-height: 36px;
+  }
 
-.primary-action-btn {
-  padding-inline: 18px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
-}
-.secondary-action-btn {
-  padding-inline: 14px;
-  font-weight: 500;
-}
+  .primary-action-btn {
+    padding-inline: 18px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+  }
+  .secondary-action-btn {
+    padding-inline: 14px;
+    font-weight: 500;
+  }
 </style>
