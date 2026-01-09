@@ -5,9 +5,7 @@
     <AppBar
       :title="isEdit ? t('ویرایش مدرسه') : t('ایجاد مدرسه جدید')"
       :subtitle="
-        isEdit
-          ? t('ویرایش جزئیات یک ریکارډ مدرسه موجود')
-          : t('ثبت یک ریکارډ مدرسه جدید در سیستم')
+        isEdit ? t('ویرایش جزئیات یک ریکارډ مدرسه موجود') : t('ثبت یک ریکارډ مدرسه جدید در سیستم')
       "
     >
       <template #actions>
@@ -128,7 +126,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.responsible_main_province"
                     :label="t('ولایت اصلی مسؤول')"
@@ -139,7 +137,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.tarafdari_type_responsible"
                     :label="t('نوع طرفداری مسؤول')"
@@ -212,17 +210,16 @@
               </div>
 
               <v-row>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.province"
-                    :label="t('ولایت')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('province')"
-                    :error-messages="getErrorMessages('province')"
+                <v-col cols="12" md="12">
+                  <ProvinceDistrictNameSelect
+                    v-model:province="form.province"
+                    v-model:district="form.district"
+                    :province-label="t('ولایت')"
+                    :district-label="t('ولسوالی')"
+                    :mdProvince="6"
+                    :mdDistrict="6"
                   />
                 </v-col>
-
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.zone"
@@ -231,17 +228,6 @@
                     density="compact"
                     :error="hasError('zone')"
                     :error-messages="getErrorMessages('zone')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.district"
-                    :label="t('ولسوالی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('district')"
-                    :error-messages="getErrorMessages('district')"
                   />
                 </v-col>
 
@@ -267,7 +253,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="3">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.street_number"
                     :label="t('شماره سرک')"
@@ -278,7 +264,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="3">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.coordinates"
                     :label="t('مختصات')"
@@ -300,7 +286,7 @@
           </div>
 
           <v-row>
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -309,7 +295,7 @@
                 :error="hasError('Province_addr')"
                 :error-messages="getErrorMessages('Province_addr')"
               />
-            </v-col>
+            </v-col> -->
 
             <v-col cols="12" md="4">
               <v-autocomplete
@@ -365,7 +351,7 @@
 
               <v-btn
                 color="warning"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-broom"
                 @click="resetForm"
@@ -376,7 +362,7 @@
               <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
               <v-btn
                 color="red"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-file-pdf-box"
                 @click="downloadPdf"
@@ -386,7 +372,7 @@
 
               <v-btn
                 color="blue"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-file-word-box"
                 @click="downloadWord"
@@ -422,276 +408,277 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
-import AppBar from '@/components/AppBar.vue';
-import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import AppBar from '@/components/AppBar.vue';
+  import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 
-const repo = useBadmashanoRepository();
-const route = useRoute();
-const router = useRouter();
+  const repo = useBadmashanoRepository();
+  const route = useRoute();
+  const router = useRouter();
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* MODE */
-const isEdit = computed(() => !!route.params.id);
+  /* MODE */
+  const isEdit = computed(() => !!route.params.id);
 
-/* FORM / STATE */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* FORM / STATE */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
 
-function showErrorMessage(message) {
-  errorMessage.value = message;
-  showError.value = true;
-}
-function showSuccessMessage(message) {
-  successMessage.value = message;
-  showSuccess.value = true;
-}
-
-/* BACKEND ERRORS */
-const backendErrors = ref({});
-function setBackendErrors(errors) {
-  backendErrors.value = errors || {};
-}
-function clearBackendErrors() {
-  backendErrors.value = {};
-}
-function hasError(field) {
-  return !!backendErrors.value?.[field];
-}
-function getErrorMessages(field) {
-  return backendErrors.value?.[field] ?? [];
-}
-
-/* FORM MODEL */
-const blankForm = () => ({
-  id: null,
-
-  // basic
-  name: '',
-  madrasa_type: '',
-  mazhab: '',
-
-  // responsible
-  responsible_name: '',
-  responsible_f_name: '',
-  responsible_position: '',
-  responsible_phone: '',
-  responsible_main_province: '',
-  tarafdari_type_responsible: '',
-
-  // counts
-  male_teacher_quantity: '',
-  female_teacher_quantity: '',
-  male_students_quantity: '',
-  female_students_quantity: '',
-
-  // address
-  province: '',
-  zone: '',
-  district: '',
-  village: '',
-  specific_place: '',
-  street_number: '',
-  coordinates: '',
-  Province_addr: '',
-
-  // resource
-  resource_code: '',
-  resource_phone: '',
-  resource_id: null,
-
-  // note
-  note: '',
-});
-
-const form = ref(blankForm());
-
-/* RULES */
-const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
-  phoneMinMax: (v) => {
-    if (!v) return true;
-    const s = String(v).replace(/\s+/g, '');
-    if (!/^\d+$/.test(s)) return t('شماره تیلیفون باید فقط عدد باشد');
-    if (s.length < 10) return t('شماره تیلیفون باید حداقل ۱۰ رقم باشد');
-    if (s.length > 13) return t('شماره تیلیفون باید حداکثر ۱۳ رقم باشد');
-    return true;
-  },
-};
-
-/* RESOURCES DROPDOWN */
-const resources = computed(() => repo.resourcecode || []);
-
-function onResourceCodeChange(code) {
-  const found = resources.value.find((r) => r.code_number === code);
-  form.value.resource_code = code || '';
-  form.value.resource_phone = found?.phone_number ?? '';
-  form.value.resource_id = found?.id ?? null;
-}
-
-/* MAP FROM API */
-function mapFromApi(payload = {}) {
-  const x = payload.data ?? payload;
-  const b = blankForm();
-
-  b.id = x.id ?? null;
-
-  b.name = x.name ?? '';
-  b.madrasa_type = x.madrasa_type ?? '';
-  b.mazhab = x.mazhab ?? '';
-
-  b.responsible_name = x.responsible_name ?? '';
-  b.responsible_f_name = x.responsible_f_name ?? '';
-  b.responsible_position = x.responsible_position ?? '';
-  b.responsible_phone = x.responsible_phone ?? '';
-  b.responsible_main_province = x.responsible_main_province ?? '';
-  b.tarafdari_type_responsible = x.tarafdari_type_responsible ?? '';
-
-  b.male_teacher_quantity = x.male_teacher_quantity ?? '';
-  b.female_teacher_quantity = x.female_teacher_quantity ?? '';
-  b.male_students_quantity = x.male_students_quantity ?? '';
-  b.female_students_quantity = x.female_students_quantity ?? '';
-
-  b.province = x.province ?? '';
-  b.zone = x.zone ?? '';
-  b.district = x.district ?? '';
-  b.village = x.village ?? '';
-  b.specific_place = x.specific_place ?? '';
-  b.street_number = x.street_number ?? '';
-  b.coordinates = x.coordinates ?? '';
-  b.Province_addr = x.Province_addr ?? '';
-
-  const r = x.resource || {};
-  b.resource_code = x.resource_code ?? r.code_number ?? '';
-  b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
-  b.resource_id = x.resource_id ?? r.id ?? null;
-
-  b.note = x.note ?? '';
-
-  return b;
-}
-
-async function loadRecord() {
-  const id = route.params.id;
-  if (!id) {
-    form.value = blankForm();
-    return;
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
   }
-  try {
-    await repo.FetchMadrasaData?.(id);
-    const single = Array.isArray(repo.Madrasa) ? repo.Madrasa[0] : repo.Madrasa || {};
-    if (!single) return;
-
-    form.value = { ...mapFromApi(single) };
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات مدرسه'));
+  function showSuccessMessage(message) {
+    successMessage.value = message;
+    showSuccess.value = true;
   }
-}
 
-/* FORM DATA HELPERS */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
+  /* BACKEND ERRORS */
+  const backendErrors = ref({});
+  function setBackendErrors(errors) {
+    backendErrors.value = errors || {};
+  }
+  function clearBackendErrors() {
+    backendErrors.value = {};
+  }
+  function hasError(field) {
+    return !!backendErrors.value?.[field];
+  }
+  function getErrorMessages(field) {
+    return backendErrors.value?.[field] ?? [];
+  }
+
+  /* FORM MODEL */
+  const blankForm = () => ({
+    id: null,
+
+    // basic
+    name: '',
+    madrasa_type: '',
+    mazhab: '',
+
+    // responsible
+    responsible_name: '',
+    responsible_f_name: '',
+    responsible_position: '',
+    responsible_phone: '',
+    responsible_main_province: '',
+    tarafdari_type_responsible: '',
+
+    // counts
+    male_teacher_quantity: '',
+    female_teacher_quantity: '',
+    male_students_quantity: '',
+    female_students_quantity: '',
+
+    // address
+    province: '',
+    zone: '',
+    district: '',
+    village: '',
+    specific_place: '',
+    street_number: '',
+    coordinates: '',
+    Province_addr: '',
+
+    // resource
+    resource_code: '',
+    resource_phone: '',
+    resource_id: null,
+
+    // note
+    note: '',
   });
-  return fd;
-}
-function buildCreateFormData() {
-  return toFormData({ ...form.value });
-}
-function buildUpdateFormData() {
-  return toFormData({ ...form.value });
-}
 
-/* SCROLL TO FIRST INVALID */
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-    document.querySelector('.v-messages__message');
-  if (first) {
-    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = first.querySelector('input, textarea, .v-field__input');
-    if (input && typeof input.focus === 'function') input.focus();
+  const form = ref(blankForm());
+
+  /* RULES */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+    phoneMinMax: (v) => {
+      if (!v) return true;
+      const s = String(v).replace(/\s+/g, '');
+      if (!/^\d+$/.test(s)) return t('شماره تیلیفون باید فقط عدد باشد');
+      if (s.length < 10) return t('شماره تیلیفون باید حداقل ۱۰ رقم باشد');
+      if (s.length > 13) return t('شماره تیلیفون باید حداکثر ۱۳ رقم باشد');
+      return true;
+    },
+  };
+
+  /* RESOURCES DROPDOWN */
+  const resources = computed(() => repo.resourcecode || []);
+
+  function onResourceCodeChange(code) {
+    const found = resources.value.find((r) => r.code_number === code);
+    form.value.resource_code = code || '';
+    form.value.resource_phone = found?.phone_number ?? '';
+    form.value.resource_id = found?.id ?? null;
   }
-}
 
-/* =========================
+  /* MAP FROM API */
+  function mapFromApi(payload = {}) {
+    const x = payload.data ?? payload;
+    const b = blankForm();
+
+    b.id = x.id ?? null;
+
+    b.name = x.name ?? '';
+    b.madrasa_type = x.madrasa_type ?? '';
+    b.mazhab = x.mazhab ?? '';
+
+    b.responsible_name = x.responsible_name ?? '';
+    b.responsible_f_name = x.responsible_f_name ?? '';
+    b.responsible_position = x.responsible_position ?? '';
+    b.responsible_phone = x.responsible_phone ?? '';
+    b.responsible_main_province = x.responsible_main_province ?? '';
+    b.tarafdari_type_responsible = x.tarafdari_type_responsible ?? '';
+
+    b.male_teacher_quantity = x.male_teacher_quantity ?? '';
+    b.female_teacher_quantity = x.female_teacher_quantity ?? '';
+    b.male_students_quantity = x.male_students_quantity ?? '';
+    b.female_students_quantity = x.female_students_quantity ?? '';
+
+    b.province = x.province ?? '';
+    b.zone = x.zone ?? '';
+    b.district = x.district ?? '';
+    b.village = x.village ?? '';
+    b.specific_place = x.specific_place ?? '';
+    b.street_number = x.street_number ?? '';
+    b.coordinates = x.coordinates ?? '';
+    b.Province_addr = x.Province_addr ?? '';
+
+    const r = x.resource || {};
+    b.resource_code = x.resource_code ?? r.code_number ?? '';
+    b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
+    b.resource_id = x.resource_id ?? r.id ?? null;
+
+    b.note = x.note ?? '';
+
+    return b;
+  }
+
+  async function loadRecord() {
+    const id = route.params.id;
+    if (!id) {
+      form.value = blankForm();
+      return;
+    }
+    try {
+      await repo.FetchMadrasaData?.(id);
+      const single = Array.isArray(repo.Madrasa) ? repo.Madrasa[0] : repo.Madrasa || {};
+      if (!single) return;
+
+      form.value = { ...mapFromApi(single) };
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات مدرسه'));
+    }
+  }
+
+  /* FORM DATA HELPERS */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+  function buildCreateFormData() {
+    return toFormData({ ...form.value });
+  }
+  function buildUpdateFormData() {
+    return toFormData({ ...form.value });
+  }
+
+  /* SCROLL TO FIRST INVALID */
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  /* =========================
    SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
 ========================= */
-function esc(v) {
-  return String(v ?? '').replace(/[&<>"']/g, (m) => {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return map[m];
-  });
-}
-function safeFileName(s) {
-  return String(s ?? '')
-    .replace(/[\\/:*?"<>|]/g, '-')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-function v(x) {
-  return x && String(x).trim() ? x : '—';
-}
-function exportRows() {
-  return [
-    { label: t('نام مدرسه'), value: v(form.value.name) },
-    { label: t('نوع مدرسه'), value: v(form.value.madrasa_type) },
-    { label: t('مذهب'), value: v(form.value.mazhab) },
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, (m) => {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return map[m];
+    });
+  }
+  function safeFileName(s) {
+    return String(s ?? '')
+      .replace(/[\\/:*?"<>|]/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  function v(x) {
+    return x && String(x).trim() ? x : '—';
+  }
+  function exportRows() {
+    return [
+      { label: t('نام مدرسه'), value: v(form.value.name) },
+      { label: t('نوع مدرسه'), value: v(form.value.madrasa_type) },
+      { label: t('مذهب'), value: v(form.value.mazhab) },
 
-    { label: t('مسؤول: نام'), value: v(form.value.responsible_name) },
-    { label: t('مسؤول: نام پدر'), value: v(form.value.responsible_f_name) },
-    { label: t('مسؤول: موقف'), value: v(form.value.responsible_position) },
-    { label: t('مسؤول: شماره تماس'), value: v(form.value.responsible_phone) },
-    { label: t('ولایت اصلی مسؤول'), value: v(form.value.responsible_main_province) },
-    { label: t('نوع طرفداری مسؤول'), value: v(form.value.tarafdari_type_responsible) },
+      { label: t('مسؤول: نام'), value: v(form.value.responsible_name) },
+      { label: t('مسؤول: نام پدر'), value: v(form.value.responsible_f_name) },
+      { label: t('مسؤول: موقف'), value: v(form.value.responsible_position) },
+      { label: t('مسؤول: شماره تماس'), value: v(form.value.responsible_phone) },
+      { label: t('ولایت اصلی مسؤول'), value: v(form.value.responsible_main_province) },
+      { label: t('نوع طرفداری مسؤول'), value: v(form.value.tarafdari_type_responsible) },
 
-    { label: t('تعداد استادان (ذکور)'), value: v(form.value.male_teacher_quantity) },
-    { label: t('تعداد استادان (اناث)'), value: v(form.value.female_teacher_quantity) },
-    { label: t('تعداد شاگردان (ذکور)'), value: v(form.value.male_students_quantity) },
-    { label: t('تعداد شاگردان (اناث)'), value: v(form.value.female_students_quantity) },
+      { label: t('تعداد استادان (ذکور)'), value: v(form.value.male_teacher_quantity) },
+      { label: t('تعداد استادان (اناث)'), value: v(form.value.female_teacher_quantity) },
+      { label: t('تعداد شاگردان (ذکور)'), value: v(form.value.male_students_quantity) },
+      { label: t('تعداد شاگردان (اناث)'), value: v(form.value.female_students_quantity) },
 
-    { label: t('ولایت'), value: v(form.value.province) },
-    { label: t('زون'), value: v(form.value.zone) },
-    { label: t('ولسوالی'), value: v(form.value.district) },
-    { label: t('قریه/ناحیه'), value: v(form.value.village) },
-    { label: t('موقعیت مشخص'), value: v(form.value.specific_place) },
-    { label: t('شماره سرک'), value: v(form.value.street_number) },
-    { label: t('مختصات'), value: v(form.value.coordinates) },
-    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+      { label: t('ولایت'), value: v(form.value.province) },
+      { label: t('زون'), value: v(form.value.zone) },
+      { label: t('ولسوالی'), value: v(form.value.district) },
+      { label: t('قریه/ناحیه'), value: v(form.value.village) },
+      { label: t('موقعیت مشخص'), value: v(form.value.specific_place) },
+      { label: t('شماره سرک'), value: v(form.value.street_number) },
+      { label: t('مختصات'), value: v(form.value.coordinates) },
+      { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
 
-    { label: t('کود منبع'), value: v(form.value.resource_code) },
-    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
-    { label: t('یادداشت'), value: v(form.value.note) },
-  ];
-}
-function buildSimpleTableHtml() {
-  const rows = exportRows()
-    .map(
-      (r) => `
+      { label: t('کود منبع'), value: v(form.value.resource_code) },
+      { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+      { label: t('یادداشت'), value: v(form.value.note) },
+    ];
+  }
+  function buildSimpleTableHtml() {
+    const rows = exportRows()
+      .map(
+        (r) => `
       <tr>
         <th>${esc(r.label)}</th>
         <td>${esc(r.value)}</td>
       </tr>
     `
-    )
-    .join('');
+      )
+      .join('');
 
-  return `
+    return `
     <h3 class="title">فورم مدرسه</h3>
     <table class="simple-table">
       <tbody>
@@ -703,13 +690,13 @@ function buildSimpleTableHtml() {
       <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
     </div>
   `;
-}
-function buildDocumentHtml() {
-  const bodyHtml = buildSimpleTableHtml();
-  const safeId = esc(form.value.id || '');
-  const safeName = esc(form.value.name || '');
+  }
+  function buildDocumentHtml() {
+    const bodyHtml = buildSimpleTableHtml();
+    const safeId = esc(form.value.id || '');
+    const safeName = esc(form.value.name || '');
 
-  return `
+    return `
 <!DOCTYPE html>
 <html dir="rtl">
 <head>
@@ -737,153 +724,153 @@ function buildDocumentHtml() {
 </body>
 </html>
 `;
-}
-
-function downloadPdf() {
-  const html = buildDocumentHtml();
-  const w = window.open('', '_blank', 'width=1024,height=768');
-  if (!w) return;
-
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-
-  w.onload = () => {
-    w.focus();
-    w.print();
-  };
-}
-
-function downloadWord() {
-  const html = buildDocumentHtml();
-  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `مدرسه_${safeFileName(form.value.name || 'جدید')}_${Date.now()}.doc`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  URL.revokeObjectURL(url);
-  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
-}
-
-/* SUBMIT */
-async function onSubmit() {
-  clearBackendErrors();
-
-  const f = formRef.value;
-  if (!f) return;
-
-  const { valid } = await f.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
   }
 
-  if (!form.value.name?.trim()) {
-    showErrorMessage(t('نام مدرسه الزامی است'));
-    return;
+  function downloadPdf() {
+    const html = buildDocumentHtml();
+    const w = window.open('', '_blank', 'width=1024,height=768');
+    if (!w) return;
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+
+    w.onload = () => {
+      w.focus();
+      w.print();
+    };
   }
 
-  saving.value = true;
+  function downloadWord() {
+    const html = buildDocumentHtml();
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
 
-  try {
-    if (!isEdit.value) {
-      const fd = buildCreateFormData();
-      const created = await repo.CreateMadrasa?.(fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `مدرسه_${safeFileName(form.value.name || 'جدید')}_${Date.now()}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-      if (created?.id) {
-        showSuccessMessage(t('موفقانه ثبت شد'));
-        router.push('/app/madrasas').catch(() => {});
-      } else {
-        showErrorMessage(t('ثبت معلومات ناکام شد'));
-      }
-    } else {
-      const fd = buildUpdateFormData();
-      const updated = await repo.UpdateMadrasa?.(form.value.id, fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
+    URL.revokeObjectURL(url);
+    showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
+  }
 
-      if (updated?.id) {
-        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-        router.push('/app/madrasas').catch(() => {});
-      } else {
-        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-      }
+  /* SUBMIT */
+  async function onSubmit() {
+    clearBackendErrors();
+
+    const f = formRef.value;
+    if (!f) return;
+
+    const { valid } = await f.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در ذخیره اطلاعات'));
-  } finally {
-    saving.value = false;
+
+    if (!form.value.name?.trim()) {
+      showErrorMessage(t('نام مدرسه الزامی است'));
+      return;
+    }
+
+    saving.value = true;
+
+    try {
+      if (!isEdit.value) {
+        const fd = buildCreateFormData();
+        const created = await repo.CreateMadrasa?.(fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (created?.id) {
+          showSuccessMessage(t('موفقانه ثبت شد'));
+          router.push('/app/madrasas').catch(() => {});
+        } else {
+          showErrorMessage(t('ثبت معلومات ناکام شد'));
+        }
+      } else {
+        const fd = buildUpdateFormData();
+        const updated = await repo.UpdateMadrasa?.(form.value.id, fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (updated?.id) {
+          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+          router.push('/app/madrasas').catch(() => {});
+        } else {
+          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      saving.value = false;
+    }
   }
-}
 
-/* RESET & NAVIGATION */
-function resetForm() {
-  if (isEdit.value) {
-    loadRecord();
-  } else {
-    form.value = blankForm();
+  /* RESET & NAVIGATION */
+  function resetForm() {
+    if (isEdit.value) {
+      loadRecord();
+    } else {
+      form.value = blankForm();
+    }
+
+    clearBackendErrors();
+    formRef.value?.resetValidation?.();
+    showSuccessMessage(t('فرم پاک شد'));
   }
 
-  clearBackendErrors();
-  formRef.value?.resetValidation?.();
-  showSuccessMessage(t('فرم پاک شد'));
-}
-
-function goBack() {
-  router.push('/app/madrasas');
-}
-
-/* INIT */
-onMounted(async () => {
-  await repo.GetResourceCode?.();
-  if (isEdit.value) {
-    await loadRecord();
+  function goBack() {
+    router.push('/app/madrasas');
   }
-});
+
+  /* INIT */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
+    if (isEdit.value) {
+      await loadRecord();
+    }
+  });
 </script>
 
 <style scoped>
-.simple-form-card {
-  padding: 16px 16px 20px;
-  border-radius: 12px;
-}
-.section-header {
-  display: flex;
-  align-items: center;
-  padding-block: 2px;
-}
-.section-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  opacity: 0.8;
-}
-:deep(.v-field--variant-outlined .v-field__input) {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  min-height: 36px;
-}
-.primary-action-btn {
-  padding-inline: 18px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
-}
-.secondary-action-btn {
-  padding-inline: 14px;
-  font-weight: 500;
-}
-.ga-2 {
-  gap: 8px;
-}
+  .simple-form-card {
+    padding: 16px 16px 20px;
+    border-radius: 12px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    padding-block: 2px;
+  }
+  .section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.8;
+  }
+  :deep(.v-field--variant-outlined .v-field__input) {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    min-height: 36px;
+  }
+  .primary-action-btn {
+    padding-inline: 18px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+  }
+  .secondary-action-btn {
+    padding-inline: 14px;
+    font-weight: 500;
+  }
+  .ga-2 {
+    gap: 8px;
+  }
 </style>

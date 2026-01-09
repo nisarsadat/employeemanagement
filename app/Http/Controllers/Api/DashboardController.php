@@ -296,7 +296,7 @@ class DashboardController extends Controller
         $now = Carbon::now();
 
         return match ($period) {
-            // ✅ FIX: use full-day range so daily/weekly/monthly works reliably
+            'all'     => [null, null], // ✅ NO FILTER (whole time)
             'daily'   => [$now->copy()->subDay()->startOfDay(),    $now->copy()->endOfDay()],
             'weekly'  => [$now->copy()->subDays(7)->startOfDay(),  $now->copy()->endOfDay()],
             'monthly' => [$now->copy()->subDays(30)->startOfDay(), $now->copy()->endOfDay()],

@@ -17,39 +17,7 @@
 
   <div class="dashboard-container" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- App Bar -->
-    <AppBar :title="t('داشبورد')" :subtitle="t('خلاصه عملکرد سیستم')">
-      <template #actions>
-        <div class="period-wrap ml-6" :dir="isRtl ? 'rtl' : 'ltr'">
-          <v-btn-toggle
-            v-model="period"
-            density="compact"
-            mandatory
-            class="period-toggle"
-            @update:modelValue="onPeriodChanged"
-          >
-            <v-btn value="daily" class="period-btn">
-              <v-icon start size="16">mdi-calendar-today</v-icon>
-              {{ t('روزانه') }}
-            </v-btn>
-
-            <v-btn value="weekly" class="period-btn">
-              <v-icon start size="16">mdi-calendar-week</v-icon>
-              {{ t('هفته‌وار') }}
-            </v-btn>
-
-            <v-btn value="monthly" class="period-btn">
-              <v-icon start size="16">mdi-calendar-month</v-icon>
-              {{ t('ماهانه') }}
-            </v-btn>
-
-            <v-btn value="yearly" class="period-btn">
-              <v-icon start size="16">mdi-calendar</v-icon>
-              {{ t('سالانه') }}
-            </v-btn>
-          </v-btn-toggle>
-        </div>
-      </template>
-    </AppBar>
+    <AppBar :title="t('داشبورد')" :subtitle="t('خلاصه عملکرد سیستم')"> </AppBar>
 
     <!-- Error Alert -->
     <transition name="slide-down">
@@ -773,12 +741,114 @@
       </v-row>
     </div>
 
-    <!-- Refresh FAB -->
-    <v-fab location="bottom end" class="fab-refresh" :style="{ bottom: mobile ? '80px' : '24px' }">
-      <v-btn fab color="primary" size="small" :loading="repo.loading" @click="refreshData">
-        <v-icon>mdi-refresh</v-icon>
-      </v-btn>
-    </v-fab>
+    <!-- Refresh + Filter FAB -->
+    <div class="fab-stack" :class="{ rtl: isRtl }" :style="{ bottom: mobile ? '80px' : '24px' }">
+      <!-- Refresh -->
+      <v-tooltip location="top">
+        <template #activator="{ props }">
+          <v-btn
+            v-bind="props"
+            fab
+            color="primary"
+            size="small"
+            :loading="repo.loading"
+            @click="refreshData"
+          >
+            <v-icon>mdi-refresh</v-icon>
+          </v-btn>
+        </template>
+        <span>{{ t('تازه‌سازی') }}</span>
+      </v-tooltip>
+
+      <!-- Filter menu -->
+      <v-menu location="top" offset="6">
+        <template #activator="{ props: menuProps }">
+          <v-tooltip location="top">
+            <template #activator="{ props: tipProps }">
+              <v-btn
+                v-bind="{ ...menuProps, ...tipProps }"
+                fab
+                color="secondary"
+                size="small"
+                :disabled="repo.loading"
+              >
+                <v-icon>mdi-filter-variant</v-icon>
+              </v-btn>
+            </template>
+            <span>{{ t('فیلتر زمان') }}</span>
+          </v-tooltip>
+        </template>
+
+        <v-card rounded="xl" class="pa-3" min-width="260">
+          <div class="text-subtitle-2 font-weight-bold mb-2">
+            {{ t('فیلتر زمان') }}
+          </div>
+
+          <v-btn-toggle
+            v-model="period"
+            density="compact"
+            mandatory
+            class="w-100"
+            @update:modelValue="onPeriodChanged"
+          >
+            <!-- Daily -->
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn v-bind="props" value="daily" class="flex-1">
+                  <v-icon start size="16">mdi-calendar-today</v-icon>
+                  {{ t('روزانه') }}
+                </v-btn>
+              </template>
+              <span>{{ t('نمایش روزانه') }}</span>
+            </v-tooltip>
+
+            <!-- Weekly -->
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn v-bind="props" value="weekly" class="flex-1">
+                  <v-icon start size="16">mdi-calendar-week</v-icon>
+                  {{ t('هفته‌وار') }}
+                </v-btn>
+              </template>
+              <span>{{ t('نمایش هفته‌وار') }}</span>
+            </v-tooltip>
+
+            <!-- Monthly -->
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn v-bind="props" value="monthly" class="flex-1">
+                  <v-icon start size="16">mdi-calendar-month</v-icon>
+                  {{ t('ماهانه') }}
+                </v-btn>
+              </template>
+              <span>{{ t('نمایش ماهانه') }}</span>
+            </v-tooltip>
+
+            <!-- Yearly -->
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn v-bind="props" value="yearly" class="flex-1">
+                  <v-icon start size="16">mdi-calendar</v-icon>
+                  {{ t('سالانه') }}
+                </v-btn>
+              </template>
+              <span>{{ t('نمایش سالانه') }}</span>
+            </v-tooltip>
+
+            <!-- All -->
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn v-bind="props" value="all" class="flex-1">
+                  <v-icon start size="16">mdi-infinity</v-icon>
+                  {{ t('همه') }}
+                </v-btn>
+              </template>
+              <span>{{ t('نمایش همه داده‌ها') }}</span>
+            </v-tooltip>
+          </v-btn-toggle>
+        </v-card>
+      </v-menu>
+    </div>
   </div>
 </template>
 
@@ -965,7 +1035,7 @@
     return e?.response?.data?.message || e?.message || String(e);
   });
   // fiters
-  const period = ref('monthly'); // default
+  const period = ref('all'); // default is ALL time
 
   async function onPeriodChanged() {
     currentPage.value = 1; // optional (good UX)
@@ -1873,204 +1943,6 @@ Formats By Zone Logic
   /* ===========================
  ✅ PERIOD TOGGLE (AppBar) — PREMIUM PILL
 =========================== */
-
-  .period-wrap {
-    display: flex;
-    align-items: center;
-  }
-
-  ig/* ===========================
-   ⭐ ULTRA-PREMIUM PERIOD TOGGLE
-=========================== */
-
-.period-wrap {
-    display: flex;
-    align-items: center;
-    position: relative;
-  }
-
-  /* Outer glow effect */
-  .period-wrap::before {
-    content: '';
-    position: absolute;
-    inset: -10px;
-    background: radial-gradient(
-      circle at 50% 0%,
-      rgba(var(--v-theme-primary), 0.25) 0%,
-      transparent 70%
-    );
-    filter: blur(20px);
-    opacity: 0.6;
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  .period-toggle {
-    position: relative;
-    z-index: 1;
-    border-radius: 16px;
-    gap: 4px;
-    overflow: hidden;
-
-    /* Glass morphism with gradient */
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.25) 0%,
-      rgba(255, 255, 255, 0.15) 50%,
-      rgba(255, 255, 255, 0.05) 100%
-    ) !important;
-
-    border: 1.5px solid rgba(255, 255, 255, 0.35);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-
-    /* Double shadow for depth */
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25), 0 8px 16px rgba(0, 0, 0, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .period-toggle:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3), 0 12px 24px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  }
-
-  /* Shine overlay */
-  .period-toggle::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
-    z-index: 2;
-  }
-
-  /* Base button - Floating effect */
-  .period-btn {
-    border-radius: 12px !important;
-    height: 40px !important;
-    padding: 0 20px !important;
-    min-width: 90px !important;
-
-    font-weight: 800;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-
-    /* Inactive state - Frosted glass */
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.6),
-      rgba(255, 255, 255, 0.4)
-    ) !important;
-
-    color: rgba(0, 0, 0, 0.85) !important;
-
-    border: 1.5px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Hover effect with shine */
-  .period-btn:hover {
-    transform: translateY(-2px) scale(1.02);
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.8),
-      rgba(255, 255, 255, 0.6)
-    ) !important;
-
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-
-    border-color: rgba(255, 255, 255, 0.7);
-  }
-
-  /* Active button - Premium gradient */
-  .period-toggle :deep(.v-btn--active) {
-    background: linear-gradient(
-      135deg,
-      #667eea 0%,
-      #764ba2 25%,
-      #f093fb 50%,
-      #f5576c 75%,
-      #ff5858 100%
-    ) !important;
-
-    color: white !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.4);
-
-    box-shadow: 0 16px 32px rgba(102, 126, 234, 0.4), 0 8px 16px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-
-    transform: translateY(-2px) scale(1.05);
-    animation: buttonGlow 2s infinite alternate;
-  }
-
-  /* Glow animation for active button */
-  @keyframes buttonGlow {
-    0% {
-      box-shadow: 0 16px 32px rgba(102, 126, 234, 0.4), 0 8px 16px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    }
-    100% {
-      box-shadow: 0 16px 32px rgba(102, 126, 234, 0.6), 0 8px 24px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    }
-  }
-
-  /* Icon styling */
-  .period-btn .v-icon {
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-  }
-
-  .period-toggle :deep(.v-btn--active) .v-icon {
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-    transform: scale(1.1);
-  }
-
-  /* Dark mode adjustments */
-  :deep(.v-theme--dark) .period-toggle {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.12) 0%,
-      rgba(255, 255, 255, 0.08) 50%,
-      rgba(255, 255, 255, 0.04) 100%
-    ) !important;
-
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  }
-
-  :deep(.v-theme--dark) .period-btn {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.15),
-      rgba(255, 255, 255, 0.08)
-    ) !important;
-    color: rgba(255, 255, 255, 0.95) !important;
-    border-color: rgba(255, 255, 255, 0.25);
-  }
-
-  :deep(.v-theme--dark) .period-btn:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.25),
-      rgba(255, 255, 255, 0.15)
-    ) !important;
-  }
-  /* ===========================
-   ⭐ PREMIUM STATUS CHIPS
-=========================== */
-
   .status-chip {
     position: relative;
     display: flex;
@@ -2295,5 +2167,13 @@ Formats By Zone Logic
       rgba(var(--v-theme-teal), 0.08)
     ) !important;
     border-color: rgba(var(--v-theme-teal), 0.3) !important;
+  }
+  .fab-stack {
+    position: fixed;
+    right: 24px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    z-index: 100;
   }
 </style>

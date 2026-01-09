@@ -144,29 +144,18 @@
               </div>
 
               <v-row>
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.main_province"
-                    :label="t('ولایت اصلی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('main_province')"
-                    :error-messages="getErrorMessages('main_province')"
+                <v-col cols="12" md="12">
+                  <ProvinceDistrictNameSelect
+                    v-model:province="form.main_province"
+                    v-model:district="form.main_district"
+                    :province-label="t('ولایت اصلی')"
+                    :district-label="t('ولسوالی اصلی')"
+                    :mdProvince="6"
+                    :mdDistrict="6"
                   />
                 </v-col>
 
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.main_district"
-                    :label="t('ولسوالی اصلی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('main_district')"
-                    :error-messages="getErrorMessages('main_district')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="12">
                   <v-text-field
                     v-model="form.main_village"
                     :label="t('قریه/ناحیه اصلی')"
@@ -184,14 +173,14 @@
               </div>
 
               <v-row>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.now_province"
-                    :label="t('ولایت فعلی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('now_province')"
-                    :error-messages="getErrorMessages('now_province')"
+                <v-col cols="12" md="12">
+                  <ProvinceDistrictNameSelect
+                    v-model:province="form.now_province"
+                    v-model:district="form.now_district"
+                    :province-label="t('ولایت فعلی')"
+                    :district-label="t('ولسوالی فعلی')"
+                    :mdProvince="6"
+                    :mdDistrict="6"
                   />
                 </v-col>
 
@@ -203,17 +192,6 @@
                     density="compact"
                     :error="hasError('now_zone')"
                     :error-messages="getErrorMessages('now_zone')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.now_districts"
-                    :label="t('ولسوالی‌های فعلی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('now_districts')"
-                    :error-messages="getErrorMessages('now_districts')"
                   />
                 </v-col>
 
@@ -239,7 +217,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="3">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.now_street_number"
                     :label="t('شماره سرک فعلی')"
@@ -250,7 +228,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="3">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.now_home_number"
                     :label="t('شماره خانه فعلی')"
@@ -294,7 +272,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.mushkokyat_points"
                 :label="t('نقاط مشکوکیت')"
@@ -305,16 +283,16 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col>
+              <!-- <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.Province_addr"
+                  :label="t('ولایت مربوطه')"
+                  variant="outlined"
+                  density="compact"
+                  :error="hasError('Province_addr')"
+                  :error-messages="getErrorMessages('Province_addr')"
+                />
+              </v-col> -->
 
             <v-col cols="12" md="4">
               <v-text-field
@@ -354,7 +332,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="8">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.note"
                 :label="t('ملاحظات')"
@@ -382,7 +360,7 @@
 
               <v-btn
                 color="warning"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-broom"
                 @click="resetForm"
@@ -393,7 +371,7 @@
               <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
               <v-btn
                 color="red"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-file-pdf-box"
                 @click="downloadPdf"
@@ -403,7 +381,7 @@
 
               <v-btn
                 color="blue"
-                variant="outlined"
+                variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
                 prepend-icon="mdi-file-word-box"
                 @click="downloadWord"
@@ -418,12 +396,7 @@
       <!-- IMAGE PREVIEW DIALOG -->
       <v-dialog v-model="previewOpen" max-width="520">
         <v-card>
-          <v-toolbar
-            density="compact"
-            color="primary"
-            :title="t('پیش نمایش')"
-            class="text-white"
-          />
+          <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
           <v-card-text class="d-flex justify-center">
             <v-img
               :src="normalizePicture(previewSrc)"
@@ -465,342 +438,343 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
-import AppBar from '@/components/AppBar.vue';
-import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import AppBar from '@/components/AppBar.vue';
+  import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 
-const repo = useBadmashanoRepository();
-const route = useRoute();
-const router = useRouter();
+  const repo = useBadmashanoRepository();
+  const route = useRoute();
+  const router = useRouter();
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* MODE */
-const isEdit = computed(() => !!route.params.id);
+  /* MODE */
+  const isEdit = computed(() => !!route.params.id);
 
-/* FORM / STATE */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* FORM / STATE */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
 
-function showErrorMessage(message) {
-  errorMessage.value = message;
-  showError.value = true;
-}
-function showSuccessMessage(message) {
-  successMessage.value = message;
-  showSuccess.value = true;
-}
-
-/* BACKEND ERRORS */
-const backendErrors = ref({});
-function setBackendErrors(errors) {
-  backendErrors.value = errors || {};
-}
-function clearBackendErrors() {
-  backendErrors.value = {};
-}
-function hasError(field) {
-  return !!backendErrors.value?.[field];
-}
-function getErrorMessages(field) {
-  return backendErrors.value?.[field] ?? [];
-}
-
-/* FORM MODEL */
-const blankForm = () => ({
-  id: null,
-
-  // media
-  picture: null,
-  previewUrl: null,
-
-  // identity
-  name: '',
-  father_name: '',
-  phone_number: '',
-
-  // addresses
-  main_province: '',
-  main_district: '',
-  main_village: '',
-  now_province: '',
-  now_zone: '',
-  now_districts: '',
-  now_village: '',
-  now_specific_place: '',
-  now_street_number: '',
-  now_home_number: '',
-
-  // extra
-  old_job: '',
-  now_job: '',
-  mushkokyat_points: '',
-  Province_addr: '',
-  coordinates: '',
-
-  // resource
-  resource_code: '',
-  resource_phone: '',
-  resource_id: null,
-
-  // note
-  note: '',
-});
-
-const form = ref(blankForm());
-
-/* RULES */
-const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
-  phoneMinMax: (v) => {
-    if (!v) return true;
-    const s = String(v).replace(/\s+/g, '');
-    if (!/^\d+$/.test(s)) return t('شماره تیلیفون باید فقط عدد باشد');
-    if (s.length < 10) return t('شماره تیلیفون باید حداقل ۱۰ رقم باشد');
-    if (s.length > 13) return t('شماره تیلیفون باید حداکثر ۱۳ رقم باشد');
-    return true;
-  },
-};
-
-/* PICTURE */
-const pictureInput = ref(null);
-const pictureFile = ref(null);
-const pictureChanged = ref(false);
-
-const previewOpen = ref(false);
-const previewSrc = ref(null);
-
-function triggerPicture() {
-  pictureInput.value?.click();
-}
-
-function onPickPicture(e) {
-  const file = e.target.files?.[0] ?? null;
-  pictureFile.value = file;
-  pictureChanged.value = !!file;
-
-  if (file) {
-    if (form.value.previewUrl && String(form.value.previewUrl).startsWith('blob:')) {
-      URL.revokeObjectURL(form.value.previewUrl);
-    }
-    form.value.previewUrl = URL.createObjectURL(file);
-  } else {
-    form.value.previewUrl = form.value.picture || null;
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
   }
-  if (e.target) e.target.value = '';
-}
-
-function normalizePicture(src) {
-  if (!src) return null;
-  let clean = String(src).trim();
-
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
-
-  clean = clean.replace(/\\\//g, '/');
-
-  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-  if (clean.startsWith('/')) return clean;
-
-  return '/' + clean.replace(/^\/+/, '');
-}
-
-function openPreview(src) {
-  const base = src || form.value.previewUrl || form.value.picture;
-  const normalized = normalizePicture(base);
-  previewSrc.value = normalized;
-  if (previewSrc.value) previewOpen.value = true;
-}
-
-/* RESOURCES DROPDOWN */
-const resources = computed(() => repo.resourcecode || []);
-
-function onResourceCodeChange(code) {
-  const found = resources.value.find((r) => r.code_number === code);
-  form.value.resource_code = code || '';
-  form.value.resource_phone = found?.phone_number ?? '';
-  form.value.resource_id = found?.id ?? null;
-}
-
-/* MAP FROM API */
-function mapFromApi(payload = {}) {
-  const x = payload.data ?? payload;
-  const b = blankForm();
-
-  b.id = x.id ?? null;
-
-  const fullUrl = x.picture ?? null;
-  b.picture = fullUrl;
-  b.previewUrl = fullUrl;
-
-  b.name = x.name ?? '';
-  b.father_name = x.father_name ?? '';
-  b.phone_number = x.phone_number ?? '';
-
-  b.main_province = x.main_province ?? '';
-  b.main_district = x.main_district ?? '';
-  b.main_village = x.main_village ?? '';
-
-  b.now_province = x.now_province ?? '';
-  b.now_zone = x.now_zone ?? '';
-  b.now_districts = x.now_districts ?? '';
-  b.now_village = x.now_village ?? '';
-  b.now_specific_place = x.now_specific_place ?? '';
-  b.now_street_number = x.now_street_number ?? '';
-  b.now_home_number = x.now_home_number ?? '';
-
-  b.old_job = x.old_job ?? '';
-  b.now_job = x.now_job ?? '';
-  b.mushkokyat_points = x.mushkokyat_points ?? '';
-  b.Province_addr = x.Province_addr ?? '';
-  b.coordinates = x.coordinates ?? '';
-
-  const r = x.resource || {};
-  b.resource_code = x.resource_code ?? r.code_number ?? '';
-  b.resource_phone = x.resource_phone ?? x.resource_phone_number ?? r.phone_number ?? '';
-  b.resource_id = x.resource_id ?? r.id ?? null;
-
-  b.note = x.note ?? '';
-
-  return b;
-}
-
-async function loadRecord() {
-  const id = route.params.id;
-  if (!id) {
-    form.value = blankForm();
-    pictureFile.value = null;
-    pictureChanged.value = false;
-    return;
+  function showSuccessMessage(message) {
+    successMessage.value = message;
+    showSuccess.value = true;
   }
-  try {
-    await repo.FetchMashkokPeopleData?.(id);
-    const single = Array.isArray(repo.MashkokPeople)
-      ? repo.MashkokPeople[0]
-      : repo.MashkokPeople || {};
-    if (!single) return;
 
-    form.value = { ...mapFromApi(single) };
-    pictureFile.value = null;
-    pictureChanged.value = false;
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات فرد مشکوک'));
+  /* BACKEND ERRORS */
+  const backendErrors = ref({});
+  function setBackendErrors(errors) {
+    backendErrors.value = errors || {};
   }
-}
+  function clearBackendErrors() {
+    backendErrors.value = {};
+  }
+  function hasError(field) {
+    return !!backendErrors.value?.[field];
+  }
+  function getErrorMessages(field) {
+    return backendErrors.value?.[field] ?? [];
+  }
 
-/* FORM DATA HELPERS */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
+  /* FORM MODEL */
+  const blankForm = () => ({
+    id: null,
+
+    // media
+    picture: null,
+    previewUrl: null,
+
+    // identity
+    name: '',
+    father_name: '',
+    phone_number: '',
+
+    // addresses
+    main_province: '',
+    main_district: '',
+    main_village: '',
+    now_province: '',
+    now_zone: '',
+    now_districts: '',
+    now_village: '',
+    now_specific_place: '',
+    now_street_number: '',
+    now_home_number: '',
+
+    // extra
+    old_job: '',
+    now_job: '',
+    mushkokyat_points: '',
+    Province_addr: '',
+    coordinates: '',
+
+    // resource
+    resource_code: '',
+    resource_phone: '',
+    resource_id: null,
+
+    // note
+    note: '',
   });
-  return fd;
-}
 
-function buildCreateFormData() {
-  const payload = { ...form.value };
-  delete payload.previewUrl;
+  const form = ref(blankForm());
 
-  const fd = toFormData(payload);
-  if (pictureFile.value) fd.append('picture', pictureFile.value);
-  return fd;
-}
+  /* RULES */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+    phoneMinMax: (v) => {
+      if (!v) return true;
+      const s = String(v).replace(/\s+/g, '');
+      if (!/^\d+$/.test(s)) return t('شماره تیلیفون باید فقط عدد باشد');
+      if (s.length < 10) return t('شماره تیلیفون باید حداقل ۱۰ رقم باشد');
+      if (s.length > 13) return t('شماره تیلیفون باید حداکثر ۱۳ رقم باشد');
+      return true;
+    },
+  };
 
-function buildUpdateFormData() {
-  const payload = { ...form.value };
-  delete payload.previewUrl;
-  delete payload.picture;
+  /* PICTURE */
+  const pictureInput = ref(null);
+  const pictureFile = ref(null);
+  const pictureChanged = ref(false);
 
-  const fd = toFormData(payload);
-  if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
-  return fd;
-}
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
 
-/* SCROLL TO FIRST INVALID */
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-    document.querySelector('.v-messages__message');
-  if (first) {
-    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = first.querySelector('input, textarea, .v-field__input');
-    if (input && typeof input.focus === 'function') input.focus();
+  function triggerPicture() {
+    pictureInput.value?.click();
   }
-}
 
-/* =========================
+  function onPickPicture(e) {
+    const file = e.target.files?.[0] ?? null;
+    pictureFile.value = file;
+    pictureChanged.value = !!file;
+
+    if (file) {
+      if (form.value.previewUrl && String(form.value.previewUrl).startsWith('blob:')) {
+        URL.revokeObjectURL(form.value.previewUrl);
+      }
+      form.value.previewUrl = URL.createObjectURL(file);
+    } else {
+      form.value.previewUrl = form.value.picture || null;
+    }
+    if (e.target) e.target.value = '';
+  }
+
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
+
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+    clean = clean.replace(/\\\//g, '/');
+
+    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+    if (clean.startsWith('/')) return clean;
+
+    return '/' + clean.replace(/^\/+/, '');
+  }
+
+  function openPreview(src) {
+    const base = src || form.value.previewUrl || form.value.picture;
+    const normalized = normalizePicture(base);
+    previewSrc.value = normalized;
+    if (previewSrc.value) previewOpen.value = true;
+  }
+
+  /* RESOURCES DROPDOWN */
+  const resources = computed(() => repo.resourcecode || []);
+
+  function onResourceCodeChange(code) {
+    const found = resources.value.find((r) => r.code_number === code);
+    form.value.resource_code = code || '';
+    form.value.resource_phone = found?.phone_number ?? '';
+    form.value.resource_id = found?.id ?? null;
+  }
+
+  /* MAP FROM API */
+  function mapFromApi(payload = {}) {
+    const x = payload.data ?? payload;
+    const b = blankForm();
+
+    b.id = x.id ?? null;
+
+    const fullUrl = x.picture ?? null;
+    b.picture = fullUrl;
+    b.previewUrl = fullUrl;
+
+    b.name = x.name ?? '';
+    b.father_name = x.father_name ?? '';
+    b.phone_number = x.phone_number ?? '';
+
+    b.main_province = x.main_province ?? '';
+    b.main_district = x.main_district ?? '';
+    b.main_village = x.main_village ?? '';
+
+    b.now_province = x.now_province ?? '';
+    b.now_zone = x.now_zone ?? '';
+    b.now_districts = x.now_districts ?? '';
+    b.now_village = x.now_village ?? '';
+    b.now_specific_place = x.now_specific_place ?? '';
+    b.now_street_number = x.now_street_number ?? '';
+    b.now_home_number = x.now_home_number ?? '';
+
+    b.old_job = x.old_job ?? '';
+    b.now_job = x.now_job ?? '';
+    b.mushkokyat_points = x.mushkokyat_points ?? '';
+    b.Province_addr = x.Province_addr ?? '';
+    b.coordinates = x.coordinates ?? '';
+
+    const r = x.resource || {};
+    b.resource_code = x.resource_code ?? r.code_number ?? '';
+    b.resource_phone = x.resource_phone ?? x.resource_phone_number ?? r.phone_number ?? '';
+    b.resource_id = x.resource_id ?? r.id ?? null;
+
+    b.note = x.note ?? '';
+
+    return b;
+  }
+
+  async function loadRecord() {
+    const id = route.params.id;
+    if (!id) {
+      form.value = blankForm();
+      pictureFile.value = null;
+      pictureChanged.value = false;
+      return;
+    }
+    try {
+      await repo.FetchMashkokPeopleData?.(id);
+      const single = Array.isArray(repo.MashkokPeople)
+        ? repo.MashkokPeople[0]
+        : repo.MashkokPeople || {};
+      if (!single) return;
+
+      form.value = { ...mapFromApi(single) };
+      pictureFile.value = null;
+      pictureChanged.value = false;
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات فرد مشکوک'));
+    }
+  }
+
+  /* FORM DATA HELPERS */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  function buildCreateFormData() {
+    const payload = { ...form.value };
+    delete payload.previewUrl;
+
+    const fd = toFormData(payload);
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+    return fd;
+  }
+
+  function buildUpdateFormData() {
+    const payload = { ...form.value };
+    delete payload.previewUrl;
+    delete payload.picture;
+
+    const fd = toFormData(payload);
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+    return fd;
+  }
+
+  /* SCROLL TO FIRST INVALID */
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  /* =========================
    SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
 ========================= */
-function esc(v) {
-  return String(v ?? '').replace(/[&<>"']/g, (m) => {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return map[m];
-  });
-}
-function safeFileName(s) {
-  return String(s ?? '')
-    .replace(/[\\/:*?"<>|]/g, '-')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-function v(x) {
-  return x && String(x).trim() ? x : '—';
-}
-function exportRows() {
-  return [
-    { label: t('نام'), value: v(form.value.name) },
-    { label: t('نام پدر'), value: v(form.value.father_name) },
-    { label: t('شماره تماس'), value: v(form.value.phone_number) },
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, (m) => {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return map[m];
+    });
+  }
+  function safeFileName(s) {
+    return String(s ?? '')
+      .replace(/[\\/:*?"<>|]/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  function v(x) {
+    return x && String(x).trim() ? x : '—';
+  }
+  function exportRows() {
+    return [
+      { label: t('نام'), value: v(form.value.name) },
+      { label: t('نام پدر'), value: v(form.value.father_name) },
+      { label: t('شماره تماس'), value: v(form.value.phone_number) },
 
-    { label: t('ولایت اصلی'), value: v(form.value.main_province) },
-    { label: t('ولسوالی اصلی'), value: v(form.value.main_district) },
-    { label: t('قریه/ناحیه اصلی'), value: v(form.value.main_village) },
+      { label: t('ولایت اصلی'), value: v(form.value.main_province) },
+      { label: t('ولسوالی اصلی'), value: v(form.value.main_district) },
+      { label: t('قریه/ناحیه اصلی'), value: v(form.value.main_village) },
 
-    { label: t('ولایت فعلی'), value: v(form.value.now_province) },
-    { label: t('زون فعلی'), value: v(form.value.now_zone) },
-    { label: t('ولسوالی‌های فعلی'), value: v(form.value.now_districts) },
-    { label: t('قریه/ناحیه فعلی'), value: v(form.value.now_village) },
-    { label: t('موقعیت مشخص فعلی'), value: v(form.value.now_specific_place) },
-    { label: t('شماره سرک فعلی'), value: v(form.value.now_street_number) },
-    { label: t('شماره خانه فعلی'), value: v(form.value.now_home_number) },
+      { label: t('ولایت فعلی'), value: v(form.value.now_province) },
+      { label: t('زون فعلی'), value: v(form.value.now_zone) },
+      { label: t('ولسوالی‌های فعلی'), value: v(form.value.now_districts) },
+      { label: t('قریه/ناحیه فعلی'), value: v(form.value.now_village) },
+      { label: t('موقعیت مشخص فعلی'), value: v(form.value.now_specific_place) },
+      { label: t('شماره سرک فعلی'), value: v(form.value.now_street_number) },
+      { label: t('شماره خانه فعلی'), value: v(form.value.now_home_number) },
 
-    { label: t('وظیفه قبلی'), value: v(form.value.old_job) },
-    { label: t('وظیفه فعلی'), value: v(form.value.now_job) },
-    { label: t('نقاط مشکوکیت'), value: v(form.value.mushkokyat_points) },
-    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
-    { label: t('مختصات'), value: v(form.value.coordinates) },
+      { label: t('وظیفه قبلی'), value: v(form.value.old_job) },
+      { label: t('وظیفه فعلی'), value: v(form.value.now_job) },
+      { label: t('نقاط مشکوکیت'), value: v(form.value.mushkokyat_points) },
+      { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+      { label: t('مختصات'), value: v(form.value.coordinates) },
 
-    { label: t('کود منبع'), value: v(form.value.resource_code) },
-    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+      { label: t('کود منبع'), value: v(form.value.resource_code) },
+      { label: t('شماره منبع'), value: v(form.value.resource_phone) },
 
-    { label: t('ملاحظات'), value: v(form.value.note) },
-  ];
-}
-function buildSimpleTableHtml() {
-  const rows = exportRows()
-    .map(
-      (r) => `
+      { label: t('ملاحظات'), value: v(form.value.note) },
+    ];
+  }
+  function buildSimpleTableHtml() {
+    const rows = exportRows()
+      .map(
+        (r) => `
       <tr>
         <th>${esc(r.label)}</th>
         <td>${esc(r.value)}</td>
       </tr>
     `
-    )
-    .join('');
+      )
+      .join('');
 
-  return `
+    return `
     <h3 class="title">فورم فرد مشکوک</h3>
     <table class="simple-table">
       <tbody>
@@ -812,13 +786,13 @@ function buildSimpleTableHtml() {
       <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
     </div>
   `;
-}
-function buildDocumentHtml() {
-  const bodyHtml = buildSimpleTableHtml();
-  const safeId = esc(form.value.id || '');
-  const safeName = esc(form.value.name || '');
+  }
+  function buildDocumentHtml() {
+    const bodyHtml = buildSimpleTableHtml();
+    const safeId = esc(form.value.id || '');
+    const safeName = esc(form.value.name || '');
 
-  return `
+    return `
 <!DOCTYPE html>
 <html dir="rtl">
 <head>
@@ -846,189 +820,189 @@ function buildDocumentHtml() {
 </body>
 </html>
 `;
-}
-
-function downloadPdf() {
-  const html = buildDocumentHtml();
-  const w = window.open('', '_blank', 'width=1024,height=768');
-  if (!w) return;
-
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-
-  w.onload = () => {
-    w.focus();
-    w.print();
-  };
-}
-
-function downloadWord() {
-  const html = buildDocumentHtml();
-  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `فرد-مشکوک_${safeFileName(form.value.name || 'جدید')}_${Date.now()}.doc`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  URL.revokeObjectURL(url);
-  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
-}
-
-/* SUBMIT */
-async function onSubmit() {
-  clearBackendErrors();
-
-  const f = formRef.value;
-  if (!f) return;
-
-  const { valid } = await f.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
   }
 
-  if (!form.value.name?.trim()) {
-    showErrorMessage(t('نام الزامی است'));
-    return;
+  function downloadPdf() {
+    const html = buildDocumentHtml();
+    const w = window.open('', '_blank', 'width=1024,height=768');
+    if (!w) return;
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+
+    w.onload = () => {
+      w.focus();
+      w.print();
+    };
   }
 
-  saving.value = true;
+  function downloadWord() {
+    const html = buildDocumentHtml();
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
 
-  try {
-    if (!isEdit.value) {
-      const fd = buildCreateFormData();
-      const created = await repo.CreateMashkokPeople?.(fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `فرد-مشکوک_${safeFileName(form.value.name || 'جدید')}_${Date.now()}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-      if (created?.id) {
-        showSuccessMessage(t('موفقانه ثبت شد'));
-        router.push('/app/mashkokpeoples').catch(() => {});
-      } else {
-        showErrorMessage(t('ثبت معلومات ناکام شد'));
-      }
-    } else {
-      const fd = buildUpdateFormData();
-      const updated = await repo.UpdateMashkokPeople?.(form.value.id, fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
+    URL.revokeObjectURL(url);
+    showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
+  }
 
-      if (updated?.id) {
-        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-        router.push('/app/mashkokpeoples').catch(() => {});
-      } else {
-        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-      }
+  /* SUBMIT */
+  async function onSubmit() {
+    clearBackendErrors();
+
+    const f = formRef.value;
+    if (!f) return;
+
+    const { valid } = await f.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در ذخیره اطلاعات'));
-  } finally {
-    saving.value = false;
+
+    if (!form.value.name?.trim()) {
+      showErrorMessage(t('نام الزامی است'));
+      return;
+    }
+
+    saving.value = true;
+
+    try {
+      if (!isEdit.value) {
+        const fd = buildCreateFormData();
+        const created = await repo.CreateMashkokPeople?.(fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (created?.id) {
+          showSuccessMessage(t('موفقانه ثبت شد'));
+          router.push('/app/mashkokpeoples').catch(() => {});
+        } else {
+          showErrorMessage(t('ثبت معلومات ناکام شد'));
+        }
+      } else {
+        const fd = buildUpdateFormData();
+        const updated = await repo.UpdateMashkokPeople?.(form.value.id, fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (updated?.id) {
+          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+          router.push('/app/mashkokpeoples').catch(() => {});
+        } else {
+          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      saving.value = false;
+    }
   }
-}
 
-/* RESET & NAVIGATION */
-function resetForm() {
-  if (form.value.previewUrl && String(form.value.previewUrl).startsWith('blob:')) {
-    URL.revokeObjectURL(form.value.previewUrl);
+  /* RESET & NAVIGATION */
+  function resetForm() {
+    if (form.value.previewUrl && String(form.value.previewUrl).startsWith('blob:')) {
+      URL.revokeObjectURL(form.value.previewUrl);
+    }
+
+    if (isEdit.value) {
+      loadRecord();
+    } else {
+      form.value = blankForm();
+      pictureFile.value = null;
+      pictureChanged.value = false;
+    }
+
+    clearBackendErrors();
+    formRef.value?.resetValidation?.();
+    showSuccessMessage(t('فرم پاک شد'));
   }
 
-  if (isEdit.value) {
-    loadRecord();
-  } else {
-    form.value = blankForm();
-    pictureFile.value = null;
-    pictureChanged.value = false;
+  function goBack() {
+    router.push('/app/mashkokpeoples');
   }
 
-  clearBackendErrors();
-  formRef.value?.resetValidation?.();
-  showSuccessMessage(t('فرم پاک شد'));
-}
-
-function goBack() {
-  router.push('/app/mashkokpeoples');
-}
-
-/* INIT */
-onMounted(async () => {
-  await repo.GetResourceCode?.();
-  if (isEdit.value) {
-    await loadRecord();
-  }
-});
+  /* INIT */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
+    if (isEdit.value) {
+      await loadRecord();
+    }
+  });
 </script>
 
 <style scoped>
-.hidden-file {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
 
-.simple-form-card {
-  padding: 16px 16px 20px;
-  border-radius: 12px;
-}
+  .simple-form-card {
+    padding: 16px 16px 20px;
+    border-radius: 12px;
+  }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  padding-block: 2px;
-}
-.section-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  opacity: 0.8;
-}
+  .section-header {
+    display: flex;
+    align-items: center;
+    padding-block: 2px;
+  }
+  .section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.8;
+  }
 
-.pic-wrap-simple {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.cursor-pointer {
-  cursor: pointer;
-}
-.primary-avatar {
-  border: 2px solid rgba(33, 150, 243, 0.25);
-}
+  .pic-wrap-simple {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  .primary-avatar {
+    border: 2px solid rgba(33, 150, 243, 0.25);
+  }
 
-:deep(.v-field--variant-outlined .v-field__input) {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  min-height: 36px;
-}
+  :deep(.v-field--variant-outlined .v-field__input) {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    min-height: 36px;
+  }
 
-.soft-btn {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
+  .soft-btn {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
 
-.primary-action-btn {
-  padding-inline: 18px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
-}
-.secondary-action-btn {
-  padding-inline: 14px;
-  font-weight: 500;
-}
-.ga-2 {
-  gap: 8px;
-}
-.gap-2 {
-  gap: 8px;
-}
+  .primary-action-btn {
+    padding-inline: 18px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+  }
+  .secondary-action-btn {
+    padding-inline: 14px;
+    font-weight: 500;
+  }
+  .ga-2 {
+    gap: 8px;
+  }
+  .gap-2 {
+    gap: 8px;
+  }
 </style>
