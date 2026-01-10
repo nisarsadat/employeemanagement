@@ -72,7 +72,9 @@ return new class extends Migration {
             // 0 = never notified
             // 1 = notified after 7 days
             // 2 = notified after 3 months (STOP)
-
+            $table->string('hamahangi_date')->nullable()->after('information_saved_date');
+            $table->string('maktop_number')->nullable()->after('hamahangi_date');
+            $table->string('organ')->nullable()->after('maktop_number');
             // ===============================
             // Extra
             // ===============================

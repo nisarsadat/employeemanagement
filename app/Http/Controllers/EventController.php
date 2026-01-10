@@ -35,22 +35,23 @@ class EventController extends Controller
     public function index(Request $request)
     {
         $query = Event::with([
-            'resource',
-            'officeEmployee',
-            'akhistonkyEmployee',
+            'resource:id,code_number',
+            'officeEmployee:id,code_number',
+            'akhistonkyEmployee:id,code_number',
             'documents',
         ])->when($request->search, function ($q) use ($request) {
             $s = trim((string) $request->search);
             $q->where(function ($qq) use ($s) {
                 $qq->where('event_type', 'like', "%{$s}%")
-                    ->orWhere('event_specific_type', 'like', "%{$s}%")
-                    ->orWhere('target_person', 'like', "%{$s}%")
-                    ->orWhere('criminal', 'like', "%{$s}%")
-                    ->orWhere('event_zone', 'like', "%{$s}%")
-                    ->orWhere('event_hawza', 'like', "%{$s}%")
-                    ->orWhere('event_specific_place', 'like', "%{$s}%");
+                ->orWhere('event_specific_type', 'like', "%{$s}%")
+                ->orWhere('target_person', 'like', "%{$s}%")
+                ->orWhere('criminal', 'like', "%{$s}%")
+                ->orWhere('event_zone', 'like', "%{$s}%")
+                ->orWhere('event_hawza', 'like', "%{$s}%")
+                ->orWhere('event_specific_place', 'like', "%{$s}%");
             });
         })->orderByDesc('id');
+
 
         $perPage = $request->integer('perPage');
         $page    = $request->integer('page');

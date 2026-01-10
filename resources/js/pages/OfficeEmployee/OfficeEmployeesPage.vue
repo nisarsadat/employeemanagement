@@ -535,7 +535,7 @@
     { title: t('محل مشخص فعلی'), key: 'now_specific_place' },
     { title: t('نمبر سرک'), key: 'now_street_number' },
     { title: t('نمبر خانه'), key: 'now_home_number' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    // { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     // Education
     { title: t('تعلیمات دینی'), key: 'relegy_study' },

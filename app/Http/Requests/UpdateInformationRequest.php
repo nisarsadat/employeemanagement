@@ -25,6 +25,10 @@ class UpdateInformationRequest extends FormRequest
             'main_districts' => ['sometimes','nullable','string'],
             'main_village'   => ['sometimes','nullable','string'],
 
+            'hamahangi_date' => ['nullable','string','sometimes'],
+            'maktop_number'  => ['nullable','string','sometimes'],
+            'organ'          => ['nullable','string','sometimes'],
+
             'now_province' => ['sometimes','nullable','string'],
             'now_district' => ['sometimes','nullable','string'],
             'now_village'  => ['sometimes','nullable','string'],

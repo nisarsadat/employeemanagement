@@ -15,6 +15,8 @@
               style="max-width: 320px"
               prepend-inner-icon="mdi-magnify"
               @keyup.enter="fetchAll"
+              clearable
+              @click:clear="clearSearch"
             />
 
             <v-autocomplete
@@ -35,9 +37,7 @@
           </div>
 
           <div class="d-flex gap-2">
-            <v-btn color="success" prepend-icon="mdi-plus" @click="openCreate">
-              ثبت عاید
-            </v-btn>
+            <v-btn color="success" prepend-icon="mdi-plus" @click="openCreate"> ثبت عاید </v-btn>
           </div>
         </div>
       </v-card-text>
@@ -57,9 +57,40 @@
           :perPage="repo.incomesPerPage"
           @update:page="onPage"
           @update:perPage="onPerPage"
-          @edit="startEdit"
-          @delete="askDelete"
-        />
+        >
+          <!-- ✅ Actions slot (same idea as your Finances page) -->
+          <template #actions="{ item }">
+            <div class="d-flex align-center ga-2">
+              <!-- Edit -->
+              <v-tooltip text="ویرایش عاید" location="top">
+                <template #activator="{ props: tooltipProps }">
+                  <v-icon
+                    size="small"
+                    v-bind="tooltipProps"
+                    color="amber-darken-2"
+                    @click.stop="startEdit(item)"
+                  >
+                    mdi-pencil
+                  </v-icon>
+                </template>
+              </v-tooltip>
+
+              <!-- Delete -->
+              <v-tooltip text="حذف عاید" location="top">
+                <template #activator="{ props: tooltipProps }">
+                  <v-icon
+                    size="small"
+                    v-bind="tooltipProps"
+                    color="red-darken-2"
+                    @click.stop="openDeleteDialog(item)"
+                  >
+                    mdi-delete
+                  </v-icon>
+                </template>
+              </v-tooltip>
+            </div>
+          </template>
+        </FilterableTable>
       </v-card-text>
     </v-card>
 
@@ -69,129 +100,164 @@
     <!-- Delete confirm -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
-      :title="'حذف عاید'"
-      :text="'آیا مطمئن هستید که این عاید حذف شود؟'"
-      @confirm="doDelete"
+      :target="deleteTarget"
+      :is-rtl="rtl"
+      @confirm="handleDeleteConfirmed"
     />
   </v-container>
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from "vue";
-import AppBar from "@/components/AppBar.vue";
-import FilterableTable from "@/components/FilterableTable.vue";
-import DeleteConfirmDialog from "@/components/DeleteConfirmDialog.vue";
-import IncomeFormDialog from "./IncomesFormDialog.vue";
-import { useFinanceRepository } from "@/stores/financeRepository";
+  import { computed, ref, onMounted } from 'vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import IncomeFormDialog from './IncomesFormDialog.vue';
+  import { useFinanceRepository } from '@/stores/financeRepository';
 
-// RTL (replace with i18n)
-const rtl = ref(true);
+  // RTL (replace with i18n)
+  const rtl = ref(true);
 
-const repo = useFinanceRepository();
+  const repo = useFinanceRepository();
 
-const dialog = ref(false);
-const editId = ref(null);
+  const dialog = ref(false);
+  const editId = ref(null);
 
-const deleteDialog = ref(false);
-const deleteId = ref(null);
+  // ✅ delete (Informations/Finances style)
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-const accountOptions = computed(() => repo.accounts || []);
+  /* helper to unwrap row/raw like your other pages */
+  function getRow(payload) {
+    return payload?.raw ?? payload;
+  }
 
-const headersFT = [
-  { title: "#", key: "index", sortable: false, width: 70 },
-  { title: "حساب", key: "account_name", sortable: true },
-  { title: "مبلغ", key: "amount", sortable: true },
-  { title: "تاریخ", key: "received_at", sortable: true },
-  { title: "یادداشت", key: "note", sortable: false },
-  { title: "عملیات", key: "actions", sortable: false, width: 180 },
-];
+  const accountOptions = computed(() => repo.accounts || []);
 
-const rowsFT = computed(() => {
-  const startIndex = (repo.incomesPage - 1) * repo.incomesPerPage;
+  const headersFT = [
 
-  return (repo.incomes || []).map((it, i) => ({
-    ...it,
-    index: startIndex + i + 1,
-    // if backend returns account relation, prefer it, else fallback
-    account_name: it?.account?.name ?? it?.account_name ?? "",
-    received_at: (it?.received_at ?? "").toString().slice(0, 10),
-  }));
-});
+    { title: 'حساب', key: 'account_name', sortable: true },
+    { title: 'مبلغ', key: 'amount', sortable: true },
+    { title: 'تاریخ', key: 'received_at', sortable: true },
+    { title: 'یادداشت', key: 'note', sortable: false },
+  ];
 
-// keep empty if you don't use them
-const filters = [];
-const topGroups = [];
+  const rowsFT = computed(() => {
+    const startIndex = (repo.incomesPage - 1) * repo.incomesPerPage;
 
-function fetchAll() {
-  repo.FetchIncomesData({
-    page: repo.incomesPage,
-    perPage: repo.incomesPerPage,
-    search: repo.incomesSearch,
-    account_id: repo.incomesAccountId,
+    return (repo.incomes || []).map((it, i) => ({
+      ...it,
+      index: startIndex + i + 1,
+      // if backend returns account relation, prefer it, else fallback
+      account_name: it?.account?.name ?? it?.account_name ?? '',
+      received_at: (it?.received_at ?? '').toString().slice(0, 10),
+    }));
   });
-}
 
-async function ensureAccountsLoaded() {
-  if (Array.isArray(repo.accounts) && repo.accounts.length) return;
-  await repo.FetchAccountsData({ page: 1, perPage: 2000, search: "" });
-}
+  // keep empty if you don't use them
+  const filters = [];
+  const topGroups = [];
 
-function resetFilters() {
-  repo.ResetIncomesFilters();
-  fetchAll();
-}
+  function fetchAll() {
+    repo.FetchIncomesData({
+      page: repo.incomesPage,
+      perPage: repo.incomesPerPage,
+      search: repo.incomesSearch,
+      account_id: repo.incomesAccountId,
+    });
+  }
 
-function onAccountFilterChanged() {
-  repo.incomesPage = 1;
-  fetchAll();
-}
+  function clearSearch() {
+    repo.incomesSearch = '';
+    fetchAll();
+  }
 
-function openCreate() {
-  editId.value = null;
-  dialog.value = true;
-}
+  async function ensureAccountsLoaded() {
+    if (Array.isArray(repo.accounts) && repo.accounts.length) return;
+    await repo.FetchAccountsData({ page: 1, perPage: 2000, search: '' });
+  }
 
-function startEdit(row) {
-  editId.value = row?.id;
-  dialog.value = true;
-}
+  function resetFilters() {
+    if (typeof repo.ResetIncomesFilters === 'function') repo.ResetIncomesFilters();
+    else {
+      repo.incomesSearch = '';
+      repo.incomesAccountId = null;
+      repo.incomesPage = 1;
+    }
+    fetchAll();
+  }
 
-function onSaved() {
-  fetchAll();
-}
+  function onAccountFilterChanged() {
+    repo.incomesPage = 1;
+    fetchAll();
+  }
 
-function askDelete(row) {
-  deleteId.value = row?.id;
-  deleteDialog.value = true;
-}
+  function openCreate() {
+    editId.value = null;
+    dialog.value = true;
+  }
 
-async function doDelete() {
-  if (!deleteId.value) return;
-  await repo.DeleteIncome(deleteId.value);
-  deleteDialog.value = false;
-  deleteId.value = null;
-  fetchAll();
-}
+  function startEdit(payload) {
+    const row = getRow(payload);
+    editId.value = row?.id ?? null;
+    if (!editId.value) return;
+    dialog.value = true;
+  }
 
-function onPage(p) {
-  repo.incomesPage = p;
-  fetchAll();
-}
+  function onSaved() {
+    fetchAll();
+  }
 
-function onPerPage(pp) {
-  repo.incomesPerPage = pp;
-  repo.incomesPage = 1;
-  fetchAll();
-}
+  /* ✅ DELETE like your Finances page */
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
 
-onMounted(async () => {
-  await ensureAccountsLoaded();
-  fetchAll();
-});
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    if (!row?.id) {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
+    }
+
+    try {
+      await repo.DeleteIncome(row.id);
+      await fetchAll();
+    } finally {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+    }
+  }
+
+  function onPage(p) {
+    repo.incomesPage = p;
+    fetchAll();
+  }
+
+  function onPerPage(pp) {
+    repo.incomesPerPage = pp;
+    repo.incomesPage = 1;
+    fetchAll();
+  }
+
+  onMounted(async () => {
+    await ensureAccountsLoaded();
+    fetchAll();
+  });
 </script>
 
 <style scoped>
-.gap-2 {
-  gap: 8px;
-}
+  .gap-2 {
+    gap: 8px;
+  }
+
+  :deep(.v-btn--icon) {
+    transition: all 0.2s ease;
+  }
+  :deep(.v-btn--icon:hover) {
+    transform: scale(1.1);
+  }
 </style>

@@ -264,6 +264,7 @@
     complexes: '/app/complexes',
     universities: '/app/universities',
     wakilanos: '/app/wakilanos',
+    supermarkets: '/app/supermarkets',
   };
 
   function toIcon(key) {

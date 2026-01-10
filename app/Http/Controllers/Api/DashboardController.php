@@ -393,7 +393,7 @@ class DashboardController extends Controller
             'sarayanos', 'tujarans', 'checkpoints', 'highways',
             'donelostplaces', 'econemy_projects',
             'criminal_capture_places', 'pumps', 'parks', 'complexes',
-            'universities', 'wakilanos',
+            'universities', 'wakilanos', 'super_markets'
         ];
     }
 

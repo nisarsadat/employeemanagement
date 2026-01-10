@@ -9,6 +9,10 @@ class KhayratReportResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        // ✅ IMPORTANT: "resource" relationship conflicts with JsonResource::$resource
+        $resourceRel = $this->resource->getRelationValue('resource');
+        $officeRel   = $this->resource->getRelationValue('officeEmployee');
+
         return [
             'id' => $this->id,
 
@@ -20,26 +24,26 @@ class KhayratReportResource extends JsonResource
             'specefic_place' => $this->specefic_place,
             'saved_date'     => optional($this->saved_date)->format('Y-m-d'),
 
-            // ✅ flattened like your OfficeEmployee style
-            'resource_name'  => $this->resource?->name,
-            'resource_code'  => $this->resource?->code_number,
-            'resource_phone' => $this->resource?->phone_number,
+            // ✅ flattened
+            'resource_name'  => $resourceRel?->name,
+            'resource_code'  => $resourceRel?->code_number,
+            'resource_phone' => $resourceRel?->phone_number,
 
-            'office_employee_name' => $this->officeEmployee?->name,
-            'office_employee_code' => $this->officeEmployee?->code_number,
+            'office_employee_name' => $officeRel?->name,
+            'office_employee_code' => $officeRel?->code_number,
 
             // ✅ nested relations
             'resource' => $this->whenLoaded('resource', fn () => [
-                'id'           => $this->resource->id,
-                'name'         => $this->resource->name,
-                'code_number'  => $this->resource->code_number,
-                'phone_number' => $this->resource->phone_number,
+                'id'           => $resourceRel?->id,
+                'name'         => $resourceRel?->name,
+                'code_number'  => $resourceRel?->code_number,
+                'phone_number' => $resourceRel?->phone_number,
             ]),
 
             'office_employee' => $this->whenLoaded('officeEmployee', fn () => [
-                'id'          => $this->officeEmployee->id,
-                'name'        => $this->officeEmployee->name,
-                'code_number' => $this->officeEmployee->code_number,
+                'id'          => $officeRel?->id,
+                'name'        => $officeRel?->name,
+                'code_number' => $officeRel?->code_number,
             ]),
         ];
     }

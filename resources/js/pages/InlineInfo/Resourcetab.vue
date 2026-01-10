@@ -71,7 +71,7 @@
                 />
               </v-card-text>
             </v-col>
-            <v-col cols="12" md="6">
+            <!-- <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{
                   t('کود کارمند تدابیری مربوطه')
@@ -87,8 +87,10 @@
                 density="compact"
                 variant="outlined"
                 clearable
-              /> </v-col
-            ><v-col cols="12" md="6">
+              />
+            </v-col> -->
+
+            <v-col cols="12" md="12">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{
                   t('کود کارمند اطلاع گیرنده')
@@ -178,30 +180,18 @@
                       {{ t('آدرس اصلی') }}
                     </v-card-subtitle>
                   </v-col>
-
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="draft.main_province"
-                      :label="t('ولایت اصلی')"
-                      variant="outlined"
-                      density="compact"
-                      rounded="lg"
-                      clearable
-                      :rules="[rules.selectRequired(t('ولایت اصلی'))]"
+                  <v-col cols="12">
+                    <ProvinceDistrictNameSelect
+                      v-model:province="draft.main_province"
+                      v-model:district="draft.main_districts"
+                      :province-label="t('ولایت اصلی')"
+                      :district-label="t('ولسوالی اصلی')"
+                      :mdProvince="6"
+                      :mdDistrict="6"
                     />
                   </v-col>
 
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="draft.main_districts"
-                      :label="t('ولسوالی اصلی')"
-                      variant="outlined"
-                      density="compact"
-                      clearable
-                    />
-                  </v-col>
-
-                  <v-col cols="12" md="4">
+                  <v-col cols="12" md="12">
                     <v-text-field
                       v-model="draft.main_village"
                       :label="t('قریه/ناحیه اصلی')"
@@ -222,29 +212,18 @@
                     </v-card-subtitle>
                   </v-col>
 
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="draft.now_province"
-                      :label="t('ولایت فعلی')"
-                      variant="outlined"
-                      density="compact"
-                      clearable
-                      rounded="lg"
+                  <v-col cols="12">
+                    <ProvinceDistrictNameSelect
+                      v-model:province="draft.now_province"
+                      v-model:district="draft.now_district"
+                      :province-label="t('ولایت فعلی')"
+                      :district-label="t('ولسوالی فعلی')"
+                      :mdProvince="6"
+                      :mdDistrict="6"
                     />
                   </v-col>
 
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="draft.now_district"
-                      :label="t('ولسوالی فعلی')"
-                      variant="outlined"
-                      density="compact"
-                      clearable
-                      rounded="lg"
-                    />
-                  </v-col>
-
-                  <v-col cols="12" md="4">
+                  <v-col cols="12" md="12">
                     <v-text-field
                       v-model="draft.now_village"
                       :label="t('قریه/ناحیه فعلی')"
@@ -261,23 +240,17 @@
 
           <!-- Types + Time -->
           <v-row class="tight-grid mt-2">
-            <!-- syasi_info_type -->
             <v-col cols="12" md="4">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('سیاسی - نوع') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
-                <v-autocomplete
+                <SeyaseeTypeSelect
                   v-model="draft.syasi_info_type"
-                  :items="seyasiItems"
-                  item-title="name"
-                  item-value="id"
-                  rounded="lg"
-                  class="cell"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  prepend-inner-icon="mdi-shield-account"
+                  :label="t('سیاسی - نوع')"
+                  :cols="12"
+                  :md="12"
+                  :disabled="!!draft.jenayee_info_type"
                 />
               </v-card-text>
             </v-col>
@@ -285,20 +258,15 @@
             <!-- jenayee_info_type -->
             <v-col cols="12" md="4">
               <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('جنایی - هو/نه') }}</v-card-subtitle>
+                <v-card-subtitle class="field-label">{{ t('جنایی') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
-                <v-autocomplete
+                <JenayeeTypeSelect
                   v-model="draft.jenayee_info_type"
-                  :items="jenayeeItems"
-                  item-title="name"
-                  item-value="id"
-                  variant="outlined"
-                  density="compact"
-                  rounded="lg"
-                  class="cell"
-                  clearable
-                  prepend-inner-icon="mdi-shield-check"
+                  :label="t('جنایی')"
+                  :cols="12"
+                  :md="12"
+                  :disabled="!!draft.syasi_info_type"
                 />
               </v-card-text>
             </v-col>
@@ -357,7 +325,48 @@
                 />
               </v-card-text>
             </v-col>
+            <!-- ✅ NEW: hamahangi_date -->
             <v-col cols="12" md="4">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{ t('تاریخ هم‌آهنگی') }}</v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <div class="dateinput">
+                  <DateInput v-model="draft.hamahangi_date" :label="t('تاریخ هم‌آهنگی')" />
+                </div>
+              </v-card-text>
+            </v-col>
+
+            <!-- ✅ NEW: maktop_number -->
+            <v-col cols="12" md="4">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{ t('شماره مکتوب') }}</v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <v-text-field
+                  v-model="draft.maktop_number"
+                  :label="t('شماره مکتوب')"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  rounded="lg"
+                  class="cell"
+                  prepend-inner-icon="mdi-numeric"
+                />
+              </v-card-text>
+            </v-col>
+
+            <!-- ✅ NEW: organ -->
+            <v-col cols="12" md="8">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{ t('ارگان') }}</v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <OrganSelect v-model="draft.organ" :label="t('ارگان')" :disabled="submitting" />
+              </v-card-text>
+            </v-col>
+
+            <!-- <v-col cols="12" md="4">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('ولایت مربوطه') }}</v-card-subtitle>
               </v-card-item>
@@ -372,7 +381,7 @@
                   class="cell"
                 />
               </v-card-text>
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <!-- Long texts -->
@@ -579,6 +588,10 @@
   import { useI18n } from 'vue-i18n';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import DateInput from '../../components/DateInput.vue';
+  import OrganSelect from '@/components/OrganSelect.vue';
+  import SeyaseeTypeSelect from '@/components/SeyaseeTypeSelect.vue';
+  import JenayeeTypeSelect from '@/components/JenayeeTypeSelect.vue';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
@@ -622,6 +635,10 @@
     nick_name: '',
     father_name: '',
     grand_father_name: '',
+    // hamahangi
+    hamahangi_date: '',
+    maktop_number: '',
+    organ: '',
 
     // addresses
     main_province: '',
@@ -760,6 +777,19 @@
     const id = r.id != null ? `#${r.id}` : '';
     return [code, nm, dad, id].filter(Boolean).join(' — ');
   };
+  watch(
+    () => draft.syasi_info_type,
+    (val) => {
+      if (val) draft.jenayee_info_type = '';
+    }
+  );
+
+  watch(
+    () => draft.jenayee_info_type,
+    (val) => {
+      if (val) draft.syasi_info_type = '';
+    }
+  );
 </script>
 
 <style scoped>

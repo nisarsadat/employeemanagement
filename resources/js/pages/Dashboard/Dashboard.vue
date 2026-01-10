@@ -317,21 +317,26 @@
                 <v-chip
                   size="x-small"
                   variant="tonal"
-                  :color="moneyBalance >= 0 ? 'success' : 'error'"
+                  :color="moneyBalance>= 0 ? 'success' : 'warning'"
+                  class="font-weight-bold"
                 >
-                  <v-icon start size="14">{{
-                    moneyBalance >= 0 ? 'mdi-plus' : 'mdi-minus'
-                  }}</v-icon>
-                  {{ num(moneyBalance) }}
+                  <v-icon
+                    start
+                    size="14"
+                    :icon="moneyBalance >= 0 ? 'mdi-plus' : 'mdi-minus'"
+                  />
+
+                  <span>{{ t('موجودی:') }}</span>
+                  <span>{{ num(moneyBalance) }}</span>
                 </v-chip>
-              </div>
+              </div>  
 
               <div class="text-caption text-medium-emphasis mb-2">{{ t('بیلانس مالی') }}</div>
 
               <div class="d-flex align-baseline justify-space-between mb-3">
-                <div class="text-h3 font-weight-black">{{ num(moneyBalance) }}</div>
+                {{ num(moneyBalance) }}
                 <div class="mini-meta">
-                  <v-icon size="16" color="success">mdi-currency-usd</v-icon>
+                  <v-icon size="16" color="success">mdi-cash </v-icon>
                   <span class="text-caption">{{ t('افغانی') }}</span>
                 </div>
               </div>
@@ -339,10 +344,12 @@
               <div class="d-flex justify-space-between mt-2">
                 <div class="d-flex align-center gap-1">
                   <v-icon size="14" color="success">mdi-arrow-down</v-icon>
+                  <span>{{ t('عاید:') }}</span>
                   <span class="text-caption">{{ num(moneyIncomeTotal) }}</span>
                 </div>
                 <div class="d-flex align-center gap-1">
                   <v-icon size="14" color="error">mdi-arrow-up</v-icon>
+                  <span>{{ t('مصرف:') }}</span>
                   <span class="text-caption">{{ num(moneyExpenseTotal) }}</span>
                 </div>
               </div>
@@ -492,7 +499,7 @@
                 class="employees-table cool-table"
                 item-key="id"
                 fixed-header
-                height="520"
+                height="800"
                 :items-per-page="itemsPerPage"
                 hide-default-footer
               >

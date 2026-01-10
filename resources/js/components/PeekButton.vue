@@ -428,7 +428,7 @@ async function downloadPdf() {
       };
     }
 
-    const fullName = displayName.value || 'کارمند';
+    const fullName = displayName.value || '';
     const position = displayPosition.value;
 
     const img = await imgB64(imageSrc.value);
@@ -530,7 +530,7 @@ function chunkIntoRows(arr, size) {
 
 async function downloadWord() {
   try {
-    const fullName = displayName.value || 'کارمند';
+    const fullName = displayName.value || '';
     const position = displayPosition.value || '';
     const img = await imgB64(imageSrc.value);
 

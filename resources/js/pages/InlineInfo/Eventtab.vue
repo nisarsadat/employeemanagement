@@ -56,7 +56,7 @@
             <v-col cols="12" md="4">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{
-                  t('کود مارمند واقعه گیرنده')
+                  t('کود کارمند واقعه گیرنده')
                 }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
@@ -76,46 +76,22 @@
             </v-col>
 
             <!-- event_type -->
-            <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('نوعیت واقعه') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-autocomplete
-                  v-model="draft.event_type"
-                  :items="eventTypeOptions"
-                  variant="outlined"
-                  density="compact"
-                  rounded="lg"
-                  class="cell"
-                  clearable
-                  :rules="[rules.selectRequired(t('نوعیت واقعه'))]"
-                  prepend-inner-icon="mdi-shape-outline"
+              <v-col cols="12" md="12">
+                <EventTypeSpecificTypeSelect
+                  v-model:event_type="draft.event_type"
+                  v-model:event_specific_type="draft.event_specific_type"
+                  :eventTypeLabel="t('نوعیت واقعه')"
+                  :eventSpecificTypeLabel="t('نوعیت مشخص واقعه')"
+                  :colsEventType="12"
+                  :mdEventType="6"
+                  :colsSpecificType="12"
+                  :mdSpecificType="6"
+                  :disabled="submitting"
                 />
-              </v-card-text>
-            </v-col>
-
-            <!-- event_specific_type -->
-            <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('نوعیت مشخص واقعه') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-autocomplete
-                  v-model="draft.event_specific_type"
-                  :items="eventSpecificTypeOptions"
-                  variant="outlined"
-                  density="compact"
-                  rounded="lg"
-                  class="cell"
-                  clearable
-                  prepend-inner-icon="mdi-format-list-bulleted-type"
-                />
-              </v-card-text>
             </v-col>
 
             <!-- target_person -->
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{
                   t('هدف کی بود/مکان بود')
@@ -133,7 +109,7 @@
             </v-col>
 
             <!-- criminal -->
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{
                   t('کی جرم را انجام داده')
@@ -153,7 +129,7 @@
             </v-col>
 
             <!-- event_date -->
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('تاریخ واقعه') }}</v-card-subtitle>
               </v-card-item>
@@ -167,7 +143,7 @@
             </v-col>
 
             <!-- event_hour -->
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('ساعت واقعه') }}</v-card-subtitle>
               </v-card-item>
@@ -176,6 +152,7 @@
                   v-model="draft.event_hour"
                   variant="outlined"
                   density="compact"
+                  type="time"
                   clearable
                   placeholder="HH:MM"
                   rounded="lg"
@@ -183,8 +160,9 @@
                   :rules="[rules.timeHM(t('ساعت واقعه'))]"
                   prepend-inner-icon="mdi-clock-outline"
                 />
-              </v-card-text> </v-col
-            ><v-col cols="12" md="4">
+              </v-card-text>
+            </v-col>
+            <!-- <v-col cols="12" md="4">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('ولایت مربوطه') }}</v-card-subtitle>
               </v-card-item>
@@ -199,7 +177,7 @@
                   class="cell"
                 />
               </v-card-text>
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <!-- Place -->
@@ -211,34 +189,18 @@
               </v-card-subtitle>
             </v-col>
 
-            <!-- event_zone -->
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="draft.event_zone"
-                :label="t('زون')"
-                variant="outlined"
-                density="compact"
-                clearable
-                rounded="lg"
-                class="cell"
-                prepend-inner-icon="mdi-map"
-              />
+            <!-- ✅ Zone + Hawza (component) -->
+            <v-col cols="12" md="8">
+              <ZoneHawzaSelect
+                  v-model:zone="draft.event_zone"
+                  v-model:hawza="draft.event_hawza"
+                  :zoneLabel="t('زون')"
+                  :hawzaLabel="t('حوزه')"
+                  :disabled="saving"
+                  :mdZone="6"
+                  :mdHawza="6"
+                />
             </v-col>
-
-            <!-- event_hawza -->
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="draft.event_hawza"
-                :label="t('حوزه')"
-                variant="outlined"
-                rounded="lg"
-                class="cell"
-                density="compact"
-                clearable
-                prepend-inner-icon="mdi-map-legend"
-              />
-            </v-col>
-
             <!-- event_specific_place -->
             <v-col cols="12" md="4">
               <v-text-field
@@ -256,8 +218,7 @@
 
           <!-- Casualties -->
           <v-row class="tight-grid">
-            <!-- talafat_jani -->
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('تلفات جانی') }}</v-card-subtitle>
               </v-card-item>
@@ -273,7 +234,7 @@
                   prepend-inner-icon="mdi-hospital"
                 />
               </v-card-text>
-            </v-col>
+            </v-col> -->
 
             <!-- talafat_mali -->
             <v-col cols="12" md="4">
@@ -294,7 +255,7 @@
               </v-card-text>
             </v-col>
             <!-- coordinates -->
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="8">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('کوردینات') }}</v-card-subtitle>
               </v-card-item>
@@ -498,6 +459,8 @@
   import { useI18n } from 'vue-i18n';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import DateInput from '../../components/DateInput.vue';
+  import ZoneHawzaSelect from '@/components/ZoneHawzaSelect.vue';
+  import EventTypeSpecificTypeSelect from '@/components/EventTypeSpecificTypePicker.vue';
 
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();

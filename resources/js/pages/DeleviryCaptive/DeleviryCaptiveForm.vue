@@ -402,31 +402,18 @@
 
             <!-- Main address -->
             <v-row class="pa-3">
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.main_province"
-                  :label="t('ولایت اصلی *')"
-                  density="compact"
-                  variant="outlined"
+              <v-col cols="12" md="12">
+                <ProvinceDistrictNameSelect
+                  v-model:province="form.main_province"
+                  v-model:district="form.main_district"
+                  :province-label="t('ولایت اصلی*')"
+                  :district-label="t('ولسوالی اصلی*')"
                   :rules="[rules.required]"
-                  :error="hasError('main_province')"
-                  :error-messages="getErrorMessages('main_province')"
+                  :mdProvince="6"
+                  :mdDistrict="6"
                 />
               </v-col>
-
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.main_district"
-                  :label="t('ولسوالی اصلی *')"
-                  density="compact"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                  :error="hasError('main_district')"
-                  :error-messages="getErrorMessages('main_district')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.main_village"
                   :label="t('قریه/گذر اصلی *')"
@@ -441,25 +428,14 @@
 
             <!-- Current address -->
             <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.now_province"
-                  :label="t('ولایت فعلی')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('now_province')"
-                  :error-messages="getErrorMessages('now_province')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.now_district"
-                  :label="t('ولسوالی فعلی')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('now_district')"
-                  :error-messages="getErrorMessages('now_district')"
+              <v-col cols="12" md="12">
+                <ProvinceDistrictNameSelect
+                  v-model:province="form.now_province"
+                  v-model:district="form.now_district"
+                  :province-label="t('ولایت فعلی')"
+                  :district-label="t('ولسوالی فعلی')"
+                  :mdProvince="6"
+                  :mdDistrict="6"
                 />
               </v-col>
 
@@ -497,22 +473,14 @@
               </v-col>
 
               <v-col cols="12" md="4">
-                <v-select
+                <CombinedInfoTypeSelect
                   v-model="form.maznonyat_type"
-                  :items="repo.captiveResons"
-                  item-title="title"
-                  item-value="value"
-                  :label="t('نوع مظنونیت')"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  :loading="repo.loadingCaptiveReasons"
-                  :error="hasError('maznonyat_type')"
-                  :error-messages="getErrorMessages('maznonyat_type')"
+                  label="نوع مذنونیت"
+                  :md="12"
+                  :cols="12"
                 />
               </v-col>
 
-              <!-- Maznonyat type -->
               <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.captive_reason"
@@ -549,7 +517,7 @@
               </v-col>
 
               <!-- Taslimi akhistonky organ -->
-              <v-col cols="12" md="12">
+              <v-col cols="12" md="8">
                 <v-text-field
                   v-model="form.taslimi_akhistonky_organ"
                   :label="t('تسلیمی اخیستونکی ارگان')"
@@ -838,6 +806,8 @@
   import DateInput from '../../components/DateInput.vue';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+  import CombinedInfoTypeSelect from '@/components/MaznonyatTypeSelect.vue';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();

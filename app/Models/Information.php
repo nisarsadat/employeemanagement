@@ -26,6 +26,10 @@ class Information extends Model
         'main_districts',
         'main_village',
 
+        'hamahangi_date',
+        'maktop_number',
+        'organ',
+
         'now_province',
         'now_district',
         'now_village',

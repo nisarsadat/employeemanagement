@@ -143,31 +143,15 @@
             <v-divider />
 
             <v-row class="pa-3">
-              <!-- نوعیت واقعه -->
-              <v-col cols="12" md="3">
-                <v-autocomplete
-                  v-model="form.event_type"
-                  :items="eventTypeOptions"
-                  :label="t('نوعیت واقعه *')"
-                  density="compact"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                  :error="hasError('event_type')"
-                  :error-messages="getErrorMessages('event_type')"
-                />
-              </v-col>
-
-              <!-- نوعیت مشخص -->
-              <v-col cols="12" md="3">
-                <v-autocomplete
-                  v-model="form.event_specific_type"
-                  :items="eventSpecificTypeOptions"
-                  :label="t('نوعیت مشخص واقعه')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('event_specific_type')"
-                  :error-messages="getErrorMessages('event_specific_type')"
-                />
+              <v-col cols="12" md="6">
+                  <EventTypeSpecificSelect
+                    v-model:event_type="form.event_type"
+                    v-model:event_specific_type="form.event_specific_type"
+                    :cols-event-type="12"
+                    :md-event-type="6"
+                    :cols-specific-type="12"
+                    :md-specific-type="6"
+                  />
               </v-col>
 
               <!-- منبع -->
@@ -315,25 +299,19 @@
             </v-row>
 
             <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.event_zone"
-                  :label="t('زون')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('event_zone')"
-                  :error-messages="getErrorMessages('event_zone')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.event_hawza"
-                  :label="t('حوزه')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('event_hawza')"
-                  :error-messages="getErrorMessages('event_hawza')"
+              <v-col cols="12" md="6">
+                <ZoneHawzaSelect
+                  v-model:zone="form.event_zone"
+                  v-model:hawza="form.event_hawza"
+                  :zoneLabel="t('زون')"
+                  :hawzaLabel="t('حوزه')"
+                  :disabled="saving"
+                  :zoneError="hasError('event_zone')"
+                  :zoneErrorMessages="getErrorMessages('event_zone')"
+                  :hawzaError="hasError('event_hawza')"
+                  :hawzaErrorMessages="getErrorMessages('event_hawza')"
+                  :mdZone="6"
+                  :mdHawza="6"
                 />
               </v-col>
 
@@ -388,7 +366,7 @@
                 />
               </v-col> -->
 
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.talafat_mali"
                   :label="t('تلفات مالی')"
@@ -398,18 +376,7 @@
                   :error-messages="getErrorMessages('talafat_mali')"
                 />
               </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.note"
-                  :label="t('ملاحظات')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('note')"
-                  :error-messages="getErrorMessages('note')"
-                />
-              </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.killed"
                   :label="t('کشته شده')"
@@ -419,8 +386,7 @@
                   :error-messages="getErrorMessages('talafat_jani')"
                 />
               </v-col>
-
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.injured"
                   :label="t('زخمی شده')"
@@ -428,6 +394,16 @@
                   variant="outlined"
                   :error="hasError('talafat_mali')"
                   :error-messages="getErrorMessages('talafat_mali')"
+                />
+              </v-col>
+              <v-col cols="12" md="12">
+                <v-text-field
+                  v-model="form.note"
+                  :label="t('ملاحظات')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('note')"
+                  :error-messages="getErrorMessages('note')"
                 />
               </v-col>
             </v-row>
@@ -574,11 +550,12 @@
   import { ref, computed, watch, onMounted, nextTick } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useI18n } from 'vue-i18n';
-
+  import EventTypeSpecificSelect from '@/components/EventTypeSpecificTypePicker.vue';
   import AppBar from '@/components/AppBar.vue';
   import DateInput from '@/components/DateInput.vue';
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
+  import ZoneHawzaSelect from '@/components/ZoneHawzaSelect.vue';
 
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
@@ -627,10 +604,6 @@
   const rules = {
     required: (v) => !!v || t('این فیلد الزامی است'),
   };
-
-  /* options */
-  const eventTypeOptions = ['سیاسی', 'جنایی', 'الهی' , 'ترافیکی'];
-  const eventSpecificTypeOptions = ['قتل', 'چاودنه', 'ټکر', 'سرقت', 'مسلحانه برید'];
 
   const toArray = (v) => {
     if (v && typeof v.then === 'function') return [];
@@ -924,7 +897,6 @@
   const step2Complete = computed(() => !!form.value.event_date?.trim());
   const step3Complete = computed(
     () =>
-      !!form.value.talafat_jani?.trim() ||
       !!form.value.talafat_mali?.trim() ||
       !!form.value.note?.trim() ||
       (form.value._newDocs?.length || 0) > 0 ||

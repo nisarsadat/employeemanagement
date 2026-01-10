@@ -279,31 +279,18 @@
             </div>
             <v-divider />
             <v-row class="pa-3">
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.main_province"
-                  :label="t('ولایت اصلی *')"
-                  density="compact"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                  :error="hasError('main_province')"
-                  :error-messages="getErrorMessages('main_province')"
+              <v-col cols="12" md="12">
+                <ProvinceDistrictNameSelect
+                  v-model:province="form.main_province"
+                  v-model:district="form.main_district"
+                  :province-label="t('ولایت اصلی')"
+                  :district-label="t('ولسوالی اصلی')"
+                  :mdProvince="6"
+                  :mdDistrict="6"
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.main_districts"
-                  :label="t('ولسوالی اصلی *')"
-                  density="compact"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                  :error="hasError('main_districts')"
-                  :error-messages="getErrorMessages('main_districts')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.main_village"
                   :label="t('قریه/گذر اصلی *')"
@@ -332,29 +319,18 @@
             </div>
             <v-divider />
             <v-row class="pa-3">
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.now_province"
-                  :label="t('ولایت فعلی')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('now_province')"
-                  :error-messages="getErrorMessages('now_province')"
+              <v-col cols="12" md="12">
+                <ProvinceDistrictNameSelect
+                  v-model:province="form.now_province"
+                  v-model:district="form.now_district"
+                  :province-label="t('ولایت فعلی')"
+                  :district-label="t('ولسوالی فعلی')"
+                  :mdProvince="6"
+                  :mdDistrict="6"
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.now_district"
-                  :label="t('ولسوالی فعلی')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('now_district')"
-                  :error-messages="getErrorMessages('now_district')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.now_village"
                   :label="t('قریه/گذر فعلی')"
@@ -425,38 +401,29 @@
             </div>
             <v-divider />
             <v-row class="pa-3">
-              <v-col cols="12" md="4">
-                <v-autocomplete
-                  class="primary-select"
+              <v-col>
+                <SeyaseeTypeSelect
                   v-model="form.syasi_info_type"
-                  :items="seyasiItems"
-                  item-title="name"
-                  item-value="id"
                   :label="t('سیاسی - نوع')"
-                  density="compact"
-                  variant="outlined"
-                  clearable
-                  :error="hasError('syasi_info_type')"
-                  :error-messages="getErrorMessages('syasi_info_type')"
+                  :cols="12"
+                  :md="12"
+                  :disabled="!!form.jenayee_info_type"
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
-                <v-autocomplete
-                  class="primary-select"
+              <v-col>
+                <JenayeeTypeSelect
                   v-model="form.jenayee_info_type"
-                  :items="jenayeeItems"
-                  item-title="name"
-                  item-value="id"
-                  :label="t('جنایی - هو/نه')"
-                  density="compact"
-                  variant="outlined"
-                  clearable
-                  :error="hasError('jenayee_info_type')"
-                  :error-messages="getErrorMessages('jenayee_info_type')"
+                  :label="t('جنایی')"
+                  :cols="12"
+                  :md="12"
+                  :disabled="!!form.syasi_info_type"
                 />
               </v-col>
-              <v-col cols="12" md="4">
+            </v-row>
+
+            <v-row class="pa-3 pt-0">
+              <v-col cols="12" md="12">
                 <DateInput
                   v-model="form.information_saved_date"
                   :label="t('تاریخ اطلاع *')"
@@ -464,7 +431,6 @@
                 />
               </v-col>
             </v-row>
-
             <v-row class="pa-3 pt-0">
               <v-col cols="12" md="4">
                 <v-text-field
@@ -585,6 +551,43 @@
                   density="compact"
                   variant="outlined"
                 />
+              </v-col>
+            </v-row>
+          </v-sheet>
+          <!-- HAMAHANGI SECTION -->
+          <v-sheet class="section-card mb-6" rounded="lg" elevation="1">
+            <div class="section-header">
+              <div class="d-flex align-center">
+                <v-icon class="ml-2 section-icon">mdi-clipboard-text</v-icon>
+                <span class="text-subtitle-2 font-weight-medium section-title">
+                  {{ t('هم‌آهنگی') }}
+                </span>
+              </div>
+              <span class="section-subtitle text-caption">
+                {{ t('تاریخ هم‌آهنگی، شماره مکتوب و ارگان را درج کنید.') }}
+              </span>
+            </div>
+
+            <v-divider />
+
+            <v-row class="pa-3">
+              <v-col cols="12" md="4">
+                <DateInput v-model="form.hamahangi_date" :label="t('تاریخ هم‌آهنگی')" />
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="form.maktop_number"
+                  :label="t('شماره مکتوب')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('maktop_number')"
+                  :error-messages="getErrorMessages('maktop_number')"
+                />
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <OrganSelect v-model="form.organ" :label="t('ارگان')" :disabled="saving" />
               </v-col>
             </v-row>
           </v-sheet>
@@ -745,9 +748,13 @@
   import { ref, computed, watch, onMounted, nextTick } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useI18n } from 'vue-i18n';
-
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
+  import SeyaseeTypeSelect from '@/components/SeyaseeTypeSelect.vue';
+  import JenayeeTypeSelect from '@/components/JenayeeTypeSelect.vue';
+  import OrganSelect from '@/components/OrganSelect.vue';
   import AppBar from '../../components/AppBar.vue';
   import DateInput from '../../components/DateInput.vue';
+
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
 
@@ -813,6 +820,9 @@
     nick_name: '',
     father_name: '',
     grand_father_name: '',
+    hamahangi_date: repo.getCurrentDate ? repo.getCurrentDate() : '',
+    maktop_number: '',
+    organ: '',
 
     main_province: '',
     main_districts: '',
@@ -926,6 +936,9 @@
     base.nick_name = x.nick_name ?? '';
     base.father_name = x.father_name ?? '';
     base.grand_father_name = x.grand_father_name ?? '';
+    base.hamahangi_date = x.hamahangi_date ?? '';
+    base.maktop_number = x.maktop_number ?? '';
+    base.organ = x.organ ?? '';
 
     base.main_province = x.main_province ?? '';
     base.main_districts = x.main_districts ?? '';
@@ -1177,6 +1190,26 @@
   });
 
   const progressValue = computed(() => (completedSteps.value / 4) * 100);
+
+  /* If Seyasee selected → clear & disable Jenayee */
+  watch(
+    () => form.value.syasi_info_type,
+    (val) => {
+      if (val) {
+        form.value.jenayee_info_type = '';
+      }
+    }
+  );
+
+  /* If Jenayee selected → clear & disable Seyasee */
+  watch(
+    () => form.value.jenayee_info_type,
+    (val) => {
+      if (val) {
+        form.value.syasi_info_type = '';
+      }
+    }
+  );
 </script>
 
 <style scoped>

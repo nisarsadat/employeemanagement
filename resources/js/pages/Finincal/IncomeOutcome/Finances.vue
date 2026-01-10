@@ -11,6 +11,8 @@
             variant="underlined"
             prepend-inner-icon="mdi-magnify"
             @keyup.enter="fetchAll"
+            clearable
+            @click:clear="clearSearch"
           />
 
           <!-- ✅ Actions (Create + PDF + Word) -->
@@ -21,7 +23,7 @@
               color="primary"
               variant="tonal"
               prepend-icon="mdi-file-pdf-box"
-              @click="exportPdf"
+              @click="exportPdfAll"
             >
               PDF
             </v-btn>
@@ -30,7 +32,7 @@
               color="primary"
               variant="tonal"
               prepend-icon="mdi-file-word-box"
-              @click="exportWord"
+              @click="exportWordAll"
             >
               Word
             </v-btn>
@@ -53,21 +55,52 @@
           :perPage="repo.financesPerPage"
           @update:page="onPage"
           @update:perPage="onPerPage"
-          @edit="startEdit"
-          @delete="askDelete"
-        />
+        >
+          <!-- ✅ Actions like Informations -->
+          <template #actions="{ item }">
+            <div class="d-flex align-center ga-2">
+              <!-- ویرایش -->
+              <v-tooltip text="ویرایش مصرف" location="top">
+                <template #activator="{ props: tooltipProps }">
+                  <v-icon
+                    size="small"
+                    v-bind="tooltipProps"
+                    color="amber-darken-2"
+                    @click.stop="startEdit(item)"
+                  >
+                    mdi-pencil
+                  </v-icon>
+                </template>
+              </v-tooltip>
+
+              <!-- حذف -->
+              <v-tooltip text="حذف مصرف" location="top">
+                <template #activator="{ props: tooltipProps }">
+                  <v-icon
+                    size="small"
+                    v-bind="tooltipProps"
+                    color="red-darken-2"
+                    @click.stop="openDeleteDialog(item)"
+                  >
+                    mdi-delete
+                  </v-icon>
+                </template>
+              </v-tooltip>
+            </div>
+          </template>
+        </FilterableTable>
       </v-card-text>
     </v-card>
 
     <!-- Create/Edit Dialog -->
     <FinanceFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
 
-    <!-- Delete confirm -->
+    <!-- ✅ Delete confirm (Informations style) -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
-      :title="'حذف مصرف'"
-      :text="'آیا مطمئن هستید که این مصرف حذف شود؟'"
-      @confirm="doDelete"
+      :target="deleteTarget"
+      :is-rtl="rtl"
+      @confirm="handleDeleteConfirmed"
     />
   </v-container>
 </template>
@@ -79,134 +112,41 @@
   import FinanceFormDialog from './FinancesFormDialog.vue';
   import { useFinanceRepository } from '@/stores/financeRepository';
 
-  // RTL (replace with i18n)
   const rtl = ref(true);
-
   const repo = useFinanceRepository();
 
   const dialog = ref(false);
   const editId = ref(null);
 
+  // ✅ delete (Informations style)
   const deleteDialog = ref(false);
-  const deleteId = ref(null);
+  const deleteTarget = ref(null);
 
-  const accountOptions = computed(() => repo.accounts || []);
+  /* helper to unwrap row/raw like Informations */
+  function getRow(payload) {
+    return payload?.raw ?? payload;
+  }
 
-  /**
-   * ✅ Table headers (visible in the app table)
-   * Note: Your FilterableTable supports a flat header list.
-   * The grouped headers (پول / منبع) are applied ONLY in export (PDF/Word) HTML.
-   */
   const headersFT = [
-    { title: 'شمېره', key: 'index', sortable: false, width: 80 },
-    { title: 'د کارمند نوم', key: 'employee_name', sortable: true, width: 220 },
+    { title: 'د کارمند نوم', key: 'employee_name', sortable: true},
 
-    { title: 'د پیسو اندازه (په عدد)', key: 'money_amount_number', sortable: true, width: 180 },
-    { title: 'د پیسو اندازه (په تورو)', key: 'money_amount_words', sortable: false, width: 260 },
+    { title: 'د پیسو اندازه (په عدد)', key: 'money_amount_number', sortable: true},
+    { title: 'د پیسو اندازه (په تورو)', key: 'money_amount_words', sortable: false },
 
     { title: 'کود منبع', key: 'source_code', sortable: false, width: 160 },
-    { title: 'شماره تماس منبع', key: 'source_phone', sortable: false, width: 180 },
+    { title: 'شماره تماس منبع', key: 'source_phone', sortable: false},
 
     { title: 'د مصرف وجه/علت', key: 'expense_result', sortable: false, width: 200 },
-    { title: 'د پیسو ورکولو نیټه', key: 'notes', sortable: false, width: 220 },
 
-    { title: 'کټه', key: 'date', sortable: true, width: 140 },
-    { title: 'لاسیلیک', key: 'signature', sortable: false, width: 120 },
-
-    { title: 'عملیات', key: 'actions', sortable: false, width: 180 },
+    { title: 'د پیسو ورکولو نیټه', key: 'date', sortable: true }
   ];
 
   function toDate10(v) {
     return (v ?? '').toString().slice(0, 10);
   }
 
-  /**
-   * ✅ Lightweight number-to-words (Dari)
-   */
-  function numberToDariWords(input) {
-    const n = Number(
-      String(input ?? '')
-        .replace(/,/g, '')
-        .trim()
-    );
-    if (!Number.isFinite(n)) return '';
-    if (n === 0) return 'صفر';
-
-    const ones = [
-      '',
-      'یک',
-      'دو',
-      'سه',
-      'چهار',
-      'پنج',
-      'شش',
-      'هفت',
-      'هشت',
-      'نه',
-      'ده',
-      'یازده',
-      'دوازده',
-      'سیزده',
-      'چهارده',
-      'پانزده',
-      'شانزده',
-      'هفده',
-      'هجده',
-      'نوزده',
-    ];
-    const tens = ['', '', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'];
-    const hundreds = [
-      '',
-      'یکصد',
-      'دویست',
-      'سیصد',
-      'چهارصد',
-      'پنجصد',
-      'ششصد',
-      'هفتصد',
-      'هشتصد',
-      'نهصد',
-    ];
-
-    const chunkToWords = (x) => {
-      const out = [];
-      if (x >= 100) {
-        out.push(hundreds[Math.floor(x / 100)]);
-        x = x % 100;
-      }
-      if (x >= 20) {
-        out.push(tens[Math.floor(x / 10)]);
-        x = x % 10;
-      }
-      if (x > 0 && x < 20) out.push(ones[x]);
-      return out.filter(Boolean).join(' و ');
-    };
-
-    let x = Math.floor(Math.abs(n));
-    const parts = [];
-
-    const billion = Math.floor(x / 1_000_000_000);
-    if (billion) {
-      parts.push(`${chunkToWords(billion)} میلیارد`);
-      x %= 1_000_000_000;
-    }
-
-    const million = Math.floor(x / 1_000_000);
-    if (million) {
-      parts.push(`${chunkToWords(million)} میلیون`);
-      x %= 1_000_000;
-    }
-
-    const thousand = Math.floor(x / 1000);
-    if (thousand) {
-      parts.push(`${chunkToWords(thousand)} هزار`);
-      x %= 1000;
-    }
-
-    if (x) parts.push(chunkToWords(x));
-
-    return parts.join(' و ');
-  }
+  // ✅ REMOVED: numberToDariWords()
+  // ✅ REMOVED: auto money_amount_words generation
 
   const rowsFT = computed(() => {
     const startIndex = (repo.financesPage - 1) * repo.financesPerPage;
@@ -218,20 +158,19 @@
         ...it,
         index: startIndex + i + 1,
 
-        // employee name column (adjust if you want receiver)
         employee_name: it?.payer ?? it?.receiver ?? it?.employee_name ?? '',
 
         // money
         money_amount_number: amount,
-        money_amount_words: numberToDariWords(amount),
+        // ✅ keep whatever backend returns, do NOT overwrite
+        money_amount_words: it?.money_amount_words ?? '',
 
-        // source (منبع): prefer resource; fallback to account if your API uses account only
+        // source
         source_code:
           it?.resource?.code_number ?? it?.account?.code_number ?? it?.source_code ?? '—',
         source_phone:
           it?.resource?.phone_number ?? it?.account?.phone_number ?? it?.source_phone ?? '—',
 
-        // rest
         expense_result: it?.expense_result ?? '',
         notes: it?.notes ?? '',
         date: toDate10(it?.date),
@@ -240,7 +179,6 @@
     });
   });
 
-  // keep empty if you don't use them
   const filters = [];
   const topGroups = [];
 
@@ -250,8 +188,13 @@
       perPage: repo.financesPerPage,
       search: repo.financesSearch,
       account_id: repo.financesAccountId,
-      office_employee_id: repo.financesOfficeEmployeeId, // optional
+      office_employee_id: repo.financesOfficeEmployeeId,
     });
+  }
+
+  function clearSearch() {
+    repo.financesSearch = '';
+    fetchAll();
   }
 
   async function ensureAccountsLoaded() {
@@ -264,8 +207,10 @@
     dialog.value = true;
   }
 
-  function startEdit(row) {
-    editId.value = row?.id;
+  function startEdit(payload) {
+    const row = getRow(payload);
+    editId.value = row?.id ?? null;
+    if (!editId.value) return;
     dialog.value = true;
   }
 
@@ -273,17 +218,29 @@
     fetchAll();
   }
 
-  function askDelete(row) {
-    deleteId.value = row?.id;
+  // ✅ DELETE like Informations
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
     deleteDialog.value = true;
   }
 
-  async function doDelete() {
-    if (!deleteId.value) return;
-    await repo.DeleteFinance(deleteId.value);
-    deleteDialog.value = false;
-    deleteId.value = null;
-    fetchAll();
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    if (!row?.id) {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
+    }
+
+    try {
+      await repo.DeleteFinance(row.id);
+      await fetchAll();
+    } finally {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+    }
   }
 
   function onPage(p) {
@@ -298,112 +255,110 @@
   }
 
   /**
-   * ✅ Export HTML (PDF/Word) — grouped headers like your paper:
-   * - پول => (عدد + تورو)
-   * - منبع => (کود + شماره تماس)
+   * ✅ build export (ALL rows)
+   * keep grouped headers like before
    */
-  function buildExportHtml() {
-    const rows = rowsFT.value || [];
-
-    const title = 'داوپراتیفي پیسو د مصرفي جدول';
+  function buildExportHtml(rows, title) {
     const year = new Date().getFullYear();
 
     const thead = `
-    <tr>
-      <th rowspan="2">شمېره</th>
-      <th rowspan="2">د کارمند نوم</th>
+      <tr>
+        <th rowspan="2">شمېره</th>
+        <th rowspan="2">د کارمند نوم</th>
 
-      <th colspan="2">پول</th>
-      <th colspan="2">منبع</th>
+        <th colspan="2">پول</th>
+        <th colspan="2">منبع</th>
 
-      <th rowspan="2">د مصرف وجه/علت</th>
-      <th rowspan="2">د پیسو ورکولو نیټه</th>
-      <th rowspan="2">کټه</th>
-      <th rowspan="2">لاسیلیک</th>
-    </tr>
+        <th rowspan="2">د مصرف وجه/علت</th>
+        <th rowspan="2">د پیسو ورکولو نیټه</th>
+        <th rowspan="2">کټه</th>
+        <th rowspan="2">لاسیلیک</th>
+      </tr>
 
-    <tr>
-      <th>د پیسو اندازه (په عدد)</th>
-      <th>د پیسو اندازه (په تورو)</th>
+      <tr>
+        <th>د پیسو اندازه (په عدد)</th>
+        <th>د پیسو اندازه (په تورو)</th>
 
-      <th>کود</th>
-      <th>شماره تماس</th>
-    </tr>
-  `;
+        <th>کود</th>
+        <th>شماره تماس</th>
+      </tr>
+    `;
 
-    const tbody = rows
+    const esc = (v) =>
+      String(v ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
+
+    const tbody = (rows || [])
       .map((r) => {
-        const esc = (v) =>
-          String(v ?? '')
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;');
-
         return `
-        <tr>
-          <td>${esc(r.index)}</td>
-          <td>${esc(r.employee_name)}</td>
+          <tr>
+            <td>${esc(r.index)}</td>
+            <td>${esc(r.employee_name)}</td>
 
-          <td>${esc(r.money_amount_number)}</td>
-          <td>${esc(r.money_amount_words)}</td>
+            <td>${esc(r.money_amount_number)}</td>
+            <td>${esc(r.money_amount_words)}</td>
 
-          <td>${esc(r.source_code)}</td>
-          <td>${esc(r.source_phone)}</td>
+            <td>${esc(r.source_code)}</td>
+            <td>${esc(r.source_phone)}</td>
 
-          <td>${esc(r.expense_result)}</td>
-          <td>${esc(r.notes)}</td>
-          <td>${esc(r.date)}</td>
-          <td>${esc(r.signature)}</td>
-        </tr>
-      `;
+            <td>${esc(r.expense_result)}</td>
+            <td>${esc(r.notes)}</td>
+            <td>${esc(r.date)}</td>
+            <td>${esc(r.signature)}</td>
+          </tr>
+        `;
       })
       .join('');
 
     return `
-  <!doctype html>
-  <html>
-    <head>
-      <meta charset="utf-8" />
-      <title>${title}</title>
-      <style>
-        body { font-family: Arial, Tahoma, sans-serif; direction: rtl; padding: 18px; }
-        .top { display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px; }
-        .title { font-weight: 700; font-size: 18px; text-align:center; flex:1; }
-        .year { font-size: 13px; white-space: nowrap; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #111; padding: 6px 8px; font-size: 12px; vertical-align: middle; }
-        th { font-weight: 700; text-align: center; }
-        td { text-align: right; vertical-align: top; }
-        .signs { display:flex; justify-content: space-between; margin-top: 18px; font-size: 12px; }
-        .signs > div { width: 24%; text-align: center; }
-      </style>
-    </head>
-    <body>
-      <div class="top">
-        <div class="year">کال: ${year}</div>
-        <div class="title">${title}</div>
-        <div style="width:120px"></div>
-      </div>
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>${esc(title)}</title>
+          <style>
+            body { font-family: Arial, Tahoma, sans-serif; direction: rtl; padding: 18px; }
+            .top { display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px; }
+            .title { font-weight: 700; font-size: 18px; text-align:center; flex:1; }
+            .year { font-size: 13px; white-space: nowrap; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #111; padding: 6px 8px; font-size: 12px; vertical-align: middle; }
+            th { font-weight: 700; text-align: center; }
+            td { text-align: right; vertical-align: top; }
+            .signs { display:flex; justify-content: space-between; margin-top: 18px; font-size: 12px; }
+            .signs > div { width: 24%; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="top">
+            <div class="year">کال: ${year}</div>
+            <div class="title">${esc(title)}</div>
+            <div style="width:120px"></div>
+          </div>
 
-      <table>
-        <thead>${thead}</thead>
-        <tbody>${
-          tbody || "<tr><td colspan='10' style='text-align:center'>هیڅ معلومات نشته</td></tr>"
-        }</tbody>
-      </table>
+          <table>
+            <thead>${thead}</thead>
+            <tbody>${
+              tbody || "<tr><td colspan='10' style='text-align:center'>هیڅ معلومات نشته</td></tr>"
+            }</tbody>
+          </table>
 
-      <div class="signs">
-        <div>د مستند لاسلیک</div>
-        <div>مدیر/امر لاسلیک</div>
-        <div>د رئیس لاسلیک</div>
-        <div>داوپراتیف تفتیش هیئت لاسلیک</div>
-      </div>
-    </body>
-  </html>`;
+          <div class="signs">
+            <div>د مستند لاسلیک</div>
+            <div>مدیر/امر لاسلیک</div>
+            <div>د رئیس لاسلیک</div>
+            <div>داوپراتیف تفتیش هیئت لاسلیک</div>
+          </div>
+        </body>
+      </html>
+    `;
   }
 
-  function exportPdf() {
-    const html = buildExportHtml();
+  // ✅ Export ALL
+  function exportPdfAll() {
+    const html = buildExportHtml(rowsFT.value || [], 'داوپراتیفي پیسو د مصرفي جدول');
     const w = window.open('', '_blank');
     if (!w) return;
     w.document.open();
@@ -413,8 +368,8 @@
     w.print();
   }
 
-  function exportWord() {
-    const html = buildExportHtml();
+  function exportWordAll() {
+    const html = buildExportHtml(rowsFT.value || [], 'داوپراتیفي پیسو د مصرفي جدول');
     const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
 
@@ -437,5 +392,12 @@
 <style scoped>
   .gap-2 {
     gap: 8px;
+  }
+
+  :deep(.v-btn--icon) {
+    transition: all 0.2s ease;
+  }
+  :deep(.v-btn--icon:hover) {
+    transform: scale(1.1);
   }
 </style>

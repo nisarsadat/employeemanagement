@@ -544,22 +544,32 @@
     { title: t('کود منبع'), key: 'resource_code_number' },
     { title: t('کود کارمند مربوطه'), key: 'office_employee_code_number' },
     { title: t('کود کارمند  اطلاع گیرنده'), key: 'office_employee_info_code_number' },
+
     { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
+
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_districts' },
     { title: t('قریه اصلی'), key: 'main_village' },
+
     { title: t('ولایت فعلی'), key: 'now_province' },
     { title: t('ولسوالی فعلی'), key: 'now_district' },
     { title: t('قریه فعلی'), key: 'now_village' },
-    // { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
     { title: t('سیاسی'), key: 'syasi_info_type' },
     { title: t('جنایی'), key: 'jenayee_info_type' },
+
     { title: t('تاریخ اطلاع'), key: 'information_saved_date' },
     { title: t('ساعت اطلاع'), key: 'information_saved_hour' },
     { title: t('درجه موثقیت اطلاع'), key: 'information_degree' },
+
+    // ✅ NEW: Hamahangi fields
+    { title: t('تاریخ هم‌آهنگی'), key: 'hamahangi_date' },
+    { title: t('شماره مکتوب'), key: 'maktop_number' },
+    { title: t('ارگان'), key: 'organ' },
+
     { title: t('تفصیل'), key: 'tafseel' },
     { title: t('نظر مدیر'), key: 'manager_comment' },
     { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
@@ -596,6 +606,13 @@
         'information_degree',
       ],
     },
+
+    // ✅ NEW group for the 3 fields
+    {
+      title: t('هم‌آهنگی'),
+      keys: ['hamahangi_date', 'maktop_number', 'organ'],
+    },
+
     {
       title: t('متن‌ها'),
       keys: ['tafseel', 'manager_comment', 'lead_drirection', 'talks', 'note', 'result'],

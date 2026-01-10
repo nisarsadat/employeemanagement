@@ -66,6 +66,11 @@ class InformationResource extends JsonResource
             'main_districts' => $info ? $info->main_districts : null,
             'main_village'   => $info ? $info->main_village : null,
 
+            'hamahangi_date' => $this->hamahangi_date,
+            'maktop_number'  => $this->maktop_number,
+            'organ'          => $this->organ,
+
+
             'now_province' => $info ? $info->now_province : null,
             'now_district' => $info ? $info->now_district : null,
             'now_village'  => $info ? $info->now_village : null,
