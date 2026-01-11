@@ -1112,5 +1112,195 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       a.remove();
       window.URL.revokeObjectURL(url);
     },
+    // this is for the event form download
+    // ====================== EVENT EXPORT (PDF + WORD) ======================
+
+    buildEventFormHTML(data = {}) {
+      const esc = (v) =>
+        String(v ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+
+      // keep the same logo pattern you use
+      const logo = data?.logo_url ? String(data.logo_url) : 'LOGO_URL_HERE';
+
+      return `<!DOCTYPE html>
+<html lang="ps" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<title>د پیښی راپور</title>
+<style>
+  @page { size: A4; margin: 18mm; }
+  body { font-family: Tahoma, Arial, sans-serif; font-size: 12px; color:#000; }
+
+  .header{
+    display:grid;
+    grid-template-columns: 1fr 120px 1fr;
+    align-items:center;
+    column-gap: 110px;
+    margin-bottom: 8px;
+  }
+  .header-block{ line-height:1.6; font-weight:bold; text-align:center; }
+  .header-center{ text-align:center; }
+  .header-center img{ width: 95px; height:95px; display:block; margin:0 auto; }
+
+  .borderall{ border:3px solid #000; padding: 6px; }
+
+  table{ width:100%; border-collapse:collapse; margin-top:6px; }
+  th, td{ border:1px solid #000; padding:4px; height:26px; text-align:center; vertical-align:middle; }
+  th{ font-weight:bold; }
+
+  .section-title{ margin-top:10px; font-weight:bold; }
+  .lined-box{
+    height: 260px;
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 18px, #000 19px);
+    border-bottom: 1px solid #000;
+  }
+  .lined-box2{
+    height: 60px;
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 18px, #000 19px);
+    border-bottom: 1px solid #000;
+  }
+  .fill-text{ font-weight:normal; margin-top:6px; white-space:pre-wrap; line-height:1.6; }
+</style>
+</head>
+<body>
+  <div class="borderall">
+    <div class="header">
+      <div class="header-block">
+        د ریاست عمومی استخبارات<br/>
+        د استخباراتو لوی ریاست<br/>
+        ریاست استخبارات ۶۹<br/>
+        مدیریت ۳۳۳
+      </div>
+
+      <div class="header-center">
+        <img src="${logo}" alt="logo" />
+        <div>۳۳۳</div>
+      </div>
+
+      <div class="header-block">
+        د ریاست عمومی استخبارات<br/>
+        د استخباراتو لوی ریاست<br/>
+        د استخباراتو ۶۹ ریاست<br/>
+        مدیریت ۳۳۳
+      </div>
+    </div>
+
+    <div style="font-weight:bold; margin:8px 0;">د پیښی د ثبت فورم:</div>
+    <div style="font-weight:bold; margin:8px 0;">شمیره: ( ${esc(data.id)} )</div>
+
+    <table>
+    <tr>
+      <th colspan="2">د منبع کوډ</th>
+      <th colspan="2">د کارمند کوډ</th>
+      <th colspan="2">د پیښی نیټه</th>
+      <th colspan="2">د پیښی ساعت</th>
+      <th colspan="4">د پیښی نوعیت</th>
+    </tr>
+
+    <tr>
+      <td colspan="2">${esc(data.source_code)}</td>
+      <td colspan="2">${esc(data.employee_code)}</td>
+      <td colspan="2">${esc(data.event_date)}</td>
+      <td colspan="2">${esc(data.event_hour)}</td>
+      <td colspan="4">${esc(data.event_specefic_type)}</td>
+    </tr>
+
+    <tr>
+      <th colspan="4">هدف کی بود / مکان بود</th>
+      <th colspan="4">کی جرم را انجام داده</th>
+      <th colspan="4">ترسره شوی همغږی</th>
+    </tr>
+
+    <tr>
+      <td colspan="4">${esc(data.target_person)}</td>
+      <td colspan="4">${esc(data.criminal)}</td>
+      <td colspan="4">${esc(data.hamghagi)}</td>
+    </tr>
+    <tr>
+      <th colspan="6">د پیښی ځای</th>
+      <th colspan="6">تلفات</th>
+    </tr>
+
+    <tr>
+      <!-- Place sub headers (6 columns total) -->
+      <th colspan="2">زون</th>
+      <th colspan="2">حوزه</th>
+      <th colspan="2">محل مشخص</th>
+
+      <!-- Casualties sub headers (6 columns total) -->
+      <th colspan="2">تلفات مالی</th>
+      <th colspan="2">کشته</th>
+      <th colspan="2">زخمی</th>
+    </tr>
+
+    <tr>
+      <!-- Place values -->
+      <td colspan="2">${esc(data.zone)}</td>
+      <td colspan="2">${esc(data.hawza)}</td>
+      <td colspan="2">${esc(data.specific_place)}</td>
+
+      <!-- Casualties values -->
+      <td colspan="2">${esc(data.talafat_mali)}</td>
+      <td colspan="2">${esc(data.killed)}</td>
+      <td colspan="2">${esc(data.injured)}</td>
+    </tr>
+    </table>
+
+    <div class="section-title">اسناد / شواهد:</div>
+    <div class="lined-box2"></div>
+    <div class="fill-text">${esc(data.evidence_text)}</div>
+    
+    <div class="section-title">تفصیل:</div>
+    <div class="lined-box"></div>
+    <div class="fill-text">${esc(data.tafseel_text)}</div>
+
+  </div>
+
+  <div style="margin-top:12px; font-weight:bold; border-top:4px solid #000; padding-top:10px;">
+    پاملرنه: د دې سند افشا کول جرم بلل کېږي.
+  </div>
+</body>
+</html>`;
+    },
+
+    DownloadEventFormPdf(data = {}) {
+      const html = this.buildEventFormHTML(data);
+      const w = window.open('', '_blank', 'width=900,height=1200');
+      if (!w) {
+        toast.error('Popup بند دی، لطفاً اجازه ورکړئ');
+        return;
+      }
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => {
+        w.focus();
+        w.print();
+      }, 400);
+    },
+
+    DownloadEventFormWord(data = {}, filename = 'event_form.doc') {
+      const html = this.buildEventFormHTML(data);
+      const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+      const url = window.URL.createObjectURL(blob);
+
+      const safe = (s) =>
+        String(s || 'event_form.doc')
+          .replace(/\s+/g, '_')
+          .replace(/[^\w.\-]/g, '');
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = safe(filename);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    },
   },
 });

@@ -240,9 +240,7 @@
                       </v-chip>
 
                       <v-chip
-                        v-if="
-                          countSelectedInGroup(g.items) === g.items.length && g.items.length > 0
-                        "
+                        v-if="countSelectedInGroup(g.items) === g.items.length && g.items.length > 0"
                         size="x-small"
                         variant="flat"
                         color="success"
@@ -328,8 +326,10 @@
                           <div class="text-body-2 font-weight-bold label">
                             {{ p.label }}
                           </div>
+
+                          <!-- ✅ Pashto-only subtitle (no English slug) -->
                           <div class="text-caption opacity-70 value">
-                            {{ p.value }}
+                            {{ labelForPermissionPashtoOnly(p.value) }}
                           </div>
                         </div>
 
@@ -378,12 +378,7 @@
           </v-alert>
 
           <!-- Selection Summary -->
-          <v-card
-            v-if="selectedCount > 0 && !repo.loading"
-            variant="tonal"
-            class="mt-4"
-            rounded="lg"
-          >
+          <v-card v-if="selectedCount > 0 && !repo.loading" variant="tonal" class="mt-4" rounded="lg">
             <v-card-text class="py-3">
               <div class="d-flex align-center justify-space-between">
                 <div class="d-flex align-center ga-3">
@@ -428,13 +423,7 @@
           >
             <v-icon start>mdi-content-save-outline</v-icon>
             {{ ps('ساتل') }}
-            <v-badge
-              v-if="selectedCount > 0"
-              :content="selectedCount"
-              inline
-              color="white"
-              class="ml-2"
-            />
+            <v-badge v-if="selectedCount > 0" :content="selectedCount" inline color="white" class="ml-2" />
           </v-btn>
         </div>
       </v-card-text>
@@ -507,13 +496,17 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+  import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import AppBar from '@/components/AppBar.vue';
   import { useRbacRepository } from '@/stores/RbacRepository';
 
-  // bilingual labels
-  import { mapPermNamesToItemsBilingual as mapPermNamesToItems } from '../../../composables/usePermI18n';
+  // ✅ Pashto labels + mapper
+  import {
+    mapPermNamesToItemsBilingual as mapPermNamesToItems,
+    MODULE_PASHTO,
+    labelForPermissionPashtoOnly,
+  } from '../../../composables/usePermI18n';
 
   const ps = (s) => s;
 
@@ -616,33 +609,26 @@
 
   /** Grouping */
   const groupKeyOf = (permValue) => {
-    const v = String(permValue || '');
-    if (v.includes('.')) return v.split('.')[0];
-    if (v.includes(':')) return v.split(':')[0];
-    return 'other';
+    const v = String(permValue || '').trim();
+    if (!v) return 'other';
+
+    if (v.includes('.')) return v.split('.')[0].toLowerCase();
+    if (v.includes(':')) return v.split(':')[0].toLowerCase();
+
+    return v.toLowerCase();
   };
 
-  /** Localized group labels */
-  const GROUP_LABELS = {
-    other: { ps: 'نور', fa: 'سایر' },
-    roles: { ps: 'رولونه', fa: 'نقش‌ها' },
-    permissions: { ps: 'صلاحیتونه', fa: 'مجوزها' },
-    users: { ps: 'کاروونکي', fa: 'کاربران' },
-    resources: { ps: 'منابع', fa: 'منابع' },
-    informations: { ps: 'معلومات', fa: 'اطلاعات' },
-    events: { ps: 'پېښې', fa: 'رویدادها' },
-    offices: { ps: 'ادارې', fa: 'ادارات' },
-    employees: { ps: 'کارکوونکي', fa: 'کارمندان' },
-    reports: { ps: 'راپورونه', fa: 'گزارش‌ها' },
-    finance: { ps: 'مالیه', fa: 'مالی' },
-    accounts: { ps: 'حسابونه', fa: 'حساب‌ها' },
-    settings: { ps: 'تنظیمات', fa: 'تنظیمات' },
-  };
+  /** Humanize for fallback */
+  const humanizeKey = (k) =>
+    String(k || '')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
+  /** ✅ Group label: Pashto if known, else fallback */
   const groupLabelLocalized = (key) => {
-    const k = String(key || 'other').toLowerCase();
-    const hit = GROUP_LABELS[k] || GROUP_LABELS.other;
-    return hit.ps || ps('نور');
+    const k = String(key || '').trim();
+    return MODULE_PASHTO[k] || humanizeKey(k);
   };
 
   /** Grouped permissions */
@@ -770,7 +756,6 @@
     const hasDragged = set.has(draggedItem.value);
     const hasTarget = set.has(permName);
 
-    // Toggle both items
     if (hasDragged) set.delete(draggedItem.value);
     else set.add(draggedItem.value);
 
@@ -843,33 +828,29 @@
   };
 
   const save = async () => {
-  try {
-    saving.value = true
-    await repo.assignPermissionsToRole(repo.currentRole.id, [...selectedSet.value])
-    initialSnapshot.value = serializeSet(selectedSet.value)
-    saveSuccess.value = true
+    try {
+      saving.value = true;
+      await repo.assignPermissionsToRole(repo.currentRole.id, [...selectedSet.value]);
+      initialSnapshot.value = serializeSet(selectedSet.value);
+      saveSuccess.value = true;
 
-    // ✅ go back to Roles page after success
-    setTimeout(() => {
-      router.push({ name: 'roles' }) // or: router.push('/app/roles')
-    }, 400)
-  } catch (error) {
-    console.error('Error saving permissions:', error)
-  } finally {
-    saving.value = false
-  }
-}
-
+      // ✅ go back to Roles page after success
+      setTimeout(() => {
+        router.push({ name: 'roles' });
+      }, 400);
+    } catch (error) {
+      console.error('Error saving permissions:', error);
+    } finally {
+      saving.value = false;
+    }
+  };
 
   /** Lifecycle */
   onMounted(() => {
     load();
 
-    // Add keyboard event listeners
     const handleKeyDown = (event) => {
-      if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-        return; // Don't trigger shortcuts when typing in input fields
-      }
+      if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
 
       const ctrlKey = event.ctrlKey || event.metaKey;
 
@@ -893,19 +874,17 @@
 
     window.addEventListener('keydown', handleKeyDown);
 
-    // Cleanup function
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   });
 
-  // Prevent accidental navigation
   onBeforeUnmount(() => {
     if (isDirty.value && !saving.value) {
-      const confirm = window.confirm(
+      const confirmLeave = window.confirm(
         ps('بدلونونه خوندي شوي نه دي. ایا په رښتیا غواړئ پاڼه پرېږدئ؟')
       );
-      if (!confirm) {
+      if (!confirmLeave) {
         router.push(route.path);
       }
     }
@@ -1100,8 +1079,8 @@
 
   .value {
     word-break: break-all;
-    font-family: 'Courier New', monospace;
-    font-size: 0.75rem;
+    font-family: inherit;
+    font-size: 0.78rem;
   }
 
   /* Skeleton */

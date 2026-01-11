@@ -696,16 +696,11 @@
   }
 
   function onDownloadPdf() {
-    repo.DownloadInformationPdf(draft, {
-      dir: isRtl.value ? 'rtl' : 'ltr',
-      // logoCenter: 'data:image/png;base64,...'
-    });
+    repo.DownloadInformationFormPdf(draft);
   }
 
   function onDownloadWord() {
-    repo.DownloadInformationWord(draft, {
-      dir: isRtl.value ? 'rtl' : 'ltr',
-    });
+    repo.DownloadInformationFormWord(draft, 'information_form.doc');
   }
 
   /* FormData (unchanged) */

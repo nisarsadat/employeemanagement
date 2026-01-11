@@ -76,18 +76,18 @@
             </v-col>
 
             <!-- event_type -->
-              <v-col cols="12" md="12">
-                <EventTypeSpecificTypeSelect
-                  v-model:event_type="draft.event_type"
-                  v-model:event_specific_type="draft.event_specific_type"
-                  :eventTypeLabel="t('نوعیت واقعه')"
-                  :eventSpecificTypeLabel="t('نوعیت مشخص واقعه')"
-                  :colsEventType="12"
-                  :mdEventType="6"
-                  :colsSpecificType="12"
-                  :mdSpecificType="6"
-                  :disabled="submitting"
-                />
+            <v-col cols="12" md="12">
+              <EventTypeSpecificTypeSelect
+                v-model:event_type="draft.event_type"
+                v-model:event_specific_type="draft.event_specific_type"
+                :eventTypeLabel="t('نوعیت واقعه')"
+                :eventSpecificTypeLabel="t('نوعیت مشخص واقعه')"
+                :colsEventType="12"
+                :mdEventType="6"
+                :colsSpecificType="12"
+                :mdSpecificType="6"
+                :disabled="submitting"
+              />
             </v-col>
 
             <!-- target_person -->
@@ -192,14 +192,14 @@
             <!-- ✅ Zone + Hawza (component) -->
             <v-col cols="12" md="8">
               <ZoneHawzaSelect
-                  v-model:zone="draft.event_zone"
-                  v-model:hawza="draft.event_hawza"
-                  :zoneLabel="t('زون')"
-                  :hawzaLabel="t('حوزه')"
-                  :disabled="saving"
-                  :mdZone="6"
-                  :mdHawza="6"
-                />
+                v-model:zone="draft.event_zone"
+                v-model:hawza="draft.event_hawza"
+                :zoneLabel="t('زون')"
+                :hawzaLabel="t('حوزه')"
+                :disabled="saving"
+                :mdZone="6"
+                :mdHawza="6"
+              />
             </v-col>
             <!-- event_specific_place -->
             <v-col cols="12" md="4">
@@ -439,12 +439,12 @@
             <v-icon start>mdi-content-save</v-icon>
             {{ t('اظافه کردن واقعه') }}
           </v-btn>
-          <v-btn variant="text" color="primary" @click="printInformationForm">
+          <v-btn variant="text" color="primary" @click="printEventForm">
             <v-icon start>mdi-printer</v-icon>
             پرنټ / PDF
           </v-btn>
 
-          <v-btn variant="text" color="primary" @click="downloadInformationFormWord">
+          <v-btn variant="text" color="primary" @click="downloadEventFormWord">
             <v-icon start>mdi-file-word</v-icon>
             Word
           </v-btn>
@@ -499,64 +499,70 @@
   /* fixed options — mirror the editor */
   const eventTypeOptions = ['سیاسی', 'جنایی', 'الهی'];
   const eventSpecificTypeOptions = ['قتل', 'چاودنه', 'ټکر', 'سرقت', 'مسلحانه برید'];
-  function printInformationForm() {
-    repo.DownloadInformationFormPdf({
-      logo_url: '/logo.png', // یا هر لوگویی که داری
+  function printEventForm() {
+    repo.DownloadEventFormPdf({
+      logo_url: '/logo.png',
       form_number: '',
 
       source_code: draft.resource_id,
       employee_code: draft.office_employee_id,
 
-      info_date: draft.event_date,
-      info_time: draft.event_hour,
+      event_date: draft.event_date,
+      event_hour: draft.event_hour,
 
-      credibility_degree: '',
-      trust_level: '',
-      info_type: draft.event_type,
-      hamghaji: '',
+      event_type: draft.event_type,
+      event_specific_type: draft.event_specific_type,
 
-      name: draft.target_person,
-      alias_name: '',
-      father_name: '',
-      grandfather_name: '',
-      civil_status: '',
-      job: '',
-      age: '',
+      target_person: draft.target_person,
+      criminal: draft.criminal,
 
-      current_province: draft.Province_addr,
-      current_district: '',
-      current_village: '',
-      original_province: '',
-      original_district: '',
-      original_village: '',
-      related_province: '',
+      zone: draft.event_zone,
+      hawza: draft.event_hawza,
+      specific_place: draft.event_specific_place,
 
-      evidence_text: draft.docs_note,
+      talafat_mali: draft.talafat_mali,
+      killed: draft.killed,
+      injured: draft.injured,
+      coordinates: draft.coordinates,
+
       tafseel_text: draft.tafseel,
-      manager_note: draft.note,
+      note_text: draft.note,
+      evidence_text: draft.docs_note,
     });
   }
 
-  function downloadInformationFormWord() {
-    repo.DownloadInformationFormWord(
+  function downloadEventFormWord() {
+    repo.DownloadEventFormWord(
       {
         logo_url: '/logo.png',
+        form_number: '',
 
         source_code: draft.resource_id,
         employee_code: draft.office_employee_id,
 
-        info_date: draft.event_date,
-        info_time: draft.event_hour,
-        info_type: draft.event_type,
+        event_date: draft.event_date,
+        event_hour: draft.event_hour,
 
-        name: draft.target_person,
-        current_province: draft.Province_addr,
+        event_type: draft.event_type,
+        event_specific_type: draft.event_specific_type,
 
-        evidence_text: draft.docs_note,
+        target_person: draft.target_person,
+        criminal: draft.criminal,
+
+        zone: draft.event_zone,
+        hawza: draft.event_hawza,
+        specific_place: draft.event_specific_place,
+
+        talafat_mali: draft.talafat_mali,
+        killed: draft.killed,
+        injured: draft.injured,
+        coordinates: draft.coordinates,
+
         tafseel_text: draft.tafseel,
-        manager_note: draft.note,
+        note_text: draft.note,
+        evidence_text: draft.docs_note,
       },
-      'information_form.doc'
+      'event_form.doc'
     );
   }
 
