@@ -14,8 +14,8 @@ return new class extends Migration {
             // Foreign keys
             // ===============================
             $table->unsignedBigInteger('resource_id')->nullable();
-            $table->unsignedBigInteger('office_employee_id')->nullable();      // کود کارمند مربوطه
-            $table->unsignedBigInteger('office_employee_info_id')->nullable(); // کود کارمند اطلاع گیرنده
+            $table->unsignedBigInteger('office_employee_id')->nullable();       // کود کارمند مربوطه
+            $table->unsignedBigInteger('office_employee_info_id')->nullable();  // کود کارمند اطلاع گیرنده
 
             // ===============================
             // Personal info
@@ -49,6 +49,12 @@ return new class extends Migration {
             // Info details
             // ===============================
             $table->string('information_saved_date')->nullable();
+
+            // ✅ put these here in order (NO ->after() inside create)
+            $table->string('hamahangi_date')->nullable();
+            $table->string('maktop_number')->nullable();
+            $table->string('organ')->nullable();
+
             $table->string('information_saved_hour')->nullable();
             $table->string('information_degree')->nullable();
 
@@ -64,7 +70,7 @@ return new class extends Migration {
             $table->text('result')->nullable();
 
             // ===============================
-            // RESULT MISSING NOTIFICATION TRACKING  🔔
+            // RESULT MISSING NOTIFICATION TRACKING 🔔
             // ===============================
             $table->timestamp('result_missing_first_notified_at')->nullable();
             $table->timestamp('result_missing_last_notified_at')->nullable();
@@ -72,9 +78,7 @@ return new class extends Migration {
             // 0 = never notified
             // 1 = notified after 7 days
             // 2 = notified after 3 months (STOP)
-            $table->string('hamahangi_date')->nullable()->after('information_saved_date');
-            $table->string('maktop_number')->nullable()->after('hamahangi_date');
-            $table->string('organ')->nullable()->after('maktop_number');
+
             // ===============================
             // Extra
             // ===============================
@@ -94,6 +98,12 @@ return new class extends Migration {
                 ->references('id')
                 ->on('office_employees')
                 ->nullOnDelete();
+
+            // (Optional) If you want FK for office_employee_info_id too:
+            // $table->foreign('office_employee_info_id')
+            //     ->references('id')
+            //     ->on('office_employees')
+            //     ->nullOnDelete();
         });
     }
 

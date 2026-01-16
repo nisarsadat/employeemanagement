@@ -130,6 +130,7 @@ use App\Http\Controllers\Api\EventControllerReport;
 use App\Http\Controllers\Api\EventReportController;
 use App\Http\Controllers\Api\EventSpecificTypeController;
 use App\Http\Controllers\Api\EventTypeController;
+use App\Http\Controllers\Api\ExpenseOilController as ApiExpenseOilController;
 use App\Http\Controllers\Api\FifthyFormatsCountController;
 use App\Http\Controllers\Api\FinanceController;
 use App\Http\Controllers\Api\HawzaController;
@@ -144,6 +145,7 @@ use App\Http\Controllers\Api\JobTypeController;
 use App\Http\Controllers\Api\KhayratReportController;
 use App\Http\Controllers\Api\MawqafJahadiController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OilSummaryController;
 use App\Http\Controllers\Api\OrganController;
 use App\Http\Controllers\Api\OutgoingIncomingController;
 use App\Http\Controllers\Api\ProvinceController;
@@ -346,6 +348,8 @@ Route::middleware('auth:sanctum')->group(function () {
     protectResource('oil-accounts', 'oil_accounts',  OilAccountController::class);
     protectResource('income-oils',  'income_oils',   IncomeOilController::class);
     protectResource('expense-oils', 'expense_oils',  ExpenseOilController::class);
+    Route::get('/oil/summary', [OilSummaryController::class, 'index']);
+
     Route::get('oil-reports', [OilReportController::class, 'index']);
 
     Route::prefix('finance-reports')->group(function () {

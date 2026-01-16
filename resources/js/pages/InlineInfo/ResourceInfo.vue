@@ -30,6 +30,7 @@
               :loading="loading"
               class="search-field elevation-1 fontfamily"
               :dir="isRtl ? 'rtl' : 'ltr'"
+              clearable
               @update:search="onType"
             >
               <template #prepend-inner>
@@ -67,9 +68,18 @@
           <v-chip
             :color="statusChipColor"
             size="large"
-            class="status-chip fontfamily white font-extrabold text-xl px-6 py-2.5"
+            class="status-chip fontfamily bg-black white font-extrabold text-xl py-2.5"
           >
             {{ model.activity || t('نامشخص') }}
+
+            <!-- ● status dot -->
+            <span
+              class="status-dot mx-2"
+              :class="{
+                active: statusState === 'active',
+                inactive: statusState === 'inactive',
+              }"
+            ></span>
           </v-chip>
         </v-card-title>
 
@@ -120,17 +130,16 @@
                     </span>
                   </div>
 
-                  <div class="info-row" v-if="model.father_name">
-                    <span class="info-label fontfamily">{{ t('نام پدر') }}</span>
+                  <div class="info-row" v-if="model.nick_name">
+                    <span class="info-label fontfamily">{{ t('نام مستعار') }}</span>
                     <span class="info-value fontfamily">
-                      {{ model.father_name }}
+                      {{ model.nick_name }}
                     </span>
                   </div>
-
-                  <div class="info-row" v-if="model.code_number">
-                    <span class="info-label fontfamily">{{ t('کود نمبر') }}</span>
+                  <div class="info-row" v-if="model.office_employee_code">
+                    <span class="info-label fontfamily">{{ t('کود نمبر کارمند') }}</span>
                     <span class="info-value fontfamily">
-                      {{ model.code_number }}
+                      {{ model.office_employee_code }}
                     </span>
                   </div>
                 </div>
@@ -382,8 +391,16 @@
       id: r.id,
       picture: r.picture,
       name: r.name || '',
-      father_name: r.father_name || '',
+
+      // ✅ nick_name instead of father_name
+      nick_name: r.nick_name || '',
+
+      // ✅ keep this (chip under image uses it)
       code_number: r.code_number || '',
+
+      // ✅ new: show this in the info section instead of resource code
+      office_employee_code: r.office_employee.code_number || r.employee_code || '',
+
       activity: r.activity || '',
       phone: r.phone_number || '',
       phone1: r.phone_number_1 || '',
@@ -396,11 +413,22 @@
   });
 
   /* Status chip color */
-  const statusChipColor = computed(() => {
+  const statusState = computed(() => {
     const s = (model.value?.activity || '').toString().toLowerCase();
-    if (['فعال', 'active', 'on', 'working', 'valid'].some((k) => s.includes(k))) return 'white';
-    if (['غیر فعال', 'inactive', 'off', 'blocked', 'invalid'].some((k) => s.includes(k)))
-      return 'error';
+
+    if (['فعال', 'active', 'on', 'working', 'valid'].some((k) => s.includes(k))) {
+      return 'active';
+    }
+
+    if (['غیر فعال', 'inactive', 'off', 'blocked', 'invalid'].some((k) => s.includes(k))) {
+      return 'inactive';
+    }
+
+    return 'unknown';
+  });
+  const statusChipColor = computed(() => {
+    if (statusState.value === 'active') return 'white';
+    if (statusState.value === 'inactive') return 'error';
     return 'warning';
   });
 
@@ -682,5 +710,20 @@
   }
   .fontfamily {
     font-family: var(--app-font) !important;
+  }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .status-dot.active {
+    background-color: #2e7d32; /* green */
+  }
+
+  .status-dot.inactive {
+    background-color: #c62828; /* red */
   }
 </style>

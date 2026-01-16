@@ -2,30 +2,36 @@
 
 namespace App\Http\Resources;
 
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ExpenseOilResource extends JsonResource
 {
-    public function toArray($request): array {
+    public function toArray(Request $request): array
+    {
         return [
-            'id'               => $this->id,
-            'oil_account_id'   => $this->oil_account_id,
-            'account_name'     => $this->account?->name,
-            'account_quantity' => $this->account?->quantity !== null ? (float)$this->account->quantity : null,
+            'id' => $this->id,
 
-            'date'         => optional($this->date)->toDateString(), // <-- NEW
-            'name'         => $this->name,
-            'destination'  => $this->destination,
-            'oil_quantity' => isset($this->oil_quantity) ? (float)$this->oil_quantity : null,
-            'note'         => $this->note,
-            'created_at'   => $this->created_at,
+            'oil_account_id' => $this->oil_account_id,
+            'employee_id'    => $this->employee_id,
 
-            'account' => $this->whenLoaded('account', fn() => [
-                'id' => $this->account->id,
-                'name' => $this->account->name,
-                'quantity' => (float) $this->account->quantity,
-            ]),
+            'name'           => $this->name,
+            'father_name'    => $this->father_name,
+            'date'           => optional($this->date)->format('Y-m-d'),
+
+            'liter_in_number'=> $this->liter_in_number,
+            'liter_in_words' => $this->liter_in_words,
+
+            'account_name'   => $this->account_name,
+            'tafseel'        => $this->tafseel,
+            'payer'          => $this->payer,
+            'note'           => $this->note,
+
+            // flattened helpers (optional)
+            'account_name_from_relation' => optional($this->account)->name,
+
+            'account' => $this->whenLoaded('account'),
+            'employee'=> $this->whenLoaded('employee'),
         ];
     }
-
 }

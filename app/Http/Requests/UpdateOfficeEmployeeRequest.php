@@ -43,6 +43,7 @@ class UpdateOfficeEmployeeRequest extends FormRequest
             'qisem'                   => ['sometimes','nullable','string'],
             'zone'                    => ['sometimes','nullable','string'],
             'hawza'                   => ['sometimes','nullable','string'],
+            'job_type'                => ['sometimes','nullable','string'],
 
             'madani_halat'            => ['sometimes','nullable','string'],
             'activity'                => ['sometimes','nullable','string'],

@@ -82,9 +82,8 @@ const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 const headers = computed(() => [
   { title: t('حساب'), key: 'account', sortable: false },
   { title: t('مقدار (L)'), key: 'oil_quantity', sortable: false },
-  { title: t('سرچینه'), key: 'source', sortable: false },
-  { title: t('یادونه'), key: 'note', sortable: false },
   { title: t('نیټه'), key: 'date', sortable: false },
+  { title: t('یادونه'), key: 'note', sortable: false },
   { title: t('کړنې'), key: 'actions', sortable: false, align: 'end' },
 ]);
 

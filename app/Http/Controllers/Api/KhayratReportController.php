@@ -47,9 +47,9 @@ class KhayratReportController extends Controller
             // 🔔 Notification: CREATED
             NotificationService::record(
                 $user,
-                module: 'گزارش خیرات',
+                module: 'گزارش خیریت',
                 action: 'created',
-                title: 'گزارش خیرات جدید ثبت شد',
+                title: 'گزارش خیریت جدید ثبت شد',
                 message: 'کود گزارش: ' . ($item->id ?? ''),
                 routeName: 'KhayratReportsIndex',          // ⚠️ set to your frontend route name
                 routeParams: ['id' => $item->id],
@@ -105,9 +105,9 @@ class KhayratReportController extends Controller
             // 🔔 Notification: UPDATED + changes
             NotificationService::record(
                 $user,
-                module: 'گزارش خیرات',
+                module: 'گزارش خیریت',
                 action: 'updated',
-                title: 'گزارش خیرات اصلاح شد',
+                title: 'گزارش خیریت اصلاح شد',
                 message: 'کود گزارش: ' . ($khayratReport->id ?? ''),
                 routeName: 'KhayratReportsIndex',          // ⚠️ set to your frontend route name
                 routeParams: ['id' => $khayratReport->id],
@@ -131,9 +131,9 @@ class KhayratReportController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'گزارش خیرات',
+                module: 'گزارش خیریت',
                 action: 'deleted',
-                title: 'گزارش خیرات حذف شد',
+                title: 'گزارش خیریت حذف شد',
                 message: 'کود گزارش: ' . ($id ?? ''),
                 routeName: null,
                 routeParams: ['KhayratReportsIndex'],

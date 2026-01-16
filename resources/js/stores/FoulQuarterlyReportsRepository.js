@@ -25,6 +25,26 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
     return `${y}-Q${q}`;
   }
 
+  function todayIso() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function quarterToIsoDate(quarterLabel) {
+    // "YYYY-Qn" -> representative date within quarter (YYYY-01-01 / YYYY-05-01 / YYYY-09-01)
+    const s = String(quarterLabel ?? '').trim();
+    const m = s.match(/^(\d{4})-Q([1-3])$/i);
+    if (!m) return todayIso();
+
+    const year = m[1];
+    const q = Number(m[2]);
+    const month = q === 1 ? '01' : q === 2 ? '05' : '09'; // Q1..Q3 (4-month quarters)
+    return `${year}-${month}-01`;
+  }
+
   function safeNum(val) {
     const n = Number(val ?? 0);
     return Number.isFinite(n) ? n : 0;
@@ -82,22 +102,120 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
     }
   }
 
+  // ===== DATE FORMATTERS (ONLY Hijri Shamsi + Hijri Qamari) =====
+  function formatPersianHijriShamsi(dateIso) {
+    try {
+      const d = new Date(`${dateIso}T00:00:00`);
+      return new Intl.DateTimeFormat('fa-AF-u-ca-persian', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(d);
+    } catch {
+      return '';
+    }
+  }
+
+  function formatHijriQamari(dateIso) {
+    try {
+      const d = new Date(`${dateIso}T00:00:00`);
+      return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(d);
+    } catch {
+      try {
+        const d = new Date(`${dateIso}T00:00:00`);
+        return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(d);
+      } catch {
+        return '';
+      }
+    }
+  }
+
+  function buildDateLines(dateIso) {
+    const shamsi = formatPersianHijriShamsi(dateIso);
+    const qamari = formatHijriQamari(dateIso);
+
+    // ✅ no میلادی output at all
+    const parts = [];
+    if (shamsi) {
+      parts.push(
+        `<div class="date-line"><span class="date-label">هجری شمسی:</span> <span>${escapeHtml(shamsi)}</span></div>`
+      );
+    }
+    if (qamari) {
+      parts.push(
+        `<div class="date-line"><span class="date-label">هجری قمری:</span> <span>${escapeHtml(qamari)}</span></div>`
+      );
+    }
+    return parts.join('');
+  }
+
+  // ===== YEAR-ONLY TITLE FORMATTERS (NO MILADI) =====
+  function formatPersianHijriShamsiYear(dateIso) {
+    try {
+      const d = new Date(`${dateIso}T00:00:00`);
+      return new Intl.DateTimeFormat('fa-AF-u-ca-persian', {
+        year: 'numeric',
+      }).format(d);
+    } catch {
+      return '';
+    }
+  }
+
+  function formatHijriQamariYear(dateIso) {
+    try {
+      const d = new Date(`${dateIso}T00:00:00`);
+      return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+        year: 'numeric',
+      }).format(d);
+    } catch {
+      try {
+        const d = new Date(`${dateIso}T00:00:00`);
+        return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+          year: 'numeric',
+        }).format(d);
+      } catch {
+        return '';
+      }
+    }
+  }
+
+  function buildYearTitleLines(dateIso) {
+    const shamsiYear = formatPersianHijriShamsiYear(dateIso);
+    const qamariYear = formatHijriQamariYear(dateIso);
+
+    const parts = [];
+    if (shamsiYear) parts.push(`هجری شمسی: ${escapeHtml(shamsiYear)}`);
+    if (qamariYear) parts.push(`هجری قمری: ${escapeHtml(qamariYear)}`);
+
+    return parts.join(' / ');
+  }
+
   // ===== EXPORT HTML BUILDERS =====
 
-  function buildHeaderHtml() {
-    // same logo path rule as your existing print components
+  function buildHeaderHtml(dateIsoForHeader) {
     const logoSrc = `${window.location.origin}/view.png`;
+    const dateLines = buildDateLines(dateIsoForHeader);
 
     return `
-      <!-- HEADER: titles + logo (your existing structure) -->
+      <!-- HEADER: titles + logo -->
       <table class="header-table">
         <tr>
-          <!-- RIGHT side (stacked 4 items) -->
-          <td class="stack-cell" style="text-align:right;">
-            فورم ثبت اطلاع <br />
-            فورم ثبت اطلاع <br />
-            فورم ثبت اطلاع <br />
-            فورم ثبت اطلاع
+          <!-- RIGHT (Dari) -->
+          <td class="stack-cell stack-right">
+            <div class="stack-inner">
+              فورم ثبت اطلاع <br />
+              فورم ثبت اطلاع <br />
+              فورم ثبت اطلاع <br />
+              فورم ثبت اطلاع
+            </div>
           </td>
 
           <!-- CENTER LOGO -->
@@ -105,13 +223,15 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
             <img src="${logoSrc}" alt="logo" />
           </td>
 
-          <!-- LEFT side (stacked 5 items) -->
-          <td class="stack-cell" style="text-align:left;">
-            د اطلاع ثبت فورم <br />
-            د اطلاع ثبت فورم <br />
-            د اطلاع ثبت فورم <br />
-            د اطلاع ثبت فورم <br />
-            د اطلاع ثبت فورم
+          <!-- LEFT (Pashto) -->
+          <td class="stack-cell stack-left">
+            <div class="stack-inner">
+              د اطلاع ثبت فورم <br />
+              د اطلاع ثبت فورم <br />
+              د اطلاع ثبت فورم <br />
+              د اطلاع ثبت فورم <br />
+              د اطلاع ثبت فورم
+            </div>
           </td>
         </tr>
       </table>
@@ -121,18 +241,17 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
           <!-- RIGHT: meta (کتنه / نېټه) -->
           <td class="top-right">
             <div class="meta-row">
-              <span class="meta-label">کتنه:</span>
-              <span class="meta-box"></span>
             </div>
 
             <div class="meta-row">
               <span class="meta-label">نېټه:</span>
               <span class="meta-date">
+                ${dateLines || ''}
               </span>
             </div>
           </td>
 
-          <!-- CENTER: bismillah on same row -->
+          <!-- CENTER: bismillah -->
           <td class="top-center">
             <div class="bismillah-top">بسم الله الرحمن الرحیم</div>
             <div class="bismillah-orn"></div>
@@ -141,15 +260,9 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
           <!-- LEFT: checkboxes -->
           <td class="top-left">
             <div class="check-row">
-              <span class="check-label">محرمیت درجه:</span>
-              <span class="check-box"></span>
-              <span class="check-box"></span>
             </div>
 
             <div class="check-row">
-              <span class="check-label">استعمالات درجه:</span>
-              <span class="check-box"></span>
-              <span class="check-box"></span>
             </div>
           </td>
         </tr>
@@ -195,80 +308,110 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
     const year = m[1];
     const q = Number(m[2]);
 
-    const range =
-      q === 1 ? 'جنوری - اپریل' : q === 2 ? 'می - اگست' : 'سپتمبر - دسمبر';
+    const range = q === 1 ? 'جنوری - اپریل' : q === 2 ? 'می - اگست' : 'سپتمبر - دسمبر';
 
+    // keep text (but we will NOT show miladi year in title; we show shamsi/qamari years instead)
     return `${year} / ربعه ${q} ( ${range} )`;
   }
 
-  function buildQuarterlyBodyHtml(report, quarterLabel) {
+  function buildQuarterlyBodyHtml(report, quarterLabel, headerDateIso) {
     const resourcesTotal = safeNum(report?.resources?.total);
 
     const infoLines = buildInformationsTypesLines(report);
     const eventLines = buildEventTypesLines(report);
 
-    // 56 formats total count ONLY (sum of counts)
     const formats = Array.isArray(report?.formats) ? report.formats : [];
     const formatsCount = formats.reduce((sum, f) => sum + safeNum(f?.count), 0);
 
     const quarterText = buildQuarterTextFromLabel(quarterLabel);
 
-    return `
-      <div class="letter-body">
-        ${buildHeaderHtml()}
+    // ✅ Build ONLY parts that have data (same approach as daily/monthly/yearly)
+    const parts = [];
 
-        <!-- ✅ gray divider under bismillah like image -->
-        <div class="bismillah-divider"></div>
+    parts.push(buildHeaderHtml(headerDateIso));
+    parts.push(`<div class="bismillah-divider"></div>`);
 
-        <div class="line title">د ربعه راپور ( ${escapeHtml(quarterText || '')} )</div>
-
-        <div class="line bold center">السلام علیکم ورحمة الله وبرکاته</div>
-
-        <div class="line center">
-          الله تعالی مو په ټولو شرعی امورو کې موفق او بریالی لره.
-        </div>
-
-        <div class="line right bold">وروســته:</div>
-
-        <ul class="bullets">
-          <li>
-            د کابل ښار په م ختلفو حوزو کې ( ${resourcesTotal} ) تنه منابع استخدام شوی، وروزل شوی او ارزونه یې تررسه شوه.
-          </li>
-
-          <li class="bold">ثبت شوی اطلاعات:</li>
-          <ul class="sub">
-            ${infoLines || ''}
-          </ul>
-
-          <li class="bold">ثبت شوی پېښې (د نوعیت پر اساس):</li>
-          <ul class="sub">
-            ${eventLines || ''}
-          </ul>
-
-          <li class="bold">د کابل ښار لېبری دوسیه (بنجوسو فارمت) کې ثبت شوی معلومات:</li>
-          <ul class="sub">
-            <li>د کابل ښار په مختلفو حوزو کې د ( ${formatsCount} ) مواردو اړوند معلومات ثبت شول.</li>
-          </ul>
-        </ul>
-
-        <div class="closing">
-          <div class="bold">په درنښت</div>
-          <div class="bold">د ۳۳۳ مدیریت مدیر</div>
+    // ✅ TITLE: quarter label text + year lines (Shamsi/Qamari only)
+    parts.push(`
+      <div class="line title">
+        <div style="margin-top:4px; font-size:13px; font-weight:700;">
+          ${buildYearTitleLines(headerDateIso)}
         </div>
       </div>
-    `;
+    `);
+
+    parts.push(`<div class="line right bold">السلام علیکم ورحمة الله وبرکاته</div>`);
+    parts.push(`<div class="line right">الله تعالی مو په ټولو شرعی امورو کې موفق او بریالی لره.</div>`);
+    parts.push(`<div class="line right bold">وروســته:</div>`);
+
+    const bulletBlocks = [];
+
+    if (resourcesTotal > 0) {
+      bulletBlocks.push(`
+        <li>
+          د کابل ښار په م ختلفو حوزو کې ( ${resourcesTotal} ) تنه منابع استخدام شوی، وروزل شوی او ارزونه یې تررسه شوه.
+        </li>
+      `);
+    }
+
+    if (infoLines) {
+      bulletBlocks.push(`
+        <li class="bold">ثبت شوی اطلاعات:</li>
+        <ul class="sub">
+          ${infoLines}
+        </ul>
+      `);
+    }
+
+    if (eventLines) {
+      bulletBlocks.push(`
+        <li class="bold">ثبت شوی پېښې (د نوعیت پر اساس):</li>
+        <ul class="sub">
+          ${eventLines}
+        </ul>
+      `);
+    }
+
+    if (formatsCount > 0) {
+      bulletBlocks.push(`
+        <li class="bold">د کابل ښار لیټری دوسیه (۵۰ فارمت) کې ثبت شوی معلومات:</li>
+        <ul class="sub">
+          <li>د کابل ښار په مختلفو حوزو کې د ( ${formatsCount} ) مواردو اړوند معلومات ثبت شول.</li>
+        </ul>
+      `);
+    }
+
+    if (bulletBlocks.length) {
+      parts.push(`
+        <ul class="bullets">
+          ${bulletBlocks.join('')}
+        </ul>
+      `);
+    }
+
+    parts.push(`
+      <div class="closing">
+        <div class="bold">په درنښت</div>
+        <div class="bold">د ۳۳۳ مدیریت مدیر</div>
+      </div>
+    `);
+
+    return `<div class="letter-body">${parts.join('')}</div>`;
   }
 
   function buildQuarterlyDocumentHtml(report, quarterLabel) {
-    const body = buildQuarterlyBodyHtml(report, quarterLabel);
+    const qLabel = String(quarterLabel || selectedQuarter.value || currentQuarterLabel());
+    const headerDateIso = quarterToIsoDate(qLabel);
+    const body = buildQuarterlyBodyHtml(report, qLabel, headerDateIso);
 
     return `
       <html dir="rtl">
         <head>
           <meta charset="utf-8" />
-          <title>quarterly_report_${quarterLabel || ''}</title>
+          <title>quarterly_report_${qLabel || ''}</title>
           <style>
-            @page { size: A4 portrait; margin: 10mm; }
+            /* ✅ consistent margins for print + Word (same as daily/monthly/weekly/yearly) */
+            @page { size: A4 portrait; margin: 0; }
 
             html, body {
               margin: 0;
@@ -280,17 +423,25 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
               line-height: 1.85;
             }
 
-            .page { width: 100%; box-sizing: border-box; }
+            /* ✅ this creates space from ALL sides */
+            .page {
+              width: 100%;
+              box-sizing: border-box;
+              padding: 12mm;
+            }
+
             table { border-collapse: collapse; width: 100%; }
 
             .top-head-table { table-layout: fixed; width: 100%; margin-bottom: 4px; }
             .top-head-table td { vertical-align: top; padding: 0; }
 
             .top-right { width: 33%; text-align: right; font-size: 12px; line-height: 1.6; padding-right: 2px; white-space: nowrap; }
-            .meta-row { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin: 2px 0; }
+            .meta-row { display: flex; justify-content: flex-end; align-items: flex-start; gap: 6px; margin: 2px 0; }
             .meta-label { font-weight: 700; }
             .meta-box { width: 26px; height: 14px; border: 1px solid #000; display: inline-block; }
-            .meta-date { display: inline-flex; align-items: center; gap: 14px; min-width: 60px; justify-content: center; }
+            .meta-date { display: inline-block; min-width: 60px; }
+            .date-line { line-height: 1.4; }
+            .date-label { font-weight: 700; }
 
             .top-center { width: 34%; text-align: center; padding-top: 2px; }
             .bismillah-top { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
@@ -302,11 +453,39 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
             .check-box { width: 16px; height: 12px; border: 1px solid #000; display: inline-block; }
             .check-label { font-weight: 700; }
 
-            .header-table { width: 90%; border: none; table-layout: fixed; margin: 0; margin-right: 20px; }
-            .header-table td { border: none !important; font-size: 14px; padding: 0 4px !important; vertical-align: middle; }
-            .stack-cell { width: 35%; line-height: 1.35; font-weight: 700; }
-            .logo-cell { width: 30%; text-align: center; }
-            .logo-cell img { width: 70px; height: 55px; object-fit: contain; }
+            /* ===== HEADER (print + word safe) ===== */
+            .header-table{
+              width: 100%;
+              table-layout: fixed;
+              border: none;
+              margin: 0 auto;
+            }
+            .header-table td{
+              border: none !important;
+              padding: 0 !important;
+              vertical-align: middle;
+            }
+
+            .logo-cell{ width: 46%; text-align: center; }
+            .stack-cell{ width: 27%; }
+
+            /* ✅ move texts toward the logo */
+            .stack-right{ text-align: left; padding-left: 6px !important; }
+            .stack-left{  text-align: right; padding-right: 6px !important; }
+
+            .stack-inner{
+              display: inline-block;
+              font-size: 14px;
+              font-weight: 700;
+              line-height: 1.35;
+              white-space: nowrap;
+            }
+
+            .logo-cell img{
+              width: 70px;
+              height: 55px;
+              object-fit: contain;
+            }
 
             .bismillah-divider {
               width: 100%;
@@ -317,9 +496,8 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
               margin: 0 0 10px;
             }
 
-            .line { margin: 3px 0; }
+            .line { margin: 3px 0; text-align: right; }
             .bold { font-weight: 700; }
-            .center { text-align: center; }
             .right { text-align: right; }
 
             .title {
@@ -329,14 +507,42 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
               margin: 8px 0 6px;
             }
 
-            ul.bullets { margin: 8px 0 0; padding-right: 18px; list-style-type: disc; }
-            ul.bullets > li { margin: 10px 0; }
+            ul.bullets {
+              margin: 8px 0 0;
+              padding-right: 18px;
+              list-style-type: disc;
+              text-align: right;
+            }
+            ul.bullets > li {
+              margin: 10px 0;
+              text-align: right;
+            }
 
-            ul.sub { margin: 6px 0 0; padding-right: 0; list-style: none; }
-            ul.sub > li { margin: 4px 0; padding-right: 18px; position: relative; }
-            ul.sub > li::before { content: "➢"; position: absolute; right: 0; top: 0; font-weight: 700; }
+            ul.sub {
+              margin: 6px 0 0;
+              padding-right: 0;
+              list-style: none;
+              text-align: right;
+            }
+            ul.sub > li {
+              margin: 4px 0;
+              padding-right: 18px;
+              position: relative;
+              text-align: right;
+            }
+            ul.sub > li::before {
+              content: "➢";
+              position: absolute;
+              right: 0;
+              top: 0;
+              font-weight: 700;
+            }
 
-            .closing { margin-top: 16px; text-align: center; font-weight: 700; }
+            .closing {
+              margin-top: 16px;
+              text-align: center;
+              font-weight: 700;
+            }
           </style>
         </head>
 

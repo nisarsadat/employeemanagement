@@ -1,6 +1,6 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
-import axios from "axios";
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
+import axios from 'axios';
 
 /**
  * Single repo for:
@@ -10,7 +10,7 @@ import axios from "axios";
  *  - Dropdown options: OfficeEmployees + Resources
  */
 
-export const useFinanceRepository = defineStore("FinanceRepository", () => {
+export const useFinanceRepository = defineStore('FinanceRepository', () => {
   const loading = ref(false);
 
   // =========================
@@ -35,10 +35,10 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
   const officeEmployees = ref([]);
   const officeEmployeesLoading = ref(false);
 
-  async function FetchOfficeEmployeesOptions({ search = "" } = {}) {
+  async function FetchOfficeEmployeesOptions({ search = '' } = {}) {
     officeEmployeesLoading.value = true;
     try {
-      const resp = await axios.get("/office-employees", {
+      const resp = await axios.get('/office-employees', {
         params: { search },
       });
       officeEmployees.value = resp.data?.data ?? resp.data ?? [];
@@ -51,10 +51,10 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
   const resources = ref([]);
   const resourcesLoading = ref(false);
 
-  async function FetchResourcesOptions({ search = "" } = {}) {
+  async function FetchResourcesOptions({ search = '' } = {}) {
     resourcesLoading.value = true;
     try {
-      const resp = await axios.get("/resources", {
+      const resp = await axios.get('/resources', {
         params: { search },
       });
       resources.value = resp.data?.data ?? resp.data ?? [];
@@ -72,7 +72,7 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
 
   const accountsPage = ref(1);
   const accountsPerPage = ref(10);
-  const accountsSearch = ref("");
+  const accountsSearch = ref('');
 
   // =========================
   // INCOMES STATE
@@ -83,7 +83,7 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
 
   const incomesPage = ref(1);
   const incomesPerPage = ref(10);
-  const incomesSearch = ref("");
+  const incomesSearch = ref('');
   const incomesAccountId = ref(null);
 
   // =========================
@@ -95,9 +95,17 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
 
   const financesPage = ref(1);
   const financesPerPage = ref(10);
-  const financesSearch = ref("");
+  const financesSearch = ref('');
   const financesAccountId = ref(null);
   const financesOfficeEmployeeId = ref(null);
+
+  // ✅ NEW: summary returned from backend (FinanceController@index ->additional)
+  const financesSummary = ref({
+    total_balance_all_accounts: '0.00',
+    total_income_all: '0.00',
+    total_outcome_all: '0.00',
+    filtered_outcome: '0.00',
+  });
 
   // =========================
   // ACCOUNTS ACTIONS
@@ -113,7 +121,7 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
       accountsPerPage.value = perPage;
       accountsSearch.value = search;
 
-      const resp = await axios.get("/accounts", {
+      const resp = await axios.get('/accounts', {
         params: { page, perPage, search },
       });
 
@@ -132,7 +140,7 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
   }
 
   async function CreateAccount(payload) {
-    const resp = await axios.post("/accounts", payload);
+    const resp = await axios.post('/accounts', payload);
     return resp.data?.data ?? resp.data;
   }
 
@@ -148,7 +156,7 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
   function ResetAccountsFilters() {
     accountsPage.value = 1;
     accountsPerPage.value = 10;
-    accountsSearch.value = "";
+    accountsSearch.value = '';
   }
 
   // =========================
@@ -167,7 +175,7 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
       incomesSearch.value = search;
       incomesAccountId.value = account_id ?? null;
 
-      const resp = await axios.get("/incomes", {
+      const resp = await axios.get('/incomes', {
         params: {
           page,
           perPage,
@@ -191,7 +199,7 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
   }
 
   async function CreateIncome(payload) {
-    const resp = await axios.post("/incomes", payload);
+    const resp = await axios.post('/incomes', payload);
     return resp.data?.data ?? resp.data;
   }
 
@@ -207,7 +215,7 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
   function ResetIncomesFilters() {
     incomesPage.value = 1;
     incomesPerPage.value = 10;
-    incomesSearch.value = "";
+    incomesSearch.value = '';
     incomesAccountId.value = null;
   }
 
@@ -229,15 +237,21 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
       financesAccountId.value = account_id ?? null;
       financesOfficeEmployeeId.value = office_employee_id ?? null;
 
-      const resp = await axios.get("/finances", {
+      const resp = await axios.get('/finances', {
         params: {
-          page,
-          perPage,
           search,
           account_id: account_id ?? undefined,
           office_employee_id: office_employee_id ?? undefined,
         },
       });
+
+      // ✅ NEW: summary from backend
+      financesSummary.value = resp.data?.summary ?? {
+        total_balance_all_accounts: '0.00',
+        total_income_all: '0.00',
+        total_outcome_all: '0.00',
+        filtered_outcome: '0.00',
+      };
 
       const { data, total } = unwrapListResponse(resp);
       finances.value = data;
@@ -254,7 +268,7 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
   }
 
   async function CreateFinance(payload) {
-    const resp = await axios.post("/finances", payload);
+    const resp = await axios.post('/finances', payload);
     return resp.data?.data ?? resp.data;
   }
 
@@ -269,10 +283,18 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
 
   function ResetFinancesFilters() {
     financesPage.value = 1;
-    financesPerPage.value = 10;
-    financesSearch.value = "";
+    financesPerPage.value = 999999;
+    financesSearch.value = '';
     financesAccountId.value = null;
     financesOfficeEmployeeId.value = null;
+
+    // ✅ NEW
+    financesSummary.value = {
+      total_balance_all_accounts: '0.00',
+      total_income_all: '0.00',
+      total_outcome_all: '0.00',
+      filtered_outcome: '0.00',
+    };
   }
 
   // =========================
@@ -322,6 +344,7 @@ export const useFinanceRepository = defineStore("FinanceRepository", () => {
     // Finances
     finances,
     finance,
+    financesSummary, // ✅ NEW
     financesTotalItems,
     financesPage,
     financesPerPage,

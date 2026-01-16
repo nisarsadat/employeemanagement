@@ -3,188 +3,152 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreOutgoingIncomingRequest;
+use App\Http\Requests\UpdateOutgoingIncomingRequest;
 use App\Http\Resources\OutgoingIncomingResource;
 use App\Models\OutgoingIncoming;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use ZipArchive;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
+use App\Services\NotificationService; // 🔔 notifications
 
 class OutgoingIncomingController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = (int) ($request->get('perPage', 100000));
-        $search  = trim((string) $request->get('search', ''));
+        $perPage = (int) $request->get('perPage', 25);
+        $search  = $request->get('search');
 
-        $query = OutgoingIncoming::query();
+        $query = OutgoingIncoming::query()
+            ->search($search)
+            ->latest('id');
 
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('number', 'like', "%{$search}%")
-                  ->orWhere('marja', 'like', "%{$search}%")
-                  ->orWhere('who_sign', 'like', "%{$search}%");
+        return OutgoingIncomingResource::collection(
+            $query->paginate($perPage)
+        );
+    }
+
+    public function store(StoreOutgoingIncomingRequest $request)
+    {
+        $user = $request->user(); // 🔔 who did this
+
+        try {
+            return DB::transaction(function () use ($request, $user) {
+                $row = OutgoingIncoming::create($request->validated());
+
+                // 🔔 Notification: CREATED
+                NotificationService::record(
+                    $user,
+                    module: 'صادره/وارده',
+                    action: 'created',
+                    title: 'نوی ریکارډ ثبت شو',
+                    message: 'مرجع: ' . ($row->marja ?? ''),
+                    routeName: 'outgoing-incomings',      // ⚠️ adjust if needed
+                    routeParams: ['id' => $row->id],
+                    level: 'success',
+                    changes: null
+                );
+
+                return OutgoingIncomingResource::make($row);
             });
-        }
-
-        $query->latest('id');
-
-        // ✅ IMPORTANT: load docs
-        $items = $query->with('sundryDocuments')->paginate($perPage);
-
-        return OutgoingIncomingResource::collection($items);
-    }
-
-    public function store(Request $request)
-    {
-        // IMPORTANT: because you are sending strings for checkboxes sometimes:
-        // We'll cast them safely to boolean if needed.
-        $data = $request->all();
-
-        $item = OutgoingIncoming::create($data);
-
-        // Upload documents
-        if ($request->hasFile('documents')) {
-            foreach ($request->file('documents') as $file) {
-                $path = $file->store('outgoing_incomings', 'public');
-
-                $item->sundryDocuments()->create([
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_path' => $path,
-                    'file_size' => $file->getSize(),
-                    'mime_type' => $file->getMimeType(),
-                ]);
+        } catch (QueryException $e) {
+            // ✅ Duplicate unique constraint (MySQL: 1062)
+            if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
+                return response()->json([
+                    'message' => 'دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).',
+                    'errors'  => [
+                        'duplicate' => ['دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).'],
+                    ],
+                ], 422);
             }
+
+            throw $e;
         }
-
-        return new OutgoingIncomingResource($item->load('sundryDocuments'));
     }
 
-    public function show($id)
+    public function show(OutgoingIncoming $outgoingIncoming)
     {
-        $item = OutgoingIncoming::with('sundryDocuments')->findOrFail($id);
-        return new OutgoingIncomingResource($item);
+        return OutgoingIncomingResource::make($outgoingIncoming);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateOutgoingIncomingRequest $request, OutgoingIncoming $outgoingIncoming)
     {
-        $item = OutgoingIncoming::with('sundryDocuments')->findOrFail($id);
+        $user = $request->user(); // 🔔
 
-        $data = $request->all();
-        $item->update($data);
+        try {
+            return DB::transaction(function () use ($request, $outgoingIncoming, $user) {
+                // 🧮 build changes BEFORE update
+                $original  = $outgoingIncoming->getOriginal();
+                $validated = $request->validated();
+                $changes   = [];
 
-        // remove docs
-        $removed = $request->input('removed_document_ids', []);
-        if (is_array($removed) && count($removed)) {
-            $docs = $item->sundryDocuments()->whereIn('id', $removed)->get();
-            foreach ($docs as $doc) {
-                if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
-                    Storage::disk('public')->delete($doc->file_path);
+                foreach ($validated as $field => $newValue) {
+                    if (array_key_exists($field, $original)) {
+                        $oldValue = $original[$field];
+                        if ($oldValue != $newValue) {
+                            $changes[$field] = [
+                                'old' => $oldValue,
+                                'new' => $newValue,
+                            ];
+                        }
+                    }
                 }
-                $doc->delete();
+
+                // 🔄 apply update
+                $outgoingIncoming->update($validated);
+
+                // 🔔 Notification: UPDATED + changes
+                NotificationService::record(
+                    $user,
+                    module: 'صادره/وارده',
+                    action: 'updated',
+                    title: 'ریکارډ اصلاح شو',
+                    message: 'مرجع: ' . ($outgoingIncoming->marja ?? ''),
+                    routeName: 'outgoing-incomings',      // ⚠️ adjust if needed
+                    routeParams: ['id' => $outgoingIncoming->id],
+                    level: 'info',
+                    changes: !empty($changes) ? $changes : null
+                );
+
+                return OutgoingIncomingResource::make($outgoingIncoming);
+            });
+        } catch (QueryException $e) {
+            if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
+                return response()->json([
+                    'message' => 'دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).',
+                    'errors'  => [
+                        'duplicate' => ['دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).'],
+                    ],
+                ], 422);
             }
+
+            throw $e;
         }
-
-        // add new docs
-        if ($request->hasFile('documents')) {
-            foreach ($request->file('documents') as $file) {
-                $path = $file->store('outgoing_incomings', 'public');
-
-                $item->sundryDocuments()->create([
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_path' => $path,
-                    'file_size' => $file->getSize(),
-                    'mime_type' => $file->getMimeType(),
-                ]);
-            }
-        }
-
-        return new OutgoingIncomingResource($item->load('sundryDocuments'));
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, OutgoingIncoming $outgoingIncoming)
     {
-        $item = OutgoingIncoming::with('sundryDocuments')->findOrFail($id);
+        $user = $request->user(); // 🔔
 
-        foreach ($item->sundryDocuments as $doc) {
-            if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
-                Storage::disk('public')->delete($doc->file_path);
-            }
-            $doc->delete();
-        }
+        return DB::transaction(function () use ($outgoingIncoming, $user) {
+            $marja = $outgoingIncoming->marja;
 
-        $item->delete();
+            $outgoingIncoming->delete();
 
-        return response()->json(['message' => 'Deleted successfully']);
+            // 🔔 Notification: DELETED
+            NotificationService::record(
+                $user,
+                module: 'صادره/وارده',
+                action: 'deleted',
+                title: 'ریکارډ حذف شو',
+                message: 'مرجع: ' . ($marja ?? ''),
+                routeName: null,
+                routeParams: ['outgoing-incomings'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->noContent();
+        });
     }
-
-    // ✅ ZIP DOWNLOAD
-    public function downloadDocumentsZip($id)
-    {
-        $item = OutgoingIncoming::with('sundryDocuments')->findOrFail($id);
-
-        if ($item->sundryDocuments->isEmpty()) {
-            return response()->json(['message' => 'No documents available'], 404);
-        }
-
-        $zipFileName = "outgoing-incoming-{$item->id}-documents.zip";
-        $tempDir = storage_path('app/temp');
-
-        if (!is_dir($tempDir)) {
-            mkdir($tempDir, 0777, true);
-        }
-
-        $zipPath = $tempDir . DIRECTORY_SEPARATOR . $zipFileName;
-
-        // delete old if exists
-        if (file_exists($zipPath)) {
-            @unlink($zipPath);
-        }
-
-        $zip = new \ZipArchive();
-
-        $open = $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-        if ($open !== true) {
-            return response()->json([
-                'message' => 'Could not create zip file',
-                'zip_open_code' => $open,
-            ], 500);
-        }
-
-        $added = 0;
-
-        foreach ($item->sundryDocuments as $doc) {
-            $fullPath = storage_path('app/public/' . $doc->file_path);
-
-            if (!file_exists($fullPath)) {
-                continue;
-            }
-
-            // ✅ Windows-safe filename (avoid weird chars)
-            $name = $doc->file_name ?: basename($fullPath);
-            $name = preg_replace('/[^\w\-. ]+/u', '_', $name);
-
-            $zip->addFile($fullPath, $name);
-            $added++;
-        }
-
-        $zip->close();
-
-        clearstatcache(true, $zipPath);
-
-        if ($added === 0 || !file_exists($zipPath) || filesize($zipPath) < 22) {
-            return response()->json(['message' => 'Zip created but empty/invalid'], 500);
-        }
-
-        // ✅ prevent ANY extra output corrupting the zip
-        while (ob_get_level() > 0) {
-            ob_end_clean();
-        }
-
-        return response()->download($zipPath, $zipFileName, [
-            'Content-Type' => 'application/zip',
-            'Content-Disposition' => 'attachment; filename="'.$zipFileName.'"',
-        ])->deleteFileAfterSend(true);
-    }
-
-
 }

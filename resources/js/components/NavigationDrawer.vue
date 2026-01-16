@@ -338,14 +338,16 @@
         icon: 'mdi-graph',
         children: [
           { key: 'r-daily', title: t('راپور روزانه'), to: { path: '/app/dailyfoulreports' } },
-          { key: 'r-monthly', title: t(' راپور ماهانه'), to: { path: '/app/monthlyfoulreports' } },
-          { key: 'r-yearly', title: t(' راپور سالانه'), to: { path: '/app/yearlyfoulreports' } },
           { key: 'r-weekly', title: t('راپور هفته وار'), to: { path: '/app/weeklyfoulreports' } },
+
+          { key: 'r-monthly', title: t(' راپور ماهانه'), to: { path: '/app/monthlyfoulreports' } },
           {
             key: 'r-quarterly',
             title: t('راپور ربعه وار'),
             to: { path: '/app/quarterlyfoulreports' },
           },
+          { key: 'r-yearly', title: t(' راپور سالانه'), to: { path: '/app/yearlyfoulreports' } },
+          
           { key: 'r-archive', title: t('آرشیف'), to: { path: '/app/alltimefoulreports' } },
         ],
       },

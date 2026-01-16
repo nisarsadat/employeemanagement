@@ -10,47 +10,39 @@ return new class extends Migration {
         Schema::create('outgoing_incomings', function (Blueprint $table) {
             $table->id();
 
-            /* ===============================
-             |  TEXT FLAGS (your inputs are text)
-             |===============================*/
-            $table->string('outgoing_to_reyasat')->nullable();
-            $table->string('out_going_to_others')->nullable();
-            $table->string('incomming')->nullable();
+            $table->text('docs_type')->nullable(); // ✅ textarea text
 
-            $table->string('ahkam_reyasat')->nullable();
-            $table->string('ahkam_rad_shoda_reyasat')->nullable();
-            $table->string('reyasat_na_direction')->nullable();
+            $table->date('office_outgoing_date')->nullable();
+            $table->string('office_outgoing_page')->nullable();
 
-            $table->string('loy_reyasat_ahkam')->nullable();
-            $table->string('loy_reyasat_ahakm_rad')->nullable();
-            $table->string('loy_reyasat_direction')->nullable();
+            $table->date('office_incoming_date')->nullable();
+            $table->string('office_incoming_page')->nullable();
 
-            /* ===============================
-             |  IDENTIFIERS & DATES
-             |===============================*/
-            $table->unsignedBigInteger('number')->nullable(); // only numeric
-            $table->date('sign_date')->nullable();
+            $table->date('reyasat_outgoing_date')->nullable();
+            $table->string('reyasat_outgoing_page')->nullable();
+
+            $table->date('loy_reyasat_outgoing_date')->nullable();
+            $table->string('loy_reyasat_outgoing_page')->nullable();
+
+            $table->date('answer_date')->nullable();
+            $table->string('answer_page')->nullable();
+
+            $table->date('docs_sign_date')->nullable();
             $table->date('outgoing_incoming_date')->nullable();
 
-            /* ===============================
-             |  META INFO
-             |===============================*/
+            $table->string('who_sighn')->nullable();
+
             $table->string('marja')->nullable();
-            $table->string('who_sign')->nullable();
+            $table->text('tafseel')->nullable();
 
-            $table->string('numer_of_jold')->nullable();
-            $table->string('list_number')->nullable();
+            $table->string('page')->nullable();
+            $table->string('dusya')->nullable();
+            $table->string('fihrist_page')->nullable();
 
-            /* ===============================
-             |  VALUES (keep as string to avoid DB errors)
-             |===============================*/
-            $table->string('naql_amount')->nullable();
-            $table->string('pages')->nullable();
+            $table->unsignedInteger('naqal_count')->nullable();
+            $table->unsignedInteger('awraq')->nullable();
+            $table->unsignedInteger('zamima')->nullable();
 
-            /* ===============================
-             |  TEXT
-             |===============================*/
-            $table->text('zamima')->nullable();
             $table->text('notes')->nullable();
 
             $table->timestamps();

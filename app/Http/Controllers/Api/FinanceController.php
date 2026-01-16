@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\FinanceResource;
 use App\Models\Account;
 use App\Models\Finance;
+use App\Models\Income;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -13,25 +14,39 @@ class FinanceController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = (int) $request->get('perPage', 25);
-        $search  = $request->get('search');
+        $search = $request->query('search');
 
         $query = Finance::query()
             ->with([
-                'resource:id,name,code_number,phone_number',
+                'resource:id,name,code_number,phone_number,nick_name',
                 'officeEmployee:id,name,code_number,phone_number',
                 'account:id,name,price',
             ])
             ->search($search)
             ->latest('id');
 
-        return FinanceResource::collection($query->paginate($perPage));
-    }
+        // ✅ SUMMARY TOTALS
+        $totalBalanceAllAccounts = (string) Account::query()->sum('price');
+        $totalIncomeAll          = (string) Income::query()->sum('amount');
+        $totalOutcomeAll         = (string) Finance::query()->sum('money_amount_number');
+        $filteredOutcome         = (string) Finance::query()->search($search)->sum('money_amount_number');
 
+        // ✅ ALWAYS RETURN ALL (NO paginate)
+        $rows = $query->get();
+
+        return FinanceResource::collection($rows)->additional([
+            'summary' => [
+                'total_balance_all_accounts' => $totalBalanceAllAccounts,
+                'total_income_all'           => $totalIncomeAll,
+                'total_outcome_all'          => $totalOutcomeAll,
+                'filtered_outcome'           => $filteredOutcome,
+            ],
+        ]);
+    }
     public function show(Finance $finance)
     {
         $finance->load([
-            'resource:id,name,code_number,phone_number',
+            'resource:id,name,code_number,phone_number,nick_name',
             'officeEmployee:id,name,code_number,phone_number',
             'account:id,name,price',
         ]);
@@ -49,13 +64,13 @@ class FinanceController extends Controller
 
             // Subtract money (Outcome)
             $amount = (float) $data['money_amount_number'];
-            $account->update(['price' => (float)$account->price - $amount]);
+            $account->update(['price' => (float) $account->price - $amount]);
 
             return Finance::create($data);
         });
 
         $row->load([
-            'resource:id,name,code_number,phone_number',
+            'resource:id,name,code_number,phone_number,nick_name',
             'officeEmployee:id,name,code_number,phone_number',
             'account:id,name,price',
         ]);
@@ -78,10 +93,10 @@ class FinanceController extends Controller
             $newAmount = (float) $data['money_amount_number'];
 
             // revert old outcome
-            $oldAccount->update(['price' => (float)$oldAccount->price + $oldAmount]);
+            $oldAccount->update(['price' => (float) $oldAccount->price + $oldAmount]);
 
             // apply new outcome
-            $newAccount->update(['price' => (float)$newAccount->price - $newAmount]);
+            $newAccount->update(['price' => (float) $newAccount->price - $newAmount]);
 
             $finance->update($data);
 
@@ -89,7 +104,7 @@ class FinanceController extends Controller
         });
 
         $updated->load([
-            'resource:id,name,code_number,phone_number',
+            'resource:id,name,code_number,phone_number,nick_name',
             'officeEmployee:id,name,code_number,phone_number',
             'account:id,name,price',
         ]);
@@ -104,7 +119,7 @@ class FinanceController extends Controller
 
             // revert outcome on delete
             $amount = (float) $finance->money_amount_number;
-            $account->update(['price' => (float)$account->price + $amount]);
+            $account->update(['price' => (float) $account->price + $amount]);
 
             $finance->delete();
         });
@@ -127,12 +142,13 @@ class FinanceController extends Controller
             'employee_phone' => ['nullable', 'string', 'max:50'],
             'expense_result' => ['nullable', 'string', 'max:255'],
 
-            'payer' => ['nullable', 'string', 'max:255'],
+            'money_distributer' => ['nullable', 'string', 'max:255'],
+
+            'payer'    => ['nullable', 'string', 'max:255'],
             'receiver' => ['nullable', 'string', 'max:255'],
 
             'account_type' => ['nullable', 'string', 'max:120'],
-
-            'notes' => ['nullable', 'string'],
+            'notes'        => ['nullable', 'string'],
         ]);
     }
 }

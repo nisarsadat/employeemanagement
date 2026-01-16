@@ -386,7 +386,7 @@
 
           <!-- Long texts -->
           <v-row class="tight-grid">
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="12">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('تفصیل') }}</v-card-subtitle>
               </v-card-item>
@@ -403,7 +403,7 @@
               </v-card-text>
             </v-col>
 
-            <v-col cols="12" md="6">
+            <!-- <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{
                   t('گفتگو های انجام شده')
@@ -420,9 +420,9 @@
                   auto-grow
                 />
               </v-card-text>
-            </v-col>
+            </v-col> -->
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('نظر مدیر') }}</v-card-subtitle>
               </v-card-item>
@@ -456,7 +456,7 @@
               </v-card-text>
             </v-col> -->
 
-            <v-col cols="12" md="8">
+            <v-col cols="12" md="12">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('ملاحظات') }}</v-card-subtitle>
               </v-card-item>
@@ -659,7 +659,7 @@
     tafseel: '',
     manager_comment: '',
     lead_drirection: '',
-    talks: '',
+    // talks: '',
     note: '',
     docs_note: '',
     Province_addr: '',

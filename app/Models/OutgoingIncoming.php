@@ -3,45 +3,59 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 
 class OutgoingIncoming extends Model
 {
     protected $fillable = [
-        'outgoing_to_reyasat',
-        'out_going_to_others',
-        'incomming',
-
-        'ahkam_reyasat',
-        'ahkam_rad_shoda_reyasat',
-        'reyasat_na_direction',
-
-        'loy_reyasat_ahkam',
-        'loy_reyasat_ahakm_rad',
-        'loy_reyasat_direction',
-
-        'number',
-        'sign_date',
+        'docs_type',
+        'office_outgoing_date',
+        'office_outgoing_page',
+        'office_incoming_date',
+        'office_incoming_page',
+        'reyasat_outgoing_date',
+        'reyasat_outgoing_page',
+        'loy_reyasat_outgoing_date',
+        'loy_reyasat_outgoing_page',
+        'answer_date',
+        'answer_page',
+        'docs_sign_date',
         'outgoing_incoming_date',
-
+        'who_sighn',
         'marja',
-        'who_sign',
-
-        'numer_of_jold',
-        'list_number',
-
-        'naql_amount',
-        'pages',
-
+        'tafseel',
+        'page',
+        'dusya',
+        'fihrist_page',
+        'naqal_count',
+        'awraq',
         'zamima',
         'notes',
     ];
 
-    public function sundryDocuments(): HasMany
+    protected $casts = [
+        'office_outgoing_date' => 'date',
+        'office_incoming_date' => 'date',
+        'reyasat_outgoing_date' => 'date',
+        'loy_reyasat_outgoing_date' => 'date',
+        'answer_date' => 'date',
+        'docs_sign_date' => 'date',
+        'outgoing_incoming_date' => 'date',
+    ];
+
+    public function scopeSearch(Builder $q, ?string $search): Builder
     {
-        return $this->hasMany(
-            SundryDocument::class,
-            'outgoing_incoming_id'
-        );
+        $search = trim((string) $search);
+        if ($search === '') return $q;
+
+        return $q->where(function (Builder $qq) use ($search) {
+            $qq->where('docs_type', 'like', "%{$search}%")
+               ->orWhere('marja', 'like', "%{$search}%")
+               ->orWhere('who_sighn', 'like', "%{$search}%")
+               ->orWhere('tafseel', 'like', "%{$search}%")
+               ->orWhere('notes', 'like', "%{$search}%")
+               ->orWhere('dusya', 'like', "%{$search}%")
+               ->orWhere('page', 'like', "%{$search}%");
+        });
     }
 }

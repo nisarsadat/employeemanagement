@@ -516,15 +516,12 @@
                 />
               </v-col>
 
-              <!-- Taslimi akhistonky organ -->
+
               <v-col cols="12" md="8">
-                <v-text-field
+                <OrganSelect
                   v-model="form.taslimi_akhistonky_organ"
                   :label="t('تسلیمی اخیستونکی ارگان')"
-                  variant="outlined"
-                  density="compact"
-                  :error="hasError('taslimi_akhistonky_organ')"
-                  :error-messages="getErrorMessages('taslimi_akhistonky_organ')"
+                  :disabled="saving"
                 />
               </v-col>
             </v-row>
@@ -808,6 +805,7 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
   import CombinedInfoTypeSelect from '@/components/MaznonyatTypeSelect.vue';
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
+  import OrganSelect from '@/components/OrganSelect.vue';
 
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();

@@ -1,5 +1,62 @@
 <template>
   <v-container fluid class="pt-4" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- ✅ TOP SUMMARY CARDS -->
+    <v-row class="mb-4" dense :dir="isRtl ? 'rtl' : 'ltr'">
+      <!-- Total Expenses -->
+      <v-col cols="12" md="4">
+        <v-card elevation="2" rounded="xl" class="pa-4">
+          <div class="d-flex align-center justify-space-between">
+            <div>
+              <div class="text-caption text-medium-emphasis">{{ t('ټول مصرف') }}</div>
+              <div class="text-h6 font-weight-bold mt-1">{{ money(repo.summary?.totalExpense) }}</div>
+              <div class="text-caption mt-1">
+                {{ t('ریکارډونه') }}: <strong>{{ repo.summary?.expenseCount ?? repo.totalItems ?? 0 }}</strong>
+              </div>
+            </div>
+            <v-avatar size="44" class="elevation-1">
+              <v-icon size="24">mdi-cash-minus</v-icon>
+            </v-avatar>
+          </div>
+        </v-card>
+      </v-col>
+
+      <!-- Total Incomes -->
+      <v-col cols="12" md="4">
+        <v-card elevation="2" rounded="xl" class="pa-4">
+          <div class="d-flex align-center justify-space-between">
+            <div>
+              <div class="text-caption text-medium-emphasis">{{ t('ټول عاید') }}</div>
+              <div class="text-h6 font-weight-bold mt-1">{{ money(repo.summary?.totalIncome) }}</div>
+              <div class="text-caption mt-1">
+                {{ t('ریکارډونه') }}: <strong>{{ repo.summary?.incomeCount ?? 0 }}</strong>
+              </div>
+            </div>
+            <v-avatar size="44" class="elevation-1">
+              <v-icon size="24">mdi-cash-plus</v-icon>
+            </v-avatar>
+          </div>
+        </v-card>
+      </v-col>
+
+      <!-- Total Oil Quantity -->
+      <v-col cols="12" md="4">
+        <v-card elevation="2" rounded="xl" class="pa-4">
+          <div class="d-flex align-center justify-space-between">
+            <div>
+              <div class="text-caption text-medium-emphasis">{{ t('ټول تېل (موجود)') }}</div>
+              <div class="text-h6 font-weight-bold mt-1">{{ liters(repo.summary?.totalOilQuantity) }}</div>
+              <div class="text-caption mt-1">
+                {{ t('حسابونه') }}: <strong>{{ repo.summary?.oilAccountsCount ?? 0 }}</strong>
+              </div>
+            </div>
+            <v-avatar size="44" class="elevation-1">
+              <v-icon size="24">mdi-fuel</v-icon>
+            </v-avatar>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
     <!-- Top Bar -->
     <v-row class="align-center mb-4" dense>
       <v-col cols="12" md="4">
@@ -41,7 +98,7 @@
 
         <!-- Quantity -->
         <template #item.oil_quantity="{ item }">
-          <strong>{{ qty(item.oil_quantity) }}</strong>
+          <strong>{{ liters(item.oil_quantity) }}</strong>
         </template>
 
         <!-- Account -->
@@ -93,11 +150,14 @@ const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 
 const headers = computed(() => [
   { title: t('حساب'), key: 'account', sortable: false },
-  { title: t('عنوان'), key: 'name', sortable: false },
-  { title: t('مقصد'), key: 'destination', sortable: false },
-  { title: t('مقدار (L)'), key: 'oil_quantity', sortable: false },
-  { title: t('یادونه'), key: 'note', sortable: false },
+  { title: t('نام'), key: 'name', sortable: false },
+  { title: t('نام پدر'), key: 'father_name', sortable: false },
+  { title: t('کود کارمند'), key: 'officeemployee', sortable: false },
+  { title: t('پرداخت کننده'), key: 'payer', sortable: false },
+  { title: t('مقدار (L)'), key: 'liter_in_number', sortable: false },
   { title: t('نیټه'), key: 'date', sortable: false },
+  { title: t('یادونه'), key: 'note', sortable: false },
+  { title: t('تفصیل'), key: 'tafseel', sortable: false },
   { title: t('کړنې'), key: 'actions', sortable: false, align: 'end' },
 ]);
 
@@ -109,7 +169,6 @@ const pageCount = computed(() => {
 const dialog = ref(false);
 const editMode = ref(false);
 
-// include date in draft
 const draft = reactive({
   id: null,
   oil_account_id: null,
@@ -121,7 +180,13 @@ const draft = reactive({
 });
 
 const fetchAll = async () => {
+  // ✅ Load list
   await repo.FetchExpenseOils({ page: repo.page, itemsPerPage: repo.itemsPerPage });
+
+  // ✅ Load cards summary (you must implement this in repo)
+  // Expected response example:
+  // { totalExpense, totalIncome, totalOilQuantity, expenseCount, incomeCount, oilAccountsCount }
+  if (repo.FetchOilSummary) await repo.FetchOilSummary();
 };
 
 const onPage = async (p) => { repo.page = p || 1; await fetchAll(); };
@@ -158,7 +223,7 @@ const openEdit = async (id) => {
 };
 
 const onSave = async (payload) => {
-  if (payload?.date) payload.date = toIso(payload.date); // normalize to YYYY-MM-DD
+  if (payload?.date) payload.date = toIso(payload.date);
   if (editMode.value && payload.id) await repo.UpdateExpenseOil(payload.id, payload);
   else await repo.CreateExpenseOil(payload);
   dialog.value = false;
@@ -171,7 +236,8 @@ const del = async (item) => {
   await fetchAll();
 };
 
-const qty = (n) => Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+const liters = (n) => `${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} L`;
 
 onMounted(fetchAll);
 </script>

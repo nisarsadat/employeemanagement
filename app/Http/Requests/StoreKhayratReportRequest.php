@@ -48,7 +48,7 @@ class StoreKhayratReportRequest extends FormRequest
             if ($exists) {
                 $validator->errors()->add(
                     'saved_date',
-                    'برای این Resource در همین ماه قبلاً راپور ثبت شده است. (One report per month)'
+                    'برای این منبع در همین ماه قبلاً راپور ثبت شده است.'
                 );
             }
         });

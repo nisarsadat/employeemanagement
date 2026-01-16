@@ -28,6 +28,8 @@ import { useChatRepository } from './stores/ChatRepository.js'
 
 // ✅ Axios for Bearer token mode
 import axios from 'axios'
+import { installUiDigitLocalizer } from './plugins/uiDigits.js'
+
 axios.defaults.withCredentials = false
 axios.defaults.headers.common['Accept'] = 'application/json'
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
@@ -61,6 +63,9 @@ app.use(pinia)
 app.use(router)
 app.use(vuetify)
 app.use(i18n)
+
+installUiDigitLocalizer(() => i18n.global.locale.value)
+
 app.use(Toast)
 app.use(VueApexCharts)
 

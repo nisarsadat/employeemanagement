@@ -1,9 +1,91 @@
+<!-- src/pages/Incomes/IncomesIndex.vue -->
 <template>
-  <v-container fluid class="pt-6" :dir="rtl ? 'rtl' : 'ltr'">
-    <!-- <AppBar title="عایدات" subtitle="ثبت و مدیریت عایدات - افزایش موجودی حساب" /> -->
+  <v-container fluid class="pt-6 page-bg" :dir="rtl ? 'rtl' : 'ltr'">
+    <!-- ✅ SAME SUMMARY CARDS (reuse finances summary) -->
+    <v-row class="mb-4" dense :dir="rtl ? 'rtl' : 'ltr'">
+      <v-col cols="12" md="3">
+        <v-card rounded="xl" class="shadow-sm stat-card">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="min-w-0">
+                <div class="text-caption text-medium-emphasis family">مجموع بیلانس همه حساب‌ها</div>
+                <div class="text-h6 font-weight-bold stat-value">
+                  {{ fmtMoney(summary.total_balance_all_accounts) }}
+                </div>
+                <div class="text-caption text-medium-emphasis mt-1 family">جمع کل حساب‌ها</div>
+              </div>
+
+              <div class="stat-icon-wrap">
+                <v-icon size="26">mdi-bank</v-icon>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="3">
+        <v-card rounded="xl" class="shadow-sm stat-card">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="min-w-0">
+                <div class="text-caption text-medium-emphasis family">مجموع عواید</div>
+                <div class="text-h6 font-weight-bold stat-value">
+                  {{ fmtMoney(summary.total_income_all) }}
+                </div>
+                <div class="text-caption text-medium-emphasis mt-1 family">جمع کل درآمد</div>
+              </div>
+
+              <div class="stat-icon-wrap">
+                <v-icon size="26">mdi-cash-plus</v-icon>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="3">
+        <v-card rounded="xl" class="shadow-sm stat-card">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="min-w-0">
+                <div class="text-caption text-medium-emphasis family">مجموع مصارف</div>
+                <div class="text-h6 font-weight-bold stat-value">
+                  {{ fmtMoney(summary.total_outcome_all) }}
+                </div>
+                <div class="text-caption text-medium-emphasis mt-1 family">جمع کل مصرف</div>
+              </div>
+
+              <div class="stat-icon-wrap">
+                <v-icon size="26">mdi-cash-minus</v-icon>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="3">
+        <v-card rounded="xl" class="shadow-sm stat-card">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="min-w-0">
+                <div class="text-caption text-medium-emphasis family">مصارف همین لیست</div>
+                <div class="text-h6 font-weight-bold stat-value">
+                  {{ fmtMoney(summary.filtered_outcome) }}
+                </div>
+                <div class="text-caption text-medium-emphasis mt-1 family">همین صفحه/جستجو</div>
+              </div>
+
+              <div class="stat-icon-wrap">
+                <v-icon size="26">mdi-filter</v-icon>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
     <!-- Filters -->
-    <v-card rounded="xl" class="shadow-sm mb-4">
+    <v-card rounded="xl" class="shadow-sm mb-4 filters-card">
       <v-card-text class="pa-4">
         <div class="d-flex align-center justify-space-between flex-wrap gap-2">
           <div class="d-flex gap-2 flex-wrap">
@@ -18,33 +100,19 @@
               clearable
               @click:clear="clearSearch"
             />
-
-            <v-autocomplete
-              v-model="repo.incomesAccountId"
-              :items="accountOptions"
-              item-title="name"
-              item-value="id"
-              label="فلتر حساب"
-              density="compact"
-              variant="outlined"
-              style="min-width: 240px"
-              prepend-inner-icon="mdi-bank"
-              clearable
-              @update:modelValue="onAccountFilterChanged"
-            />
-
-            <v-btn variant="tonal" @click="resetFilters">ریست</v-btn>
           </div>
 
           <div class="d-flex gap-2">
-            <v-btn color="success" prepend-icon="mdi-plus" @click="openCreate"> ثبت عاید </v-btn>
+            <v-btn color="success" prepend-icon="mdi-plus" class="text-none" @click="openCreate">
+              ثبت عاید
+            </v-btn>
           </div>
         </div>
       </v-card-text>
     </v-card>
 
     <!-- Table -->
-    <v-card rounded="xl" class="shadow-sm">
+    <v-card rounded="xl" class="shadow-sm table-card">
       <v-card-text class="pa-0">
         <FilterableTable
           :loading="repo.loading"
@@ -58,34 +126,37 @@
           @update:page="onPage"
           @update:perPage="onPerPage"
         >
-          <!-- ✅ Actions slot (same idea as your Finances page) -->
           <template #actions="{ item }">
             <div class="d-flex align-center ga-2">
-              <!-- Edit -->
               <v-tooltip text="ویرایش عاید" location="top">
                 <template #activator="{ props: tooltipProps }">
-                  <v-icon
-                    size="small"
+                  <v-btn
                     v-bind="tooltipProps"
+                    icon
+                    size="x-small"
+                    variant="tonal"
                     color="amber-darken-2"
+                    class="icon-btn"
                     @click.stop="startEdit(item)"
                   >
-                    mdi-pencil
-                  </v-icon>
+                    <v-icon size="18">mdi-pencil</v-icon>
+                  </v-btn>
                 </template>
               </v-tooltip>
 
-              <!-- Delete -->
               <v-tooltip text="حذف عاید" location="top">
                 <template #activator="{ props: tooltipProps }">
-                  <v-icon
-                    size="small"
+                  <v-btn
                     v-bind="tooltipProps"
+                    icon
+                    size="x-small"
+                    variant="tonal"
                     color="red-darken-2"
+                    class="icon-btn"
                     @click.stop="openDeleteDialog(item)"
                   >
-                    mdi-delete
-                  </v-icon>
+                    <v-icon size="18">mdi-delete</v-icon>
+                  </v-btn>
                 </template>
               </v-tooltip>
             </div>
@@ -114,19 +185,15 @@
   import IncomeFormDialog from './IncomesFormDialog.vue';
   import { useFinanceRepository } from '@/stores/financeRepository';
 
-  // RTL (replace with i18n)
   const rtl = ref(true);
-
   const repo = useFinanceRepository();
 
   const dialog = ref(false);
   const editId = ref(null);
 
-  // ✅ delete (Informations/Finances style)
   const deleteDialog = ref(false);
   const deleteTarget = ref(null);
 
-  /* helper to unwrap row/raw like your other pages */
   function getRow(payload) {
     return payload?.raw ?? payload;
   }
@@ -134,7 +201,6 @@
   const accountOptions = computed(() => repo.accounts || []);
 
   const headersFT = [
-
     { title: 'حساب', key: 'account_name', sortable: true },
     { title: 'مبلغ', key: 'amount', sortable: true },
     { title: 'تاریخ', key: 'received_at', sortable: true },
@@ -147,15 +213,41 @@
     return (repo.incomes || []).map((it, i) => ({
       ...it,
       index: startIndex + i + 1,
-      // if backend returns account relation, prefer it, else fallback
       account_name: it?.account?.name ?? it?.account_name ?? '',
       received_at: (it?.received_at ?? '').toString().slice(0, 10),
     }));
   });
 
-  // keep empty if you don't use them
   const filters = [];
   const topGroups = [];
+
+  /**
+   * ✅ IMPORTANT:
+   * Your repository currently fills financesSummary ONLY when /finances is called.
+   * So we call FetchFinancesData once (lightweight) to get the summary for cards.
+   */
+  const summary = computed(
+    () =>
+      repo.financesSummary || {
+        total_balance_all_accounts: '0.00',
+        total_income_all: '0.00',
+        total_outcome_all: '0.00',
+        filtered_outcome: '0.00',
+      }
+  );
+
+  function fmtMoney(v) {
+    const n = Number(v ?? 0);
+    if (Number.isNaN(n)) return String(v ?? '');
+
+    // if integer => show without .00
+    if (Math.floor(n) === n) return String(n);
+
+    // if has decimals => show as-is (trim trailing zeros)
+    return String(n)
+      .replace(/(\.\d*?)0+$/, '$1')
+      .replace(/\.$/, '');
+  }
 
   function fetchAll() {
     repo.FetchIncomesData({
@@ -205,9 +297,10 @@
 
   function onSaved() {
     fetchAll();
+    // refresh cards after save
+    repo.FetchFinancesData({ page: 1, perPage: 1, search: '' });
   }
 
-  /* ✅ DELETE like your Finances page */
   function openDeleteDialog(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
@@ -226,6 +319,8 @@
     try {
       await repo.DeleteIncome(row.id);
       await fetchAll();
+      // refresh cards after delete
+      await repo.FetchFinancesData({ page: 1, perPage: 1, search: '' });
     } finally {
       deleteDialog.value = false;
       deleteTarget.value = null;
@@ -245,19 +340,91 @@
 
   onMounted(async () => {
     await ensureAccountsLoaded();
+
+    // ✅ fetch incomes list
     fetchAll();
+
+    // ✅ fetch summary cards (loads totals)
+    await repo.FetchFinancesData({ page: 1, perPage: 1, search: '' });
   });
 </script>
 
 <style scoped>
+  .page-bg {
+    min-height: 100%;
+  }
+
   .gap-2 {
     gap: 8px;
   }
 
-  :deep(.v-btn--icon) {
-    transition: all 0.2s ease;
+  /* Summary cards */
+  .stat-card {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    position: relative;
   }
-  :deep(.v-btn--icon:hover) {
-    transform: scale(1.1);
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(25, 118, 210, 0.07), rgba(156, 39, 176, 0.05));
+    pointer-events: none;
+  }
+  .stat-value {
+    letter-spacing: 0.2px;
+  }
+  .stat-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(25, 118, 210, 0.08);
+  }
+
+  .filters-card,
+  .table-card {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .icon-btn {
+    border-radius: 10px;
+  }
+  /* ✅ Finance/Income/Accounts summary cards font + look */
+  .finance-cards {
+    font-family: var(--app-font) !important;
+  }
+
+  .finance-card {
+    font-family: var(--app-font) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .finance-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(25, 118, 210, 0.07), rgba(156, 39, 176, 0.05));
+    pointer-events: none;
+  }
+
+  .finance-card .finance-card__value {
+    font-family: var(--app-font) !important;
+    letter-spacing: 0.2px;
+  }
+
+  .finance-card .finance-card__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(25, 118, 210, 0.08);
+  }
+  .family {
+    font-family: var(--app-font) !important;
   }
 </style>

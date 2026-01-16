@@ -6,50 +6,44 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateOutgoingIncomingRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return true;
-    }
+    public function authorize(): bool { return true; }
 
     public function rules(): array
     {
         return [
-            'number' => ['sometimes', 'required', 'string', 'max:255'],
+            'docs_type' => ['sometimes','nullable','string'],
 
-            'outgoing_to_reyasat' => ['nullable', 'string', 'max:255'],
-            'out_going_to_others' => ['nullable', 'string', 'max:255'],
-            'incomming' => ['nullable', 'string', 'max:255'],
+            'office_outgoing_date' => ['sometimes','nullable','date'],
+            'office_outgoing_page' => ['sometimes','nullable','string','max:255'],
 
-            'ahkam_reyasat' => ['nullable', 'string', 'max:255'],
-            'ahkam_rad_shoda_reyasat' => ['nullable', 'string', 'max:255'],
-            'reyasat_na_direction' => ['nullable', 'string', 'max:255'],
+            'office_incoming_date' => ['sometimes','nullable','date'],
+            'office_incoming_page' => ['sometimes','nullable','string','max:255'],
 
-            'loy_reyasat_ahkam' => ['nullable', 'string', 'max:255'],
-            'loy_reyasat_ahakm_rad' => ['nullable', 'string', 'max:255'],
-            'loy_reyasat_direction' => ['nullable', 'string', 'max:255'],
+            'reyasat_outgoing_date' => ['sometimes','nullable','date'],
+            'reyasat_outgoing_page' => ['sometimes','nullable','string','max:255'],
 
-            'sign_date' => ['nullable', 'date'],
-            'outgoing_incoming_date' => ['nullable', 'date'],
+            'loy_reyasat_outgoing_date' => ['sometimes','nullable','date'],
+            'loy_reyasat_outgoing_page' => ['sometimes','nullable','string','max:255'],
 
-            'marja' => ['nullable', 'string', 'max:255'],
-            'who_sign' => ['nullable', 'string', 'max:255'],
+            'answer_date' => ['sometimes','nullable','date'],
+            'answer_page' => ['sometimes','nullable','string','max:255'],
 
-            'numer_of_jold' => ['nullable', 'string', 'max:255'],
-            'list_number' => ['nullable', 'string', 'max:255'],
+            'docs_sign_date' => ['sometimes','nullable','date'],
+            'outgoing_incoming_date' => ['sometimes','nullable','date'],
 
-            'naql_amount' => ['nullable', 'string', 'max:255'],
-            'pages' => ['nullable', 'string', 'max:255'],
+            'who_sighn' => ['sometimes','nullable','string','max:255'],
+            'marja' => ['sometimes','nullable','string','max:255'],
 
-            'zamima' => ['nullable', 'string'],
-            'notes' => ['nullable', 'string'],
+            'tafseel' => ['sometimes','nullable','string'],
+            'notes' => ['sometimes','nullable','string'],
 
-            // files
-            'documents' => ['nullable', 'array'],
-            'documents.*' => ['file', 'max:10240'],
+            'page' => ['sometimes','nullable','string','max:255'],
+            'dusya' => ['sometimes','nullable','string','max:255'],
+            'fihrist_page' => ['sometimes','nullable','string','max:255'],
 
-            // docs remove
-            'removed_document_ids' => ['nullable', 'array'],
-            'removed_document_ids.*' => ['integer'],
+            'naqal_count' => ['sometimes','nullable','integer','min:0'],
+            'awraq' => ['sometimes','nullable','integer','min:0'],
+            'zamima' => ['sometimes','nullable','integer','min:0'],
         ];
     }
 }

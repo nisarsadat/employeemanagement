@@ -49,15 +49,15 @@
               />
             </v-col>
 
-            <v-col cols="12" md="6">
+            <!-- <v-col cols="12" md="6">
               <v-text-field
                 v-model.trim="localDraft.source"
                 :label="t('سرچینه')"
                 variant="outlined"
                 density="compact"
               />
-            </v-col>
-            <v-col cols="12" md="6">
+            </v-col> -->
+            <v-col cols="12" md="12">
               <DateInput v-model="localDraft.date" :label="t('نیټه')" />
             </v-col>  
 

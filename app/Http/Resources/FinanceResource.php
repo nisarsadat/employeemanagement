@@ -48,6 +48,7 @@ class FinanceResource extends JsonResource
                     'name' => $resource->name,
                     'code_number' => $resource->code_number,
                     'phone_number' => $resource->phone_number,
+                    'nick_name' => $resource->nick_name,
                 ] : null;
             }),
 

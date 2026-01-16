@@ -12,61 +12,42 @@ class OutgoingIncomingResource extends JsonResource
         return [
             'id' => $this->id,
 
-            // ========================
-            // Incoming / Outgoing
-            // ========================
-            'outgoing_to_reyasat' => $this->outgoing_to_reyasat,
-            'out_going_to_others' => $this->out_going_to_others,
-            'incomming' => $this->incomming,
+            'docs_type' => $this->docs_type,
 
-            // ========================
-            // Ahkam
-            // ========================
-            'ahkam_reyasat' => $this->ahkam_reyasat,
-            'ahkam_rad_shoda_reyasat' => $this->ahkam_rad_shoda_reyasat,
-            'reyasat_na_direction' => $this->reyasat_na_direction,
+            'office_outgoing_date' => $this->office_outgoing_date,
+            'office_outgoing_page' => $this->office_outgoing_page,
 
-            'loy_reyasat_ahkam' => $this->loy_reyasat_ahkam,
-            'loy_reyasat_ahakm_rad' => $this->loy_reyasat_ahakm_rad,
-            'loy_reyasat_direction' => $this->loy_reyasat_direction,
+            'office_incoming_date' => $this->office_incoming_date,
+            'office_incoming_page' => $this->office_incoming_page,
 
-            // ========================
-            // Numbers & Dates
-            // ========================
-            'number' => $this->number,
+            'reyasat_outgoing_date' => $this->reyasat_outgoing_date,
+            'reyasat_outgoing_page' => $this->reyasat_outgoing_page,
 
-            // ✅ dates are casted in model → already YYYY-MM-DD
-            'sign_date' => $this->sign_date,
+            'loy_reyasat_outgoing_date' => $this->loy_reyasat_outgoing_date,
+            'loy_reyasat_outgoing_page' => $this->loy_reyasat_outgoing_page,
+
+            'answer_date' => $this->answer_date,
+            'answer_page' => $this->answer_page,
+
+            'docs_sign_date' => $this->docs_sign_date,
             'outgoing_incoming_date' => $this->outgoing_incoming_date,
 
-            // ========================
-            // Reference
-            // ========================
+            'who_sighn' => $this->who_sighn,
             'marja' => $this->marja,
-            'who_sign' => $this->who_sign,
+            'tafseel' => $this->tafseel,
 
-            'numer_of_jold' => $this->numer_of_jold,
-            'list_number' => $this->list_number,
+            'page' => $this->page,
+            'dusya' => $this->dusya,
+            'fihrist_page' => $this->fihrist_page,
 
-            // ========================
-            // Content
-            // ========================
-            'naql_amount' => $this->naql_amount,
-            'pages' => $this->pages,
+            'naqal_count' => $this->naqal_count,
+            'awraq' => $this->awraq,
             'zamima' => $this->zamima,
+
             'notes' => $this->notes,
 
-            // ========================
-            // Documents
-            // ========================
-            'sundry_documents' => SundryDocumentResource::collection(
-                $this->whenLoaded('sundryDocuments')
-            ),
-
-            // ========================
-            // Meta
-            // ========================
-            'created_at' => $this->created_at?->toISOString(),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

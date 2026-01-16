@@ -8,6 +8,7 @@ use App\Models\Resource;
 use App\Models\Information;
 use App\Models\Event;
 use App\Models\CaptiveDelivery;
+use App\Models\Account;
 
 use App\Models\Finance;
 use App\Models\Income;
@@ -23,7 +24,7 @@ use Carbon\Carbon;
 class DashboardController extends Controller
 {
     /**
-     * GET /api/dashboard?period=daily|weekly|monthly|yearly
+     * GET /api/dashboard?period=daily|weekly|monthly|yearly|all
      */
     public function index(Request $request): JsonResponse
     {
@@ -32,12 +33,38 @@ class DashboardController extends Controller
          |-------------------------------------------------*/
         $period = strtolower((string) $request->query('period', 'yearly'));
         [$from, $to] = $this->resolvePeriodRange($period);
+
         /* -------------------------------------------------
         | EMPLOYEES SUMMARY (total/active/inactive) filtered by period
         |-------------------------------------------------*/
         $employeesTotal = OfficeEmployee::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
+
+        /* -------------------------------------------------
+        | ✅ EMPLOYEES BY JOB TYPE (normalized/merged) filtered by period
+        |-------------------------------------------------*/
+        $jobTypeRaw = OfficeEmployee::query()
+            ->select('job_type', DB::raw('COUNT(*) as total'))
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->groupBy('job_type')
+            ->get();
+
+        $jobTypeMap = [];
+
+        foreach ($jobTypeRaw as $row) {
+            $canonical = $this->canonicalJobType($row->job_type);
+            $jobTypeMap[$canonical] = ($jobTypeMap[$canonical] ?? 0) + (int) $row->total;
+        }
+
+        $employeesByJobType = collect($jobTypeMap)
+            ->map(fn ($count, $name) => [
+                'job_type' => $name,
+                'count'    => (int) $count,
+            ])
+            ->sortByDesc('count')
+            ->values();
+
 
         $employeesActive = OfficeEmployee::query()
             ->active()
@@ -162,6 +189,7 @@ class DashboardController extends Controller
         $informationsTotal = Information::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
+
         // -------------------------------------------------
         // ✅ INFORMATIONS GROWTH (current vs previous period)
         // -------------------------------------------------
@@ -175,7 +203,7 @@ class DashboardController extends Controller
             ? round((($informationsTotal - $informationsPrevTotal) / $informationsPrevTotal) * 100, 1)
             : ($informationsTotal > 0 ? 100 : 0);
 
-                $eventsTotal = Event::query()
+        $eventsTotal = Event::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
 
@@ -184,11 +212,12 @@ class DashboardController extends Controller
             ->count();
 
         /* -------------------------------------------------
-         | MONEY TOTALS (filtered)
-         |-------------------------------------------------*/
+        | MONEY TOTALS (filtered + all-time + accounts balance)
+        |-------------------------------------------------*/
         $incomeDateCol  = $this->detectModelDateColumn(new Income(),  ['debut', 'date', 'income_date', 'paid_at', 'created_at']);
         $financeDateCol = $this->detectModelDateColumn(new Finance(), ['debut', 'date', 'finance_date', 'created_at']);
 
+        // filtered (period)
         $moneyIncomeTotal = (float) Income::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, $incomeDateCol, $from, $to))
             ->sum('amount');
@@ -197,29 +226,53 @@ class DashboardController extends Controller
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, $financeDateCol, $from, $to))
             ->sum('money_amount_number');
 
-        $moneyBalance = $moneyIncomeTotal - $moneyExpensedTotal;
+        // ✅ REAL balance from accounts (source of truth)
+        $accountsTotalBalance = (float) Account::query()->sum('price');
+
+        // keep old calc too (optional)
+        $moneyBalanceCalc = $moneyIncomeTotal - $moneyExpensedTotal;
+
+        // all-time (optional but useful)
+        $moneyIncomeTotalAll = (float) Income::query()->sum('amount');
+        $moneyExpensedTotalAll = (float) Finance::query()->sum('money_amount_number');
+        $moneyBalanceAllCalc = $moneyIncomeTotalAll - $moneyExpensedTotalAll;
 
         /* -------------------------------------------------
-         | OIL TOTALS (filtered)
-         |-------------------------------------------------*/
+        | OIL TOTALS (filtered + all-time)
+        |-------------------------------------------------*/
         $incomeOilDateCol  = $this->detectModelDateColumn(new IncomeOil(),  ['debut', 'date', 'oil_date', 'created_at']);
         $expenseOilDateCol = $this->detectModelDateColumn(new ExpenseOil(), ['debut', 'date', 'oil_date', 'created_at']);
 
+        // ✅ IncomeOil (still uses oil_quantity in your repo)
         $oilIncomeTotal = (float) IncomeOil::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, $incomeOilDateCol, $from, $to))
             ->sum('oil_quantity');
 
+        // ✅ ExpenseOil uses liter_in_number
         $oilExpensedTotal = (float) ExpenseOil::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, $expenseOilDateCol, $from, $to))
-            ->sum('oil_quantity');
+            ->sum('liter_in_number');
 
         $oilBalance = $oilIncomeTotal - $oilExpensedTotal;
 
+        // all-time
+        $oilIncomeTotalAll = (float) IncomeOil::query()->sum('oil_quantity');
+        $oilExpensedTotalAll = (float) ExpenseOil::query()->sum('liter_in_number');
+        $oilBalanceAll = $oilIncomeTotalAll - $oilExpensedTotalAll;
+
         /* -------------------------------------------------
-         | FORMATS & ZONES (filtered)
+         | FORMATS & ✅ MAIN DISTRICT (instead of zone) (filtered)
          |-------------------------------------------------*/
         $formatTables  = $this->formatsTables();
-        $formatsByZone = $this->countFormatsByZoneSafely($formatTables, $from, $to);
+
+        /**
+         * ✅ IMPORTANT:
+         * We keep the response key EXACTLY the same: "formats_by_zone"
+         * so you don't change anything in the frontend.
+         *
+         * But the grouping is now by MAIN DISTRICT (or district) column.
+         */
+        $formatsByZone = $this->countFormatsByMainDistrictSafely($formatTables, $from, $to);
 
         /* -------------------------------------------------
          | RESPONSE
@@ -231,20 +284,20 @@ class DashboardController extends Controller
                 'to'   => $to?->toDateTimeString(),
             ],
 
-        'employees' => [
-            'total'        => $employeesTotal,
-            'active'       => $employeesActive,
-            'inactive'     => $employeesInactive,
+            'employees' => [
+                'total'        => $employeesTotal,
+                'active'       => $employeesActive,
+                'inactive'     => $employeesInactive,
+                'job_types' => $employeesByJobType,
 
-            // keep your ranking data exactly as-is
-            'max_total'    => $maxTotal,
-            'grouped'      => $employeesGrouped,
-            'flat_sorted'  => $employeesRanked->values(),
+                // keep your ranking data exactly as-is
+                'max_total'    => $maxTotal,
+                'grouped'      => $employeesGrouped,
+                'flat_sorted'  => $employeesRanked->values(),
 
-            // optional: if you want to know how many employees had activity in this period
-            'ranked_total' => $employeesForDashboard->count(),
-        ],
-
+                // optional: if you want to know how many employees had activity in this period
+                'ranked_total' => $employeesForDashboard->count(),
+            ],
 
             'resources' => [
                 'total'    => $resourcesTotal,
@@ -271,19 +324,37 @@ class DashboardController extends Controller
             'captive_deliveries' => [
                 'total' => $captiveDeliveriesTotal,
             ],
-
             'money' => [
                 'income_total'   => $moneyIncomeTotal,
                 'expensed_total' => $moneyExpensedTotal,
-                'balance'        => $moneyBalance,
+
+                // ✅ keep same key "balance" but now it is real accounts balance
+                'balance'        => $accountsTotalBalance,
+
+                // extra (frontend can ignore)
+                'balance_calc'   => $moneyBalanceCalc,
+                'all_time' => [
+                    'income_total'   => $moneyIncomeTotalAll,
+                    'expensed_total' => $moneyExpensedTotalAll,
+                    'balance_calc'   => $moneyBalanceAllCalc,
+                    'accounts_total_balance' => $accountsTotalBalance,
+                ],
             ],
 
             'oil' => [
                 'income_total'   => $oilIncomeTotal,
                 'expensed_total' => $oilExpensedTotal,
                 'balance'        => $oilBalance,
+
+                'all_time' => [
+                    'income_total'   => $oilIncomeTotalAll,
+                    'expensed_total' => $oilExpensedTotalAll,
+                    'balance'        => $oilBalanceAll,
+                ],
             ],
 
+
+            // ✅ FRONTEND unchanged (same key + same structure)
             'formats_by_zone' => $formatsByZone,
         ]);
     }
@@ -297,12 +368,13 @@ class DashboardController extends Controller
 
         return match ($period) {
             'all'     => [null, null], // ✅ NO FILTER (whole time)
-            'daily'   => [$now->copy()->subDay()->startOfDay(),    $now->copy()->endOfDay()],
-            'weekly'  => [$now->copy()->subDays(7)->startOfDay(),  $now->copy()->endOfDay()],
-            'monthly' => [$now->copy()->subDays(30)->startOfDay(), $now->copy()->endOfDay()],
+            'daily'   => [$now->copy()->subDay()->startOfDay(),     $now->copy()->endOfDay()],
+            'weekly'  => [$now->copy()->subDays(7)->startOfDay(),   $now->copy()->endOfDay()],
+            'monthly' => [$now->copy()->subDays(30)->startOfDay(),  $now->copy()->endOfDay()],
             default   => [$now->copy()->subDays(365)->startOfDay(), $now->copy()->endOfDay()],
         };
     }
+
     private function resolvePreviousRange(?Carbon $from, ?Carbon $to): array
     {
         if (!$from || !$to) return [null, null];
@@ -453,18 +525,19 @@ class DashboardController extends Controller
             'complexes' => 'کمپلکس‌ها',
             'universities' => 'پوهنتون‌ها',
             'wakilanos' => 'وکیلان',
+            'super_markets' => 'سوپرمارکت‌ها',
         ];
     }
 
     /* =====================================================
-     | ✅ ZONE COUNTING (FILTERS FOR ALL 56 TABLES)
+     | ✅ MAIN DISTRICT COUNTING (FILTERS FOR ALL 56 TABLES)
      |=====================================================*/
-    private function countFormatsByZoneSafely(array $tables, ?Carbon $from = null, ?Carbon $to = null): array
+    private function countFormatsByMainDistrictSafely(array $tables, ?Carbon $from = null, ?Carbon $to = null): array
     {
-        $zoneMap = [];
+        $districtMap = [];
         $usedTables = [];
         $missingTables = [];
-        $noZoneColumn = [];
+        $noDistrictColumn = [];
         $noCreatedAtColumn = [];
         $labels = $this->formatLabels();
 
@@ -488,13 +561,14 @@ class DashboardController extends Controller
                 continue;
             }
 
-            $zoneCol = $this->detectZoneColumn($table);
-            if (!$zoneCol) {
-                $noZoneColumn[] = $table;
+            // ✅ MAIN DISTRICT column detection (priority: main_district first)
+            $districtCol = $this->detectMainDistrictColumn($table);
+            if (!$districtCol) {
+                $noDistrictColumn[] = $table;
                 continue;
             }
 
-            // ✅ GUARANTEE: override date column if configured; otherwise auto-detect
+            // ✅ date column detection/override
             $dateCol = null;
 
             if (isset($overrides[$table]) && is_string($overrides[$table]) && $overrides[$table] !== '') {
@@ -502,7 +576,6 @@ class DashboardController extends Controller
                 if (Schema::hasColumn($table, $overrideCol)) {
                     $dateCol = $overrideCol;
                 } else {
-                    // fallback to detection if override is wrong
                     $dateCol = $this->detectTableDateColumn($table, $dateCandidates);
                 }
             } else {
@@ -510,44 +583,46 @@ class DashboardController extends Controller
             }
 
             if (!$dateCol) {
-                // keep the same meta key name (no other changes)
+                // keep the same meta key name style (no other changes in response shape)
                 $noCreatedAtColumn[] = $table;
             }
 
             $usedTables[] = $table;
 
-            $q = DB::table($table)->select($zoneCol);
+            $q = DB::table($table)->select($districtCol);
 
             // ✅ Apply period filter if any supported date column exists
             if ($dateCol && $from && $to) {
                 $q->whereBetween($dateCol, [$from, $to]);
             }
 
-            $q->cursor()->each(function ($row) use (&$zoneMap, $table, $zoneCol) {
-                $zone = is_string($row->{$zoneCol}) ? trim($row->{$zoneCol}) : '';
+            $q->cursor()->each(function ($row) use (&$districtMap, $table, $districtCol) {
+                $district = is_string($row->{$districtCol}) ? trim($row->{$districtCol}) : '';
 
-                if ($zone === '') {
-                    $zone = 'نامعلوم';
+                if ($district === '') {
+                    $district = 'نامعلوم';
                 }
 
-                if (!isset($zoneMap[$zone])) {
-                    $zoneMap[$zone] = [
-                        'zone'      => $zone,
+                if (!isset($districtMap[$district])) {
+                    // ✅ Keep same structure keys as before (zone/total/breakdown)
+                    // so the frontend does NOT change.
+                    $districtMap[$district] = [
+                        'zone'      => $district,   // 👈 "zone" now contains MAIN DISTRICT value
                         'total'     => 0,
                         'breakdown' => [],
                     ];
                 }
 
-                $zoneMap[$zone]['total']++;
+                $districtMap[$district]['total']++;
 
-                if (!isset($zoneMap[$zone]['breakdown'][$table])) {
-                    $zoneMap[$zone]['breakdown'][$table] = 0;
+                if (!isset($districtMap[$district]['breakdown'][$table])) {
+                    $districtMap[$district]['breakdown'][$table] = 0;
                 }
-                $zoneMap[$zone]['breakdown'][$table]++;
+                $districtMap[$district]['breakdown'][$table]++;
             });
         }
 
-        $zones = array_values($zoneMap);
+        $zones = array_values($districtMap);
         usort($zones, fn ($a, $b) => $b['total'] <=> $a['total']);
 
         foreach ($zones as &$z) {
@@ -567,24 +642,84 @@ class DashboardController extends Controller
         unset($z);
 
         return [
+            // ✅ Keep same response shape (zones + meta) so frontend unchanged
             'zones' => $zones,
             'meta'  => [
                 'used_tables' => $usedTables,
                 'missing_tables' => $missingTables,
-                'tables_without_zone' => $noZoneColumn,
+                'tables_without_zone' => $noDistrictColumn, // keep key name to avoid any frontend dependency
                 'tables_without_created_at' => $noCreatedAtColumn,
                 'strategy' => 'php_counting_no_group_by',
+                'grouped_by' => 'main_district', // extra info (safe)
             ],
         ];
     }
 
-    private function detectZoneColumn(string $table): ?string
+    /**
+     * ✅ MAIN DISTRICT column detection across all 56 tables
+     * Priority: main_district first, then district variations.
+     */
+    private function detectMainDistrictColumn(string $table): ?string
     {
-        foreach (['now_zone', 'activity_zone', 'zone'] as $col) {
+        $candidates = [
+            'main_district',
+            'district',
+            'district_name',
+            'now_district',
+            'activity_district',
+            'current_district',
+            'districts', // in case
+        ];
+
+        foreach ($candidates as $col) {
             if (Schema::hasColumn($table, $col)) {
                 return $col;
             }
         }
+
         return null;
     }
-}
+            /**
+         * Normalize Dari/Persian/Arabic text differences:
+         * - unify ي/ی and ك/ک
+         * - trim + collapse spaces
+         */
+        private function normalizeFa(string $s): string
+        {
+            $s = trim($s);
+
+            // unify Arabic -> Persian letters
+            $s = str_replace(['ي', 'ى'], 'ی', $s);
+            $s = str_replace('ك', 'ک', $s);
+
+            // collapse multiple spaces
+            $s = preg_replace('/\s+/u', ' ', $s);
+
+            return $s ?: 'نامعلوم';
+        }
+
+        /**
+         * Convert messy job_type variants into canonical categories
+         */
+        private function canonicalJobType(?string $jobType): string
+        {
+            $t = $this->normalizeFa((string) $jobType);
+
+            // remove spaces to catch "اوپرات یفی" etc
+            $compact = str_replace(' ', '', $t);
+
+            // ✅ operator variants
+            if (in_array($compact, ['اوپراتیفی', 'اپراتیفی', 'اوپراتیفي'], true)) {
+                return 'اوپراتیفی';
+            }
+
+            // ✅ admin variants
+            if (in_array($compact, ['اداري', 'اداری'], true)) {
+                return 'اداري';
+            }
+
+            // otherwise return normalized value as-is
+            return $t;
+        }
+
+        }

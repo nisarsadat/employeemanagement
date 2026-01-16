@@ -501,7 +501,7 @@
             </v-row>
 
             <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="12">
                 <v-textarea
                   v-model="form.lead_drirection"
                   :label="t('رهنمود رهبریت')"
@@ -514,7 +514,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <!-- <v-col cols="12" md="6">
                 <v-textarea
                   v-model="form.talks"
                   :label="t('گفتگوهای انجام شده')"
@@ -525,7 +525,7 @@
                   :error="hasError('talks')"
                   :error-messages="getErrorMessages('talks')"
                 />
-              </v-col>
+              </v-col> -->
             </v-row>
 
             <v-row class="px-3 pb-3 pt-0">
@@ -842,7 +842,7 @@
     tafseel: '',
     manager_comment: '',
     lead_drirection: '',
-    talks: '',
+    // talks: '',
     note: '',
     docs_note: '',
     result: '',

@@ -67,14 +67,14 @@
                 </v-chip>
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-2">{{ t('کارمندان') }}</div>
+              <div class="text-caption text-medium-emphasis mb-2">{{ t('کل کارمندان') }}</div>
 
               <div class="d-flex align-baseline justify-space-between">
                 <div class="text-h3 font-weight-black">{{ employeesTotal.toLocaleString() }}</div>
-                <div class="mini-meta">
+                <!-- <div class="mini-meta">
                   <v-icon size="16" color="primary">mdi-account-multiple</v-icon>
                   <span class="text-caption">{{ t('کل') }}</span>
-                </div>
+                </div> -->
               </div>
 
               <div class="mt-4 d-flex align-center justify-space-between flex-wrap gap-2">
@@ -102,9 +102,9 @@
                   </v-chip>
                 </div>
 
-                <div class="text-caption text-medium-emphasis">
+                <!-- <div class="text-caption text-medium-emphasis">
                   {{ t('رتبه‌بندی در جدول') }}
-                </div>
+                </div> -->
               </div>
             </v-card-text>
           </v-card>
@@ -317,19 +317,15 @@
                 <v-chip
                   size="x-small"
                   variant="tonal"
-                  :color="moneyBalance>= 0 ? 'success' : 'warning'"
+                  :color="moneyBalance >= 0 ? 'success' : 'warning'"
                   class="font-weight-bold"
                 >
-                  <v-icon
-                    start
-                    size="14"
-                    :icon="moneyBalance >= 0 ? 'mdi-plus' : 'mdi-minus'"
-                  />
+                  <v-icon start size="14" :icon="moneyBalance >= 0 ? 'mdi-plus' : 'mdi-minus'" />
 
                   <span>{{ t('موجودی:') }}</span>
                   <span>{{ num(moneyBalance) }}</span>
                 </v-chip>
-              </div>  
+              </div>
 
               <div class="text-caption text-medium-emphasis mb-2">{{ t('بیلانس مالی') }}</div>
 
@@ -1042,7 +1038,7 @@
     return e?.response?.data?.message || e?.message || String(e);
   });
   // fiters
-  const period = ref('all'); // default is ALL time
+  const period = ref('monthly'); // default is ALL time
 
   async function onPeriodChanged() {
     currentPage.value = 1; // optional (good UX)

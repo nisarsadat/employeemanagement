@@ -493,7 +493,7 @@ const headersFT = computed(() => [
   { title: t('کشته شده'), key: 'killed' },
 
   { title: t('تفصیل'), key: 'tafseel' },
-  { title: t('وضاحت'), key: 'talks' },
+  // { title: t('وضاحت'), key: 'talks' },
   { title: t('ملاحظات'), key: 'note' },
   { title: t('نوت راجع به اسناد'), key: 'docs_note' },
 
@@ -517,7 +517,7 @@ const topGroups = computed(() => [
   // ✅ aligned with your headers (talafat_jani is commented out)
   { title: t('تلفات'), keys: ['talafat_mali', 'injured', 'killed'] },
 
-  { title: t('متن‌ها'), keys: ['tafseel', 'talks', 'note', 'docs_note'] },
+  { title: t('متن‌ها'), keys: ['tafseel', 'note', 'docs_note'] },
 ]);
 
   const filters = ref({});

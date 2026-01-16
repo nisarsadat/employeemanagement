@@ -573,7 +573,7 @@
     { title: t('تفصیل'), key: 'tafseel' },
     { title: t('نظر مدیر'), key: 'manager_comment' },
     { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
-    { title: t('گفت‌وگوها'), key: 'talks' },
+    // { title: t('گفت‌وگوها'), key: 'talks' },
     { title: t('نتیجه'), key: 'result' },
     { title: t('ملاحظات'), key: 'note' },
     { title: t('نوت راجع به اسناد'), key: 'docs_note', width: 140 },
@@ -615,7 +615,7 @@
 
     {
       title: t('متن‌ها'),
-      keys: ['tafseel', 'manager_comment', 'lead_drirection', 'talks', 'note', 'result'],
+      keys: ['tafseel', 'manager_comment', 'lead_drirection', 'note', 'result'],
     },
   ]);
 
