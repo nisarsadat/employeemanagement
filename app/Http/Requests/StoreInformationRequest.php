@@ -40,6 +40,7 @@ class StoreInformationRequest extends FormRequest
             'information_saved_date' => ['nullable','string'],
             'information_saved_hour' => ['nullable','string'],
             'information_degree' => ['nullable','string'],
+            'trust_percentage' => ['nullable','string'],
 
             'tafseel' => ['nullable','string'],
             'manager_comment' => ['nullable','string'],

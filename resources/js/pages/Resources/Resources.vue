@@ -578,6 +578,7 @@
     { title: t('فعالیت'), key: 'activity' },
     { title: t('حالت مدنی'), key: 'halat_madani' },
     { title: t('عمر'), key: 'age' },
+    { title: t('میزان اعتماد'), key: 'trust_percentage' },
     { title: t('رتبه علمی'), key: 'elmi_level' },
     { title: t('فاکولته/دیپارتمنت'), key: 'faculty' },
     { title: t('مهارت‌های خاص'), key: 'specific_skills' },

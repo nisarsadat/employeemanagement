@@ -11,7 +11,7 @@ class Fasad extends Model
 
     protected $fillable = [
         'name',
-        'picture',
+        'picture', // ✅ single picture path
         'nick_name',
         'father_name',
         'main_province',
@@ -41,9 +41,14 @@ class Fasad extends Model
         'coordinates',
     ];
 
-    /** Fasad belongs to one Resource (existing table/model). */
     public function resource()
     {
         return $this->belongsTo(\App\Models\Resource::class);
+    }
+
+    // ✅ Fasad has many documents
+    public function documents()
+    {
+        return $this->hasMany(FasadDocument::class);
     }
 }

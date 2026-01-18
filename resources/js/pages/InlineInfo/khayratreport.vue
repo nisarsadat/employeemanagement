@@ -13,11 +13,13 @@
     >
       {{ repo.error }}
     </v-alert>
+
     <v-col cols="12" md="12" class="d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
       <v-alert type="info" variant="tonal" density="compact" rounded="lg" class="w-120">
         {{ t('هر منبع فقط ماهانه یک عدد راپور خیریت میتواند دشته باشد!') }}
       </v-alert>
     </v-col>
+
     <!-- FORM -->
     <v-form
       ref="formRef"
@@ -34,7 +36,7 @@
         </v-card-title>
 
         <v-card-text class="pa-0">
-          <!-- Main fields (2 columns like your dialog grid-2) -->
+          <!-- Main fields -->
           <v-row class="tight-grid">
             <!-- Resource -->
             <v-col cols="12" md="6">
@@ -60,7 +62,7 @@
               </v-card-text>
             </v-col>
 
-            <!-- Office Employee -->
+            <!-- Office Employee (auto-filled when resource selected) -->
             <v-col cols="12" md="6">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('کارمند') }}</v-card-subtitle>
@@ -79,6 +81,23 @@
                   :loading="repo.lookups.loadingEmployees"
                   :rules="[rules.selectRequired(t('کارمند'))]"
                   @update:search="onEmployeeSearch"
+                  class="cell"
+                />
+              </v-card-text>
+            </v-col>
+            <!-- ✅ Trust Percentage (read-only) -->
+            <v-col cols="12" md="12">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{ t('فیصدی موثقیت') }}</v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <v-text-field
+                  v-model="draft.trust_percentage"
+                  density="compact"
+                  variant="outlined"
+                  rounded="lg"
+                  readonly
+                  prepend-inner-icon="mdi-percent"
                   class="cell"
                 />
               </v-card-text>
@@ -180,6 +199,7 @@
         </v-btn>
       </template>
     </v-snackbar>
+
     <v-snackbar v-model="showSuccess" color="success" timeout="10000">
       {{ successMessage }}
       <template #actions>
@@ -196,7 +216,6 @@
   import { useRouter } from 'vue-router';
   import { useI18n } from 'vue-i18n';
 
-  import AppBar from '@/components/AppBar.vue';
   import DateInput from '@/components/DateInput.vue';
   import ZoneHawzaPicker from '@/components/ZoneHawzaSelect.vue';
 
@@ -206,7 +225,7 @@
   const { t, locale } = useI18n();
   const repo = useKhayratReportRepository();
 
-  /* RTL handling (same style you use elsewhere) */
+  /* RTL handling */
   const RTL_LOCALES = ['fa', 'fa-AF', 'prs', 'ps', 'ar'];
   const isRtl = ref(RTL_LOCALES.includes(locale.value));
   watch(locale, (v) => (isRtl.value = RTL_LOCALES.includes(v)));
@@ -223,10 +242,18 @@
     showError.value = true;
   }
 
+  const showSuccess = ref(false);
+  const successMessage = ref('');
+  function showSuccessMessage(msg) {
+    successMessage.value = msg;
+    showSuccess.value = true;
+  }
+
   /* draft (CREATE only) */
   const baseDraft = () => ({
     resource_id: null,
-    office_employee_id: null,
+    trust_percentage: '', // ✅ NEW (auto-filled)
+    office_employee_id: null, // ✅ auto-filled from resource
     zone: '',
     hawza: '',
     specefic_place: '',
@@ -239,7 +266,7 @@
     Object.keys(backendErrors).forEach((k) => delete backendErrors[k]);
   }
 
-  /* Rules (simple, like your create form) */
+  /* Rules */
   const rules = {
     required: (label) => (v) => (v && String(v).trim().length > 0) || `«${label}» ضروری است`,
     selectRequired: (label) => (v) =>
@@ -287,18 +314,6 @@
       repo.FetchOfficeEmployeesLookup({ search: '' }),
     ]);
   }
-  const showSuccess = ref(false);
-  const successMessage = ref('');
-
-  function showSuccessMessage(msg) {
-    successMessage.value = msg;
-    showSuccess.value = true;
-  }
-
-  function goBack() {
-    // adjust to your listing route
-    router.push('/app/khayrat-reports');
-  }
 
   function onReset() {
     Object.assign(draft, baseDraft());
@@ -330,11 +345,14 @@
         hawza: draft.hawza || null,
         specefic_place: draft.specefic_place || null,
         saved_date: draft.saved_date || null,
+
+        // NOTE: trust_percentage is read-only UI field.
+        // Only include it in payload IF your backend expects it.
+        // trust_percentage: draft.trust_percentage || null,
       };
 
       await repo.CreateKhayratReport(payload);
 
-      // ✅ stay on same page
       onReset();
       showSuccessMessage(t('گزارش با موفقیت ثبت شد'));
     } catch (e) {
@@ -353,6 +371,37 @@
   onMounted(async () => {
     await preloadLookups();
   });
+
+  // ✅ Auto-fill office_employee_id + trust_percentage when resource selected
+  watch(
+    () => draft.resource_id,
+    (newVal) => {
+      if (!newVal) {
+        draft.office_employee_id = null;
+        draft.trust_percentage = '';
+        return;
+      }
+
+      const r = resourceOptions.value.find((x) => x?.id === newVal);
+      if (!r) return;
+
+      // ✅ trust percentage (support multiple backend keys)
+      draft.trust_percentage =
+        r.trust_percentage ?? r.trustPercentage ?? r.trust_percent ?? r.trustPercent ?? '';
+
+      // ✅ resource -> employee
+      const empId =
+        r.office_employee?.id ??
+        r.officeEmployee?.id ??
+        r.office_employee_id ??
+        r.employee_id ??
+        null;
+
+      if (empId) {
+        draft.office_employee_id = empId;
+      }
+    }
+  );
 </script>
 
 <style scoped>

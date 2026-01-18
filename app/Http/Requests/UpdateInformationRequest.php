@@ -39,6 +39,7 @@ class UpdateInformationRequest extends FormRequest
             'information_saved_date' => ['sometimes','nullable','string'],
             'information_saved_hour' => ['sometimes','nullable','string'],
             'information_degree'     => ['sometimes','nullable','string'],
+            'trust_percentage'     => ['sometimes','nullable','string'],
 
             'tafseel'         => ['sometimes','nullable','string'],
             'manager_comment' => ['sometimes','nullable','string'],

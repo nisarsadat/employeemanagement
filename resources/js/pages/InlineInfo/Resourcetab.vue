@@ -472,6 +472,23 @@
                 />
               </v-card-text>
             </v-col>
+            <!-- ✅ NEW: trust_percentage (read-only) -->
+            <v-col cols="12" md="12">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{ t('فیصدی موثقیت') }}</v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <v-text-field
+                  v-model="draft.trust_percentage"
+                  variant="outlined"
+                  rounded="lg"
+                  class="cell"
+                  density="compact"
+                  readonly
+                  prepend-inner-icon="mdi-percent"
+                />
+              </v-card-text>
+            </v-col>
           </v-row>
 
           <!-- Documents -->
@@ -639,6 +656,7 @@
     hamahangi_date: '',
     maktop_number: '',
     organ: '',
+    trust_percentage: '',
 
     // addresses
     main_province: '',
@@ -783,6 +801,33 @@
     () => draft.jenayee_info_type,
     (val) => {
       if (val) draft.syasi_info_type = '';
+    }
+  );
+  watch(
+    () => draft.resource_id,
+    (newVal) => {
+      // if cleared, clear related auto fields
+      if (!newVal) {
+        draft.office_employee_id = null;
+        draft.trust_percentage = '';
+        return;
+      }
+
+      // find selected resource object
+      const r = resourceItems.value.find((x) => x?.id === newVal);
+      if (!r) return;
+
+      // ✅ trust percentage (support multiple possible backend keys)
+      draft.trust_percentage =
+        r.trust_percentage ?? r.trustPercentage ?? r.trust_percent ?? r.trustPercent ?? '';
+
+      // ✅ map resource -> office_employee_id (pick the correct field name that exists in your API)
+      const empId = r.office_employee_id ?? r.employee_id ?? r.officeEmployeeId ?? null;
+
+      if (empId) {
+        draft.office_employee_id = empId;
+      }
+      // ❌ do nothing to draft.office_employee_info_id
     }
   );
 </script>

@@ -25,6 +25,7 @@ class Event extends Model
         'talafat_jani',
         'talafat_mali',
         'injured',
+        'trust_percentage',
         'killed',
         'tafseel',
         'Province_addr',

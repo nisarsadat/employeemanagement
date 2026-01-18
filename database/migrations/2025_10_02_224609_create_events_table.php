@@ -32,6 +32,7 @@ return new class extends Migration {
                 $table->string('talafat_mali')->nullable();
                 $table->string('injured')->nullable();
                 $table->string('killed')->nullable();
+                $table->string('trust_percentage')->nullable();
 
                 $table->text('tafseel')->nullable();
                 $table->text('talks')->nullable();

@@ -8,15 +8,24 @@ class ResourceResource extends JsonResource
 {
     private function relCount(string $attr, string $relation): int
     {
-        // If controller used withCount, use it (fast)
         if (isset($this->{$attr})) return (int) $this->{$attr};
-
-        // Fallback to counting relation
         return (int) $this->{$relation}()->count();
+    }
+
+    private function trustPercentageFromTotal(int $total): int
+    {
+        // > 7 => 70, 5..7 => 60, < 5 => 50
+        if ($total > 7) return 70;
+        if ($total >= 5) return 60;
+        return 50;
     }
 
     public function toArray($request): array
     {
+        // counts (use withCount when available)
+        $eventsCount = $this->relCount('events_count', 'events');
+        $infosCount  = $this->relCount('informations_count', 'informations');
+
         // ✅ Prefer precomputed value if present
         $fiftySixFormatsCount = isset($this->fifty_six_formats_count)
             ? (int) $this->fifty_six_formats_count
@@ -79,6 +88,10 @@ class ResourceResource extends JsonResource
                 + $this->tujarans()->count()
             );
 
+        // ✅ Total activity count for trust
+        $totalActivity = $eventsCount + $infosCount + $fiftySixFormatsCount;
+        $trustPercentage = $this->trustPercentageFromTotal($totalActivity);
+
         return [
             'id'       => $this->id,
             'picture'  => $this->picture ? url($this->picture) : null,
@@ -117,6 +130,10 @@ class ResourceResource extends JsonResource
             'faculty'            => $this->faculty,
             'specific_skills'    => $this->specific_skills,
             'train'              => $this->train,
+
+            // ✅ trust percentage computed
+            'trust_percentage'   => $trustPercentage,
+
             'payed_money' => (float) ($this->payed_money ?? 0),
 
             // misc
@@ -136,12 +153,11 @@ class ResourceResource extends JsonResource
             'note'                   => $this->note,
             'Province_addr'          => $this->Province_addr,
 
-            // ✅ Counts
-            'events_count'            => $this->relCount('events_count', 'events'),
-            'informations_count'      => $this->relCount('informations_count', 'informations'),
+            // counts
+            'events_count'            => $eventsCount,
+            'informations_count'      => $infosCount,
             'fifty_six_formats_count' => $fiftySixFormatsCount,
 
-            // embedded office employee (minimal)
             'office_employee' => $this->whenLoaded('officeEmployee', function () {
                 return [
                     'id'          => $this->officeEmployee->id,

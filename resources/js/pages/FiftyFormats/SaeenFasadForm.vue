@@ -381,18 +381,6 @@
               />
             </v-col>
 
-            <!-- Province / coordinates / note -->
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
-
             <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.note"
@@ -402,6 +390,94 @@
                 :error="hasError('note')"
                 :error-messages="getErrorMessages('note')"
               />
+            </v-col>
+          </v-row>
+
+          <!-- ✅ DOCUMENTS SECTION -->
+          <v-divider class="my-4" />
+
+          <div class="section-header mb-2">
+            <span class="section-title">{{ t('اسناد') }}</span>
+          </div>
+
+          <v-row>
+            <!-- pick documents -->
+            <v-col cols="12" md="6">
+              <input
+                ref="docsInput"
+                class="hidden-file"
+                type="file"
+                multiple
+                @change="onPickDocuments"
+              />
+
+              <v-btn
+                color="primary"
+                variant="tonal"
+                class="text-none rounded-pill soft-btn"
+                prepend-icon="mdi-paperclip"
+                @click="triggerDocuments"
+              >
+                {{ t('انتخاب اسناد') }}
+              </v-btn>
+
+              <div class="text-caption mt-2" style="opacity: 0.75">
+                {{ t('می‌توانید چند فایل را همزمان انتخاب کنید') }}
+              </div>
+            </v-col>
+
+            <!-- existing docs -->
+            <v-col cols="12" md="6">
+              <div class="text-subtitle-2 mb-2">{{ t('اسناد موجود') }}</div>
+
+              <div v-if="existingDocs.length === 0" class="text-caption" style="opacity: 0.7">
+                {{ t('هیچ سندی موجود نیست') }}
+              </div>
+
+              <div class="d-flex flex-wrap ga-2">
+                <v-chip
+                  v-for="doc in existingDocs"
+                  :key="doc.id"
+                  size="small"
+                  color="blue"
+                  variant="tonal"
+                  closable
+                  @click="openDoc(doc)"
+                  @click:close="markDocForRemoval(doc)"
+                >
+                  <v-icon start size="18">mdi-file</v-icon>
+                  {{ doc.file_name || doc.name || ('doc_' + doc.id) }}
+                </v-chip>
+              </div>
+
+              <div v-if="removed_document_ids.length" class="text-caption mt-2" style="opacity: 0.75">
+                {{ t('اسناد حذف‌شونده:') }}
+                {{ removed_document_ids.join(', ') }}
+              </div>
+            </v-col>
+
+            <!-- new docs -->
+            <v-col cols="12">
+              <div class="text-subtitle-2 mb-2">{{ t('اسناد جدید') }}</div>
+
+              <div v-if="newDocs.length === 0" class="text-caption" style="opacity: 0.7">
+                {{ t('هیچ سند جدیدی انتخاب نشده است') }}
+              </div>
+
+              <div class="d-flex flex-wrap ga-2">
+                <v-chip
+                  v-for="(f, idx) in newDocs"
+                  :key="idx"
+                  size="small"
+                  color="green"
+                  variant="tonal"
+                  closable
+                  @click:close="removeNewDoc(idx)"
+                >
+                  <v-icon start size="18">mdi-file-plus</v-icon>
+                  {{ f?.name || ('file_' + idx) }}
+                </v-chip>
+              </div>
             </v-col>
           </v-row>
 
@@ -656,6 +732,47 @@
     if (previewSrc.value) previewOpen.value = true;
   }
 
+  /* ===== ✅ DOCUMENTS ===== */
+  const docsInput = ref(null);
+  const newDocs = ref([]); // File[]
+  const existingDocs = ref([]); // [{id, file_name/name, url}]
+  const removed_document_ids = ref([]); // number[]
+
+  function triggerDocuments() {
+    docsInput.value?.click();
+  }
+
+  function onPickDocuments(e) {
+    const files = Array.from(e.target.files || []);
+    if (files.length) {
+      newDocs.value = [...newDocs.value, ...files];
+    }
+    if (e.target) e.target.value = '';
+  }
+
+  function removeNewDoc(idx) {
+    newDocs.value.splice(idx, 1);
+  }
+
+  function openDoc(doc) {
+    const url = doc?.url || doc?.path || doc?.download_url;
+    if (!url) return;
+    window.open(normalizePicture(url), '_blank');
+  }
+
+  function markDocForRemoval(doc) {
+    const id = doc?.id;
+    if (!id) return;
+    removed_document_ids.value = Array.from(new Set([...removed_document_ids.value, id]));
+    existingDocs.value = existingDocs.value.filter((d) => d.id !== id);
+  }
+
+  function resetDocumentsState() {
+    newDocs.value = [];
+    removed_document_ids.value = [];
+    // existingDocs stays based on record reload
+  }
+
   /* ===== RESOURCES DROPDOWN ===== */
   const resources = computed(() => repo.resourcecode || []);
 
@@ -710,6 +827,16 @@
     b.phone_number = x.phone_number ?? '';
     b.note = x.note ?? '';
 
+    // ✅ docs from API
+    const docs = Array.isArray(x.documents) ? x.documents : [];
+    existingDocs.value = docs.map((d) => ({
+      id: d.id,
+      file_name: d.file_name || d.name || d.original_name || null,
+      url: d.url || d.path || d.download_url || d.file_url || null,
+    }));
+    removed_document_ids.value = [];
+    newDocs.value = [];
+
     return b;
   }
 
@@ -719,6 +846,9 @@
       form.value = blankForm();
       pictureFile.value = null;
       pictureChanged.value = false;
+      existingDocs.value = [];
+      removed_document_ids.value = [];
+      newDocs.value = [];
       return;
     }
 
@@ -747,6 +877,18 @@
     return fd;
   }
 
+  function appendDocuments(fd) {
+    // ✅ new docs
+    newDocs.value.forEach((f) => {
+      if (f) fd.append('documents[]', f);
+    });
+
+    // ✅ removed docs ids
+    removed_document_ids.value.forEach((id) => {
+      fd.append('removed_document_ids[]', String(id));
+    });
+  }
+
   function buildCreateFormData() {
     const payload = { ...form.value };
 
@@ -760,6 +902,7 @@
       fd.append('picture', pictureFile.value);
     }
 
+    appendDocuments(fd);
     return fd;
   }
 
@@ -776,6 +919,7 @@
       fd.append('picture', pictureFile.value);
     }
 
+    appendDocuments(fd);
     return fd;
   }
 
@@ -1042,6 +1186,9 @@
       form.value = blankForm();
       pictureFile.value = null;
       pictureChanged.value = false;
+      existingDocs.value = [];
+      removed_document_ids.value = [];
+      newDocs.value = [];
     }
 
     clearBackendErrors();
@@ -1104,6 +1251,9 @@
 
   /* small gap utility */
   .gap-2 {
+    gap: 8px;
+  }
+  .ga-2 {
     gap: 8px;
   }
 

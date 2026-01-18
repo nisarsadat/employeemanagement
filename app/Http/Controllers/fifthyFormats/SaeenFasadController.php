@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use App\Services\NotificationService; // 🔔 notifications
+use ZipArchive;
 
 class SaeenFasadController extends Controller
 {
@@ -29,12 +30,15 @@ class SaeenFasadController extends Controller
         $search = trim((string) $request->query('search', ''));
 
         $q = SaeenFasad::query()
-            ->with(['resource:id,name,code_number,phone_number'])
+            ->with([
+                'resource:id,name,code_number,phone_number',
+                'documents', // ✅ include documents for list/zip icon
+            ])
             ->when($search !== '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('name', 'like', "%{$search}%")
-                      ->orWhere('father_name', 'like', "%{$search}%")
-                      ->orWhere('nick_name', 'like', "%{$search}%");
+                        ->orWhere('father_name', 'like', "%{$search}%")
+                        ->orWhere('nick_name', 'like', "%{$search}%");
                 });
             })
             ->orderByDesc('id');
@@ -52,13 +56,19 @@ class SaeenFasadController extends Controller
      */
     public function show(SaeenFasad $saeenFasad)
     {
-        $saeenFasad->load(['resource:id,name,code_number,phone_number']);
+        $saeenFasad->load([
+            'resource:id,name,code_number,phone_number',
+            'documents',
+        ]);
+
         return new SaeenFasadResource($saeenFasad);
     }
 
     /**
      * POST /saeen-fasadas
-     * Accepts `picture` either as a FILE or a STRING path/url.
+     * Accepts:
+     * - picture as FILE or STRING
+     * - documents[] as multiple FILES (optional)
      */
     public function store(StoreSaeenFasadRequest $request)
     {
@@ -67,7 +77,7 @@ class SaeenFasadController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $data, $user) {
-                // picture: file OR string
+                // ✅ picture: file OR string
                 if ($request->hasFile('picture')) {
                     $path = $request->file('picture')->store('uploads/saeen-fasads', 'public');
                     $data['picture'] = "storage/{$path}";
@@ -78,7 +88,27 @@ class SaeenFasadController extends Controller
                 }
 
                 $item = SaeenFasad::create($data);
-                $item->load(['resource:id,name,code_number,phone_number']);
+
+                // ✅ documents (multiple)
+                if ($request->hasFile('documents')) {
+                    foreach ($request->file('documents') as $file) {
+                        if (!$file) continue;
+
+                        $path = $file->store('uploads/saeen-fasads/documents', 'public');
+
+                        $item->documents()->create([
+                            'file_path'     => "storage/{$path}",
+                            'original_name' => $file->getClientOriginalName(),
+                            'mime_type'     => $file->getClientMimeType(),
+                            'size'          => $file->getSize(),
+                        ]);
+                    }
+                }
+
+                $item->load([
+                    'resource:id,name,code_number,phone_number',
+                    'documents',
+                ]);
 
                 // 🔔 Notification: CREATED
                 NotificationService::record(
@@ -87,7 +117,7 @@ class SaeenFasadController extends Controller
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($item->name ?? ''),
-                    routeName: 'saeen-fasads',          // ⚠️ adjust to your real route name
+                    routeName: 'saeen-fasads', // ⚠️ adjust to your real route name
                     routeParams: ['id' => $item->id],
                     level: 'success',
                     changes: null
@@ -115,7 +145,10 @@ class SaeenFasadController extends Controller
 
     /**
      * PUT /saeen-fasadas/{saeenFasad}
-     * Accepts `picture` either as a FILE or a STRING; replaces file if a new one is uploaded.
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     * - documents[] as multiple FILES (optional)
+     * - removed_document_ids as JSON string or array (optional)
      */
     public function update(UpdateSaeenFasadRequest $request, SaeenFasad $saeenFasad)
     {
@@ -137,7 +170,7 @@ class SaeenFasadController extends Controller
                     }
                 }
 
-                // picture: replace file if uploaded
+                // ✅ picture: replace file if uploaded
                 if ($request->hasFile('picture')) {
                     if ($saeenFasad->picture && str_starts_with($saeenFasad->picture, 'storage/')) {
                         $old = str_replace('storage/', '', $saeenFasad->picture);
@@ -147,7 +180,6 @@ class SaeenFasadController extends Controller
                     $path = $request->file('picture')->store('uploads/saeen-fasads', 'public');
                     $data['picture'] = "storage/{$path}";
 
-                    // reflect change in changes array
                     $changes['picture'] = [
                         'old' => $original['picture'] ?? null,
                         'new' => $data['picture'],
@@ -158,8 +190,48 @@ class SaeenFasadController extends Controller
                     }
                 }
 
+                // ✅ remove documents by ids
+                $removedIds = $request->input('removed_document_ids', []);
+                if (is_string($removedIds)) {
+                    $removedIds = json_decode($removedIds, true) ?: [];
+                }
+
+                if (is_array($removedIds) && count($removedIds)) {
+                    $docs = $saeenFasad->documents()->whereIn('id', $removedIds)->get();
+                    foreach ($docs as $doc) {
+                        if ($doc->file_path && str_starts_with($doc->file_path, 'storage/')) {
+                            $old = str_replace('storage/', '', $doc->file_path);
+                            Storage::disk('public')->delete($old);
+                        }
+                        $doc->delete();
+                    }
+                    $changes['documents_removed'] = ['old' => $removedIds, 'new' => []];
+                }
+
+                // ✅ update main record
                 $saeenFasad->update($data);
-                $saeenFasad->load(['resource:id,name,code_number,phone_number']);
+
+                // ✅ add new documents
+                if ($request->hasFile('documents')) {
+                    foreach ($request->file('documents') as $file) {
+                        if (!$file) continue;
+
+                        $path = $file->store('uploads/saeen-fasads/documents', 'public');
+
+                        $saeenFasad->documents()->create([
+                            'file_path'     => "storage/{$path}",
+                            'original_name' => $file->getClientOriginalName(),
+                            'mime_type'     => $file->getClientMimeType(),
+                            'size'          => $file->getSize(),
+                        ]);
+                    }
+                    $changes['documents_added'] = ['old' => [], 'new' => 'uploaded'];
+                }
+
+                $saeenFasad->load([
+                    'resource:id,name,code_number,phone_number',
+                    'documents',
+                ]);
 
                 // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
@@ -168,7 +240,7 @@ class SaeenFasadController extends Controller
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . ($saeenFasad->name ?? ''),
-                    routeName: 'saeen-fasads',          // ⚠️ adjust if needed
+                    routeName: 'saeen-fasads', // ⚠️ adjust if needed
                     routeParams: ['id' => $saeenFasad->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null
@@ -192,6 +264,10 @@ class SaeenFasadController extends Controller
 
     /**
      * DELETE /saeen-fasadas/{saeenFasad}
+     * ✅ deletes:
+     * - picture file
+     * - documents files
+     * - DB rows (documents table cascades)
      */
     public function destroy(Request $request, SaeenFasad $saeenFasad)
     {
@@ -200,12 +276,22 @@ class SaeenFasadController extends Controller
         return DB::transaction(function () use ($saeenFasad, $user) {
             $name = $saeenFasad->name;
 
-            // ✅ Remove the stored file if it lives under /storage
+            // ✅ delete picture file
             if ($saeenFasad->picture && str_starts_with($saeenFasad->picture, 'storage/')) {
                 $old = str_replace('storage/', '', $saeenFasad->picture);
                 Storage::disk('public')->delete($old);
             }
 
+            // ✅ delete documents files
+            $docs = $saeenFasad->documents()->get();
+            foreach ($docs as $doc) {
+                if ($doc->file_path && str_starts_with($doc->file_path, 'storage/')) {
+                    $old = str_replace('storage/', '', $doc->file_path);
+                    Storage::disk('public')->delete($old);
+                }
+            }
+
+            // ✅ delete record (doc rows will be deleted via cascadeOnDelete)
             $saeenFasad->delete();
 
             // 🔔 Notification: DELETED
@@ -223,5 +309,101 @@ class SaeenFasadController extends Controller
 
             return response()->noContent();
         });
+    }
+
+    /* ================= ZIP helpers ================= */
+    private function safeZipName(string $name): string
+    {
+        $name = basename($name);
+
+        // Convert UTF-8 (Persian/Pashto) to ASCII for Windows
+        $name = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name) ?: $name;
+
+        // Replace anything unsafe
+        $name = preg_replace('/[^A-Za-z0-9\.\-_]/', '_', $name);
+        $name = preg_replace('/_+/', '_', $name);
+        $name = trim($name, '_');
+
+        return $name !== '' ? $name : 'file';
+    }
+
+    /**
+     * GET /saeen-fasadas/{id}/download-zip
+     * ✅ Windows-safe ZIP (same style as FasadController)
+     */
+    public function downloadZip(Request $request, $id)
+    {
+        $saeenFasad = SaeenFasad::with('documents')->findOrFail($id);
+
+        $zip = new ZipArchive();
+
+        $zipName = "saeen_fasad_{$saeenFasad->id}.zip";
+        $tmpDir  = storage_path("app/tmp");
+
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0777, true);
+        }
+
+        $zipPath = "{$tmpDir}/{$zipName}";
+
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            return response()->json(['message' => 'Could not create zip'], 500);
+        }
+
+        // ✅ picture (optional)
+        if ($saeenFasad->picture) {
+            $picPath = (string) $saeenFasad->picture;
+
+            // if saved as "storage/xxxx" convert to "xxxx"
+            if (str_starts_with($picPath, 'storage/')) {
+                $picPath = str_replace('storage/', '', $picPath);
+            }
+
+            if (Storage::disk('public')->exists($picPath)) {
+                $picName = $this->safeZipName(basename($picPath));
+
+                $zip->addFile(
+                    Storage::disk('public')->path($picPath),
+                    'picture/' . $picName
+                );
+            }
+        }
+
+        // ✅ documents
+        foreach ($saeenFasad->documents as $doc) {
+            $docPath = (string) ($doc->file_path ?? '');
+            if ($docPath === '') continue;
+
+            if (str_starts_with($docPath, 'storage/')) {
+                $docPath = str_replace('storage/', '', $docPath);
+            }
+
+            if (Storage::disk('public')->exists($docPath)) {
+                $safeName = $this->safeZipName(
+                    (string) ($doc->original_name ?: basename($docPath))
+                );
+
+                $zip->addFile(
+                    Storage::disk('public')->path($docPath),
+                    'documents/' . $safeName
+                );
+            }
+        }
+
+        $zip->close();
+
+        // 🚨 fixes Windows "zip invalid" (output buffer corruption)
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        return response()->download(
+            $zipPath,
+            $zipName,
+            [
+                'Content-Type' => 'application/zip',
+                'Content-Disposition' => 'attachment; filename="' . $zipName . '"',
+            ]
+        )->deleteFileAfterSend(true);
     }
 }

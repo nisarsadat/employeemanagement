@@ -70,6 +70,18 @@ class SaeenFasadResource extends JsonResource
 
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+
+            'documents' => $this->whenLoaded('documents', function () {
+            return $this->documents->map(fn ($d) => [
+                'id' => $d->id,
+                'file_path' => $d->file_path,
+                'original_name' => $d->original_name,
+                'mime_type' => $d->mime_type,
+                'size' => $d->size,
+                'url' => asset($d->file_path), // if file_path is like "storage/..."
+                ]);
+            }),
+
         ];
     }
 }

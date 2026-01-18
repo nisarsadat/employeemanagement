@@ -291,6 +291,23 @@
             </v-col>
             <!-- ghost to keep 3-up layout -->
             <v-col cols="12" md="4" class="ghost-col" />
+            <!-- ✅ NEW: trust_percentage (read-only) -->
+            <v-col cols="12" md="12">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{ t('فیصدی موثقیت') }}</v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <v-text-field
+                  v-model="draft.trust_percentage"
+                  variant="outlined"
+                  rounded="lg"
+                  class="cell"
+                  density="compact"
+                  clearable
+                  prepend-inner-icon="mdi-percent"
+                />
+              </v-card-text>
+            </v-col>
           </v-row>
 
           <!-- Long texts -->
@@ -579,6 +596,7 @@
 
     event_date: '',
     event_hour: '',
+    trust_percentage: '',
 
     event_zone: '',
     event_hawza: '',
@@ -691,6 +709,39 @@
       repo.GetMaliTalafatOptions?.(),
     ]).catch(() => {});
   })();
+  watch(
+    () => draft.resource_id,
+    (newVal) => {
+      // if resource cleared -> clear auto fields
+      if (!newVal) {
+        draft.office_employee_id = null;
+        draft.trust_percentage = '';
+        return;
+      }
+
+      // find selected resource object
+      const r = resourceCodeItems.value.find((x) => x?.id === newVal);
+      if (!r) return;
+
+      // ✅ trust percentage (support multiple backend keys)
+      draft.trust_percentage =
+        r.trust_percentage ?? r.trustPercentage ?? r.trust_percent ?? r.trustPercent ?? '';
+
+      // ✅ resource -> employee
+      const empId =
+        r.office_employee?.id ??
+        r.officeEmployee?.id ??
+        r.office_employee_id ??
+        r.employee_id ??
+        null;
+
+      if (empId) {
+        draft.office_employee_id = empId;
+      }
+
+      // ❌ do NOT touch draft.office_employee_akhistonky_id
+    }
+  );
 </script>
 
 <style scoped>

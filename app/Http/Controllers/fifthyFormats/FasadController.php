@@ -5,11 +5,14 @@ namespace App\Http\Controllers\fifthyFormats;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\fifthyFormats\Fasad;
+use App\Models\fifthyFormats\FasadDocument;
 use App\Http\Resources\fifthyformats\FasadResource;
 use App\Http\Requests\fifthyformats\StoreFasadRequest;
 use App\Http\Requests\fifthyformats\UpdateFasadRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Storage;
+use ZipArchive;
 use App\Services\NotificationService; // 🔔 notifications
 
 class FasadController extends Controller
@@ -25,7 +28,10 @@ class FasadController extends Controller
         $search = trim((string) $request->query('search', ''));
 
         $q = Fasad::query()
-            ->with(['resource:id,name,code_number,phone_number'])
+            ->with([
+                'resource:id,name,code_number,phone_number',
+                'documents:id,fasad_id,file_path,original_name,mime_type,size,created_at',
+            ])
             ->when($search !== '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('name', 'like', "%{$search}%")
@@ -49,9 +55,34 @@ class FasadController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $user) {
-                $fasad = Fasad::create($request->validated());
+                $validated = $request->validated();
 
-                $fasad->load(['resource:id,name,code_number,phone_number']);
+                // ✅ picture upload
+                if ($request->hasFile('picture')) {
+                    $validated['picture'] = $request->file('picture')->store('uploads/fasads/pictures', 'public');
+                }
+
+                $fasad = Fasad::create($validated);
+
+                // ✅ documents upload (multiple)
+                if ($request->hasFile('documents')) {
+                    foreach ($request->file('documents') as $file) {
+                        $path = $file->store('uploads/fasads/docs', 'public');
+
+                        FasadDocument::create([
+                            'fasad_id' => $fasad->id,
+                            'file_path' => $path,
+                            'original_name' => $file->getClientOriginalName(),
+                            'mime_type' => $file->getClientMimeType(),
+                            'size' => $file->getSize(),
+                        ]);
+                    }
+                }
+
+                $fasad->load([
+                    'resource:id,name,code_number,phone_number',
+                    'documents:id,fasad_id,file_path,original_name,mime_type,size,created_at',
+                ]);
 
                 // 🔔 Notification: CREATED
                 NotificationService::record(
@@ -60,7 +91,7 @@ class FasadController extends Controller
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($fasad->name ?? ''),
-                    routeName: 'fasads',               // ⚠️ adjust to your real route name
+                    routeName: 'fasads',
                     routeParams: ['id' => $fasad->id],
                     level: 'success',
                     changes: null
@@ -85,7 +116,11 @@ class FasadController extends Controller
 
     public function show(Fasad $fasad)
     {
-        $fasad->load(['resource:id,name,code_number,phone_number']);
+        $fasad->load([
+            'resource:id,name,code_number,phone_number',
+            'documents:id,fasad_id,file_path,original_name,mime_type,size,created_at',
+        ]);
+
         return FasadResource::make($fasad);
     }
 
@@ -112,9 +147,72 @@ class FasadController extends Controller
                     }
                 }
 
+                // ✅ picture replace (if sent)
+                if ($request->hasFile('picture')) {
+                    // delete old picture file
+                    if ($fasad->picture && Storage::disk('public')->exists($fasad->picture)) {
+                        Storage::disk('public')->delete($fasad->picture);
+                    }
+
+                    $validated['picture'] = $request->file('picture')->store('uploads/fasads/pictures', 'public');
+
+                    // track change for notifications
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                }
+
                 // 🔄 apply update
                 $fasad->update($validated);
-                $fasad->load(['resource:id,name,code_number,phone_number']);
+
+                // ✅ remove documents by ids (removed_document_ids[])
+                $removeIds = $request->input('removed_document_ids', []);
+                $removeIds = is_array($removeIds) ? array_values(array_filter($removeIds)) : [];
+
+                if (!empty($removeIds)) {
+                    $docs = $fasad->documents()->whereIn('id', $removeIds)->get();
+
+                    foreach ($docs as $doc) {
+                        if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
+                            Storage::disk('public')->delete($doc->file_path);
+                        }
+                        $doc->delete();
+                    }
+
+                    $changes['removed_document_ids'] = [
+                        'old' => $removeIds,
+                        'new' => [],
+                    ];
+                }
+
+                // ✅ add new documents (documents[])
+                if ($request->hasFile('documents')) {
+                    $added = [];
+                    foreach ($request->file('documents') as $file) {
+                        $path = $file->store('uploads/fasads/docs', 'public');
+
+                        $doc = FasadDocument::create([
+                            'fasad_id' => $fasad->id,
+                            'file_path' => $path,
+                            'original_name' => $file->getClientOriginalName(),
+                            'mime_type' => $file->getClientMimeType(),
+                            'size' => $file->getSize(),
+                        ]);
+
+                        $added[] = $doc->id;
+                    }
+
+                    $changes['added_document_ids'] = [
+                        'old' => [],
+                        'new' => $added,
+                    ];
+                }
+
+                $fasad->load([
+                    'resource:id,name,code_number,phone_number',
+                    'documents:id,fasad_id,file_path,original_name,mime_type,size,created_at',
+                ]);
 
                 // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
@@ -123,7 +221,7 @@ class FasadController extends Controller
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . ($fasad->name ?? ''),
-                    routeName: 'fasads',               // ⚠️ adjust if needed
+                    routeName: 'fasads',
                     routeParams: ['id' => $fasad->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null
@@ -151,6 +249,20 @@ class FasadController extends Controller
 
         return DB::transaction(function () use ($fasad, $user) {
             $name = $fasad->name;
+
+            // ✅ delete picture file
+            if ($fasad->picture && Storage::disk('public')->exists($fasad->picture)) {
+                Storage::disk('public')->delete($fasad->picture);
+            }
+
+            // ✅ delete documents files + rows
+            $docs = $fasad->documents()->get();
+            foreach ($docs as $doc) {
+                if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
+                    Storage::disk('public')->delete($doc->file_path);
+                }
+            }
+            $fasad->documents()->delete(); // safe (and cascade is ok too)
 
             $fasad->delete();
 
@@ -183,7 +295,22 @@ class FasadController extends Controller
                 return response()->noContent();
             }
 
-            $rows = Fasad::whereIn('id', $ids)->get(['id', 'name']);
+            $rows = Fasad::whereIn('id', $ids)->get(['id', 'name', 'picture']);
+
+            // ✅ delete files for each fasad (picture + docs)
+            $fasads = Fasad::with('documents')->whereIn('id', $ids)->get();
+
+            foreach ($fasads as $fasad) {
+                if ($fasad->picture && Storage::disk('public')->exists($fasad->picture)) {
+                    Storage::disk('public')->delete($fasad->picture);
+                }
+
+                foreach ($fasad->documents as $doc) {
+                    if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
+                        Storage::disk('public')->delete($doc->file_path);
+                    }
+                }
+            }
 
             Fasad::destroy($ids);
 
@@ -212,4 +339,115 @@ class FasadController extends Controller
             return response()->noContent();
         });
     }
+
+    // ✅ delete a single document
+    public function deleteDocument(Request $request, $docId)
+    {
+        $user = $request->user();
+
+        $doc = FasadDocument::findOrFail($docId);
+
+        if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
+            Storage::disk('public')->delete($doc->file_path);
+        }
+
+        $fasadId = $doc->fasad_id;
+        $doc->delete();
+
+        NotificationService::record(
+            $user,
+            module: 'فساد',
+            action: 'document_deleted',
+            title: 'سند حذف شو',
+            message: 'Document ID: ' . $docId,
+            routeName: 'fasads',
+            routeParams: ['id' => $fasadId],
+            level: 'warning',
+            changes: [
+                'deleted_document_id' => [
+                    'old' => $docId,
+                    'new' => null,
+                ],
+            ],
+        );
+
+        return response()->json(['message' => 'Document deleted']);
+    }
+
+    /* ================= ZIP helpers ================= */
+    private function safeZipName(string $name): string
+    {
+        $name = basename($name);
+
+        // Convert UTF-8 (Persian/Pashto) to ASCII for Windows
+        $name = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name) ?: $name;
+
+        // Replace anything unsafe
+        $name = preg_replace('/[^A-Za-z0-9\.\-_]/', '_', $name);
+        $name = preg_replace('/_+/', '_', $name);
+        $name = trim($name, '_');
+
+        return $name !== '' ? $name : 'file';
+    }
+
+   public function downloadZip(Request $request, $id)
+    {
+        $fasad = Fasad::with('documents')->findOrFail($id);
+
+        $zip = new ZipArchive();
+
+        $zipName = "fasad_{$fasad->id}.zip";
+        $tmpDir  = storage_path("app/tmp");
+
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0777, true);
+        }
+
+        $zipPath = "{$tmpDir}/{$zipName}";
+
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            return response()->json(['message' => 'Could not create zip'], 500);
+        }
+
+        // picture
+        if ($fasad->picture && Storage::disk('public')->exists($fasad->picture)) {
+            $picName = $this->safeZipName(basename($fasad->picture));
+
+            $zip->addFile(
+                Storage::disk('public')->path($fasad->picture),
+                'picture/' . $picName
+            );
+        }
+
+        // documents
+        foreach ($fasad->documents as $doc) {
+            if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
+                $safeName = $this->safeZipName(
+                    $doc->original_name ?: basename($doc->file_path)
+                );
+
+                $zip->addFile(
+                    Storage::disk('public')->path($doc->file_path),
+                    'documents/' . $safeName
+                );
+            }
+        }
+
+        $zip->close();
+
+        // 🚨 THIS FIXES WINDOWS ZIP ERROR
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        return response()->download(
+            $zipPath,
+            $zipName,
+            [
+                'Content-Type' => 'application/zip',
+                'Content-Disposition' => 'attachment; filename="'.$zipName.'"',
+            ]
+        )->deleteFileAfterSend(true);
+    }
+
 }

@@ -30,6 +30,7 @@ class UpdateEventRequest extends FormRequest
             'talafat_mali'          => 'sometimes|nullable|string',
             'injured'               => 'sometimes|nullable|string',
             'killed'                => 'sometimes|nullable|string',
+            'trust_percentage'      => 'sometimes|nullable|string',
             'tafseel'               => 'sometimes|nullable|string',
             'talks'                 => 'sometimes|nullable|string',
             'coordinates'           => 'sometimes|nullable|string',

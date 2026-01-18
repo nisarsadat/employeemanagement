@@ -133,6 +133,7 @@ use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\ExpenseOilController as ApiExpenseOilController;
 use App\Http\Controllers\Api\FifthyFormatsCountController;
 use App\Http\Controllers\Api\FinanceController;
+use App\Http\Controllers\Api\FormatZoneController;
 use App\Http\Controllers\Api\HawzaController;
 use App\Http\Controllers\Api\MapPointController;
 use App\Http\Controllers\Api\Reports\FiftyFormatsReportController as ReportsFiftyFormatsReportController;
@@ -145,7 +146,7 @@ use App\Http\Controllers\Api\JobTypeController;
 use App\Http\Controllers\Api\KhayratReportController;
 use App\Http\Controllers\Api\MawqafJahadiController;
 use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\OilSummaryController;
+use App\Http\Controllers\OilSummaryController;
 use App\Http\Controllers\Api\OrganController;
 use App\Http\Controllers\Api\OutgoingIncomingController;
 use App\Http\Controllers\Api\ProvinceController;
@@ -271,7 +272,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Main Fifty Formats (10)
     Route::apiResource('fasads', FasadController::class);
+    // ✅ zip download (picture + documents)
+    Route::get('fasads/{id}/download-zip', [FasadController::class, 'downloadZip']);
+
+    // (optional) delete single document by id
+    Route::delete('fasad-documents/{docId}', [FasadController::class, 'deleteDocument']);
     Route::apiResource('saeen-fasads', SaeenFasadController::class);
+    Route::get('saeen-fasads/{saeenFasad}/download-zip', [SaeenFasadController::class, 'downloadZip']);
     Route::apiResource('heists', HeistController::class);
     Route::apiResource('captives', CaptiveController::class);
     Route::get('captives/{captive}/documents/zip', [CaptiveDocumentController::class, 'downloadAll']);
@@ -560,6 +567,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // khayrat report 
         Route::apiResource('khayrat-reports', KhayratReportController::class);
+        Route::apiResource('format-zones', FormatZoneController::class);
     });
 
 

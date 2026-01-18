@@ -31,6 +31,7 @@ class EventResource extends JsonResource
             'talafat_mali' => $this->talafat_mali,
             'injured' => $this->injured,
             'killed' => $this->killed,
+            'trust_percentage' => $this->trust_percentage,
 
             'tafseel' => $this->tafseel,
             'talks' => $this->talks,

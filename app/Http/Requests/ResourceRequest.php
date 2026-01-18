@@ -46,6 +46,7 @@ class ResourceRequest extends FormRequest
             'faculty' => ['nullable','string'],
             'specific_skills' => ['nullable','string'],
             'train' => ['nullable','string'],
+            'percentage' => ['nullable','string'],
 
             // misc
             'resource_saved_date' => ['nullable','string'],

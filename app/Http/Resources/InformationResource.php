@@ -84,6 +84,7 @@ class InformationResource extends JsonResource
 
             'information_saved_hour' => $info ? $info->information_saved_hour : null,
             'information_degree'     => $info ? $info->information_degree : null,
+            'trust_percentage'     => $info ? $info->trust_percentage : null,
 
             'tafseel'         => $info ? $info->tafseel : null,
             'manager_comment' => $info ? $info->manager_comment : null,

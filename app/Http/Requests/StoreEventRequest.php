@@ -30,6 +30,7 @@ class StoreEventRequest extends FormRequest
             'talafat_mali'          => 'nullable|string',
             'injured'               => 'nullable|string',
             'killed'                => 'nullable|string',
+            'trust_percentage'      => 'nullable|string',
             'tafseel'               => 'nullable|string',
             'talks'                 => 'nullable|string',
             'coordinates'           => 'nullable|string',

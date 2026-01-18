@@ -45,4 +45,8 @@ class SaeenFasad extends Model
     {
         return $this->belongsTo(Resource::class);
     }
+    public function documents()
+    {
+        return $this->hasMany(SaeenFasadDocument::class);
+    }
 }

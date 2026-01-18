@@ -46,6 +46,7 @@ return new class extends Migration {
             $table->string('faculty')->nullable();
             $table->string('specific_skills')->nullable();
             $table->string('train')->nullable();
+            $table->string('trust_percentage')->nullable();
 
             // misc
             $table->string('resource_saved_date')->nullable();

@@ -57,6 +57,7 @@ return new class extends Migration {
 
             $table->string('information_saved_hour')->nullable();
             $table->string('information_degree')->nullable();
+            $table->string('trust_percentage')->nullable();
 
             // ===============================
             // Text areas

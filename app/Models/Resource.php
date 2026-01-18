@@ -102,6 +102,7 @@ class Resource extends Model
         'faculty',
         'specific_skills',
         'train',
+        'trust_percentage',
 
         // misc
         'resource_saved_date',

@@ -195,6 +195,7 @@ import SystemSettingsIndex from '../pages/Settings/SystemSettingsIndex.vue';
 import MawqafJahadisIndex from '../pages/Settings/MawqafJahadis/MawqafJahadisIndex.vue';
 import KhayratReportsIndex from '../pages/KHayratReport/KhayratReportsIndex.vue';
 import Khayratreport from '../pages/InlineInfo/khayratreport.vue';
+import FormatZonePage from '../pages/Settings/FormatZone/FormatZonePage.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -1499,6 +1500,11 @@ const router = createRouter({
           path: '/app/jobs-type',
           name: 'JobsType',
           component: JobTypesIndex,
+        },
+        {
+          path: '/app/formatzone',
+          name: 'formatzone',
+          component: FormatZonePage,
         },
         {
           path: '/app/resource-activity-types',

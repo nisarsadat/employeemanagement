@@ -6,7 +6,15 @@
       {{ t('برای ورود به هر بخش، روی کارت آن کلیک کنید.') }}
     </v-alert>
     <v-row class="mt-2" dense :dir="isRtl ? 'rtl' : 'ltr'">
-      <v-col v-for="item in items" :key="item.key" cols="12" sm="6" md="4" lg="3" :dir="isRtl ? 'rtl' : 'ltr'">
+      <v-col
+        v-for="item in items"
+        :key="item.key"
+        cols="12"
+        sm="6"
+        md="4"
+        lg="3"
+        :dir="isRtl ? 'rtl' : 'ltr'"
+      >
         <v-card
           class="setting-card"
           rounded="xl"
@@ -135,6 +143,13 @@
       subtitle: t('مدیریت موقف جهادی'),
       icon: 'mdi-hand-peace',
       to: { path: '/app/mawqafjahadi' },
+    },
+    {
+      key: 'formatzone',
+      title: t('فارمت زون'),
+      subtitle: t('مدیریت فارمت زون‌ها'),
+      icon: 'mdi-map-marker-multiple-outline',
+      to: { path: '/app/formatzone' },
     },
   ]);
 
