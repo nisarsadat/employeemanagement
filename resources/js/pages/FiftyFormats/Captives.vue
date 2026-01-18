@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
-    <AppBar :title="t('اسیر/گرفتار')" :subtitle="t('فهرست، جستجو و مدیریت اسیر/گرفتارها')">
+    <AppBar :title="t('محبوسین رها شده')" :subtitle="t('فهرست، جستجو و مدیریت اسیر/گرفتارها')">
       <template #actions>
         <v-btn icon />
       </template>
@@ -40,7 +40,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن اسیر/گرفتار جدید') }}
+            {{ t('اضافه کردن جدید') }}
           </v-btn>
         </v-col>
       </v-row>

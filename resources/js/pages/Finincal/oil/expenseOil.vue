@@ -149,7 +149,7 @@ const { formatDisplay, toIso } = useCalendar();
 const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 
 const headers = computed(() => [
-  { title: t('حساب'), key: 'account', sortable: false },
+  { title: t('نوعیت'), key: 'account', sortable: false },
   { title: t('نام'), key: 'name', sortable: false },
   { title: t('نام پدر'), key: 'father_name', sortable: false },
   { title: t('کود کارمند'), key: 'officeemployee', sortable: false },

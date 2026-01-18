@@ -5,12 +5,13 @@
     <v-alert variant="tonal" type="info" class="mt-6" border="start" :dir="isRtl ? 'rtl' : 'ltr'">
       {{ t('برای ورود به هر بخش، روی کارت آن کلیک کنید.') }}
     </v-alert>
-    <v-row class="mt-2" dense>
-      <v-col v-for="item in items" :key="item.key" cols="12" sm="6" md="4" lg="3">
+    <v-row class="mt-2" dense :dir="isRtl ? 'rtl' : 'ltr'">
+      <v-col v-for="item in items" :key="item.key" cols="12" sm="6" md="4" lg="3" :dir="isRtl ? 'rtl' : 'ltr'">
         <v-card
           class="setting-card"
           rounded="xl"
           hover
+          :dir="isRtl ? 'rtl' : 'ltr'"
           role="button"
           tabindex="0"
           @click="go(item)"
@@ -22,7 +23,7 @@
               <v-icon :icon="item.icon" size="22" />
             </div>
 
-            <div class="flex-grow-1 min-w-0">
+            <div class="flex-grow-1 min-w-0" :dir="isRtl ? 'rtl' : 'ltr'">
               <div class="title text-body-1 font-weight-bold text-truncate">
                 {{ item.title }}
               </div>

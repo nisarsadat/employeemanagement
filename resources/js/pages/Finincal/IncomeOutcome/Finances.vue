@@ -217,18 +217,21 @@
   }
 
   const headersFT = [
-    { title: 'دریافت کننده', key: 'employee_name', sortable: true },
-    { title: 'پرداخت کننده', key: 'payer', sortable: true },
+    { title: 'کود کارمند', key: 'employee_code', sortable: true },
+    { title: 'نام کارمند', key: 'employee_name', sortable: true },
 
     { title: 'د پیسو اندازه (په عدد)', key: 'money_amount_number', sortable: true },
     { title: 'د پیسو اندازه (په تورو)', key: 'money_amount_words', sortable: false },
 
     { title: 'کود منبع', key: 'source_code', sortable: false, width: 160 },
-    { title: 'شماره تماس منبع', key: 'source_phone', sortable: false },
+    { title: 'نام مستعار', key: 'source_nick_name', sortable: false, width: 160 },
+    { title: 'د پیسو ورکولو نیټه', key: 'date', sortable: true },
     { title: 'شماره تماس کارمند', key: 'employee_phone', sortable: false },
 
     { title: 'د مصرف وجه/علت', key: 'expense_result', sortable: false, width: 200 },
-    { title: 'د پیسو ورکولو نیټه', key: 'date', sortable: true },
+    { title: 'پرداخت کننده', key: 'payer', sortable: true },
+    { title: 'یادداشت', key: 'notes', sortable: true },
+
   ];
 
   function toDate10(v) {
@@ -246,6 +249,7 @@
         index: startIndex + i + 1,
 
         employee_name:  it?.office_employee?.name ?? '',
+        employee_code:  it?.office_employee?.code_number ?? '',
         payer: it?.payer ??  it?.payer ?? '',
 
         money_amount_number: amount,
@@ -253,8 +257,8 @@
 
         source_code: it?.resource?.code_number ?? it?.source_code ?? '—',
         source_nick_name: it?.resource?.nick_name ?? it?.source_nick_name ?? '—',
-        source_phone: it?.resource?.phone_number ?? it?.source_phone ?? '—',
-        employee_phone: it?.employee_phone ?? '—',
+        source_nick_name: it?.resource?.nick_name ?? it?.source_nick_name ?? '—',
+        employee_phone: it?.office_employee?.phone_number ?? '—',
 
         expense_result: it?.expense_result ?? '',
         notes: it?.notes ?? '',
@@ -376,9 +380,9 @@
 
       <th rowspan="2">د کارمند دتلیفون شمیره</th>
       <th rowspan="2">د مصرف وجه/علت</th>
-
-      <th rowspan="2">کتنه</th>
+      
       <th rowspan="2">لاسیلیک</th>
+      <th rowspan="2">کتنه</th>
     </tr>
 
     <tr>
@@ -410,8 +414,8 @@
           <td>${esc(r.employee_phone)}</td>
 
           <td>${esc(r.expense_result)}</td>
-          <td>${esc(r.notes)}</td>
           <td>${esc(r.signature)}</td>
+          <td>${esc(r.notes)}</td>
         </tr>
       `;
       })

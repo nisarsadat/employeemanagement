@@ -130,8 +130,8 @@
               <ProvinceDistrictNameSelect
                 v-model:province="form.province"
                 v-model:district="form.district"
-                :province-label="t('ولایت اصلی')"
-                :district-label="t('ولسوالی اصلی')"
+                :province-label="t('ولایت')"
+                :district-label="t('ولسوالی')"
                 :mdProvince="6"
                 :mdDistrict="6"
               />

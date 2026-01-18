@@ -347,6 +347,7 @@ const headersFT = computed(() => [
   { title: t('نام'), key: 'name' },
   { title: t('نام پدر'), key: 'father_name' },
   { title: t('تخلص'), key: 'nick_name' },
+  { title: t('شماره تماس'), key: 'phone_number' },
 
   { title: t('ولایت اصلی'), key: 'main_province' },
   { title: t('ولسوالی اصلی'), key: 'main_district' },
@@ -360,20 +361,18 @@ const headersFT = computed(() => [
   { title: t('موقعیت مشخص فعلی'), key: 'specific_place' },
   { title: t('شماره سرک'), key: 'street_number' },
   { title: t('شماره خانه'), key: 'home_number' },
+  { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('جبهه'), key: 'jabha' },
   { title: t('نام تمویل‌کننده'), key: 'supplier_name' },
   { title: t('مسئولیت'), key: 'responsibility' },
   { title: t('ساحه فعالیت'), key: 'activity_zone' },
   { title: t('تعداد دوستان'), key: 'friends_number' },
-  { title: t('شماره تماس'), key: 'phone_number' },
   { title: t('فاصله ارتباط'), key: 'bond_distance' },
   { title: t('دلیل آخرین بند'), key: 'last_band_reason' },
   { title: t('محل بند'), key: 'band_place' },
   { title: t('وظیفه فعلی'), key: 'now_job' },
 
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
-  { title: t('coordinates'), key: 'coordinates' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
@@ -383,18 +382,15 @@ const headersFT = computed(() => [
 
 /* TOP GROUPS */
 const topGroups = computed(() => [
-  { title: t('مشخصات'), keys: ['name', 'nick_name', 'father_name'] },
+  { title: t('مشخصات'), keys: ['name', 'nick_name', 'father_name' , 'phone_number'] },
   { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-  { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
-  { title: t('موقعیت/خانه'), keys: ['specific_place', 'street_number', 'home_number'] },
-  { title: t('شبکه/تماس'), keys: ['friends_number', 'phone_number', 'bond_distance'] },
+  { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village' , 'coordinates' , 'specific_place', 'street_number', 'home_number'] },
   {
     title: t('فعالیت/جبهه'),
     keys: ['jabha', 'supplier_name', 'responsibility', 'activity_zone', 'now_job'],
   },
-  { title: t('سوابق'), keys: ['last_band_reason', 'band_place'] },
+  { title: t('سوابق'), keys: ['last_band_reason', 'band_place' , 'friends_number', 'bond_distance'] },
   { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
-  { title: t('دیگر'), keys: ['Province_addr', 'coordinates'] },
 ]);
 
 const filters = ref({});

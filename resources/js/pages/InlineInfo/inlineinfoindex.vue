@@ -1,5 +1,5 @@
 <template>
-  <AppBar :title="t('مرکز معلومات')" @toggle-drawer="drawer = !drawer">
+  <AppBar :title="t('مرکز ارتباطات')" @toggle-drawer="drawer = !drawer">
     <template #actions>
       <v-btn icon></v-btn>
     </template>

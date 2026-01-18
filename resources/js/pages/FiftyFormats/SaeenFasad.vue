@@ -413,6 +413,7 @@ const headersFT = computed(() => [
   { title: t('موقعیت مشخص'), key: 'specific_place' },
   { title: t('سرک #'), key: 'street_number' },
   { title: t('خانه #'), key: 'home_number' },
+  { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('مسؤولیت'), key: 'responsiability' },
   { title: t('محل فعالیت'), key: 'activity_place' },
@@ -426,8 +427,6 @@ const headersFT = computed(() => [
   { title: t('وظیفه قبلی'), key: 'old_job' },
   { title: t('وظیفه فعلی'), key: 'now_job' },
 
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
-  { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone_number' },
@@ -440,14 +439,12 @@ const headersFT = computed(() => [
 const topGroups = computed(() => [
   { title: t('مشخصات'), keys: ['name', 'nick_name', 'father_name'] },
   { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-  { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
-  { title: t('منزل/آدرس'), keys: ['specific_place', 'street_number', 'home_number'] },
+  { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village' , 'specific_place', 'street_number', 'home_number' , 'coordinates'] },
   { title: t('فعالیت/مسؤولیت'), keys: ['responsiability', 'activity_place'] },
   { title: t('تماس/اجتماعی'), keys: ['friends_number', 'phone_number'] },
-  { title: t('بانډ/بند'), keys: ['band_distince', 'band_place'] },
+  { title: t('بند'), keys: ['band_distince', 'band_place'] },
   { title: t('وظایف'), keys: ['old_job', 'now_job'] },
   { title: t('منبع'), keys: ['resource_code', 'resource_phone_number'] },
-  { title: t('دیگر'), keys: ['Province_addr', 'coordinates', 'note'] },
 ]);
 
 const filters = ref({});

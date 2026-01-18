@@ -133,13 +133,13 @@
 
               <div class="text-caption text-medium-emphasis mb-2">{{ t('منابع') }}</div>
 
-              <div class="d-flex align-baseline justify-space-between mb-3">
+              <!-- <div class="d-flex align-baseline justify-space-between mb-3">
                 <div class="text-h3 font-weight-black">{{ resourcesTotal.toLocaleString() }}</div>
                 <div class="mini-meta">
                   <v-icon size="16" color="teal">mdi-chart-donut</v-icon>
                   <span class="text-caption">{{ resourcesActivePercentage }}%</span>
                 </div>
-              </div>
+              </div> -->
 
               <v-progress-linear
                 :model-value="resourcesActivePercentage"
@@ -205,7 +205,7 @@
             <div class="stat-accent indigo"></div>
 
             <v-card-text class="pa-5">
-              <div class="d-flex align-center justify-space-between mb-4">
+              <!-- <div class="d-flex align-center justify-space-between mb-4">
                 <div class="card-icon-wrapper indigo">
                   <v-icon color="indigo" size="22">mdi-file-document-multiple</v-icon>
                 </div>
@@ -220,7 +220,7 @@
                   </v-icon>
                   {{ Number(informationsGrowth) >= 0 ? '+' : '' }}{{ informationsGrowth }}%
                 </v-chip>
-              </div>
+              </div> -->
 
               <div class="text-caption text-medium-emphasis mb-2">{{ t('اطلاعات') }}</div>
 
@@ -233,19 +233,36 @@
                   <span class="text-caption">{{ t('رکورد') }}</span>
                 </div>
               </div>
+              <div  class="mt-3 d-flex flex-wrap gap-2">
+                <v-chip  size="small" variant="tonal" color="error">
+                  {{ t('شر او فساد') }}: {{ num(infoCountSharOFasad) }}
+                </v-chip>
 
-              <div class="mt-4 d-flex align-center justify-space-between">
-                <div class="d-flex align-center gap-2">
-                  <div
-                    class="dot"
-                    :class="Number(informationsGrowth) >= 0 ? 'success' : 'error'"
-                  ></div>
-                  <span class="text-caption">
-                    {{ Number(informationsGrowth) >= 0 ? t('رو به رشد') : t('کاهش') }}
-                  </span>
-                </div>
-                <div class="text-caption text-medium-emphasis">{{ t('گزارش کامل') }}</div>
+                <v-chip
+                  size="small"
+                  variant="tonal"
+                  color="warning"
+                >
+                  {{ t('ساعین بالفساد') }}: {{ num(infoCountSaenBilFasad) }}
+                </v-chip>
+
+                <v-chip size="small" variant="tonal" color="primary">
+                  {{ t('جاسوسی') }}: {{ num(infoCountJasoosi) }}
+                </v-chip>
               </div>
+
+              <!-- <div class="mt-4 d-flex align-center justify-space-between">
+                  <div class="d-flex align-center gap-2">
+                    <div
+                      class="dot"
+                      :class="Number(informationsGrowth) >= 0 ? 'success' : 'error'"
+                    ></div>
+                    <span class="text-caption">
+                      {{ Number(informationsGrowth) >= 0 ? t('رو به رشد') : t('کاهش') }}
+                    </span>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">{{ t('گزارش کامل') }}</div>
+                </div> -->
             </v-card-text>
           </v-card>
         </v-col>
@@ -1122,6 +1139,39 @@ Stats
 
   const informationsTotal = computed(() => Number(repo.informations?.total ?? 0));
   const eventsTotal = computed(() => Number(repo.events?.total ?? 0));
+  /* ===========================
+Informations Types (NEW)
+=========================== */
+  const infoJenayeeTypes = computed(() => {
+    const arr = repo.informations?.jenayee_types;
+    return Array.isArray(arr) ? arr : [];
+  });
+
+  const infoSyasiTypes = computed(() => {
+    const arr = repo.informations?.syasi_types;
+    return Array.isArray(arr) ? arr : [];
+  });
+
+  function findTypeCount(list, names) {
+    if (!Array.isArray(list)) return 0;
+    const normalizedNames = (Array.isArray(names) ? names : [names]).map((x) =>
+      String(x || '').trim()
+    );
+    const row = list.find((x) => normalizedNames.includes(String(x?.type || '').trim()));
+    return Number(row?.count || 0);
+  }
+
+  const infoCountSharOFasad = computed(() => findTypeCount(infoJenayeeTypes.value, ['شر او فساد']));
+
+  const infoCountSaenBilFasad = computed(() =>
+    findTypeCount(infoJenayeeTypes.value, ['ساعین بالفساد'])
+  );
+
+  const infoCountJasoosi = computed(() => findTypeCount(infoSyasiTypes.value, ['جاسوسی']));
+
+  const showInfoTypeChips = computed(
+    () => infoCountSharOFasad.value + infoCountSaenBilFasad.value + infoCountJasoosi.value > 0
+  );
 
   const resourcesActivePercentage = computed(() => {
     if (resourcesTotal.value === 0) return 0;

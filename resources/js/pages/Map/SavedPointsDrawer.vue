@@ -289,23 +289,6 @@
           </div>
         </div>
       </v-expand-transition>
-
-      <!-- Offline Status -->
-      <v-alert
-        v-if="!isOnline"
-        type="warning"
-        variant="tonal"
-        density="compact"
-        class="mb-3"
-      >
-        <div class="d-flex align-center">
-          <v-icon size="18" class="mr-2">mdi-wifi-off</v-icon>
-          <span class="text-caption">
-            {{ rtl ? 'حالت آفلاین - داده‌های ذخیره شده' : 'Offline - Using cached data' }}
-          </span>
-        </div>
-      </v-alert>
-
       <!-- List with Enhanced Features -->
       <div v-if="filteredPoints.length" class="list nice-scroll">
         <v-expand-transition group>

@@ -49,15 +49,7 @@
 
           <!-- Identity -->
           <v-row dense>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.nick_name"
-                :label="t('تخلص')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.name"
@@ -74,6 +66,15 @@
               <v-text-field
                 v-model="form.father_name"
                 :label="t('نام پدر')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              />
+            </v-col>
+                        <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.nick_name"
+                :label="t('نام مستعار')"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
@@ -253,7 +254,7 @@
           </v-row>
 
           <v-row dense class="mt-1">
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.friends_number"
                 :label="t('تعداد دوستان')"
@@ -263,7 +264,7 @@
                 type="number"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="5">
               <v-text-field
                 v-model="form.phone_number"
                 :label="t('شماره تماس')"
@@ -272,6 +273,7 @@
                 hide-details="auto"
               />
             </v-col>
+             
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.bond_distance"
@@ -281,28 +283,6 @@
                 hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_job"
-                :label="t('وظیفه فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-          </v-row>
-
-          <!-- سوابق بند / ارتباط -->
-          <v-row class="mt-4">
-            <v-col cols="12">
-              <h3 class="section-title">
-                <v-icon icon="mdi-history" size="small" class="ml-1"></v-icon>
-                {{ t('سوابق بند / ارتباط') }}
-              </h3>
-            </v-col>
-          </v-row>
-
-          <v-row dense>
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.last_band_reason"
@@ -321,6 +301,30 @@
                 hide-details="auto"
               />
             </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.now_job"
+                :label="t('وظیفه فعلی')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              />
+            </v-col>
+          </v-row>
+
+          <!-- سوابق بند / ارتباط
+          <v-row class="mt-4">
+            <v-col cols="12">
+              <h3 class="section-title">
+                <v-icon icon="mdi-history" size="small" class="ml-1"></v-icon>
+                {{ t('سوابق بند / ارتباط') }}
+              </h3>
+            </v-col>
+          </v-row> -->
+
+          <v-row dense>
+           
+            
           </v-row>
 
           <!-- مختصات -->
@@ -334,7 +338,7 @@
           </v-row>
 
           <v-row dense>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.coordinates"
                 :label="t('مختصات')"
@@ -372,7 +376,7 @@
                 @update:model-value="onResourceCodeChange"
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="8">
               <v-text-field
                 v-model="form.resource_phone"
                 :label="t('شماره منبع')"

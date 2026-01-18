@@ -44,7 +44,7 @@
         </header>
 
         <!-- Toolbar -->
-        <v-card class="mb-4 mb-md-6 pa-4 pa-sm-5" elevation="2" rounded="xl">
+        <v-card class="mb-4 mb-md-6 pa-4 pa-sm-5" elevation="2" rounded="xl" >
           <div class="d-flex align-center justify-space-between flex-wrap gap-3">
             <!-- Results Counter -->
             <div class="text-body-2 text-grey-darken-1 font-weight-medium fontfamilyis">
@@ -81,7 +81,7 @@
         </v-card>
 
         <!-- Grid of module cards (permission-guarded) -->
-        <v-row dense class="ma-0 fontfamilyis">
+        <v-row dense class="ma-0 fontfamilyis" dir="rtl">
           <v-col
             v-for="item in filtered"
             :key="item.path"

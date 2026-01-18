@@ -202,6 +202,41 @@ class DashboardController extends Controller
         $informationsGrowth = $informationsPrevTotal > 0
             ? round((($informationsTotal - $informationsPrevTotal) / $informationsPrevTotal) * 100, 1)
             : ($informationsTotal > 0 ? 100 : 0);
+        /* -------------------------------------------------
+        | ✅ INFORMATIONS BY TYPE (jenayee + syasi) filtered by period
+        |-------------------------------------------------*/
+
+        // Jenayee types
+        $informationsByJenayeeType = Information::query()
+            ->select('jenayee_info_type', DB::raw('COUNT(*) as total'))
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->groupBy('jenayee_info_type')
+            ->get()
+            ->map(function ($row) {
+                $name = is_string($row->jenayee_info_type) ? trim($row->jenayee_info_type) : '';
+                return [
+                    'type'  => $name !== '' ? $name : 'نامعلوم',
+                    'count' => (int) $row->total,
+                ];
+            })
+            ->sortByDesc('count')
+            ->values();
+
+        // Syasi types
+        $informationsBySyasiType = Information::query()
+            ->select('syasi_info_type', DB::raw('COUNT(*) as total'))
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->groupBy('syasi_info_type')
+            ->get()
+            ->map(function ($row) {
+                $name = is_string($row->syasi_info_type) ? trim($row->syasi_info_type) : '';
+                return [
+                    'type'  => $name !== '' ? $name : 'نامعلوم',
+                    'count' => (int) $row->total,
+                ];
+            })
+            ->sortByDesc('count')
+            ->values();
 
         $eventsTotal = Event::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
@@ -311,8 +346,11 @@ class DashboardController extends Controller
                     'current'  => $informationsTotal,
                     'previous' => $informationsPrevTotal,
                 ],
-            ],
 
+                // ✅ new
+                'jenayee_types' => $informationsByJenayeeType,
+                'syasi_types'   => $informationsBySyasiType,
+            ],
             'growth' => [
                 'informations' => $informationsGrowth,
             ],
