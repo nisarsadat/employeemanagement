@@ -1,205 +1,1385 @@
 {
-    "Dashboard": "Dashboard",
-    "expenses": "Expenses",
-    "expense": "Expense",
-    "debut": "Debut",
-    "expenseCategory": "Expense Category",
-    "MoneyAccount": "Money Account",
-    "salary": "Salary",
-    "reservation": "Reservation",
-    "rentManagement": "Rent Management",
-    "plaza": "Plaza",
-    "apartment": "Apartment",
-    "floor": "Floor",
-    "flat": "Flat",
-    "People": "People",
-    "User": "User",
-    "Employee": "Employee",
-    "Owner": "Owner",
-    "Customer": "Customer",
-    "Search": "Search",
-    "Setting": "Setting",
-    "SystemSetting": "System Setting",
-    "Currency": "Currency",
-    "References": "References",
-    "Name": "Name",
-    "Amount": "Amount",
-    "ExpenseCategory": "Expense Category",
-    "CreateSalary": "Create Salary",
-    "Date": "Date",
-    "Filter": "Filter",
-    "Action": "Action",
-    "Details": "Details",
-    "Route": "Route",
-    "CurrencyRate": "Currency Rate",
-    "AccountName": "Account Name",
-    "ReservationName": "Reservation Name",
-    "PrePaid": "Prepaid",
-    "Apartment": "Apartment",
-    "Floor": "Floor",
-    "rent": "Rent",
-    "Documents": "Documents",
-    "Flat": "Flat",
-    "Account": "Account",
-    "ApartmentName": "Apartment Name",
-    "ApartmentNumber": "Apartment Number",
-    "Address": "Address",
-    "FloorName": "Floor Name",
-    "FloorNumber": "Floor Number",
-    "FlatName": "Flat Name",
-    "UserName": "Username",
-    "Email": "Email",
-    "Status": "Status",
-    "Phone": "Phone",
-    "Share": "Share",
-    "Assets": "Assets",
-    "FatherName": "Father's Name",
-    "LastName": "Last Name",
-    "Rate": "Rate",
-    "Symbol": "Symbol",
-    "Currency Name": "Currency Name",
-    "Reservission Name": "Reservation Name",
-    "SystemConfiguration": "System Configuration",
-    "UpdateYourApplicationSettingsAndBranding": "Update your application settings and branding",
-    "ApplicationName": "Application Name",
-    "PhoneNumber": "Phone Number",
-    "WhatsappNumber": "WhatsApp Number",
-    "SaveSettings": "Save Settings",
-    "No Expense found. Create your first Expense!": "No expense found. Create your first expense!",
-    "No Expense Category found. Create your first Expense Category!": "No expense category found. Create your first expense category!",
-    "No Money Account found. Create your first Money Account!": "No money account found. Create your first money account!",
-    "No Salary found. Create your first Salary!": "No salary found. Create your first salary!",
-    "No Currency found. Create your first Currency!": "No currency found. Create your first currency!",
-    "No Reservation found. Create your first Reservation!": "No reservation found. Create your first reservation!",
-    "No Rent found. Create your first Rent!": "No rent found. Create your first rent!",
-    "No Plaza found. Create your first Plaza!": "No plaza found. Create your first plaza!",
-    "No Flat found. Create your first Flat!": "No flat found. Create your first flat!",
-    "No Floor found. Create your first Floor!": "No floor found. Create your first floor!",
-    "No Customer found. Create your first Customer!": "No customer found. Create your first customer!",
-    "No Employee found. Create your first Employee!": "No employee found. Create your first employee!",
-    "No User found. Create your first User!": "No user found. Create your first user!",
-    "No Owner found. Create your first Owner!": "No owner found. Create your first owner!",
-    "No Apartment found. Create your first Apartment!": "No apartment found. Create your first apartment!",
-    "Create Expense": "Create Expense",
-    "Create Expense Category": "Create Expense Category",
-    "Create Apartment": "Create Apartment",
-    "Create Flat": "Create Flat",
-    "Create Floor": "Create Floor",
-    "Create Currency": "Create Currency",
-    "Create Customer": "Create Customer",
-    "CreateReservission": "Create Reservation",
-    "Create Rent": "Create Rent",
-    "Create Salary": "Create Salary",
-    "Create Owner": "Create Owner",
-    "Create User": "Create User",
-    "Create Employee": "Create Employee",
-    "Create Money Account": "Create Money Account",
-    "Add Expense": "Add Expense",
-    "Add Expense Category": "Add Expense Category",
-    "Add Currency": "Add Currency",
-    "Add a Money Account": "Add a Money Account",
-    "Add an Apartment": "Add an Apartment",
-    "Add a Floor": "Add a Floor",
-    "Add a User": "Add a User",
-    "Add a Customer": "Add a Customer",
-    "Add an Employee": "Add an Employee",
-    "Add an Owner": "Add an Owner",
-    "Add a Reservission": "Add a Reservation",
-    "Add a Rent": "Add a Rent",
-    "Add a Salary": "Add a Salary",
-    "english": "English",
-    "dari": "Dari",
-    "reports": "Reports",
-    "apartments": "Apartments",
-    "dashboard": "Dashboard",
-    "apartmentManagment": "Suburb Management System",
-    "OverviewOfTheSystem": "Overview Of The System",
-    "TotalIncome": "Total Income",
-    "MonthlyIncome": "Monthly Income",
-    "WeeklyIncome": "Weekly Income",
-    "SalariesPaid": "Salaries Paid",
-    "TotalCustomers": "Total Customers",
-    "TotalUsers": "Total Users",
-    "TotalEmployees": "Total Employees",
-    "TotalReservations": "Total Reservations",
-    "TotalApartments": "Total Apartments",
-    "TotalFlats": "Total Flats",
-    "TotalFloor": "Total Floor",
-    "TotalAccount": "Total Account",
-    "TotalSalaryPaidNumbers": "Total Salary Paid Numbers",
-    "TotalOwner": "Total Owner",
-    "TotalExpense": "Total Expense",
-    "TotalExpenseCategory": "Total Expense Category",
-    "Apartments": "Apartments",
-    "Flats": "Flats",
-    "Floors": "Floors",
-    "FlatsPerApartment": "Flats per Apartment",
-    "LiveBackendData": "Live Backend Data",
-    "MonthlyIncomeOverview": "Monthly Income Overview",
-    "Income": "Income",
-    "Expenses": "Expenses",
-    "Month": "Month",
-    "January": "January",
-    "February": "February",
-    "March": "March",
-    "April": "April",
-    "May": "May",
-    "June": "June",
-    "July": "July",
-    "August": "August",
-    "September": "September",
-    "October": "October",
-    "November": "November",
-    "December": "December",
-    "Max": "Max",
-    "Min": "Min",
-    "Avg": "Average",
-    "ChartTooltipFlats": "Flats: {c} ({d}%)",
-    "ChartLabelFlats": "{b}: {c}",
-    "NoData": "No data available",
-    "Loading": "Loading...",
-    "NoReservationsAvailable": "No reservations available",
-    "NoPaymentsAvailable": "No payments available",
-    "ReservationReport": "Reservation Report",
-    "ViewAndFilterReservations": "View and filter all reservations",
-    "ViewAndFilterAccount": "View and filter all accounts",
-    "ViewAndFilterRent": "View and filter all rents",
-    "ViewAndFilterCustomer": "View and filter all custommer",
-    "ViewAndFilterMonthlyIncome": "View and filter all monthly incomes",
-    "TotalPrepaid": "Total Prepaid",
-    "UniqueCustomers": "Unique Customers",
-    "LastReservation": "Last Reservation",
-    "FromDate": "From Date",
-    "ToDate": "To Date",
-    "FetchReport": "Fetch Report",
-    "NoReservationData": "No reservation data available for the selected filters.",
-    "RentCollectionReport": "Rent Collection Report",
-    "TotalRentCollected": "Total Rent Collected",
-    "UniqueReservations": "Unique Reservations",
-    "LastRentCollection": "Last Rent Collection",
-    "NoRentData": "No rent collection data available for the selected filters.",
-    "AccountReport": "Account Report",
-    "TotalAccounts": "Total Accounts",
-    "TotalBalance": "Total Balance",
-    "ActiveAccounts": "Active Accounts",
-    "LastTransaction": "Last Transaction",
-    "NoAccountData": "No account report data available for the selected filters.",
-    "MonthlyIncomeReport": "Monthly Income Report",
-    "NoMonthlyIncomeData": "No income data available for the selected filters.",
-    "SelectYear": "Select Year",
-    "CustomerReport": "Customer Report",
-    "MostActiveCustomer": "Most Active Customer",
-    "AvgPrepaidAmount": "Avg. Prepaid Amount",
-    "LastCustomer": "Last Customer",
-    "NoCustomerData": "No customer data available for the selected filters.",
-    "Outgoing": "Outgoing",
-    "TransactionDate": "Transaction Date",
-    "RegisteredAt": "Registere At",
-    "TotalAccountsUsed": "Total Accounts Used",
-    "TotalAmount": "Total Amouont",
-    "AverageMonthly": "Average Monthly",
-    "ItemsPerPage": "Items per page",
-    "of": "of",
-    "n": "n",
-    "DownloadPDF": "Download PDF"
+  "پنجاه فورم‌ها": "50 Forms / Fifty Forms List",
+  "لینک‌های سریع پنجاه فورم": "Quick/Fast links for Fifty Forms",
+  "لینک‌های سریع برای مدیریت هر فورم. برای فیلتر کردن فورم‌های موجود از جستجو استفاده کنید": "Quick links to manage each form. Use search to filter the available forms.",
+  "نمایش": "Display",
+  "از": "of (total count)",
+  "فورم": "Form",
+  "برای": "For",
+  "جستجوی فورم‌ها...": "Search forms...",
+  "در حال بارگیری...": "Loading...",
+  "ریکارد های موجود": "Existing records",
+  "هیچ فورمی پیدا نشد": "No forms found",
+  "برای «{query}» هیچ نتیجه‌ای پیدا نشد. لطفاً واژه‌های جستجو را تغییر بدهید.": "No results were found for \"{query}\". Please change your search terms.",
+  "پاک کردن جستجو": "Clear search",
+
+  "فورم‌های فساد": "Corruption forms",
+  "فورم‌های فساد ساعین": "Corruption forms (Saeein)",
+  "فورم‌های سرقت": "Theft forms",
+  "فورم‌های بندی‌ها": "Detainee/Prisoner forms",
+  "فورم‌های ملک‌ها": "Property/Real-estate forms",
+  "فورم‌های دخول/خروج": "Entry/Exit forms",
+  "فورم‌های صرافی‌ها": "Money exchange forms",
+  "فورم‌های کلب‌ها": "Club forms",
+  "فورم‌های مهاجرت": "Migration forms",
+  "فورم‌های سربازان": "Soldiers forms",
+
+  "فورم‌های مواد مخدر": "Drug/Narcotics forms",
+  "فورم‌های مجرمین گمشده": "Missing criminals forms",
+  "فورم‌های خانه‌های سربازان قدیمی": "Former soldiers' houses forms",
+  "فورم‌های دزدان": "Thieves forms",
+  "فورم‌های افراد مسلح غیرمسؤول": "Illegal armed individuals forms",
+  "فورم‌های خانه‌های مشکوک": "Suspicious houses forms",
+  "فورم‌های ساحات آسیب‌دیده": "Damaged areas forms",
+  "فورم‌های ساحات رسانندهٔ آسیب": "Harm-causing locations forms",
+  "فورم‌های دکان‌های مشکوک": "Suspicious shops forms",
+  "فورم‌های لوچک‌ها": "Luchakano forms",
+
+  "فورم‌های مکتب‌ها": "School forms",
+  "فورم‌های ایستگاه‌های بس": "Bus station forms",
+  "فورم‌های شرکت‌های ترانسپورتی": "Transport company forms",
+  "فورم‌های کمپنی‌های فروش موتر": "Car sales company forms",
+  "فورم‌های پارکینگ": "Parking forms",
+  "فورم‌های بانک‌ها": "Bank forms",
+  "فورم‌های آپارتمان‌ها": "Apartment forms",
+  "فورم‌های رهنمای معاملات": "Transaction guidance forms",
+  "فورم‌های شفاخانه‌ها": "Hospital forms",
+  "فورم‌های کارگاه‌ها": "Workshop forms",
+
+  "فورم‌های بدماش‌ها": "Badmash (thugs) forms",
+  "فورم‌های سرای‌ها": "Saray/Inn forms",
+  "فورم‌های دفاتر امارت": "Emirate offices forms",
+  "فورم‌های هوسٹل‌ها": "Hostel forms",
+  "فورم‌های هوتل‌ها": "Hotel forms",
+  "فورم‌های مدارس دینی": "Religious school (Madrasa) forms",
+  "فورم‌های افراد مشکوک": "Suspicious persons forms",
+  "فورم‌های مجاهدین": "Mujahideen forms",
+  "فورم‌های قومندانان جهادی قدیمی": "Former jihadi commanders forms",
+  "فورم‌های تاجران": "Traders forms",
+
+  "فورم‌های چک‌پوینت‌ها": "Checkpoint forms",
+  "فورم‌های مسجدها": "Mosque forms",
+  "فورم‌های شاهراه‌ها": "Highway forms",
+  "فورم‌های شرکت‌ها": "Company forms",
+  "فورم‌های ساحات دزدی شده": "Stolen areas forms",
+  "فورم‌های پروژه‌های اقتصادی": "Economic projects forms",
+  "فورم‌های ساحات دستگیری مجرمین": "Criminal arrest locations forms",
+  "فورم‌های پمپ‌ها": "Fuel pump forms",
+  "فورم‌های شوراها": "Council (Shura) forms",
+  "فورم‌های اماکن حکومتی": "Government places forms",
+  "فورم‌های سوپرمارکت‌ها": "Supermarket forms",
+  "فورم‌های پارک‌ها": "Park forms",
+  "فورم‌های مجتمع‌ها": "Complex forms",
+  "فورم‌های اماکن دیپلوماتیک": "Diplomatic places forms",
+  "فورم‌های پوهنتون‌ها": "University forms",
+  "فورم‌های وکیلان": "Lawyers forms",
+  "Logout": "Logout",
+  "Guest": "Guest",
+
+  "دشبورد": "Dashboard",
+  "نقشه": "Map",
+  "ارتباطی مرکز": "Communication Center",
+  "استفاده کننده ها": "Users",
+  "کارمندان": "Employees",
+  "منابع": "Resources",
+  "اطلاعات": "Information",
+  "واقعات": "Events",
+  "زندانی های تسلیم شده": "Surrendered detainees",
+  "۵۶ فارمت": "56 Formats",
+  "بخش حساب مالی": "Finance accounts",
+  "صادره وارده": "Outgoing/Incoming letters",
+  "راپور خیریت": "Charity report",
+  "نقش ها": "Roles",
+  "راپورها": "Reports",
+  "راپور روزانه": "Daily report",
+  "راپور هفته وار": "Weekly report",
+  "راپور ماهانه": "Monthly report",
+  "راپور ربعه وار": "Quarterly report",
+  "راپور سالانه": "Yearly report",
+  "آرشیف": "Archive",
+  "تنظیمات سیستم": "System settings",
+  "افزودن اطلاعات جدید": "Add new information",
+  "کود منبع": "Resource code",
+  "کود کارمند": "Employee code",
+  "کود کارمند اطلاع گیرنده": "Information receiver employee code",
+  "نام": "Name",
+  "نام مستعار": "Nickname / Alias",
+  "نام پدر": "Father's name",
+  "نام پدرکلان": "Grandfather's name",
+
+  "آدرس‌ها": "Addresses",
+  "آدرس اصلی": "Primary address",
+  "ولایت اصلی": "Primary province",
+  "ولسوالی اصلی": "Primary district",
+  "قریه/ناحیه اصلی": "Primary village/area",
+
+  "آدرس فعلی": "Current address",
+  "ولایت فعلی": "Current province",
+  "ولسوالی فعلی": "Current district",
+  "قریه/ناحیه فعلی": "Current village/area",
+
+  "سیاسی - نوع": "Political - type",
+  "جنایی": "Criminal",
+  "تاریخ اطلاع": "Information date",
+  "ساعت اطلاع": "Information time",
+  "درجه موثقیت اطلاع": "Information credibility level",
+
+  "تاریخ هم‌آهنگی": "Coordination date",
+  "شماره مکتوب": "Letter number",
+  "ارگان": "Organization",
+
+  "تفصیل": "Details",
+  "نظر مدیر": "Manager's comment",
+  "ملاحظات": "Remarks",
+
+  "اسناد / ضمایم": "Documents / Attachments",
+  "آپلود فایل ها": "Upload files",
+  "در حال آپلود": "Uploading",
+  "آپلود با موفقیت انجام شد": "Upload completed successfully",
+  "نوت راجع به اسناد": "Note about documents",
+
+  "پاک کردن فرم": "Clear form",
+  "اضافه کردن اطلاعات": "Add information",
+
+  "جستجوی منبع": "Search resource",
+  "تعداد": "Count",
+  "نام یا کد منبع": "Resource name or code",
+  "مشخصات منبع": "Resource details",
+  "کود نمبر": "Code number",
+  "بدون نام": "No name",
+  "شماره تماس": "Phone number",
+  "شماره تماس ۱": "Phone number 1",
+  "شماره تماس ۲": "Phone number 2",
+
+  "مشاهده": "View",
+
+  "منبعی انتخاب نشده": "No resource selected",
+  "لطفاً از باکس جستجو یک منبع انتخاب کنید": "Please select a resource from the search box.",
+  "جستجو را شروع کنید": "Start searching",
+
+  "ثبت گزارش خیرات": "Submit charity report",
+  "هر منبع فقط ماهانه یک عدد راپور خیریت میتواند دشته باشد!": "Each resource can have only one charity report per month!",
+  "منبع": "Resource",
+  "کارمند": "Employee",
+  "زون / حوزه": "Zone / Hawza",
+  "محل مشخص": "Specific location",
+  "تاریخ ثبت": "Submission date",
+
+  "ثبت گزارش": "Submit report",
+  "گزارش با موفقیت ثبت شد": "Report submitted successfully",
+  "خطا رخ داد. دوباره تلاش کنید.": "An error occurred. Please try again.",
+  "خطا در ثبت گزارش خیرات": "Error submitting charity report",
+
+  "مرکز ارتباطات": "Communications Center",
+
+  "افزودن واقعه جدید": "Add new event",
+  "نوعیت واقعه": "Event type",
+  "نوعیت مشخص واقعه": "Specific event type",
+  "هدف کی بود/مکان بود": "Who/what was the target (person/place)",
+  "کی جرم را انجام داده": "Who committed the crime",
+  "تاریخ واقعه": "Event date",
+  "ساعت واقعه": "Event time",
+  "محل واقعه": "Event location",
+  "کوردینات": "Coordinates",
+  "تلفات مالی": "Financial loss",
+  "کشته شده": "Killed",
+  "زخمی شده": "Injured",
+  "صحبت های انجام شده": "Actions taken / Discussions held",
+
+  "اظافه کردن واقعه": "Add event",
+  "پرنټ / PDF": "Print / PDF",
+
+  "ویرایش گزارش خیریت": "Edit charity report",
+  "ثبت دیتا": "Save data",
+  "ذخیره تغییرات": "Save changes",
+  "انصراف": "Cancel",
+
+  "گزارش خیرات": "Charity report",
+  "مدیریت گزارش‌های خیرات": "Manage charity reports",
+  "جستجو در گزارش‌ها...": "Search reports...",
+  "جدید": "New",
+  "حذف": "Delete",
+  "ویرایش": "Edit",
+  "خطا در حذف گزارش": "Error deleting report",
+  "خطا در دریافت گزارش‌ها": "Error fetching reports",
+  "بستن": "Close",
+  "User": "User",
+  "Add a User": "Add a new user",
+
+  "جستجو": "Search",
+  "ItemsPerPage": "Items per page",
+
+  "انتخاب": "Select",
+  "تصویر": "Image",
+  "نام کاربر": "Username",
+  "نقش": "Role",
+  "عملیات": "Actions",
+
+  "ایدیت": "Edit",
+  "دلیت": "Delete",
+
+  "استفاده کننده دریافت نشد لطفا یکی را اضافه کنید!": "No users found. Please add one.",
+
+  "Close": "Close",
+  "Open original": "Open original image",
+  "کارمندان مدیریت": "Employee management",
+  "فهرست و جستجو": "List and search",
+
+  "جستجو در کارمندان...": "Search employees...",
+  "کارمند جدید": "New employee",
+
+  "کل کارمندان": "Total employees",
+  "اداری": "Administrative",
+  "اوپراتیفی": "Operational",
+  "کارمندان فعال": "Active employees",
+  "کارمندان غیر فعال": "Inactive employees",
+
+  "حوادث": "Incidents",
+  "منابع فعال": "Active resources",
+  "منابع غیر فعال": "Inactive resources",
+
+  "شماره تذکره": "Tazkira number",
+  "سن": "Age",
+
+  "نوعیت وظیفه": "Job type",
+  "وظیفه مشخص": "Specific job",
+  "قسم": "Department/Section",
+  "بست": "Position",
+  "رتبه/سطح": "Rank/Level",
+  "زون": "Zone",
+  "حوزه": "Hawza",
+
+  "سابقه جهاد": "Jihad background",
+  "دلګی مشر": "Unit leader",
+  "موقف جهادی": "Jihadi role",
+  "مسئولیت جهاد": "Jihad responsibility",
+  "محل جهاد": "Jihad location",
+
+  "قریه اصلی": "Primary village",
+  "قریه فعلی": "Current village",
+  "محل مشخص فعلی": "Current specific location",
+  "نمبر سرک": "Street number",
+  "نمبر خانه": "House number",
+
+  "تعلیمات دینی": "Religious education",
+  "تعلیمات عصری": "Modern education",
+  "پوهنحی/رشته": "Faculty/Major",
+  "نظامی": "Military",
+  "معلومات سلاح": "Weapon information",
+
+  "زبان": "Language",
+  "قوم/ملیت": "Ethnicity/Nationality",
+  "مهارت‌های خاص": "Special skills",
+  "فعالیت": "Activity",
+  "مختصات": "Coordinates",
+
+  "تاریخ آمدن": "Arrival date",
+  "تاریخ رفتن": "Departure date",
+  "پول داده شده": "Paid amount",
+
+  "مشاهده کارمند": "View employee",
+  "تغییر جزیات کارمند": "Edit employee details",
+  "دانلود اسناد مربوط به کارمند": "Download employee documents",
+  "حذف کارمند": "Delete employee",
+
+  "پیش نمایش عکس کارمند": "Employee photo preview",
+  "پیش نمایش": "Preview",
+
+  "خطا در دریافت معلومات کارمند": "Error fetching employee details",
+  "خطا در دریافت فهرست کارمندان": "Error fetching employee list",
+  "خطا در حذف کارمند": "Error deleting employee",
+  "خطا در دانلود اسناد کارمند": "Error downloading employee documents",
+  "دانلود اسناد برای این کارمند هنوز تنظیم نشده است": "Document download is not configured for this employee yet.",
+
+  "اصلاح معلومات کارمند": "Edit employee information",
+  "اضافه کردن کارمند مدیریت": "Add new employee",
+  "ویرایش جزئیات یک کارمند موجود": "Edit details of an existing employee",
+  "ثبت یک کارمند جدید در سیستم": "Register a new employee in the system",
+  "برگشت": "Back",
+
+  "مراحل خانه پری فرم کارمند": "Employee form steps",
+  "۴ بخش اصلی": "4 main sections",
+
+  "هویت": "Identity",
+  "وظیفه و تعلیمات": "Job and education",
+  "اسناد و سایر": "Documents and others",
+
+  "فرم اصلاح معلومات کارمند": "Employee edit form",
+  "فرم ثبت کارمند جدید": "New employee registration form",
+  "لطفاً تمام خانه‌های ضروری را با دقت خانه پری کنید. خانه‌های ستاره‌دار اجباری است.": "Please fill in all required fields carefully. Fields marked with a star are mandatory.",
+
+  "معرفت و معلومات تماس": "Identity and contact information",
+  "نام، نام پدر، کود نمبر، سن، شماره تماس و تصویر کارمند": "Name, father's name, code number, age, phone number, and employee photo",
+
+  "گزینه ها": "Options",
+
+  "نام *": "Name *",
+  "قریه/گذر اصلی *": "Primary village/area *",
+
+  "آدرس اصلی و فعلی": "Primary and current address",
+  "آدرس اصلی (زادگاه) و آدرس فعلی کارمند را وارد کنید.": "Enter the employee's primary (birthplace) address and current address.",
+
+  "وظیفه، زون/حوزه و تعلیمات": "Job, zone/hawza, and education",
+  "وظیفه مشخص، بست، زون، حوزه و تحصیلات کارمند را درج کنید.": "Enter the employee's specific job, position, zone, hawza, and education.",
+
+  "حالت مدنی": "Marital status",
+  "دروس نظامی": "Military training",
+  "مسئولیت در زمان جهاد": "Responsibility during Jihad",
+
+  "تاریخ‌ها، ملاحظات و اسناد": "Dates, remarks, and documents",
+  "تاریخ آمدن/رفتن، ملاحظات و اسناد ضمیمه را درج کنید.": "Enter arrival/departure dates, remarks, and attached documents.",
+
+  "انتخاب و آپلود فایل‌ها": "Select and upload files",
+  "فایل جدید": "New file",
+  "موجود": "Existing",
+  "فایلی انتخاب نشده است": "No file selected",
+
+  "ذخیرهٔ تغییرات": "Save changes",
+  "ثبت کارمند": "Save employee",
+  "پاک کردن ورودی‌ها": "Clear inputs",
+
+  "این فیلد الزامی است": "This field is required",
+  "شماره تماس باید دقیقاً ۱۰ رقم باشد": "Phone number must be exactly 10 digits",
+  "عمر باید عدد باشد": "Age must be a number",
+  "عمر باید بین ۰ تا ۲۰۰ باشد": "Age must be between 0 and 200",
+
+  "لطفاً فیلدهای قرمز را درست کنید": "Please fix the red fields",
+  "نام الزامی است": "Name is required",
+
+  "کارمند موفقانه ثبت شد": "Employee saved successfully",
+  "ثبت معلومات ناکام شد": "Saving information failed",
+  "تغییرات موفقانه ذخیره شد": "Changes saved successfully",
+  "ذخیرهٔ تغییرات ناکام شد": "Saving changes failed",
+  "خطا در ذخیره اطلاعات": "Error saving information",
+
+  "ورودی‌ها پاک شد": "Inputs cleared",
+  "موفقانه ثبت شد": "Saved successfully",
+  "ثبت ناکام شد": "Save failed",
+  "تغییرات ذخیره شد": "Changes saved",
+  "ذخیره ناکام شد": "Save failed",
+  "ورودی‌ها پاک شد": "Inputs cleared",
+
+  "خطا در دریافت معلومات": "Error fetching details",
+  "خطا در دریافت فهرست": "Error fetching list",
+  "خطا در حذف": "Error deleting",
+  "خطا در ذخیره اطلاعات": "Error saving data",
+  "گزارش خیرات": "Charity Report",
+  "مدیریت گزارش‌های خیرات": "Manage Charity Reports",
+
+  "جستجو در گزارش‌ها...": "Search reports...",
+  "جدید": "New",
+  "تعداد": "Count",
+
+  "منبع": "Source",
+  "کارمند": "Employee",
+  "زون": "Zone",
+  "حوزه": "District / Sector",
+  "محل مشخص": "Specific location",
+  "تاریخ ثبت": "Registration date",
+
+  "ویرایش": "Edit",
+  "حذف": "Delete",
+  "بستن": "Close",
+
+  "خطا در حذف گزارش": "Error deleting report",
+  "خطا در دریافت گزارش‌ها": "Error fetching reports",
+
+  "ثبت گزارش خیریت": "Create Charity Report",
+  "ویرایش گزارش خیریت": "Edit Charity Report",
+  "اطلاعات گزارش را ویرایش کنید": "Edit the report information",
+  "اطلاعات گزارش جدید را وارد کنید": "Enter new report information",
+
+  "اطلاعات اصلی": "Main information",
+
+  "انصراف": "Cancel",
+  "ذخیره تغییرات": "Save changes",
+  "ثبت دیتا": "Submit data",
+
+  "خطا در دریافت معلومات گزارش": "Error fetching report details",
+  "خطا رخ داد. دوباره تلاش کنید.": "An error occurred. Please try again.",
+
+  "Permissions": "Permissions",
+  "Define granular abilities": "Define granular abilities",
+  "Search permissions": "Search permissions",
+  "Create Permission": "Create Permission",
+  "Permission name": "Permission name",
+  "Rename Permission": "Rename Permission",
+  "No permissions found. Create your first permission!": "No permissions found. Create your first permission!",
+
+  "Roles": "Roles",
+  "Manage roles & permissions": "Manage roles & permissions",
+  "Search roles": "Search roles",
+  "Create Role": "Create Role",
+  "Role name": "Role name",
+  "Rename Role": "Rename Role",
+  "Assign permissions": "Assign permissions",
+  "No roles found. Create your first role!": "No roles found. Create your first role!",
+
+  "Search": "Search",
+  "Create": "Create",
+  "Save": "Save",
+  "Cancel": "Cancel",
+  "Delete": "Delete",
+  "Rename": "Rename",
+
+  "Action": "Action",
+  "Actions": "Actions",
+  "Action(s)": "Action(s)",
+  "Module": "Module",
+  "Guard": "Guard",
+  "ID": "ID",
+  "Name": "Name",
+  "#": "#",
+
+  "web": "web",
+  "sanctum": "sanctum",
+
+  "صلاحیتونه ټاکل": "Select permissions",
+  "د رول صلاحیتونه": "Role permissions",
+  "رول": "Role",
+
+  "واپس (Escape)": "Back (Escape)",
+  "صلاحیتونه": "Permissions",
+  "ټول": "All",
+  "لټون": "Search",
+  "بدلونونه": "Changes",
+
+  "واپس (Ctrl+Z)": "Undo (Ctrl+Z)",
+  "بیاړو (Ctrl+Y)": "Redo (Ctrl+Y)",
+  "یوازې ښکاره شوي وټاکه": "Select only visible items",
+  "ټول وټاکه (Ctrl+A)": "Select all (Ctrl+A)",
+  "پاکول": "Clear",
+  "ساتل (Ctrl+S)": "Save (Ctrl+S)",
+
+  "د صلاحیتونو لټون...": "Search permissions...",
+  "ټاکل شوي": "Selected",
+  "ګروپونه": "Groups",
+  "ټول صلاحیتونه": "All permissions",
+
+  "ټول بند کړئ": "Collapse all",
+  "ټول خلاص کړئ": "Expand all",
+
+  "توکي": "Items",
+  "نوي اضافه شوي": "Newly added",
+  "لرې شوي": "Removed",
+
+  "صلاحیتونه په دې ساحه کې ولیږدوئ": "Move permissions into this area",
+
+  "هیڅ صلاحیت ونه موندل شو": "No permissions found",
+  "لټون بدل کړئ یا یې پاک کړئ.": "Change the search or clear it.",
+
+  "صلاحیتونه ټاکل شوي": "Permissions selected",
+  "په": "in",
+  "ګروپونو کې": "groups",
+
+  "لغوه": "Cancel",
+  "ساتل": "Save",
+
+  "د بدلونونو لنډیز": "Changes summary",
+  "بندول": "Close",
+
+  "بدلونونه خوندي شوي نه دي": "Changes are not saved",
+  "تاسو بدلونونه کړي دي. غواړئ پرته له ساتلو ووځئ؟": "You made changes. Do you want to exit without saving?",
+
+  "بېرته": "Back",
+  "وتل": "Exit",
+  "ساتل او وتل": "Save & Exit",
+
+  "صلاحیتونه په بریالیتوب سره ساتل شول!": "Permissions saved successfully!",
+
+  "بدلونونه خوندي شوي نه دي. ایا په رښتیا غواړئ پاڼه پرېږدئ؟": "Changes are not saved. Do you really want to leave the page?",
+
+  "تنظیمات سیستم": "System Settings",
+  "مدیریت مسیرهای تنظیمات سیستم": "Manage system settings sections and routes",
+  "برای ورود به هر بخش، روی کارت آن کلیک کنید.": "To enter a section, click its card.",
+
+  "ولایت": "Province",
+  "مدیریت لیست ولایت‌ها": "Manage provinces list",
+
+  "والسوالی": "District",
+  "مدیریت لیست والسوالی‌ها": "Manage districts list",
+
+  "زون": "Zone",
+  "مدیریت زون‌ها": "Manage zones",
+
+  "حوزه": "Sector / Area",
+  "مدیریت حوزه‌ها": "Manage sectors",
+
+  "نوع رویداد": "Event type",
+  "مدیریت نوع رویداد": "Manage event types",
+
+  "نوع مشخص رویداد": "Specific event type",
+  "مدیریت نوع مشخص رویداد": "Manage specific event types",
+
+  "مدیریت نوع جنایی": "Manage crime type",
+  "مدیریت نوعیت جینایی": "Manage crime category",
+
+  "سیاسی": "Political",
+  "مدیریت نوع سیاسی": "Manage political type",
+
+  "ارگان": "Organization",
+  "مدیریت ارگان‌ها": "Manage organizations",
+
+  "مدیریت وظایف": "Manage job roles",
+
+  "مدیریت نوع فعالیت منبع": "Manage source activity type",
+  "مدیریت نوعیت فعالیت منابع": "Manage sources activity category",
+
+  "مدیریت موقف جهادی": "Manage Jihadi position",
+
+  "گزارش روزانه سیستم ": "Daily system report",
+  "نمای کلی روزانه منابع، اطلاعات، رویدادها و فورم‌ها": "Daily overview of sources, information, events, and forms",
+
+  "انتخاب تاریخ": "Select date",
+  "نمایش گزارش": "Show report",
+  "امروز": "Today",
+
+  "برای تاریخ انتخاب‌شده هیچ دیتا موجود نیست.": "No data exists for the selected date.",
+
+  "منابع": "Sources",
+  "کل": "Total",
+
+  "اطلاعات": "Information",
+  "موجود": "Available",
+
+  "رویدادها": "Events",
+  "ثبت شده": "Recorded",
+
+  "فورم‌های ۵۰ فارمت": "50-format forms",
+  "فعال": "Active",
+
+  "نوعیت‌های اطلاعات": "Information categories",
+  "توزیع بر اساس نوع": "Distribution by type",
+
+  "فورم‌ها": "Forms",
+  "فورم‌های  ۵۰ فارمت": "50-format forms",
+
+  "رویدادهای ثبت‌شده": "Recorded events",
+  "جزئیات رویدادها بر اساس منطقه": "Event details by region",
+
+  "تعداد کل رویدادها": "Total events",
+  "آخرین بروزرسانی": "Last updated",
+
+  "نوعیت اطلاعات": "Information type",
+  "نام فورم": "Form name",
+  "ورودی‌ها": "Entries",
+
+  "کشته": "Killed",
+  "زخمی": "Injured",
+  "تلفات مالی": "Financial losses",
+
+  "هیچ دیتا وجود ندارد": "No data available",
+  "هیچ فورم دارای دیتا نیست": "No form has data",
+  "هیچ رویدادی ثبت نشده": "No event recorded",
+
+  "گزارش هفته‌وار سیستم ": "Weekly system report",
+  "نمای کلی هفته‌وار منابع، اطلاعات، رویدادها و فورم‌ها": "Weekly overview of sources, information, events, and forms",
+
+  "نوع تقویم": "Calendar type",
+  "انتخاب تاریخ (برای هفته)": "Select date (for week)",
+  "هفته جاری": "Current week",
+
+  "میلادی": "Gregorian",
+  "هجری شمسی": "Solar Hijri",
+  "هجری قمری": "Lunar Hijri",
+
+  "برای هفته انتخاب‌شده هیچ دیتا موجود نیست.": "No data exists for the selected week.",
+
+  "خلاصه رویدادها بر اساس نوعیت": "Event summary by type",
+
+  "گزارش ماهانه سیستم ": "Monthly system report",
+  "نمای کلی ماهانه منابع، اطلاعات، رویدادها و فورم‌ها": "Monthly overview of sources, information, events, and forms",
+
+  "انتخاب ماه": "Select month",
+  "این ماه": "This month",
+
+  "برای ماه انتخاب‌شده هیچ دیتا موجود نیست.": "No data exists for the selected month.",
+
+  "جزئیات رویدادها بر اساس نوع رویداد": "Event details by event type",
+
+  "گزارش ربعه سیستم ": "Quarterly system report",
+  "نمای کلی ربعه منابع، اطلاعات، رویدادها و فورم‌ها": "Quarterly overview of sources, information, events, and forms",
+
+  "انتخاب تاریخ (برای ربعه)": "Select date (for quarter)",
+  "ربعه جاری": "Current quarter",
+
+  "برای ربعه انتخاب‌شده هیچ دیتا موجود نیست.": "No data exists for the selected quarter.",
+
+  "گزارش سالانه سیستم ": "Annual system report",
+  "نمای کلی سالانه منابع، اطلاعات، رویدادها و فورم‌ها": "Annual overview of sources, information, events, and forms",
+
+  "انتخاب تاریخ (برای سال)": "Select date (for year)",
+  "سال جاری": "Current year",
+
+  "برای سال انتخاب‌شده هیچ دیتا موجود نیست.": "No data exists for the selected year.",
+
+  "گزارش عمومی سیستم ": "General system report",
+  "نمای کلی عمومی منابع، اطلاعات، رویدادها و فورم‌ها": "General overview of sources, information, events, and forms",
+
+  "ریست": "Reset",
+  "هیچ دیتا موجود نیست.": "No data available.",
+
+  "ټول وخت": "All time",
+
+  "فسادها": "Corruption cases",
+  "فهرست، جستجو و مدیریت فسادها": "List, search, and manage corruption cases",
+  "جستجو در فسادها...": "Search corruption cases...",
+  "اضافه ریکارډ جدید فساد": "Add new corruption record",
+
+  "تمام فسادها": "All corruption cases",
+  "دارای مختصات": "Has coordinates",
+  "دارای شماره تماس": "Has phone number",
+  "دارای منبع": "Has source",
+
+  "رفتن به صفحه منابع": "Go to Sources page",
+  "نقشه": "Map",
+
+  "مشاهده فساد": "View corruption record",
+  "ویرایش فساد": "Edit corruption record",
+  "حذف فساد": "Delete corruption record",
+
+  "حذف شد": "Deleted",
+  "خطا در دریافت فهرست فسادها": "Error fetching corruption list",
+  "خطا در دریافت معلومات فساد": "Error fetching corruption details",
+
+  "تخلص": "Last name",
+  "قریه/ناحیه اصلی": "Main village/area",
+  "زون فعلی": "Current zone",
+  "قریه/ناحیه فعلی": "Current village/area",
+
+  "موقعیت مشخص فعلی": "Current specific location",
+  "شماره سرک": "Street number",
+  "شماره خانه": "House number",
+  "مختصات": "Coordinates",
+
+  "جبهه": "Front / Faction",
+  "نام تمویل‌کننده": "Sponsor name",
+  "مسئولیت": "Responsibility",
+  "ساحه فعالیت": "Activity area",
+  "تعداد دوستان": "Number of friends",
+  "فاصله ارتباط": "Contact interval",
+  "دلیل آخرین بند": "Reason for last detention",
+  "محل بند": "Detention location",
+  "وظیفه فعلی": "Current job",
+
+  "کود منبع": "Source code",
+  "شماره منبع": "Source number",
+
+  "مشخصات": "Profile",
+  "آدرس اصلی": "Main address",
+  "آدرس فعلی": "Current address",
+  "فعالیت/جبهه": "Activity/Front",
+  "سوابق": "History",
+  "منبع": "Source",
+
+  "اصلاح فساد": "Edit corruption",
+  "اضافه کردن یک ریکارډ جدید فساد": "Add a new corruption record",
+  "ویرایش جزئیات یک ریکارډ موجود فساد": "Edit details of an existing corruption record",
+  "ثبت یک ریکارډ جدید فساد در سیستم": "Register a new corruption record in the system",
+  "برگشت": "Back",
+
+  "مشخصات اساسی": "Basic information",
+  "موقعیت و خانه": "Location & house",
+  "فعالیت، شبکه و تماس": "Activity, network & contact",
+  "مختصات و نقشه": "Coordinates & map",
+  "معلومات منبع": "Source information",
+
+  "دلیل آخرین بند/ارتباط": "Reason for last detention/contact",
+  "محل بند/ارتباط": "Detention/contact location",
+
+  "این فیلد الزامی است": "This field is required",
+  "فایل Word با موفقیت ایجاد شد": "Word file created successfully",
+
+  "لطفاً فیلدهای الزامی را درست پُر کنید": "Please fill required fields correctly",
+  "تغییرات موفقانه ذخیره شد": "Changes saved successfully",
+  "فساد جدید موفقانه ثبت شد": "New corruption record saved successfully",
+  "خطا در ذخیره معلومات": "Error saving information",
+
+  "ثبت فساد جدید": "Create new corruption record",
+  "پاک کردن فرم": "Clear form",
+
+  "PDF": "PDF",
+  "Word": "Word",
+
+  "ویرایش فساد (سعین)": "Edit Saeen corruption",
+  "ایجاد ریکارډ سعین فساد": "Create Saeen corruption record",
+  "ویرایش جزئیات یک ریکارډ موجود سعین فساد": "Edit details of an existing Saeen corruption record",
+  "ثبت یک ریکارډ جدید سعین فساد در سیستم": "Register a new Saeen corruption record in the system",
+
+  "تصویر": "Image",
+  "عکس": "Photo",
+  "تغییر عکس": "Change photo",
+  "پیش نمایش": "Preview",
+
+  "ویرایش معلومات سعین فساد": "Edit Saeen corruption information",
+  "جزئیات اضافی و منبع": "Additional details & source",
+
+  "شماره تماس باید دقیقاً ۱۰ رقم باشد": "Phone number must be exactly 10 digits",
+  "لطفاً عدد وارد کنید": "Please enter a number",
+
+  "خطا در دریافت معلومات سعین فساد": "Error fetching Saeen corruption details",
+  "فرم پاک شد": "Form cleared",
+
+  "سرقت": "Theft",
+  "فهرست، جستجو و مدیریت سرقت ها": "List, search, and manage theft records",
+  "جستجو در سرقت...": "Search theft...",
+  "اضافه کردن سرقت جدید": "Add new theft",
+
+  "تمام سرقت ها": "All thefts",
+  "دارای وظیفه فعلی": "Has current job",
+
+  "مشاهده سرقت": "View theft",
+  "ویرایش سرقت": "Edit theft",
+  "حذف سرقت": "Delete theft",
+
+  "پیش نمایش تصویر": "Image preview",
+
+  "خطا در دریافت معلومات سرقت": "Error fetching theft details",
+  "خطا در دریافت فهرست سرقت ها": "Error fetching theft list",
+
+  "نوع سلاح": "Weapon type",
+  "ولایت مربوطه": "Related province",
+
+  "سرقت‌های انجام‌شده": "Committed thefts",
+
+  "دیگر": "Other",
+
+  "ویرایش هېست": "Edit Heist",
+  "ایجاد هېست جدید": "Create new Heist",
+  "ویرایش جزئیات یک ریکارډ هېست موجود": "Edit details of an existing heist record",
+  "ثبت یک ریکارډ هېست جدید در سیستم": "Register a new heist record in the system",
+
+  "ویرایش ریکارډ هېست": "Edit heist record",
+  "ایجاد ریکارډ هېست": "Create heist record",
+
+  "ایجاد ریکارډ هېست": "Create heist record",
+
+  "خطا در دریافت معلومات هېست": "Error fetching heist details",
+
+  "محبوسین رها شده": "Released detainees",
+  "فهرست، جستجو و مدیریت اسیر/گرفتارها": "List, search, and manage detainees/captives",
+
+  "جستجو در اسیر/گرفتار...": "Search detainees/captives...",
+  "اضافه کردن جدید": "Add new",
+
+  "همه اسیر/گرفتارها": "All detainees/captives",
+
+  "دارای اسناد": "Has documents",
+
+  "مشاهده اسیر/گرفتار": "View detainee/captive",
+  "ویرایش اسیر/گرفتار": "Edit detainee/captive",
+  "دانلود اسناد اسیر/گرفتار": "Download detainee/captive documents",
+  "حذف اسیر/گرفتار": "Delete detainee/captive",
+
+  "خطا در دریافت معلومات اسیر/گرفتار": "Error fetching detainee/captive details",
+  "خطا در دریافت فهرست اسیر/گرفتارها": "Error fetching detainees/captives list",
+
+  "فرم مشخص": "Specific form",
+  "فرم مشخص/ویژه": "Specific/Special form",
+  "فاصله بانډ": "Band distance",
+  "فعالیت فعلی": "Current activity",
+
+  "coordinates": "Coordinates",
+  "coordinates": "Coordinates",
+
+  "منزل/موقعیت": "Residence/Location",
+  "فرم/بانډ/فعالیت": "Form/Band/Activity",
+
+  "ایجاد اسیر/گرفتار جدید": "Create new detainee/captive",
+  "ویرایش جزئیات یک اسیر/گرفتار موجود": "Edit details of an existing detainee/captive",
+  "ثبت یک اسیر/گرفتار جدید در سیستم": "Register a new detainee/captive in the system",
+
+  "دانلود همه اسناد": "Download all documents",
+
+  "اسناد ضمیمه": "Attached documents",
+  "فایل‌های جدید را اضافه کنید یا اسناد قبلی را مشاهده/حذف کنید.": "Add new files or view/delete previous documents.",
+  "انتخاب فایل‌ها": "Select files",
+  "ایجاد اسیر/گرفتار": "Create detainee/captive",
+
+  "فورم اسیر/گرفتار": "Detainee/Captive form",
+
+  "ملکانُو": "Melkano (Properties)",
+  "فهرست، جستجو و مدیریت مُلکانو": "List, search, and manage Melkano (properties)",
+  "جستجو در مُلکانو...": "Search Melkano...",
+  "اضافه ریکارډ جدید مُلکانو": "Add new Melkano record",
+
+  "تمام مُلکانو": "All Melkano records",
+
+  "مشاهده مُلکانو": "View Melkano",
+  "ویرایش مُلکانو": "Edit Melkano",
+  "حذف مُلکانو": "Delete Melkano",
+
+  "خطا در دریافت معلومات مُلکانو": "Error fetching Melkano details",
+  "خطا در دریافت فهرست مُلکانو": "Error fetching Melkano list",
+
+  "گذر": "Alley / Passage",
+
+  "تفسیر صحیح": "Correct interpretation",
+  "مقدار سرک": "Street amount",
+  "وظیفه جدید": "New job",
+
+  "تعداد عامل": "Number of agents",
+  "تعداد خانه": "Number of houses",
+
+  "سابقه جرم": "Criminal record",
+  "تنظیم": "Affiliation",
+  "تنظیم / وابستگی": "Affiliation / Dependency",
+
+  "موقعیت/خانه": "Location/House",
+  "توضیحات/وظایف/مقدار": "Description/Duties/Amount",
+  "کمیات": "Quantity",
+  "تماس/سوابق": "Contact/History",
+
+  "اصلاح مُلکانو": "Edit Melkano",
+  "اضافه کردن یک ریکارډ جدید مُلکانو": "Add a new Melkano record",
+  "ویرایش جزئیات یک ریکارډ موجود مُلکانو": "Edit details of an existing Melkano record",
+  "ثبت یک ریکارډ جدید مُلکانو در سیستم": "Register a new Melkano record in the system",
+
+  "انتخاب تصویر": "Select image",
+
+  "مقادیر و وظایف": "Amounts & duties",
+  "سوابق و وابستگی": "History & affiliation",
+  "تفسیر صحیح / توضیحات": "Correct interpretation / description",
+
+  "PDF ساده (بدون عکس)": "Simple PDF (no photos)",
+  "Word ساده (بدون عکس)": "Simple Word (no photos)",
+
+  "ثبت مُلکانو جدید": "Create new Melkano",
+
+  "لطفاً عدد صحیح وارد کنید": "Please enter a valid integer",
+  "لطفاً عدد معتبر وارد کنید": "Please enter a valid number",
+  "شماره تماس معتبر نیست": "Phone number is not valid",
+  "مختصات درست نیست": "Coordinates are not valid",
+
+  "مُلکانو جدید موفقانه ثبت شد": "New Melkano saved successfully",
+
+  "فورم مُلکانو": "Melkano form",
+  "شماره ریکارډ": "Record number",
+  "بدون شماره": "No number",
+
+  "امضا مسئول": "Responsible signature",
+  "امضا ثبت کننده": "Registrar signature",
+
+  "ورود/خروج": "Entry/Exit",
+  "فهرست، جستجو و مدیریت ریکارډهای ورود/خروج": "List, search, and manage Entry/Exit records",
+
+  "اصلاح ریکارډ ورود/خروج": "Edit Entry/Exit record",
+  "اضافه کردن یک ریکارډ جدید ورود/خروج": "Add a new Entry/Exit record",
+  "ویرایش جزئیات یک ریکارډ موجود ورود/خروج": "Edit details of an existing Entry/Exit record",
+  "ثبت یک ریکارډ جدید ورود/خروج در سیستم": "Register a new Entry/Exit record in the system",
+
+  "مشخصات اساسی": "Basic information",
+  "نام": "Name",
+  "طریق ورود/خروج": "Entry/Exit method",
+  "نوعه طریق": "Method type",
+
+  "آدرس و موقعیت": "Address & location",
+  "قریه/ناحیه": "Village/Area",
+  "موقعیت مشخص": "Specific location",
+  "موفقانه ثبت شد": "Successfully saved",
+  "ثبت ناکام شد": "Save failed",
+  "تغییرات ذخیره شد": "Changes saved",
+  "ذخیره ناکام شد": "Save failed",
+  "ورودی‌ها پاک شد": "Inputs cleared",
+
+  "خطا در دریافت معلومات": "Error fetching information",
+  "خطا در دریافت فهرست": "Error fetching list",
+  "خطا در حذف": "Error deleting",
+  "خطا در ذخیره اطلاعات": "Error saving data",
+  "گزارش خیرات": "Khayrat Report",
+  "مدیریت گزارش‌های خیرات": "Manage Khayrat Reports",
+
+  "جستجو در گزارش‌ها...": "Search reports...",
+  "جدید": "New",
+  "تعداد": "Count",
+
+  "منبع": "Resource",
+  "کارمند": "Employee",
+  "زون": "Zone",
+  "حوزه": "District / Hawza",
+  "محل مشخص": "Specific location",
+  "تاریخ ثبت": "Registration date",
+
+  "ویرایش": "Edit",
+  "حذف": "Delete",
+  "بستن": "Close",
+
+  "خطا در حذف گزارش": "Error deleting report",
+  "خطا در دریافت گزارش‌ها": "Error fetching reports",
+
+  "ثبت گزارش خیریت": "Create Khayrat Report",
+  "ویرایش گزارش خیریت": "Edit Khayrat Report",
+  "اطلاعات گزارش را ویرایش کنید": "Edit the report information",
+  "اطلاعات گزارش جدید را وارد کنید": "Enter new report information",
+
+  "اطلاعات اصلی": "Main information",
+
+  "انصراف": "Cancel",
+  "ذخیره تغییرات": "Save changes",
+  "ثبت دیتا": "Save data",
+
+  "خطا در دریافت معلومات گزارش": "Error fetching report information",
+  "خطا رخ داد. دوباره تلاش کنید.": "An error occurred. Please try again.",
+
+  "Permissions": "Permissions",
+  "Define granular abilities": "Define granular abilities",
+  "Search permissions": "Search permissions",
+  "Create Permission": "Create permission",
+  "Permission name": "Permission name",
+  "Rename Permission": "Rename permission",
+  "No permissions found. Create your first permission!": "No permissions found. Please create your first permission!",
+
+  "Roles": "Roles",
+  "Manage roles & permissions": "Manage roles & permissions",
+  "Search roles": "Search roles",
+  "Create Role": "Create role",
+  "Role name": "Role name",
+  "Rename Role": "Rename role",
+  "Assign permissions": "Assign permissions",
+  "No roles found. Create your first role!": "No roles found. Please create your first role!",
+
+  "Search": "Search",
+  "Create": "Create",
+  "Save": "Save",
+  "Cancel": "Cancel",
+  "Delete": "Delete",
+  "Rename": "Rename",
+
+  "Action": "Action",
+  "Actions": "Actions",
+  "Action(s)": "Action(s)",
+  "Module": "Module",
+  "Guard": "Guard",
+  "ID": "ID",
+  "Name": "Name",
+  "#": "#",
+
+  "web": "web",
+  "sanctum": "sanctum",
+
+  "صلاحیتونه ټاکل": "Select permissions",
+  "د رول صلاحیتونه": "Role permissions",
+  "رول": "Role",
+
+  "واپس (Escape)": "Back (Escape)",
+  "صلاحیتونه": "Permissions",
+  "ټول": "All",
+  "لټون": "Search",
+  "بدلونونه": "Changes",
+
+  "واپس (Ctrl+Z)": "Undo (Ctrl+Z)",
+  "بیاړو (Ctrl+Y)": "Redo (Ctrl+Y)",
+  "یوازې ښکاره شوي وټاکه": "Select visible only",
+  "ټول وټاکه (Ctrl+A)": "Select all (Ctrl+A)",
+  "پاکول": "Clear",
+  "ساتل (Ctrl+S)": "Save (Ctrl+S)",
+
+  "د صلاحیتونو لټون...": "Search permissions...",
+  "ټاکل شوي": "Selected",
+  "ګروپونه": "Groups",
+  "ټول صلاحیتونه": "All permissions",
+
+  "ټول بند کړئ": "Collapse all",
+  "ټول خلاص کړئ": "Expand all",
+
+  "توکي": "Items",
+  "نوي اضافه شوي": "Newly added",
+  "لرې شوي": "Removed",
+
+  "صلاحیتونه په دې ساحه کې ولیږدوئ": "Drag permissions into this area",
+
+  "هیڅ صلاحیت ونه موندل شو": "No permissions found",
+  "لټون بدل کړئ یا یې پاک کړئ.": "Change the search or clear it.",
+
+  "صلاحیتونه ټاکل شوي": "Permissions selected",
+  "په": "in",
+  "ګروپونو کې": "groups",
+
+  "لغوه": "Cancel",
+  "ساتل": "Save",
+
+  "د بدلونونو لنډیز": "Summary of changes",
+  "بندول": "Close",
+
+  "بدلونونه خوندي شوي نه دي": "Changes have not been saved",
+  "تاسو بدلونونه کړي دي. غواړئ پرته له ساتلو ووځئ؟": "You have made changes. Do you want to exit without saving?",
+
+  "بېرته": "Back",
+  "وتل": "Exit",
+  "ساتل او وتل": "Save & exit",
+
+  "صلاحیتونه په بریالیتوب سره ساتل شول!": "Permissions saved successfully!",
+
+  "بدلونونه خوندي شوي نه دي. ایا په رښتیا غواړئ پاڼه پرېږدئ؟": "Changes have not been saved. Are you sure you want to leave the page?",
+
+  "تنظیمات سیستم": "System settings",
+  "مدیریت مسیرهای تنظیمات سیستم": "Manage system settings sections and routes",
+  "برای ورود به هر بخش، روی کارت آن کلیک کنید.": "To enter a section, click its card.",
+
+  "ولایت": "Province",
+  "مدیریت لیست ولایت‌ها": "Manage provinces list",
+
+  "والسوالی": "District",
+  "مدیریت لیست والسوالی‌ها": "Manage districts list",
+
+  "زون": "Zone",
+  "مدیریت زون‌ها": "Manage zones",
+
+  "حوزه": "Hawza",
+  "مدیریت حوزه‌ها": "Manage hawzas",
+
+  "نوع رویداد": "Event type",
+  "مدیریت نوع رویداد": "Manage event types",
+
+  "نوع مشخص رویداد": "Specific event type",
+  "مدیریت نوع مشخص رویداد": "Manage specific event types",
+
+  "مدیریت نوع جنایی": "Manage crime type",
+  "مدیریت نوعیت جینایی": "Manage crime category",
+
+  "سیاسی": "Political",
+  "مدیریت نوع سیاسی": "Manage political types",
+
+  "ارگان": "Organization",
+  "مدیریت ارگان‌ها": "Manage organizations",
+
+  "مدیریت وظایف": "Manage duties",
+
+  "مدیریت نوع فعالیت منبع": "Manage resource activity types",
+  "مدیریت نوعیت فعالیت منابع": "Manage resource activity categories",
+
+  "مدیریت موقف جهادی": "Manage jihadi position",
+
+  "گزارش روزانه سیستم ": "Daily system report",
+  "نمای کلی روزانه منابع، اطلاعات، رویدادها و فورم‌ها": "Daily overview of resources, information, events, and forms",
+
+  "انتخاب تاریخ": "Select date",
+  "نمایش گزارش": "Show report",
+  "امروز": "Today",
+
+  "برای تاریخ انتخاب‌شده هیچ دیتا موجود نیست.": "No data available for the selected date.",
+
+  "منابع": "Resources",
+  "کل": "Total",
+
+  "اطلاعات": "Information",
+  "موجود": "Available",
+
+  "رویدادها": "Events",
+  "ثبت شده": "Recorded",
+
+  "فورم‌های ۵۰ فارمت": "50-format forms",
+  "فعال": "Active",
+
+  "نوعیت‌های اطلاعات": "Information types",
+  "توزیع بر اساس نوع": "Distribution by type",
+
+  "فورم‌ها": "Forms",
+  "فورم‌های  ۵۰ فارمت": "50-format forms",
+
+  "رویدادهای ثبت‌شده": "Recorded events",
+  "جزئیات رویدادها بر اساس منطقه": "Event details by area",
+
+  "تعداد کل رویدادها": "Total events",
+  "آخرین بروزرسانی": "Last updated",
+
+  "نوعیت اطلاعات": "Information type",
+  "نام فورم": "Form name",
+  "ورودی‌ها": "Entries",
+
+  "کشته": "Killed",
+  "زخمی": "Injured",
+  "تلفات مالی": "Financial losses",
+
+  "هیچ دیتا وجود ندارد": "No data available",
+  "هیچ فورم دارای دیتا نیست": "No form has data",
+  "هیچ رویدادی ثبت نشده": "No events recorded",
+
+  "گزارش هفته‌وار سیستم ": "Weekly system report",
+  "نمای کلی هفته‌وار منابع، اطلاعات، رویدادها و فورم‌ها": "Weekly overview of resources, information, events, and forms",
+
+  "نوع تقویم": "Calendar type",
+  "انتخاب تاریخ (برای هفته)": "Select date (for week)",
+  "هفته جاری": "Current week",
+
+  "میلادی": "Gregorian",
+  "هجری شمسی": "Solar Hijri",
+  "هجری قمری": "Lunar Hijri",
+
+  "برای هفته انتخاب‌شده هیچ دیتا موجود نیست.": "No data available for the selected week.",
+
+  "خلاصه رویدادها بر اساس نوعیت": "Event summary by type",
+
+  "گزارش ماهانه سیستم ": "Monthly system report",
+  "نمای کلی ماهانه منابع، اطلاعات، رویدادها و فورم‌ها": "Monthly overview of resources, information, events, and forms",
+
+  "انتخاب ماه": "Select month",
+  "این ماه": "This month",
+
+  "برای ماه انتخاب‌شده هیچ دیتا موجود نیست.": "No data available for the selected month.",
+
+  "جزئیات رویدادها بر اساس نوع رویداد": "Event details by event type",
+
+  "گزارش ربعه سیستم ": "Quarterly system report",
+  "نمای کلی ربعه منابع، اطلاعات، رویدادها و فورم‌ها": "Quarterly overview of resources, information, events, and forms",
+
+  "انتخاب تاریخ (برای ربعه)": "Select date (for quarter)",
+  "ربعه جاری": "Current quarter",
+
+  "برای ربعه انتخاب‌شده هیچ دیتا موجود نیست.": "No data available for the selected quarter.",
+
+  "گزارش سالانه سیستم ": "Yearly system report",
+  "نمای کلی سالانه منابع، اطلاعات، رویدادها و فورم‌ها": "Yearly overview of resources, information, events, and forms",
+
+  "انتخاب تاریخ (برای سال)": "Select date (for year)",
+  "سال جاری": "Current year",
+
+  "برای سال انتخاب‌شده هیچ دیتا موجود نیست.": "No data available for the selected year.",
+
+  "گزارش عمومی سیستم ": "General system report",
+  "نمای کلی عمومی منابع، اطلاعات، رویدادها و فورم‌ها": "General overview of resources, information, events, and forms",
+
+  "ریست": "Reset",
+  "هیچ دیتا موجود نیست.": "No data available.",
+
+  "ټول وخت": "All time",
+
+  "فسادها": "Corruption cases",
+  "فهرست، جستجو و مدیریت فسادها": "List, search, and manage corruption cases",
+  "جستجو در فسادها...": "Search corruption cases...",
+  "اضافه ریکارډ جدید فساد": "Add new corruption record",
+
+  "تمام فسادها": "All corruption cases",
+  "مجموع": "Total",
+  "دارای مختصات": "Has coordinates",
+  "دارای شماره تماس": "Has phone number",
+  "دارای منبع": "Has resource",
+
+  "رفتن به صفحه منابع": "Go to resources page",
+  "نقشه": "Map",
+
+  "مشاهده فساد": "View corruption case",
+  "ویرایش فساد": "Edit corruption case",
+  "حذف فساد": "Delete corruption case",
+
+  "حذف شد": "Deleted",
+  "خطا در دریافت فهرست فسادها": "Error fetching corruption list",
+  "خطا در دریافت معلومات فساد": "Error fetching corruption information",
+
+  "نام": "Name",
+  "نام پدر": "Father's name",
+  "تخلص": "Last name",
+  "نام مستعار": "Nickname / Alias",
+  "شماره تماس": "Phone number",
+
+  "ولایت اصلی": "Main province",
+  "ولسوالی اصلی": "Main district",
+  "قریه/ناحیه اصلی": "Main village/area",
+
+  "ولایت فعلی": "Current province",
+  "زون فعلی": "Current zone",
+  "ولسوالی فعلی": "Current district",
+  "قریه/ناحیه فعلی": "Current village/area",
+
+  "موقعیت مشخص فعلی": "Current specific location",
+  "شماره سرک": "Street number",
+  "شماره خانه": "House number",
+  "مختصات": "Coordinates",
+
+  "جبهه": "Front",
+  "نام تمویل‌کننده": "Sponsor name",
+  "مسئولیت": "Responsibility",
+  "ساحه فعالیت": "Area of activity",
+  "تعداد دوستان": "Number of friends",
+  "فاصله ارتباط": "Contact interval",
+  "دلیل آخرین بند": "Reason for last detention",
+  "محل بند": "Detention place",
+  "وظیفه فعلی": "Current job",
+
+  "کود منبع": "Resource code",
+  "شماره منبع": "Resource number",
+
+  "مشخصات": "Details",
+  "آدرس اصلی": "Main address",
+  "آدرس فعلی": "Current address",
+  "فعالیت/جبهه": "Activity/Front",
+  "سوابق": "History",
+  "برگشت": "Back",
+
+  "مشخصات اساسی": "Basic details",
+  "موقعیت و خانه": "Location & house",
+  "فعالیت، شبکه و تماس": "Activity, network & contact",
+  "مختصات و نقشه": "Coordinates & map",
+  "معلومات منبع": "Resource information",
+
+  "این فیلد الزامی است": "This field is required",
+  "فایل Word با موفقیت ایجاد شد": "Word file created successfully",
+
+  "لطفاً فیلدهای الزامی را درست پُر کنید": "Please fill required fields correctly",
+  "تغییرات موفقانه ذخیره شد": "Changes saved successfully",
+  "فساد جدید موفقانه ثبت شد": "New corruption record saved successfully",
+  "خطا در ذخیره معلومات": "Error saving information",
+
+  "ثبت فساد جدید": "Create new corruption record",
+  "پاک کردن فرم": "Clear form",
+
+  "PDF": "PDF",
+  "Word": "Word",
+  "ویرایش فساد (سعین)": "Edit Saeen corruption",
+  "ایجاد ریکارډ سعین فساد": "Create Saeen corruption record",
+
+  "تصویر": "Image",
+  "عکس": "Photo",
+  "تغییر عکس": "Change photo",
+  "نمایش": "View",
+  "پیش نمایش": "Preview",
+
+  "شماره تماس باید دقیقاً ۱۰ رقم باشد": "Phone number must be exactly 10 digits",
+  "لطفاً عدد وارد کنید": "Please enter a number",
+
+  "لطفاً فیلدهای قرمز را درست کنید": "Please fix the red fields",
+  "نام الزامی است": "Name is required",
+
+  "ثبت معلومات ناکام شد": "Saving information failed",
+  "ذخیرهٔ تغییرات ناکام شد": "Saving changes failed",
+  "خطا در دریافت معلومات سعین فساد": "Error fetching Saeen corruption information",
+  "فرم پاک شد": "Form cleared",
+
+  "سرقت": "Theft",
+  "فهرست، جستجو و مدیریت سرقت ها": "List, search, and manage theft cases",
+  "جستجو در سرقت...": "Search theft...",
+  "اضافه کردن سرقت جدید": "Add new theft",
+
+  "تمام سرقت ها": "All theft cases",
+  "دارای وظیفه فعلی": "Has current job",
+
+  "مشاهده سرقت": "View theft",
+  "ویرایش سرقت": "Edit theft",
+  "حذف سرقت": "Delete theft",
+
+  "پیش نمایش تصویر": "Image preview",
+  "خطا در دریافت معلومات سرقت": "Error fetching theft information",
+  "خطا در دریافت فهرست سرقت ها": "Error fetching theft list",
+
+  "سرقت‌های انجام‌شده": "Committed thefts",
+  "نوع سلاح": "Weapon type",
+
+  "ملاحظات": "Notes",
+
+  "خانه/موقعیت": "House/Location",
+  "وظایف/فعالیت": "Duties/Activities",
+  "تماس": "Contact",
+  "دیگر": "Other",
+
+  "ویرایش هېست": "Edit Heist",
+  "ایجاد هېست جدید": "Create new Heist",
+  "ویرایش جزئیات یک ریکارډ هېست موجود": "Edit details of an existing Heist record",
+  "ثبت یک ریکارډ هېست جدید در سیستم": "Register a new Heist record in the system",
+
+  "ویرایش ریکارډ هېست": "Edit Heist record",
+  "ایجاد ریکارډ هېست": "Create Heist record",
+
+  "محبوسین رها شده": "Released detainees",
+  "فهرست، جستجو و مدیریت اسیر/گرفتارها": "List, search, and manage captives/detainees",
+
+  "جستجو در اسیر/گرفتار...": "Search captives/detainees...",
+  "اضافه کردن جدید": "Add new",
+
+  "همه اسیر/گرفتارها": "All captives/detainees",
+
+  "دارای اسناد": "Has documents",
+
+  "مشاهده اسیر/گرفتار": "View captive/detainee",
+  "ویرایش اسیر/گرفتار": "Edit captive/detainee",
+  "دانلود اسناد اسیر/گرفتار": "Download captive documents",
+  "حذف اسیر/گرفتار": "Delete captive/detainee",
+
+  "خطا در دریافت معلومات اسیر/گرفتار": "Error fetching captive/detainee information",
+  "خطا در دریافت فهرست اسیر/گرفتارها": "Error fetching captives/detainees list",
+  "خطا در دانلود اسناد": "Error downloading documents",
+
+  "فرم مشخص": "Specific form",
+  "فرم مشخص/ویژه": "Specific/Special form",
+  "فاصله بانډ": "Band distance",
+  "فعالیت فعلی": "Current activity",
+
+  "coordinates": "Coordinates",
+
+  "منزل/موقعیت": "Residence/Location",
+  "فرم/بانډ/فعالیت": "Form/Band/Activity",
+
+  "دانلود همه اسناد": "Download all documents",
+  "اسناد ضمیمه": "Attached documents",
+  "فایل‌های جدید را اضافه کنید یا اسناد قبلی را مشاهده/حذف کنید.": "Add new files or view/delete existing documents.",
+  "انتخاب فایل‌ها": "Choose files",
+
+  "ایجاد اسیر/گرفتار": "Create captive/detainee",
+
+  "فورم اسیر/گرفتار": "Captive/Detainee form",
+
+  "ملکانُو": "Mulkano",
+  "فهرست، جستجو و مدیریت مُلکانو": "List, search, and manage Mulkano",
+
+  "جستجو در مُلکانو...": "Search Mulkano...",
+  "اضافه ریکارډ جدید مُلکانو": "Add new Mulkano record",
+
+  "تمام مُلکانو": "All Mulkano",
+
+  "خطا در دریافت معلومات مُلکانو": "Error fetching Mulkano information",
+  "خطا در دریافت فهرست مُلکانو": "Error fetching Mulkano list",
+
+  "نام پدرکلان": "Grandfather's name",
+  "گذر": "Guzar",
+
+  "تفسیر صحیح": "Correct interpretation",
+  "مقدار سرک": "Street amount",
+  "وظیفه جدید": "New job",
+
+  "تعداد عامل": "Number of agents",
+  "تعداد خانه": "Number of houses",
+
+  "سابقه جرم": "Criminal record",
+  "تنظیم / وابستگی": "Affiliation / Alignment",
+
+  "توضیحات/وظایف/مقدار": "Description/Duties/Amount",
+  "کمیات": "Quantity",
+  "تماس/سوابق": "Contact/History",
+
+  "PDF ساده (بدون عکس)": "Simple PDF (no photo)",
+  "Word ساده (بدون عکس)": "Simple Word (no photo)",
+
+  "لطفاً عدد صحیح وارد کنید": "Please enter a whole number",
+  "لطفاً عدد معتبر وارد کنید": "Please enter a valid number",
+  "شماره تماس معتبر نیست": "Invalid phone number",
+  "مختصات درست نیست": "Invalid coordinates",
+
+  "فورم مُلکانو": "Mulkano form",
+  "شماره ریکارډ": "Record number",
+  "بدون شماره": "No number",
+
+  "امضا مسئول": "Responsible signature",
+  "امضا ثبت کننده": "Registrar signature",
+  "تاریخ": "Date",
+
+  "ورود/خروج": "Entry/Exit",
+  "فهرست، جستجو و مدیریت ریکارډهای ورود/خروج": "List, search, and manage entry/exit records",
+
+  "اصلاح ریکارډ ورود/خروج": "Edit entry/exit record",
+  "اضافه کردن یک ریکارډ جدید ورود/خروج": "Add a new entry/exit record",
+  "ویرایش جزئیات یک ریکارډ موجود ورود/خروج": "Edit details of an existing entry/exit record",
+  "ثبت یک ریکارډ جدید ورود/خروج در سیستم": "Register a new entry/exit record in the system",
+
+  "طریق ورود/خروج": "Entry/Exit method",
+  "نوعه طریق": "Method type",
+
+  "آدرس و موقعیت": "Address & location",
+  "قریه/ناحیه": "Village/Area",
+
+  "معلومات امنیتی": "Security information",
+  "پُسته امنیتی": "Security post",
+  "اشاره امنیتی": "Security note",
+
+  "رفت و آمد": "Movement",
+  "به کجا رفت": "Where did they go?",
+  "از کجا آمد": "Where did they come from?"
 }

@@ -39,7 +39,7 @@
     <div class="stats-grid px-4 py-6">
       <v-row dense>
         <!-- Employees -->
-        <v-col cols="12" sm="6" md="4" lg="4">
+        <v-col cols="12" sm="3" md="2" lg="2">
           <v-card
             rounded="xl"
             class="stat-card"
@@ -111,7 +111,7 @@
         </v-col>
 
         <!-- Resources (Active/Inactive clickable) -->
-        <v-col cols="12" sm="6" md="4" lg="4">
+        <v-col cols="12" sm="3" md="2" lg="2">
           <v-card
             rounded="xl"
             class="stat-card"
@@ -193,7 +193,7 @@
         </v-col>
 
         <!-- Informations -->
-        <v-col cols="12" sm="6" md="4" lg="4">
+        <v-col cols="12" sm="3" md="2" lg="2">
           <v-card
             rounded="xl"
             class="stat-card"
@@ -268,7 +268,7 @@
         </v-col>
 
         <!-- Events -->
-        <v-col cols="12" sm="6" md="4" lg="4">
+        <v-col cols="12" sm="3" md="2" lg="2">
           <v-card
             rounded="xl"
             class="stat-card"
@@ -314,7 +314,7 @@
         </v-col>
 
         <!-- Money Balance -->
-        <v-col cols="12" sm="6" md="4" lg="4">
+        <v-col cols="12" sm="3" md="2" lg="2">
           <v-card
             rounded="xl"
             class="stat-card"
@@ -371,7 +371,7 @@
         </v-col>
 
         <!-- Oil Balance -->
-        <v-col cols="12" sm="6" md="4" lg="4">
+        <v-col cols="12" sm="3" md="2" lg="2">
           <v-card
             rounded="xl"
             class="stat-card"
@@ -428,7 +428,7 @@
     <div class="main-content px-4 pb-10">
       <v-row>
         <!-- Left Column - Employee Ranking -->
-        <v-col cols="12" lg="8">
+        <v-col cols="12" lg="6">
           <v-card rounded="xl" class="mb-4 fancy-card">
             <!-- Header -->
             <div class="table-header pa-4">
@@ -512,7 +512,7 @@
                 class="employees-table cool-table"
                 item-key="id"
                 fixed-header
-                height="800"
+                height="350"
                 :items-per-page="itemsPerPage"
                 hide-default-footer
               >
@@ -665,7 +665,7 @@
         </v-col>
 
         <!-- Right Column -->
-        <v-col cols="12" lg="4">
+        <v-col cols="12" lg="3">
           <FormatsPieChart
             class="mb-4"
             :title="t('توزیع فرم‌ها')"
@@ -682,8 +682,12 @@
             @refresh="refreshData"
             @zone-click="onZoneClick"
           />
+          </v-col>
+        <v-col cols="12" lg="3" 
+        >
 
-          <v-card rounded="xl" class="fancy-card">
+          <v-card rounded="xl" class="fancy-card" cols="12" lg="3" 
+          >
             <v-card-text class="pa-0">
               <div class="zones-header pa-4">
                 <div class="d-flex align-center justify-space-between mb-2">
