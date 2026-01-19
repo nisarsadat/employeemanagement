@@ -75,10 +75,10 @@ const employeerepository = useEmployeOfficeRepository();
 const { locale } = useI18n();
 const route = useRoute();                       // ✅
 
-const isRtl = ref(locale.value === "fa");
-watch(locale, (l) => (isRtl.value = l === "fa"));
+const rtlLangs = ['fa', 'ps'];
+const isRtl = computed(() => rtlLangs.includes(locale.value));
+const location = computed(() => (rtlLangs.includes(locale.value) ? 'right' : 'left'));
 
-const location = computed(() => (locale.value === "fa" ? "right" : "left"));
 
 // ✅ Hide drawer on *every* route (including first load / refresh)
 watch(

@@ -36,7 +36,7 @@
     </transition>
 
     <!-- Stats Cards Grid (2 rows / 3 cards each on lg+) -->
-    <div class="stats-grid px-4 py-6">
+    <div class="stats-grid px-4 py-4">
       <v-row dense>
         <!-- Employees -->
         <v-col cols="12" sm="3" md="2" lg="2">
@@ -50,10 +50,10 @@
           >
             <div class="stat-accent primary"></div>
 
-            <v-card-text class="pa-5">
-              <div class="d-flex align-center justify-space-between mb-4">
+            <v-card-text class="pa-3">
+              <div class="d-flex align-center justify-space-between mb-1">
                 <div class="card-icon-wrapper primary">
-                  <v-icon color="primary" size="22">mdi-account-group</v-icon>
+                  <v-icon color="primary" size="20">mdi-account-group</v-icon>
                 </div>
 
                 <v-chip
@@ -62,68 +62,55 @@
                   variant="tonal"
                   color="success"
                 >
-                  <v-icon start size="14">mdi-trending-up</v-icon>
+                  <v-icon start size="12">mdi-trending-up</v-icon>
                   +{{ employeesGrowth }}%
                 </v-chip>
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-2">{{ t('کل کارمندان') }}</div>
+              <div class="text-caption text-medium-emphasis mb-1">{{ t('کل کارمندان') }}</div>
 
               <div class="d-flex align-baseline justify-space-between">
                 <div class="text-h3 font-weight-black">{{ employeesTotal.toLocaleString() }}</div>
-                <!-- <div class="mini-meta">
-                  <v-icon size="16" color="primary">mdi-account-multiple</v-icon>
-                  <span class="text-caption">{{ t('کل') }}</span>
-                </div> -->
               </div>
 
-              <div class="mt-4 d-flex align-center justify-space-between flex-wrap gap-2">
-                <div class="d-flex flex-wrap gap-2">
+              <div class="stat-bottom mx-4">
+                <div class="d-flex flex-wrap gap-1">
                   <v-chip
-                    size="small"
+                    size="x-small"
                     variant="tonal"
                     color="success"
                     class="clickable-chip"
                     @click.stop="goActiveEmployees"
                   >
-                    <v-icon start size="16">mdi-check-circle</v-icon>
+                    <v-icon start size="14">mdi-check-circle</v-icon>
                     {{ t('فعال') }}: {{ num(employeesActive) }}
                   </v-chip>
 
                   <v-chip
-                    size="small"
+                    size="x-small"
                     variant="tonal"
                     color="error"
                     class="clickable-chip"
                     @click.stop="goInactiveEmployees"
                   >
-                    <v-icon start size="16">mdi-close-circle</v-icon>
+                    <v-icon start size="14">mdi-close-circle</v-icon>
                     {{ t('غیرفعال') }}: {{ num(employeesInactive) }}
                   </v-chip>
                 </div>
-
-                <!-- <div class="text-caption text-medium-emphasis">
-                  {{ t('رتبه‌بندی در جدول') }}
-                </div> -->
               </div>
             </v-card-text>
           </v-card>
         </v-col>
 
-        <!-- Resources (Active/Inactive clickable) -->
+        <!-- Resources -->
         <v-col cols="12" sm="3" md="2" lg="2">
-          <v-card
-            rounded="xl"
-            class="stat-card"
-            :class="{ 'stat-card-hover': !repo.loading }"
-            :disabled="repo.loading"
-          >
+          <v-card rounded="xl" class="stat-card" :disabled="repo.loading">
             <div class="stat-accent teal"></div>
 
-            <v-card-text class="pa-5">
-              <div class="d-flex align-center justify-space-between mb-4">
+            <v-card-text class="pa-3">
+              <div class="d-flex align-center justify-space-between mb-2">
                 <div class="card-icon-wrapper teal">
-                  <v-icon color="teal" size="22">mdi-database</v-icon>
+                  <v-icon color="teal" size="20">mdi-database</v-icon>
                 </div>
 
                 <v-chip size="x-small" variant="tonal" color="teal">
@@ -131,62 +118,55 @@
                 </v-chip>
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-2">{{ t('منابع') }}</div>
-
-              <!-- <div class="d-flex align-baseline justify-space-between mb-3">
-                <div class="text-h3 font-weight-black">{{ resourcesTotal.toLocaleString() }}</div>
-                <div class="mini-meta">
-                  <v-icon size="16" color="teal">mdi-chart-donut</v-icon>
-                  <span class="text-caption">{{ resourcesActivePercentage }}%</span>
-                </div>
-              </div> -->
+              <div class="text-caption text-medium-emphasis mb-1">{{ t('منابع') }}</div>
 
               <v-progress-linear
                 :model-value="resourcesActivePercentage"
-                height="7"
+                height="4"
                 rounded
                 color="teal"
                 bg-color="rgba(var(--v-theme-teal), 0.12)"
-                class="mb-4"
+                class="mb-2"
               />
 
-              <!-- Active / Inactive chips (clickable routes) -->
-              <div class="d-flex flex-wrap gap-2">
-                <v-chip
-                  size="small"
-                  variant="tonal"
-                  color="success"
-                  class="clickable-chip"
-                  @click.stop="goActiveResources"
-                >
-                  <v-icon start size="16">mdi-check-circle</v-icon>
-                  {{ t('فعال') }}: {{ num(resourcesActive) }}
-                </v-chip>
+              <div class="stat-bottom">
+                <div class="d-flex flex-wrap gap-1 align-center">
+                  <v-chip
+                    size="x-small"
+                    variant="tonal"
+                    color="success"
+                    class="clickable-chip"
+                    @click.stop="goActiveResources"
+                  >
+                    <v-icon start size="14">mdi-check-circle</v-icon>
+                    {{ t('فعال') }}: {{ num(resourcesActive) }}
+                  </v-chip>
 
-                <v-chip
-                  size="small"
-                  variant="tonal"
-                  color="error"
-                  class="clickable-chip"
-                  @click.stop="goInactiveResources"
-                >
-                  <v-icon start size="16">mdi-close-circle</v-icon>
-                  {{ t('غیرفعال') }}: {{ num(resourcesInactive) }}
-                </v-chip>
+                  <v-chip
+                    size="x-small"
+                    variant="tonal"
+                    color="error"
+                    class="clickable-chip"
+                    @click.stop="goInactiveResources"
+                  >
+                    <v-icon start size="14">mdi-close-circle</v-icon>
+                    {{ t('غیرفعال') }}: {{ num(resourcesInactive) }}
+                  </v-chip>
 
-                <v-spacer />
+                  <v-spacer />
 
-                <v-btn
-                  size="small"
-                  variant="text"
-                  color="teal"
-                  class="px-1"
-                  :disabled="repo.loading"
-                  @click.stop="goResources()"
-                >
-                  {{ t('مشاهده') }}
-                  <v-icon end size="16">mdi-arrow-left</v-icon>
-                </v-btn>
+                  <v-btn
+                    size="x-small"
+                    variant="text"
+                    color="teal"
+                    class="px-1"
+                    :disabled="repo.loading"
+                    @click.stop="goResources()"
+                  >
+                    {{ t('مشاهده') }}
+                    <v-icon end size="14">mdi-arrow-left</v-icon>
+                  </v-btn>
+                </div>
               </div>
             </v-card-text>
           </v-card>
@@ -204,65 +184,39 @@
           >
             <div class="stat-accent indigo"></div>
 
-            <v-card-text class="pa-5">
-              <!-- <div class="d-flex align-center justify-space-between mb-4">
+            <v-card-text class="pa-3">
+              <!-- ✅ ADD THIS (icon like others) -->
+              <div class="d-flex align-center justify-space-between mb-2">
                 <div class="card-icon-wrapper indigo">
-                  <v-icon color="indigo" size="22">mdi-file-document-multiple</v-icon>
+                  <v-icon color="indigo" size="20">mdi-file-document-multiple</v-icon>
                 </div>
 
-                <v-chip
-                  size="x-small"
-                  variant="tonal"
-                  :color="Number(informationsGrowth) >= 0 ? 'success' : 'error'"
-                >
-                  <v-icon start size="14">
-                    {{ Number(informationsGrowth) >= 0 ? 'mdi-trending-up' : 'mdi-trending-down' }}
-                  </v-icon>
-                  {{ Number(informationsGrowth) >= 0 ? '+' : '' }}{{ informationsGrowth }}%
+                <v-chip size="x-small" variant="tonal" color="indigo">
+                  {{ t('اطلاعات') }}
                 </v-chip>
-              </div> -->
+              </div>
 
-              <div class="text-caption text-medium-emphasis mb-2">{{ t('اطلاعات') }}</div>
+              <!-- existing content -->
 
               <div class="d-flex align-baseline justify-space-between">
                 <div class="text-h3 font-weight-black">
                   {{ informationsTotal.toLocaleString() }}
                 </div>
-                <div class="mini-meta">
-                  <v-icon size="16" color="indigo">mdi-file-document</v-icon>
-                  <span class="text-caption">{{ t('رکورد') }}</span>
+              </div>
+
+              <div class="stat-bottom mx-1 mt-5">
+                <div class="d-flex flex-wrap gap-1">
+                  <v-chip size="x-small" variant="tonal" color="error">
+                    {{ t('شر او فساد') }}: {{ num(infoCountSharOFasad) }}
+                  </v-chip>
+                  <v-chip size="x-small" variant="tonal" color="warning">
+                    {{ t('ساعین بالفساد') }}: {{ num(infoCountSaenBilFasad) }}
+                  </v-chip>
+                  <v-chip size="x-small" variant="tonal" color="primary">
+                    {{ t('جاسوسی') }}: {{ num(infoCountJasoosi) }}
+                  </v-chip>
                 </div>
               </div>
-              <div  class="mt-3 d-flex flex-wrap gap-2">
-                <v-chip  size="small" variant="tonal" color="error">
-                  {{ t('شر او فساد') }}: {{ num(infoCountSharOFasad) }}
-                </v-chip>
-
-                <v-chip
-                  size="small"
-                  variant="tonal"
-                  color="warning"
-                >
-                  {{ t('ساعین بالفساد') }}: {{ num(infoCountSaenBilFasad) }}
-                </v-chip>
-
-                <v-chip size="small" variant="tonal" color="primary">
-                  {{ t('جاسوسی') }}: {{ num(infoCountJasoosi) }}
-                </v-chip>
-              </div>
-
-              <!-- <div class="mt-4 d-flex align-center justify-space-between">
-                  <div class="d-flex align-center gap-2">
-                    <div
-                      class="dot"
-                      :class="Number(informationsGrowth) >= 0 ? 'success' : 'error'"
-                    ></div>
-                    <span class="text-caption">
-                      {{ Number(informationsGrowth) >= 0 ? t('رو به رشد') : t('کاهش') }}
-                    </span>
-                  </div>
-                  <div class="text-caption text-medium-emphasis">{{ t('گزارش کامل') }}</div>
-                </div> -->
             </v-card-text>
           </v-card>
         </v-col>
@@ -279,10 +233,10 @@
           >
             <div class="stat-accent cyan"></div>
 
-            <v-card-text class="pa-5">
-              <div class="d-flex align-center justify-space-between mb-4">
+            <v-card-text class="pa-3">
+              <div class="d-flex align-center justify-space-between mb-2">
                 <div class="card-icon-wrapper cyan">
-                  <v-icon color="teal-darken-1" size="22">mdi-calendar-multiple</v-icon>
+                  <v-icon color="teal-darken-1" size="20">mdi-calendar-multiple</v-icon>
                 </div>
 
                 <div class="activity-dots">
@@ -292,23 +246,23 @@
                 </div>
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-2">{{ t('رویدادها') }}</div>
+              <div class="text-caption text-medium-emphasis mb-1">{{ t('رویدادها') }}</div>
 
               <div class="d-flex align-baseline justify-space-between">
                 <div class="text-h3 font-weight-black">{{ eventsTotal.toLocaleString() }}</div>
                 <div class="mini-meta">
-                  <v-icon size="16" color="teal-darken-1">mdi-calendar</v-icon>
+                  <v-icon size="14" color="teal-darken-1">mdi-calendar</v-icon>
                   <span class="text-caption">{{ t('کل') }}</span>
                 </div>
               </div>
 
-              <div class="mt-4 d-flex align-center justify-space-between">
-                <div class="d-flex align-center gap-2">
-                  <div class="dot success"></div>
-                  <span class="text-caption">{{ t('فعال') }}</span>
-                </div>
-                <div class="text-caption text-medium-emphasis">{{ t('جاری') }}</div>
-              </div>
+              <!-- <div class="stat-bottom mt-2 d-flex align-center justify-space-between">
+            <div class="d-flex align-center gap-1">
+              <div class="dot success"></div>
+              <span class="text-caption">{{ t('فعال') }}</span>
+            </div>
+            <div class="text-caption text-medium-emphasis">{{ t('جاری') }}</div>
+          </div> -->
             </v-card-text>
           </v-card>
         </v-col>
@@ -325,10 +279,10 @@
           >
             <div class="stat-accent success"></div>
 
-            <v-card-text class="pa-5">
-              <div class="d-flex align-center justify-space-between mb-4">
+            <v-card-text class="pa-3">
+              <div class="d-flex align-center justify-space-between mb-2">
                 <div class="card-icon-wrapper success">
-                  <v-icon color="success" size="22">mdi-cash-multiple</v-icon>
+                  <v-icon color="success" size="20">mdi-cash-multiple</v-icon>
                 </div>
 
                 <v-chip
@@ -337,32 +291,31 @@
                   :color="moneyBalance >= 0 ? 'success' : 'warning'"
                   class="font-weight-bold"
                 >
-                  <v-icon start size="14" :icon="moneyBalance >= 0 ? 'mdi-plus' : 'mdi-minus'" />
-
+                  <v-icon start size="12" :icon="moneyBalance >= 0 ? 'mdi-plus' : 'mdi-minus'" />
                   <span>{{ t('موجودی:') }}</span>
                   <span>{{ num(moneyBalance) }}</span>
                 </v-chip>
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-2">{{ t('بیلانس مالی') }}</div>
+              <div class="text-caption text-medium-emphasis mb-1">{{ t('بیلانس مالی') }}</div>
 
-              <div class="d-flex align-baseline justify-space-between mb-3">
-                {{ num(moneyBalance) }}
+              <div class="d-flex align-baseline justify-space-between mb-۱">
+                <div class="text-h3 font-weight-black">{{ num(moneyBalance) }}</div>
                 <div class="mini-meta">
-                  <v-icon size="16" color="success">mdi-cash </v-icon>
+                  <v-icon size="14" color="success">mdi-cash</v-icon>
                   <span class="text-caption">{{ t('افغانی') }}</span>
                 </div>
               </div>
 
-              <div class="d-flex justify-space-between mt-2">
+              <div class="stat-bottom d-flex justify-space-between mx-2">
                 <div class="d-flex align-center gap-1">
-                  <v-icon size="14" color="success">mdi-arrow-down</v-icon>
-                  <span>{{ t('عاید:') }}</span>
+                  <v-icon size="12" color="success">mdi-arrow-down</v-icon>
+                  <span class="text-caption">{{ t('عاید:') }}</span>
                   <span class="text-caption">{{ num(moneyIncomeTotal) }}</span>
                 </div>
                 <div class="d-flex align-center gap-1">
-                  <v-icon size="14" color="error">mdi-arrow-up</v-icon>
-                  <span>{{ t('مصرف:') }}</span>
+                  <v-icon size="12" color="error">mdi-arrow-up</v-icon>
+                  <span class="text-caption">{{ t('مصرف:') }}</span>
                   <span class="text-caption">{{ num(moneyExpenseTotal) }}</span>
                 </div>
               </div>
@@ -382,10 +335,10 @@
           >
             <div class="stat-accent warning"></div>
 
-            <v-card-text class="pa-5">
-              <div class="d-flex align-center justify-space-between mb-4">
+            <v-card-text class="pa-3">
+              <div class="d-flex align-center justify-space-between mb-2">
                 <div class="card-icon-wrapper warning">
-                  <v-icon color="warning" size="22">mdi-fuel</v-icon>
+                  <v-icon color="warning" size="20">mdi-fuel</v-icon>
                 </div>
 
                 <v-chip
@@ -393,28 +346,28 @@
                   variant="tonal"
                   :color="oilBalance >= 0 ? 'warning' : 'error'"
                 >
-                  <v-icon start size="14">{{ oilBalance >= 0 ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
+                  <v-icon start size="12">{{ oilBalance >= 0 ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
                   {{ num(oilBalance) }}
                 </v-chip>
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-2">{{ t('بیلانس تیل') }}</div>
+              <div class="text-caption text-medium-emphasis mb-1">{{ t('بیلانس تیل') }}</div>
 
-              <div class="d-flex align-baseline justify-space-between mb-3">
+              <div class="d-flex align-baseline justify-space-between mb-۱">
                 <div class="text-h3 font-weight-black">{{ num(oilBalance) }}</div>
                 <div class="mini-meta">
-                  <v-icon size="16" color="warning">mdi-water</v-icon>
+                  <v-icon size="14" color="warning">mdi-water</v-icon>
                   <span class="text-caption">{{ t('لیتر') }}</span>
                 </div>
               </div>
 
-              <div class="d-flex justify-space-between mt-2">
+              <div class="stat-bottom d-flex justify-space-between mx-2">
                 <div class="d-flex align-center gap-1">
-                  <v-icon size="14" color="success">mdi-arrow-down</v-icon>
+                  <v-icon size="12" color="success">mdi-arrow-down</v-icon>
                   <span class="text-caption">{{ num(oilIncomeTotal) }}</span>
                 </div>
                 <div class="d-flex align-center gap-1">
-                  <v-icon size="14" color="error">mdi-arrow-up</v-icon>
+                  <v-icon size="12" color="error">mdi-arrow-up</v-icon>
                   <span class="text-caption">{{ num(oilExpenseTotal) }}</span>
                 </div>
               </div>
@@ -504,7 +457,7 @@
             </div>
 
             <!-- Table -->
-            <div class="table-shell">
+            <div class="table-shell table-scroll-wrap">
               <v-data-table
                 :items="pagedEmployees"
                 :headers="employeeHeaders"
@@ -682,12 +635,9 @@
             @refresh="refreshData"
             @zone-click="onZoneClick"
           />
-          </v-col>
-        <v-col cols="12" lg="3" 
-        >
-
-          <v-card rounded="xl" class="fancy-card" cols="12" lg="3" 
-          >
+        </v-col>
+        <v-col cols="12" lg="3">
+          <v-card rounded="xl" class="fancy-card" cols="12" lg="3">
             <v-card-text class="pa-0">
               <div class="zones-header pa-4">
                 <div class="d-flex align-center justify-space-between mb-2">
@@ -2232,5 +2182,139 @@ Formats By Zone Logic
     flex-direction: row;
     gap: 10px;
     z-index: 100;
+  }
+  /* ====== COMPACT STAT CARDS (Dashboard) ====== */
+  .stats-grid .stat-card {
+    min-height: 130px !important; /* try 160-190 */
+    height: 130px !important; /* force equal short cards */
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .stats-grid .stat-card :deep(.v-card-text) {
+    padding: 10px 12px !important; /* kills pa-5 */
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .stats-grid .stat-card .card-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+  }
+
+  .stats-grid .stat-card .text-h3 {
+    font-size: 1.4rem !important;
+    line-height: 1.1 !important;
+    margin: 0 !important;
+  }
+
+  /* tighten common spacings */
+  .stats-grid .stat-card .mb-4 {
+    margin-bottom: 6px !important;
+  }
+  .stats-grid .stat-card .mb-3 {
+    margin-bottom: 6px !important;
+  }
+  .stats-grid .stat-card .mb-2 {
+    margin-bottom: 4px !important;
+  }
+  .stats-grid .stat-card .mt-4 {
+    margin-top: 6px !important;
+  }
+  .stats-grid .stat-card .mt-3 {
+    margin-top: 6px !important;
+  }
+
+  /* compact chips */
+  .stats-grid .stat-card :deep(.v-chip) {
+    height: 22px !important;
+    padding: 0 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* progress bars slimmer */
+  .stats-grid .stat-card :deep(.v-progress-linear) {
+    height: 5px !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* optional: push bottom actions down nicely */
+  .stats-grid .stat-card .clickable-chip {
+    margin-top: auto;
+  }
+  /* =========================================
+   ✅ EMPLOYEE TABLE SCROLLBAR (HOVER ONLY)
+   - hidden until hover
+   - thin + clean
+   ========================================= */
+  .table-scroll-wrap {
+    position: relative;
+  }
+
+  /* Target the real scroll container inside v-data-table */
+  .table-scroll-wrap :deep(.v-data-table__wrapper),
+  .table-scroll-wrap :deep(.v-table__wrapper) {
+    overflow-y: auto !important;
+    scrollbar-gutter: stable; /* prevents layout jump when scrollbar appears */
+    padding-right: 2px; /* tiny space so thumb doesn't overlap content */
+
+    /* Firefox */
+    scrollbar-width: none; /* hidden by default */
+    scrollbar-color: rgba(0, 0, 0, 0.28) transparent;
+  }
+
+  /* Show scrollbar only on hover */
+  .table-scroll-wrap:hover :deep(.v-data-table__wrapper),
+  .table-scroll-wrap:hover :deep(.v-table__wrapper) {
+    scrollbar-width: thin; /* Firefox */
+  }
+
+  /* Chrome / Edge / Safari */
+  .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar),
+  .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar) {
+    width: 0px; /* hidden by default */
+    height: 0px;
+  }
+
+  .table-scroll-wrap:hover :deep(.v-data-table__wrapper::-webkit-scrollbar),
+  .table-scroll-wrap:hover :deep(.v-table__wrapper::-webkit-scrollbar) {
+    width: 6px; /* thin */
+    height: 6px;
+  }
+
+  /* Track */
+  .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar-track),
+  .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+
+  /* Thumb */
+  .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
+  .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
+    background: rgba(0, 0, 0, 0.22);
+    border-radius: 999px;
+    border: 2px solid transparent; /* makes it look slimmer */
+    background-clip: padding-box;
+  }
+
+  /* Thumb on hover (nicer) */
+  .table-scroll-wrap:hover :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
+  .table-scroll-wrap:hover :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
+    background: rgba(0, 0, 0, 0.32);
+  }
+
+  /* Dark mode */
+  :deep(.v-theme--dark) .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
+  :deep(.v-theme--dark) .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  :deep(.v-theme--dark)
+    .table-scroll-wrap:hover
+    :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
+  :deep(.v-theme--dark) .table-scroll-wrap:hover :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
+    background: rgba(255, 255, 255, 0.32);
   }
 </style>

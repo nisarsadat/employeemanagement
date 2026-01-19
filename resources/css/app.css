@@ -16,7 +16,13 @@
 
   --v-font-family: var(--app-font); /* Vuetify will read this */
 }
-
+html[dir="rtl"] * {
+  direction: rtl;
+}
+html[dir="ltr"] * {
+  direction: ltr;
+}
+  
 /* Apply to the whole app */
 html,
 body,

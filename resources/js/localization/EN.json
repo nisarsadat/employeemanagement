@@ -1381,5 +1381,8 @@
 
   "رفت و آمد": "Movement",
   "به کجا رفت": "Where did they go?",
-  "از کجا آمد": "Where did they come from?"
+  "از کجا آمد": "Where did they come from?",
+    "english": "English",
+  "dari": "دری",
+  "pashto": "پښتو"
 }

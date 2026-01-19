@@ -91,7 +91,7 @@
                   <!-- Show All Toggle -->
                   <v-switch
                     v-model="showAllZones"
-                    :label="t('نمایش تمام حوزه ها')"
+                    :label="t('نمایش تمام ناحیه ها')"
                     color="primary"
                     density="compact"
                     hide-details
@@ -152,7 +152,7 @@
 
           <v-chip size="small" variant="tonal" color="primary">
             <v-icon start size="14">mdi-chart-pie</v-icon>
-            {{ t('تعداد حوزه ها') }}: {{ displayData.length }}
+            {{ t('تعداد ناحیه ها') }}: {{ displayData.length }}
           </v-chip>
         </div>
       </div>
@@ -165,9 +165,8 @@
         <!-- List View -->
         <div v-show="viewMode === 'list' && hasData" class="list-view">
           <div class="list-header">
-            <div class="text-subtitle-2 font-weight-medium">{{ t('حوزه') }}</div>
+            <div class="text-subtitle-2 font-weight-medium">{{ t('ناحیه') }}</div>
             <div class="text-subtitle-2 font-weight-medium">{{ t('تعداد فرم') }}</div>
-            <div class="text-subtitle-2 font-weight-medium">{{ t('درصد') }}</div>
           </div>
 
           <div class="list-items">
@@ -201,12 +200,6 @@
                   class="mt-1"
                 />
               </div>
-
-              <div class="zone-percentage">
-                <v-chip size="small" variant="flat" :color="getPercentageColor(item.percentage)">
-                  {{ item.percentage }}%
-                </v-chip>
-              </div>
             </div>
           </div>
         </div>
@@ -230,7 +223,7 @@
         <div class="d-flex align-center justify-space-between">
           <div class="text-caption text-medium-emphasis">
             {{ t('نمایش') }} {{ showingFrom }}-{{ showingTo }} {{ t('از') }}
-            {{ displayData.length }} {{ t('حوزه') }}
+            {{ displayData.length }} {{ t('ناحیه') }}
           </div>
 
           <div class="d-flex align-center gap-2">
@@ -334,8 +327,8 @@
   }
 
   const props = defineProps({
-    title: { type: String, default: 'توزیع فرم‌ها بر اساس حوزه' },
-    subtitle: { type: String, default: 'تمام حوزه ها بر اساس تعداد فرم' },
+    title: { type: String, default: 'توزیع فرم‌ها بر اساس ناحیه' },
+    subtitle: { type: String, default: 'تمام ناحیه ها بر اساس تعداد فرم' },
     emptyText: { type: String, default: 'هیچ دیتا موجود نیست' },
     data: { type: Array, default: () => [] },
     height: { type: [Number, String], default: 400 },
@@ -725,7 +718,6 @@
         <div style="font-weight: 600; color: #2196F3">${fmtNum(params.value || 0)}</div>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px">
-        <div style="color: #666">${t('درصد')}:</div>
         <div style="font-weight: 600; color: #4CAF50">${item?.percentage || '0'}%</div>
       </div>
     </div>
@@ -745,7 +737,6 @@
         <div style="font-weight: 600; color: #2196F3">${fmtNum(data?.value || 0)}</div>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px">
-        <div style="color: #666">${t('درصد')}:</div>
         <div style="font-weight: 600; color: #4CAF50">${numUi(perc + '%')}</div>
       </div>
     </div>

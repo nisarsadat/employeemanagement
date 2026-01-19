@@ -1,11 +1,14 @@
 import { createI18n } from "vue-i18n";
 import EN from "./EN.json";
 import DARI from "./DARI.json";
-const savedLang = localStorage.getItem('apartment-lang') || 'fa';
-const messages = {
-    en: EN,
-    fa: DARI,
+import PS from "./PS.json"; // ✅ add this
 
+const savedLang = localStorage.getItem('apartment-lang') || 'fa';
+
+const messages = {
+  en: EN,
+  fa: DARI,
+  ps: PS, // ✅ add this
 };
 
 const i18n = createI18n({
