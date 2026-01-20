@@ -1382,7 +1382,13 @@
   "رفت و آمد": "Movement",
   "به کجا رفت": "Where did they go?",
   "از کجا آمد": "Where did they come from?",
-    "english": "English",
+  "english": "English",
   "dari": "دری",
-  "pashto": "پښتو"
+  "pashto": "پښتو",
+  "درجه‌بندی کارمندان": "Employee Ranking",
+  "بر اساس امتیاز (رویداد + منابع + اطلاعات)": "Based on score (Events + Resources + Information)",
+  "توزیع فرم‌ها": "Forms Distribution",
+  "بر اساس مناطق مختلف": "Based on different regions",
+  "کل فرم‌ها": "Total forms",
+  "داده‌ای موجود نیست": "No data available"
 }

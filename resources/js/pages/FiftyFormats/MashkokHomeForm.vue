@@ -34,17 +34,13 @@
           <!-- Identity / location -->
           <div class="section-header">
             <span class="section-title">
-              {{
-                isEdit
-                  ? t('ویرایش ریکارډ خانه مشکوک')
-                  : t('ایجاد ریکارډ خانه مشکوک')
-              }}
+              {{ isEdit ? t('ویرایش ریکارډ خانه مشکوک') : t('ایجاد ریکارډ خانه مشکوک') }}
             </span>
           </div>
 
           <!-- Location -->
           <v-row class="mt-1">
-             <v-col cols="12" md="12">
+            <v-col cols="12" md="12">
               <ProvinceDistrictNameSelect
                 v-model:province="form.province"
                 v-model:district="form.district"
@@ -54,6 +50,7 @@
                 :mdDistrict="6"
               />
             </v-col>
+
             <v-col cols="12" md="9">
               <v-text-field
                 v-model="form.zone"
@@ -64,7 +61,7 @@
                 :error-messages="getErrorMessages('zone')"
               />
             </v-col>
-            
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.village"
@@ -81,6 +78,7 @@
           <div class="section-header mt-4">
             <span class="section-title">{{ t('آدرس خانه مشکوک') }}</span>
           </div>
+
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
@@ -92,6 +90,7 @@
                 :error-messages="getErrorMessages('specific_place')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.street_number"
@@ -102,6 +101,7 @@
                 :error-messages="getErrorMessages('street_number')"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.home_number"
@@ -133,7 +133,6 @@
           </div>
 
           <v-row>
-            <!-- House info -->
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.home_type"
@@ -144,6 +143,7 @@
                 :error-messages="getErrorMessages('home_type')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.shak_symbols"
@@ -182,6 +182,7 @@
                 :error-messages="getErrorMessages('resource_id')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_code"
@@ -191,6 +192,7 @@
                 readonly
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.resource_phone"
@@ -214,7 +216,134 @@
             </v-col>
           </v-row>
 
-          <!-- Actions (✅ add PDF/Word; no other logic change) -->
+          <!-- =========================
+               ✅ DOCUMENTS SECTION
+               - existingDocs (from API)
+               - _newDocs (File[])
+               - removed_document_ids (int[])
+          ========================== -->
+          <v-divider class="my-4" />
+
+          <div class="section-header mb-2 d-flex align-center justify-space-between">
+            <span class="section-title">{{ t('اسناد') }}</span>
+
+            <div class="d-flex align-center ga-2">
+              <!-- Download All ZIP (only in edit + has docs) -->
+              <v-tooltip :text="t('دانلود تمام اسناد (ZIP)')" location="top">
+                <template #activator="{ props: tooltipProps }">
+                  <v-btn
+                    v-bind="tooltipProps"
+                    color="green"
+                    variant="outlined"
+                    class="text-none rounded-pill secondary-action-btn"
+                    prepend-icon="mdi-zip-box"
+                    :disabled="!isEdit || !hasAnyDocs || downloadingZip"
+                    :loading="downloadingZip"
+                    @click="downloadAllDocsZip"
+                  >
+                    {{ t('دانلود ZIP') }}
+                  </v-btn>
+                </template>
+              </v-tooltip>
+            </div>
+          </div>
+
+          <!-- uploader -->
+          <v-row>
+            <v-col cols="12" md="12">
+              <v-file-input
+                v-model="newDocsInput"
+                multiple
+                show-size
+                variant="outlined"
+                density="compact"
+                prepend-icon="mdi-paperclip"
+                :label="t('اسناد جدید را انتخاب کنید')"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp"
+                @update:model-value="onNewDocsPicked"
+              />
+              <div class="text-caption text-medium-emphasis mt-2">
+                {{ t('نکته') }}: {{ t('اسناد جدید بعد از ذخیره ثبت می‌شوند') }}
+              </div>
+            </v-col>
+
+            <!-- existing docs chips -->
+            <v-col cols="12" md="12" v-if="existingDocs.length">
+              <div class="docs-block">
+                <div class="docs-title">{{ t('اسناد موجود') }}</div>
+
+                <div class="docs-chips">
+                  <v-chip
+                    v-for="doc in existingDocs"
+                    :key="doc.id"
+                    class="ma-1"
+                    color="primary"
+                    variant="tonal"
+                    label
+                  >
+                    <v-icon start size="16">mdi-file</v-icon>
+                    <span class="chip-text">{{ doc.file_name || doc.name || ('doc_' + doc.id) }}</span>
+
+                    <template #append>
+                      <!-- remove existing doc -->
+                      <v-tooltip :text="t('حذف از ریکارډ (بعد از ذخیره)')" location="top">
+                        <template #activator="{ props: removeProps }">
+                          <v-icon
+                            v-bind="removeProps"
+                            size="16"
+                            class="ml-2 cursor-pointer"
+                            color="red"
+                            @click.stop="removeExistingDoc(doc)"
+                          >
+                            mdi-close-circle
+                          </v-icon>
+                        </template>
+                      </v-tooltip>
+                    </template>
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+
+            <!-- new docs chips -->
+            <v-col cols="12" md="12" v-if="newDocs.length">
+              <div class="docs-block">
+                <div class="docs-title">{{ t('اسناد جدید (در انتظار ذخیره)') }}</div>
+
+                <div class="docs-chips">
+                  <v-chip
+                    v-for="(f, idx) in newDocs"
+                    :key="idx"
+                    class="ma-1"
+                    color="green"
+                    variant="tonal"
+                    label
+                  >
+                    <v-icon start size="16">mdi-file-plus</v-icon>
+                    <span class="chip-text">{{ f?.name || ('file_' + idx) }}</span>
+
+                    <template #append>
+                      <v-tooltip :text="t('حذف از لیست') " location="top">
+                        <template #activator="{ props: removeProps }">
+                          <v-icon
+                            v-bind="removeProps"
+                            size="16"
+                            class="ml-2 cursor-pointer"
+                            color="red"
+                            @click.stop="removeNewDoc(idx)"
+                          >
+                            mdi-close-circle
+                          </v-icon>
+                        </template>
+                      </v-tooltip>
+                    </template>
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- Actions -->
           <v-row class="mt-4">
             <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
@@ -223,9 +352,7 @@
                 class="text-none rounded-pill primary-action-btn"
                 :loading="saving"
                 type="submit"
-                :prepend-icon="
-                  isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'
-                "
+                :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ خانه مشکوک') }}
               </v-btn>
@@ -268,9 +395,7 @@
       <v-snackbar v-model="showError" color="error" timeout="5000">
         {{ errorMessage }}
         <template #actions>
-          <v-btn variant="text" @click="showError = false">
-            {{ t('بستن') }}
-          </v-btn>
+          <v-btn variant="text" @click="showError = false">{{ t('بستن') }}</v-btn>
         </template>
       </v-snackbar>
 
@@ -278,9 +403,7 @@
       <v-snackbar v-model="showSuccess" color="success" timeout="3000">
         {{ successMessage }}
         <template #actions>
-          <v-btn variant="text" @click="showSuccess = false">
-            {{ t('بستن') }}
-          </v-btn>
+          <v-btn variant="text" @click="showSuccess = false">{{ t('بستن') }}</v-btn>
         </template>
       </v-snackbar>
     </v-container>
@@ -291,7 +414,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
+import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
 import AppBar from '@/components/AppBar.vue';
 import { useMawadRepository } from '@/stores/MawadRepository';
@@ -345,46 +468,114 @@ function getErrorMessages(field) {
 const blankForm = () => ({
   id: null,
 
-  // location
   province: '',
   zone: '',
   district: '',
   village: '',
 
-  // address
   specific_place: '',
   street_number: '',
   home_number: '',
   coordinates: '',
 
-  // house & extra
   home_type: '',
   shak_symbols: '',
   Province_addr: '',
 
-  // resource
   resource_id: null,
   resource_code: '',
   resource_phone: '',
 
-  // note
   note: '',
 });
 
 const form = ref(blankForm());
 
-/* RULES */
-const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
-};
-
-/* RESOURCES DROPDOWN */
+/* RESOURCES */
 const resources = computed(() => repo.resourcecode || []);
-
 function onResourceChange(id) {
   const found = resources.value.find((r) => r.id === id);
   form.value.resource_code = found?.code_number ?? '';
   form.value.resource_phone = found?.phone_number ?? '';
+}
+
+/* =========================
+   ✅ DOCUMENTS STATE
+========================= */
+const existingDocs = ref([]);              // from API: [{id, file_name, file_path, url?}, ...]
+const removed_document_ids = ref([]);      // int[]
+const newDocs = ref([]);                   // File[]
+const newDocsInput = ref([]);              // v-file-input model
+
+const hasAnyDocs = computed(() => {
+  return (existingDocs.value?.length || 0) > 0 || (newDocs.value?.length || 0) > 0;
+});
+
+function normalizeDocsFromApi(x) {
+  // Accept different backend shapes safely
+  const docs = x?.documents;
+  if (Array.isArray(docs)) return docs;
+  if (Array.isArray(docs?.data)) return docs.data;
+  return [];
+}
+
+function onNewDocsPicked(files) {
+  // v-file-input returns File[] (or null)
+  const list = Array.isArray(files) ? files : [];
+  // merge with current (avoid duplicates by name+size)
+  const current = newDocs.value || [];
+  const merged = [...current];
+
+  for (const f of list) {
+    if (!f) continue;
+    const exists = merged.some((x) => x?.name === f.name && x?.size === f.size);
+    if (!exists) merged.push(f);
+  }
+
+  newDocs.value = merged;
+  // reset input model so picking the same file again still triggers
+  newDocsInput.value = [];
+}
+
+function removeNewDoc(index) {
+  const arr = [...(newDocs.value || [])];
+  arr.splice(index, 1);
+  newDocs.value = arr;
+}
+
+function removeExistingDoc(doc) {
+  if (!doc?.id) return;
+  // mark for delete
+  if (!removed_document_ids.value.includes(doc.id)) {
+    removed_document_ids.value.push(doc.id);
+  }
+  // remove from UI
+  existingDocs.value = (existingDocs.value || []).filter((d) => d.id !== doc.id);
+}
+
+/* ZIP download */
+const downloadingZip = ref(false);
+async function downloadAllDocsZip() {
+  if (!isEdit.value) return;
+  const id = form.value.id;
+  if (!id) return;
+
+  const name = `mashkok_home_${id}`;
+  try {
+    downloadingZip.value = true;
+    if (typeof repo.DownloadMashkokHomesZip === 'function') {
+      await repo.DownloadMashkokHomesZip(id, name);
+    } else if (typeof repo.DownloadMashkokHomeZip === 'function') {
+      await repo.DownloadMashkokHomeZip(id, name);
+    } else {
+      showErrorMessage(t('دانلود ZIP برای این ماډل هنوز تنظیم نشده است'));
+    }
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دانلود اسناد'));
+  } finally {
+    downloadingZip.value = false;
+  }
 }
 
 /* MAP FROM API */
@@ -415,22 +606,32 @@ function mapFromApi(payload = {}) {
 
   b.note = x.note ?? '';
 
-  return b;
+  return { b, x };
 }
 
 async function loadRecord() {
   const id = route.params.id;
   if (!id) {
     form.value = blankForm();
+    existingDocs.value = [];
+    removed_document_ids.value = [];
+    newDocs.value = [];
     return;
   }
+
   try {
     await repo.FetchMashkokHomeData?.(id);
     const single = Array.isArray(repo.MashkokHome) ? repo.MashkokHome[0] : repo.MashkokHome || {};
     if (!single) return;
 
-    const mapped = mapFromApi(single);
-    form.value = { ...mapped };
+    const { b, x } = mapFromApi(single);
+    form.value = { ...b };
+
+    // docs
+    existingDocs.value = normalizeDocsFromApi(x);
+    removed_document_ids.value = [];
+    newDocs.value = [];
+    newDocsInput.value = [];
   } catch (e) {
     console.error(e);
     showErrorMessage(t('خطا در دریافت معلومات خانه مشکوک'));
@@ -447,14 +648,34 @@ function toFormData(obj) {
   return fd;
 }
 
+function appendDocsToFormData(fd) {
+  // add new files
+  for (const f of newDocs.value || []) {
+    if (!f) continue;
+    // IMPORTANT: backend should expect "_newDocs[]"
+    fd.append('_newDocs[]', f);
+  }
+
+  // removed docs ids
+  for (const id of removed_document_ids.value || []) {
+    if (!id) continue;
+    // IMPORTANT: backend should expect "removed_document_ids[]"
+    fd.append('removed_document_ids[]', String(id));
+  }
+}
+
 function buildCreateFormData() {
   const payload = { ...form.value };
-  return toFormData(payload);
+  const fd = toFormData(payload);
+  appendDocsToFormData(fd);
+  return fd;
 }
 
 function buildUpdateFormData() {
   const payload = { ...form.value };
-  return toFormData(payload);
+  const fd = toFormData(payload);
+  appendDocsToFormData(fd);
+  return fd;
 }
 
 /* SCROLL TO FIRST INVALID */
@@ -470,7 +691,7 @@ function scrollToFirstInvalid() {
 }
 
 /* =========================
-   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS) ✅ works even for blank
+   EXPORT (unchanged)
 ========================= */
 function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, (m) => {
@@ -478,41 +699,33 @@ function esc(v) {
     return map[m];
   });
 }
-
 function safeFileName(s) {
   return String(s ?? '')
     .replace(/[\\/:*?"<>|]/g, '-')
     .replace(/\s+/g, ' ')
     .trim();
 }
-
 function v(x) {
   return x && String(x).trim() ? x : '—';
 }
-
 function exportRows() {
   return [
     { label: t('ولایت'), value: v(form.value.province) },
     { label: t('زون'), value: v(form.value.zone) },
     { label: t('ولسوالی'), value: v(form.value.district) },
     { label: t('قریه/ناحیه'), value: v(form.value.village) },
-
     { label: t('موقعیت مشخص'), value: v(form.value.specific_place) },
     { label: t('شماره سرک'), value: v(form.value.street_number) },
     { label: t('شماره خانه'), value: v(form.value.home_number) },
     { label: t('مختصات'), value: v(form.value.coordinates) },
-
     { label: t('نوع خانه'), value: v(form.value.home_type) },
     { label: t('علایم شک'), value: v(form.value.shak_symbols) },
     { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
-
     { label: t('کود منبع'), value: v(form.value.resource_code) },
     { label: t('شماره منبع'), value: v(form.value.resource_phone) },
-
     { label: t('یادداشت'), value: v(form.value.note) },
   ];
 }
-
 function buildSimpleTableHtml() {
   const rows = exportRows()
     .map(
@@ -538,7 +751,6 @@ function buildSimpleTableHtml() {
     </div>
   `;
 }
-
 function buildDocumentHtml() {
   const bodyHtml = buildSimpleTableHtml();
   const safeId = esc(form.value.id || '');
@@ -553,58 +765,13 @@ function buildDocumentHtml() {
   <title>mashkokhome_${safeId}_${safeName}</title>
   <style>
     @page { size: A4 portrait; margin: 15mm; }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #ffffff;
-      font-family: Tahoma, Arial, sans-serif;
-      font-size: 12px;
-      direction: rtl;
-    }
-
-    .title {
-      text-align: center;
-      margin: 22px 0 12px;
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .simple-table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-      margin: 0 auto;
-    }
-
-    .simple-table th,
-    .simple-table td {
-      border: 1px solid #000;
-      padding: 6px 8px;
-      vertical-align: top;
-      font-size: 12px;
-    }
-
-    .simple-table th {
-      width: 35%;
-      background: #f5f5f5;
-      text-align: right;
-      font-weight: 700;
-    }
-
-    .simple-table td {
-      width: 65%;
-      text-align: right;
-      word-break: break-word;
-    }
-
-    .sig {
-      margin-top: 18px;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      font-size: 12px;
-    }
+    html, body { margin: 0; padding: 0; background: #fff; font-family: Tahoma, Arial, sans-serif; font-size: 12px; direction: rtl; }
+    .title { text-align: center; margin: 22px 0 12px; font-size: 16px; font-weight: 700; }
+    .simple-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+    .simple-table th, .simple-table td { border: 1px solid #000; padding: 6px 8px; vertical-align: top; font-size: 12px; }
+    .simple-table th { width: 35%; background: #f5f5f5; text-align: right; font-weight: 700; }
+    .simple-table td { width: 65%; text-align: right; word-break: break-word; }
+    .sig { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -612,7 +779,6 @@ function buildDocumentHtml() {
 </body>
 </html>`;
 }
-
 function downloadPdf() {
   const html = buildDocumentHtml();
   const w = window.open('', '_blank', 'width=1024,height=768');
@@ -622,13 +788,11 @@ function downloadPdf() {
   w.document.write(html);
   w.document.close();
 
-  // more reliable than onload
   setTimeout(() => {
     w.focus();
     w.print();
   }, 350);
 }
-
 function downloadWord() {
   const html = buildDocumentHtml();
   const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
@@ -709,6 +873,10 @@ function resetForm() {
     loadRecord();
   } else {
     form.value = blankForm();
+    existingDocs.value = [];
+    removed_document_ids.value = [];
+    newDocs.value = [];
+    newDocsInput.value = [];
   }
 
   clearBackendErrors();
@@ -761,9 +929,38 @@ onMounted(async () => {
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
 }
-
 .secondary-action-btn {
   padding-inline: 14px;
   font-weight: 500;
+}
+
+/* docs UI */
+.docs-block {
+  border: 1px dashed rgba(0, 0, 0, 0.18);
+  border-radius: 12px;
+  padding: 10px 10px 6px;
+  background: rgba(255, 255, 255, 0.6);
+}
+.docs-title {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.8;
+  margin-bottom: 6px;
+}
+.docs-chips {
+  display: flex;
+  flex-wrap: wrap;
+}
+.chip-text {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.ga-2 {
+  gap: 8px;
 }
 </style>

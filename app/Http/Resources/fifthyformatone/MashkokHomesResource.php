@@ -39,6 +39,19 @@ class MashkokHomesResource extends JsonResource
                     'phone_number' => $res->phone_number ?? null,
                 ];
             }),
+            'documents' => $this->whenLoaded('documents', function () {
+                return $this->documents->map(function ($doc) {
+                    return [
+                        'id'            => $doc->id,
+                        'file_path'     => $doc->file_path,
+                        'original_name' => $doc->original_name,
+                        'mime_type'     => $doc->mime_type,
+                        'size'          => $doc->size,
+                        'created_at'    => $doc->created_at,
+                    ];
+                });
+            }),
+
 
             'created_at'     => $this->created_at,
             'updated_at'     => $this->updated_at,

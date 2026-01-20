@@ -7,10 +7,13 @@ use App\Http\Requests\fifthyformatone\StoreMashkokHomesRequest;
 use App\Http\Requests\fifthyformatone\UpdateMashkokHomesRequest;
 use App\Http\Resources\fifthyformatone\MashkokHomesResource;
 use App\Models\fifthyformatone\MashkokHomes;
-use App\Services\NotificationService; // 🔔 notifications
+use App\Services\NotificationService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use ZipArchive;
 
 class MashkokHomesController extends Controller
 {
@@ -38,10 +41,13 @@ class MashkokHomesController extends Controller
         $rid     = $request->input('resource_id');
 
         $sortBy  = $request->input('sort_by', 'created_at');
-        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true) ? $request->input('sort_dir') : 'desc';
+        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
+            ? $request->input('sort_dir')
+            : 'desc';
 
         $q = MashkokHomes::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+            'documents',
         ]);
 
         if ($search) {
@@ -64,26 +70,38 @@ class MashkokHomesController extends Controller
 
     public function store(StoreMashkokHomesRequest $request)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         try {
             return DB::transaction(function () use ($request, $user) {
                 $record = MashkokHomes::create($request->validated());
 
-                $record->load([
-                    'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
-                ]);
+                if ($request->hasFile('_newDocs')) {
+                    foreach ((array) $request->file('_newDocs') as $file) {
+                        if (!$file) continue;
+
+                        $path = $file->store("mashkok_homes/{$record->id}", 'public');
+
+                        $record->documents()->create([
+                            'file_path'     => $path,
+                            'original_name' => $file->getClientOriginalName(),
+                            'mime_type'     => $file->getClientMimeType(),
+                            'size'          => $file->getSize(),
+                        ]);
+                    }
+                }
+
+                $record->load(['resource:id,name,code_number,phone_number', 'documents']);
 
                 NotificationService::record(
                     $user,
-                    module: 'خانه‌های مشکوک',
-                    action: 'created',
-                    title: 'خانه مشکوک جدید ثبت شد',
-                    message: 'محل: ' . ($record->province ?? '') . ' - ' . ($record->district ?? '') . ' - ' . ($record->village ?? ''),
-                    routeName: 'mashkok-homes',            // ⚠️ set your real route name
-                    routeParams: ['id' => $record->id],
-                    level: 'success',
-                    changes: null
+                    'خانه‌های مشکوک',
+                    'created',
+                    'خانه مشکوک جدید ثبت شد',
+                    'محل: ' . ($record->province ?? ''),
+                    'mashkok-homes',
+                    ['id' => $record->id],
+                    'success'
                 );
 
                 return (new MashkokHomesResource($record))
@@ -99,61 +117,105 @@ class MashkokHomesController extends Controller
         }
     }
 
-    public function show(MashkokHomes $mashkok_home)
-    {
-        $mashkok_home->load([
-            'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+    public function documentsZip(MashkokHomes $mashkok_home)
+{
+    try {
+        if (!class_exists(\ZipArchive::class)) {
+            return response()->json([
+                'message' => 'PHP ZipArchive extension is not enabled'
+            ], 500);
+        }
+
+        $mashkok_home->load('documents');
+
+        if ($mashkok_home->documents->isEmpty()) {
+            return response()->json(['message' => 'هیچ سندی برای این خانه موجود نیست'], 404);
+        }
+
+        $tmpDir = storage_path('app/tmp');
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0755, true);
+        }
+
+        $zipFileName = "mashkok_home_{$mashkok_home->id}_documents.zip";
+        $zipPath = $tmpDir . '/' . uniqid() . '_' . $zipFileName;
+
+        $zip = new \ZipArchive();
+        $opened = $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+        if ($opened !== true) {
+            return response()->json(['message' => 'ZIP ایجاد نشد'], 500);
+        }
+
+        $added = 0;
+        $usedNames = [];
+
+        foreach ($mashkok_home->documents as $index => $doc) {
+            if (!$doc->file_path) continue;
+
+            if (!Storage::disk('public')->exists($doc->file_path)) continue;
+
+            $absolutePath = Storage::disk('public')->path($doc->file_path);
+            if (!is_file($absolutePath)) continue;
+
+            $originalName = $doc->original_name ?: basename($absolutePath);
+            $originalName = basename($originalName);
+
+            // ✅ ASCII-ONLY filenames → Windows safe
+            $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+            $filename  = pathinfo($originalName, PATHINFO_FILENAME);
+
+            $filename = preg_replace('/[^A-Za-z0-9 _-]/', '', $filename);
+            $filename = trim($filename);
+
+            if ($filename === '') {
+                $filename = 'document_' . ($index + 1);
+            }
+
+            $entryName = $filename . ($extension ? '.' . $extension : '');
+
+            // Ensure uniqueness
+            $counter = 1;
+            $finalEntryName = $entryName;
+            while (isset($usedNames[$finalEntryName])) {
+                $finalEntryName = $filename . '_' . $counter . ($extension ? '.' . $extension : '');
+                $counter++;
+            }
+
+            $usedNames[$finalEntryName] = true;
+
+            if ($zip->addFile($absolutePath, $finalEntryName)) {
+                $added++;
+            }
+        }
+
+        $zip->close();
+
+        if ($added === 0) {
+            @unlink($zipPath);
+            return response()->json(['message' => 'هیچ فایل معتبری برای ZIP پیدا نشد'], 404);
+        }
+
+        return response()->streamDownload(function () use ($zipPath) {
+            $stream = fopen($zipPath, 'rb');
+            fpassthru($stream);
+            fclose($stream);
+            @unlink($zipPath);
+        }, $zipFileName, [
+            'Content-Type'        => 'application/zip',
+            'Content-Disposition' => 'attachment; filename="'.$zipFileName.'"',
         ]);
 
-        return MashkokHomesResource::make($mashkok_home);
+    } catch (\Throwable $e) {
+        \Log::error('MashkokHomes ZIP error', [
+            'error' => $e->getMessage(),
+        ]);
+
+        return response()->json([
+            'message' => 'خطا در ساخت ZIP',
+            'error'   => $e->getMessage(),
+        ], 500);
     }
+}
 
-    public function update(UpdateMashkokHomesRequest $request, MashkokHomes $mashkok_home)
-    {
-        $user = $request->user(); // 🔔
-
-        try {
-            return DB::transaction(function () use ($request, $mashkok_home, $user) {
-                $validated = $request->validated();
-
-                // 🧮 changes BEFORE update
-                $original = $mashkok_home->getOriginal();
-                $changes  = [];
-
-                foreach ($validated as $field => $newValue) {
-                    if (array_key_exists($field, $original) && $original[$field] != $newValue) {
-                        $changes[$field] = [
-                            'old' => $original[$field],
-                            'new' => $newValue,
-                        ];
-                    }
-                }
-
-                $mashkok_home->update($validated);
-
-                $mashkok_home->load([
-                    'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
-                ]);
-
-                NotificationService::record(
-                    $user,
-                    module: 'خانه‌های مشکوک',
-                    action: 'updated',
-                    title: 'خانه مشکوک اصلاح شد',
-                    message: 'محل: ' . ($mashkok_home->province ?? '') . ' - ' . ($mashkok_home->district ?? '') . ' - ' . ($mashkok_home->village ?? ''),
-                    routeName: 'mashkok-homes',            // ⚠️ set your real route name
-                    routeParams: ['id' => $mashkok_home->id],
-                    level: 'info',
-                    changes: !empty($changes) ? $changes : null
-                );
-
-                return MashkokHomesResource::make($mashkok_home);
-            });
-        } catch (QueryException $e) {
-            if ($this->isDuplicateKeyException($e)) {
-                return response()->json($this->duplicateErrorPashto(), 422);
-            }
-            throw $e;
-        }
-    }
 }

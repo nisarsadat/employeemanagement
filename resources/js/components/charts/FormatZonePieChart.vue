@@ -91,7 +91,7 @@
                   <!-- Show All Toggle -->
                   <v-switch
                     v-model="showAllZones"
-                    :label="t('نمایش تمام ناحیه ها')"
+                    :label="t('نمایش تمام حوزه ها')"
                     color="primary"
                     density="compact"
                     hide-details
@@ -152,7 +152,7 @@
 
           <v-chip size="small" variant="tonal" color="primary">
             <v-icon start size="14">mdi-chart-pie</v-icon>
-            {{ t('تعداد ناحیه ها') }}: {{ displayData.length }}
+            {{ t('تعداد حوزه ها') }}: {{ displayData.length }}
           </v-chip>
         </div>
       </div>
@@ -165,7 +165,7 @@
         <!-- List View -->
         <div v-show="viewMode === 'list' && hasData" class="list-view">
           <div class="list-header">
-            <div class="text-subtitle-2 font-weight-medium">{{ t('ناحیه') }}</div>
+            <div class="text-subtitle-2 font-weight-medium">{{ t('حوزه') }}</div>
             <div class="text-subtitle-2 font-weight-medium">{{ t('تعداد فرم') }}</div>
           </div>
 
@@ -223,7 +223,7 @@
         <div class="d-flex align-center justify-space-between">
           <div class="text-caption text-medium-emphasis">
             {{ t('نمایش') }} {{ showingFrom }}-{{ showingTo }} {{ t('از') }}
-            {{ displayData.length }} {{ t('ناحیه') }}
+            {{ displayData.length }} {{ t('حوزه') }}
           </div>
 
           <div class="d-flex align-center gap-2">
@@ -327,8 +327,8 @@
   }
 
   const props = defineProps({
-    title: { type: String, default: 'توزیع فرم‌ها بر اساس ناحیه' },
-    subtitle: { type: String, default: 'تمام ناحیه ها بر اساس تعداد فرم' },
+    title: { type: String, default: 'توزیع فرم‌ها بر اساس حوزه' },
+    subtitle: { type: String, default: 'تمام حوزه ها بر اساس تعداد فرم' },
     emptyText: { type: String, default: 'هیچ دیتا موجود نیست' },
     data: { type: Array, default: () => [] },
     height: { type: [Number, String], default: 400 },

@@ -1,10 +1,7 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
-    <AppBar
-      :title="t('خانه‌های مشکوک')"
-      :subtitle="t('فهرست، جستجو و مدیریت خانه‌های مشکوک')"
-    >
+    <AppBar :title="t('خانه‌های مشکوک')" :subtitle="t('فهرست، جستجو و مدیریت خانه‌های مشکوک')">
       <template #actions>
         <v-btn icon />
       </template>
@@ -63,9 +60,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('تمام خانه‌های مشکوک') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('مجموع') }}: {{ stats.total }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
           </v-card>
@@ -84,9 +79,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -105,9 +98,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای منبع') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withResource }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withResource }}</div>
               </div>
             </div>
           </v-card>
@@ -126,9 +117,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای نوع خانه') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withHomeType }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withHomeType }}</div>
               </div>
             </div>
           </v-card>
@@ -207,12 +196,7 @@
           <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده خانه مشکوک')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -228,6 +212,20 @@
                 @click.stop="goEdit(item)"
               >
                 mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
+          <!-- ✅ download documents zip -->
+          <v-tooltip :text="t('دانلود اسناد مربوط به خانه مشکوک')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="green-darken-2"
+                :disabled="!hasDocuments(item)"
+                @click.stop="downloadDocuments(item)"
+              >
+                mdi-paperclip
               </v-icon>
             </template>
           </v-tooltip>
@@ -270,288 +268,309 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FlyToMapButton from '@/components/FlyToMapButton.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-import { useMawadRepository } from '@/stores/MawadRepository';
+  import { useMawadRepository } from '@/stores/MawadRepository';
 
-const repo = useMawadRepository();
-const router = useRouter();
+  const repo = useMawadRepository();
+  const router = useRouter();
 
-/* i18n / RTL */
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showErrorMessage = (m) => {
-  errorMessage.value = m;
-  showError.value = true;
-};
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
+  };
 
-/* 🔗 go to Resources page for this resource_code */
-function goToResource(row) {
-  if (!row?.resource_code) return;
-  router.push(`/app/resources/${row.resource_code}`);
-}
-
-/* Helpers */
-const getRow = (s) => (s && s.raw ? s.raw : s);
-
-/* rows from store */
-const rowsFT = computed(() => {
-  const list = repo.MashkokHomes || [];
-  if (Array.isArray(list)) return list;
-  if (Array.isArray(list.data)) return list.data;
-  return [];
-});
-
-/* 🔢 Filter cards state */
-const cardFilter = ref('all');
-
-const stats = computed(() => {
-  const rows = rowsFT.value || [];
-  const total = rows.length;
-
-  const withCoordinates = rows.filter(
-    (r) => r && r.coordinates && String(r.coordinates).trim() !== '',
-  ).length;
-
-  const withResource = rows.filter(
-    (r) => r && r.resource_code && String(r.resource_code).trim() !== '',
-  ).length;
-
-  const withHomeType = rows.filter(
-    (r) => r && r.home_type && String(r.home_type).trim() !== '',
-  ).length;
-
-  return { total, withCoordinates, withResource, withHomeType };
-});
-
-const filteredRowsFT = computed(() => {
-  const base = rowsFT.value || [];
-  switch (cardFilter.value) {
-    case 'withCoordinates':
-      return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
-    case 'withResource':
-      return base.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '');
-    case 'withHomeType':
-      return base.filter((r) => r && r.home_type && String(r.home_type).trim() !== '');
-    default:
-      return base;
+  /* 🔗 go to Resources page for this resource_code */
+  function goToResource(row) {
+    if (!row?.resource_code) return;
+    router.push(`/app/resources/${row.resource_code}`);
   }
-});
 
-/* TABLE HEADERS – all inputs + map */
-const headersFT = computed(() => [
-  { title: t('ولایت'), key: 'province' },
-  { title: t('زون'), key: 'zone' },
-  { title: t('ولسوالی'), key: 'district' },
-  { title: t('قریه/ناحیه'), key: 'village' },
+  /* Helpers */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
 
-  { title: t('موقعیت مشخص'), key: 'specific_place' },
-  { title: t('شماره سرک'), key: 'street_number' },
-  { title: t('شماره خانه'), key: 'home_number' },
-  { title: t('مختصات'), key: 'coordinates' },
+  /* rows from store */
+  const rowsFT = computed(() => {
+    const list = repo.MashkokHomes || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
+    return [];
+  });
 
-  { title: t('نوع خانه'), key: 'home_type' },
-  { title: t('علایم شک'), key: 'shak_symbols' },
+  /* 🔢 Filter cards state */
+  const cardFilter = ref('all');
 
-  { title: t('یادداشت'), key: 'note', width: 260 },
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
 
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone' },
+    const withCoordinates = rows.filter(
+      (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
 
-  { title: t('نقشه'), key: 'map', sortable: false },
-]);
+    const withResource = rows.filter(
+      (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
+    ).length;
 
-/* TOP GROUPS – for FilterableTable filters */
-const topGroups = computed(() => [
-  { title: t('موقعیت'), keys: ['province', 'zone', 'district', 'village'] },
-  {
-    title: t('آدرس'),
-    keys: ['specific_place', 'street_number', 'home_number', 'coordinates'],
-  },
-  { title: t('مشخصات خانه'), keys: ['home_type', 'shak_symbols'] },
-  {
-    title: t('منبع/سایر'),
-    keys: ['resource_code', 'resource_phone', 'note', 'Province_addr'],
-  },
-]);
+    const withHomeType = rows.filter(
+      (r) => r && r.home_type && String(r.home_type).trim() !== ''
+    ).length;
 
-const filters = ref({});
+    return { total, withCoordinates, withResource, withHomeType };
+  });
 
-/* Peek */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loadingOne.value = true;
-  try {
-    if (typeof repo.FetchMashkokHomeData === 'function') {
-      await repo.FetchMashkokHomeData(id);
-      const single = Array.isArray(repo.MashkokHome) ? repo.MashkokHome[0] : repo.MashkokHome;
-      detail.value = single || {};
-    } else {
-      await fetchAll();
-      const list = rowsFT.value || [];
-      detail.value = list.find((r) => r.id === id) || {};
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+    switch (cardFilter.value) {
+      case 'withCoordinates':
+        return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+      case 'withResource':
+        return base.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '');
+      case 'withHomeType':
+        return base.filter((r) => r && r.home_type && String(r.home_type).trim() !== '');
+      default:
+        return base;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات خانه مشکوک'));
-  } finally {
-    loadingOne.value = false;
+  });
+
+  /* TABLE HEADERS – all inputs + map */
+  const headersFT = computed(() => [
+    { title: t('ولایت'), key: 'province' },
+    { title: t('زون'), key: 'zone' },
+    { title: t('ولسوالی'), key: 'district' },
+    { title: t('قریه/ناحیه'), key: 'village' },
+
+    { title: t('موقعیت مشخص'), key: 'specific_place' },
+    { title: t('شماره سرک'), key: 'street_number' },
+    { title: t('شماره خانه'), key: 'home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
+
+    { title: t('نوع خانه'), key: 'home_type' },
+    { title: t('علایم شک'), key: 'shak_symbols' },
+
+    { title: t('یادداشت'), key: 'note', width: 260 },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
+
+    { title: t('نقشه'), key: 'map', sortable: false },
+  ]);
+
+  /* TOP GROUPS – for FilterableTable filters */
+  const topGroups = computed(() => [
+    { title: t('موقعیت'), keys: ['province', 'zone', 'district', 'village'] },
+    {
+      title: t('آدرس'),
+      keys: ['specific_place', 'street_number', 'home_number', 'coordinates'],
+    },
+    { title: t('مشخصات خانه'), keys: ['home_type', 'shak_symbols'] },
+    {
+      title: t('منبع/سایر'),
+      keys: ['resource_code', 'resource_phone', 'note', 'Province_addr'],
+    },
+  ]);
+
+  const filters = ref({});
+  /* ✅ docs download (Mashkok Homes) */
+  function hasDocuments(payload) {
+    const row = getRow(payload);
+    const docs = row?.documents;
+    return Array.isArray(docs) && docs.length > 0;
   }
-}
 
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
+  async function downloadDocuments(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
 
-/* navigation */
-function goCreate() {
-  router.push('/app/mashkok-home');
-}
+    const name = row.specific_place || row.home_type || `mashkok_home_${row.id}`;
 
-function goEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/mashkok-home/${row.id}`);
-}
+    try {
+      if (typeof repo.DownloadMashkokHomeZip === 'function') {
+        await repo.DownloadMashkokHomeZip(row.id, name);
+      } else {
+        showErrorMessage(t('دانلود اسناد برای خانه مشکوک هنوز تنظیم نشده است'));
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دانلود اسناد'));
+    }
+  }
 
-/* delete with dialog */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
+  /* Peek */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
 
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      if (typeof repo.FetchMashkokHomeData === 'function') {
+        await repo.FetchMashkokHomeData(id);
+        const single = Array.isArray(repo.MashkokHome) ? repo.MashkokHome[0] : repo.MashkokHome;
+        detail.value = single || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات خانه مشکوک'));
+    } finally {
+      loadingOne.value = false;
+    }
+  }
 
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  deleteDialog.value = false;
-  if (!row?.id) return;
-  try {
-    await repo.DeleteMashkokHome?.(row.id);
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
+
+  /* navigation */
+  function goCreate() {
+    router.push('/app/mashkok-home');
+  }
+
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/mashkok-home/${row.id}`);
+  }
+
+  /* delete with dialog */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
+
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
+
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    deleteDialog.value = false;
+    if (!row?.id) return;
+    try {
+      await repo.DeleteMashkokHome?.(row.id);
+      await fetchAll();
+      showErrorMessage(t('حذف شد'));
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteTarget.value = null;
+    }
+  }
+
+  /* fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchMashkokHomesData?.({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search || '',
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست خانه‌های مشکوک'));
+    }
+  }
+
+  function clearSearch() {
+    repo.Search = '';
+    fetchAll();
+  }
+
+  /* init */
+  onMounted(async () => {
     await fetchAll();
-    showErrorMessage(t('حذف شد'));
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در حذف'));
-  } finally {
-    deleteTarget.value = null;
-  }
-}
-
-/* fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchMashkokHomesData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت فهرست خانه‌های مشکوک'));
-  }
-}
-
-function clearSearch() {
-  repo.Search = '';
-  fetchAll();
-}
-
-/* init */
-onMounted(async () => {
-  await fetchAll();
-});
+  });
 </script>
 
 <style scoped>
-.ga-2 {
-  gap: 8px;
-}
+  .ga-2 {
+    gap: 8px;
+  }
 
-/* Background similar to other index pages */
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
+  /* Background similar to other index pages */
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
+  }
 
-/* Stats cards */
-.stat-card {
-  cursor: pointer;
-  border-radius: 14px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  transition:
-    box-shadow 0.2s ease,
-    transform 0.15s ease,
-    border-color 0.2s ease,
-    background-color 0.2s ease;
-}
+  /* Stats cards */
+  .stat-card {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
 
-.stat-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  border-color: rgba(33, 150, 243, 0.35);
-}
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
+  }
 
-.stat-card--active {
-  border-color: rgba(25, 118, 210, 0.9);
-  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
-}
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+  }
 
-.stat-card-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
 
-.stat-card-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e3f2fd;
-}
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
 
-.stat-card-text {
-  display: flex;
-  flex-direction: column;
-}
+  .stat-card-text {
+    display: flex;
+    flex-direction: column;
+  }
 
-.stat-card-title {
-  font-size: 13px;
-  font-weight: 700;
-}
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
 
-.stat-card-subtitle {
-  font-size: 11px;
-  color: #666;
-}
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
+  }
 </style>

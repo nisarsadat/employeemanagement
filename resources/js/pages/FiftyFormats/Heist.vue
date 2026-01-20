@@ -1,10 +1,7 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
-    <AppBar
-      :title="t('سرقت')"
-      :subtitle="t('فهرست، جستجو و مدیریت سرقت ها')"
-    >
+    <AppBar :title="t('سرقت')" :subtitle="t('فهرست، جستجو و مدیریت سرقت ها')">
       <template #actions>
         <v-btn icon />
       </template>
@@ -63,9 +60,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('تمام سرقت ها') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('مجموع') }}: {{ stats.total }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
           </v-card>
@@ -84,9 +79,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -105,9 +98,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای شماره تماس') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withPhone }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withPhone }}</div>
               </div>
             </div>
           </v-card>
@@ -126,9 +117,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای وظیفه فعلی') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withJob }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withJob }}</div>
               </div>
             </div>
           </v-card>
@@ -222,12 +211,7 @@
           <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده سرقت')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -243,6 +227,20 @@
                 @click.stop="goEdit(item)"
               >
                 mdi-pencil
+              </v-icon>
+            </template>
+          </v-tooltip>
+          <!-- ✅ download documents zip (HEIST) -->
+          <v-tooltip :text="t('دانلود اسناد مربوط به هیست')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="green-darken-2"
+                :disabled="!hasDocuments(item)"
+                @click.stop="downloadDocuments(item)"
+              >
+                mdi-paperclip
               </v-icon>
             </template>
           </v-tooltip>
@@ -312,328 +310,358 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FlyToMapButton from '@/components/FlyToMapButton.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-import { useFasadRepository } from '@/stores/FasadRepository';
+  import { useFasadRepository } from '@/stores/FasadRepository';
 
-const repo = useFasadRepository();
-const router = useRouter();
+  const repo = useFasadRepository();
+  const router = useRouter();
 
-/* i18n / RTL */
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = (l === 'fa')));
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showErrorMessage = (m) => {
-  errorMessage.value = m;
-  showError.value = true;
-};
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
+  };
 
-/* 🔗 go to Resources page for this resource_code */
-function goToResource(row) {
-  if (!row?.resource_code) return;
-  router.push(`/app/resources/${row.resource_code}`);
-}
-
-/* Helpers */
-const getRow = (s) => (s && s.raw ? s.raw : s);
-
-/* rows from store */
-const rowsFT = computed(() => {
-  const list = repo.Heists || [];
-  if (Array.isArray(list)) return list;
-  if (Array.isArray(list.data)) return list.data;
-  return [];
-});
-
-/* 🔢 Filter cards state */
-const cardFilter = ref('all');
-
-const stats = computed(() => {
-  const rows = rowsFT.value || [];
-  const total = rows.length;
-  const withCoordinates = rows.filter(
-    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
-  ).length;
-  const withPhone = rows.filter(
-    (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
-  ).length;
-  const withJob = rows.filter(
-    (r) => r && r.now_job && String(r.now_job).trim() !== ''
-  ).length;
-
-  return { total, withCoordinates, withPhone, withJob };
-});
-
-const filteredRowsFT = computed(() => {
-  const base = rowsFT.value || [];
-  switch (cardFilter.value) {
-    case 'withCoordinates':
-      return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
-    case 'withPhone':
-      return base.filter((r) => r && r.phone_number && String(r.phone_number).trim() !== '');
-    case 'withJob':
-      return base.filter((r) => r && r.now_job && String(r.now_job).trim() !== '');
-    default:
-      return base;
+  /* 🔗 go to Resources page for this resource_code */
+  function goToResource(row) {
+    if (!row?.resource_code) return;
+    router.push(`/app/resources/${row.resource_code}`);
   }
-});
 
-/* TABLE HEADERS – ALL INPUTS + map */
-const headersFT = computed(() => [
-  { title: t('تصویر'), key: 'picture', sortable: false },
-  { title: t('نام'), key: 'name' },
-  { title: t('نام پدر'), key: 'father_name' },
+  /* Helpers */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
 
-  { title: t('ولایت اصلی'), key: 'main_province' },
-  { title: t('ولسوالی اصلی'), key: 'main_district' },
-  { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+  /* rows from store */
+  const rowsFT = computed(() => {
+    const list = repo.Heists || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
+    return [];
+  });
 
-  { title: t('ولایت فعلی'), key: 'now_province' },
-  { title: t('زون فعلی'), key: 'now_zone' },
-  { title: t('ولسوالی فعلی'), key: 'now_district' },
-  { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
+  /* 🔢 Filter cards state */
+  const cardFilter = ref('all');
 
-  { title: t('موقعیت مشخص'), key: 'specific_place' },
-  { title: t('سرک #'), key: 'street_number' },
-  { title: t('خانه #'), key: 'home_number' },
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
+    const withCoordinates = rows.filter(
+      (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
+    const withPhone = rows.filter(
+      (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
+    ).length;
+    const withJob = rows.filter((r) => r && r.now_job && String(r.now_job).trim() !== '').length;
 
-  { title: t('وظیفه قبلی'), key: 'old_job' },
-  { title: t('وظیفه فعلی'), key: 'now_job' },
+    return { total, withCoordinates, withPhone, withJob };
+  });
 
-  { title: t('شماره تماس'), key: 'phone_number' },
-  { title: t('سرقت‌های انجام‌شده'), key: 'done_roberies' },
-  { title: t('نوع سلاح'), key: 'gun_type' },
-
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
-  { title: t('مختصات'), key: 'coordinates' },
-
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone' },
-
-  { title: t('ملاحظات'), key: 'note', width: 300 },
-
-  { title: t('نقشه'), key: 'map', sortable: false },
-]);
-
-/* TOP GROUPS – همه فیلدها گروپ شده */
-const topGroups = computed(() => [
-  { title: t('مشخصات'), keys: ['name', 'father_name'] },
-  { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-  { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
-  {
-    title: t('خانه/موقعیت'),
-    keys: ['specific_place', 'street_number', 'home_number', 'coordinates'],
-  },
-  { title: t('وظایف/فعالیت'), keys: ['old_job', 'now_job', 'done_roberies', 'gun_type'] },
-  { title: t('تماس'), keys: ['phone_number'] },
-  { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
-  { title: t('دیگر'), keys: ['note', 'Province_addr'] },
-]);
-
-const filters = ref({});
-
-/* Peek */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loadingOne.value = true;
-  try {
-    if (typeof repo.FetchHeistData === 'function') {
-      await repo.FetchHeistData(id);
-      const single = Array.isArray(repo.Heist) ? repo.Heist[0] : repo.Heist;
-      detail.value = single || {};
-    } else {
-      await fetchAll();
-      const list = rowsFT.value || [];
-      detail.value = list.find((r) => r.id === id) || {};
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+    switch (cardFilter.value) {
+      case 'withCoordinates':
+        return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+      case 'withPhone':
+        return base.filter((r) => r && r.phone_number && String(r.phone_number).trim() !== '');
+      case 'withJob':
+        return base.filter((r) => r && r.now_job && String(r.now_job).trim() !== '');
+      default:
+        return base;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات سرقت'));
-  } finally {
-    loadingOne.value = false;
+  });
+
+  /* TABLE HEADERS – ALL INPUTS + map */
+  const headersFT = computed(() => [
+    { title: t('تصویر'), key: 'picture', sortable: false },
+    { title: t('نام'), key: 'name' },
+    { title: t('نام پدر'), key: 'father_name' },
+
+    { title: t('ولایت اصلی'), key: 'main_province' },
+    { title: t('ولسوالی اصلی'), key: 'main_district' },
+    { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+
+    { title: t('ولایت فعلی'), key: 'now_province' },
+    { title: t('زون فعلی'), key: 'now_zone' },
+    { title: t('ولسوالی فعلی'), key: 'now_district' },
+    { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
+
+    { title: t('موقعیت مشخص'), key: 'specific_place' },
+    { title: t('سرک #'), key: 'street_number' },
+    { title: t('خانه #'), key: 'home_number' },
+
+    { title: t('وظیفه قبلی'), key: 'old_job' },
+    { title: t('وظیفه فعلی'), key: 'now_job' },
+
+    { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('سرقت‌های انجام‌شده'), key: 'done_roberies' },
+    { title: t('نوع سلاح'), key: 'gun_type' },
+
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('مختصات'), key: 'coordinates' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
+
+    { title: t('ملاحظات'), key: 'note', width: 300 },
+
+    { title: t('نقشه'), key: 'map', sortable: false },
+  ]);
+
+  /* TOP GROUPS – همه فیلدها گروپ شده */
+  const topGroups = computed(() => [
+    { title: t('مشخصات'), keys: ['name', 'father_name'] },
+    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+    { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
+    {
+      title: t('خانه/موقعیت'),
+      keys: ['specific_place', 'street_number', 'home_number', 'coordinates'],
+    },
+    { title: t('وظایف/فعالیت'), keys: ['old_job', 'now_job', 'done_roberies', 'gun_type'] },
+    { title: t('تماس'), keys: ['phone_number'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+    { title: t('دیگر'), keys: ['note', 'Province_addr'] },
+  ]);
+
+  const filters = ref({});
+  function hasHeistDocuments(item) {
+    return Array.isArray(item?.documents) && item.documents.length > 0;
   }
-}
 
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
+  async function downloadHeistDocuments(item) {
+    if (!item?.id) return;
+    await repo.DownloadHeistZip(item.id, `heist_${item.id}`);
+  }
+  /* ✅ docs download like Informations (HEIST) */
+  function hasDocuments(payload) {
+    const row = getRow(payload);
+    const docs = row?.documents;
+    return Array.isArray(docs) && docs.length > 0;
+  }
 
-/* navigation */
-function goCreate() {
-  router.push('/app/heistform');
-}
+  async function downloadDocuments(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
 
-function goEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/heistform/${row.id}`);
-}
+    const name = row.name || row.code_number || row.title || `heist_${row.id}`;
 
-/* delete with dialog */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
+    try {
+      if (typeof repo.DownloadHeistZip === 'function') {
+        await repo.DownloadHeistZip(row.id, name);
+      } else {
+        showErrorMessage(t('دانلود اسناد برای هیست هنوز تنظیم نشده است'));
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دانلود اسناد'));
+    }
+  }
 
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
+  /* Peek */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
 
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  deleteDialog.value = false;
-  if (!row?.id) return;
-  try {
-    await repo.DeleteHeist?.(row.id);
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      if (typeof repo.FetchHeistData === 'function') {
+        await repo.FetchHeistData(id);
+        const single = Array.isArray(repo.Heist) ? repo.Heist[0] : repo.Heist;
+        detail.value = single || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات سرقت'));
+    } finally {
+      loadingOne.value = false;
+    }
+  }
+
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
+
+  /* navigation */
+  function goCreate() {
+    router.push('/app/heistform');
+  }
+
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/heistform/${row.id}`);
+  }
+
+  /* delete with dialog */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
+
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
+
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    deleteDialog.value = false;
+    if (!row?.id) return;
+    try {
+      await repo.DeleteHeist?.(row.id);
+      await fetchAll();
+      showErrorMessage(t('حذف شد'));
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteTarget.value = null;
+    }
+  }
+
+  /* fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchHeistsData?.({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search || '',
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست سرقت ها'));
+    }
+  }
+
+  function clearSearch() {
+    repo.Search = '';
+    fetchAll();
+  }
+
+  /* IMAGE PREVIEW helpers */
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
+
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
+
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+    clean = clean.replace(/\\\//g, '/');
+
+    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+    if (clean.startsWith('/')) return clean;
+
+    return '/' + clean.replace(/^\/+/, '');
+  }
+
+  function openPreview(src) {
+    const normalized = normalizePicture(src);
+    if (!normalized) return;
+    previewSrc.value = normalized;
+    previewOpen.value = true;
+  }
+
+  /* init */
+  onMounted(async () => {
     await fetchAll();
-    showErrorMessage(t('حذف شد'));
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در حذف'));
-  } finally {
-    deleteTarget.value = null;
-  }
-}
-
-/* fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchHeistsData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت فهرست سرقت ها'));
-  }
-}
-
-function clearSearch() {
-  repo.Search = '';
-  fetchAll();
-}
-
-/* IMAGE PREVIEW helpers */
-const previewOpen = ref(false);
-const previewSrc = ref(null);
-
-function normalizePicture(src) {
-  if (!src) return null;
-  let clean = String(src).trim();
-
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
-
-  clean = clean.replace(/\\\//g, '/');
-
-  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-  if (clean.startsWith('/')) return clean;
-
-  return '/' + clean.replace(/^\/+/, '');
-}
-
-function openPreview(src) {
-  const normalized = normalizePicture(src);
-  if (!normalized) return;
-  previewSrc.value = normalized;
-  previewOpen.value = true;
-}
-
-/* init */
-onMounted(async () => {
-  await fetchAll();
-});
+  });
 </script>
 
 <style scoped>
-.ga-2 {
-  gap: 8px;
-}
+  .ga-2 {
+    gap: 8px;
+  }
 
-/* Background similar to other index pages */
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
+  /* Background similar to other index pages */
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
+  }
 
-/* Stats cards */
-.stat-card {
-  cursor: pointer;
-  border-radius: 14px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
-    background-color 0.2s ease;
-}
+  /* Stats cards */
+  .stat-card {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
 
-.stat-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  border-color: rgba(33, 150, 243, 0.35);
-}
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
+  }
 
-.stat-card--active {
-  border-color: rgba(25, 118, 210, 0.9);
-  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
-}
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+  }
 
-.stat-card-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
 
-.stat-card-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e3f2fd;
-}
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
 
-.stat-card-text {
-  display: flex;
-  flex-direction: column;
-}
+  .stat-card-text {
+    display: flex;
+    flex-direction: column;
+  }
 
-.stat-card-title {
-  font-size: 13px;
-  font-weight: 700;
-}
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
 
-.stat-card-subtitle {
-  font-size: 11px;
-  color: #666;
-}
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
+  }
 
-/* picture */
-.pic-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
+  /* picture */
+  .pic-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
 </style>

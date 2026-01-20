@@ -280,6 +280,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('saeen-fasads', SaeenFasadController::class);
     Route::get('saeen-fasads/{saeenFasad}/download-zip', [SaeenFasadController::class, 'downloadZip']);
     Route::apiResource('heists', HeistController::class);
+    Route::get('heists/{heist}/documents-zip', [HeistController::class, 'downloadDocumentsZip']);
     Route::apiResource('captives', CaptiveController::class);
     Route::get('captives/{captive}/documents/zip', [CaptiveDocumentController::class, 'downloadAll']);
 
@@ -297,6 +298,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('robbers', RobbersController::class);
     Route::apiResource('non-responsable-people', NonResponsablePeopleController::class);
     Route::apiResource('mashkok-homes', MashkokHomesController::class);
+    Route::get('/mashkok-homes/{mashkok_home}/documents/zip', [MashkokHomesController::class, 'documentsZip']);
     Route::apiResource('damage-places', DamagePlacesController::class);
     Route::apiResource('damage-rasan-places', DamageRasanPlacesController::class);
     Route::apiResource('mashkok-shops', MashkokShopsController::class);

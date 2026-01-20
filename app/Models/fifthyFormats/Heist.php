@@ -38,4 +38,10 @@ class Heist extends Model
     {
         return $this->belongsTo(\App\Models\Resource::class);
     }
+
+    // ✅ Documents
+    public function documents()
+    {
+        return $this->hasMany(HeistDocument::class);
+    }
 }

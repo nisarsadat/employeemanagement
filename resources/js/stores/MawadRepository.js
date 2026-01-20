@@ -1045,5 +1045,57 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+    // ⬇️ Download ALL documents of Mashkok Home as ZIP
+    // async DownloadMashkokHomeDocumentsZip(id) {
+    //   try {
+    //     // IMPORTANT: responseType = blob
+    //     const response = await axios.get(`/mashkok-homes/${id}/documents/zip`, {
+    //       responseType: 'blob',
+    //     });
+
+    //     // Create a temporary download link
+    //     const blob = new Blob([response.data], {
+    //       type: 'application/zip',
+    //     });
+
+    //     const url = window.URL.createObjectURL(blob);
+    //     const link = document.createElement('a');
+
+    //     link.href = url;
+    //     link.download = `mashkok_home_${id}_documents.zip`;
+
+    //     document.body.appendChild(link);
+    //     link.click();
+
+    //     document.body.removeChild(link);
+    //     window.URL.revokeObjectURL(url);
+
+    //     toast.success('فایل ZIP با موفقیت دانلود شد', {
+    //       autoClose: 1200,
+    //     });
+    //   } catch (e) {
+    //     console.error(e);
+    //     toast.error(e?.response?.data?.message || 'دانلود فایل‌ها ناموفق بود');
+    //     throw e;
+    //   }
+    // },
+    async DownloadMashkokHomeZip(id, name = `mashkok_home_${id}`) {
+      const res = await axios.get(`/mashkok-homes/${id}/documents/zip`, {
+        responseType: 'blob',
+        headers: { Accept: 'application/zip' },
+      });
+
+      const blob = new Blob([res.data], { type: 'application/zip' });
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${name}_documents.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    },
   },
 });

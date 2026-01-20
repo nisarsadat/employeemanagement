@@ -30,4 +30,10 @@ class MashkokHomes extends Model
     {
         return $this->belongsTo(Resource::class , 'resource_id' , 'id');
     }
+   public function documents()
+    {
+        return $this->hasMany(MashkokHomesDocument::class, 'mashkok_home_id');
+    }
+
+
 }

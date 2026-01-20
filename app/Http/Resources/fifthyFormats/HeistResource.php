@@ -13,6 +13,11 @@ class HeistResource extends JsonResource
             ? $this->getRelation('resource')
             : null;
 
+        // ✅ Safely get documents if loaded
+        $docs = $this->relationLoaded('documents')
+            ? $this->getRelation('documents')
+            : collect();
+
         return [
             'id'             => $this->id,
             'name'           => $this->name,
@@ -43,10 +48,10 @@ class HeistResource extends JsonResource
             'Province_addr'  => $this->Province_addr,
 
             // ✅ resource fields
-            'resource_id'           => $this->resource_id,
-            'resource_code'         => $related?->code_number,
-            'resource_phone'        => $related?->phone_number,
-            'resource_phone_number'        => $related?->phone_number,
+            'resource_id'            => $this->resource_id,
+            'resource_code'          => $related?->code_number,
+            'resource_phone'         => $related?->phone_number,
+            'resource_phone_number'  => $related?->phone_number,
 
             'resource' => $this->when(
                 $related !== null,
@@ -56,6 +61,20 @@ class HeistResource extends JsonResource
                     'code_number'  => $related->code_number,
                     'phone_number' => $related->phone_number,
                 ]
+            ),
+
+            // ✅ documents (many)
+            'documents' => $this->when(
+                $this->relationLoaded('documents'),
+                fn () => $docs->map(fn ($d) => [
+                    'id'            => $d->id,
+                    'heist_id'      => $d->heist_id,
+                    'file_path'     => $d->file_path,
+                    'original_name' => $d->original_name,
+                    'mime_type'     => $d->mime_type,
+                    'size'          => $d->size,
+                    'created_at'    => $d->created_at,
+                ])->values()
             ),
 
             'created_at'     => $this->created_at,

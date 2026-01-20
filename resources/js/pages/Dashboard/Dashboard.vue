@@ -381,7 +381,7 @@
     <div class="main-content px-4 pb-10">
       <v-row>
         <!-- Left Column - Employee Ranking -->
-        <v-col cols="12" lg="6">
+        <v-col cols="12" lg="8">
           <v-card rounded="xl" class="mb-4 fancy-card">
             <!-- Header -->
             <div class="table-header pa-4">
@@ -618,7 +618,7 @@
         </v-col>
 
         <!-- Right Column -->
-        <v-col cols="12" lg="3">
+        <v-col cols="12" lg="4">
           <FormatsPieChart
             class="mb-4"
             :title="t('توزیع فرم‌ها')"
@@ -627,7 +627,7 @@
             :total-label="t('کل فرم‌ها')"
             :empty-text="t('داده‌ای موجود نیست')"
             :data="formatsPieData"
-            :height="280"
+            :height="326"
             donut
             :show-legend="true"
             :loading="repo.loading"
@@ -636,7 +636,7 @@
             @zone-click="onZoneClick"
           />
         </v-col>
-        <v-col cols="12" lg="3">
+        <!-- <v-col cols="12" lg="3">
           <v-card rounded="xl" class="fancy-card" cols="12" lg="3">
             <v-card-text class="pa-0">
               <div class="zones-header pa-4">
@@ -711,13 +711,12 @@
               </div>
             </v-card-text>
           </v-card>
-        </v-col>
+        </v-col> -->
       </v-row>
     </div>
 
     <!-- Refresh + Filter FAB -->
     <div class="fab-stack" :class="{ rtl: isRtl }" :style="{ bottom: mobile ? '80px' : '24px' }">
-      <!-- Refresh -->
       <v-tooltip location="top">
         <template #activator="{ props }">
           <v-btn
@@ -765,7 +764,6 @@
             class="w-100"
             @update:modelValue="onPeriodChanged"
           >
-            <!-- Daily -->
             <v-tooltip location="top">
               <template #activator="{ props }">
                 <v-btn v-bind="props" value="daily" class="flex-1">
@@ -798,7 +796,6 @@
               <span>{{ t('نمایش ماهانه') }}</span>
             </v-tooltip>
 
-            <!-- Yearly -->
             <v-tooltip location="top">
               <template #activator="{ props }">
                 <v-btn v-bind="props" value="yearly" class="flex-1">

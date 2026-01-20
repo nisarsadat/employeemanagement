@@ -292,18 +292,6 @@
               />
             </v-col>
 
-            <!-- Province addr + coordinates -->
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
-
             <v-col cols="12" md="8">
               <v-text-field
                 v-model="form.coordinates"
@@ -355,7 +343,85 @@
             </v-col>
           </v-row>
 
-          <!-- Actions (✅ added PDF + Word like before) -->
+          <!-- ✅ DOCUMENTS (NO OTHER CHANGES) -->
+          <v-divider class="my-4" />
+
+          <div class="section-header mb-2">
+            <span class="section-title">{{ t('اسناد') }}</span>
+          </div>
+
+          <v-row>
+            <v-col cols="12">
+              <!-- picker -->
+              <input
+                ref="docsInput"
+                class="hidden-file"
+                type="file"
+                multiple
+                @change="onPickDocs"
+              />
+
+              <div class="d-flex align-center ga-2 flex-wrap">
+                <v-btn
+                  size="small"
+                  color="primary"
+                  variant="tonal"
+                  class="text-none rounded-pill soft-btn"
+                  prepend-icon="mdi-paperclip"
+                  @click="triggerDocs"
+                >
+                  {{ t('انتخاب اسناد') }}
+                </v-btn>
+
+                <v-btn
+                  v-if="isEdit"
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  class="text-none rounded-pill soft-btn"
+                  prepend-icon="mdi-folder-zip"
+                  @click="downloadHeistDocumentsZip"
+                >
+                  {{ t('دانلود همه اسناد') }}
+                </v-btn>
+              </div>
+
+              <!-- existing docs chips -->
+              <div v-if="existingDocs.length" class="mt-3 d-flex flex-wrap ga-2">
+                <v-chip
+                  v-for="d in existingDocs"
+                  :key="`ex-${d.id}`"
+                  color="secondary"
+                  variant="tonal"
+                  class="ma-1"
+                  closable
+                  @click="openDoc(d)"
+                  @click:close="removeExistingDoc(d)"
+                >
+                  <v-icon start size="18">mdi-file</v-icon>
+                  {{ d.original_name || d.file_name || `doc_${d.id}` }}
+                </v-chip>
+              </div>
+
+              <!-- new docs chips -->
+              <div v-if="newDocs.length" class="mt-2 d-flex flex-wrap ga-2">
+                <v-chip
+                  v-for="(f, idx) in newDocs"
+                  :key="`new-${idx}-${f.name}`"
+                  color="primary"
+                  variant="tonal"
+                  class="ma-1"
+                  closable
+                  @click:close="removeNewDoc(idx)"
+                >
+                  <v-icon start size="18">mdi-file-plus</v-icon>
+                  {{ f.name }}
+                </v-chip>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- Actions -->
           <v-row class="mt-4">
             <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
@@ -545,6 +611,57 @@
 
   const form = ref(blankForm());
 
+  /* ✅ DOCUMENTS STATE (NO OTHER CHANGES) */
+  const docsInput = ref(null);
+  const newDocs = ref([]); // File[]
+  const existingDocs = ref([]); // from API
+  const removedDocIds = ref([]); // ids to delete on update
+
+  function triggerDocs() {
+    docsInput.value?.click();
+  }
+
+  function onPickDocs(e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    // append (not replace)
+    newDocs.value = [...newDocs.value, ...files];
+
+    if (e.target) e.target.value = '';
+  }
+
+  function removeNewDoc(idx) {
+    newDocs.value.splice(idx, 1);
+  }
+
+  function removeExistingDoc(doc) {
+    const id = doc?.id;
+    if (id != null && !removedDocIds.value.includes(id)) {
+      removedDocIds.value.push(id);
+    }
+    existingDocs.value = existingDocs.value.filter((d) => d.id !== id);
+  }
+
+  function openDoc(doc) {
+    const path = doc?.file_path || doc?.url;
+    if (!path) return;
+
+    const url = normalizePicture(path);
+    window.open(url, '_blank');
+  }
+
+  async function downloadHeistDocumentsZip() {
+    const id = form.value.id;
+    if (!id) return;
+    try {
+      await repo.DownloadHeistZip?.(id, `heist_${id}_documents`);
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('دانلود اسناد ناکام شد'));
+    }
+  }
+
   /* RULES */
   const rules = {
     required: (v) => !!v || t('این فیلد الزامی است'),
@@ -648,6 +765,11 @@
 
     b.note = x.note ?? '';
 
+    // ✅ docs from API
+    existingDocs.value = Array.isArray(x.documents) ? x.documents : [];
+    removedDocIds.value = [];
+    newDocs.value = [];
+
     return b;
   }
 
@@ -657,6 +779,12 @@
       form.value = blankForm();
       pictureFile.value = null;
       pictureChanged.value = false;
+
+      // docs reset
+      existingDocs.value = [];
+      removedDocIds.value = [];
+      newDocs.value = [];
+
       return;
     }
 
@@ -687,7 +815,6 @@
 
   function buildCreateFormData() {
     const payload = { ...form.value };
-
     delete payload.previewUrl; // UI-only
 
     const fd = toFormData(payload);
@@ -696,12 +823,16 @@
       fd.append('picture', pictureFile.value);
     }
 
+    // ✅ new documents: documents[]
+    for (const f of newDocs.value) {
+      fd.append('documents[]', f);
+    }
+
     return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-
     delete payload.previewUrl;
     delete payload.picture; // keep current unless uploading new
 
@@ -709,6 +840,16 @@
 
     if (pictureChanged.value && pictureFile.value) {
       fd.append('picture', pictureFile.value);
+    }
+
+    // ✅ removed_document_ids[]
+    for (const id of removedDocIds.value) {
+      fd.append('removed_document_ids[]', id);
+    }
+
+    // ✅ new documents: documents[]
+    for (const f of newDocs.value) {
+      fd.append('documents[]', f);
     }
 
     return fd;
@@ -972,6 +1113,11 @@
       form.value = blankForm();
       pictureFile.value = null;
       pictureChanged.value = false;
+
+      // docs reset
+      existingDocs.value = [];
+      removedDocIds.value = [];
+      newDocs.value = [];
     }
 
     clearBackendErrors();

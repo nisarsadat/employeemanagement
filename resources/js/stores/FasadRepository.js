@@ -1181,5 +1181,48 @@ export const useFasadRepository = defineStore('FasadRepository', {
         throw e;
       }
     },
+    async DownloadHeistZip(id, name = `heist_${id}`) {
+      try {
+        setContentType(null);
+
+        const response = await axios.get(`/heists/${id}/documents-zip`, {
+          responseType: 'blob',
+          withCredentials: true, // keep if you use Sanctum cookies
+        });
+
+        // ✅ check it is a zip (avoid HTML/JSON error download)
+        const contentType = response.headers['content-type'] || '';
+        if (!contentType.includes('zip')) {
+          const text =
+            (await response.data.text?.()) ??
+            (await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.readAsText(response.data);
+            }));
+
+          console.error('DownloadHeistZip not zip:', text);
+          toast.error('سرور فایل زیپ برنگرداند (ممکن است ارور باشد).');
+          return;
+        }
+
+        const blob = new Blob([response.data], { type: 'application/zip' });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${name}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        window.URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'دانلود اسناد ناکام شد'));
+        throw e;
+      }
+    },
   },
 });
