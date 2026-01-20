@@ -14,6 +14,7 @@ class StoreNonResponsablePeopleRequest extends FormRequest
             'name'               => ['required','string','max:255'],
             'nick_name'          => ['nullable','string','max:255'],
             'father_name'        => ['nullable','string','max:255'],
+            'picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],        
             'main_province'      => ['nullable','string','max:255'],
             'main_district'      => ['nullable','string','max:255'],
             'main_village'       => ['nullable','string','max:255'],

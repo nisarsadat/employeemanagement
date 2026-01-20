@@ -20,6 +20,11 @@ return new class extends Migration
             $table->string('Province_addr')->nullable();
 
             /* =====================
+             | ✅ Picture
+             |=====================*/
+            $table->string('picture')->nullable();
+
+            /* =====================
              | Main address
              |=====================*/
             $table->string('main_province')->nullable();

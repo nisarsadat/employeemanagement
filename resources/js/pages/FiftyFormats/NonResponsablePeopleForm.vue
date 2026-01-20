@@ -80,6 +80,67 @@
                 </v-col>
               </v-row>
 
+              <!-- 🖼 Picture -->
+              <div class="section-header mt-4">
+                <span class="section-title">{{ t('عکس') }}</span>
+              </div>
+
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-file-input
+                    v-model="pictureFile"
+                    :label="t('انتخاب عکس')"
+                    variant="outlined"
+                    density="compact"
+                    accept="image/*"
+                    prepend-icon="mdi-camera"
+                    clearable
+                    show-size
+                    :error="hasError('picture')"
+                    :error-messages="getErrorMessages('picture')"
+                    @update:model-value="onPickPicture"
+                  />
+                  <div class="text-caption mt-1 opacity-70">
+                    {{ t('فرمت‌های مجاز: JPG/PNG. اندازه مناسب: تا 5MB') }}
+                  </div>
+                </v-col>
+
+                <v-col cols="12" md="6" class="d-flex align-center">
+                  <div class="d-flex align-center ga-2">
+                    <v-avatar size="54" class="pic-thumb" @click="previewPicture()">
+                      <v-img
+                        v-if="picturePreviewUrl || form.picture"
+                        :src="picturePreviewUrl || form.picture"
+                        cover
+                      />
+                      <v-icon v-else size="22">mdi-image-off</v-icon>
+                    </v-avatar>
+
+                    <v-btn
+                      v-if="picturePreviewUrl || form.picture"
+                      variant="tonal"
+                      color="primary"
+                      class="text-none"
+                      prepend-icon="mdi-eye"
+                      @click="previewPicture()"
+                    >
+                      {{ t('پیش‌نمایش') }}
+                    </v-btn>
+
+                    <v-btn
+                      v-if="picturePreviewUrl"
+                      variant="text"
+                      color="red"
+                      class="text-none"
+                      prepend-icon="mdi-close"
+                      @click="clearPickedPicture"
+                    >
+                      {{ t('حذف انتخاب') }}
+                    </v-btn>
+                  </div>
+                </v-col>
+              </v-row>
+
               <!-- Main address -->
               <div class="section-header mt-4">
                 <span class="section-title">{{ t('آدرس اصلی') }}</span>
@@ -116,15 +177,15 @@
 
               <v-row>
                 <v-col cols="12" md="12">
-              <ProvinceDistrictNameSelect
-                v-model:province="form.now_province"
-                v-model:district="form.now_district"
-                :province-label="t('ولایت فعلی')"
-                :district-label="t('ولسوالی فعلی')"
-                :mdProvince="6"
-                :mdDistrict="6"
-              />
-            </v-col>
+                  <ProvinceDistrictNameSelect
+                    v-model:province="form.now_province"
+                    v-model:district="form.now_district"
+                    :province-label="t('ولایت فعلی')"
+                    :district-label="t('ولسوالی فعلی')"
+                    :mdProvince="6"
+                    :mdDistrict="6"
+                  />
+                </v-col>
 
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -137,7 +198,6 @@
                   />
                 </v-col>
 
-               
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.now_village"
@@ -417,6 +477,33 @@
         </v-card>
       </v-form>
 
+      <!-- 🖼 IMAGE PREVIEW DIALOG -->
+      <v-dialog v-model="imgDialog" max-width="920">
+        <v-card rounded="xl">
+          <v-card-title class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center ga-2">
+              <v-icon>mdi-image</v-icon>
+              <span class="text-subtitle-1 font-weight-bold">
+                {{ t('پیش‌نمایش عکس') }}
+              </span>
+            </div>
+
+            <v-btn icon variant="text" @click="imgDialog = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-card-title>
+
+          <v-divider />
+
+          <v-card-text>
+            <div class="img-preview-wrap">
+              <v-img v-if="imgSrc" :src="imgSrc" class="img-preview" cover />
+              <div v-else class="muted">{{ t('عکس موجود نیست') }}</div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+
       <!-- Error Snackbar -->
       <v-snackbar v-model="showError" color="error" timeout="5000">
         {{ errorMessage }}
@@ -441,7 +528,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
@@ -494,6 +581,37 @@
     return backendErrors.value?.[field] ?? [];
   }
 
+  /* 🖼 Picture state */
+  const pictureFile = ref(null);
+  const picturePreviewUrl = ref('');
+
+  const imgDialog = ref(false);
+  const imgSrc = ref('');
+
+  function onPickPicture(v) {
+    const file = Array.isArray(v) ? v[0] : v;
+    pictureFile.value = file || null;
+
+    if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value);
+    picturePreviewUrl.value = file ? URL.createObjectURL(file) : '';
+  }
+
+  function previewPicture() {
+    const src = picturePreviewUrl.value || form.value.picture || '';
+    imgSrc.value = src;
+    imgDialog.value = true;
+  }
+
+  function clearPickedPicture() {
+    pictureFile.value = null;
+    if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value);
+    picturePreviewUrl.value = '';
+  }
+
+  onBeforeUnmount(() => {
+    if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value);
+  });
+
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
@@ -502,6 +620,9 @@
     name: '',
     nick_name: '',
     father_name: '',
+
+    // 🖼 picture url from server (if any)
+    picture: '',
 
     // main address
     main_province: '',
@@ -568,6 +689,9 @@
     b.nick_name = x.nick_name ?? '';
     b.father_name = x.father_name ?? '';
 
+    // picture url (supports picture_url too)
+    b.picture = x.picture ?? x.picture_url ?? '';
+
     b.main_province = x.main_province ?? '';
     b.main_district = x.main_district ?? '';
     b.main_village = x.main_village ?? '';
@@ -606,6 +730,7 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+      clearPickedPicture();
       return;
     }
 
@@ -618,6 +743,9 @@
 
       const mapped = mapFromApi(single);
       form.value = { ...mapped };
+
+      // clear local selection when loading server record
+      clearPickedPicture();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات اشخاص غیرمسؤول'));
@@ -636,12 +764,24 @@
 
   function buildCreateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    if (pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+
+    return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    if (pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -914,6 +1054,7 @@
       loadRecord();
     } else {
       form.value = blankForm();
+      clearPickedPicture();
     }
 
     clearBackendErrors();
@@ -970,5 +1111,36 @@
   .secondary-action-btn {
     padding-inline: 14px;
     font-weight: 500;
+  }
+
+  /* 🖼 picture */
+  .pic-thumb {
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  .img-preview-wrap {
+    width: 100%;
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  .img-preview {
+    width: 100%;
+    height: 520px;
+  }
+
+  .muted {
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 12px;
+  }
+
+  .ga-2 {
+    gap: 8px;
   }
 </style>

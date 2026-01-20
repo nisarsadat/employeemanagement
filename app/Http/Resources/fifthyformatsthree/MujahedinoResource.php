@@ -8,38 +8,45 @@ class MujahedinoResource extends JsonResource
 {
     public function toArray($request): array
     {
-        $resource = $this->resource->getRelationValue('resource');
+        /** @var \App\Models\fifthyformatsthree\Mujahedino $model */
+        $model = $this->resource;
+
+        // Safe access to loaded relation
+        $resource = $model->getRelationValue('resource');
 
         return [
-            'id' => $this->id,
-            'nickname' => $this->nickname,
-            'name' => $this->name,
-            'father_name' => $this->father_name,
+            'id' => $model->id,
 
-            'main_province' => $this->main_province,
-            'main_district' => $this->main_district,
-            'main_village'  => $this->main_village,
+            'nickname' => $model->nickname,
+            'name' => $model->name,
+            'father_name' => $model->father_name,
 
-            'now_province' => $this->now_province,
-            'now_zone' => $this->now_zone,
-            'now_district' => $this->now_district,
-            'now_village' => $this->now_village,
-            'now_specific_place' => $this->now_specific_place,
-            'now_street_number' => $this->now_street_number,
-            'now_home_number' => $this->now_home_number,
+            'main_province' => $model->main_province,
+            'main_district' => $model->main_district,
+            'main_village'  => $model->main_village,
 
-            'duty_type' => $this->duty_type,
-            'now_job' => $this->now_job,
-            'organ' => $this->organ,
-            'phone_number' => $this->phone_number,
-            'note' => $this->note,
-            'coordinates' => $this->coordinates,
-            'Province_addr'               => $this->Province_addr,
+            'now_province' => $model->now_province,
+            'now_zone' => $model->now_zone,
+            'now_district' => $model->now_district,
+            'now_village' => $model->now_village,
+            'now_specific_place' => $model->now_specific_place,
+            'now_street_number' => $model->now_street_number,
+            'now_home_number' => $model->now_home_number,
 
-            'resource_id' => $this->resource_id,
+            'duty_type' => $model->duty_type,
+            'now_job' => $model->now_job,
+            'organ' => $model->organ,
+            'phone_number' => $model->phone_number,
+            'note' => $model->note,
+            'coordinates' => $model->coordinates,
+            'Province_addr' => $model->Province_addr,
+
+            // Linkage
+            'resource_id' => $model->resource_id,
             'resource_code' => $resource?->code_number,
             'resource_phone' => $resource?->phone_number,
 
+            // Minimal embedded resource
             'resource' => $this->whenLoaded('resource', function () use ($resource) {
                 return $resource ? [
                     'id' => $resource->id,
@@ -48,6 +55,9 @@ class MujahedinoResource extends JsonResource
                     'phone_number' => $resource->phone_number,
                 ] : null;
             }),
+
+            'created_at' => $model->created_at,
+            'updated_at' => $model->updated_at,
         ];
     }
 }

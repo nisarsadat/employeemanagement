@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Wakilano extends Model
 {
     protected $fillable = [
+        'picture',
         'coordinates',
         'name',
         'f_name',

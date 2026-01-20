@@ -11,6 +11,7 @@ class UpdateOldJahadiRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'nick_name' => ['nullable','string'],
             'name' => ['sometimes','required','string'],
             'father_name' => ['nullable','string'],

@@ -7,10 +7,11 @@ use App\Http\Requests\fifthyformatone\StoreLuchakanoRequest;
 use App\Http\Requests\fifthyformatone\UpdateLuchakanoRequest;
 use App\Http\Resources\fifthyformatone\LuchakanoResource;
 use App\Models\fifthyformatone\Luchakano;
-use App\Services\NotificationService; // 🔔 notifications
+use App\Services\NotificationService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class LuchakanoController extends Controller
 {
@@ -29,6 +30,21 @@ class LuchakanoController extends Controller
     private function isDuplicateKeyException(QueryException $e): bool
     {
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    // ✅ Mawad style: delete by public disk path
+    private function deletePictureIfStored(?string $picture): void
+    {
+        if (!$picture) return;
+
+        $path = $picture;
+
+        // normalize if it was stored as "storage/..."
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, strlen('storage/'));
+        }
+
+        Storage::disk('public')->delete($path);
     }
 
     /** GET /luchakano */
@@ -69,11 +85,18 @@ class LuchakanoController extends Controller
     /** POST /luchakano */
     public function store(StoreLuchakanoRequest $request)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         try {
             return DB::transaction(function () use ($request, $user) {
-                $record = Luchakano::create($request->validated());
+                $data = $request->validated();
+
+                // ✅ picture upload (store ONLY disk path)
+                if ($request->hasFile('picture')) {
+                    $data['picture'] = $request->file('picture')->store('luchakanos', 'public');
+                }
+
+                $record = Luchakano::create($data);
 
                 $record->load([
                     'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
@@ -85,7 +108,7 @@ class LuchakanoController extends Controller
                     action: 'created',
                     title: 'ریکارډ جدید ثبت شد',
                     message: 'نام: ' . ($record->name ?? '') . ' | لقب: ' . ($record->nickname ?? ''),
-                    routeName: 'luchakano',                // ⚠️ set your real route name
+                    routeName: 'luchakano',
                     routeParams: ['id' => $record->id],
                     level: 'success',
                     changes: null
@@ -117,7 +140,7 @@ class LuchakanoController extends Controller
     /** PUT /luchakano/{luchakano} */
     public function update(UpdateLuchakanoRequest $request, Luchakano $luchakano)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         try {
             return DB::transaction(function () use ($request, $luchakano, $user) {
@@ -136,6 +159,18 @@ class LuchakanoController extends Controller
                     }
                 }
 
+                // ✅ picture update
+                if ($request->hasFile('picture')) {
+                    $this->deletePictureIfStored($luchakano->picture);
+
+                    $validated['picture'] = $request->file('picture')->store('luchakanos', 'public');
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                }
+
                 $luchakano->update($validated);
 
                 $luchakano->load([
@@ -148,7 +183,7 @@ class LuchakanoController extends Controller
                     action: 'updated',
                     title: 'ریکارډ اصلاح شد',
                     message: 'نام: ' . ($luchakano->name ?? '') . ' | لقب: ' . ($luchakano->nickname ?? ''),
-                    routeName: 'luchakano',                // ⚠️ set your real route name
+                    routeName: 'luchakano',
                     routeParams: ['id' => $luchakano->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null
@@ -167,10 +202,12 @@ class LuchakanoController extends Controller
     /** DELETE /luchakano/{luchakano} */
     public function destroy(Request $request, Luchakano $luchakano)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         return DB::transaction(function () use ($luchakano, $user) {
             $name = $luchakano->name;
+
+            $this->deletePictureIfStored($luchakano->picture);
 
             $luchakano->delete();
 
@@ -193,7 +230,7 @@ class LuchakanoController extends Controller
     /** POST /luchakano/bulk-delete  { "ids": [1,2,3] } */
     public function bulkDelete(Request $request)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         $ids = $request->input('ids', []);
         $ids = is_array($ids) ? array_values(array_filter($ids)) : [];
@@ -201,6 +238,12 @@ class LuchakanoController extends Controller
         return DB::transaction(function () use ($ids, $user) {
             if (empty($ids)) {
                 return response()->noContent();
+            }
+
+            // ✅ delete pictures first
+            $items = Luchakano::whereIn('id', $ids)->get();
+            foreach ($items as $item) {
+                $this->deletePictureIfStored($item->picture);
             }
 
             Luchakano::whereIn('id', $ids)->delete();

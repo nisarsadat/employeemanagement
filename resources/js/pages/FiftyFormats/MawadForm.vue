@@ -39,47 +39,100 @@
             </v-col>
           </v-row>
 
+          <!-- ✅ PICTURE PICKER (same idea as other) -->
           <v-row>
             <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.mawad_type"
-                :label="t('نوع مواد')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
+              <div class="pic-block">
+                <div class="pic-label">{{ t('عکس') }}</div>
+
+                <div class="pic-row">
+                  <v-avatar size="82" class="pic-avatar" @click="openPreviewIfPossible">
+                    <v-img v-if="picturePreviewUrl" :src="picturePreviewUrl" cover />
+                    <v-icon v-else size="28">mdi-camera</v-icon>
+                  </v-avatar>
+
+                  <div class="pic-actions">
+                    <input
+                      ref="pictureInput"
+                      type="file"
+                      accept="image/*"
+                      class="d-none"
+                      @change="onPickPicture"
+                    />
+
+                    <v-btn
+                      variant="tonal"
+                      color="primary"
+                      class="text-none"
+                      prepend-icon="mdi-image-plus"
+                      @click="pictureInput?.click()"
+                    >
+                      {{ t('انتخاب عکس') }}
+                    </v-btn>
+
+                    <v-btn
+                      v-if="picturePreviewUrl"
+                      variant="text"
+                      color="error"
+                      class="text-none"
+                      prepend-icon="mdi-trash-can-outline"
+                      @click="removePicture"
+                    >
+                      {{ t('حذف عکس') }}
+                    </v-btn>
+
+                    <div class="pic-hint">
+                      {{ t('JPG/PNG/WEBP تا 5MB') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </v-col>
 
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.nickname"
-                :label="t('نام مستعار')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
+            <v-col cols="12" md="9">
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.mawad_type"
+                    :label="t('نوع مواد')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
 
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.name"
-                :label="t('نام')"
-                density="compact"
-                variant="outlined"
-                :rules="[rules.required]"
-                hide-details="auto"
-                required
-              />
-            </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.nickname"
+                    :label="t('نام مستعار')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
 
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.father_name"
-                :label="t('نام پدر')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.name"
+                    :label="t('نام')"
+                    density="compact"
+                    variant="outlined"
+                    :rules="[rules.required]"
+                    hide-details="auto"
+                    required
+                  />
+                </v-col>
+
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.father_name"
+                    :label="t('نام پدر')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+              </v-row>
             </v-col>
           </v-row>
 
@@ -357,13 +410,7 @@
                 </template>
               </v-tooltip>
 
-              <v-btn
-                color="primary"
-                variant="flat"
-                class="text-none"
-                :loading="saving"
-                type="submit"
-              >
+              <v-btn color="primary" variant="flat" class="text-none" :loading="saving" type="submit">
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت مواد جدید') }}
               </v-btn>
 
@@ -375,6 +422,39 @@
         </v-card>
       </v-form>
     </v-container>
+
+    <!-- 🖼 IMAGE PREVIEW DIALOG -->
+    <v-dialog v-model="imgDialog" max-width="920">
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center ga-2">
+            <v-icon>mdi-image</v-icon>
+            <span class="text-subtitle-1 font-weight-bold">
+              {{ imgTitle || t('پیش‌نمایش عکس') }}
+            </span>
+          </div>
+
+          <v-btn icon variant="text" @click="imgDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text>
+          <div class="img-preview-wrap">
+            <v-img
+              v-if="picturePreviewUrl"
+              :src="picturePreviewUrl"
+              class="img-preview"
+              cover
+              :alt="imgTitle || 'preview'"
+            />
+            <div v-else class="muted">{{ t('عکس موجود نیست') }}</div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -399,33 +479,157 @@
 </template>
 
 <script setup>
-  import { ref, computed, watch, onMounted } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import { useRoute, useRouter } from 'vue-router';
-  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
+import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
-  import AppBar from '@/components/AppBar.vue';
-  import { useMawadRepository } from '@/stores/MawadRepository';
+import AppBar from '@/components/AppBar.vue';
+import { useMawadRepository } from '@/stores/MawadRepository';
 
-  const repo = useMawadRepository();
-  const route = useRoute();
-  const router = useRouter();
+const repo = useMawadRepository();
+const route = useRoute();
+const router = useRouter();
 
-  /* i18n / RTL */
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
-  const drawer = ref(false);
+/* i18n / RTL */
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
+const drawer = ref(false);
 
-  const isEdit = computed(() => !!route.params.id);
+const isEdit = computed(() => !!route.params.id);
 
-  /* Form state */
-  const formRef = ref(null);
-  const formValid = ref(false);
-  const saving = ref(false);
+/* Form state */
+const formRef = ref(null);
+const formValid = ref(false);
+const saving = ref(false);
 
-  const form = ref({
-    id: null,
+const form = ref({
+  id: null,
+
+  // ✅ add fields for picture
+  picture: null,
+  picture_url: '',
+
+  mawad_type: '',
+  nickname: '',
+  name: '',
+  father_name: '',
+  main_province: '',
+  main_district: '',
+  main_village: '',
+  now_province: '',
+  now_district: '',
+  now_village: '',
+  province: '',
+  zone: '',
+  district: '',
+  village: '',
+  specific_place: '',
+  coordinates: '',
+  mawad_sales_phone: '',
+  Province_addr: '',
+  history_form: '',
+  supplier: '',
+  note: '',
+  resource_code: '',
+  resource_phone: '',
+  resource_id: null,
+});
+
+/* Rules */
+const rules = {
+  required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
+  coordinatesOptional: (v) => {
+    const s = String(v ?? '').trim();
+    if (!s) return true;
+    if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
+    return true;
+  },
+};
+
+/* Snackbar */
+const showError = ref(false);
+const errorMessage = ref('');
+const showSuccess = ref(false);
+const successMessage = ref('');
+
+function showErrorMessage(msg) {
+  errorMessage.value = msg;
+  showError.value = true;
+}
+
+function showSuccessMsg(msg) {
+  successMessage.value = msg;
+  showSuccess.value = true;
+}
+
+/* Resources dropdown */
+const resources = computed(() => repo.resourcecode || []);
+
+function onResourceCodeChange(code) {
+  const found = resources.value.find((r) => r.code_number === code);
+  form.value.resource_phone = found?.phone_number ?? '';
+  form.value.resource_id = found?.id ?? null;
+}
+
+/* ✅ Picture picker state */
+const pictureInput = ref(null);
+const picturePreviewUrl = ref('');
+const imgDialog = ref(false);
+const imgTitle = ref('');
+
+function setPreviewFromFile(file) {
+  if (picturePreviewUrl.value && picturePreviewUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(picturePreviewUrl.value);
+  }
+  picturePreviewUrl.value = file ? URL.createObjectURL(file) : '';
+}
+
+function onPickPicture(e) {
+  const file = e?.target?.files?.[0] || null;
+  if (!file) return;
+
+  form.value.picture = file; // ✅ important: send file in FormData
+  setPreviewFromFile(file);
+
+  // allow re-pick same file
+  if (pictureInput.value) pictureInput.value.value = '';
+}
+
+function removePicture() {
+  form.value.picture = null;
+  form.value.picture_url = '';
+  if (picturePreviewUrl.value && picturePreviewUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(picturePreviewUrl.value);
+  }
+  picturePreviewUrl.value = '';
+  if (pictureInput.value) pictureInput.value.value = '';
+}
+
+function openPreviewIfPossible() {
+  if (!picturePreviewUrl.value) return;
+  imgTitle.value = form.value.name || '';
+  imgDialog.value = true;
+}
+
+onBeforeUnmount(() => {
+  if (picturePreviewUrl.value && picturePreviewUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(picturePreviewUrl.value);
+  }
+});
+
+/* Helpers */
+function resetForm() {
+  const keepId = isEdit.value ? form.value.id : null;
+
+  removePicture(); // ✅ also clears preview
+
+  form.value = {
+    id: keepId,
+    picture: null,
+    picture_url: '',
+
     mawad_type: '',
     nickname: '',
     name: '',
@@ -450,226 +654,165 @@
     resource_code: '',
     resource_phone: '',
     resource_id: null,
-  });
+  };
+  formRef.value?.resetValidation?.();
+}
 
-  /* Rules */
-  const rules = {
-    required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
-    coordinatesOptional: (v) => {
-      const s = String(v ?? '').trim();
-      if (!s) return true;
-      if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
-      return true;
-    },
+function fillFormFromRecord(x = {}) {
+  form.value = {
+    id: x.id ?? null,
+
+    picture: null, // file not from API
+    picture_url: x.picture_url ?? '',
+
+    mawad_type: x.mawad_type ?? '',
+    nickname: x.nickname ?? '',
+    name: x.name ?? '',
+    father_name: x.father_name ?? '',
+    main_province: x.main_province ?? '',
+    main_district: x.main_district ?? '',
+    main_village: x.main_village ?? '',
+    now_province: x.now_province ?? '',
+    now_district: x.now_district ?? '',
+    now_village: x.now_village ?? '',
+    province: x.province ?? '',
+    zone: x.zone ?? '',
+    district: x.district ?? '',
+    village: x.village ?? '',
+    specific_place: x.specific_place ?? '',
+    coordinates: x.coordinates ?? '',
+    mawad_sales_phone: x.mawad_sales_phone ?? '',
+    Province_addr: x.Province_addr ?? '',
+    history_form: x.history_form ?? '',
+    supplier: x.supplier ?? '',
+    note: x.note ?? '',
+    resource_code: x.resource_code ?? '',
+    resource_phone: x.resource_phone ?? '',
+    resource_id: x.resource_id ?? null,
   };
 
-  /* Snackbar */
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const showSuccess = ref(false);
-  const successMessage = ref('');
+  // ✅ show API picture in preview
+  picturePreviewUrl.value = form.value.picture_url || '';
+}
 
-  function showErrorMessage(msg) {
-    errorMessage.value = msg;
-    showError.value = true;
+/* Build FormData */
+function toFormData(obj) {
+  const fd = new FormData();
+  Object.entries(obj || {}).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    fd.append(k, v);
+  });
+  return fd;
+}
+
+/* Submit */
+async function onSubmit() {
+  if (!formRef.value) return;
+  const { valid } = await formRef.value.validate();
+  if (!valid) {
+    showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
+    return;
   }
 
-  function showSuccessMsg(msg) {
-    successMessage.value = msg;
-    showSuccess.value = true;
-  }
+  saving.value = true;
+  try {
+    // ✅ Important: include the file field
+    const fd = toFormData({ ...form.value });
 
-  /* Resources dropdown */
-  const resources = computed(() => repo.resourcecode || []);
-
-  function onResourceCodeChange(code) {
-    const found = resources.value.find((r) => r.code_number === code);
-    form.value.resource_phone = found?.phone_number ?? '';
-    form.value.resource_id = found?.id ?? null;
-  }
-
-  /* Helpers */
-  function resetForm() {
-    const keepId = isEdit.value ? form.value.id : null;
-    form.value = {
-      id: keepId,
-      mawad_type: '',
-      nickname: '',
-      name: '',
-      father_name: '',
-      main_province: '',
-      main_district: '',
-      main_village: '',
-      now_province: '',
-      now_district: '',
-      now_village: '',
-      province: '',
-      zone: '',
-      district: '',
-      village: '',
-      specific_place: '',
-      coordinates: '',
-      mawad_sales_phone: '',
-      Province_addr: '',
-      history_form: '',
-      supplier: '',
-      note: '',
-      resource_code: '',
-      resource_phone: '',
-      resource_id: null,
-    };
-    formRef.value?.resetValidation?.();
-  }
-
-  function fillFormFromRecord(x = {}) {
-    form.value = {
-      id: x.id ?? null,
-      mawad_type: x.mawad_type ?? '',
-      nickname: x.nickname ?? '',
-      name: x.name ?? '',
-      father_name: x.father_name ?? '',
-      main_province: x.main_province ?? '',
-      main_district: x.main_district ?? '',
-      main_village: x.main_village ?? '',
-      now_province: x.now_province ?? '',
-      now_district: x.now_district ?? '',
-      now_village: x.now_village ?? '',
-      province: x.province ?? '',
-      zone: x.zone ?? '',
-      district: x.district ?? '',
-      village: x.village ?? '',
-      specific_place: x.specific_place ?? '',
-      coordinates: x.coordinates ?? '',
-      mawad_sales_phone: x.mawad_sales_phone ?? '',
-      Province_addr: x.Province_addr ?? '',
-      history_form: x.history_form ?? '',
-      supplier: x.supplier ?? '',
-      note: x.note ?? '',
-      resource_code: x.resource_code ?? '',
-      resource_phone: x.resource_phone ?? '',
-      resource_id: x.resource_id ?? null,
-    };
-  }
-
-  /* Build FormData */
-  function toFormData(obj) {
-    const fd = new FormData();
-    Object.entries(obj || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
-
-  /* Submit */
-  async function onSubmit() {
-    if (!formRef.value) return;
-    const { valid } = await formRef.value.validate();
-    if (!valid) {
-      showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
-      return;
-    }
-
-    saving.value = true;
-    try {
-      const fd = toFormData({ ...form.value });
-
-      if (isEdit.value && form.value.id) {
-        const updated = await repo.UpdateMawad?.(form.value.id, fd);
-        if (updated?.id) {
-          showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
-          goBack();
-          return;
-        }
-      } else {
-        const created = await repo.CreateMawad?.(fd);
-        if (created?.id) {
-          showSuccessMsg(t('مواد جدید موفقانه ثبت شد'));
-          goBack();
-          return;
-        }
+    if (isEdit.value && form.value.id) {
+      const updated = await repo.UpdateMawad?.(form.value.id, fd);
+      if (updated?.id) {
+        showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
+        goBack();
+        return;
       }
-
-      showErrorMessage(t('خطا در ذخیره معلومات'));
-    } catch (e) {
-      console.error('Mawad save error', e);
-      showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
-    } finally {
-      saving.value = false;
+    } else {
+      const created = await repo.CreateMawad?.(fd);
+      if (created?.id) {
+        showSuccessMsg(t('مواد جدید موفقانه ثبت شد'));
+        goBack();
+        return;
+      }
     }
-  }
 
-  /* Navigation */
-  function goBack() {
-    router.push('/app/mawads');
+    showErrorMessage(t('خطا در ذخیره معلومات'));
+  } catch (e) {
+    console.error('Mawad save error', e);
+    showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
+  } finally {
+    saving.value = false;
   }
+}
 
-  /* Load on edit */
-  async function loadExisting() {
-    const id = route.params.id;
-    if (!id) return;
-    try {
-      await repo.FetchMawadData?.(id);
-      const rec = repo.Mawad && Array.isArray(repo.Mawad) ? repo.Mawad[0] : repo.Mawad || {};
-      fillFormFromRecord(rec);
-    } catch (e) {
-      console.error('loadExisting error', e);
-      showErrorMessage(t('خطا در دریافت معلومات مواد'));
-    }
+/* Navigation */
+function goBack() {
+  router.push('/app/mawads');
+}
+
+/* Load on edit */
+async function loadExisting() {
+  const id = route.params.id;
+  if (!id) return;
+  try {
+    await repo.FetchMawadData?.(id);
+    const rec = repo.Mawad && Array.isArray(repo.Mawad) ? repo.Mawad[0] : repo.Mawad || {};
+    fillFormFromRecord(rec);
+  } catch (e) {
+    console.error('loadExisting error', e);
+    showErrorMessage(t('خطا در دریافت معلومات مواد'));
   }
+}
 
-  /* =========================
-   ✅ SIMPLE EXPORT (PDF/Word)
-   - Works even if form is blank
-   - NO images
-   - NO app headers/top bar
-   - Clean RTL table + signature lines
+/* =========================
+ ✅ SIMPLE EXPORT (PDF/Word)
+ - Works even if form is blank
+ - NO images
 ========================= */
-  function escapeHtml(s) {
-    return String(s ?? '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
 
-  function buildExportHtml() {
-    const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
+function buildExportHtml() {
+  const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
 
-    const rows = [
-      [t('نوع مواد'), form.value.mawad_type],
-      [t('نام مستعار'), form.value.nickname],
-      [t('نام'), form.value.name],
-      [t('نام پدر'), form.value.father_name],
+  const rows = [
+    [t('نوع مواد'), form.value.mawad_type],
+    [t('نام مستعار'), form.value.nickname],
+    [t('نام'), form.value.name],
+    [t('نام پدر'), form.value.father_name],
 
-      [t('ولایت اصلی'), form.value.main_province],
-      [t('ولسوالی اصلی'), form.value.main_district],
-      [t('قریه/ناحیه اصلی'), form.value.main_village],
+    [t('ولایت اصلی'), form.value.main_province],
+    [t('ولسوالی اصلی'), form.value.main_district],
+    [t('قریه/ناحیه اصلی'), form.value.main_village],
 
-      [t('ولایت فعلی'), form.value.now_province],
-      [t('ولسوالی فعلی'), form.value.now_district],
-      [t('قریه/ناحیه فعلی'), form.value.now_village],
+    [t('ولایت فعلی'), form.value.now_province],
+    [t('ولسوالی فعلی'), form.value.now_district],
+    [t('قریه/ناحیه فعلی'), form.value.now_village],
 
-      [t('ولایت'), form.value.province],
-      [t('زون'), form.value.zone],
-      [t('ولسوالی'), form.value.district],
-      [t('قریه/ناحیه'), form.value.village],
+    [t('ولایت'), form.value.province],
+    [t('زون'), form.value.zone],
+    [t('ولسوالی'), form.value.district],
+    [t('قریه/ناحیه'), form.value.village],
 
-      [t('موقعیت مشخص'), form.value.specific_place],
-      [t('مختصات'), form.value.coordinates],
-      [t('شماره فروش مواد'), form.value.mawad_sales_phone],
+    [t('موقعیت مشخص'), form.value.specific_place],
+    [t('مختصات'), form.value.coordinates],
+    [t('شماره فروش مواد'), form.value.mawad_sales_phone],
 
-      [t('تاریخچه/فورم'), form.value.history_form],
-      [t('تمویل‌کننده'), form.value.supplier],
-      [t('یادداشت'), form.value.note],
-      [t('ولایت مربوطه'), form.value.Province_addr],
+    [t('تاریخچه/فورم'), form.value.history_form],
+    [t('تمویل‌کننده'), form.value.supplier],
+    [t('یادداشت'), form.value.note],
+    [t('ولایت مربوطه'), form.value.Province_addr],
 
-      [t('کود منبع'), form.value.resource_code],
-      [t('شماره منبع'), form.value.resource_phone],
-    ];
+    [t('کود منبع'), form.value.resource_code],
+    [t('شماره منبع'), form.value.resource_phone],
+  ];
 
-    return `
+  return `
 <!doctype html>
 <html dir="rtl" lang="fa">
 <head>
@@ -714,50 +857,102 @@
 </body>
 </html>
   `.trim();
-  }
+}
 
-  function downloadPdf() {
-    const html = buildExportHtml();
-    const w = window.open('', '_blank');
-    if (!w) return;
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 250);
-  }
+function downloadPdf() {
+  const html = buildExportHtml();
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 250);
+}
 
-  function downloadWord() {
-    const html = buildExportHtml();
-    const blob = new Blob([html], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
+function downloadWord() {
+  const html = buildExportHtml();
+  const blob = new Blob([html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
 
-    const namePart = form.value.id ? `mawad_${form.value.id}` : 'mawad_blank';
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${namePart}.doc`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  const namePart = form.value.id ? `mawad_${form.value.id}` : 'mawad_blank';
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${namePart}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-  }
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
 
-  /* Init */
-  onMounted(async () => {
-    await repo.GetResourceCode?.();
-    if (isEdit.value) await loadExisting();
-  });
+/* Init */
+onMounted(async () => {
+  await repo.GetResourceCode?.();
+  if (isEdit.value) await loadExisting();
+});
 </script>
 
 <style scoped>
-  .section-title {
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 4px;
-    color: #37474f;
-  }
-  .ga-2 {
-    gap: 8px;
-  }
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #37474f;
+}
+.ga-2 {
+  gap: 8px;
+}
+
+/* ✅ picture UI */
+.pic-block {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+}
+.pic-label {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: rgba(0, 0, 0, 0.7);
+}
+.pic-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pic-avatar {
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+.pic-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pic-hint {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+/* ✅ preview */
+.img-preview-wrap {
+  width: 100%;
+  min-height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.04);
+}
+.img-preview {
+  width: 100%;
+  height: 520px;
+}
+.muted {
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 12px;
+}
 </style>

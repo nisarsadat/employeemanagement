@@ -10,6 +10,8 @@ use App\Http\Requests\fifthyformatsthree\UpdateTujaranRequest;
 use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class TujaranController extends Controller
 {
@@ -56,23 +58,33 @@ class TujaranController extends Controller
         $user = $request->user(); // 🔔
 
         try {
-            $item = Tujaran::create($request->validated())
-                ->load(['resource:id,name,code_number,phone_number']);
+            return DB::transaction(function () use ($request, $user) {
+                $data = $request->validated();
 
-            // 🔔 Notification: CREATED
-            NotificationService::record(
-                $user,
-                module: 'تاجران',
-                action: 'created',
-                title: 'نوی تاجر ثبت شو',
-                message: 'نوم: ' . ($item->name ?? ''),
-                routeName: 'tujarans',             // ⚠️ adjust to real route name
-                routeParams: ['id' => $item->id],
-                level: 'success',
-                changes: null
-            );
+                // ✅ picture upload like others
+                if ($request->hasFile('picture')) {
+                    $data['picture'] = $request->file('picture')->store('tujarans', 'public');
+                }
 
-            return TujaranResource::make($item);
+                $item = Tujaran::create($data)->load(['resource:id,name,code_number,phone_number']);
+
+                NotificationService::record(
+                    $user,
+                    module: 'تاجران',
+                    action: 'created',
+                    title: 'نوی تاجر ثبت شو',
+                    message: 'نوم: ' . ($item->name ?? ''),
+                    routeName: 'tujarans',
+                    routeParams: ['id' => $item->id],
+                    level: 'success',
+                    changes: null
+                );
+
+                return (new TujaranResource($item))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
+            });
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) {
                 return $this->duplicateResponse();
@@ -92,36 +104,46 @@ class TujaranController extends Controller
         $user = $request->user(); // 🔔
 
         try {
-            $original  = $tujaran->getOriginal();
-            $validated = $request->validated();
-            $changes   = [];
+            return DB::transaction(function () use ($request, $tujaran, $user) {
+                $original  = $tujaran->getOriginal();
+                $validated = $request->validated();
+                $changes   = [];
 
-            foreach ($validated as $field => $newValue) {
-                if (array_key_exists($field, $original)) {
-                    $oldValue = $original[$field];
-                    if ($oldValue != $newValue) {
-                        $changes[$field] = ['old' => $oldValue, 'new' => $newValue];
+                foreach ($validated as $field => $newValue) {
+                    if (array_key_exists($field, $original)) {
+                        $oldValue = $original[$field];
+                        if ($oldValue != $newValue) {
+                            $changes[$field] = ['old' => $oldValue, 'new' => $newValue];
+                        }
                     }
                 }
-            }
 
-            $tujaran->update($validated);
-            $tujaran->load(['resource:id,name,code_number,phone_number']);
+                // ✅ update picture like others + delete old
+                if ($request->hasFile('picture')) {
+                    if ($tujaran->picture) {
+                        Storage::disk('public')->delete($tujaran->picture);
+                    }
+                    $validated['picture'] = $request->file('picture')->store('tujarans', 'public');
+                    $changes['picture'] = ['old' => $original['picture'] ?? null, 'new' => $validated['picture']];
+                }
 
-            // 🔔 Notification: UPDATED
-            NotificationService::record(
-                $user,
-                module: 'تاجران',
-                action: 'updated',
-                title: 'تاجر اصلاح شو',
-                message: 'نوم: ' . ($tujaran->name ?? ''),
-                routeName: 'tujarans',
-                routeParams: ['id' => $tujaran->id],
-                level: 'info',
-                changes: !empty($changes) ? $changes : null
-            );
+                $tujaran->update($validated);
+                $tujaran->load(['resource:id,name,code_number,phone_number']);
 
-            return TujaranResource::make($tujaran);
+                NotificationService::record(
+                    $user,
+                    module: 'تاجران',
+                    action: 'updated',
+                    title: 'تاجر اصلاح شو',
+                    message: 'نوم: ' . ($tujaran->name ?? ''),
+                    routeName: 'tujarans',
+                    routeParams: ['id' => $tujaran->id],
+                    level: 'info',
+                    changes: !empty($changes) ? $changes : null
+                );
+
+                return TujaranResource::make($tujaran);
+            });
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) {
                 return $this->duplicateResponse();
@@ -134,45 +156,65 @@ class TujaranController extends Controller
     {
         $user = $request->user(); // 🔔
 
-        $name = $tujaran->name;
-        $tujaran->delete();
+        return DB::transaction(function () use ($tujaran, $user) {
+            $name = $tujaran->name;
 
-        // 🔔 Notification: DELETED
-        NotificationService::record(
-            $user,
-            module: 'تاجران',
-            action: 'deleted',
-            title: 'تاجر حذف شو',
-            message: 'نوم: ' . ($name ?? ''),
-            routeName: null,
-            routeParams: ['tujarans'],
-            level: 'warning',
-            changes: null
-        );
+            // ✅ delete picture file too
+            if ($tujaran->picture) {
+                Storage::disk('public')->delete($tujaran->picture);
+            }
 
-        return response()->noContent();
+            $tujaran->delete();
+
+            NotificationService::record(
+                $user,
+                module: 'تاجران',
+                action: 'deleted',
+                title: 'تاجر حذف شو',
+                message: 'نوم: ' . ($name ?? ''),
+                routeName: null,
+                routeParams: ['tujarans'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->noContent();
+        });
     }
 
     public function bulkDelete(Request $request)
     {
         $user = $request->user(); // 🔔
 
-        $ids = (array) $request->input('ids', []);
-        Tujaran::destroy($ids);
+        $ids = $request->input('ids', []);
+        $ids = is_array($ids) ? array_values(array_filter($ids)) : [];
 
-        // 🔔 Notification: BULK DELETED
-        NotificationService::record(
-            $user,
-            module: 'تاجران',
-            action: 'bulk_deleted',
-            title: 'ډله‌ییز حذف ترسره شو',
-            message: 'حذف شوي ریکارډونه: ' . count($ids),
-            routeName: null,
-            routeParams: ['tujarans'],
-            level: 'warning',
-            changes: null
-        );
+        return DB::transaction(function () use ($ids, $user) {
+            if (empty($ids)) {
+                return response()->noContent();
+            }
 
-        return response()->noContent();
+            // ✅ delete pictures for all selected
+            $pics = Tujaran::whereIn('id', $ids)->pluck('picture')->filter()->values()->all();
+            foreach ($pics as $p) {
+                Storage::disk('public')->delete($p);
+            }
+
+            Tujaran::whereIn('id', $ids)->delete();
+
+            NotificationService::record(
+                $user,
+                module: 'تاجران',
+                action: 'bulk_deleted',
+                title: 'ډله‌ییز حذف ترسره شو',
+                message: 'حذف شوي ریکارډونه: ' . count($ids),
+                routeName: null,
+                routeParams: ['tujarans'],
+                level: 'warning',
+                changes: null
+            );
+
+            return response()->noContent();
+        });
     }
 }

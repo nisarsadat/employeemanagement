@@ -26,6 +26,9 @@ return new class extends Migration
             $table->string('main_district')->nullable();
             $table->string('main_village')->nullable();
 
+            $table->string('picture')->nullable();
+
+            
             /* =====================
              | Current address
              |=====================*/

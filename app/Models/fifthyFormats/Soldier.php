@@ -13,6 +13,7 @@ class Soldier extends Model
     protected $fillable = [
         'name',
         'father_name',
+        'picture',
         'main_province','main_district','main_village',
         'now_province','now_zone','now_district','now_village',
         'specific_place','street_number','home_number',

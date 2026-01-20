@@ -37,6 +37,74 @@
             </span>
           </div>
 
+          <!-- ✅ PICTURE -->
+          <v-row class="mt-2">
+            <v-col cols="12">
+              <div class="picture-row">
+                <v-avatar size="92" class="picture-avatar" rounded="xl">
+                  <v-img
+                    v-if="picturePreviewSrc"
+                    :src="picturePreviewSrc"
+                    cover
+                  />
+                  <v-icon v-else size="44">mdi-account-circle</v-icon>
+                </v-avatar>
+
+                <div class="picture-actions">
+                  <div class="text-body-2 font-weight-medium">
+                    {{ t('عکس') }}
+                  </div>
+
+                  <div class="d-flex ga-2 flex-wrap mt-2">
+                    <v-btn
+                      color="primary"
+                      variant="tonal"
+                      class="text-none rounded-pill"
+                      prepend-icon="mdi-image-edit"
+                      @click="triggerPickPicture"
+                    >
+                      {{ t('انتخاب عکس') }}
+                    </v-btn>
+
+                    <v-btn
+                      v-if="picturePreviewSrc"
+                      color="info"
+                      variant="tonal"
+                      class="text-none rounded-pill"
+                      prepend-icon="mdi-eye"
+                      @click="openPicturePreview"
+                    >
+                      {{ t('پیش‌نمایش') }}
+                    </v-btn>
+
+                    <v-btn
+                      v-if="picturePreviewSrc"
+                      color="error"
+                      variant="tonal"
+                      class="text-none rounded-pill"
+                      prepend-icon="mdi-delete"
+                      @click="clearPicture"
+                    >
+                      {{ t('حذف عکس') }}
+                    </v-btn>
+                  </div>
+
+                  <div class="text-caption text-medium-emphasis mt-1">
+                    {{ t('فرمت‌های قابل قبول: JPG/PNG/WebP') }}
+                  </div>
+
+                  <input
+                    ref="pictureInputRef"
+                    type="file"
+                    accept="image/*"
+                    class="d-none"
+                    @change="onPictureSelected"
+                  />
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -285,17 +353,6 @@
                 :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
-
-            <!-- <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
           </v-row>
 
           <!-- Resource & Note -->
@@ -415,6 +472,22 @@
         </v-card>
       </v-form>
 
+      <!-- ✅ Picture Preview Dialog -->
+      <v-dialog v-model="pictureDialog" max-width="720">
+        <v-card rounded="xl">
+          <v-card-title class="d-flex align-center justify-space-between">
+            <span class="font-weight-bold">{{ t('پیش‌نمایش عکس') }}</span>
+            <v-btn icon variant="text" @click="pictureDialog = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-card-title>
+          <v-card-text>
+            <v-img v-if="picturePreviewSrc" :src="picturePreviewSrc" max-height="520" cover />
+            <div v-else class="text-caption text-medium-emphasis">{{ t('عکسی انتخاب نشده است') }}</div>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+
       <!-- Error Snackbar -->
       <v-snackbar v-model="showError" color="error" timeout="5000">
         {{ errorMessage }}
@@ -435,7 +508,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
@@ -492,6 +565,11 @@
   const blankForm = () => ({
     id: null,
 
+    // ✅ picture
+    picture: null,         // File
+    picture_url: '',       // from API
+    _remove_picture: 0,    // tell backend to remove if needed
+
     name: '',
     f_name: '',
     grand_father_name: '',
@@ -528,12 +606,12 @@
 
   const form = ref(blankForm());
 
-  /* ✅ RULES (only validation change: phone exactly 10 digits) */
+  /* ✅ RULES */
   const rules = {
     required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
     phone10: (v) => {
       const s = String(v ?? '').trim();
-      if (!s) return true; // not required; keep your logic
+      if (!s) return true;
       if (!/^\d+$/.test(s)) return t('فقط اعداد');
       if (s.length !== 10) return t('شماره تماس باید دقیقاً ۱۰ رقم باشد');
       return true;
@@ -549,12 +627,77 @@
     form.value.resource_id = found?.id ?? null;
   }
 
+  /* ✅ PICTURE LOGIC */
+  const pictureInputRef = ref(null);
+  const pictureDialog = ref(false);
+
+  const localPictureUrl = ref(''); // object URL for selected file
+
+  const picturePreviewSrc = computed(() => {
+    return localPictureUrl.value || form.value.picture_url || '';
+  });
+
+  function triggerPickPicture() {
+    pictureInputRef.value?.click?.();
+  }
+
+  function revokeLocalPictureUrl() {
+    if (localPictureUrl.value) {
+      URL.revokeObjectURL(localPictureUrl.value);
+      localPictureUrl.value = '';
+    }
+  }
+
+  function onPictureSelected(e) {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+
+    // accept only images
+    if (!file.type?.startsWith('image/')) {
+      showErrorMessage(t('فقط فایل عکس مجاز است'));
+      e.target.value = '';
+      return;
+    }
+
+    // set
+    form.value.picture = file;
+    form.value._remove_picture = 0;
+
+    // preview
+    revokeLocalPictureUrl();
+    localPictureUrl.value = URL.createObjectURL(file);
+
+    // reset input value so selecting same file again triggers change
+    e.target.value = '';
+  }
+
+  function clearPicture() {
+    form.value.picture = null;
+    form.value.picture_url = '';
+    form.value._remove_picture = 1; // backend remove
+    revokeLocalPictureUrl();
+  }
+
+  function openPicturePreview() {
+    if (!picturePreviewSrc.value) return;
+    pictureDialog.value = true;
+  }
+
+  onBeforeUnmount(() => {
+    revokeLocalPictureUrl();
+  });
+
   /* MAP FROM API */
   function mapFromApi(payload = {}) {
     const x = payload.data ?? payload;
     const b = blankForm();
 
     b.id = x.id ?? null;
+
+    // ✅ picture from API
+    b.picture = null;
+    b.picture_url = x.picture_url ?? '';
+    b._remove_picture = 0;
 
     b.name = x.name ?? '';
     b.f_name = x.f_name ?? '';
@@ -584,9 +727,11 @@
     b.coordinates = x.coordinates ?? '';
     b.Province_addr = x.Province_addr ?? '';
 
-    b.resource_code = x.resource_code ?? '';
-    b.resource_phone = x.resource_phone ?? '';
-    b.resource_id = x.resource_id ?? '';
+    const r = x.resource || {};
+    b.resource_code = x.resource_code ?? r.code_number ?? '';
+    b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
+    b.resource_id = x.resource_id ?? r.id ?? '';
+
     b.note = x.note ?? '';
 
     return b;
@@ -596,13 +741,16 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+      revokeLocalPictureUrl();
       return;
     }
     try {
       await repo.FetchWakilanoData?.(id);
       const single = Array.isArray(repo.Wakilano) ? repo.Wakilano[0] : repo.Wakilano || {};
       if (!single) return;
+
       form.value = mapFromApi(single);
+      revokeLocalPictureUrl();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات وکیلالو'));
@@ -614,6 +762,13 @@
     const fd = new FormData();
     Object.entries(obj).forEach(([k, v]) => {
       if (v === undefined || v === null) return;
+
+      // ✅ handle file
+      if (k === 'picture') {
+        if (v instanceof File) fd.append('picture', v);
+        return;
+      }
+
       fd.append(k, v);
     });
     return fd;
@@ -705,6 +860,7 @@
       loadRecord();
     } else {
       form.value = blankForm();
+      revokeLocalPictureUrl();
     }
 
     clearBackendErrors();
@@ -716,7 +872,7 @@
     router.push('/app/wakilanos');
   }
 
-  /* ✅ SIMPLE EXPORT (works for blank too) */
+  /* ✅ SIMPLE EXPORT (no image) */
   function normalizeValue(v) {
     if (v === null || v === undefined) return '';
     return String(v);
@@ -881,5 +1037,25 @@
   .secondary-action-btn {
     padding-inline: 14px;
     font-weight: 500;
+  }
+
+  .picture-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 12px;
+    border: 1px dashed rgba(0, 0, 0, 0.18);
+    border-radius: 14px;
+  }
+  .picture-avatar {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+  .picture-actions {
+    flex: 1;
+    min-width: 240px;
+  }
+  .ga-2 {
+    gap: 8px;
   }
 </style>

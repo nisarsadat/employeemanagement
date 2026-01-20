@@ -15,6 +15,7 @@ class Mawad extends Model
         'nickname',
         'name',
         'father_name',
+        'picture',
 
         'main_province',
         'main_district',

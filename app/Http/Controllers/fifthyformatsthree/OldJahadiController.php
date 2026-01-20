@@ -10,6 +10,9 @@ use App\Http\Requests\fifthyformatsthree\UpdateOldJahadiRequest;
 use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class OldJahadiController extends Controller
 {
@@ -28,6 +31,32 @@ class OldJahadiController extends Controller
                 ],
             ],
         ], 422);
+    }
+
+    // ✅ picture upload helper (same idea as other modules)
+    private function storePicture(?\Illuminate\Http\UploadedFile $file): ?string
+    {
+        if (!$file) return null;
+
+        $ext = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+        $name = 'oldjahadi_' . now()->format('Ymd_His') . '_' . Str::random(10) . '.' . $ext;
+
+        // public disk => storage/app/public/oldjahadis/...
+        return $file->storeAs('oldjahadis', $name, 'public');
+    }
+
+    private function deletePictureIfExists(?string $path): void
+    {
+        if (!$path) return;
+
+        $p = $path;
+        if (str_starts_with($p, 'storage/')) {
+            $p = substr($p, strlen('storage/'));
+        }
+
+        if (Storage::disk('public')->exists($p)) {
+            Storage::disk('public')->delete($p);
+        }
     }
 
     public function index(Request $request)
@@ -56,7 +85,14 @@ class OldJahadiController extends Controller
         $user = $request->user(); // 🔔
 
         try {
-            $item = OldJahadi::create($request->validated())
+            $data = $request->validated();
+
+            // ✅ picture
+            if ($request->hasFile('picture')) {
+                $data['picture'] = $this->storePicture($request->file('picture'));
+            }
+
+            $item = OldJahadi::create($data)
                 ->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: CREATED
@@ -66,7 +102,7 @@ class OldJahadiController extends Controller
                 action: 'created',
                 title: 'نوی قدیم جهادی ثبت شو',
                 message: 'نوم: ' . ($item->name ?? ''),
-                routeName: 'old-jahadis',          // ⚠️ adjust to real route name
+                routeName: 'old-jahadis',
                 routeParams: ['id' => $item->id],
                 level: 'success',
                 changes: null
@@ -105,6 +141,13 @@ class OldJahadiController extends Controller
                 }
             }
 
+            // ✅ picture replace
+            if ($request->hasFile('picture')) {
+                $this->deletePictureIfExists($oldJahadi->picture);
+                $validated['picture'] = $this->storePicture($request->file('picture'));
+                $changes['picture'] = ['old' => $oldJahadi->picture, 'new' => $validated['picture']];
+            }
+
             $oldJahadi->update($validated);
             $oldJahadi->load(['resource:id,name,code_number,phone_number']);
 
@@ -135,6 +178,10 @@ class OldJahadiController extends Controller
         $user = $request->user(); // 🔔
 
         $name = $oldJahadi->name;
+
+        // ✅ delete picture file
+        $this->deletePictureIfExists($oldJahadi->picture);
+
         $oldJahadi->delete();
 
         // 🔔 Notification: DELETED
@@ -158,6 +205,13 @@ class OldJahadiController extends Controller
         $user = $request->user(); // 🔔
 
         $ids = (array) $request->input('ids', []);
+        if (!empty($ids)) {
+            $items = OldJahadi::query()->whereIn('id', $ids)->get(['id', 'picture']);
+            foreach ($items as $it) {
+                $this->deletePictureIfExists($it->picture);
+            }
+        }
+
         OldJahadi::destroy($ids);
 
         // 🔔 Notification: BULK DELETED

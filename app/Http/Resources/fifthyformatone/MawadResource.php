@@ -1,14 +1,29 @@
 <?php
+
 namespace App\Http\Resources\fifthyformatone;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class MawadResource extends JsonResource
 {
     public function toArray($request): array
     {
         /** @var \App\Models\fifthyformatone\Mawad $model */
-        $model = $this->resource; // the underlying Eloquent model
+        $model = $this->resource;
+
+        $pictureUrl = null;
+        if ($model->picture) {
+            if (preg_match('#^https?://#', $model->picture)) {
+                $pictureUrl = $model->picture;
+            } else {
+                $path = $model->picture;
+                if (str_starts_with($path, 'storage/')) {
+                    $path = substr($path, strlen('storage/'));
+                }
+                $pictureUrl = Storage::disk('public')->url($path);
+            }
+        }
 
         return [
             'id'                => $model->id,
@@ -16,6 +31,10 @@ class MawadResource extends JsonResource
             'nickname'          => $model->nickname,
             'name'              => $model->name,
             'father_name'       => $model->father_name,
+
+            // ✅ picture
+            'picture'           => $model->picture,
+            'picture_url'       => $pictureUrl,
 
             // Main address
             'main_province'     => $model->main_province,
@@ -43,13 +62,12 @@ class MawadResource extends JsonResource
             'supplier'          => $model->supplier,
             'note'              => $model->note,
 
-            // Flattened from relation (match Fasad style)
+            // Flattened from relation
             'resource_code'     => optional($model->resource)->code_number,
             'resource_phone'    => optional($model->resource)->phone_number,
-
             'resource_id'       => $model->resource_id,
 
-            // Keep nested (match Fasad style)
+            // Nested relation
             'resource'          => $this->whenLoaded('resource', function () use ($model) {
                 return [
                     'id'   => optional($model->resource)->id,

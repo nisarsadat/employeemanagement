@@ -32,6 +32,55 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ PICTURE (added) -->
+          <v-row class="mb-2">
+            <v-col cols="12">
+              <div class="d-flex align-center justify-space-between flex-wrap" style="gap: 12px">
+                <div class="section-header">
+                  <span class="section-title">{{ t('عکس') }}</span>
+                </div>
+
+                <div class="d-flex align-center" style="gap: 12px">
+                  <v-avatar size="72" class="picture-avatar" rounded="xl">
+                    <v-img v-if="picturePreviewUrl" :src="picturePreviewUrl" cover />
+                    <v-icon v-else size="30">mdi-account</v-icon>
+                  </v-avatar>
+
+                  <div class="d-flex flex-column" style="gap: 8px">
+                    <v-btn
+                      variant="tonal"
+                      color="primary"
+                      class="text-none rounded-pill"
+                      prepend-icon="mdi-image-edit-outline"
+                      @click="pickPicture"
+                    >
+                      {{ t('انتخاب عکس') }}
+                    </v-btn>
+
+                    <v-btn
+                      v-if="picturePreviewUrl"
+                      variant="text"
+                      color="error"
+                      class="text-none rounded-pill"
+                      prepend-icon="mdi-delete-outline"
+                      @click="clearPicture"
+                    >
+                      {{ t('حذف عکس') }}
+                    </v-btn>
+                  </div>
+                </div>
+
+                <input
+                  ref="pictureInputRef"
+                  type="file"
+                  accept="image/*"
+                  class="d-none"
+                  @change="onPictureSelected"
+                />
+              </div>
+            </v-col>
+          </v-row>
+
           <!-- Identity -->
           <v-row>
             <v-col cols="12">
@@ -129,7 +178,7 @@
                 :error-messages="getErrorMessages('now_zone')"
               />
             </v-col>
-            
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.now_village"
@@ -253,17 +302,6 @@
             <span class="section-title">{{ t('سایر معلومات') }}</span>
           </div>
           <v-row>
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
-
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.coordinates"
@@ -338,7 +376,6 @@
                 {{ t('پاک کردن فرم') }}
               </v-btn>
 
-              <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
               <v-btn
                 color="red"
                 variant="tonal"
@@ -387,7 +424,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
@@ -437,6 +474,7 @@
     return !!backendErrors.value?.[field];
   }
   function getErrorMessages(field) {
+    backendErrors.value?.[field] ?? [];
     return backendErrors.value?.[field] ?? [];
   }
 
@@ -445,9 +483,53 @@
     required: (v) => !!v || t('این فیلد الزامی است'),
   };
 
+  /* ✅ PICTURE STATE */
+  const pictureInputRef = ref(null);
+  const pictureFile = ref(null);
+  const picturePreviewUrl = ref('');
+
+  function revokePreview() {
+    if (picturePreviewUrl.value && picturePreviewUrl.value.startsWith('blob:')) {
+      URL.revokeObjectURL(picturePreviewUrl.value);
+    }
+  }
+
+  function pickPicture() {
+    pictureInputRef.value?.click?.();
+  }
+
+  function onPictureSelected(e) {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+
+    if (!String(file.type || '').startsWith('image/')) {
+      showErrorMessage(t('لطفاً یک فایل عکس انتخاب کنید'));
+      return;
+    }
+
+    revokePreview();
+    pictureFile.value = file;
+    picturePreviewUrl.value = URL.createObjectURL(file);
+  }
+
+  function clearPicture() {
+    revokePreview();
+    pictureFile.value = null;
+    picturePreviewUrl.value = '';
+    if (pictureInputRef.value) pictureInputRef.value.value = '';
+  }
+
+  onBeforeUnmount(() => {
+    revokePreview();
+  });
+
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ will be returned from API
+    picture: null,
+    picture_url: null,
 
     nick_name: '',
     name: '',
@@ -501,6 +583,9 @@
 
     b.id = x.id ?? null;
 
+    b.picture = x.picture ?? null;
+    b.picture_url = x.picture_url ?? null;
+
     b.nick_name = x.nick_name ?? '';
     b.name = x.name ?? '';
     b.father_name = x.father_name ?? '';
@@ -542,6 +627,7 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+      clearPicture();
       return;
     }
     try {
@@ -549,7 +635,13 @@
       const single = Array.isArray(repo.OldJahadi) ? repo.OldJahadi[0] : repo.OldJahadi || {};
       if (!single) return;
 
-      form.value = { ...mapFromApi(single) };
+      const mapped = mapFromApi(single);
+      form.value = { ...mapped };
+
+      // ✅ show server image if no local file chosen
+      if (!pictureFile.value) {
+        picturePreviewUrl.value = mapped.picture_url || '';
+      }
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات جهادی قدیم'));
@@ -563,8 +655,15 @@
       if (v === undefined || v === null) return;
       fd.append(k, v);
     });
+
+    // ✅ send picture file
+    if (pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+
     return fd;
   }
+
   function buildCreateFormData() {
     return toFormData({ ...form.value });
   }
@@ -791,6 +890,7 @@
       loadRecord();
     } else {
       form.value = blankForm();
+      clearPicture();
     }
 
     clearBackendErrors();
@@ -826,6 +926,10 @@
     font-size: 0.9rem;
     font-weight: 600;
     opacity: 0.8;
+  }
+
+  .picture-avatar {
+    border: 1px solid rgba(0, 0, 0, 0.08);
   }
 
   :deep(.v-field--variant-outlined .v-field__input) {

@@ -163,6 +163,32 @@
       @edit="goEdit"
       @peek="openPeek"
     >
+      <!-- 🖼 IMAGE PREVIEW DIALOG -->
+      <v-dialog v-model="imgDialog" max-width="920">
+        <v-card rounded="xl">
+          <v-card-title class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center ga-2">
+              <v-icon>mdi-image</v-icon>
+              <span class="text-subtitle-1 font-weight-bold">
+                {{ imgTitle || t('پیش‌نمایش عکس') }}
+              </span>
+            </div>
+
+            <v-btn icon variant="text" @click="imgDialog = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-card-title>
+
+          <v-divider />
+
+          <v-card-text>
+            <div class="img-preview-wrap">
+              <v-img v-if="imgSrc" :src="imgSrc" class="img-preview" cover />
+              <div v-else class="muted">{{ t('عکس موجود نیست') }}</div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -245,7 +271,32 @@
       :is-rtl="isRtl"
       @confirm="handleDeleteConfirmed"
     />
+    <!-- 🖼 IMAGE PREVIEW DIALOG -->
+    <v-dialog v-model="imgDialog" max-width="920">
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center ga-2">
+            <v-icon>mdi-image</v-icon>
+            <span class="text-subtitle-1 font-weight-bold">
+              {{ imgTitle || t('پیش‌نمایش عکس') }}
+            </span>
+          </div>
 
+          <v-btn icon variant="text" @click="imgDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text>
+          <div class="img-preview-wrap">
+            <v-img v-if="imgSrc" :src="imgSrc" class="img-preview" cover />
+            <div v-else class="muted">{{ t('عکس موجود نیست') }}</div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
@@ -337,6 +388,8 @@
 
   /* TABLE HEADERS – ALL INPUTS + map */
   const headersFT = computed(() => [
+    { title: t('عکس'), key: 'picture', sortable: false },
+
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('تخلص'), key: 'nickname' },
@@ -383,7 +436,15 @@
     { title: t('تماس/دیگر'), keys: ['phone_number', 'Province_addr', 'note'] },
     { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
   ]);
+  const imgDialog = ref(false);
+  const imgSrc = ref('');
+  const imgTitle = ref('');
 
+  function openImage(src, title) {
+    imgSrc.value = src || '';
+    imgTitle.value = title || '';
+    imgDialog.value = true;
+  }
   const filters = ref({});
 
   /* Peek */

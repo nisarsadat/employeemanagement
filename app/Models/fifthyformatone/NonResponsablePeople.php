@@ -13,6 +13,7 @@ class NonResponsablePeople extends Model
     protected $fillable = [
         'nick_name',
         'name',
+        'picture',
         'father_name',
         'main_province',
         'main_district',

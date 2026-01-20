@@ -11,6 +11,7 @@ use App\Services\NotificationService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class NonResponsablePeopleController extends Controller
 {
@@ -65,7 +66,15 @@ class NonResponsablePeopleController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $user) {
-                $record = NonResponsablePeople::create($request->validated());
+                $validated = $request->validated();
+
+                // ✅ handle picture upload
+                if ($request->hasFile('picture')) {
+                    $validated['picture'] = $request->file('picture')
+                        ->store('non_responsable_people', 'public');
+                }
+
+                $record = NonResponsablePeople::create($validated);
 
                 $record->load(['resource:id,name,code_number,phone_number']);
 
@@ -116,6 +125,15 @@ class NonResponsablePeopleController extends Controller
                 $original  = $record->getOriginal();
                 $changes   = [];
 
+                // ✅ handle picture upload (replace + delete old)
+                if ($request->hasFile('picture')) {
+                    if ($record->picture) {
+                        Storage::disk('public')->delete($record->picture);
+                    }
+                    $validated['picture'] = $request->file('picture')
+                        ->store('non_responsable_people', 'public');
+                }
+
                 foreach ($validated as $field => $newValue) {
                     if (array_key_exists($field, $original) && $original[$field] != $newValue) {
                         $changes[$field] = [
@@ -156,6 +174,11 @@ class NonResponsablePeopleController extends Controller
         $user   = $request->user();
         $record = NonResponsablePeople::findOrFail($id);
         $name   = $record->name;
+
+        // ✅ delete picture file too
+        if ($record->picture) {
+            Storage::disk('public')->delete($record->picture);
+        }
 
         $record->delete();
 

@@ -3,49 +3,67 @@
 namespace App\Http\Resources\fifthyformatsthree;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class TujaranResource extends JsonResource
 {
     public function toArray($request): array
     {
-        // Safe relation access
-        $resource = $this->resource->getRelationValue('resource');
+        $model = $this->resource;
+        $resource = $model->getRelationValue('resource');
+
+        // ✅ picture url like others
+        $pictureUrl = null;
+        if ($model->picture) {
+            if (preg_match('#^https?://#', $model->picture)) {
+                $pictureUrl = $model->picture;
+            } else {
+                $path = $model->picture;
+                if (str_starts_with($path, 'storage/')) {
+                    $path = substr($path, strlen('storage/'));
+                }
+                $pictureUrl = Storage::disk('public')->url($path);
+            }
+        }
 
         return [
-            'id'           => $this->id,
-            'name'         => $this->name,
-            'father_name'  => $this->father_name,
+            'id'          => $model->id,
+            'name'        => $model->name,
+            'father_name' => $model->father_name,
 
-            'main_province' => $this->main_province,
-            'main_district' => $this->main_district,
-            'main_village'  => $this->main_village,
+            // ✅ picture
+            'picture'     => $model->picture,
+            'picture_url' => $pictureUrl,
 
-            'now_province'       => $this->now_province,
-            'now_zone'           => $this->now_zone,
-            'now_district'       => $this->now_district,
-            'now_village'        => $this->now_village,
-            'now_specific_place' => $this->now_specific_place,
-            'now_street_number'  => $this->now_street_number,
-            'now_home_number'    => $this->now_home_number,
+            'main_province' => $model->main_province,
+            'main_district' => $model->main_district,
+            'main_village'  => $model->main_village,
 
-            'old_job' => $this->old_job,
-            'now_job' => $this->now_job,
-            'organ'   => $this->organ,
-            'Province_addr'               => $this->Province_addr,
+            'now_province'       => $model->now_province,
+            'now_zone'           => $model->now_zone,
+            'now_district'       => $model->now_district,
+            'now_village'        => $model->now_village,
+            'now_specific_place' => $model->now_specific_place,
+            'now_street_number'  => $model->now_street_number,
+            'now_home_number'    => $model->now_home_number,
 
-            'guard_guntity' => $this->guard_guntity,
-            'phone_number'  => $this->phone_number,
-            'people_type'   => $this->people_type,
+            'old_job' => $model->old_job,
+            'now_job' => $model->now_job,
+            'organ'   => $model->organ,
 
-            'note'        => $this->note,
-            'coordinates'        => $this->coordinates,
-            'resource_id' => $this->resource_id,
+            'Province_addr' => $model->Province_addr,
 
-            // Flattened fields from Resource
-            'resource_code'   => $resource?->code_number,
-            'resource_phone'  => $resource?->phone_number,
+            'guard_guntity' => $model->guard_guntity,
+            'phone_number'  => $model->phone_number,
+            'people_type'   => $model->people_type,
 
-            // Minimal embedded resource (when eager-loaded)
+            'note'        => $model->note,
+            'coordinates' => $model->coordinates,
+
+            'resource_id'    => $model->resource_id,
+            'resource_code'  => $resource?->code_number,
+            'resource_phone' => $resource?->phone_number,
+
             'resource' => $this->whenLoaded('resource', function () use ($resource) {
                 return $resource ? [
                     'id'           => $resource->id,
@@ -54,6 +72,9 @@ class TujaranResource extends JsonResource
                     'phone_number' => $resource->phone_number,
                 ] : null;
             }),
+
+            'created_at' => $model->created_at,
+            'updated_at' => $model->updated_at,
         ];
     }
 }

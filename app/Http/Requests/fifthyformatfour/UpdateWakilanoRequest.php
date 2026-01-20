@@ -18,6 +18,7 @@ class UpdateWakilanoRequest extends FormRequest
             'name'               => ['sometimes','nullable','string'],
             'f_name'             => ['sometimes','nullable','string'],
             'grand_father_name'  => ['sometimes','nullable','string'],
+            'picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
 
             'main_province'      => ['sometimes','nullable','string'],
             'main_district'      => ['sometimes','nullable','string'],

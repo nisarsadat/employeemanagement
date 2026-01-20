@@ -160,6 +160,23 @@
       @edit="goEdit"
       @peek="openPeek"
     >
+      <!-- 🖼 PICTURE CELL -->
+      <template #cell-picture="{ row }">
+        <div class="pic-cell">
+          <v-avatar
+            v-if="row.picture"
+            size="34"
+            class="pic-thumb"
+            @click.stop="openImage(row.picture_url, row.name)"
+          >
+            <v-img :src="row.picture_url" cover />
+          </v-avatar>
+
+          <v-avatar v-else size="34" class="pic-thumb pic-thumb--empty">
+            <v-icon size="18">mdi-image-off</v-icon>
+          </v-avatar>
+        </div>
+      </template>
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -241,6 +258,32 @@
       :is-rtl="isRtl"
       @confirm="handleDeleteConfirmed"
     />
+    <!-- 🖼 IMAGE PREVIEW DIALOG -->
+    <v-dialog v-model="imgDialog" max-width="920">
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center ga-2">
+            <v-icon>mdi-image</v-icon>
+            <span class="text-subtitle-1 font-weight-bold">
+              {{ imgTitle || t('پیش‌نمایش عکس') }}
+            </span>
+          </div>
+
+          <v-btn icon variant="text" @click="imgDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text>
+          <div class="img-preview-wrap">
+            <v-img v-if="imgSrc" :src="imgSrc" class="img-preview" cover />
+            <div v-else class="muted">{{ t('عکس موجود نیست') }}</div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -341,6 +384,7 @@
   }
   /* HEADERS */
   const headersFT = computed(() => [
+    { title: t('عکس'), key: 'picture', sortable: false },
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
 
@@ -385,6 +429,15 @@
     { title: t('تماس/افراد/محافظین'), keys: ['phone_number', 'people_type', 'guard_guntity'] },
     { title: t('منبع/یادداشت'), keys: ['resource_code', 'resource_phone', 'note'] },
   ]);
+  const imgDialog = ref(false);
+  const imgSrc = ref('');
+  const imgTitle = ref('');
+
+  function openImage(src, title) {
+    imgSrc.value = src || '';
+    imgTitle.value = title || '';
+    imgDialog.value = true;
+  }
 
   const filters = ref({});
 

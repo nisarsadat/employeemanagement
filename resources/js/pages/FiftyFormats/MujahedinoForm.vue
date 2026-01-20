@@ -40,6 +40,56 @@
               </div>
             </v-col>
 
+            <!-- ✅ Picture picker + preview -->
+            <v-col cols="12" md="4">
+              <div class="d-flex align-center ga-3">
+                <v-avatar size="64" class="picture-avatar" :title="t('پیش نمایش')">
+                  <img v-if="picturePreviewUrl" :src="picturePreviewUrl" alt="preview" />
+                  <v-icon v-else size="30">mdi-account</v-icon>
+                </v-avatar>
+
+                <div class="d-flex flex-column">
+                  <div class="text-caption text-medium-emphasis">
+                    {{ t('عکس مجاهد') }}
+                  </div>
+
+                  <div class="d-flex ga-2 flex-wrap mt-1">
+                    <v-btn
+                      size="small"
+                      variant="tonal"
+                      color="primary"
+                      class="text-none rounded-pill"
+                      prepend-icon="mdi-image-plus"
+                      @click="pickPicture"
+                    >
+                      {{ t('انتخاب عکس') }}
+                    </v-btn>
+
+                    <v-btn
+                      v-if="picturePreviewUrl"
+                      size="small"
+                      variant="tonal"
+                      color="warning"
+                      class="text-none rounded-pill"
+                      prepend-icon="mdi-close-circle-outline"
+                      @click="clearPicture"
+                    >
+                      {{ t('حذف عکس') }}
+                    </v-btn>
+                  </div>
+
+                  <!-- hidden input -->
+                  <input
+                    ref="pictureInputRef"
+                    type="file"
+                    accept="image/*"
+                    class="d-none"
+                    @change="onPictureSelected"
+                  />
+                </div>
+              </div>
+            </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.nickname"
@@ -108,6 +158,7 @@
           </div>
           <v-row>
             <v-col cols="12" md="12">
+              <!-- NOTE: keeping your same bindings (as-is) -->
               <ProvinceDistrictNameSelect
                 v-model:province="form.main_province"
                 v-model:district="form.main_district"
@@ -117,6 +168,7 @@
                 :mdDistrict="6"
               />
             </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.now_zone"
@@ -149,6 +201,7 @@
                 :error-messages="getErrorMessages('now_specific_place')"
               />
             </v-col>
+
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.now_street_number"
@@ -159,6 +212,7 @@
                 :error-messages="getErrorMessages('now_street_number')"
               />
             </v-col>
+
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.now_home_number"
@@ -188,6 +242,7 @@
                 :error-messages="getErrorMessages('duty_type')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_job"
@@ -198,6 +253,7 @@
                 :error-messages="getErrorMessages('now_job')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.organ"
@@ -221,17 +277,6 @@
                 :error-messages="getErrorMessages('phone_number')"
               />
             </v-col>
-
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
 
             <v-col cols="12" md="6">
               <v-text-field
@@ -355,11 +400,10 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
-  6;
   import AppBar from '@/components/AppBar.vue';
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 
@@ -408,9 +452,50 @@
     return backendErrors.value?.[field] ?? [];
   }
 
+  /* ✅ PICTURE (file + preview) */
+  const pictureInputRef = ref(null);
+  const picturePreviewUrl = ref(null);
+
+  function revokePicturePreview() {
+    if (picturePreviewUrl.value) {
+      URL.revokeObjectURL(picturePreviewUrl.value);
+      picturePreviewUrl.value = null;
+    }
+  }
+
+  function pickPicture() {
+    pictureInputRef.value?.click?.();
+  }
+
+  function onPictureSelected(e) {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+
+    // save file for backend
+    form.value.picture = file;
+
+    // preview
+    revokePicturePreview();
+    picturePreviewUrl.value = URL.createObjectURL(file);
+  }
+
+  function clearPicture() {
+    form.value.picture = null;
+    revokePicturePreview();
+    if (pictureInputRef.value) pictureInputRef.value.value = '';
+  }
+
+  onBeforeUnmount(() => {
+    revokePicturePreview();
+  });
+
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture (file or string depending on API)
+    picture: null,
+    picture_url: '',
 
     nickname: '',
     name: '',
@@ -469,6 +554,10 @@
 
     b.id = x.id ?? null;
 
+    // ✅ picture mapping
+    b.picture = null; // keep file null when loading
+    b.picture_url = x.picture_url ?? x.pictureUrl ?? x.picture ?? '';
+
     b.nickname = x.nickname ?? '';
     b.name = x.name ?? '';
     b.father_name = x.father_name ?? '';
@@ -505,6 +594,7 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+      revokePicturePreview();
       return;
     }
 
@@ -515,6 +605,10 @@
 
       const mapped = mapFromApi(single);
       form.value = { ...mapped };
+
+      // ✅ show existing picture if no new file chosen
+      revokePicturePreview();
+      if (form.value.picture_url) picturePreviewUrl.value = form.value.picture_url;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات مجاهد'));
@@ -526,6 +620,10 @@
     const fd = new FormData();
     Object.entries(obj).forEach(([k, v]) => {
       if (v === undefined || v === null) return;
+
+      // ✅ do not send picture_url (view only)
+      if (k === 'picture_url') return;
+
       fd.append(k, v);
     });
     return fd;
@@ -803,6 +901,7 @@
       loadRecord();
     } else {
       form.value = blankForm();
+      revokePicturePreview();
     }
 
     clearBackendErrors();
@@ -819,6 +918,9 @@
     await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadRecord();
+    } else {
+      // blank create mode: ensure preview cleared
+      revokePicturePreview();
     }
   });
 </script>
@@ -859,5 +961,14 @@
   .secondary-action-btn {
     padding-inline: 14px;
     font-weight: 500;
+  }
+
+  /* ✅ avatar look */
+  .picture-avatar {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .d-none {
+    display: none;
   }
 </style>

@@ -11,6 +11,7 @@ use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MawadController extends Controller
 {
@@ -31,7 +32,6 @@ class MawadController extends Controller
 
     private function isDuplicateKeyException(QueryException $e): bool
     {
-        // MySQL duplicate entry = 1062
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
@@ -45,14 +45,15 @@ class MawadController extends Controller
         $rid     = $request->input('resource_id');
 
         $sortBy  = $request->input('sort_by', 'created_at');
-        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true) ? $request->input('sort_dir') : 'desc';
+        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
+            ? $request->input('sort_dir')
+            : 'desc';
 
         $q = Mawad::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
         ]);
 
         if ($search) {
-            // keep your simple style: search by name only
             $q->where('name', 'like', "%{$search}%");
         }
 
@@ -70,11 +71,16 @@ class MawadController extends Controller
      */
     public function store(StoreMawadRequest $request)
     {
-        $user = $request->user(); // 🔔 who did this
+        $user = $request->user();
 
         try {
             return DB::transaction(function () use ($request, $user) {
                 $data = $request->validated();
+
+                // ✅ STORE picture properly (public disk)
+                if ($request->hasFile('picture')) {
+                    $data['picture'] = $request->file('picture')->store('mawads', 'public');
+                }
 
                 $mawad = Mawad::create($data);
 
@@ -82,14 +88,13 @@ class MawadController extends Controller
                     'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
                 ]);
 
-                // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
                     module: 'مواد',
                     action: 'created',
                     title: 'مواد جدید ثبت شد',
                     message: 'نام مواد: ' . ($mawad->name ?? ''),
-                    routeName: 'mawads',               // ⚠️ set your real route name
+                    routeName: 'mawads',
                     routeParams: ['id' => $mawad->id],
                     level: 'success',
                     changes: null
@@ -125,13 +130,13 @@ class MawadController extends Controller
      */
     public function update(UpdateMawadRequest $request, Mawad $mawad)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         try {
             return DB::transaction(function () use ($request, $mawad, $user) {
                 $validated = $request->validated();
 
-                // 🧮 build changes BEFORE update (same style as your InformationController)
+                // 🧮 changes BEFORE update
                 $original = $mawad->getOriginal();
                 $changes  = [];
 
@@ -147,20 +152,28 @@ class MawadController extends Controller
                     }
                 }
 
+                // ✅ UPDATE picture properly + delete old
+                if ($request->hasFile('picture')) {
+                    if ($mawad->picture) {
+                        Storage::disk('public')->delete($mawad->picture);
+                    }
+                    $validated['picture'] = $request->file('picture')->store('mawads', 'public');
+                    $changes['picture'] = ['old' => $original['picture'] ?? null, 'new' => $validated['picture']];
+                }
+
                 $mawad->update($validated);
 
                 $mawad->load([
                     'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
                 ]);
 
-                // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
                     $user,
                     module: 'مواد',
                     action: 'updated',
                     title: 'مواد اصلاح شد',
                     message: 'نام مواد: ' . ($mawad->name ?? ''),
-                    routeName: 'mawads',               // ⚠️ set your real route name
+                    routeName: 'mawads',
                     routeParams: ['id' => $mawad->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null
@@ -181,14 +194,18 @@ class MawadController extends Controller
      */
     public function destroy(Request $request, Mawad $mawad)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         return DB::transaction(function () use ($mawad, $user) {
             $name = $mawad->name;
 
+            // ✅ delete picture file too
+            if ($mawad->picture) {
+                Storage::disk('public')->delete($mawad->picture);
+            }
+
             $mawad->delete();
 
-            // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
                 module: 'مواد',
@@ -211,7 +228,7 @@ class MawadController extends Controller
      */
     public function bulkDelete(Request $request)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         $ids = $request->input('ids', []);
         $ids = is_array($ids) ? array_values(array_filter($ids)) : [];
@@ -221,7 +238,12 @@ class MawadController extends Controller
                 return response()->noContent();
             }
 
-            // (optional) you can record 1 notification for bulk delete
+            // ✅ delete pictures for all selected
+            $pics = Mawad::whereIn('id', $ids)->pluck('picture')->filter()->values()->all();
+            foreach ($pics as $p) {
+                Storage::disk('public')->delete($p);
+            }
+
             Mawad::whereIn('id', $ids)->delete();
 
             NotificationService::record(

@@ -1,10 +1,7 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
-    <AppBar
-      :title="t('مواد')"
-      :subtitle="t('فهرست، جستجو و مدیریت مواد')"
-    >
+    <AppBar :title="t('مواد')" :subtitle="t('فهرست، جستجو و مدیریت مواد')">
       <template #actions>
         <v-btn icon />
       </template>
@@ -63,9 +60,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('تمام مواد') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('مجموع') }}: {{ stats.total }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
           </v-card>
@@ -84,9 +79,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -105,9 +98,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای شماره فروش') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withSalePhone }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withSalePhone }}</div>
               </div>
             </div>
           </v-card>
@@ -126,9 +117,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای منبع') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withResource }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withResource }}</div>
               </div>
             </div>
           </v-card>
@@ -169,6 +158,24 @@
       @edit="goEdit"
       @peek="openPeek"
     >
+      <!-- 🖼 PICTURE CELL -->
+      <template #cell-picture="{ row }">
+        <div class="pic-cell">
+          <v-avatar
+            v-if="row.picture"
+            size="34"
+            class="pic-thumb"
+            @click.stop="openImage(row.picture_url, row.name)"
+          >
+            <v-img :src="row.picture_url" cover />
+          </v-avatar>
+
+          <v-avatar v-else size="34" class="pic-thumb pic-thumb--empty">
+            <v-icon size="18">mdi-image-off</v-icon>
+          </v-avatar>
+        </div>
+      </template>
+
       <!-- 🔗 RESOURCE CODE CLICKABLE -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -207,12 +214,7 @@
           <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده مواد')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -256,6 +258,32 @@
       :is-rtl="isRtl"
       @confirm="handleDeleteConfirmed"
     />
+    <!-- 🖼 IMAGE PREVIEW DIALOG -->
+    <v-dialog v-model="imgDialog" max-width="920">
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center ga-2">
+            <v-icon>mdi-image</v-icon>
+            <span class="text-subtitle-1 font-weight-bold">
+              {{ imgTitle || t('پیش‌نمایش عکس') }}
+            </span>
+          </div>
+
+          <v-btn icon variant="text" @click="imgDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text>
+          <div class="img-preview-wrap">
+            <v-img v-if="imgSrc" :src="imgSrc" class="img-preview" cover />
+            <div v-else class="muted">{{ t('عکس موجود نیست') }}</div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -270,288 +298,333 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FlyToMapButton from '@/components/FlyToMapButton.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-import { useMawadRepository } from '@/stores/MawadRepository';
+  import { useMawadRepository } from '@/stores/MawadRepository';
 
-const repo = useMawadRepository();
-const router = useRouter();
+  const repo = useMawadRepository();
+  const router = useRouter();
 
-/* i18n / RTL */
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showErrorMessage = (m) => {
-  errorMessage.value = m;
-  showError.value = true;
-};
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
+  };
 
-/* Helpers */
-const getRow = (s) => (s && s.raw ? s.raw : s);
+  /* Helpers */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
 
-/* rows from store */
-const rowsFT = computed(() => {
-  const list = repo.mawads || repo.Mawads || [];
-  if (Array.isArray(list)) return list;
-  if (Array.isArray(list.data)) return list.data;
-  return [];
-});
+  /* rows from store */
+  const rowsFT = computed(() => {
+    const list = repo.mawads || repo.Mawads || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
+    return [];
+  });
 
-/* 🔢 Filter cards state */
-const cardFilter = ref('all');
+  /* 🔢 Filter cards state */
+  const cardFilter = ref('all');
 
-const stats = computed(() => {
-  const rows = rowsFT.value || [];
-  const total = rows.length;
-  const withCoordinates = rows.filter(
-    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
-  ).length;
-  const withSalePhone = rows.filter(
-    (r) => r && r.mawad_sales_phone && String(r.mawad_sales_phone).trim() !== ''
-  ).length;
-  const withResource = rows.filter(
-    (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
-  ).length;
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
+    const withCoordinates = rows.filter(
+      (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
+    const withSalePhone = rows.filter(
+      (r) => r && r.mawad_sales_phone && String(r.mawad_sales_phone).trim() !== ''
+    ).length;
+    const withResource = rows.filter(
+      (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
+    ).length;
 
-  return { total, withCoordinates, withSalePhone, withResource };
-});
+    return { total, withCoordinates, withSalePhone, withResource };
+  });
 
-const filteredRowsFT = computed(() => {
-  const base = rowsFT.value || [];
-  switch (cardFilter.value) {
-    case 'withCoordinates':
-      return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
-    case 'withSalePhone':
-      return base.filter(
-        (r) => r && r.mawad_sales_phone && String(r.mawad_sales_phone).trim() !== ''
-      );
-    case 'withResource':
-      return base.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '');
-    default:
-      return base;
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+    switch (cardFilter.value) {
+      case 'withCoordinates':
+        return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+      case 'withSalePhone':
+        return base.filter(
+          (r) => r && r.mawad_sales_phone && String(r.mawad_sales_phone).trim() !== ''
+        );
+      case 'withResource':
+        return base.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '');
+      default:
+        return base;
+    }
+  });
+
+  /* TABLE HEADERS – list view */
+  const headersFT = computed(() => [
+    { title: t('عکس'), key: 'picture', sortable: false },
+    { title: t('نوع مواد'), key: 'mawad_type' },
+    { title: t('نام مستعار'), key: 'nickname' },
+    { title: t('نام'), key: 'name' },
+    { title: t('نام پدر'), key: 'father_name' },
+
+    { title: t('ولایت اصلی'), key: 'main_province' },
+    { title: t('ولسوالی اصلی'), key: 'main_district' },
+    { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+
+    { title: t('ولایت فعلی'), key: 'now_province' },
+    { title: t('ولسوالی فعلی'), key: 'now_district' },
+    { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
+
+    { title: t('ولایت'), key: 'province' },
+    { title: t('زون'), key: 'zone' },
+    { title: t('ولسوالی'), key: 'district' },
+    { title: t('قریه/ناحیه'), key: 'village' },
+
+    { title: t('موقعیت مشخص'), key: 'specific_place' },
+    { title: t('مختصات'), key: 'coordinates' },
+    { title: t('شماره فروش مواد'), key: 'mawad_sales_phone' },
+
+    { title: t('تاریخچه/فورم'), key: 'history_form' },
+    { title: t('تمویل‌کننده'), key: 'supplier' },
+    { title: t('یادداشت'), key: 'note' },
+    { title: t('ولایت مربوطه'), key: 'Province_addr' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
+
+    { title: t('نقشه'), key: 'map', sortable: false },
+  ]);
+
+  /* TOP GROUPS */
+  const topGroups = computed(() => [
+    { title: t('مشخصات'), keys: ['mawad_type', 'nickname', 'name', 'father_name'] },
+    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+    { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
+    { title: t('موقعیت عمومی'), keys: ['province', 'zone', 'district', 'village'] },
+    { title: t('موقعیت/تماس'), keys: ['specific_place', 'coordinates', 'mawad_sales_phone'] },
+    { title: t('اطلاعات دیگر'), keys: ['history_form', 'supplier', 'note'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+    { title: t('دیگر'), keys: ['Province_addr'] },
+  ]);
+  const imgDialog = ref(false);
+  const imgSrc = ref('');
+  const imgTitle = ref('');
+
+  function openImage(src, title) {
+    imgSrc.value = src || '';
+    imgTitle.value = title || '';
+    imgDialog.value = true;
   }
-});
 
-/* TABLE HEADERS – list view */
-const headersFT = computed(() => [
-  { title: t('نوع مواد'), key: 'mawad_type' },
-  { title: t('نام مستعار'), key: 'nickname' },
-  { title: t('نام'), key: 'name' },
-  { title: t('نام پدر'), key: 'father_name' },
+  const filters = ref({});
 
-  { title: t('ولایت اصلی'), key: 'main_province' },
-  { title: t('ولسوالی اصلی'), key: 'main_district' },
-  { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+  /* Peek */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
 
-  { title: t('ولایت فعلی'), key: 'now_province' },
-  { title: t('ولسوالی فعلی'), key: 'now_district' },
-  { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
-
-  { title: t('ولایت'), key: 'province' },
-  { title: t('زون'), key: 'zone' },
-  { title: t('ولسوالی'), key: 'district' },
-  { title: t('قریه/ناحیه'), key: 'village' },
-
-  { title: t('موقعیت مشخص'), key: 'specific_place' },
-  { title: t('مختصات'), key: 'coordinates' },
-  { title: t('شماره فروش مواد'), key: 'mawad_sales_phone' },
-
-  { title: t('تاریخچه/فورم'), key: 'history_form' },
-  { title: t('تمویل‌کننده'), key: 'supplier' },
-  { title: t('یادداشت'), key: 'note' },
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone' },
-
-  { title: t('نقشه'), key: 'map', sortable: false },
-]);
-
-/* TOP GROUPS */
-const topGroups = computed(() => [
-  { title: t('مشخصات'), keys: ['mawad_type', 'nickname', 'name', 'father_name'] },
-  { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-  { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
-  { title: t('موقعیت عمومی'), keys: ['province', 'zone', 'district', 'village'] },
-  { title: t('موقعیت/تماس'), keys: ['specific_place', 'coordinates', 'mawad_sales_phone'] },
-  { title: t('اطلاعات دیگر'), keys: ['history_form', 'supplier', 'note'] },
-  { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
-  { title: t('دیگر'), keys: ['Province_addr'] },
-]);
-
-const filters = ref({});
-
-/* Peek */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loadingOne.value = true;
-  try {
-    await repo.FetchMawadData?.(id);
-    const single =
-      repo.Mawad && Array.isArray(repo.Mawad) ? repo.Mawad[0] : repo.Mawad || {};
-    detail.value = single || {};
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات مواد'));
-  } finally {
-    loadingOne.value = false;
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      await repo.FetchMawadData?.(id);
+      const single = repo.Mawad && Array.isArray(repo.Mawad) ? repo.Mawad[0] : repo.Mawad || {};
+      detail.value = single || {};
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات مواد'));
+    } finally {
+      loadingOne.value = false;
+    }
   }
-}
 
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
 
-/* navigation */
-function goCreate() {
-  router.push('/app/mawadform');
-}
+  /* navigation */
+  function goCreate() {
+    router.push('/app/mawadform');
+  }
 
-function goEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/mawadform/${row.id}`);
-}
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/mawadform/${row.id}`);
+  }
 
-/* go to resource page (by code) */
-function goToResource(row) {
-  if (!row?.resource_code) return;
-  router.push(`/app/resources/${row.resource_code}`);
-}
+  /* go to resource page (by code) */
+  function goToResource(row) {
+    if (!row?.resource_code) return;
+    router.push(`/app/resources/${row.resource_code}`);
+  }
 
-/* delete with dialog */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
+  /* delete with dialog */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
 
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  deleteDialog.value = false;
-  if (!row?.id) return;
-  try {
-    await repo.DeleteMawad?.(row.id);
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    deleteDialog.value = false;
+    if (!row?.id) return;
+    try {
+      await repo.DeleteMawad?.(row.id);
+      await fetchAll();
+      showErrorMessage(t('حذف شد'));
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteTarget.value = null;
+    }
+  }
+
+  /* fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchMawadsData?.({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search || '',
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست مواد'));
+    }
+  }
+
+  function clearSearch() {
+    repo.Search = '';
+    fetchAll();
+  }
+
+  /* init */
+  onMounted(async () => {
     await fetchAll();
-    showErrorMessage(t('حذف شد'));
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در حذف'));
-  } finally {
-    deleteTarget.value = null;
-  }
-}
-
-/* fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchMawadsData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت فهرست مواد'));
-  }
-}
-
-function clearSearch() {
-  repo.Search = '';
-  fetchAll();
-}
-
-/* init */
-onMounted(async () => {
-  await fetchAll();
-});
+  });
 </script>
 
 <style scoped>
-.ga-2 {
-  gap: 8px;
-}
+  .ga-2 {
+    gap: 8px;
+  }
 
-/* Background similar to other index pages */
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
+  /* Background similar to other index pages */
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
+  }
 
-/* Stats cards */
-.stat-card {
-  cursor: pointer;
-  border-radius: 14px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
-    background-color 0.2s ease;
-}
+  /* Stats cards */
+  .stat-card {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
 
-.stat-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  border-color: rgba(33, 150, 243, 0.35);
-}
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
+  }
 
-.stat-card--active {
-  border-color: rgba(25, 118, 210, 0.9);
-  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
-}
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+  }
 
-.stat-card-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
 
-.stat-card-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e3f2fd;
-}
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
 
-.stat-card-text {
-  display: flex;
-  flex-direction: column;
-}
+  .stat-card-text {
+    display: flex;
+    flex-direction: column;
+  }
 
-.stat-card-title {
-  font-size: 13px;
-  font-weight: 700;
-}
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
 
-.stat-card-subtitle {
-  font-size: 11px;
-  color: #666;
-}
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
+  }
+  .pic-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pic-thumb {
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  .pic-thumb--empty {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  .img-preview-wrap {
+    width: 100%;
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  .img-preview {
+    width: 100%;
+    height: 520px;
+  }
+
+  .muted {
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 12px;
+  }
 </style>

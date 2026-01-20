@@ -11,6 +11,7 @@ use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class SoldierController extends Controller
 {
@@ -82,10 +83,17 @@ class SoldierController extends Controller
     public function store(StoreSoldierRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $storedPicturePath = null;
 
         try {
-            return DB::transaction(function () use ($request, $user) {
+            return DB::transaction(function () use ($request, $user, &$storedPicturePath) {
                 $data = $request->validated();
+
+                // ✅ Picture upload (optional)
+                if ($request->hasFile('picture')) {
+                    $storedPicturePath = $request->file('picture')->store('soldiers/pictures', 'public');
+                    $data['picture'] = $storedPicturePath;
+                }
 
                 $soldier = Soldier::create($data);
 
@@ -112,6 +120,11 @@ class SoldierController extends Controller
                     ->setStatusCode(201);
             });
         } catch (QueryException $e) {
+            // if DB fails and picture already stored, delete it
+            if ($storedPicturePath) {
+                Storage::disk('public')->delete($storedPicturePath);
+            }
+
             if ($this->isDuplicateKeyException($e)) {
                 return response()->json($this->duplicateErrorPashto(), 422);
             }
@@ -126,6 +139,19 @@ class SoldierController extends Controller
         try {
             return DB::transaction(function () use ($request, $soldier, $user) {
                 $validated = $request->validated();
+
+                // ✅ Picture upload (optional) + remove old picture
+                if ($request->hasFile('picture')) {
+                    $oldPicture = $soldier->picture;
+
+                    $newPath = $request->file('picture')->store('soldiers/pictures', 'public');
+                    $validated['picture'] = $newPath;
+
+                    // delete old after new stored
+                    if ($oldPicture) {
+                        Storage::disk('public')->delete($oldPicture);
+                    }
+                }
 
                 // 🧮 build changes BEFORE update
                 $original = $soldier->getOriginal();
@@ -178,6 +204,11 @@ class SoldierController extends Controller
 
         return DB::transaction(function () use ($soldier, $user) {
             $name = $soldier->name;
+
+            // ✅ delete picture file if exists
+            if ($soldier->picture) {
+                Storage::disk('public')->delete($soldier->picture);
+            }
 
             $soldier->delete();
 

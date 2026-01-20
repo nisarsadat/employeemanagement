@@ -19,6 +19,7 @@ class UpdateMawadRequest extends FormRequest
             'main_province'     => ['nullable','string','max:255'],
             'main_district'     => ['nullable','string','max:255'],
             'main_village'      => ['nullable','string','max:255'],
+            'picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
 
             'now_province'      => ['nullable','string','max:255'],
             'now_district'      => ['nullable','string','max:255'],

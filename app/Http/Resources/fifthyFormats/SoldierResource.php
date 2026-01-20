@@ -18,6 +18,9 @@ class SoldierResource extends JsonResource
             'name'             => $this->name,
             'father_name'      => $this->father_name,
 
+            'picture' => $this->picture,
+            'picture_url' => $this->picture_url ?? null,
+
             'main_province'    => $this->main_province,
             'main_district'    => $this->main_district,
             'main_village'     => $this->main_village,

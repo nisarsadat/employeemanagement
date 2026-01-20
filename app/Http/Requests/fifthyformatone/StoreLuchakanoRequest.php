@@ -12,6 +12,7 @@ class StoreLuchakanoRequest extends FormRequest
     {
         return [
             'nickname'           => ['nullable','string'],
+            'picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],        
             'name'               => ['required','string'],
             'father_name'        => ['nullable','string'],
             'main_province'      => ['nullable','string'],

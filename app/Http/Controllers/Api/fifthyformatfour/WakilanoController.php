@@ -12,12 +12,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class WakilanoController extends Controller
 {
     private function isDuplicateKey(QueryException $e): bool
     {
-        // MySQL duplicate key
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
@@ -33,18 +33,35 @@ class WakilanoController extends Controller
         ], 422);
     }
 
+    private function normalizePublicPath(?string $path): ?string
+    {
+        if (!$path) return null;
+        $p = $path;
+        if (str_starts_with($p, 'storage/')) {
+            $p = substr($p, strlen('storage/'));
+        }
+        return $p;
+    }
+
+    private function storePicture(Request $request, string $field = 'picture'): ?string
+    {
+        if (!$request->hasFile($field)) return null;
+
+        $file = $request->file($field);
+        if (!$file) return null;
+
+        // store in public disk
+        return $file->store('wakilanos/pictures', 'public');
+    }
+
     /**
      * GET /api/wakilanos
-     * - Eager-load resource:id,name,code_number,phone_number
-     * - Search (optional): ?search=...
-     * - Pagination: if perPage/page missing or invalid => return ALL (no pagination)
      */
     public function index(Request $request)
     {
         $query = Wakilano::query()
             ->with(['resource:id,name,code_number,phone_number']);
 
-        // Simple search
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
                 $q->where('name', 'like', "%$s%")
@@ -55,20 +72,17 @@ class WakilanoController extends Controller
             });
         }
 
-        // Validate pagination inputs
         $perPage = $request->query('perPage');
         $page    = $request->query('page');
 
         $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
-        // Fallback → return ALL if inputs are missing or invalid
         if ($perPageInt === false || $pageInt === false) {
             $rows = $query->orderByDesc('id')->get();
             return WakilanoResource::collection($rows);
         }
 
-        // Paginated path
         $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
 
         return WakilanoResource::collection($rows);
@@ -80,17 +94,24 @@ class WakilanoController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $user) {
-                $row = Wakilano::create($request->validated());
+                $data = $request->validated();
+
+                // ✅ picture upload
+                $pic = $this->storePicture($request, 'picture');
+                if ($pic) {
+                    $data['picture'] = $pic;
+                }
+
+                $row = Wakilano::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
-                // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
                     module: 'وکیلان',
                     action: 'created',
                     title: 'نوی وکیل ثبت شو',
                     message: 'نوم: ' . ($row->name ?? ''),
-                    routeName: 'wakilanos',              // ⚠️ set to your real route name
+                    routeName: 'wakilanos',
                     routeParams: ['id' => $row->id],
                     level: 'success',
                     changes: null
@@ -118,7 +139,6 @@ class WakilanoController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $wakilano, $user) {
-                // 🧮 build changes BEFORE update
                 $original  = $wakilano->getOriginal();
                 $validated = $request->validated();
                 $changes   = [];
@@ -127,25 +147,43 @@ class WakilanoController extends Controller
                     if (array_key_exists($field, $original)) {
                         $oldValue = $original[$field];
                         if ($oldValue != $newValue) {
-                            $changes[$field] = [
-                                'old' => $oldValue,
-                                'new' => $newValue,
-                            ];
+                            $changes[$field] = ['old' => $oldValue, 'new' => $newValue];
                         }
                     }
+                }
+
+                // ✅ remove picture request (from Vue: _remove_picture = 1)
+                $removePic = (int) $request->input('_remove_picture', 0) === 1;
+
+                if ($removePic && $wakilano->picture) {
+                    $old = $this->normalizePublicPath($wakilano->picture);
+                    if ($old) Storage::disk('public')->delete($old);
+                    $validated['picture'] = null;
+                    $changes['picture'] = ['old' => $wakilano->picture, 'new' => null];
+                }
+
+                // ✅ new picture upload
+                $newPic = $this->storePicture($request, 'picture');
+                if ($newPic) {
+                    // delete old
+                    if ($wakilano->picture) {
+                        $old = $this->normalizePublicPath($wakilano->picture);
+                        if ($old) Storage::disk('public')->delete($old);
+                    }
+                    $validated['picture'] = $newPic;
+                    $changes['picture'] = ['old' => $wakilano->picture, 'new' => $newPic];
                 }
 
                 $wakilano->update($validated);
                 $wakilano->load(['resource:id,name,code_number,phone_number']);
 
-                // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
                     module: 'وکیلان',
                     action: 'updated',
                     title: 'وکیل اصلاح شو',
                     message: 'نوم: ' . ($wakilano->name ?? ''),
-                    routeName: 'wakilanos',              // ⚠️ set to your real route name
+                    routeName: 'wakilanos',
                     routeParams: ['id' => $wakilano->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null
@@ -168,9 +206,14 @@ class WakilanoController extends Controller
         return DB::transaction(function () use ($wakilano, $user) {
             $name = $wakilano->name;
 
+            // ✅ delete picture file
+            if ($wakilano->picture) {
+                $old = $this->normalizePublicPath($wakilano->picture);
+                if ($old) Storage::disk('public')->delete($old);
+            }
+
             $wakilano->delete();
 
-            // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
                 module: 'وکیلان',

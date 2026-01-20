@@ -18,6 +18,7 @@ class StoreWakilanoRequest extends FormRequest
             'name'               => ['nullable','string'],
             'f_name'             => ['nullable','string'],
             'grand_father_name'  => ['nullable','string'],
+            'picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],        
 
             'main_province'      => ['nullable','string'],
             'main_district'      => ['nullable','string'],

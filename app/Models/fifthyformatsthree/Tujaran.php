@@ -13,6 +13,7 @@ class Tujaran extends Model
     protected $fillable = [
         'name',
         'father_name',
+        'picture',
 
         // Main address
         'main_province',

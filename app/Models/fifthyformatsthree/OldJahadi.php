@@ -11,6 +11,7 @@ class OldJahadi extends Model
     use HasFactory;
 
     protected $fillable = [
+        'picture',
         'nick_name',
         'name',
         'father_name',

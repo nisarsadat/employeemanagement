@@ -176,6 +176,19 @@
           <v-icon v-else size="20">mdi-account</v-icon>
         </v-avatar>
       </template>
+      <!-- 🟢🔴 Activity dot (فعال/غیر فعال) -->
+      <template #cell-activity="{ row }">
+        <div class="d-flex align-center justify-center">
+          <span
+            class="status-dot"
+            :class="{
+              'status-dot--active': String(getRow(row).activity || '').trim() === 'فعال',
+              'status-dot--inactive': String(getRow(row).activity || '').trim() === 'غیر فعال',
+            }"
+            :title="String(getRow(row).activity || '').trim()"
+          />
+        </div>
+      </template>
 
       <!-- 👤 Office employee cell with route + tooltip -->
       <template #cell-office_employee_id="{ row }">
@@ -855,5 +868,20 @@
 
   .text-grey {
     color: #9e9e9e;
+  }
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    display: inline-block;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.06);
+  }
+
+  .status-dot--active {
+    background: #4caf50; /* green */
+  }
+
+  .status-dot--inactive {
+    background: #f44336; /* red */
   }
 </style>

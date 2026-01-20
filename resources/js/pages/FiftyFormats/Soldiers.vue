@@ -1,10 +1,7 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
-    <AppBar
-      :title="t('سربازان')"
-      :subtitle="t('فهرست، جستجو و مدیریت سربازان')"
-    >
+    <AppBar :title="t('سربازان')" :subtitle="t('فهرست، جستجو و مدیریت سربازان')">
       <template #actions>
         <v-btn icon />
       </template>
@@ -63,9 +60,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('تمام سربازان') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('مجموع') }}: {{ stats.total }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
           </v-card>
@@ -84,9 +79,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -105,9 +98,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای شماره تماس') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withPhone }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withPhone }}</div>
               </div>
             </div>
           </v-card>
@@ -126,9 +117,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای منبع') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withResource }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withResource }}</div>
               </div>
             </div>
           </v-card>
@@ -169,6 +158,34 @@
       @edit="goEdit"
       @peek="openPeek"
     >
+      <!-- 🖼 PICTURE CELL (click -> big preview) -->
+      <template #cell-picture="{ row }">
+        <div class="pic-cell">
+          <v-avatar size="38" class="pic-avatar" @click.stop="openImagePreview(row)">
+            <v-img v-if="row.picture_url" :src="row.picture_url" cover />
+            <v-icon v-else size="18">mdi-account</v-icon>
+          </v-avatar>
+
+          <v-tooltip :text="t('باز کردن عکس')" location="top">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                v-if="row.picture_url"
+                icon
+                size="small"
+                variant="text"
+                color="primary"
+                @click.stop="openImagePreview(row)"
+              >
+                <v-icon size="18">mdi-magnify-plus</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
+
+          <span v-if="!row.picture_url" class="muted">-</span>
+        </div>
+      </template>
+
       <!-- 🔗 RESOURCE CODE CLICKABLE -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -196,7 +213,7 @@
           :title="row.name"
           :subtitle="row.Province_addr"
           type="fasads"
-          :photo-url="row.picture"
+          :photo-url="row.picture_url || ''"
           :zoom="16"
         />
       </template>
@@ -207,12 +224,7 @@
           <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده سرباز')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -248,6 +260,39 @@
         </div>
       </template>
     </FilterableTable>
+
+    <!-- 🖼 IMAGE PREVIEW DIALOG -->
+    <v-dialog v-model="imgDialog" max-width="920">
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center ga-2">
+            <v-icon>mdi-image</v-icon>
+            <span class="text-subtitle-1 font-weight-bold">
+              {{ imgTitle || t('پیش‌نمایش عکس') }}
+            </span>
+          </div>
+
+          <v-btn icon variant="text" @click="imgDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text>
+          <div class="img-preview-wrap">
+            <v-img
+              v-if="imgUrl"
+              :src="imgUrl"
+              class="img-preview"
+              cover
+              :alt="imgTitle || 'preview'"
+            />
+            <div v-else class="muted">{{ t('عکس موجود نیست') }}</div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
@@ -315,15 +360,12 @@ const cardFilter = ref('all');
 const stats = computed(() => {
   const rows = rowsFT.value || [];
   const total = rows.length;
-  const withCoordinates = rows.filter(
-    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
-  ).length;
-  const withPhone = rows.filter(
-    (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
-  ).length;
-  const withResource = rows.filter(
-    (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
-  ).length;
+  const withCoordinates = rows.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '')
+    .length;
+  const withPhone = rows.filter((r) => r && r.phone_number && String(r.phone_number).trim() !== '')
+    .length;
+  const withResource = rows.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '')
+    .length;
 
   return { total, withCoordinates, withPhone, withResource };
 });
@@ -344,6 +386,8 @@ const filteredRowsFT = computed(() => {
 
 /* TABLE HEADERS – list view */
 const headersFT = computed(() => [
+  { title: t('عکس'), key: 'picture', sortable: false },
+
   { title: t('نام'), key: 'name' },
   { title: t('نام پدر'), key: 'father_name' },
 
@@ -378,14 +422,12 @@ const headersFT = computed(() => [
 
 /* TOP GROUPS */
 const topGroups = computed(() => [
+  { title: t('تصویر'), keys: ['picture'] },
   { title: t('مشخصات'), keys: ['name', 'father_name'] },
   { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
   { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
   { title: t('منزل/موقعیت'), keys: ['specific_place', 'street_number', 'home_number'] },
-  {
-    title: t('وظایف/محافظ/تماس'),
-    keys: ['old_job', 'now_job', 'guard_amount', 'phone_number'],
-  },
+  { title: t('وظایف/محافظ/تماس'), keys: ['old_job', 'now_job', 'guard_amount', 'phone_number'] },
   { title: t('منبع'), keys: ['resource_code', 'resource_phone_number'] },
   { title: t('دیگر'), keys: ['Province_addr', 'coordinates', 'notes'] },
 ]);
@@ -484,6 +526,20 @@ function clearSearch() {
   fetchAll();
 }
 
+/* ✅ Image preview dialog state */
+const imgDialog = ref(false);
+const imgUrl = ref('');
+const imgTitle = ref('');
+
+function openImagePreview(row) {
+  const r = getRow(row);
+  const url = r?.picture_url || '';
+  if (!url) return;
+  imgUrl.value = url;
+  imgTitle.value = r?.name || '';
+  imgDialog.value = true;
+}
+
 /* init */
 onMounted(async () => {
   await fetchAll();
@@ -553,4 +609,37 @@ onMounted(async () => {
   font-size: 11px;
   color: #666;
 }
+
+/* ✅ Picture cell */
+.pic-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 86px;
+}
+.pic-avatar {
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+.muted {
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 12px;
+}
+
+/* ✅ Big preview */
+.img-preview-wrap {
+  width: 100%;
+  min-height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.04);
+}
+.img-preview {
+  width: 100%;
+  height: 520px;
+}
 </style>
+  

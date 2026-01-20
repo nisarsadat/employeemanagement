@@ -159,6 +159,7 @@
       @edit="goEdit"
       @peek="openPeek"
     >
+    
       <!-- ✅ تصویر: now supports picture / photo / picture_url -->
       <template #cell-picture="{ row }">
         <div v-if="getPicture(row)" class="pic-wrap">
