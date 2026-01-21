@@ -1097,5 +1097,34 @@ export const useMawadRepository = defineStore('MawadRepository', {
 
       window.URL.revokeObjectURL(url);
     },
+
+async DownloadLostMujremeenZip(id) {
+  const res = await axios.get(`/lost-mujremeens/${id}/documents-zip`, {
+    responseType: 'blob',
+    validateStatus: () => true,
+  });
+
+  const ct = res.headers?.['content-type'] || '';
+
+  // If it is HTML, you're still hitting Vite or redirecting
+  if (ct.includes('text/html')) {
+    const html = await res.data.text();
+    console.error('Returned HTML (NOT ZIP):', html.slice(0, 300));
+    throw new Error('ZIP endpoint returned HTML. Fix proxy/baseURL or route/auth.');
+  }
+
+  const blob = new Blob([res.data], { type: 'application/zip' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `lost_mujremeen_${id}_documents.zip`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
+}
+
   },
 });

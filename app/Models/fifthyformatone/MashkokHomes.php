@@ -11,6 +11,7 @@ class MashkokHomes extends Model
     use HasFactory;
 
     protected $fillable = [
+        'picture',
         'province',
         'zone',
         'district',

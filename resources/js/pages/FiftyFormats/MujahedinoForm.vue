@@ -160,10 +160,10 @@
             <v-col cols="12" md="12">
               <!-- NOTE: keeping your same bindings (as-is) -->
               <ProvinceDistrictNameSelect
-                v-model:province="form.main_province"
-                v-model:district="form.main_district"
-                :province-label="t('ولایت اصلی')"
-                :district-label="t('ولسوالی اصلی')"
+                v-model:province="form.now_province"
+                v-model:district="form.now_district"
+                :province-label="t('ولایت فعلی')"
+                :district-label="t('ولسوالی فعلی')"
                 :mdProvince="6"
                 :mdDistrict="6"
               />

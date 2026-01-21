@@ -19,7 +19,12 @@ class SoldierResource extends JsonResource
             'father_name'      => $this->father_name,
 
             'picture' => $this->picture,
-            'picture_url' => $this->picture_url ?? null,
+            'picture_url' => $this->picture
+                ? (str_starts_with($this->picture, 'http')
+                    ? $this->picture
+                    : asset('storage/' . ltrim($this->picture, '/')))
+                : null,
+
 
             'main_province'    => $this->main_province,
             'main_district'    => $this->main_district,

@@ -293,7 +293,24 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Fifthy Format One (10)
     Route::apiResource('mawads', MawadController::class);
-    Route::apiResource('lost-mujremeens', LostMujremeenController::class);
+
+
+
+    Route::prefix('lost-mujremeens')->group(function () {
+        Route::get('/', [LostMujremeenController::class, 'index']);
+        Route::get('{lostMujremeen}', [LostMujremeenController::class, 'show']);
+        Route::post('/', [LostMujremeenController::class, 'store']);
+
+        // ✅ Update must exist (your error said PUT not supported)
+        Route::put('{lostMujremeen}', [LostMujremeenController::class, 'update']);
+        Route::post('{lostMujremeen}', [LostMujremeenController::class, 'update']); // optional if you send _method
+        Route::delete('{lostMujremeen}', [LostMujremeenController::class, 'destroy']);
+
+        // ✅ ZIP download
+        Route::get('{lostMujremeen}/documents-zip', [LostMujremeenController::class, 'downloadDocumentsZip']);
+    });
+
+
     Route::apiResource('old-soldiers-homes', OldSoldiersHomesController::class);
     Route::apiResource('robbers', RobbersController::class);
     Route::apiResource('non-responsable-people', NonResponsablePeopleController::class);

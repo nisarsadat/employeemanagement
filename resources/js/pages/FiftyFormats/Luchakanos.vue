@@ -84,7 +84,7 @@
       <template #cell-picture="{ row }">
         <div class="pic-cell">
           <v-avatar
-            v-if="row.picture"
+            v-if="row.picture_url"
             size="34"
             class="pic-thumb"
             @click.stop="openImage(row.picture_url, row.name)"

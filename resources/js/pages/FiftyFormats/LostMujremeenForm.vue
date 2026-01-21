@@ -377,6 +377,128 @@
               />
             </v-col>
           </v-row>
+          <v-divider class="my-4" />
+
+          <div class="docs-header d-flex align-center justify-space-between">
+            <div class="section-header mb-0">
+              <span class="section-title">{{ t('اسناد') }}</span>
+              <v-chip v-if="hasAnyDocs" class="ml-2" size="small" color="primary" variant="tonal">
+                {{ (existingDocs.length || 0) + (newDocs.length || 0) }}
+              </v-chip>
+            </div>
+
+            <v-tooltip :text="t('دانلود تمام اسناد (ZIP)')" location="top">
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  color="green"
+                  variant="outlined"
+                  class="text-none rounded-pill secondary-action-btn"
+                  prepend-icon="mdi-zip-box"
+                  :disabled="!isEdit || !existingDocs.length || downloadingZip"
+                  :loading="downloadingZip"
+                  @click="downloadAllDocsZip"
+                >
+                  {{ t('دانلود ZIP') }}
+                </v-btn>
+              </template>
+            </v-tooltip>
+          </div>
+
+          <v-row class="mt-2">
+            <v-col cols="12">
+              <v-file-input
+                v-model="newDocsInput"
+                multiple
+                show-size
+                variant="outlined"
+                density="compact"
+                prepend-icon="mdi-paperclip"
+                :label="t('اسناد جدید را انتخاب کنید')"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp"
+                @update:model-value="onNewDocsPicked"
+              />
+              <div class="text-caption text-medium-emphasis mt-2">
+                {{ t('نکته') }}: {{ t('اسناد جدید بعد از ذخیره ثبت می‌شوند') }}
+              </div>
+            </v-col>
+
+            <!-- existing docs -->
+            <v-col cols="12" v-if="existingDocs.length">
+              <div class="docs-block">
+                <div class="docs-title">{{ t('اسناد موجود') }}</div>
+
+                <div class="docs-chips">
+                  <v-chip
+                    v-for="doc in existingDocs"
+                    :key="doc.id"
+                    class="ma-1"
+                    color="primary"
+                    variant="tonal"
+                    label
+                  >
+                    <v-icon start size="16">mdi-file</v-icon>
+                    <span class="chip-text">{{
+                      doc.file_name || doc.name || 'doc_' + doc.id
+                    }}</span>
+
+                    <template #append>
+                      <v-tooltip :text="t('حذف از ریکارډ (بعد از ذخیره)')" location="top">
+                        <template #activator="{ props: removeProps }">
+                          <v-icon
+                            v-bind="removeProps"
+                            size="16"
+                            class="ml-2 cursor-pointer"
+                            color="red"
+                            @click.stop="removeExistingDoc(doc)"
+                          >
+                            mdi-close-circle
+                          </v-icon>
+                        </template>
+                      </v-tooltip>
+                    </template>
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+
+            <!-- new docs -->
+            <v-col cols="12" v-if="newDocs.length">
+              <div class="docs-block docs-block--new">
+                <div class="docs-title">{{ t('اسناد جدید (در انتظار ذخیره)') }}</div>
+
+                <div class="docs-chips">
+                  <v-chip
+                    v-for="(f, idx) in newDocs"
+                    :key="idx"
+                    class="ma-1"
+                    color="green"
+                    variant="tonal"
+                    label
+                  >
+                    <v-icon start size="16">mdi-file-plus</v-icon>
+                    <span class="chip-text">{{ f?.name || 'file_' + idx }}</span>
+
+                    <template #append>
+                      <v-tooltip :text="t('حذف از لیست')" location="top">
+                        <template #activator="{ props: removeProps }">
+                          <v-icon
+                            v-bind="removeProps"
+                            size="16"
+                            class="ml-2 cursor-pointer"
+                            color="red"
+                            @click.stop="removeNewDoc(idx)"
+                          >
+                            mdi-close-circle
+                          </v-icon>
+                        </template>
+                      </v-tooltip>
+                    </template>
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
 
           <!-- Actions -->
           <v-row class="mt-4">
@@ -580,9 +702,96 @@
     // contact & note
     phone_number: '',
     note: '',
+    //
   });
 
   const form = ref(blankForm());
+
+  // docs
+  /* =========================
+   ✅ DOCUMENTS STATE
+========================= */
+  const existingDocs = ref([]); // from API: [{id,file_name,file_path,url?...}]
+  const removed_document_ids = ref([]); // int[]
+  const newDocs = ref([]); // File[]
+  const newDocsInput = ref([]); // v-file-input model
+  const downloadingZip = ref(false);
+
+  const hasAnyDocs = computed(() => {
+    return (existingDocs.value?.length || 0) > 0 || (newDocs.value?.length || 0) > 0;
+  });
+
+  function normalizeDocsFromApi(x) {
+    const docs = x?.documents;
+    if (Array.isArray(docs)) return docs;
+    if (Array.isArray(docs?.data)) return docs.data;
+    return [];
+  }
+
+  function onNewDocsPicked(files) {
+    const list = Array.isArray(files) ? files : [];
+    const current = newDocs.value || [];
+    const merged = [...current];
+
+    for (const f of list) {
+      if (!f) continue;
+      const exists = merged.some((x) => x?.name === f.name && x?.size === f.size);
+      if (!exists) merged.push(f);
+    }
+
+    newDocs.value = merged;
+    newDocsInput.value = [];
+  }
+
+  function removeNewDoc(index) {
+    const arr = [...(newDocs.value || [])];
+    arr.splice(index, 1);
+    newDocs.value = arr;
+  }
+
+  function removeExistingDoc(doc) {
+    if (!doc?.id) return;
+    if (!removed_document_ids.value.includes(doc.id)) {
+      removed_document_ids.value.push(doc.id);
+    }
+    existingDocs.value = (existingDocs.value || []).filter((d) => d.id !== doc.id);
+  }
+
+  function appendDocsToFormData(fd) {
+    for (const f of newDocs.value || []) {
+      if (!f) continue;
+      fd.append('_newDocs[]', f);
+    }
+    for (const id of removed_document_ids.value || []) {
+      if (!id) continue;
+      fd.append('removed_document_ids[]', String(id));
+    }
+  }
+
+  async function downloadAllDocsZip() {
+    if (!isEdit.value) return;
+    const id = form.value.id;
+    if (!id) return;
+
+    const name = `lost_mujremeen_${id}`;
+    try {
+      downloadingZip.value = true;
+
+      // ✅ repo method names - choose one
+      if (typeof repo.DownloadLostMujremeenZip === 'function') {
+        await repo.DownloadLostMujremeenZip(id, name);
+      } else if (typeof repo.DownloadLostMujremeenZip === 'function') {
+        await repo.DownloadLostMujremeenZip(id, name);
+      } else {
+        showErrorMessage(t('دانلود ZIP برای این ماډل هنوز تنظیم نشده است'));
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دانلود اسناد'));
+    } finally {
+      downloadingZip.value = false;
+    }
+  }
 
   /* RULES */
   const rules = {
@@ -702,6 +911,12 @@
     b.phone_number = x.phone_number ?? '';
     b.note = x.note ?? '';
 
+    // docs
+    existingDocs.value = normalizeDocsFromApi(x);
+    removed_document_ids.value = [];
+    newDocs.value = [];
+    newDocsInput.value = [];
+
     return b;
   }
 
@@ -739,13 +954,15 @@
     });
     return fd;
   }
-
   function buildCreateFormData() {
     const payload = { ...form.value };
     delete payload.previewUrl;
 
     const fd = toFormData(payload);
+
     if (pictureFile.value) fd.append('picture', pictureFile.value);
+
+    appendDocsToFormData(fd);
     return fd;
   }
 
@@ -755,7 +972,10 @@
     delete payload.picture;
 
     const fd = toFormData(payload);
+
     if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
+    appendDocsToFormData(fd);
     return fd;
   }
 
@@ -1053,5 +1273,40 @@
 
   .ga-2 {
     gap: 8px;
+  }
+  .docs-header {
+    padding: 6px 0;
+  }
+
+  .docs-block {
+    border: 1px dashed rgba(0, 0, 0, 0.18);
+    border-radius: 14px;
+    padding: 12px 12px 8px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.55));
+  }
+  .docs-block--new {
+    border-style: dashed;
+    border-color: rgba(46, 125, 50, 0.35);
+  }
+
+  .docs-title {
+    font-size: 12px;
+    font-weight: 800;
+    opacity: 0.85;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .docs-chips {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .chip-text {
+    max-width: 340px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>

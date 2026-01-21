@@ -217,18 +217,76 @@
           </v-row>
 
           <!-- =========================
-               ✅ DOCUMENTS SECTION
-               - existingDocs (from API)
-               - _newDocs (File[])
-               - removed_document_ids (int[])
+               ✅ PICTURE SECTION (NEW)
           ========================== -->
           <v-divider class="my-4" />
-
           <div class="section-header mb-2 d-flex align-center justify-space-between">
-            <span class="section-title">{{ t('اسناد') }}</span>
+            <span class="section-title">{{ t('عکس') }}</span>
+            <v-chip size="small" variant="tonal" color="primary" v-if="picturePreview || pictureUrlFromApi">
+              <v-icon start size="16">mdi-image</v-icon>
+              {{ t('پیش‌نمایش فعال است') }}
+            </v-chip>
+          </div>
+
+          <v-row class="align-center">
+            <v-col cols="12" md="3" class="d-flex justify-center">
+              <v-avatar size="110" class="picture-avatar" rounded="lg">
+                <v-img
+                  v-if="picturePreview || pictureUrlFromApi"
+                  :src="picturePreview || pictureUrlFromApi"
+                  cover
+                />
+                <div v-else class="empty-avatar">
+                  <v-icon size="44" color="grey-darken-1">mdi-home-city</v-icon>
+                </div>
+              </v-avatar>
+            </v-col>
+
+            <v-col cols="12" md="9">
+              <v-file-input
+                v-model="pictureInput"
+                accept=".png,.jpg,.jpeg,.webp"
+                variant="outlined"
+                density="compact"
+                prepend-icon="mdi-camera"
+                :label="t('عکس خانه را انتخاب کنید')"
+                show-size
+                clearable
+                @update:model-value="onPicturePicked"
+              />
+
+              <div class="d-flex align-center ga-2 mt-2 flex-wrap">
+                <v-btn
+                  variant="outlined"
+                  color="red"
+                  class="text-none rounded-pill secondary-action-btn"
+                  prepend-icon="mdi-delete"
+                  :disabled="!picturePreview && !pictureUrlFromApi && !form.picture"
+                  @click="clearPicture"
+                >
+                  {{ t('حذف عکس') }}
+                </v-btn>
+
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('نکته') }}: {{ t('عکس بعد از ذخیره ثبت می‌شود') }}
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- =========================
+               ✅ DOCUMENTS SECTION (REDESIGNED)
+          ========================== -->
+          <v-divider class="my-4" />
+          <div class="docs-head">
+            <div>
+              <div class="section-title">{{ t('اسناد') }}</div>
+              <div class="text-caption text-medium-emphasis mt-1">
+                {{ t('اسناد جدید بعد از ذخیره ثبت می‌شوند') }}
+              </div>
+            </div>
 
             <div class="d-flex align-center ga-2">
-              <!-- Download All ZIP (only in edit + has docs) -->
               <v-tooltip :text="t('دانلود تمام اسناد (ZIP)')" location="top">
                 <template #activator="{ props: tooltipProps }">
                   <v-btn
@@ -248,100 +306,118 @@
             </div>
           </div>
 
-          <!-- uploader -->
-          <v-row>
-            <v-col cols="12" md="12">
-              <v-file-input
-                v-model="newDocsInput"
-                multiple
-                show-size
-                variant="outlined"
-                density="compact"
-                prepend-icon="mdi-paperclip"
-                :label="t('اسناد جدید را انتخاب کنید')"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp"
-                @update:model-value="onNewDocsPicked"
-              />
-              <div class="text-caption text-medium-emphasis mt-2">
-                {{ t('نکته') }}: {{ t('اسناد جدید بعد از ذخیره ثبت می‌شوند') }}
+          <div class="docs-card">
+            <!-- Uploader -->
+            <v-row class="mt-1">
+              <v-col cols="12" md="12">
+                <v-file-input
+                  v-model="newDocsInput"
+                  multiple
+                  show-size
+                  variant="outlined"
+                  density="compact"
+                  prepend-icon="mdi-paperclip"
+                  :label="t('اسناد جدید را انتخاب کنید')"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp"
+                  @update:model-value="onNewDocsPicked"
+                />
+              </v-col>
+            </v-row>
+
+            <!-- Existing docs -->
+            <div v-if="existingDocs.length" class="docs-block2">
+              <div class="docs-title2">
+                <v-icon size="18">mdi-folder</v-icon>
+                <span>{{ t('اسناد موجود') }}</span>
+                <v-spacer />
+                <v-chip size="small" color="primary" variant="tonal">{{ existingDocs.length }}</v-chip>
               </div>
-            </v-col>
 
-            <!-- existing docs chips -->
-            <v-col cols="12" md="12" v-if="existingDocs.length">
-              <div class="docs-block">
-                <div class="docs-title">{{ t('اسناد موجود') }}</div>
+              <div class="docs-grid">
+                <div v-for="doc in existingDocs" :key="doc.id" class="doc-item">
+                  <div class="doc-left">
+                    <v-icon size="22" color="primary">mdi-file</v-icon>
+                  </div>
 
-                <div class="docs-chips">
-                  <v-chip
-                    v-for="doc in existingDocs"
-                    :key="doc.id"
-                    class="ma-1"
-                    color="primary"
-                    variant="tonal"
-                    label
-                  >
-                    <v-icon start size="16">mdi-file</v-icon>
-                    <span class="chip-text">{{ doc.file_name || doc.name || ('doc_' + doc.id) }}</span>
+                  <div class="doc-mid">
+                    <div class="doc-name">
+                      {{ doc.file_name || doc.original_name || doc.name || ('doc_' + doc.id) }}
+                    </div>
+                    <div class="doc-meta">
+                      <span v-if="doc.mime_type">{{ doc.mime_type }}</span>
+                      <span v-if="doc.size"> • {{ formatBytes(doc.size) }}</span>
+                    </div>
+                  </div>
 
-                    <template #append>
-                      <!-- remove existing doc -->
-                      <v-tooltip :text="t('حذف از ریکارډ (بعد از ذخیره)')" location="top">
-                        <template #activator="{ props: removeProps }">
-                          <v-icon
-                            v-bind="removeProps"
-                            size="16"
-                            class="ml-2 cursor-pointer"
-                            color="red"
-                            @click.stop="removeExistingDoc(doc)"
-                          >
-                            mdi-close-circle
-                          </v-icon>
-                        </template>
-                      </v-tooltip>
-                    </template>
-                  </v-chip>
+                  <div class="doc-right">
+                    <v-tooltip :text="t('حذف از ریکارډ (بعد از ذخیره)')" location="top">
+                      <template #activator="{ props: removeProps }">
+                        <v-btn
+                          v-bind="removeProps"
+                          icon
+                          size="small"
+                          variant="text"
+                          color="red"
+                          @click.stop="removeExistingDoc(doc)"
+                        >
+                          <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                      </template>
+                    </v-tooltip>
+                  </div>
                 </div>
               </div>
-            </v-col>
+            </div>
 
-            <!-- new docs chips -->
-            <v-col cols="12" md="12" v-if="newDocs.length">
-              <div class="docs-block">
-                <div class="docs-title">{{ t('اسناد جدید (در انتظار ذخیره)') }}</div>
+            <!-- New docs -->
+            <div v-if="newDocs.length" class="docs-block2 mt-3">
+              <div class="docs-title2">
+                <v-icon size="18" color="green">mdi-cloud-upload</v-icon>
+                <span>{{ t('اسناد جدید (در انتظار ذخیره)') }}</span>
+                <v-spacer />
+                <v-chip size="small" color="green" variant="tonal">{{ newDocs.length }}</v-chip>
+              </div>
 
-                <div class="docs-chips">
-                  <v-chip
-                    v-for="(f, idx) in newDocs"
-                    :key="idx"
-                    class="ma-1"
-                    color="green"
-                    variant="tonal"
-                    label
-                  >
-                    <v-icon start size="16">mdi-file-plus</v-icon>
-                    <span class="chip-text">{{ f?.name || ('file_' + idx) }}</span>
+              <div class="docs-grid">
+                <div v-for="(f, idx) in newDocs" :key="idx" class="doc-item doc-item-new">
+                  <div class="doc-left">
+                    <v-icon size="22" color="green">mdi-file-plus</v-icon>
+                  </div>
 
-                    <template #append>
-                      <v-tooltip :text="t('حذف از لیست') " location="top">
-                        <template #activator="{ props: removeProps }">
-                          <v-icon
-                            v-bind="removeProps"
-                            size="16"
-                            class="ml-2 cursor-pointer"
-                            color="red"
-                            @click.stop="removeNewDoc(idx)"
-                          >
-                            mdi-close-circle
-                          </v-icon>
-                        </template>
-                      </v-tooltip>
-                    </template>
-                  </v-chip>
+                  <div class="doc-mid">
+                    <div class="doc-name">
+                      {{ f?.name || ('file_' + idx) }}
+                    </div>
+                    <div class="doc-meta" v-if="f?.size">
+                      {{ formatBytes(f.size) }}
+                    </div>
+                  </div>
+
+                  <div class="doc-right">
+                    <v-tooltip :text="t('حذف از لیست')" location="top">
+                      <template #activator="{ props: removeProps }">
+                        <v-btn
+                          v-bind="removeProps"
+                          icon
+                          size="small"
+                          variant="text"
+                          color="red"
+                          @click.stop="removeNewDoc(idx)"
+                        >
+                          <v-icon>mdi-close</v-icon>
+                        </v-btn>
+                      </template>
+                    </v-tooltip>
+                  </div>
                 </div>
               </div>
-            </v-col>
-          </v-row>
+            </div>
+
+            <div v-if="!existingDocs.length && !newDocs.length" class="docs-empty">
+              <v-icon size="26" color="grey-darken-1">mdi-file-document-outline</v-icon>
+              <div class="text-body-2">{{ t('هیچ سندی انتخاب نشده است') }}</div>
+            </div>
+          </div>
 
           <!-- Actions -->
           <v-row class="mt-4">
@@ -411,7 +487,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
@@ -487,6 +563,9 @@ const blankForm = () => ({
   resource_phone: '',
 
   note: '',
+
+  // ✅ NEW
+  picture: null,
 });
 
 const form = ref(blankForm());
@@ -500,19 +579,58 @@ function onResourceChange(id) {
 }
 
 /* =========================
+   ✅ PICTURE STATE (NEW)
+========================= */
+const pictureInput = ref(null); // v-file-input model
+const picturePreview = ref(''); // blob url for preview
+const pictureUrlFromApi = ref(''); // API picture_url
+
+function revokePreview() {
+  if (picturePreview.value) URL.revokeObjectURL(picturePreview.value);
+  picturePreview.value = '';
+}
+
+function onPicturePicked(fileOrFiles) {
+  // v-file-input may return File OR File[]
+  const file = Array.isArray(fileOrFiles) ? fileOrFiles[0] : fileOrFiles;
+
+  revokePreview();
+
+  if (!file) {
+    form.value.picture = null;
+    pictureInput.value = null;
+    return;
+  }
+
+  form.value.picture = file; // ✅ will be appended to FormData
+  picturePreview.value = URL.createObjectURL(file);
+}
+
+function clearPicture() {
+  revokePreview();
+  pictureInput.value = null;
+  form.value.picture = null;
+
+  // If you want “remove existing picture on save”, backend needs a flag.
+  // Since you said "no other changes", we only clear locally.
+  pictureUrlFromApi.value = '';
+}
+
+onBeforeUnmount(() => revokePreview());
+
+/* =========================
    ✅ DOCUMENTS STATE
 ========================= */
-const existingDocs = ref([]);              // from API: [{id, file_name, file_path, url?}, ...]
-const removed_document_ids = ref([]);      // int[]
-const newDocs = ref([]);                   // File[]
-const newDocsInput = ref([]);              // v-file-input model
+const existingDocs = ref([]);
+const removed_document_ids = ref([]);
+const newDocs = ref([]);
+const newDocsInput = ref([]);
 
 const hasAnyDocs = computed(() => {
   return (existingDocs.value?.length || 0) > 0 || (newDocs.value?.length || 0) > 0;
 });
 
 function normalizeDocsFromApi(x) {
-  // Accept different backend shapes safely
   const docs = x?.documents;
   if (Array.isArray(docs)) return docs;
   if (Array.isArray(docs?.data)) return docs.data;
@@ -520,9 +638,7 @@ function normalizeDocsFromApi(x) {
 }
 
 function onNewDocsPicked(files) {
-  // v-file-input returns File[] (or null)
   const list = Array.isArray(files) ? files : [];
-  // merge with current (avoid duplicates by name+size)
   const current = newDocs.value || [];
   const merged = [...current];
 
@@ -533,7 +649,6 @@ function onNewDocsPicked(files) {
   }
 
   newDocs.value = merged;
-  // reset input model so picking the same file again still triggers
   newDocsInput.value = [];
 }
 
@@ -545,11 +660,9 @@ function removeNewDoc(index) {
 
 function removeExistingDoc(doc) {
   if (!doc?.id) return;
-  // mark for delete
   if (!removed_document_ids.value.includes(doc.id)) {
     removed_document_ids.value.push(doc.id);
   }
-  // remove from UI
   existingDocs.value = (existingDocs.value || []).filter((d) => d.id !== doc.id);
 }
 
@@ -606,6 +719,10 @@ function mapFromApi(payload = {}) {
 
   b.note = x.note ?? '';
 
+  // ✅ picture url from API (for preview)
+  pictureUrlFromApi.value = x.picture_url ?? '';
+  // do not set b.picture from API (must stay null/file)
+
   return { b, x };
 }
 
@@ -616,6 +733,9 @@ async function loadRecord() {
     existingDocs.value = [];
     removed_document_ids.value = [];
     newDocs.value = [];
+    newDocsInput.value = [];
+    pictureUrlFromApi.value = '';
+    clearPicture();
     return;
   }
 
@@ -627,11 +747,15 @@ async function loadRecord() {
     const { b, x } = mapFromApi(single);
     form.value = { ...b };
 
-    // docs
     existingDocs.value = normalizeDocsFromApi(x);
     removed_document_ids.value = [];
     newDocs.value = [];
     newDocsInput.value = [];
+
+    // reset local picture file selection
+    revokePreview();
+    pictureInput.value = null;
+    form.value.picture = null;
   } catch (e) {
     console.error(e);
     showErrorMessage(t('خطا در دریافت معلومات خانه مشکوک'));
@@ -649,17 +773,12 @@ function toFormData(obj) {
 }
 
 function appendDocsToFormData(fd) {
-  // add new files
   for (const f of newDocs.value || []) {
     if (!f) continue;
-    // IMPORTANT: backend should expect "_newDocs[]"
     fd.append('_newDocs[]', f);
   }
-
-  // removed docs ids
   for (const id of removed_document_ids.value || []) {
     if (!id) continue;
-    // IMPORTANT: backend should expect "removed_document_ids[]"
     fd.append('removed_document_ids[]', String(id));
   }
 }
@@ -676,6 +795,20 @@ function buildUpdateFormData() {
   const fd = toFormData(payload);
   appendDocsToFormData(fd);
   return fd;
+}
+
+/* helpers */
+function formatBytes(bytes) {
+  const n = Number(bytes);
+  if (!n || n <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let i = 0;
+  let v = n;
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024;
+    i++;
+  }
+  return `${v.toFixed(v >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
 /* SCROLL TO FIRST INVALID */
@@ -877,6 +1010,7 @@ function resetForm() {
     removed_document_ids.value = [];
     newDocs.value = [];
     newDocsInput.value = [];
+    clearPicture();
   }
 
   clearBackendErrors();
@@ -934,31 +1068,124 @@ onMounted(async () => {
   font-weight: 500;
 }
 
-/* docs UI */
-.docs-block {
+/* =========================
+   Picture UI
+========================= */
+.picture-avatar {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  background: #fff;
+}
+.empty-avatar {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* =========================
+   Docs UI (new design)
+========================= */
+.docs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.docs-card {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72));
+}
+
+.docs-block2 {
   border: 1px dashed rgba(0, 0, 0, 0.18);
-  border-radius: 12px;
-  padding: 10px 10px 6px;
+  border-radius: 14px;
+  padding: 10px;
   background: rgba(255, 255, 255, 0.6);
 }
-.docs-title {
+
+.docs-title2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.85;
+  margin-bottom: 10px;
+}
+
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 960px) {
+  .docs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+}
+.doc-item-new {
+  border-color: rgba(76, 175, 80, 0.28);
+}
+
+.doc-left {
+  width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doc-mid {
+  flex: 1;
+  min-width: 0;
+}
+.doc-name {
   font-size: 12px;
   font-weight: 700;
-  opacity: 0.8;
-  margin-bottom: 6px;
-}
-.docs-chips {
-  display: flex;
-  flex-wrap: wrap;
-}
-.chip-text {
-  max-width: 320px;
+  line-height: 1.2;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
-.cursor-pointer {
-  cursor: pointer;
+.doc-meta {
+  font-size: 11px;
+  opacity: 0.65;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-right {
+  display: flex;
+  align-items: center;
+}
+
+.docs-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  margin-top: 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.03);
 }
 .ga-2 {
   gap: 8px;

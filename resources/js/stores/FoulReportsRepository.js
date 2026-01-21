@@ -7,20 +7,20 @@ import { toast } from 'vue3-toastify';
 export const useFoulReportsRepository = defineStore('FoulReportsRepository', () => {
   const loading = ref(false);
 
-  // ✅ IMPORTANT: keep error as STRING (never object)
+  // ✅ keep error as STRING (never object)
   const error = ref('');
 
-  // Daily report payload from backend
+  // payloads
   const daily = ref(null);
-
-  // Monthly report payload from backend
   const monthly = ref(null);
 
-  // Filters
+  // filters
   const selectedDate = ref(''); // YYYY-MM-DD
   const selectedMonth = ref(''); // YYYY-MM
 
-  // ===== helpers =====
+  // =========================
+  // Helpers
+  // =========================
   function todayIso() {
     const d = new Date();
     const y = d.getFullYear();
@@ -65,7 +65,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   function normalizeError(e) {
     const data = e?.response?.data;
 
-    let msg = 'خطا در دریافت گزارش روزانه.';
+    let msg = 'د راپور ترلاسه کولو کې ستونزه رامنځته شوه.';
 
     if (typeof data === 'string') return data;
 
@@ -100,12 +100,18 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     }
   }
 
-  // ===== DATE FORMATTERS (ONLY Hijri Shamsi + Hijri Qamari) =====
-  function formatPersianHijriShamsi(dateIso) {
-    // Persian calendar (هجری شمسی)
+  // =========================
+  // Dates (Miladi + Hijri Shamsi + Hijri Qamari)
+  // =========================
+  function formatMiladi(dateIso) {
+    // keep as YYYY-MM-DD (same day)
+    const d = String(dateIso || '').trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : '';
+  }
+
+  function formatHijriShamsi(dateIso) {
     try {
       const d = new Date(`${dateIso}T00:00:00`);
-      // fa-AF + persian calendar
       return new Intl.DateTimeFormat('fa-AF-u-ca-persian', {
         year: 'numeric',
         month: '2-digit',
@@ -117,10 +123,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   }
 
   function formatHijriQamari(dateIso) {
-    // Islamic calendar (هجری قمری) - try umalqura if available
     try {
       const d = new Date(`${dateIso}T00:00:00`);
-      // Many browsers support: ar-SA-u-ca-islamic-umalqura
       return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
         year: 'numeric',
         month: '2-digit',
@@ -140,619 +144,792 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     }
   }
 
-  function buildDateLines(dateIso) {
-    const shamsi = formatPersianHijriShamsi(dateIso);
+  function buildDatePillsSameDay(dateIso) {
+    const miladi = formatMiladi(dateIso);
+    const shamsi = formatHijriShamsi(dateIso);
     const qamari = formatHijriQamari(dateIso);
 
-    // ✅ no میلادی output at all
-    const parts = [];
-    if (shamsi) parts.push(`<div class="date-line"><span class="date-label">هجری شمسی:</span> <span>${escapeHtml(shamsi)}</span></div>`);
-    if (qamari) parts.push(`<div class="date-line"><span class="date-label">هجری قمری:</span> <span>${escapeHtml(qamari)}</span></div>`);
-    return parts.join('');
+    const pills = [];
+
+    if (miladi)
+      pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
+    if (shamsi)
+      pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
+    if (qamari)
+      pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
+
+    return pills.join('');
   }
 
-  // ===== EXPORT HTML BUILDERS =====
-
-  function buildHeaderHtml(dateIsoForHeader) {
-    const logoSrc = `${window.location.origin}/view.png`;
-    const dateLines = buildDateLines(dateIsoForHeader);
+  // =========================
+  // Export CSS (Portrait + correct font + proper page spacing/zoom)
+  // =========================
+  function baseExportCss() {
+    // ✅ EXACT same as your app.css --app-font stack
+    const fontStack =
+      `'Amiri', 'Scheherazade New', ui-sans-serif, -apple-system, BlinkMacSystemFont,` +
+      ` 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji',` +
+      ` 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif`;
 
     return `
-      <!-- HEADER: titles + logo -->
-      <table class="header-table">
-        <tr>
-          <!-- RIGHT (Dari) -->
-          <td class="stack-cell stack-right">
-            <div class="stack-inner">
-              فورم ثبت اطلاع <br />
-              فورم ثبت اطلاع <br />
-              فورم ثبت اطلاع <br />
-              فورم ثبت اطلاع
-            </div>
-          </td>
+      /* ✅ Portrait + proper page margins (space around page) */
+      @page { size: A4 portrait; margin: 14mm; }
 
-          <!-- CENTER LOGO -->
-          <td class="logo-cell">
-            <img src="${logoSrc}" alt="logo" />
-          </td>
+      :root{
+        --app-font: ${fontStack};
+      }
 
-          <!-- LEFT (Pashto) -->
-          <td class="stack-cell stack-left">
-            <div class="stack-inner">
-              د اطلاع ثبت فورم <br />
-              د اطلاع ثبت فورم <br />
-              د اطلاع ثبت فورم <br />
-              د اطلاع ثبت فورم <br />
-              د اطلاع ثبت فورم
-            </div>
-          </td>
-        </tr>
-      </table>
+      * { box-sizing: border-box; }
 
-      <table class="top-head-table">
-        <tr>
-          <!-- RIGHT: meta (کتنه / نېټه) -->
-          <td class="top-right">
-            <div class="meta-row">
-            </div>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #f6f7fb;
+        color: #111827;
+        font-family: var(--app-font) !important;
+        font-size: 12px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
 
-            <div class="meta-row">
-              <span class="meta-label">نېټه:</span>
-              <span class="meta-date">
-                ${dateLines || ''}
-              </span>
-            </div>
-          </td>
+      /* ✅ inner spacing like "zoom" (content not touching paper edges) */
+      .page {
+        width: 100%;
+        padding: 8mm;       /* extra breathing space INSIDE page */
+        background: #f6f7fb;
+      }
 
-          <!-- CENTER: bismillah -->
-          <td class="top-center">
-            <div class="bismillah-top">بسم الله الرحمن الرحیم</div>
-            <div class="bismillah-orn"></div>
-          </td>
+      /* ====== HERO (beautified) ====== */
+      .hero {
+        border-radius: 16px;
+        padding: 18px 18px 14px;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 18px 40px rgba(79,70,229,.18);
+      }
+      .hero::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        opacity:.42;
+        background:
+          radial-gradient(circle at 16% 26%, rgba(255,255,255,.20) 0 2px, transparent 3px) 0 0/26px 26px,
+          radial-gradient(circle at 70% 40%, rgba(255,255,255,.14) 0 2px, transparent 3px) 0 0/34px 34px;
+        pointer-events:none;
+      }
 
-          <!-- LEFT: checkboxes -->
-          <td class="top-left">
-            <div class="check-row">
-            </div>
+      .hero-top{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:12px;
+        position:relative;
+        z-index:1;
+      }
 
-            <div class="check-row">
-            </div>
-          </td>
-        </tr>
-      </table>
+      .hero-title{
+        color:#fff;
+        font-weight:900;
+        font-size:18px;
+        margin:0 0 4px;
+        letter-spacing:.2px;
+        line-height:1.25;
+      }
+      .hero-sub{
+        color: rgba(255,255,255,.92);
+        margin:0;
+        font-size:12px;
+        line-height:1.55;
+        font-weight:700;
+      }
+
+      .hero-date{
+        display:flex;
+        flex-direction:column;
+        align-items:flex-end;
+        gap:6px;
+        padding:10px 12px;
+        border-radius:12px;
+        border:1px solid rgba(255,255,255,.24);
+        background: rgba(255,255,255,.16);
+        color:#fff;
+        white-space:nowrap;
+        min-width: 150px;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+      }
+      .hero-date .date-big{
+        font-weight:900;
+        font-size:12px;
+      }
+      .hero-date .date-small{
+        font-weight:800;
+        font-size:10px;
+        opacity:.92;
+      }
+
+      .pills{
+        margin-top:10px;
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        position:relative;
+        z-index:1;
+      }
+      .pill{
+        display:inline-block;
+        padding:6px 10px;
+        border-radius:999px;
+        font-weight:900;
+        font-size:11px;
+        border:1px solid rgba(255,255,255,.28);
+        background: rgba(255,255,255,.14);
+        color:#fff;
+      }
+      .pill-miladi{ }
+      .pill-shamsi{ }
+      .pill-qamari{ }
+
+      .section { margin-top: 12px; }
+
+      /* ====== Stats cards ====== */
+      .stats-grid{
+        display:grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap:10px;
+        margin-top:12px;
+      }
+
+      .card{
+        background:#fff;
+        border:1px solid #e9eef7;
+        border-radius:14px;
+        overflow:hidden;
+        box-shadow: 0 10px 22px rgba(17,24,39,.06);
+      }
+
+      .stat-card{
+        padding:12px 12px;
+        min-height:90px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+      }
+      .stat-label{
+        font-size:11px;
+        color: rgba(17,24,39,.65);
+        font-weight:900;
+        margin-bottom:4px;
+      }
+      .stat-number{
+        font-size:22px;
+        font-weight:900;
+        line-height:1.1;
+      }
+      .badge{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:4px 10px;
+        border-radius:999px;
+        font-size:10px;
+        font-weight:900;
+        margin-top:6px;
+        border:1px solid;
+        white-space:nowrap;
+      }
+      .b-primary{ background:#eef2ff; color:#1e40af; border-color:#c7d2fe; }
+      .b-info{ background:#e0f2fe; color:#075985; border-color:#bae6fd; }
+      .b-warning{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
+      .b-success{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+
+      /* ====== Two columns ====== */
+      .grid-2{
+        display:grid;
+        grid-template-columns: 5fr 7fr;
+        gap:10px;
+        margin-top:10px;
+      }
+
+      .header-strip{
+        padding:10px 12px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+      }
+      .strip-title{
+        font-weight:900;
+        font-size:12px;
+        margin:0;
+      }
+      .strip-sub{
+        margin:2px 0 0;
+        color: rgba(17,24,39,.55);
+        font-size:10px;
+        font-weight:800;
+      }
+      .strip-left{ display:flex; align-items:center; gap:10px; }
+
+      .chip{
+        padding:5px 10px;
+        border-radius:999px;
+        font-weight:900;
+        font-size:10px;
+        border:1px solid;
+        white-space:nowrap;
+      }
+
+      .bg-primary{ background: linear-gradient(135deg,#eef2ff 0%, #dde5ff 100%); }
+      .bg-success{ background: linear-gradient(135deg,#e8fbf2 0%, #d2f7e5 100%); }
+      .bg-warning{ background: linear-gradient(135deg,#fff6df 0%, #ffeab6 100%); }
+
+      .chip-primary{ background:#eef2ff; border-color:#c7d2fe; color:#1e40af; }
+      .chip-success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
+      .chip-warning{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+
+      /* ====== Tables ====== */
+      table{
+        width:100%;
+        border-collapse:separate;
+        border-spacing: 0;
+        table-layout: fixed;
+      }
+      thead th{
+        background:#f8fafc;
+        color: rgba(17,24,39,.72);
+        font-weight:900;
+        font-size:11px;
+        padding:9px 8px;
+        border-bottom:1px solid #eef2f7;
+      }
+      tbody td{
+        padding:9px 8px;
+        border-bottom:1px solid #f0f4fa;
+        font-size:11px;
+        vertical-align:middle;
+        color: rgba(17,24,39,.90);
+      }
+      tbody tr:nth-child(even) td{ background: #fcfdff; }
+
+      .td-end{ text-align:end; }
+      .td-center{ text-align:center; }
+
+      .count-pill{
+        display:inline-block;
+        padding:4px 10px;
+        border-radius:999px;
+        font-weight:900;
+        font-size:10px;
+        border:1px solid;
+      }
+      .count-primary{ border-color:#c7d2fe; color:#1e40af; background:#eef2ff; }
+      .count-success{ border-color:#a7f3d0; color:#065f46; background:#ecfdf5; }
+
+      .etype{
+        display:inline-block;
+        padding:4px 10px;
+        border-radius:999px;
+        font-weight:900;
+        font-size:10px;
+        border:1px solid #e5e7eb;
+        background:#f3f4f6;
+      }
+      .etype-red{ background:#fee2e2; border-color:#fecaca; color:#991b1b; }
+      .etype-amber{ background:#ffedd5; border-color:#fed7aa; color:#9a3412; }
+      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; color:#5b21b6; }
+      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; color:#1e40af; }
+      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; color:#374151; }
+
+      .footer{
+        margin-top:10px;
+        padding:10px 12px;
+        background:#f8fafc;
+        border-top:1px solid #eef2f7;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        font-size:10px;
+        color: rgba(17,24,39,.65);
+        font-weight:900;
+      }
+
+      .no-break { break-inside: avoid; page-break-inside: avoid; }
+      .card { break-inside: avoid; page-break-inside: avoid; }
+
+      /* Portrait fallback */
+      @media print{
+        .stats-grid{ grid-template-columns: repeat(2, 1fr); }
+        .grid-2{ grid-template-columns: 1fr; }
+      }
     `;
   }
 
-  function buildInformationsTypesLines(report) {
-    const types = Array.isArray(report?.informations?.types) ? report.informations.types : [];
+  function eventTypeClass(type) {
+    const t = String(type ?? '').trim();
 
-    const valid = types
-      .map((t) => ({
-        label: String(t?.label ?? '').trim(),
-        count: safeNum(t?.count),
-      }))
-      .filter((x) => x.label && x.count > 0);
+    const map = {
+      حادثه: 'etype-red',
+      پېښه: 'etype-red',
+      تخریب: 'etype-amber',
+      ويجاړۍ: 'etype-amber',
+      درگیری: 'etype-amber',
+      نښته: 'etype-amber',
+      طبیعی: 'etype-blue',
+      طبيعي: 'etype-blue',
+      سیاسی: 'etype-purple',
+      سياسي: 'etype-purple',
+    };
 
-    if (!valid.length) return '';
-
-    return valid.map((x) => `<li>${escapeHtml(x.label)} ( ${x.count} ).</li>`).join('');
+    return map[t] || 'etype-gray';
   }
 
-  function buildEventTypesLines(report) {
-    const types = Array.isArray(report?.events?.types) ? report.events.types : [];
+  // =========================
+  // Daily HTML (Pashto localized)
+  // =========================
+  function buildDailyDashboardHtml(report, dateIso) {
+    const dateText = dateIso || todayIso();
 
-    const valid = types
-      .map((t) => ({
-        label: String(t?.label ?? '').trim(),
-        count: safeNum(t?.count),
-      }))
-      .filter((x) => x.label && x.count > 0);
-
-    if (!valid.length) return '';
-
-    return valid.map((x) => `<li>${escapeHtml(x.label)} ( ${x.count} ).</li>`).join('');
-  }
-
-  function buildDailyBodyHtml(report, headerDateIso) {
     const resourcesTotal = safeNum(report?.resources?.total);
-
-    const eventsRows = Array.isArray(report?.events?.rows) ? report.events.rows : [];
+    const informationsTotal = safeNum(report?.informations?.total);
+    const eventsTotal = safeNum(report?.events?.total);
 
     const formats = Array.isArray(report?.formats) ? report.formats : [];
-    const formatsCount = formats.reduce((sum, f) => sum + safeNum(f?.count), 0);
+    const formatsActive = formats.length;
+    const formatsSum = formats.reduce((s, f) => s + safeNum(f?.count), 0);
 
-    const infoLines = buildInformationsTypesLines(report);
+    const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
+    const eventRows = Array.isArray(report?.events?.rows) ? report.events.rows : [];
 
-    // ✅ Build ONLY parts that have data
-    const parts = [];
+    // ✅ three dates: miladi + shamsi + qamari (SAME day)
+    const heroDatePills = buildDatePillsSameDay(dateText);
 
-    // Header + divider always
-    parts.push(buildHeaderHtml(headerDateIso));
-    parts.push(`<div class="bismillah-divider"></div>`);
-    parts.push(`<div class="line title">د استقراربرنامه ۶۹- قدرمن ریاست ته!</div>`);
-    parts.push(`<div class="line right bold">السلام علیکم ورحمة الله وبرکاته</div>`);
-    parts.push(`<div class="line right">الله تعالی مو په ټولو شرعی امورو کې موفق او بریالی لره.</div>`);
-    parts.push(`<div class="line right bold">وروســته:</div>`);
+    const infoTr = infoTypes.length
+      ? infoTypes
+          .map((x) => {
+            const label = escapeHtml(x?.label ?? '');
+            const count = safeNum(x?.count);
+            return `
+              <tr>
+                <td>${label}</td>
+                <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
+              </tr>
+            `;
+          })
+          .join('')
+      : `<tr><td colspan="2" class="td-center">هیڅ معلومات نشته</td></tr>`;
 
-    // ✅ bullets only if at least one bullet section has data
-    const bulletBlocks = [];
+    const formatsTr = formats.length
+      ? formats
+          .map((f) => {
+            const name = escapeHtml(f?.name ?? '');
+            const count = safeNum(f?.count);
+            return `
+              <tr>
+                <td>${name}</td>
+                <td class="td-end"><span class="count-pill count-success">${count}</span></td>
+              </tr>
+            `;
+          })
+          .join('')
+      : `<tr><td colspan="2" class="td-center">هیڅ فورم کې معلومات نشته</td></tr>`;
 
-    if (resourcesTotal > 0) {
-      bulletBlocks.push(`
-        <li>
-          د کابل ښار په م ختلفو حوزو کې ( ${resourcesTotal} ) تنه منابع استخدام شوی، وروزل شوی او ارزونه یې تررسه شوه.
-        </li>
-      `);
-    }
+    const eventsTr = eventRows.length
+      ? eventRows
+          .map((r) => {
+            const province = escapeHtml(r?.province ?? '');
+            const hawza = escapeHtml(r?.hawza ?? '');
+            const etype = escapeHtml(r?.event_specific_type ?? r?.event_type ?? '');
+            const killed = safeNum(r?.killed);
+            const injured = safeNum(r?.injured);
+            const mali = formatMoney(r?.talafat_mali);
+            const cls = eventTypeClass(etype);
 
-    if (infoLines) {
-      bulletBlocks.push(`
-        <li class="bold">ثبت شوی اطلاعات:</li>
-        <ul class="sub">
-          ${infoLines}
-        </ul>
-      `);
-    }
-
-    if (eventsRows.length > 0) {
-      const eventsTr = eventsRows
-        .map(
-          (r) => `
-            <tr>
-              <td>${escapeHtml(r?.province ?? '')}</td>
-              <td>${escapeHtml(r?.hawza ?? '')}</td>
-              <td>${escapeHtml(r?.event_type ?? '')}</td>
-              <td>${safeNum(r?.killed)}</td>
-              <td>${safeNum(r?.injured)}</td>
-              <td>${formatMoney(r?.talafat_mali)}</td>
-            </tr>
-          `
-        )
-        .join('');
-
-      bulletBlocks.push(`
-        <li class="bold">ثبت شوی پېښې:</li>
-
-        <table class="events-table">
-          <thead>
-            <tr>
-              <th>ولایت</th>
-              <th>حوزه</th>
-              <th>نوعیت</th>
-              <th>وژل شوی</th>
-              <th>ټپیان شوی</th>
-              <th>مالی تلفات</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${eventsTr}
-          </tbody>
-        </table>
-      `);
-    }
-
-    if (formatsCount > 0) {
-      bulletBlocks.push(`
-        <li class="bold">د کابل ښار لیټری دوسیه (۵۰ فارمت) کې ثبت شوی معلومات:</li>
-        <ul class="sub">
-          <li>د کابل ښار په مختلفو حوزو کې د ( ${formatsCount} ) مواردو اړوند معلومات ثبت شول.</li>
-        </ul>
-      `);
-    }
-
-    // show bullets wrapper ONLY if there is something
-    if (bulletBlocks.length) {
-      parts.push(`
-        <ul class="bullets">
-          ${bulletBlocks.join('')}
-        </ul>
-      `);
-    }
-
-    // Closing always
-    parts.push(`
-      <div class="closing">
-        <div class="bold">په درنښت</div>
-        <div class="bold">د ۳۳۳ مدیریت مدیر</div>
-      </div>
-    `);
-
-    return `<div class="letter-body">${parts.join('')}</div>`;
-  }
-
-  function buildMonthlyBodyHtml(report, monthText, headerDateIso) {
-    const resourcesTotal = safeNum(report?.resources?.total);
-
-    const infoLines = buildInformationsTypesLines(report);
-    const eventLines = buildEventTypesLines(report);
-
-    const formats = Array.isArray(report?.formats) ? report.formats : [];
-    const formatsCount = formats.reduce((sum, f) => sum + safeNum(f?.count), 0);
-
-    const parts = [];
-
-    parts.push(buildHeaderHtml(headerDateIso));
-    parts.push(`<div class="bismillah-divider"></div>`);
-    parts.push(`<div class="line right bold">السلام علیکم ورحمة الله وبرکاته</div>`);
-    parts.push(`<div class="line right">الله تعالی مو په ټولو شرعی امورو کې موفق او بریالی لره.</div>`);
-    parts.push(`<div class="line right bold">وروســته:</div>`);
-
-    const bulletBlocks = [];
-
-    if (resourcesTotal > 0) {
-      bulletBlocks.push(`
-        <li>
-          د کابل ښار په م ختلفو حوزو کې ( ${resourcesTotal} ) تنه منابع استخدام شوی، وروزل شوی او ارزونه یې تررسه شوه.
-        </li>
-      `);
-    }
-
-    if (infoLines) {
-      bulletBlocks.push(`
-        <li class="bold">ثبت شوی اطلاعات:</li>
-        <ul class="sub">
-          ${infoLines}
-        </ul>
-      `);
-    }
-
-    if (eventLines) {
-      bulletBlocks.push(`
-        <li class="bold">ثبت شوی پېښې (د نوعیت پر اساس):</li>
-        <ul class="sub">
-          ${eventLines}
-        </ul>
-      `);
-    }
-
-    if (formatsCount > 0) {
-      bulletBlocks.push(`
-        <li class="bold">د کابل ښار لیټری دوسیه (50 فارمت) کې ثبت شوی معلومات:</li>
-        <ul class="sub">
-          <li>د کابل ښار په مختلفو حوزو کې د ( ${formatsCount} ) مواردو اړوند معلومات ثبت شول.</li>
-        </ul>
-      `);
-    }
-
-    if (bulletBlocks.length) {
-      parts.push(`
-        <ul class="bullets">
-          ${bulletBlocks.join('')}
-        </ul>
-      `);
-    }
-
-    parts.push(`
-      <div class="closing">
-        <div class="bold">په درنښت</div>
-        <div class="bold">د ۳۳۳ مدیریت مدیر</div>
-      </div>
-    `);
-
-    return `<div class="letter-body">${parts.join('')}</div>`;
-  }
-
-  function buildDailyDocumentHtml(report, dateText) {
-    const headerDateIso = dateText || todayIso();
-    const body = buildDailyBodyHtml(report, headerDateIso);
+            return `
+              <tr>
+                <td>${province}</td>
+                <td>${hawza}</td>
+                <td class="td-center"><span class="etype ${cls}">${etype || '-'}</span></td>
+                <td class="td-center">${killed}</td>
+                <td class="td-center">${injured}</td>
+                <td class="td-end">${mali}</td>
+              </tr>
+            `;
+          })
+          .join('')
+      : `<tr><td colspan="6" class="td-center">هیڅ پېښه نه ده ثبت شوې</td></tr>`;
 
     return `
       <html dir="rtl">
         <head>
           <meta charset="utf-8" />
-          <title>daily_report_${headerDateIso || ''}</title>
-          <style>
-            /* ✅ consistent margins for print + Word */
-            @page { size: A4 portrait; margin: 0; }
-
-            html, body {
-              margin: 0;
-              padding: 0;
-              background: #ffffff;
-              color: #000;
-              font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
-              font-size: 13px;
-              line-height: 1.85;
-            }
-
-            /* ✅ this creates space from ALL sides */
-            .page {
-              width: 100%;
-              box-sizing: border-box;
-              padding: 12mm;
-            }
-
-            table { border-collapse: collapse; width: 100%; }
-
-            .top-head-table { table-layout: fixed; width: 100%; margin-bottom: 4px; }
-            .top-head-table td { vertical-align: top; padding: 0; }
-
-            .top-right { width: 33%; text-align: right; font-size: 12px; line-height: 1.6; padding-right: 2px; white-space: nowrap; }
-            .meta-row { display: flex; justify-content: flex-end; align-items: flex-start; gap: 6px; margin: 2px 0; }
-            .meta-label { font-weight: 700; }
-            .meta-box { width: 26px; height: 14px; border: 1px solid #000; display: inline-block; }
-            .meta-date { display: inline-block; min-width: 60px; }
-            .date-line { line-height: 1.4; }
-            .date-label { font-weight: 700; }
-
-            .top-center { width: 34%; text-align: center; padding-top: 2px; }
-            .bismillah-top { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
-            .bismillah-orn { height: 10px; position: relative; margin: 0 auto; width: 90%; }
-            .bismillah-orn::before { content: ""; position: absolute; left: 50%; top: 3px; transform: translateX(-50%); width: 160px; height: 2px; background: #000; border-radius: 2px; opacity: 0.6; }
-
-            .top-left { width: 33%; text-align: left; font-size: 12px; line-height: 1.6; padding-left: 2px; white-space: nowrap; }
-            .check-row { display: flex; align-items: center; justify-content: flex-start; gap: 6px; margin: 2px 0; }
-            .check-box { width: 16px; height: 12px; border: 1px solid #000; display: inline-block; }
-            .check-label { font-weight: 700; }
-
-            /* ===== HEADER (print + word safe) ===== */
-            .header-table{
-              width: 100%;
-              table-layout: fixed;
-              border: none;
-              margin: 0 auto;
-            }
-            .header-table td{
-              border: none !important;
-              padding: 0 !important;
-              vertical-align: middle;
-            }
-
-            .logo-cell{ width: 46%; text-align: center; }
-            .stack-cell{ width: 27%; }
-
-            /* ✅ move texts toward the logo */
-            .stack-right{ text-align: left; padding-left: 6px !important; }
-            .stack-left{  text-align: right; padding-right: 6px !important; }
-
-            .stack-inner{
-              display: inline-block;
-              font-size: 14px;
-              font-weight: 700;
-              line-height: 1.35;
-              white-space: nowrap;
-            }
-
-            .logo-cell img{
-              width: 70px;
-              height: 55px;
-              object-fit: contain;
-            }
-
-            .bismillah-divider {
-              width: 100%;
-              height: 16px;
-              background: #cfcfcf !important;
-              border-top: 1px solid #000;
-              border-bottom: 1px solid #000;
-              margin: 0 0 10px;
-            }
-
-            .line { margin: 3px 0; text-align: right; }
-            .bold { font-weight: 700; }
-            .right { text-align: right; }
-
-            .title {
-              font-size: 16px;
-              font-weight: 800;
-              text-align: center;
-              margin: 8px 0 6px;
-            }
-
-            ul.bullets {
-              margin: 8px 0 0;
-              padding-right: 18px;
-              list-style-type: disc;
-              text-align: right;
-            }
-            ul.bullets > li {
-              margin: 10px 0;
-              text-align: right;
-            }
-
-            ul.sub {
-              margin: 6px 0 0;
-              padding-right: 0;
-              list-style: none;
-              text-align: right;
-            }
-            ul.sub > li {
-              margin: 4px 0;
-              padding-right: 18px;
-              position: relative;
-              text-align: right;
-            }
-            ul.sub > li::before {
-              content: "➢";
-              position: absolute;
-              right: 0;
-              top: 0;
-              font-weight: 700;
-            }
-
-            table.events-table {
-              width: 100%;
-              border-collapse: collapse;
-              margin: 8px 0 10px;
-              table-layout: fixed;
-              text-align: right;
-            }
-            table.events-table th, table.events-table td {
-              border: 1px solid #000;
-              padding: 5px 6px;
-              text-align: center;
-              font-size: 12px;
-              vertical-align: middle;
-              background: #fff;
-            }
-            table.events-table th { font-weight: 800; }
-
-            .closing {
-              margin-top: 16px;
-              text-align: center;
-              font-weight: 700;
-            }
-          </style>
+          <title>daily_dashboard_${dateText}</title>
+          <style>${baseExportCss()}</style>
         </head>
-
         <body>
           <div class="page">
-            ${body}
+            <div class="hero no-break">
+              <div class="hero-top">
+                <div>
+                  <h1 class="hero-title">د سیستم ورځنی راپور</h1>
+                  <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو ورځنۍ عمومي کتنه</p>
+                </div>
+                <div class="hero-date">
+                  <div class="date-big">${escapeHtml(dateText)}</div>
+                  <div class="date-small">ورځنی راپور</div>
+                </div>
+              </div>
+
+              <div class="pills">${heroDatePills || ''}</div>
+            </div>
+
+            <div class="stats-grid section no-break">
+              <div class="card">
+                <div class="stat-card">
+                  <div>
+                    <div class="stat-label">سرچینې</div>
+                    <div class="stat-number">${resourcesTotal}</div>
+                    <span class="badge b-primary">ټول</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="stat-card">
+                  <div>
+                    <div class="stat-label">معلومات</div>
+                    <div class="stat-number">${informationsTotal}</div>
+                    <span class="badge b-info">شتون لري</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="stat-card">
+                  <div>
+                    <div class="stat-label">پېښې</div>
+                    <div class="stat-number">${eventsTotal}</div>
+                    <span class="badge b-warning">ثبت شوې</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="stat-card">
+                  <div>
+                    <div class="stat-label">۵۰ فارمت فورمونه</div>
+                    <div class="stat-number">${formatsActive}</div>
+                    <span class="badge b-success">فعال</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-2 section">
+              <div>
+                <div class="card no-break">
+                  <div class="header-strip bg-primary">
+                    <div class="strip-left">
+                      <div>
+                        <div class="strip-title">د معلوماتو ډولونه</div>
+                        <div class="strip-sub">د ډول له مخې وېش</div>
+                      </div>
+                    </div>
+                    <span class="chip chip-primary">${informationsTotal}</span>
+                  </div>
+
+                  <div style="padding:0;">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style="width:70%;">ډول</th>
+                          <th class="td-end" style="width:30%;">شمېر</th>
+                        </tr>
+                      </thead>
+                      <tbody>${infoTr}</tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="card no-break" style="margin-top:10px;">
+                  <div class="header-strip bg-success">
+                    <div class="strip-left">
+                      <div>
+                        <div class="strip-title">فورمونه</div>
+                        <div class="strip-sub">د ۵۰ فارمت فورمونو لنډیز</div>
+                      </div>
+                    </div>
+                    <span class="chip chip-success">${formatsActive}</span>
+                  </div>
+
+                  <div style="padding:0;">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style="width:70%;">د فورم نوم</th>
+                          <th class="td-end" style="width:30%;">ورودي</th>
+                        </tr>
+                      </thead>
+                      <tbody>${formatsTr}</tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="header-strip bg-warning">
+                  <div class="strip-left">
+                    <div>
+                      <div class="strip-title">ثبت شوې پېښې</div>
+                      <div class="strip-sub">د سیمې له مخې د پېښو جزیات</div>
+                    </div>
+                  </div>
+                  <span class="chip chip-warning">${eventsTotal}</span>
+                </div>
+
+                <div style="padding:0;">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:18%;">ولایت</th>
+                        <th style="width:18%;">حوزه</th>
+                        <th style="width:20%;">د پېښې ډول</th>
+                        <th class="td-center" style="width:11%;">وژلي</th>
+                        <th class="td-center" style="width:11%;">ټپیان</th>
+                        <th class="td-end" style="width:22%;">مالي زیان</th>
+                      </tr>
+                    </thead>
+                    <tbody>${eventsTr}</tbody>
+                  </table>
+                </div>
+
+                <div class="footer">
+                  <div>د ټولو پېښو شمېر: <span style="color:#1e40af;">${eventsTotal}</span></div>
+                  <div>د فورمونو د ورودیانو جمع: <span style="color:#065f46;">${formatsSum}</span></div>
+                </div>
+              </div>
+            </div>
           </div>
         </body>
       </html>
     `;
   }
 
-  function buildMonthlyDocumentHtml(report, monthText) {
+  // =========================
+  // Monthly HTML (Pashto localized)
+  // =========================
+  function buildMonthlyDashboardHtml(report, monthText) {
     const monthVal = monthText || currentMonthIso();
-    const headerDateIso = monthToIsoDate(monthVal);
-    const body = buildMonthlyBodyHtml(report, monthVal, headerDateIso);
+    const headerIso = monthToIsoDate(monthVal); // month start date
+
+    const resourcesTotal = safeNum(report?.resources?.total);
+    const informationsTotal = safeNum(report?.informations?.total);
+    const eventsTotal = safeNum(report?.events?.total);
+
+    const formats = Array.isArray(report?.formats) ? report.formats : [];
+    const formatsActive = formats.length;
+    const formatsSum = formats.reduce((s, f) => s + safeNum(f?.count), 0);
+
+    const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
+    const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
+
+    // ✅ three dates for THAT day (month start day)
+    const heroDatePills = buildDatePillsSameDay(headerIso);
+
+    const infoTr = infoTypes.length
+      ? infoTypes
+          .map((x) => {
+            const label = escapeHtml(x?.label ?? '');
+            const count = safeNum(x?.count);
+            return `
+              <tr>
+                <td>${label}</td>
+                <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
+              </tr>
+            `;
+          })
+          .join('')
+      : `<tr><td colspan="2" class="td-center">هیڅ معلومات نشته</td></tr>`;
+
+    const formatsTr = formats.length
+      ? formats
+          .map((f) => {
+            const name = escapeHtml(f?.name ?? '');
+            const count = safeNum(f?.count);
+            return `
+              <tr>
+                <td>${name}</td>
+                <td class="td-end"><span class="count-pill count-success">${count}</span></td>
+              </tr>
+            `;
+          })
+          .join('')
+      : `<tr><td colspan="2" class="td-center">هیڅ فورم کې معلومات نشته</td></tr>`;
+
+    const eventsTr = eventTypes.length
+      ? eventTypes
+          .map((t) => {
+            const label = escapeHtml(t?.label ?? '');
+            const count = safeNum(t?.count);
+            const cls = eventTypeClass(label);
+            return `
+              <tr>
+                <td><span class="etype ${cls}">${label}</span></td>
+                <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
+              </tr>
+            `;
+          })
+          .join('')
+      : `<tr><td colspan="2" class="td-center">هیڅ پېښه نه ده ثبت شوې</td></tr>`;
 
     return `
       <html dir="rtl">
         <head>
           <meta charset="utf-8" />
-          <title>monthly_report_${monthVal || ''}</title>
-          <style>
-            /* ✅ consistent margins for print + Word */
-            @page { size: A4 portrait; margin: 0; }
-
-            html, body {
-              margin: 0;
-              padding: 0;
-              background: #ffffff;
-              color: #000;
-              font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
-              font-size: 13px;
-              line-height: 1.85;
-            }
-
-            /* ✅ this creates space from ALL sides */
-            .page {
-              width: 100%;
-              box-sizing: border-box;
-              padding: 12mm;
-            }
-
-            table { border-collapse: collapse; width: 100%; }
-
-            .top-head-table { table-layout: fixed; width: 100%; margin-bottom: 4px; }
-            .top-head-table td { vertical-align: top; padding: 0; }
-
-            .top-right { width: 33%; text-align: right; font-size: 12px; line-height: 1.6; padding-right: 2px; white-space: nowrap; }
-            .meta-row { display: flex; justify-content: flex-end; align-items: flex-start; gap: 6px; margin: 2px 0; }
-            .meta-label { font-weight: 700; }
-            .meta-box { width: 26px; height: 14px; border: 1px solid #000; display: inline-block; }
-            .meta-date { display: inline-block; min-width: 60px; }
-            .date-line { line-height: 1.4; }
-            .date-label { font-weight: 700; }
-
-            .top-center { width: 34%; text-align: center; padding-top: 2px; }
-            .bismillah-top { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
-            .bismillah-orn { height: 10px; position: relative; margin: 0 auto; width: 90%; }
-            .bismillah-orn::before { content: ""; position: absolute; left: 50%; top: 3px; transform: translateX(-50%); width: 160px; height: 2px; background: #000; border-radius: 2px; opacity: 0.6; }
-
-            .top-left { width: 33%; text-align: left; font-size: 12px; line-height: 1.6; padding-left: 2px; white-space: nowrap; }
-            .check-row { display: flex; align-items: center; justify-content: flex-start; gap: 6px; margin: 2px 0; }
-            .check-box { width: 16px; height: 12px; border: 1px solid #000; display: inline-block; }
-            .check-label { font-weight: 700; }
-
-            /* ===== HEADER (print + word safe) ===== */
-            .header-table{
-              width: 100%;
-              table-layout: fixed;
-              border: none;
-              margin: 0 auto;
-            }
-            .header-table td{
-              border: none !important;
-              padding: 0 !important;
-              vertical-align: middle;
-            }
-
-            .logo-cell{ width: 46%; text-align: center; }
-            .stack-cell{ width: 27%; }
-
-            .stack-right{ text-align: left; padding-left: 6px !important; }
-            .stack-left{  text-align: right; padding-right: 6px !important; }
-
-            .stack-inner{
-              display: inline-block;
-              font-size: 14px;
-              font-weight: 700;
-              line-height: 1.35;
-              white-space: nowrap;
-            }
-
-            .logo-cell img{
-              width: 70px;
-              height: 55px;
-              object-fit: contain;
-            }
-
-            .bismillah-divider {
-              width: 100%;
-              height: 16px;
-              background: #cfcfcf !important;
-              border-top: 1px solid #000;
-              border-bottom: 1px solid #000;
-              margin: 0 0 10px;
-            }
-
-            .line { margin: 3px 0; text-align: right; }
-            .bold { font-weight: 700; }
-            .right { text-align: right; }
-
-            .title {
-              font-size: 16px;
-              font-weight: 800;
-              text-align: center;
-              margin: 8px 0 6px;
-            }
-
-            ul.bullets {
-              margin: 8px 0 0;
-              padding-right: 18px;
-              list-style-type: disc;
-              text-align: right;
-            }
-            ul.bullets > li {
-              margin: 10px 0;
-              text-align: right;
-            }
-
-            ul.sub {
-              margin: 6px 0 0;
-              padding-right: 0;
-              list-style: none;
-              text-align: right;
-            }
-            ul.sub > li {
-              margin: 4px 0;
-              padding-right: 18px;
-              position: relative;
-              text-align: right;
-            }
-            ul.sub > li::before {
-              content: "➢";
-              position: absolute;
-              right: 0;
-              top: 0;
-              font-weight: 700;
-            }
-
-            .closing {
-              margin-top: 16px;
-              text-align: center;
-              font-weight: 700;
-            }
-          </style>
+          <title>monthly_dashboard_${monthVal}</title>
+          <style>${baseExportCss()}</style>
         </head>
-
         <body>
           <div class="page">
-            ${body}
+            <div class="hero no-break">
+              <div class="hero-top">
+                <div>
+                  <h1 class="hero-title">د سیستم میاشتنی راپور</h1>
+                  <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو میاشتنی عمومي کتنه</p>
+                </div>
+                <div class="hero-date">
+                  <div class="date-big">${escapeHtml(monthVal)}</div>
+                  <div class="date-small">میاشتنی راپور</div>
+                </div>
+              </div>
+
+              <div class="pills">${heroDatePills || ''}</div>
+            </div>
+
+            <div class="stats-grid section no-break">
+              <div class="card">
+                <div class="stat-card">
+                  <div>
+                    <div class="stat-label">سرچینې</div>
+                    <div class="stat-number">${resourcesTotal}</div>
+                    <span class="badge b-primary">ټول</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="stat-card">
+                  <div>
+                    <div class="stat-label">معلومات</div>
+                    <div class="stat-number">${informationsTotal}</div>
+                    <span class="badge b-info">شتون لري</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="stat-card">
+                  <div>
+                    <div class="stat-label">پېښې</div>
+                    <div class="stat-number">${eventsTotal}</div>
+                    <span class="badge b-warning">ثبت شوې</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="stat-card">
+                  <div>
+                    <div class="stat-label">۵۰ فارمت فورمونه</div>
+                    <div class="stat-number">${formatsActive}</div>
+                    <span class="badge b-success">فعال</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-2 section">
+              <div>
+                <div class="card no-break">
+                  <div class="header-strip bg-primary">
+                    <div class="strip-left">
+                      <div>
+                        <div class="strip-title">د معلوماتو ډولونه</div>
+                        <div class="strip-sub">د ډول له مخې وېش</div>
+                      </div>
+                    </div>
+                    <span class="chip chip-primary">${informationsTotal}</span>
+                  </div>
+
+                  <div style="padding:0;">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style="width:70%;">ډول</th>
+                          <th class="td-end" style="width:30%;">شمېر</th>
+                        </tr>
+                      </thead>
+                      <tbody>${infoTr}</tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="card no-break" style="margin-top:10px;">
+                  <div class="header-strip bg-success">
+                    <div class="strip-left">
+                      <div>
+                        <div class="strip-title">فورمونه</div>
+                        <div class="strip-sub">د ۵۰ فارمت فورمونو لنډیز</div>
+                      </div>
+                    </div>
+                    <span class="chip chip-success">${formatsActive}</span>
+                  </div>
+
+                  <div style="padding:0;">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style="width:70%;">د فورم نوم</th>
+                          <th class="td-end" style="width:30%;">ورودي</th>
+                        </tr>
+                      </thead>
+                      <tbody>${formatsTr}</tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="header-strip bg-warning">
+                  <div class="strip-left">
+                    <div>
+                      <div class="strip-title">پېښې (د ډول له مخې)</div>
+                      <div class="strip-sub">د پېښو وېش</div>
+                    </div>
+                  </div>
+                  <span class="chip chip-warning">${eventsTotal}</span>
+                </div>
+
+                <div style="padding:0;">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:70%;">د پېښې ډول</th>
+                        <th class="td-end" style="width:30%;">شمېر</th>
+                      </tr>
+                    </thead>
+                    <tbody>${eventsTr}</tbody>
+                  </table>
+                </div>
+
+                <div class="footer">
+                  <div>د ټولو پېښو شمېر: <span style="color:#1e40af;">${eventsTotal}</span></div>
+                  <div>د فورمونو د ورودیانو جمع: <span style="color:#065f46;">${formatsSum}</span></div>
+                </div>
+              </div>
+            </div>
           </div>
         </body>
       </html>
@@ -760,36 +937,16 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   }
 
   function openPrintWindow(html) {
-    const w = window.open('', '_blank', 'width=1024,height=768');
+    const w = window.open('', '_blank', 'width=1100,height=800');
     if (!w) return false;
 
     w.document.open();
     w.document.write(html);
     w.document.close();
 
-    // ✅ ensure images (logo) load before print
     w.addEventListener('load', () => {
-      const imgs = Array.from(w.document.images || []);
-      if (!imgs.length) {
-        w.focus();
-        w.print();
-        return;
-      }
-
-      let done = 0;
-      const finish = () => {
-        done += 1;
-        if (done >= imgs.length) {
-          w.focus();
-          w.print();
-        }
-      };
-
-      imgs.forEach((img) => {
-        if (img.complete) return finish();
-        img.addEventListener('load', finish);
-        img.addEventListener('error', finish);
-      });
+      w.focus();
+      w.print();
     });
 
     return true;
@@ -809,7 +966,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     URL.revokeObjectURL(url);
   }
 
-  // ===== API =====
+  // =========================
+  // API
+  // =========================
   const FetchDailyFoulReport = async (date) => {
     try {
       loading.value = true;
@@ -855,7 +1014,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       console.error(e);
       monthly.value = null;
 
-      error.value = normalizeError(e).replace('روزانه', 'ماهانه');
+      error.value = normalizeError(e);
       toast.error(error.value);
 
       return null;
@@ -880,13 +1039,15 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   if (!selectedDate.value) selectedDate.value = todayIso();
   if (!selectedMonth.value) selectedMonth.value = currentMonthIso();
 
-  // ===== EXPORT ACTIONS =====
+  // =========================
+  // EXPORT ACTIONS
+  // =========================
   const DownloadDailyFoulPdf = () => {
     const report = daily.value;
     if (!report) return;
 
     const dateText = selectedDate.value || todayIso();
-    const html = buildDailyDocumentHtml(report, dateText);
+    const html = buildDailyDashboardHtml(report, dateText);
     openPrintWindow(html);
   };
 
@@ -895,8 +1056,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     if (!report) return;
 
     const dateText = selectedDate.value || todayIso();
-    const html = buildDailyDocumentHtml(report, dateText);
-    downloadWordFile(html, `daily_report_${dateText}.doc`);
+    const html = buildDailyDashboardHtml(report, dateText);
+    downloadWordFile(html, `daily_dashboard_${dateText}.doc`);
   };
 
   const DownloadMonthlyFoulPdf = () => {
@@ -904,7 +1065,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     if (!report) return;
 
     const monthText = selectedMonth.value || currentMonthIso();
-    const html = buildMonthlyDocumentHtml(report, monthText);
+    const html = buildMonthlyDashboardHtml(report, monthText);
     openPrintWindow(html);
   };
 
@@ -913,8 +1074,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     if (!report) return;
 
     const monthText = selectedMonth.value || currentMonthIso();
-    const html = buildMonthlyDocumentHtml(report, monthText);
-    downloadWordFile(html, `monthly_report_${monthText}.doc`);
+    const html = buildMonthlyDashboardHtml(report, monthText);
+    downloadWordFile(html, `monthly_dashboard_${monthText}.doc`);
   };
 
   return {

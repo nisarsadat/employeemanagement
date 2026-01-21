@@ -11,6 +11,7 @@ class Luchakano extends Model
     use HasFactory;
 
     protected $fillable = [
+        'picture',
         'nickname',
         'name',
         'father_name',

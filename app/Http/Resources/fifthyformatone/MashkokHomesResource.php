@@ -1,13 +1,32 @@
-<?php 
+<?php
+
 namespace App\Http\Resources\fifthyformatone;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class MashkokHomesResource extends JsonResource
 {
     public function toArray($request): array
     {
         $res = $this->resource->getRelationValue('resource'); // safe accessor
+
+        // ✅ picture_url (Mawad style)
+        $pictureUrl = null;
+        if ($this->picture) {
+            if (preg_match('#^https?://#', $this->picture)) {
+                $pictureUrl = $this->picture;
+            } else {
+                $path = $this->picture;
+
+                // normalize if it was stored like "storage/..."
+                if (str_starts_with($path, 'storage/')) {
+                    $path = substr($path, strlen('storage/'));
+                }
+
+                $pictureUrl = Storage::disk('public')->url($path);
+            }
+        }
 
         return [
             'id'             => $this->id,
@@ -22,7 +41,11 @@ class MashkokHomesResource extends JsonResource
             'home_type'      => $this->home_type,
             'shak_symbols'   => $this->shak_symbols,
             'note'           => $this->note,
-            'Province_addr'               => $this->Province_addr,
+            'Province_addr'  => $this->Province_addr,
+
+            // ✅ added picture (ONLY)
+            'picture'        => $this->picture,
+            'picture_url'    => $pictureUrl,
 
             'resource_id'    => $this->resource_id,
 
@@ -39,6 +62,7 @@ class MashkokHomesResource extends JsonResource
                     'phone_number' => $res->phone_number ?? null,
                 ];
             }),
+
             'documents' => $this->whenLoaded('documents', function () {
                 return $this->documents->map(function ($doc) {
                     return [
@@ -51,7 +75,6 @@ class MashkokHomesResource extends JsonResource
                     ];
                 });
             }),
-
 
             'created_at'     => $this->created_at,
             'updated_at'     => $this->updated_at,

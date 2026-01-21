@@ -48,4 +48,9 @@ class LostMujremeen extends Model
     {
         return $this->belongsTo(Resource::class  , 'resource_id' , 'id');
     }
+    public function documents()
+    {
+        return $this->hasMany(LostMujremeenDocument::class, 'lost_mujremeen_id');
+    }
+
 }

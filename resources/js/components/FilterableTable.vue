@@ -29,7 +29,7 @@
           class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-amber-50 border border-amber-300 text-amber-900 rounded-full shadow-sm whitespace-nowrap"
         >
           <span class="w-2 h-2 rounded-full bg-amber-600"></span>
-          برای فیلتر هر کالم بالای آن کالم لطفا کلیک نمایید
+          {{ t('برای فیلتر هر کالم بالای آن کالم لطفا کلیک نمایید') }}
         </div>
 
         <!-- ✅ Buttons group (END side) -->
@@ -50,10 +50,10 @@
                     d="M4 6h16M4 12h16M4 18h16"
                   />
                 </svg>
-                ستون‌ها
+                {{ t('ستون‌ها') }}
                 <span
                   class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full"
-                  :title="'تعداد ستون‌های نمایش داده شده'"
+                  :title="t('تعداد ستون‌های نمایش داده شده')"
                 >
                   {{ visibleHeaders.length }}
                 </span>
@@ -69,7 +69,9 @@
             >
               <div class="p-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
                 <div class="flex items-center justify-between mb-2">
-                  <div class="text-sm font-bold text-gray-900">نمایش/عدم نمایش ستون‌ها</div>
+                  <div class="text-sm font-bold text-gray-900">
+                    {{ t('نمایش/عدم نمایش ستون‌ها') }}
+                  </div>
                   <button
                     type="button"
                     class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
@@ -107,7 +109,7 @@
                   </svg>
                   <input
                     v-model.trim="columnsQuery"
-                    placeholder="جستجوی ستون…"
+                    :placeholder="t('جستجوی ستون…')"
                     class="w-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-9 py-2 text-sm outline-none transition-all bg-white"
                     type="text"
                   />
@@ -119,7 +121,7 @@
                     class="flex-1 text-xs px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200 font-medium text-gray-700"
                     @click="showAllColumns"
                   >
-                    نمایش همه
+                    {{ t('نمایش همه') }}
                   </button>
                 </div>
               </div>
@@ -153,13 +155,15 @@
                 class="border-t border-gray-100 px-3 py-2 bg-gradient-to-r from-gray-50 to-white/50"
               >
                 <div class="flex items-center justify-between">
-                  <div class="text-[11px] text-gray-500 font-medium">برای بستن بیرون کلیک کنید</div>
+                  <div class="text-[11px] text-gray-500 font-medium">
+                    {{ t('برای بستن بیرون کلیک کنید') }}
+                  </div>
                   <button
                     type="button"
                     class="text-xs px-3 py-2 rounded-lg bg-gradient-to-r from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 transition-all duration-200 font-medium"
                     @click="closeColumnsPanel"
                   >
-                    انجام شد
+                    {{ t('انجام شد') }}
                   </button>
                 </div>
               </div>
@@ -180,7 +184,7 @@
                   d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
                 />
               </svg>
-              چاپ همه
+              {{ t('چاپ همه') }}
             </span>
           </button>
 
@@ -200,7 +204,7 @@
                   d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                 />
               </svg>
-              چاپ ردیف‌های انتخاب‌شده
+              {{ t('چاپ ردیف‌های انتخاب‌شده') }}
               <span
                 v-if="selectedCount > 0"
                 class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full"
@@ -217,7 +221,7 @@
             :disabled="selectedCount === 0"
             @click="clearSelectedRows"
           >
-            حذف انتخاب‌ها
+            {{ t('حذف انتخاب‌ها') }}
           </button>
 
           <!-- Clear filters button -->
@@ -236,7 +240,7 @@
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                 />
               </svg>
-              حذف فیلترها
+              {{ t('حذف فیلترها') }}
             </span>
           </button>
 
@@ -254,7 +258,7 @@
                   d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              دانلود PDF
+              {{ t('دانلود PDF') }}
             </span>
           </button>
 
@@ -272,7 +276,7 @@
                   d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              دانلود Excel/CSV
+              {{ t('دانلود Excel/CSV') }}
             </span>
           </button>
 
@@ -282,7 +286,7 @@
             class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-slate-700 to-slate-900 text-white hover:from-slate-600 hover:to-slate-800 transition-all duration-200 shadow-sm hover:shadow"
             @click="downloadWord"
           >
-            دانلود Word
+            {{ t('دانلود Word') }}
           </button>
         </div>
       </div>
@@ -314,7 +318,7 @@
 
           <thead class="table-header">
             <!-- Row 1 -->
-            <tr>
+            <!-- <tr>
               <th
                 v-if="selectable"
                 rowspan="2"
@@ -322,7 +326,7 @@
                 :class="{ 'print-col-hidden': printOnlyCols && !selectedCols.has(SELECT_KEY) }"
               >
                 <div class="flex items-center justify-center">
-                  <span class="text-[11px] font-medium text-white">انتخاب</span>
+                  <span class="text-[11px] font-medium text-white">{{ t('انتخاب') }}</span>
                 </div>
               </th>
 
@@ -342,19 +346,15 @@
                       class="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500 cursor-pointer transition"
                       :checked="selectedCols.has(INDEX_KEY)"
                       @change="toggleCol(INDEX_KEY, $event.target.checked)"
-                      :title="'نمایش ستون ردیف در چاپ'"
+                      :title="t('نمایش ستون ردیف در چاپ')"
                     />
                   </div>
                 </div>
               </th>
 
-              <th
-                v-if="showActions"
-                rowspan="2"
-                class="px-2 py-2 text-center align-top print:hidden"
-              >
+              <th v-if="showActions" rowspan="2" class="px-2 py-2 text-center align-top print:hidden">
                 <slot name="actions-header">
-                  <span class="text-xs font-bold text-white">عملیات</span>
+                  <span class="text-xs font-bold text-white">{{ t('عملیات') }}</span>
                 </slot>
               </th>
 
@@ -385,10 +385,52 @@
                   </div>
                 </th>
               </template>
-            </tr>
+            </tr> -->
 
             <!-- Row 2 -->
+            <!-- ✅ Single header row (no grouping) -->
             <tr>
+              <!-- Select -->
+              <th
+                v-if="selectable"
+                class="px-2 py-2 text-center align-top"
+                :class="{ 'print-col-hidden': printOnlyCols && !selectedCols.has(SELECT_KEY) }"
+              >
+                <div class="flex items-center justify-center">
+                  <span class="text-[11px] font-medium text-white">{{ t('انتخاب') }}</span>
+                </div>
+              </th>
+
+              <!-- Index -->
+              <th
+                v-if="showIndex"
+                class="px-2 py-2 text-center align-top font-semibold text-white"
+                :class="{ 'print-col-hidden': printOnlyCols && !selectedCols.has(INDEX_KEY) }"
+              >
+                <div class="flex flex-col items-center justify-center gap-1.5">
+                  <div class="cell-wrap whitespace-nowrap text-xs font-semibold">
+                    {{ indexLabel }}
+                  </div>
+                  <div class="print:hidden">
+                    <input
+                      type="checkbox"
+                      class="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500 cursor-pointer transition"
+                      :checked="selectedCols.has(INDEX_KEY)"
+                      @change="toggleCol(INDEX_KEY, $event.target.checked)"
+                      :title="t('نمایش ستون ردیف در چاپ')"
+                    />
+                  </div>
+                </div>
+              </th>
+
+              <!-- Actions -->
+              <th v-if="showActions" class="px-2 py-2 text-center align-top print:hidden">
+                <slot name="actions-header">
+                  <span class="text-xs font-bold text-white">{{ t('عملیات') }}</span>
+                </slot>
+              </th>
+
+              <!-- Normal headers -->
               <template v-for="h in visibleHeaders" :key="'sub-' + colKey(h)">
                 <th
                   class="px-2 py-2 text-center align-top"
@@ -413,7 +455,7 @@
                           class="w-3.5 h-3.5 rounded border-gray-200 text-indigo-600 focus:ring-2 focus:ring-indigo-500 cursor-pointer transition"
                           :checked="selectedCols.has(hKey(h))"
                           @change="toggleCol(hKey(h), $event.target.checked)"
-                          :title="'انتخاب ستون: ' + (h.title || hKey(h))"
+                          :title="t('انتخاب ستون: ') + (h.title || hKey(h))"
                         />
                       </div>
                     </div>
@@ -432,10 +474,13 @@
                       class="fixed inset-0 z-[9999] pointer-events-none"
                       @keydown.esc.prevent.stop="closeDropdown"
                     >
+                      <!-- backdrop (click outside still works from your document click listener) -->
+                      <div class="absolute inset-0 bg-black/20 pointer-events-none"></div>
+
                       <div
                         ref="panelEl"
                         :style="panelStyle"
-                        class="absolute pointer-events-auto bg-white border border-gray-200 shadow-2xl rounded-xl overflow-hidden backdrop-blur-sm"
+                        class="pointer-events-auto bg-white border border-gray-200 shadow-2xl rounded-xl overflow-hidden backdrop-blur-sm"
                         role="dialog"
                         aria-modal="true"
                       >
@@ -444,7 +489,9 @@
                         >
                           <div class="p-4">
                             <div class="flex items-center justify-between mb-3">
-                              <h3 class="text-sm font-bold text-gray-900">فیلتر: {{ h.title }}</h3>
+                              <h3 class="text-sm font-bold text-gray-900">
+                                {{ t('فیلتر: ') }} {{ h.title }}
+                              </h3>
                               <button
                                 @click="closeDropdown"
                                 class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
@@ -561,7 +608,7 @@
                               v-if="localFilters[openDropdown || '']?.includes(opt)"
                               class="ml-auto text-[11px] text-blue-600 font-semibold"
                             >
-                              انتخاب شده
+                              {{ t('انتخاب شده') }}
                             </span>
                           </label>
                         </div>
@@ -579,14 +626,14 @@
                                 class="text-xs px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200 font-medium text-gray-700"
                                 @click="clearAll(openDropdown || '')"
                               >
-                                پاک کردن همه
+                                {{ t('پاک کردن همه') }}
                               </button>
                               <button
                                 type="button"
                                 class="text-xs px-4 py-2 rounded-lg bg-gradient-to-r from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 transition-all duration-200 font-medium"
                                 @click="closeDropdown"
                               >
-                                اعمال فیلتر
+                                {{ t('اعمال فیلتر') }}
                               </button>
                             </div>
                           </div>
@@ -622,7 +669,9 @@
                       class="w-2 h-2 rounded-full bg-gray-500 animate-[bounce_1.2s_infinite]"
                     ></span>
                   </div>
-                  <div class="text-gray-600 text-xs font-medium">در حال بارگذاری داده‌ها...</div>
+                  <div class="text-gray-600 text-xs font-medium">
+                    {{ t('در حال بارگذاری داده‌ها...') }}
+                  </div>
                 </div>
               </td>
             </tr>
@@ -666,7 +715,9 @@
                     type="button"
                     class="inline-flex items-center justify-center gap-1 w-9 h-7 rounded-full bg-gray-300 text-gray-800 font-bold shadow-sm hover:shadow transition"
                     @click.stop="togglePinRow(getRowId(row, i))"
-                    :title="pinnedRows.has(getRowId(row, i)) ? 'برداشتن پین' : 'پین کردن ردیف'"
+                    :title="
+                      pinnedRows.has(getRowId(row, i)) ? t('برداشتن پین') : t('پین کردن ردیف')
+                    "
                   >
                     <!-- active dot beside the number when pinned -->
                     <span
@@ -713,7 +764,7 @@
                         @click.stop="toggleExpand(getRowId(row, i), h.key)"
                         type="button"
                       >
-                        {{ isExpanded(getRowId(row, i), h.key) ? 'کمتر' : 'بیشتر' }}
+                        {{ isExpanded(getRowId(row, i), h.key) ? t('کمتر') : t('بیشتر') }}
                       </button>
                     </div>
 
@@ -754,9 +805,9 @@
                         />
                       </svg>
                     </div>
-                    <div class="text-gray-600 text-sm font-bold">نتیجه‌ای یافت نشد</div>
+                    <div class="text-gray-600 text-sm font-bold">{{ t('نتیجه‌ای یافت نشد') }}</div>
                     <p class="text-gray-500 text-xs max-w-md text-center">
-                      با تغییر فیلترها یا جستجوی متفاوت، نتایج بیشتری مشاهده کنید.
+                      {{ t('با تغییر فیلترها یا جستجوی متفاوت، نتایج بیشتری مشاهده کنید.') }}
                     </p>
                     <button
                       v-if="hasActiveFilters"
@@ -764,7 +815,7 @@
                       class="mt-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 transition-all duration-200"
                       type="button"
                     >
-                      حذف فیلترها
+                      {{ t('حذف فیلترها') }}
                     </button>
                   </div>
                 </td>
@@ -778,13 +829,13 @@
         class="flex items-center justify-between px-4 py-2 text-[11px] text-gray-600 bg-white/80 border-t border-gray-100 print:hidden"
       >
         <div v-if="selectedCount > 0" class="text-[11px] text-gray-700">
-          ردیف‌های انتخاب‌شده:
+          {{ t('ردیف‌های انتخاب‌شده:') }}
           <span class="font-semibold text-blue-700">{{ selectedCount }}</span>
         </div>
 
         <!-- optional: pinned count info (kept tiny, no design change) -->
         <div v-if="pinnedRows.size > 0" class="text-[11px] text-gray-700">
-          ردیف‌های پین‌شده:
+          {{ t('ردیف‌های پین‌شده:') }}
           <span class="font-semibold text-emerald-700">{{ pinnedRows.size }}</span>
         </div>
       </div>
@@ -796,7 +847,12 @@
   import { computed, ref, watch, onMounted, onUnmounted, nextTick, useSlots } from 'vue';
   import { useCalendar } from '../../composables/useCalendar';
   import dayjs from 'dayjs';
+  import { useI18n } from 'vue-i18n';
+  const { t, locale } = useI18n();
 
+  /* ===== RTL ===== */
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (n) => (isRtl.value = n === 'fa'));
   /* === Props === */
   const props = defineProps({
     headers: { type: Array, required: true },
@@ -972,7 +1028,8 @@
       rows.value.forEach((r) => {
         const raw = r?.[k];
         const disp = displayValueByKey(k, raw);
-        const v = (disp ?? '').toString().trim();
+        const v = String(disp ?? '').trim();
+
         if (v) set.add(v);
         else if (includeEmptyOption.value) set.add('');
       });
@@ -998,7 +1055,7 @@
           if (dropdownSet.value.has(k)) {
             const selectedValues = f[k];
             if (!selectedValues || selectedValues.length === 0) continue;
-            const rowDisplay = displayValueByKey(k, row?.[k]) || '';
+            const rowDisplay = String(displayValueByKey(k, row?.[k]) ?? '');
             if (!selectedValues.includes(rowDisplay)) return false;
           }
         }
@@ -1039,15 +1096,14 @@
   }
 
   /* === Texts === */
-  const allLabel = computed(() => props.allLabel ?? 'همه');
-  const indexLabel = 'ردیف';
-  const searchPlaceholder = 'جستجو…';
-  const noResults = 'نتیجه‌ای پیدا نشد';
-  const btnClear = 'پاک کردن';
-  const btnDone = 'انجام شد';
-  const footerHint = 'برای بستن انجام شد را بزنید ';
-  const placeholderEmpty = '(خالی)';
-
+  const allLabel = computed(() => props.allLabel ?? t('همه'));
+  const indexLabel = t('ردیف');
+  const searchPlaceholder = t('جستجو…');
+  const noResults = t('نتیجه‌ای پیدا نشد');
+  const btnClear = t('پاک کردن');
+  const btnDone = t('انجام شد');
+  const footerHint = t('برای بستن انجام شد را بزنید ');
+  const placeholderEmpty = t('(خالی)');
   /* === Slots & Actions column === */
   const slots = useSlots();
   const showActions = computed(() => !!slots.actions);
@@ -1077,8 +1133,8 @@
   const recordCounterText = computed(() => {
     const total = rows.value.length;
     const filtered = filteredRows.value.length;
-    if (!hasActiveFilters.value) return `تعداد کل ردیف‌ها: ${total}`;
-    return `تعداد کل ردیف‌ها: ${total} و  نتیجه بعد از فیلتر: ${filtered}`;
+    if (!hasActiveFilters.value) return `${t('تعداد کل ردیف‌ها:')} ${total}`;
+    return `${t('تعداد کل ردیف‌ها:')} ${total} ${t('و  نتیجه بعد از فیلتر:')} ${filtered}`;
   });
 
   function clearAllFilters() {
@@ -1103,13 +1159,13 @@
   }
 
   /* === Grouping === */
-  const groupByKey = computed(() => {
-    const map = new Map();
-    (props.topGroups ?? []).forEach((g) => (g?.keys ?? []).forEach((k) => map.set(k, g)));
-    return map;
-  });
+  // const groupByKey = computed(() => {
+  //   const map = new Map();
+  //   (props.topGroups ?? []).forEach((g) => (g?.keys ?? []).forEach((k) => map.set(k, g)));
+  //   return map;
+  // });
 
-  const groupedKeys = computed(() => new Set([...groupByKey.value.keys()]));
+  // const groupedKeys = computed(() => new Set([...groupByKey.value.keys()]));
 
   function isFirstKeyOfGroup(key) {
     if (!key) return false;
@@ -1232,8 +1288,10 @@
   }
 
   function countLabel(sel, tot) {
-    const t = Number(tot || 0);
-    return sel === 0 ? `0 از ${t} انتخاب شده` : `${sel} از ${t} انتخاب شده`;
+    const total = Number(tot || 0);
+    return sel === 0
+      ? `0 ${t('از')} ${total} ${t('انتخاب شده')}`
+      : `${sel} ${t('از')} ${total} ${t('انتخاب شده')}`;
   }
 
   /* === Dropdown state === */
@@ -1262,23 +1320,27 @@
 
   function positionPanelFor(key) {
     if (!key) return;
-    const trigger = triggerRefs.value[key];
-    if (!trigger || !overlayEl.value) return;
-    const rect = trigger.getBoundingClientRect();
+
     const vw = window.innerWidth;
-    const gap = 8;
-    const isRTL = rtl.value;
-    const topPx = rect.top - gap;
-    const base = {
+    const vh = window.innerHeight;
+
+    // panel size (same width rules you already used)
+    const trigger = triggerRefs.value[key];
+    const rect = trigger?.getBoundingClientRect?.();
+    const minW = Math.max(rect?.width || 0, 320);
+    const panelW = Math.min(minW, Math.floor(vw * 0.92)); // max 92vw
+    const panelH = Math.floor(vh * 0.7); // max height hint
+
+    panelStyle.value = {
       display: 'block',
-      position: 'absolute',
-      bottom: `calc(100vh - ${topPx}px)`,
-      maxHeight: '60vh',
-      minWidth: `${Math.max(rect.width, 320)}px`,
+      position: 'fixed',
+      left: '50%',
+      top: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: `${panelW}px`,
+      maxWidth: '92vw',
+      maxHeight: `${panelH}px`,
     };
-    panelStyle.value = isRTL
-      ? { ...base, right: `${vw - rect.right}px`, left: '' }
-      : { ...base, left: `${rect.left}px`, right: '' };
   }
 
   function handleReposition() {
@@ -1390,12 +1452,15 @@
   }
 
   function buildSimpleTableHtml(cols, rowsToUse, indexValues = null) {
-    const dir = rtl.value ? 'rtl' : 'ltr';
-    const align = rtl.value ? 'right' : 'left';
+    // ✅ Always use the REAL app direction (html dir)
+    const appDir = (document?.documentElement?.getAttribute('dir') || '').toLowerCase();
+    const dir = appDir === 'rtl' ? 'rtl' : 'ltr';
+    const align = dir === 'rtl' ? 'right' : 'left';
+
     const includeIndex = selectedCols.value.has(INDEX_KEY);
 
     const ths =
-      (includeIndex ? `<th style="width:60px">ردیف</th>` : '') +
+      (includeIndex ? `<th style="width:60px">${t('ردیف')}</th>` : '') +
       cols.map((c) => `<th>${escapeHtml(c.title)}</th>`).join('');
 
     const trs = rowsToUse
@@ -1414,34 +1479,85 @@
       .join('');
 
     return `
-  <html>
-    <head>
-      <meta charset="utf-8" />
-      <title>Export</title>
-      <style>
-        body { font-family: Arial, Tahoma, sans-serif; direction: ${dir}; text-align: ${align}; padding: 16px; color: #111; }
-        h2 { margin: 0 0 12px 0; font-size: 14px; font-weight: 700; }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 1px solid #d1d5db; padding: 8px; font-size: 12px; vertical-align: top; word-break: break-word; white-space: pre-wrap; }
-        th { background: #f3f4f6; font-weight: 700; }
-        @media print { body { padding: 0; } h2 { margin-bottom: 8px; } }
-      </style>
-    </head>
-    <body>
-      <h2>گزارش جدول</h2>
-      <table>
-        <thead><tr>${ths}</tr></thead>
-        <tbody>
-          ${
-            trs ||
-            `<tr><td colspan="${
-              (includeIndex ? 1 : 0) + cols.length
-            }">هیچ داده‌ای موجود نیست</td></tr>`
-          }
-        </tbody>
-      </table>
-    </body>
-  </html>`;
+<!DOCTYPE html>
+<html lang="fa" dir="${dir}">
+<head>
+  <meta charset="utf-8" />
+  <title>Export</title>
+
+  <!-- ✅ same fonts as your app.css -->
+  <link rel="stylesheet" href="https://unpkg.com/@fontsource/amiri@latest/400.css">
+  <link rel="stylesheet" href="https://unpkg.com/@fontsource/amiri@latest/700.css">
+  <link rel="stylesheet" href="https://unpkg.com/@fontsource/scheherazade-new@latest/400.css">
+  <link rel="stylesheet" href="https://unpkg.com/@fontsource/scheherazade-new@latest/700.css">
+
+  <style>
+    :root {
+      --app-font: 'Amiri', 'Scheherazade New', ui-sans-serif, -apple-system,
+        BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+
+    html, body {
+      font-family: var(--app-font);
+      margin: 0;
+      padding: 0;
+      color: #111;
+      direction: ${dir};
+      text-align: ${align};
+    }
+
+    body {
+      padding: 16px;
+    }
+
+    h2 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: ${align};
+    }
+
+    /* ✅ force REAL RTL/LTR for table layout */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      direction: ${dir};
+    }
+
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 8px;
+      font-size: 12px;
+      vertical-align: top;
+      white-space: pre-wrap;
+      word-break: break-word;
+      text-align: ${align};
+    }
+
+    th {
+      background: #f3f4f6;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body dir="${dir}">
+<h2>${t('گزارش جدول')}</h2>
+  <table dir="${dir}">
+    <thead><tr>${ths}</tr></thead>
+    <tbody>
+     ${
+       trs ||
+       `<tr><td colspan="${(includeIndex ? 1 : 0) + cols.length}">${t(
+         'هیچ داده‌ای موجود نیست'
+       )}</td></tr>`
+     }
+    </tbody>
+  </table>
+</body>
+</html>
+`;
   }
 
   function openPrintWindow(html) {

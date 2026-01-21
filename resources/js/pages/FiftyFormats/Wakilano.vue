@@ -164,12 +164,12 @@
       <template #cell-picture="{ row }">
         <div class="pic-wrap">
           <v-avatar
-            v-if="row.picture"
+            v-if="row.picture_url"
             size="32"
             class="cursor-pointer"
-            @click.stop="openPreview(row.picture)"
+            @click.stop="openPreview(row.picture_url)"
           >
-            <v-img :src="normalizePicture(row.picture)" :alt="row.name" cover />
+            <v-img :src="normalizePicture(row.picture_url)" :alt="row.name" cover />
           </v-avatar>
           <v-avatar v-else size="32">
             <v-icon size="20">mdi-account</v-icon>

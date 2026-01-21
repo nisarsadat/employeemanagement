@@ -240,6 +240,20 @@
               </v-icon>
             </template>
           </v-tooltip>
+<!-- دانلود اسناد -->
+<v-tooltip :text="t('دانلود اسناد مربوط به مجرم گم شده')" location="top">
+  <template #activator="{ props: tooltipProps }">
+    <v-icon
+      v-bind="tooltipProps"
+      size="small"
+      color="green-darken-2"
+      :disabled="!hasDocuments(item)"
+      @click.stop="downloadLostMujremeenDocs(item)"
+    >
+      mdi-paperclip
+    </v-icon>
+  </template>
+</v-tooltip>
 
           <!-- حذف -->
           <v-tooltip :text="t('حذف مجرم گم شده')" location="top">
@@ -356,6 +370,27 @@ const rowsFT = computed(() => {
   if (Array.isArray(list.data)) return list.data;
   return [];
 });
+function hasDocuments(payload) {
+  const row = getRow(payload);
+  const docs = row?.documents;
+  return Array.isArray(docs) && docs.length > 0;
+}
+async function downloadLostMujremeenDocs(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+
+  try {
+    if (typeof repo.DownloadLostMujremeenZip === 'function') {
+      await repo.DownloadLostMujremeenZip(row.id);
+    } else {
+      console.warn('DownloadLostMujremeenZip not implemented on repo');
+      showErrorMessage(t('دانلود اسناد برای این مجرم هنوز تنظیم نشده است'));
+    }
+  } catch (e) {
+    console.error('downloadLostMujremeenDocs error', e);
+    showErrorMessage(t('خطا در دانلود اسناد مجرم گم شده'));
+  }
+}
 
 /* 🔢 Filter cards state */
 const cardFilter = ref('all');

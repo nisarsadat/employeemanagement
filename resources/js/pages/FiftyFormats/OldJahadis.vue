@@ -84,9 +84,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -105,9 +103,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای کارمندان') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withEmployees }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withEmployees }}</div>
               </div>
             </div>
           </v-card>
@@ -126,9 +122,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای تمویل کننده') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withSupplier }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withSupplier }}</div>
               </div>
             </div>
           </v-card>
@@ -169,6 +163,24 @@
       @edit="goEdit"
       @peek="openPeek"
     >
+      <!-- 🖼 PICTURE CELL -->
+      <template #cell-picture="{ row }">
+        <div class="pic-cell">
+          <v-avatar
+            v-if="row.picture_url"
+            size="34"
+            class="pic-thumb"
+            @click.stop="openImage(row.picture_url, row.name)"
+          >
+            <v-img :src="row.picture_url" cover />
+          </v-avatar>
+
+          <v-avatar v-else size="34" class="pic-thumb pic-thumb--empty">
+            <v-icon size="18">mdi-image-off</v-icon>
+          </v-avatar>
+        </div>
+      </template>
+
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -251,7 +263,32 @@
       :is-rtl="isRtl"
       @confirm="handleDeleteConfirmed"
     />
+    <!-- 🖼 IMAGE PREVIEW DIALOG -->
+    <v-dialog v-model="imgDialog" max-width="920">
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center ga-2">
+            <v-icon>mdi-image</v-icon>
+            <span class="text-subtitle-1 font-weight-bold">
+              {{ imgTitle || t('پیش‌نمایش عکس') }}
+            </span>
+          </div>
 
+          <v-btn icon variant="text" @click="imgDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text>
+          <div class="img-preview-wrap">
+            <v-img v-if="imgSrc" :src="imgSrc" class="img-preview" cover />
+            <div v-else class="muted">{{ t('عکس موجود نیست') }}</div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
@@ -347,6 +384,8 @@
 
   /* HEADERS */
   const headersFT = computed(() => [
+    { title: t('عکس'), key: 'picture', sortable: false },
+
     { title: t('تخلص'), key: 'nick_name' },
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
@@ -392,7 +431,15 @@
     { title: t('کارمندان/تمویل/تنظیم'), keys: ['employee_quantity', 'supplier', 'tanzim'] },
     { title: t('منبع/یادداشت'), keys: ['resource_code', 'resource_phone', 'note'] },
   ]);
+  const imgDialog = ref(false);
+  const imgSrc = ref('');
+  const imgTitle = ref('');
 
+  function openImage(src, title) {
+    imgSrc.value = src || '';
+    imgTitle.value = title || '';
+    imgDialog.value = true;
+  }
   const filters = ref({});
 
   /* Peek */

@@ -11,6 +11,7 @@ class StoreMashkokHomesRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],        
             'province'       => ['nullable','string','max:255'],
             'zone'           => ['nullable','string','max:255'],
             'district'       => ['nullable','string','max:255'],

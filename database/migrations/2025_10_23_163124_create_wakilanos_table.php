@@ -12,6 +12,7 @@ return new class extends Migration {
 
             // Core block
             $table->string('coordinates')->nullable();       // free text / GPS
+            $table->string('picture')->nullable();       // free text / GPS
             $table->string('name')->nullable();
             $table->string('f_name')->nullable();
             $table->string('grand_father_name')->nullable();
