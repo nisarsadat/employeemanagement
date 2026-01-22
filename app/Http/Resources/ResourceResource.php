@@ -152,6 +152,7 @@ class ResourceResource extends JsonResource
             'coordinates'            => $this->coordinates,
             'note'                   => $this->note,
             'Province_addr'          => $this->Province_addr,
+            'tadarok_place'          => $this->tadarok_place,
 
             // counts
             'events_count'            => $eventsCount,

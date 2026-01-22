@@ -13,6 +13,7 @@ const DIGIT_MAPS = {
   arab: { 0: '٠', 1: '١', 2: '٢', 3: '٣', 4: '٤', 5: '٥', 6: '٦', 7: '٧', 8: '٨', 9: '٩' }, // Arabic-Indic
   arabext: { 0: '۰', 1: '۱', 2: '۲', 3: '۳', 4: '۴', 5: '۵', '۶': '۶', 7: '۷', 8: '۸', 9: '۹' }, // Persian
 };
+
 function applyDigits(s, set) {
   if (!set || set === 'latn') return s;
   const map = DIGIT_MAPS[set];
@@ -24,7 +25,6 @@ function applyDigits(s, set) {
 function formatWithIntlOrThrow(iso, { calendar, locale, digits = 'latn' }) {
   if (!iso) return '';
   const date = new Date(iso + 'T00:00:00');
-  // Some engines throw on unknown calendar / numberingSystem
   const fmt = new Intl.DateTimeFormat(locale, {
     calendar,
     year: 'numeric',
@@ -43,7 +43,6 @@ function formatWithIntlOrThrow(iso, { calendar, locale, digits = 'latn' }) {
 function formatJalaliFallback(iso, digits = 'latn') {
   const j = dayjs(iso).calendar('jalali');
   const out = j.format('YYYY/MM/DD');
-  // Persian digits for UI; ASCII for backend
   return applyDigits(out, digits === 'arabext' ? 'arabext' : 'latn');
 }
 
@@ -51,7 +50,6 @@ function formatHijriFallback(iso, digits = 'latn') {
   const g = dayjs(iso);
   const { hy, hm, hd } = toHijri(g.year(), g.month() + 1, g.date());
   const out = `${hy}/${String(hm).padStart(2, '0')}/${String(hd).padStart(2, '0')}`;
-  // Arabic-Indic digits for UI; ASCII for backend
   return applyDigits(out, digits === 'arab' ? 'arab' : 'latn');
 }
 
@@ -83,20 +81,18 @@ export function useCalendar() {
         return dayjs(iso).format('YYYY/MM/DD');
 
       case 'jalali':
-        // Prefer Intl Persian; fallback to dayjs+jalaliday
         return safeFormat(iso, {
           calendar: 'persian',
-          locale: uiLocale, // 'fa' shows Persian months if supported
+          locale: uiLocale,
           digits: uiLocale === 'fa' ? 'arabext' : 'latn',
           type: 'jalali',
         });
 
       case 'hijri':
-        // Prefer Intl Umm al-Qura; fallback to hijri-converter
         return safeFormat(iso, {
           calendar: 'islamic-umalqura',
-          locale: 'ar', // Arabic for month/day names (header in pickers)
-          digits: 'arab', // Arabic-Indic digits
+          locale: 'ar',
+          digits: 'arab',
           type: 'hijri',
         });
 
@@ -107,7 +103,6 @@ export function useCalendar() {
 
   /**
    * Backend format (always ASCII digits, YYYY/MM/DD)
-   * Keeps the same day/month/year the user sees, but digits are ASCII.
    */
   function formatForBackend(iso) {
     if (!iso || !dayjs(iso, 'YYYY-MM-DD', true).isValid()) return '';
@@ -141,11 +136,121 @@ export function useCalendar() {
     return dayjs(value).format('YYYY-MM-DD');
   }
 
+  // ============================================================
+  // ✅ NEW: YEAR helpers (NO new file)
+  // ============================================================
+
+  /**
+   * Convert a *Gregorian year* to display year in current calendar.
+   * Example:
+   *  - gregorian: 2026
+   *  - jalali:    1404
+   *  - hijri:     1447
+   *
+   * We use July 1st to avoid "year edge" shifting around Jan/Mar.
+   */
+  function formatYearDisplay(gYear, uiLocale = 'fa') {
+    if (!gYear) return '';
+
+    const iso = `${gYear}-07-01`; // safe mid-year
+
+    if (calendar.value === 'gregorian') {
+      return String(gYear);
+    }
+
+    if (calendar.value === 'jalali') {
+      // Get jalali year from formatted output: "YYYY/MM/DD"
+      const out = safeFormat(iso, {
+        calendar: 'persian',
+        locale: uiLocale,
+        digits: uiLocale === 'fa' ? 'arabext' : 'latn',
+        type: 'jalali',
+      });
+      return String(out).split('/')[0] || '';
+    }
+
+    if (calendar.value === 'hijri') {
+      const out = safeFormat(iso, {
+        calendar: 'islamic-umalqura',
+        locale: 'ar',
+        digits: 'arab',
+        type: 'hijri',
+      });
+      return String(out).split('/')[0] || '';
+    }
+
+    return String(gYear);
+  }
+
+  /**
+   * Optional: show "year/month" in current calendar
+   * (useful if you want Month dropdown titles like 1404/01)
+   */
+  function formatMonthYearDisplay(gYear, month, uiLocale = 'fa') {
+    const mm = String(month ?? '').padStart(2, '0');
+    if (!gYear || !mm) return '';
+
+    // Build a safe ISO in that month
+    const iso = `${gYear}-${mm}-15`;
+
+    if (calendar.value === 'gregorian') {
+      return `${gYear}/${mm}`;
+    }
+
+    if (calendar.value === 'jalali') {
+      const out = safeFormat(iso, {
+        calendar: 'persian',
+        locale: uiLocale,
+        digits: uiLocale === 'fa' ? 'arabext' : 'latn',
+        type: 'jalali',
+      });
+      // out like "۱۴۰۴/۰۵/۲۴" => take year/month
+      const parts = String(out).split('/');
+      return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : '';
+    }
+
+    if (calendar.value === 'hijri') {
+      const out = safeFormat(iso, {
+        calendar: 'islamic-umalqura',
+        locale: 'ar',
+        digits: 'arab',
+        type: 'hijri',
+      });
+      const parts = String(out).split('/');
+      return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : '';
+    }
+
+    return `${gYear}/${mm}`;
+  }
+
+  /**
+   * Build dropdown items from backend years (gregorian years).
+   * Keeps value = gregorian year (backend filter)
+   * Shows title = converted year (UI)
+   */
+  function yearItemsFromGregorianYears(years, uiLocale = 'fa') {
+    return (years || [])
+      .filter((y) => y)
+      .map((y) => ({
+        value: Number(y),
+        title: formatYearDisplay(Number(y), uiLocale),
+      }));
+  }
+
   return {
     calendar,
+
+    // dates
     formatDisplay,
     formatForBackend,
     toIso,
+
+    // ✅ NEW year helpers
+    formatYearDisplay,
+    formatMonthYearDisplay,
+    yearItemsFromGregorianYears,
+
+    // store actions
     setCalendar: calStore.setCalendar,
     cycleCalendar: calStore.cycle,
   };

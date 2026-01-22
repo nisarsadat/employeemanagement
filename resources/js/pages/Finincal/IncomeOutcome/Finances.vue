@@ -2,17 +2,16 @@
 <template>
   <v-container fluid class="pt-6 page-bg" :dir="rtl ? 'rtl' : 'ltr'">
     <!-- ✅ SUMMARY CARDS (Beautiful) -->
-    <v-row class="mb-4" dense :dir="rtl ? 'rtl' : 'ltr'">
-      <v-col cols="12" md="3">
+    <v-row class="mb-4" dense>
+      <v-col cols="12" md="4">
         <v-card rounded="xl" class="shadow-sm stat-card">
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">مجموع بیلانس همه حساب‌ها</div>
+                <div class="text-caption text-medium-emphasis family">موجود</div>
                 <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_balance_all_accounts) }}
                 </div>
-                <div class="text-caption text-medium-emphasis mt-1 family">جمع کل حساب‌ها</div>
               </div>
 
               <div class="stat-icon-wrap">
@@ -23,16 +22,15 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="3">
+      <v-col cols="12" md="4">
         <v-card rounded="xl" class="shadow-sm stat-card">
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">مجموع عواید</div>
+                <div class="text-caption text-medium-emphasis family">عاید</div>
                 <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_income_all) }}
                 </div>
-                <div class="text-caption text-medium-emphasis mt-1 family">جمع کل درآمد</div>
               </div>
 
               <div class="stat-icon-wrap">
@@ -43,40 +41,19 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="3">
+      <v-col cols="12" md="4">
         <v-card rounded="xl" class="shadow-sm stat-card">
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">مجموع مصارف</div>
+                <div class="text-caption text-medium-emphasis family">مصرف</div>
                 <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_outcome_all) }}
                 </div>
-                <div class="text-caption text-medium-emphasis mt-1 family">جمع کل مصرف</div>
               </div>
 
               <div class="stat-icon-wrap">
                 <v-icon size="26">mdi-cash-minus</v-icon>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" md="3">
-        <v-card rounded="xl" class="shadow-sm stat-card">
-          <v-card-text class="pa-4">
-            <div class="d-flex align-center justify-space-between">
-              <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">مصارف همین لیست</div>
-                <div class="text-h6 font-weight-bold stat-value">
-                  {{ fmtMoney(summary.filtered_outcome) }}
-                </div>
-                <div class="text-caption text-medium-emphasis mt-1 family">همین صفحه/جستجو</div>
-              </div>
-
-              <div class="stat-icon-wrap">
-                <v-icon size="26">mdi-filter</v-icon>
               </div>
             </div>
           </v-card-text>
@@ -97,6 +74,28 @@
             @keyup.enter="fetchAll"
             clearable
             @click:clear="clearSearch"
+          />
+          <v-select
+            v-model="selectedYear"
+            :items="yearItems"
+            item-title="title"
+            item-value="value"
+            label="سال"
+            density="compact"
+            variant="outlined"
+            clearable
+          />
+
+          <v-select
+            v-model="selectedMonth"
+            :items="monthOptions"
+            label="ماه"
+            density="compact"
+            variant="outlined"
+            prepend-inner-icon="mdi-calendar-month"
+            clearable
+            :disabled="!selectedYear"
+            @update:modelValue="onYearMonthChanged"
           />
 
           <!-- ✅ Actions -->
@@ -231,7 +230,6 @@
     { title: 'د مصرف وجه/علت', key: 'expense_result', sortable: false, width: 200 },
     { title: 'پرداخت کننده', key: 'payer', sortable: true },
     { title: 'یادداشت', key: 'notes', sortable: true },
-
   ];
 
   function toDate10(v) {
@@ -248,9 +246,9 @@
         ...it,
         index: startIndex + i + 1,
 
-        employee_name:  it?.office_employee?.name ?? '',
-        employee_code:  it?.office_employee?.code_number ?? '',
-        payer: it?.payer ??  it?.payer ?? '',
+        employee_name: it?.office_employee?.name ?? '',
+        employee_code: it?.office_employee?.code_number ?? '',
+        payer: it?.payer ?? it?.payer ?? '',
 
         money_amount_number: amount,
         money_amount_words: it?.money_amount_words ?? '',
@@ -294,12 +292,49 @@
       .replace(/(\.\d*?)0+$/, '$1')
       .replace(/\.$/, '');
   }
+  const selectedYear = ref(null); // ex: 2026
+  const selectedMonth = ref(null); // ex: 1..12
+
+  const yearOptions = computed(() => {
+    const now = new Date().getFullYear();
+    // last 6 years + current
+    return Array.from({ length: 7 }, (_, i) => now - i);
+  });
+
+  const monthOptions = computed(() => [
+    { title: '01', value: 1 },
+    { title: '02', value: 2 },
+    { title: '03', value: 3 },
+    { title: '04', value: 4 },
+    { title: '05', value: 5 },
+    { title: '06', value: 6 },
+    { title: '07', value: 7 },
+    { title: '08', value: 8 },
+    { title: '09', value: 9 },
+    { title: '10', value: 10 },
+    { title: '11', value: 11 },
+    { title: '12', value: 12 },
+  ]);
+
+  function onYearMonthChanged() {
+    // if year cleared -> clear month too
+    if (!selectedYear.value) selectedMonth.value = null;
+
+    // reset pagination when filters change (if page uses paging)
+    if (typeof repo.accountsPage !== 'undefined') repo.accountsPage = 1;
+    if (typeof repo.incomesPage !== 'undefined') repo.incomesPage = 1;
+    if (typeof repo.financesPage !== 'undefined') repo.financesPage = 1;
+
+    fetchAll();
+  }
 
   function fetchAll() {
     repo.FetchFinancesData({
       search: repo.financesSearch,
       account_id: repo.financesAccountId,
       office_employee_id: repo.financesOfficeEmployeeId,
+      year: selectedYear.value,
+      month: selectedMonth.value,
     });
   }
 
@@ -490,9 +525,20 @@
 
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+  import { useCalendar } from '../../../../composables/useCalendar';
+
+  const { yearItemsFromGregorianYears } = useCalendar();
+
+  const yearItems = computed(
+    () => yearItemsFromGregorianYears(repo.availableYears, 'fa') // 'fa' or locale.value
+  );
 
   onMounted(async () => {
     await ensureAccountsLoaded();
+    fetchAll();
+  });
+  onMounted(async () => {
+    await repo.FetchYears('finances');
     fetchAll();
   });
 </script>

@@ -481,7 +481,14 @@
                 />
               </v-col> -->
 
-              <v-col cols="12" md="12">
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.tadarok_place"
+                  :label="t('د تدارک محل')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col><v-col cols="6" md="12">
                 <v-text-field
                   v-model="form.coordinates"
                   :label="t('کوردینات')"
@@ -856,6 +863,7 @@
     now_home_number: '',
     // Province_addr: '',
     coordinates: '',
+    tadarok_place: '',
     train: '',
     elmi_level: '',
     faculty: '',
@@ -977,6 +985,7 @@
     b.now_home_number = x.now_home_number ?? '';
     // b.Province_addr = x.Province_addr ?? '';
     b.coordinates = x.coordinates ?? '';
+    b.tadarok_place = x.tadarok_place ?? '';
     b.elmi_level = x.elmi_level ?? '';
     b.faculty = x.faculty ?? '';
     b.train = x.train ?? '';

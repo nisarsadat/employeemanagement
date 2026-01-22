@@ -75,7 +75,8 @@ class OfficeEmployeeResource extends JsonResource
             'qisem'        => $this->qisem,
             'zone'         => $this->zone,
             'hawza'        => $this->hawza,
-
+            'makhafat'     => $this->makhafat,
+            'makafat'      => $this->makafat,
             // 🔹 Status & Education
             'madani_halat'  => $this->madani_halat,
 

@@ -44,105 +44,89 @@
       </v-row>
     </v-container>
 
-    <!-- STATS -->
+    <!-- ✅ Replace your whole STATS <v-row> ... </v-row> with this (4 cards) -->
     <v-row class="px-2 mt-2 d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
-      <!-- Total -->
-      <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" rounded="xl" @click="applyStatFilter(null)">
+      <!-- 1) د امیر المومنین شیخ صاحب فرامین -->
+      <v-col cols="12" md="3" lg="3">
+        <v-card class="stat-card" rounded="xl" @click="applyDocsTypeFilter(DOCS_TYPES.AMIR)">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-primary fontfamily">{{ totalCount }}</div>
+              <div class="text-h5 font-weight-bold text-primary fontfamily">{{ amirCount }}</div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('تمام') }}
+                {{ t('میرالمومنین شیخ صاحب فرامین') }}
               </div>
             </div>
             <v-avatar color="primary" variant="tonal" size="48">
-              <v-icon color="primary">mdi-file-document-multiple</v-icon>
+              <v-icon color="primary">mdi-crown</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <!-- Office Outgoing -->
-      <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" rounded="xl" @click="applyStatFilter('office_outgoing_date')">
+      <!-- 2) د ۰۶۹ ریاست له لوري احکام شوی وړاندیزونه -->
+      <v-col cols="12" md="3" lg="3">
+        <v-card
+          class="stat-card"
+          rounded="xl"
+          @click="applyDocsTypeFilter(DOCS_TYPES.R069_APPROVED)"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-indigo fontfamily">{{ officeOutgoingCount }}</div>
+              <div class="text-h5 font-weight-bold text-indigo fontfamily">
+                {{ r069ApprovedCount }}
+              </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('صادره (دفتر)') }}
+                {{ t('د ۰۶۹ ریاست له لوري احکام شوی وړاندیزونه ') }}
               </div>
             </div>
             <v-avatar color="indigo" variant="tonal" size="48">
-              <v-icon color="indigo">mdi-upload</v-icon>
+              <v-icon color="indigo">mdi-check-decagram</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <!-- Office Incoming -->
-      <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" rounded="xl" @click="applyStatFilter('office_incoming_date')">
+      <!-- 3) د ۰۶۹ ریاست له لوري رد  شوی وړاندیزونه -->
+      <v-col cols="12" md="3" lg="3">
+        <v-card
+          class="stat-card"
+          rounded="xl"
+          @click="applyDocsTypeFilter(DOCS_TYPES.R069_REJECTED)"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-green fontfamily">{{ officeIncomingCount }}</div>
+              <div class="text-h5 font-weight-bold text-green fontfamily">
+                {{ r069RejectedCount }}
+              </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('وارده (دفتر)') }}
+                {{ t('د ۰۶۹ ریاست له لوري رد  شوی وړاندیزونه ') }}
               </div>
             </div>
             <v-avatar color="green" variant="tonal" size="48">
-              <v-icon color="green">mdi-download</v-icon>
+              <v-icon color="green">mdi-close-octagon</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <!-- Reyasat Outgoing -->
-      <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" rounded="xl" @click="applyStatFilter('reyasat_outgoing_date')">
+      <!-- 4) د لوي ریاست له لوري احکام شوی وړاندیزونه -->
+      <v-col cols="12" md="3" lg="3">
+        <v-card
+          class="stat-card"
+          rounded="xl"
+          @click="applyDocsTypeFilter(DOCS_TYPES.LOY_APPROVED)"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
-              <div class="text-h5 font-weight-bold text-cyan fontfamily">{{ reyasatOutgoingCount }}</div>
+              <div class="text-h5 font-weight-bold text-cyan fontfamily">
+                {{ loyApprovedCount }}
+              </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('صادره به ریاست') }}
+                {{ t('د لوي ریاست له لوري احکام شوی وړاندیزونه ') }}
               </div>
             </div>
             <v-avatar color="cyan" variant="tonal" size="48">
-              <v-icon color="cyan">mdi-share-variant</v-icon>
-            </v-avatar>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- Loy Reyasat Outgoing -->
-      <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" rounded="xl" @click="applyStatFilter('loy_reyasat_outgoing_date')">
-          <v-card-text class="pa-4 d-flex align-center justify-space-between">
-            <div>
-              <div class="text-h5 font-weight-bold text-purple fontfamily">{{ loyReyasatOutgoingCount }}</div>
-              <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('صادره (لوی ریاست)') }}
-              </div>
-            </div>
-            <v-avatar color="deep-purple" variant="tonal" size="48">
-              <v-icon color="deep-purple">mdi-bank</v-icon>
-            </v-avatar>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- Answered -->
-      <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" rounded="xl" @click="applyStatFilter('answer_date')">
-          <v-card-text class="pa-4 d-flex align-center justify-space-between">
-            <div>
-              <div class="text-h5 font-weight-bold text-amber-darken-2 fontfamily">{{ answeredCount }}</div>
-              <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('پاسخ داده شده') }}
-              </div>
-            </div>
-            <v-avatar color="amber" variant="tonal" size="48">
-              <v-icon color="amber">mdi-check-circle</v-icon>
+              <v-icon color="cyan">mdi-bank</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
@@ -183,7 +167,7 @@
         'loy_reyasat_outgoing_date',
         'answer_date',
         'docs_sign_date',
-        'outgoing_incoming_date'
+        'outgoing_incoming_date',
       ]"
       @edit="startEdit"
       @peek="openPeek"
@@ -248,243 +232,292 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
+  import { ref, computed, watch, onMounted } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
 
-import AppBar from "@/components/AppBar.vue";
-import PeekButton from "@/components/PeekButton.vue";
-import FilterableTable from "@/components/FilterableTable.vue";
-import DeleteConfirmDialog from "@/components/DeleteConfirmDialog.vue";
+  import AppBar from '@/components/AppBar.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-import { useOutgoingIncomingRepository } from "@/stores/OutgoingIncomingRepository";
+  import { useOutgoingIncomingRepository } from '@/stores/OutgoingIncomingRepository';
 
-const router = useRouter();
-const { t, locale } = useI18n();
-const repo = useOutgoingIncomingRepository();
+  const router = useRouter();
+  const { t, locale } = useI18n();
+  const repo = useOutgoingIncomingRepository();
 
-/* RTL */
-const isRtl = ref(locale.value === "fa");
-watch(locale, (n) => (isRtl.value = n === "fa"));
+  /* RTL */
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (n) => (isRtl.value = n === 'fa'));
 
-/* Helpers */
-function getRow(payload) {
-  return payload?.raw ?? payload;
-}
-function hasValue(v) {
-  if (v === null || v === undefined) return false;
-  const s = String(v).trim();
-  return s !== "" && s !== "0";
-}
+  /* Helpers */
+  function getRow(payload) {
+    return payload?.raw ?? payload;
+  }
+  function hasValue(v) {
+    if (v === null || v === undefined) return false;
+    const s = String(v).trim();
+    return s !== '' && s !== '0';
+  }
 
-/* Data */
-const rowsFT = computed(() => repo.Items || []);
-const totalCount = computed(() => rowsFT.value.length);
+  /* Data */
+  const rowsFT = computed(() => repo.Items || []);
+  const totalCount = computed(() => rowsFT.value.length);
 
-const officeOutgoingCount = computed(() => rowsFT.value.filter((r) => hasValue(r.office_outgoing_date)).length);
-const officeIncomingCount = computed(() => rowsFT.value.filter((r) => hasValue(r.office_incoming_date)).length);
-const reyasatOutgoingCount = computed(() => rowsFT.value.filter((r) => hasValue(r.reyasat_outgoing_date)).length);
-const loyReyasatOutgoingCount = computed(() => rowsFT.value.filter((r) => hasValue(r.loy_reyasat_outgoing_date)).length);
-const answeredCount = computed(() => rowsFT.value.filter((r) => hasValue(r.answer_date)).length);
+  const officeOutgoingCount = computed(
+    () => rowsFT.value.filter((r) => hasValue(r.office_outgoing_date)).length
+  );
+  const officeIncomingCount = computed(
+    () => rowsFT.value.filter((r) => hasValue(r.office_incoming_date)).length
+  );
+  const reyasatOutgoingCount = computed(
+    () => rowsFT.value.filter((r) => hasValue(r.reyasat_outgoing_date)).length
+  );
+  const loyReyasatOutgoingCount = computed(
+    () => rowsFT.value.filter((r) => hasValue(r.loy_reyasat_outgoing_date)).length
+  );
+  const answeredCount = computed(() => rowsFT.value.filter((r) => hasValue(r.answer_date)).length);
 
-/* Headers */
-const headersFT = computed(() => [
-  { title: t("نوع مکتوب"), key: "docs_type" },
+  /* Headers */
+  const headersFT = computed(() => [
+    { title: t('نوع مکتوب'), key: 'docs_type' },
 
-  { title: t("تاریخ صادره/وارده"), key: "outgoing_incoming_date" },
-  { title: t("تاریخ امضاء"), key: "docs_sign_date" },
+    { title: t('تاریخ صادره/وارده'), key: 'outgoing_incoming_date' },
+    { title: t('تاریخ امضاء'), key: 'docs_sign_date' },
 
-  { title: t("صادره (دفتر) تاریخ"), key: "office_outgoing_date" },
-  { title: t("صادره (دفتر) صفحه"), key: "office_outgoing_page" },
+    { title: t('صادره (دفتر) تاریخ'), key: 'office_outgoing_date' },
+    { title: t('صادره (دفتر) صفحه'), key: 'office_outgoing_page' },
 
-  { title: t("وارده (دفتر) تاریخ"), key: "office_incoming_date" },
-  { title: t("وارده (دفتر) صفحه"), key: "office_incoming_page" },
+    { title: t('وارده (دفتر) تاریخ'), key: 'office_incoming_date' },
+    { title: t('وارده (دفتر) صفحه'), key: 'office_incoming_page' },
 
-  { title: t("صادره به ریاست تاریخ"), key: "reyasat_outgoing_date" },
-  { title: t("صادره به ریاست صفحه"), key: "reyasat_outgoing_page" },
+    { title: t('صادره به ریاست تاریخ'), key: 'reyasat_outgoing_date' },
+    { title: t('صادره به ریاست صفحه'), key: 'reyasat_outgoing_page' },
 
-  { title: t("صادره (لوی ریاست) تاریخ"), key: "loy_reyasat_outgoing_date" },
-  { title: t("صادره (لوی ریاست) صفحه"), key: "loy_reyasat_outgoing_page" },
+    { title: t('صادره (لوی ریاست) تاریخ'), key: 'loy_reyasat_outgoing_date' },
+    { title: t('صادره (لوی ریاست) صفحه'), key: 'loy_reyasat_outgoing_page' },
 
-  { title: t("پاسخ تاریخ"), key: "answer_date" },
-  { title: t("پاسخ صفحه"), key: "answer_page" },
+    { title: t('پاسخ تاریخ'), key: 'answer_date' },
+    { title: t('پاسخ صفحه'), key: 'answer_page' },
 
-  { title: t("مرجع"), key: "marja" },
-  { title: t("امضاء کننده"), key: "who_sighn" },
+    { title: t('مرجع'), key: 'marja' },
+    { title: t('امضاء کننده'), key: 'who_sighn' },
 
-  { title: t("تفصیل"), key: "tafseel" },
-  { title: t("صفحه"), key: "page" },
-  { title: t("دوسیه"), key: "dusya" },
-  { title: t("صفحه فهرست"), key: "fihrist_page" },
+    { title: t('تفصیل'), key: 'tafseel' },
+    { title: t('صفحه'), key: 'page' },
+    { title: t('دوسیه'), key: 'dusya' },
+    { title: t('صفحه فهرست'), key: 'fihrist_page' },
 
-  { title: t("تعداد نقل"), key: "naqal_count" },
-  { title: t("اوراق"), key: "awraq" },
-  { title: t("ضمیمه"), key: "zamima" },
+    { title: t('تعداد نقل'), key: 'naqal_count' },
+    { title: t('اوراق'), key: 'awraq' },
+    { title: t('ضمیمه'), key: 'zamima' },
 
-  { title: t("ملاحظات"), key: "notes" },
-]);
+    { title: t('ملاحظات'), key: 'notes' },
+  ]);
 
-/* Filters */
-const filters = ref({});
+  /* Filters */
+  const filters = ref({});
 
-function applyStatFilter(dateKey) {
-  const next = { ...(filters.value || {}) };
+  /* ✅ Replace your current count computed(s) + applyStatFilter with these */
 
-  // clear old marker
-  delete next.__hasDateKey;
+  // exact labels
+  const DOCS_TYPES = Object.freeze({
+    AMIR: 'د امیر المومنین شیخ صاحب فرامین',
+    R069_APPROVED: 'د ۰۶۹ ریاست له لوري احکام شوی وړاندیزونه',
+    R069_REJECTED: 'د ۰۶۹ ریاست له لوري رد  شوی وړاندیزونه',
+    LOY_APPROVED: 'د لوي ریاست  له لوري احکام   شوی وړاندیزونه',
+  });
 
-  if (!dateKey) {
+  function normalizeText(v) {
+    return String(v ?? '')
+      .trim()
+      .replace(/\s+/g, ' ');
+  }
+  function isDocsType(row, typeValue) {
+    return normalizeText(row?.docs_type) === normalizeText(typeValue);
+  }
+
+  const amirCount = computed(
+    () => rowsFT.value.filter((r) => isDocsType(r, DOCS_TYPES.AMIR)).length
+  );
+  const r069ApprovedCount = computed(
+    () => rowsFT.value.filter((r) => isDocsType(r, DOCS_TYPES.R069_APPROVED)).length
+  );
+  const r069RejectedCount = computed(
+    () => rowsFT.value.filter((r) => isDocsType(r, DOCS_TYPES.R069_REJECTED)).length
+  );
+  const loyApprovedCount = computed(
+    () => rowsFT.value.filter((r) => isDocsType(r, DOCS_TYPES.LOY_APPROVED)).length
+  );
+
+  // click-to-filter (by docs_type)
+  function applyDocsTypeFilter(typeValue) {
+    const next = { ...(filters.value || {}) };
+
+    // clear old marker
+    delete next.__docsType;
+
+    if (!typeValue) {
+      filters.value = next;
+      return;
+    }
+
+    // marker filter (FilterableTable can treat it specially)
+    next.__docsType = typeValue;
     filters.value = next;
-    return;
   }
 
-  // Marker filter (your FilterableTable can treat it specially if you want)
-  next.__hasDateKey = dateKey;
-  filters.value = next;
-}
+  /* Top groups */
+  const topGroups = computed(() => [
+    {
+      title: t('اساسی'),
+      keys: ['docs_type', 'outgoing_incoming_date', 'docs_sign_date', 'marja', 'who_sighn'],
+    },
+    {
+      title: t('دفتر'),
+      keys: [
+        'office_outgoing_date',
+        'office_outgoing_page',
+        'office_incoming_date',
+        'office_incoming_page',
+      ],
+    },
+    {
+      title: t('ریاست‌ها'),
+      keys: [
+        'reyasat_outgoing_date',
+        'reyasat_outgoing_page',
+        'loy_reyasat_outgoing_date',
+        'loy_reyasat_outgoing_page',
+      ],
+    },
+    { title: t('پاسخ'), keys: ['answer_date', 'answer_page'] },
+    {
+      title: t('فهرست/شماره‌ها'),
+      keys: ['page', 'dusya', 'fihrist_page', 'naqal_count', 'awraq', 'zamima'],
+    },
+    { title: t('متن‌ها'), keys: ['tafseel', 'notes'] },
+  ]);
 
-/* Top groups */
-const topGroups = computed(() => [
-  {
-    title: t("اساسی"),
-    keys: ["docs_type", "outgoing_incoming_date", "docs_sign_date", "marja", "who_sighn"],
-  },
-  {
-    title: t("دفتر"),
-    keys: ["office_outgoing_date", "office_outgoing_page", "office_incoming_date", "office_incoming_page"],
-  },
-  {
-    title: t("ریاست‌ها"),
-    keys: [
-      "reyasat_outgoing_date",
-      "reyasat_outgoing_page",
-      "loy_reyasat_outgoing_date",
-      "loy_reyasat_outgoing_page",
-    ],
-  },
-  { title: t("پاسخ"), keys: ["answer_date", "answer_page"] },
-  { title: t("فهرست/شماره‌ها"), keys: ["page", "dusya", "fihrist_page", "naqal_count", "awraq", "zamima"] },
-  { title: t("متن‌ها"), keys: ["tafseel", "notes"] },
-]);
-
-/* Error snackbar */
-const showError = ref(false);
-const errorMessage = ref("");
-function showErrorMessage(msg) {
-  errorMessage.value = msg;
-  showError.value = true;
-}
-
-/* Peek */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-const detailForPeek = computed(() => detail.value || null);
-
-async function fetchOne(id) {
-  if (!id) return;
-  loadingOne.value = true;
-  try {
-    const d = await repo.FetchOutgoingIncomingItem(id);
-    detail.value = d || {};
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t("خطا در دریافت معلومات"));
-  } finally {
-    loadingOne.value = false;
-  }
-}
-
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
-
-/* Fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchOutgoingIncomingData({
-      page: repo.page,
-      perPage: repo.perPage,
-      search: repo.Search,
-    });
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t("خطا در دریافت فهرست"));
-  }
-}
-
-function clearSearch() {
-  repo.Search = "";
-  fetchAll();
-}
-
-/* Navigation */
-function goCreate() {
-  router.push("/app/outgoingincomingform");
-}
-function startEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/outgoingincomingform/${row.id}`);
-}
-
-/* Delete */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
-
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
-
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  if (!row?.id) {
-    deleteDialog.value = false;
-    deleteTarget.value = null;
-    return;
+  /* Error snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  function showErrorMessage(msg) {
+    errorMessage.value = msg;
+    showError.value = true;
   }
 
-  try {
-    await repo.DeleteOutgoingIncoming(row.id);
-    await fetchAll();
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t("خطا در حذف"));
-  } finally {
-    deleteDialog.value = false;
-    deleteTarget.value = null;
-  }
-}
+  /* Peek */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
 
-onMounted(fetchAll);
+  const detailForPeek = computed(() => detail.value || null);
+
+  async function fetchOne(id) {
+    if (!id) return;
+    loadingOne.value = true;
+    try {
+      const d = await repo.FetchOutgoingIncomingItem(id);
+      detail.value = d || {};
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات'));
+    } finally {
+      loadingOne.value = false;
+    }
+  }
+
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
+
+  /* Fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchOutgoingIncomingData({
+        page: repo.page,
+        perPage: repo.perPage,
+        search: repo.Search,
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست'));
+    }
+  }
+
+  function clearSearch() {
+    repo.Search = '';
+    fetchAll();
+  }
+
+  /* Navigation */
+  function goCreate() {
+    router.push('/app/outgoingincomingform');
+  }
+  function startEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/outgoingincomingform/${row.id}`);
+  }
+
+  /* Delete */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
+
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
+
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    if (!row?.id) {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
+    }
+
+    try {
+      await repo.DeleteOutgoingIncoming(row.id);
+      await fetchAll();
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+    }
+  }
+
+  onMounted(fetchAll);
 </script>
 
 <style scoped>
-.stat-card {
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: 2px solid transparent;
-  height: 100px;
-  font-family: var(--app-font) !important;
-}
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
-}
-.search-field :deep(.v-field) {
-  min-height: 48px;
-}
-.fontfamily {
-  font-family: var(--app-font) !important;
-}
+  .stat-card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+    height: 100px;
+    font-family: var(--app-font) !important;
+  }
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+  }
+  .search-field :deep(.v-field) {
+    min-height: 48px;
+  }
+  .fontfamily {
+    font-family: var(--app-font) !important;
+  }
 </style>

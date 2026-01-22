@@ -87,6 +87,7 @@ class Resource extends Model
         'now_specific_place',
         'now_street_number',
         'now_home_number',
+        'tadarok_place',
 
         // jobs
         'old_job',

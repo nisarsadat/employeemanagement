@@ -47,6 +47,8 @@ return new class extends Migration {
             $table->string('qisem')->nullable();
             $table->string('zone')->nullable();
             $table->string('hawza')->nullable();
+            $table->string('makhafat')->nullable();
+            $table->string('makafat')->nullable();
 
             // Status & education
             $table->string('madani_halat')->nullable();

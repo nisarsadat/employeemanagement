@@ -12,42 +12,96 @@ class OutgoingIncomingResource extends JsonResource
         return [
             'id' => $this->id,
 
+            // =====================
+            // Document Info
+            // =====================
             'docs_type' => $this->docs_type,
 
-            'office_outgoing_date' => $this->office_outgoing_date,
+            // =====================
+            // Office Outgoing
+            // =====================
+            'office_outgoing_date' => $this->office_outgoing_date
+                ? $this->office_outgoing_date->format('Y-m-d')
+                : null,
             'office_outgoing_page' => $this->office_outgoing_page,
 
-            'office_incoming_date' => $this->office_incoming_date,
+            // =====================
+            // Office Incoming
+            // =====================
+            'office_incoming_date' => $this->office_incoming_date
+                ? $this->office_incoming_date->format('Y-m-d')
+                : null,
             'office_incoming_page' => $this->office_incoming_page,
 
-            'reyasat_outgoing_date' => $this->reyasat_outgoing_date,
+            // =====================
+            // Reyasat Outgoing
+            // =====================
+            'reyasat_outgoing_date' => $this->reyasat_outgoing_date
+                ? $this->reyasat_outgoing_date->format('Y-m-d')
+                : null,
             'reyasat_outgoing_page' => $this->reyasat_outgoing_page,
 
-            'loy_reyasat_outgoing_date' => $this->loy_reyasat_outgoing_date,
+            // =====================
+            // Loy Reyasat Outgoing
+            // =====================
+            'loy_reyasat_outgoing_date' => $this->loy_reyasat_outgoing_date
+                ? $this->loy_reyasat_outgoing_date->format('Y-m-d')
+                : null,
             'loy_reyasat_outgoing_page' => $this->loy_reyasat_outgoing_page,
 
-            'answer_date' => $this->answer_date,
+            // =====================
+            // Answer
+            // =====================
+            'answer_date' => $this->answer_date
+                ? $this->answer_date->format('Y-m-d')
+                : null,
             'answer_page' => $this->answer_page,
 
-            'docs_sign_date' => $this->docs_sign_date,
-            'outgoing_incoming_date' => $this->outgoing_incoming_date,
+            // =====================
+            // Sign & Final Dates
+            // =====================
+            'docs_sign_date' => $this->docs_sign_date
+                ? $this->docs_sign_date->format('Y-m-d')
+                : null,
+            'outgoing_incoming_date' => $this->outgoing_incoming_date
+                ? $this->outgoing_incoming_date->format('Y-m-d')
+                : null,
 
+            // =====================
+            // Meta Info
+            // =====================
             'who_sighn' => $this->who_sighn,
-            'marja' => $this->marja,
-            'tafseel' => $this->tafseel,
+            'marja'     => $this->marja,
+            'tafseel'   => $this->tafseel,
 
-            'page' => $this->page,
-            'dusya' => $this->dusya,
+            // =====================
+            // Archive Info
+            // =====================
+            'page'         => $this->page,
+            'dusya'        => $this->dusya,
             'fihrist_page' => $this->fihrist_page,
 
+            // =====================
+            // Counts
+            // =====================
             'naqal_count' => $this->naqal_count,
-            'awraq' => $this->awraq,
-            'zamima' => $this->zamima,
+            'awraq'       => $this->awraq,
+            'zamima'      => $this->zamima,
 
+            // =====================
+            // Notes
+            // =====================
             'notes' => $this->notes,
 
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            // =====================
+            // Timestamps
+            // =====================
+            'created_at' => $this->created_at
+                ? $this->created_at->format('Y-m-d H:i')
+                : null,
+            'updated_at' => $this->updated_at
+                ? $this->updated_at->format('Y-m-d H:i')
+                : null,
         ];
     }
 }

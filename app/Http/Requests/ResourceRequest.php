@@ -32,6 +32,7 @@ class ResourceRequest extends FormRequest
             'now_specific_place' => ['nullable','string'],
             'now_street_number' => ['nullable','string'],
             'now_home_number' => ['nullable','string'],
+            'tadarok_place' => ['nullable','string'],
 
             // jobs
             'old_job' => ['nullable','string'],

@@ -32,6 +32,7 @@ return new class extends Migration {
             $table->string('now_specific_place')->nullable();
             $table->string('now_street_number')->nullable();
             $table->string('now_home_number')->nullable();
+            $table->string('tadarok_place')->nullable();
 
             // jobs
             $table->string('old_job')->nullable();

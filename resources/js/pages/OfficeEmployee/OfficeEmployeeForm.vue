@@ -389,15 +389,14 @@
             <!-- Current address -->
             <v-row class="px-3 pb-3 pt-0">
               <v-col cols="12" md="12">
-
-              <ProvinceDistrictNameSelect
-                v-model:province="form.now_province"
-                v-model:district="form.now_district"
-                :province-label="t('ولایت فعلی')"
-                :district-label="t('ولسوالی فعلی')"
-                :mdProvince="6"
-                :mdDistrict="6"
-              />
+                <ProvinceDistrictNameSelect
+                  v-model:province="form.now_province"
+                  v-model:district="form.now_district"
+                  :province-label="t('ولایت فعلی')"
+                  :district-label="t('ولسوالی فعلی')"
+                  :mdProvince="6"
+                  :mdDistrict="6"
+                />
               </v-col>
 
               <v-col cols="12" md="12">
@@ -490,6 +489,23 @@
             <v-row class="pa-3">
               <v-col cols="12" md="3">
                 <v-text-field
+                  v-model="form.makhafat"
+                  :label="t('مخافات')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.makafat"
+                  :label="t('مکافات')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-text-field
                   v-model="form.bast"
                   :label="t('بست')"
                   density="compact"
@@ -531,16 +547,15 @@
                   :error-messages="getErrorMessages('qisem')"
                 />
               </v-col>
-              <v-col cols="12" >
-
-              <ZoneHawzaNameSelect
-                v-model:zone="form.zone"
-                v-model:hawza="form.hawza"
-                :zone-label="t('زون')"
-                :hawza-label="t('حوزه')"
-                :mdZone="6"
-                :mdHawza="6"
-              />
+              <v-col cols="12">
+                <ZoneHawzaNameSelect
+                  v-model:zone="form.zone"
+                  v-model:hawza="form.hawza"
+                  :zone-label="t('زون')"
+                  :hawza-label="t('حوزه')"
+                  :mdZone="6"
+                  :mdHawza="6"
+                />
               </v-col>
 
               <v-col cols="12" md="12">
@@ -958,6 +973,8 @@
     coordinates: '',
 
     // job / org / zone / hawza
+    makhafat: '',
+    makafat: '',
     bast: '',
     level: '',
     specific_job: '',
@@ -1150,6 +1167,8 @@
     b.coordinates = x.coordinates ?? '';
 
     // job / org / zone / hawza
+    b.makafat = x.makafat ?? '';
+    b.makhafat = x.makhafat ?? '';
     b.bast = x.bast ?? '';
     b.level = x.level ?? '';
     b.specific_job = x.specific_job ?? '';

@@ -57,7 +57,8 @@ class OfficeEmployeeRequest extends FormRequest
             'qisem'                   => ['nullable','string'],
             'zone'                    => ['nullable','string'],
             'hawza'                   => ['nullable','string'],
-
+            'makhafat'                => ['nullable','string'],
+            'makafat'                 => ['nullable','string'],
             // Status & education
             'madani_halat'            => ['nullable','string'],
             'activity'                => ['nullable','string'],

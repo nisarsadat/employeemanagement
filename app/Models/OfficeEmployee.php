@@ -50,7 +50,9 @@ class OfficeEmployee extends Model
         'specific_job',
         'qisem',
         'zone',
-        'hawza',
+        'hawza',        
+        'makhafat',
+        'makafat',
 
         'madani_halat',
         'activity',

@@ -562,9 +562,13 @@
   /* ===== Headers for FilterableTable ===== */
   const headersFT = computed(() => [
     { title: t('تصویر'), key: 'picture', sortable: false },
+    { title: t('پول داده شده'), key: 'payed_money' },
     { title: t('تعداد واقعات'), key: 'events_count' },
     { title: t(' تعداد اطلاعات'), key: 'informations_count' },
     { title: t(' تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
+    // FK: office employee
+    { title: t('کارمند مربوطه'), key: 'office_employee_id' },
+    { title: t('رزیدنت مربوطه'), key: 'resedint_code' },
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
@@ -575,7 +579,6 @@
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی'), key: 'main_district' },
     { title: t('قریه'), key: 'main_village' },
-    { title: t('پول داده شده'), key: 'payed_money' },
 
     { title: t('ولایت فعلی'), key: 'now_province' },
     { title: t('ولسوالی فعلی'), key: 'now_district' },
@@ -583,6 +586,7 @@
     { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
     { title: t('شماره سرک'), key: 'now_street_number' },
     { title: t('شماره خانه'), key: 'now_home_number' },
+    { title: t('د تدارک محل'), key: 'tadarok_place' },
 
     { title: t('وظیفه سابقه'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
@@ -600,10 +604,6 @@
     { title: t('تاریخ ثبت منبع'), key: 'resource_saved_date' },
     { title: t('نوع فعالیت منبع'), key: 'resource_activity_type' },
 
-    // FK: office employee
-    { title: t('کارمند مربوطه'), key: 'office_employee_id' },
-
-    { title: t('رزیدنت مربوطه'), key: 'resedint_code' },
     { title: t('پوشش منبع'), key: 'resource_cover' },
     { title: t('زبان'), key: 'language' },
     { title: t('قوم'), key: 'nation' },

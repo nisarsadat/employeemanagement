@@ -196,6 +196,8 @@ import MawqafJahadisIndex from '../pages/Settings/MawqafJahadis/MawqafJahadisInd
 import KhayratReportsIndex from '../pages/KHayratReport/KhayratReportsIndex.vue';
 import Khayratreport from '../pages/InlineInfo/khayratreport.vue';
 import FormatZonePage from '../pages/Settings/FormatZone/FormatZonePage.vue';
+import DocsTypesIndex from '../pages/Settings/DocsType/DocsTypesIndex.vue';
+import MarjasIndex from '../pages/Settings/Marja/MarjasIndex.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -1534,6 +1536,16 @@ const router = createRouter({
           path: '/app/khayrat-reports/create',
           name: 'KhayratReportCreate',
           component: Khayratreport,
+        },
+        {
+          path: '/app/docstypesindex',
+          name: 'docstypesindex',
+          component: DocsTypesIndex,
+        },
+        {
+          path: '/app/marjas',
+          name: 'marjas',
+          component: MarjasIndex,
         },
       ],
     },

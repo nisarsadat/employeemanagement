@@ -43,7 +43,10 @@
               >
                 <v-icon size="16">{{ step1Complete ? 'mdi-check' : 'mdi-text' }}</v-icon>
               </div>
-              <span class="stepper-label text-caption" :class="{ 'is-complete-text': step1Complete }">
+              <span
+                class="stepper-label text-caption"
+                :class="{ 'is-complete-text': step1Complete }"
+              >
                 {{ t('نوع و متن') }}
               </span>
             </div>
@@ -58,7 +61,10 @@
               >
                 <v-icon size="16">{{ step2Complete ? 'mdi-check' : 'mdi-calendar' }}</v-icon>
               </div>
-              <span class="stepper-label text-caption" :class="{ 'is-complete-text': step2Complete }">
+              <span
+                class="stepper-label text-caption"
+                :class="{ 'is-complete-text': step2Complete }"
+              >
                 {{ t('تاریخ‌ها') }}
               </span>
             </div>
@@ -73,7 +79,10 @@
               >
                 <v-icon size="16">{{ step3Complete ? 'mdi-check' : 'mdi-file-document' }}</v-icon>
               </div>
-              <span class="stepper-label text-caption" :class="{ 'is-complete-text': step3Complete }">
+              <span
+                class="stepper-label text-caption"
+                :class="{ 'is-complete-text': step3Complete }"
+              >
                 {{ t('صفحات و فهرست') }}
               </span>
             </div>
@@ -88,7 +97,10 @@
               >
                 <v-icon size="16">{{ step4Complete ? 'mdi-check' : 'mdi-note-text' }}</v-icon>
               </div>
-              <span class="stepper-label text-caption" :class="{ 'is-complete-text': step4Complete }">
+              <span
+                class="stepper-label text-caption"
+                :class="{ 'is-complete-text': step4Complete }"
+              >
                 {{ t('ضمیمه و ملاحظات') }}
               </span>
             </div>
@@ -140,29 +152,12 @@
             <v-divider />
 
             <v-row class="pa-3">
-              <v-col cols="12" md="6">
-                <v-textarea
-                  v-model="form.docs_type"
-                  :label="t('نوع مکتوب *')"
-                  density="compact"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                  :error="hasError('docs_type')"
-                  :error-messages="getErrorMessages('docs_type')"
-                  auto-grow
-                  rows="2"
-                />
+              <v-col cols="12" md="12">
+                <DocsTypeAutocomplete v-model="form.docs_type" :label="t('نوع سند')" />
               </v-col>
 
               <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.marja"
-                  :label="t('مرجع')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('marja')"
-                  :error-messages="getErrorMessages('marja')"
-                />
+                <MarjaAutocomplete v-model="form.marja" :label="t('مرجع')" />
               </v-col>
 
               <v-col cols="12" md="6">
@@ -374,7 +369,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.fihrist_page"
                   :label="t('صفحه فهرست')"
@@ -406,36 +401,30 @@
               <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.naqal_count"
-                  type="number"
                   :label="t('تعداد نقل')"
                   density="compact"
                   variant="outlined"
-                  :error="hasError('naqal_count')"
-                  :error-messages="getErrorMessages('naqal_count')"
+                  
                 />
               </v-col>
 
               <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.awraq"
-                  type="number"
                   :label="t('اوراق')"
                   density="compact"
                   variant="outlined"
-                  :error="hasError('awraq')"
-                  :error-messages="getErrorMessages('awraq')"
+                  
                 />
               </v-col>
 
               <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.zamima"
-                  type="number"
                   :label="t('ضمیمه')"
                   density="compact"
                   variant="outlined"
-                  :error="hasError('zamima')"
-                  :error-messages="getErrorMessages('zamima')"
+                  
                 />
               </v-col>
 
@@ -499,493 +488,497 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
+  import { ref, computed, watch, onMounted, nextTick } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
 
-import DateInput from "@/components/DateInput.vue";
-import AppBar from "@/components/AppBar.vue";
-import { useOutgoingIncomingRepository } from "@/stores/OutgoingIncomingRepository";
+  import DateInput from '@/components/DateInput.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import { useOutgoingIncomingRepository } from '@/stores/OutgoingIncomingRepository';
+  import DocsTypeAutocomplete from '@/components/DocsTypeAutocomplete.vue';
+  import MarjaAutocomplete from '@/components/MarjaAutocomplete.vue';
+  const repo = useOutgoingIncomingRepository();
+  const route = useRoute();
+  const router = useRouter();
+  const { t, locale } = useI18n();
 
-const repo = useOutgoingIncomingRepository();
-const route = useRoute();
-const router = useRouter();
-const { t, locale } = useI18n();
+  /* RTL */
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (n) => (isRtl.value = n === 'fa'));
 
-/* RTL */
-const isRtl = ref(locale.value === "fa");
-watch(locale, (n) => (isRtl.value = n === "fa"));
+  /* MODE */
+  const idParam = computed(() => route.params.id);
+  const isEdit = computed(() => !!idParam.value);
 
-/* MODE */
-const idParam = computed(() => route.params.id);
-const isEdit = computed(() => !!idParam.value);
+  /* FORM */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-/* FORM */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
 
-const showError = ref(false);
-const errorMessage = ref("");
-const showSuccess = ref(false);
-const successMessage = ref("");
-
-function showErrorMessage(message) {
-  errorMessage.value = message;
-  showError.value = true;
-}
-function showSuccessMessage(message) {
-  successMessage.value = message;
-  showSuccess.value = true;
-}
-function todayISO() {
-  if (repo?.getCurrentDate && typeof repo.getCurrentDate === "function") {
-    return repo.getCurrentDate();
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
   }
-  return new Date().toISOString().slice(0, 10);
-}
-
-/* Backend Errors */
-const backendErrors = ref({});
-function setBackendErrors(errors) {
-  backendErrors.value = errors || {};
-}
-function clearBackendErrors() {
-  backendErrors.value = {};
-}
-function hasError(field) {
-  return !!backendErrors.value?.[field];
-}
-function getErrorMessages(field) {
-  return backendErrors.value?.[field] ?? [];
-}
-
-/* Blank form (✅ matches OutgoingIncoming model) */
-const blankForm = () => ({
-  id: null,
-
-  docs_type: "",
-
-  office_outgoing_date: "",
-  office_outgoing_page: "",
-
-  office_incoming_date: "",
-  office_incoming_page: "",
-
-  reyasat_outgoing_date: "",
-  reyasat_outgoing_page: "",
-
-  loy_reyasat_outgoing_date: "",
-  loy_reyasat_outgoing_page: "",
-
-  answer_date: "",
-  answer_page: "",
-
-  docs_sign_date: todayISO(),
-  outgoing_incoming_date: todayISO(),
-
-  who_sighn: "",
-  marja: "",
-  tafseel: "",
-
-  page: "",
-  dusya: "",
-  fihrist_page: "",
-
-  naqal_count: "",
-  awraq: "",
-  zamima: "",
-
-  notes: "",
-});
-
-const form = ref(blankForm());
-
-/* Rules */
-const rules = {
-  required: (v) => !!String(v ?? "").trim() || t("این فیلد الزامی است"),
-};
-
-/* Map API -> form */
-function mapFromApi(payload = {}) {
-  const x = payload.data ?? payload;
-  const b = blankForm();
-  b.id = x.id ?? null;
-
-  b.docs_type = x.docs_type ?? "";
-
-  b.office_outgoing_date = x.office_outgoing_date ?? "";
-  b.office_outgoing_page = x.office_outgoing_page ?? "";
-
-  b.office_incoming_date = x.office_incoming_date ?? "";
-  b.office_incoming_page = x.office_incoming_page ?? "";
-
-  b.reyasat_outgoing_date = x.reyasat_outgoing_date ?? "";
-  b.reyasat_outgoing_page = x.reyasat_outgoing_page ?? "";
-
-  b.loy_reyasat_outgoing_date = x.loy_reyasat_outgoing_date ?? "";
-  b.loy_reyasat_outgoing_page = x.loy_reyasat_outgoing_page ?? "";
-
-  b.answer_date = x.answer_date ?? "";
-  b.answer_page = x.answer_page ?? "";
-
-  b.docs_sign_date = x.docs_sign_date ?? todayISO();
-  b.outgoing_incoming_date = x.outgoing_incoming_date ?? todayISO();
-
-  b.who_sighn = x.who_sighn ?? "";
-  b.marja = x.marja ?? "";
-  b.tafseel = x.tafseel ?? "";
-
-  b.page = x.page ?? "";
-  b.dusya = x.dusya ?? "";
-  b.fihrist_page = x.fihrist_page ?? "";
-
-  b.naqal_count = x.naqal_count ?? "";
-  b.awraq = x.awraq ?? "";
-  b.zamima = x.zamima ?? "";
-
-  b.notes = x.notes ?? "";
-
-  return b;
-}
-
-async function loadForEdit() {
-  if (!isEdit.value) {
-    form.value = blankForm();
-    return;
+  function showSuccessMessage(message) {
+    successMessage.value = message;
+    showSuccess.value = true;
   }
-
-  try {
-    const d = await repo.FetchOutgoingIncomingItem(idParam.value);
-    form.value = mapFromApi(d || {});
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t("خطا در دریافت معلومات"));
-  }
-}
-
-/* Payload builder (no files ✅) */
-function buildPayload() {
-  const p = { ...form.value };
-
-  // normalize numbers (optional)
-  ["naqal_count", "awraq", "zamima"].forEach((k) => {
-    if (p[k] === "") return;
-    const n = Number(p[k]);
-    p[k] = Number.isFinite(n) ? n : p[k];
-  });
-
-  // trim strings
-  Object.keys(p).forEach((k) => {
-    if (typeof p[k] === "string") p[k] = p[k].trim();
-  });
-
-  return p;
-}
-
-/* Submit */
-async function onSubmit() {
-  clearBackendErrors();
-
-  const f = formRef.value;
-  if (!f) return;
-
-  const { valid } = await f.validate();
-  if (!valid) {
-    showErrorMessage(t("لطفاً فیلدهای قرمز را درست کنید"));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
-  }
-
-  saving.value = true;
-  try {
-    const payload = buildPayload();
-
-    if (!isEdit.value) {
-      const created = await repo.CreateOutgoingIncoming(payload).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
-
-      if (created?.id) {
-        showSuccessMessage(t("موفقانه ثبت شد"));
-        router.push({ path: "/app/outgoingincommings" }).catch(() => {});
-      } else {
-        showErrorMessage(t("ثبت ناکام شد"));
-      }
-    } else {
-      const updated = await repo.UpdateOutgoingIncoming(form.value.id, payload).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
-
-      if (updated?.id) {
-        showSuccessMessage(t("تغییرات ذخیره شد"));
-        router.push({ path: "/app/outgoingincommings" }).catch(() => {});
-      } else {
-        showErrorMessage(t("ذخیره ناکام شد"));
-      }
+  function todayISO() {
+    if (repo?.getCurrentDate && typeof repo.getCurrentDate === 'function') {
+      return repo.getCurrentDate();
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t("خطا در ذخیره اطلاعات"));
-  } finally {
-    saving.value = false;
+    return new Date().toISOString().slice(0, 10);
   }
-}
 
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector(".v-input--error, [aria-invalid='true']") ||
-    document.querySelector(".v-messages__message");
-  if (first) {
-    first.scrollIntoView({ behavior: "smooth", block: "center" });
-    const input = first.querySelector("input, textarea, .v-field__input");
-    if (input && typeof input.focus === "function") input.focus();
+  /* Backend Errors */
+  const backendErrors = ref({});
+  function setBackendErrors(errors) {
+    backendErrors.value = errors || {};
   }
-}
+  function clearBackendErrors() {
+    backendErrors.value = {};
+  }
+  function hasError(field) {
+    return !!backendErrors.value?.[field];
+  }
+  function getErrorMessages(field) {
+    return backendErrors.value?.[field] ?? [];
+  }
 
-function resetForm() {
-  form.value = blankForm();
-  formRef.value?.resetValidation?.();
-  clearBackendErrors();
-  showSuccessMessage(t("ورودی‌ها پاک شد"));
-}
+  /* Blank form (✅ matches OutgoingIncoming model) */
+  const blankForm = () => ({
+    id: null,
 
-function goBack() {
-  router.back();
-}
+    docs_type: '',
 
-/* Init */
-onMounted(loadForEdit);
+    office_outgoing_date: '',
+    office_outgoing_page: '',
 
-/* Stepper */
-const step1Complete = computed(() => !!String(form.value.docs_type || "").trim());
+    office_incoming_date: '',
+    office_incoming_page: '',
 
-const step2Complete = computed(
-  () =>
-    !!String(form.value.outgoing_incoming_date || "").trim() ||
-    !!String(form.value.docs_sign_date || "").trim() ||
-    !!String(form.value.office_outgoing_date || "").trim() ||
-    !!String(form.value.office_incoming_date || "").trim() ||
-    !!String(form.value.reyasat_outgoing_date || "").trim() ||
-    !!String(form.value.loy_reyasat_outgoing_date || "").trim()
-);
+    reyasat_outgoing_date: '',
+    reyasat_outgoing_page: '',
 
-const step3Complete = computed(
-  () =>
-    !!String(form.value.office_outgoing_page || "").trim() ||
-    !!String(form.value.office_incoming_page || "").trim() ||
-    !!String(form.value.reyasat_outgoing_page || "").trim() ||
-    !!String(form.value.loy_reyasat_outgoing_page || "").trim() ||
-    !!String(form.value.page || "").trim() ||
-    !!String(form.value.dusya || "").trim() ||
-    !!String(form.value.fihrist_page || "").trim()
-);
+    loy_reyasat_outgoing_date: '',
+    loy_reyasat_outgoing_page: '',
 
-const step4Complete = computed(
-  () =>
-    !!String(form.value.notes || "").trim() ||
-    !!String(form.value.zamima || "").trim() ||
-    !!String(form.value.naqal_count || "").trim() ||
-    !!String(form.value.awraq || "").trim()
-);
+    answer_date: '',
+    answer_page: '',
 
-const completedSteps = computed(
-  () => [step1Complete.value, step2Complete.value, step3Complete.value, step4Complete.value].filter(Boolean).length
-);
+    docs_sign_date: todayISO(),
+    outgoing_incoming_date: todayISO(),
 
-const currentStep = computed(() => {
-  if (!step1Complete.value) return 1;
-  if (!step2Complete.value) return 2;
-  if (!step3Complete.value) return 3;
-  return 4;
-});
+    who_sighn: '',
+    marja: '',
+    tafseel: '',
 
-const progressValue = computed(() => (completedSteps.value / 4) * 100);
+    page: '',
+    dusya: '',
+    fihrist_page: '',
+
+    naqal_count: '',
+    awraq: '',
+    zamima: '',
+
+    notes: '',
+  });
+
+  const form = ref(blankForm());
+
+  /* Rules */
+  const rules = {
+    required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
+  };
+
+  /* Map API -> form */
+  function mapFromApi(payload = {}) {
+    const x = payload.data ?? payload;
+    const b = blankForm();
+    b.id = x.id ?? null;
+
+    b.docs_type = x.docs_type ?? '';
+
+    b.office_outgoing_date = x.office_outgoing_date ?? '';
+    b.office_outgoing_page = x.office_outgoing_page ?? '';
+
+    b.office_incoming_date = x.office_incoming_date ?? '';
+    b.office_incoming_page = x.office_incoming_page ?? '';
+
+    b.reyasat_outgoing_date = x.reyasat_outgoing_date ?? '';
+    b.reyasat_outgoing_page = x.reyasat_outgoing_page ?? '';
+
+    b.loy_reyasat_outgoing_date = x.loy_reyasat_outgoing_date ?? '';
+    b.loy_reyasat_outgoing_page = x.loy_reyasat_outgoing_page ?? '';
+
+    b.answer_date = x.answer_date ?? '';
+    b.answer_page = x.answer_page ?? '';
+
+    b.docs_sign_date = x.docs_sign_date ?? todayISO();
+    b.outgoing_incoming_date = x.outgoing_incoming_date ?? todayISO();
+
+    b.who_sighn = x.who_sighn ?? '';
+    b.marja = x.marja ?? '';
+    b.tafseel = x.tafseel ?? '';
+
+    b.page = x.page ?? '';
+    b.dusya = x.dusya ?? '';
+    b.fihrist_page = x.fihrist_page ?? '';
+
+    b.naqal_count = x.naqal_count ?? '';
+    b.awraq = x.awraq ?? '';
+    b.zamima = x.zamima ?? '';
+
+    b.notes = x.notes ?? '';
+
+    return b;
+  }
+
+  async function loadForEdit() {
+    if (!isEdit.value) {
+      form.value = blankForm();
+      return;
+    }
+
+    try {
+      const d = await repo.FetchOutgoingIncomingItem(idParam.value);
+      form.value = mapFromApi(d || {});
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات'));
+    }
+  }
+
+  /* Payload builder (no files ✅) */
+  function buildPayload() {
+    const p = { ...form.value };
+
+    // normalize numbers (optional)
+    ['naqal_count', 'awraq', 'zamima'].forEach((k) => {
+      if (p[k] === '') return;
+      const n = Number(p[k]);
+      p[k] = Number.isFinite(n) ? n : p[k];
+    });
+
+    // trim strings
+    Object.keys(p).forEach((k) => {
+      if (typeof p[k] === 'string') p[k] = p[k].trim();
+    });
+
+    return p;
+  }
+
+  /* Submit */
+  async function onSubmit() {
+    clearBackendErrors();
+
+    const f = formRef.value;
+    if (!f) return;
+
+    const { valid } = await f.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+
+    saving.value = true;
+    try {
+      const payload = buildPayload();
+
+      if (!isEdit.value) {
+        const created = await repo.CreateOutgoingIncoming(payload).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (created?.id) {
+          showSuccessMessage(t('موفقانه ثبت شد'));
+          router.push({ path: '/app/outgoingincommings' }).catch(() => {});
+        } else {
+          showErrorMessage(t('ثبت ناکام شد'));
+        }
+      } else {
+        const updated = await repo.UpdateOutgoingIncoming(form.value.id, payload).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (updated?.id) {
+          showSuccessMessage(t('تغییرات ذخیره شد'));
+          router.push({ path: '/app/outgoingincommings' }).catch(() => {});
+        } else {
+          showErrorMessage(t('ذخیره ناکام شد'));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      saving.value = false;
+    }
+  }
+
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector(".v-input--error, [aria-invalid='true']") ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  function resetForm() {
+    form.value = blankForm();
+    formRef.value?.resetValidation?.();
+    clearBackendErrors();
+    showSuccessMessage(t('ورودی‌ها پاک شد'));
+  }
+
+  function goBack() {
+    router.back();
+  }
+
+  /* Init */
+  onMounted(loadForEdit);
+
+  /* Stepper */
+  const step1Complete = computed(() => !!String(form.value.docs_type || '').trim());
+
+  const step2Complete = computed(
+    () =>
+      !!String(form.value.outgoing_incoming_date || '').trim() ||
+      !!String(form.value.docs_sign_date || '').trim() ||
+      !!String(form.value.office_outgoing_date || '').trim() ||
+      !!String(form.value.office_incoming_date || '').trim() ||
+      !!String(form.value.reyasat_outgoing_date || '').trim() ||
+      !!String(form.value.loy_reyasat_outgoing_date || '').trim()
+  );
+
+  const step3Complete = computed(
+    () =>
+      !!String(form.value.office_outgoing_page || '').trim() ||
+      !!String(form.value.office_incoming_page || '').trim() ||
+      !!String(form.value.reyasat_outgoing_page || '').trim() ||
+      !!String(form.value.loy_reyasat_outgoing_page || '').trim() ||
+      !!String(form.value.page || '').trim() ||
+      !!String(form.value.dusya || '').trim() ||
+      !!String(form.value.fihrist_page || '').trim()
+  );
+
+  const step4Complete = computed(
+    () =>
+      !!String(form.value.notes || '').trim() ||
+      !!String(form.value.zamima || '').trim() ||
+      !!String(form.value.naqal_count || '').trim() ||
+      !!String(form.value.awraq || '').trim()
+  );
+
+  const completedSteps = computed(
+    () =>
+      [step1Complete.value, step2Complete.value, step3Complete.value, step4Complete.value].filter(
+        Boolean
+      ).length
+  );
+
+  const currentStep = computed(() => {
+    if (!step1Complete.value) return 1;
+    if (!step2Complete.value) return 2;
+    if (!step3Complete.value) return 3;
+    return 4;
+  });
+
+  const progressValue = computed(() => (completedSteps.value / 4) * 100);
 </script>
 
 <style scoped>
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
-.stepper-shell {
-  position: absolute;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 90%;
-  width: 100%;
-  z-index: 20;
-  margin: 0;
-  padding-bottom: 12px;
-}
-.form-shell {
-  max-width: 1150px;
-  margin-top: 140px;
-  margin-bottom: 40px;
-}
-@media (max-width: 960px) {
-  .stepper-shell {
-    top: 64px;
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
   }
-}
-.stepper-card {
-  border-radius: 14px;
-  padding: 10px 14px 12px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(33, 150, 243, 0.12);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  font-family: inherit;
-}
-.stepper-track-wrapper {
-  position: relative;
-  margin-top: 4px;
-}
-.stepper-track {
-  opacity: 0.35;
-}
-.stepper-dots {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-start: -7px;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-}
-.stepper-dot-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-.stepper-dot {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #e0e7f1;
-  border: 2px solid #b0bec5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto;
-  transition: all 0.2s ease;
-}
-.stepper-dot.is-active:not(.is-complete) {
-  background: #1976d2;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.18);
-}
-.stepper-dot.is-complete {
-  background: #4caf50;
-  border-color: #4caf50;
-  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.18);
-}
-.stepper-dot :deep(.v-icon) {
-  color: #fff !important;
-}
-.stepper-label {
-  color: #555;
-  font-family: inherit;
-  font-weight: 600;
-}
-.is-complete-text {
-  color: #2e7d32;
-}
-.stepper-caption {
-  font-family: inherit;
-  font-weight: 600;
-}
+  .stepper-shell {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 90%;
+    width: 100%;
+    z-index: 20;
+    margin: 0;
+    padding-bottom: 12px;
+  }
+  .form-shell {
+    max-width: 1150px;
+    margin-top: 140px;
+    margin-bottom: 40px;
+  }
+  @media (max-width: 960px) {
+    .stepper-shell {
+      top: 64px;
+    }
+  }
+  .stepper-card {
+    border-radius: 14px;
+    padding: 10px 14px 12px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(33, 150, 243, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    font-family: inherit;
+  }
+  .stepper-track-wrapper {
+    position: relative;
+    margin-top: 4px;
+  }
+  .stepper-track {
+    opacity: 0.35;
+  }
+  .stepper-dots {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: -7px;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+  .stepper-dot-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .stepper-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #e0e7f1;
+    border: 2px solid #b0bec5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    transition: all 0.2s ease;
+  }
+  .stepper-dot.is-active:not(.is-complete) {
+    background: #1976d2;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.18);
+  }
+  .stepper-dot.is-complete {
+    background: #4caf50;
+    border-color: #4caf50;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.18);
+  }
+  .stepper-dot :deep(.v-icon) {
+    color: #fff !important;
+  }
+  .stepper-label {
+    color: #555;
+    font-family: inherit;
+    font-weight: 600;
+  }
+  .is-complete-text {
+    color: #2e7d32;
+  }
+  .stepper-caption {
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-.form-card {
-  border-radius: 18px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-  font-family: inherit;
-}
-.header-avatar {
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.35);
-}
-.header-title {
-  font-family: inherit;
-  font-weight: 700;
-}
-.header-subtitle {
-  font-family: inherit;
-  font-weight: 600;
-}
+  .form-card {
+    border-radius: 18px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    font-family: inherit;
+  }
+  .header-avatar {
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.35);
+  }
+  .header-title {
+    font-family: inherit;
+    font-weight: 700;
+  }
+  .header-subtitle {
+    font-family: inherit;
+    font-weight: 600;
+  }
 
-.section-card {
-  background: #fafafa;
-  border-radius: 16px;
-  border: 1px solid #e0e0e0;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
-  font-family: inherit;
-}
-.section-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  border-color: rgba(33, 150, 243, 0.35);
-  transform: translateY(-1px);
-}
-.section-header {
-  padding: 8px 14px;
-  background: #f7f7f9;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: inherit;
-}
-.docs-header {
-  background: #f3f6ff;
-}
-.section-subtitle {
-  color: #777;
-  font-family: inherit;
-  font-weight: 600;
-}
-.section-icon {
-  color: #1976d2;
-}
-.section-title {
-  font-family: inherit;
-  font-weight: 700;
-}
+  .section-card {
+    background: #fafafa;
+    border-radius: 16px;
+    border: 1px solid #e0e0e0;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+    font-family: inherit;
+  }
+  .section-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border-color: rgba(33, 150, 243, 0.35);
+    transform: translateY(-1px);
+  }
+  .section-header {
+    padding: 8px 14px;
+    background: #f7f7f9;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: inherit;
+  }
+  .docs-header {
+    background: #f3f6ff;
+  }
+  .section-subtitle {
+    color: #777;
+    font-family: inherit;
+    font-weight: 600;
+  }
+  .section-icon {
+    color: #1976d2;
+  }
+  .section-title {
+    font-family: inherit;
+    font-weight: 700;
+  }
 
-.form-actions {
-  margin-top: 4px;
-}
+  .form-actions {
+    margin-top: 4px;
+  }
 
-:deep(.v-field-label),
-:deep(.v-label),
-:deep(input::placeholder) {
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  color: #555 !important;
-  font-family: inherit !important;
-  font-weight: 600;
-}
-:deep(.v-field__input) {
-  min-height: 30px !important;
-  padding: 3px 8px !important;
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  font-family: inherit !important;
-}
-:deep(.v-btn),
-:deep(.v-chip),
-:deep(.v-snackbar),
-:deep(.v-card-title),
-:deep(.v-card-subtitle),
-:deep(.v-list-item-title),
-:deep(.v-list-item-subtitle) {
-  font-family: inherit !important;
-}
-.gap-2 {
-  gap: 8px;
-}
+  :deep(.v-field-label),
+  :deep(.v-label),
+  :deep(input::placeholder) {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    color: #555 !important;
+    font-family: inherit !important;
+    font-weight: 600;
+  }
+  :deep(.v-field__input) {
+    min-height: 30px !important;
+    padding: 3px 8px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    font-family: inherit !important;
+  }
+  :deep(.v-btn),
+  :deep(.v-chip),
+  :deep(.v-snackbar),
+  :deep(.v-card-title),
+  :deep(.v-card-subtitle),
+  :deep(.v-list-item-title),
+  :deep(.v-list-item-subtitle) {
+    font-family: inherit !important;
+  }
+  .gap-2 {
+    gap: 8px;
+  }
 </style>

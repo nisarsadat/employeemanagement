@@ -37,6 +37,8 @@ export const useLookupsRepository = defineStore('LookupsRepository', {
       ResourceActivityTypes: reactive([]),
       MawqafJahadis: reactive([]),
       FormatZones: reactive([]),
+      DocsTypes: reactive([]),
+      Marjas: reactive([]),
       loading: false,
       isLoading: false,
       error: null,
@@ -262,6 +264,24 @@ export const useLookupsRepository = defineStore('LookupsRepository', {
         this.error = e;
         this.MawqafJahadis = [];
         toast.error(errText(e));
+      } finally {
+        this.loading = false;
+      }
+    },
+    async GetDocsTypes() {
+      this.loading = true;
+      try {
+        const { data } = await axios.get('/docs-types?perPage=10000');
+        this.DocsTypes = data?.data ?? [];
+      } finally {
+        this.loading = false;
+      }
+    },
+    async GetMarjas() {
+      this.loading = true;
+      try {
+        const { data } = await axios.get('/marjas?perPage=10000');
+        this.Marjas = data?.data ?? [];
       } finally {
         this.loading = false;
       }

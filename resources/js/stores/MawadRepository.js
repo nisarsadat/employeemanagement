@@ -1079,52 +1079,79 @@ export const useMawadRepository = defineStore('MawadRepository', {
     //     throw e;
     //   }
     // },
-    async DownloadMashkokHomeZip(id, name = `mashkok_home_${id}`) {
+    async DownloadMashkokHomeZip(id) {
       const res = await axios.get(`/mashkok-homes/${id}/documents/zip`, {
         responseType: 'blob',
-        headers: { Accept: 'application/zip' },
+        validateStatus: () => true,
       });
 
+      const status = res.status;
+      const ct = (res.headers?.['content-type'] || '').toLowerCase();
+
+      // If not 200, it's an error body (often JSON)
+      if (status !== 200) {
+        const text = await res.data.text();
+        console.error('ZIP request failed:', status, ct, text.slice(0, 500));
+        throw new Error(`ZIP download failed: ${status}`);
+      }
+
+      // If backend returned HTML/JSON, log it and stop
+      if (
+        ct.includes('text/html') ||
+        ct.includes('application/json') ||
+        ct.includes('text/plain')
+      ) {
+        const text = await res.data.text();
+        console.error('Returned NOT-ZIP:', ct, text.slice(0, 500));
+        throw new Error(
+          'ZIP endpoint returned non-zip (HTML/JSON). Fix route/auth or backend error.'
+        );
+      }
+
+      // ✅ Strong check: ZIP files start with "PK"
+      const head = new Uint8Array(await res.data.slice(0, 2).arrayBuffer());
+      const isZip = head[0] === 0x50 && head[1] === 0x4b; // 'P''K'
+      if (!isZip) {
+        const text = await res.data.text();
+        console.error('Missing ZIP signature (PK). Body:', text.slice(0, 500));
+        throw new Error('Downloaded file is not a valid ZIP (no PK signature).');
+      }
+
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mashkok_home_${id}_documents.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    },
+    async DownloadLostMujremeenZip(id) {
+      const res = await axios.get(`/lost-mujremeens/${id}/documents-zip`, {
+        responseType: 'blob',
+        validateStatus: () => true,
+      });
+
+      const ct = res.headers?.['content-type'] || '';
+
+      // If it is HTML, you're still hitting Vite or redirecting
+      if (ct.includes('text/html')) {
+        const html = await res.data.text();
+        console.error('Returned HTML (NOT ZIP):', html.slice(0, 300));
+        throw new Error('ZIP endpoint returned HTML. Fix proxy/baseURL or route/auth.');
+      }
+
       const blob = new Blob([res.data], { type: 'application/zip' });
-      const url = window.URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
 
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${name}_documents.zip`;
+      a.download = `lost_mujremeen_${id}_documents.zip`;
       document.body.appendChild(a);
       a.click();
       a.remove();
 
-      window.URL.revokeObjectURL(url);
+      URL.revokeObjectURL(url);
     },
-
-async DownloadLostMujremeenZip(id) {
-  const res = await axios.get(`/lost-mujremeens/${id}/documents-zip`, {
-    responseType: 'blob',
-    validateStatus: () => true,
-  });
-
-  const ct = res.headers?.['content-type'] || '';
-
-  // If it is HTML, you're still hitting Vite or redirecting
-  if (ct.includes('text/html')) {
-    const html = await res.data.text();
-    console.error('Returned HTML (NOT ZIP):', html.slice(0, 300));
-    throw new Error('ZIP endpoint returned HTML. Fix proxy/baseURL or route/auth.');
-  }
-
-  const blob = new Blob([res.data], { type: 'application/zip' });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `lost_mujremeen_${id}_documents.zip`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  URL.revokeObjectURL(url);
-}
-
   },
 });

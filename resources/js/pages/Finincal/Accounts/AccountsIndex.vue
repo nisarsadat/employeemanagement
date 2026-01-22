@@ -2,18 +2,18 @@
 <template>
   <v-container fluid class="pt-6 page-bg" :dir="rtl ? 'rtl' : 'ltr'">
     <!-- ✅ SUMMARY CARDS (same beautiful cards) -->
-    <v-row class="mb-4" dense :dir="rtl ? 'rtl' : 'ltr'">
-      <v-col cols="12" md="3">
+    <v-row class="mb-4" dense>
+      <v-col cols="12" md="4">
         <v-card rounded="xl" class="shadow-sm stat-card">
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">مجموع بیلانس همه حساب‌ها</div>
-                <div class="text-h6 font-weight-bold stat-value family">
+                <div class="text-caption text-medium-emphasis family">موجود</div>
+                <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_balance_all_accounts) }}
                 </div>
-                <div class="text-caption text-medium-emphasis mt-1 family">جمع کل حساب‌ها</div>
               </div>
+
               <div class="stat-icon-wrap">
                 <v-icon size="26">mdi-bank</v-icon>
               </div>
@@ -22,17 +22,17 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="3">
+      <v-col cols="12" md="4">
         <v-card rounded="xl" class="shadow-sm stat-card">
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family" >مجموع عواید </div>
-                <div class="text-h6 font-weight-bold stat-value family">
+                <div class="text-caption text-medium-emphasis family">عاید</div>
+                <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_income_all) }}
                 </div>
-                <div class="text-caption text-medium-emphasis mt-1 family">جمع کل درآمد</div>
               </div>
+
               <div class="stat-icon-wrap">
                 <v-icon size="26">mdi-cash-plus</v-icon>
               </div>
@@ -41,38 +41,19 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="3">
+      <v-col cols="12" md="4">
         <v-card rounded="xl" class="shadow-sm stat-card">
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">مجموع مصارف</div>
-                <div class="text-h6 font-weight-bold stat-value family">
+                <div class="text-caption text-medium-emphasis family">مصرف</div>
+                <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_outcome_all) }}
                 </div>
-                <div class="text-caption text-medium-emphasis mt-1 family">جمع کل مصرف</div>
               </div>
+
               <div class="stat-icon-wrap">
                 <v-icon size="26">mdi-cash-minus</v-icon>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" md="3">
-        <v-card rounded="xl" class="shadow-sm stat-card">
-          <v-card-text class="pa-4">
-            <div class="d-flex align-center justify-space-between">
-              <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">مصارف همین لیست</div>
-                <div class="text-h6 font-weight-bold stat-value family">
-                  {{ fmtMoney(summary.filtered_outcome) }}
-                </div>
-                <div class="text-caption text-medium-emphasis mt-1 family">همین صفحه/جستجو</div>
-              </div>
-              <div class="stat-icon-wrap">
-                <v-icon size="26">mdi-filter</v-icon>
               </div>
             </div>
           </v-card-text>
@@ -102,6 +83,28 @@
             <v-btn color="primary" prepend-icon="mdi-plus" class="text-none" @click="openCreate">
               ثبت حساب
             </v-btn>
+            <v-select
+              v-model="selectedYear"
+              :items="yearItems"
+              item-title="title"
+              item-value="value"
+              label="سال"
+              density="compact"
+              variant="outlined"
+              clearable
+            />
+
+            <v-select
+              v-model="selectedMonth"
+              :items="monthOptions"
+              label="ماه"
+              density="compact"
+              variant="outlined"
+              prepend-inner-icon="mdi-calendar-month"
+              clearable
+              :disabled="!selectedYear"
+              @update:modelValue="onYearMonthChanged"
+            />
           </div>
         </div>
       </v-card-text>
@@ -175,225 +178,270 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from "vue";
-import FilterableTable from "@/components/FilterableTable.vue";
-import DeleteConfirmDialog from "@/components/DeleteConfirmDialog.vue";
-import AccountFormDialog from "./AccountsFormDialog.vue";
-import { useFinanceRepository } from "@/stores/financeRepository";
+  import { computed, ref, onMounted } from 'vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AccountFormDialog from './AccountsFormDialog.vue';
+  import { useFinanceRepository } from '@/stores/financeRepository';
 
-const rtl = ref(true);
-const repo = useFinanceRepository();
+  const rtl = ref(true);
+  const repo = useFinanceRepository();
 
-const dialog = ref(false);
-const editId = ref(null);
+  const dialog = ref(false);
+  const editId = ref(null);
 
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-function getRow(payload) {
-  return payload?.raw ?? payload;
-}
+  function getRow(payload) {
+    return payload?.raw ?? payload;
+  }
 
-const headersFT = [
-  { title: "نام حساب", key: "name", sortable: true },
-  { title: "موجودی", key: "price", sortable: true },
-  { title: "جزئیات", key: "details", sortable: false },
-];
+  const headersFT = [
+    { title: 'نام حساب', key: 'name', sortable: true },
+    { title: 'موجودی', key: 'price', sortable: true },
+    { title: 'جزئیات', key: 'details', sortable: false },
+  ];
 
-const rowsFT = computed(() => {
-  const startIndex = (repo.accountsPage - 1) * repo.accountsPerPage;
-  return (repo.accounts || []).map((it, i) => ({
-    ...it,
-    index: startIndex + i + 1,
-  }));
-});
-
-const filters = [];
-const topGroups = [];
-
-/**
- * ✅ Summary cards source:
- * repository fills financesSummary only when /finances is called.
- * So we fetch /finances once for cards.
- */
-const summary = computed(() => repo.financesSummary || {
-  total_balance_all_accounts: "0.00",
-  total_income_all: "0.00",
-  total_outcome_all: "0.00",
-  filtered_outcome: "0.00",
-});
-
-function fmtMoney(v) {
-  const n = Number(v ?? 0);
-  if (Number.isNaN(n)) return String(v ?? "");
-
-  // if integer => show without .00
-  if (Math.floor(n) === n) return String(n);
-
-  // if has decimals => show as-is (trim trailing zeros)
-  return String(n).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
-}
-
-
-function fetchAll() {
-  repo.FetchAccountsData({
-    page: repo.accountsPage,
-    perPage: repo.accountsPerPage,
-    search: repo.accountsSearch,
+  const rowsFT = computed(() => {
+    const startIndex = (repo.accountsPage - 1) * repo.accountsPerPage;
+    return (repo.accounts || []).map((it, i) => ({
+      ...it,
+      index: startIndex + i + 1,
+    }));
   });
-}
 
-function clearSearch() {
-  repo.accountsSearch = "";
-  fetchAll();
-}
+  const filters = [];
+  const topGroups = [];
 
-function openCreate() {
-  editId.value = null;
-  dialog.value = true;
-}
+  /**
+   * ✅ Summary cards source:
+   * repository fills financesSummary only when /finances is called.
+   * So we fetch /finances once for cards.
+   */
+  const summary = computed(
+    () =>
+      repo.financesSummary || {
+        total_balance_all_accounts: '0.00',
+        total_income_all: '0.00',
+        total_outcome_all: '0.00',
+        filtered_outcome: '0.00',
+      }
+  );
 
-function startEdit(payload) {
-  const row = getRow(payload);
-  editId.value = row?.id ?? null;
-  if (!editId.value) return;
-  dialog.value = true;
-}
+  function fmtMoney(v) {
+    const n = Number(v ?? 0);
+    if (Number.isNaN(n)) return String(v ?? '');
 
-function onSaved() {
-  fetchAll();
-  // refresh cards
-  repo.FetchFinancesData({ page: 1, perPage: 1, search: "" });
-}
+    // if integer => show without .00
+    if (Math.floor(n) === n) return String(n);
 
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
-
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  if (!row?.id) {
-    deleteDialog.value = false;
-    deleteTarget.value = null;
-    return;
+    // if has decimals => show as-is (trim trailing zeros)
+    return String(n)
+      .replace(/(\.\d*?)0+$/, '$1')
+      .replace(/\.$/, '');
   }
 
-  try {
-    await repo.DeleteAccount(row.id);
-    await fetchAll();
+  function fetchAll() {
+    repo.FetchAccountsData({
+      page: repo.accountsPage,
+      perPage: repo.accountsPerPage,
+      search: repo.accountsSearch,
+      year: selectedYear.value,
+      month: selectedMonth.value,
+    });
+  }
+  const selectedYear = ref(null); // ex: 2026
+  const selectedMonth = ref(null); // ex: 1..12
+
+  const yearOptions = computed(() => {
+    const now = new Date().getFullYear();
+    // last 6 years + current
+    return Array.from({ length: 7 }, (_, i) => now - i);
+  });
+
+  const monthOptions = computed(() => [
+    { title: '01', value: 1 },
+    { title: '02', value: 2 },
+    { title: '03', value: 3 },
+    { title: '04', value: 4 },
+    { title: '05', value: 5 },
+    { title: '06', value: 6 },
+    { title: '07', value: 7 },
+    { title: '08', value: 8 },
+    { title: '09', value: 9 },
+    { title: '10', value: 10 },
+    { title: '11', value: 11 },
+    { title: '12', value: 12 },
+  ]);
+
+  function onYearMonthChanged() {
+    // if year cleared -> clear month too
+    if (!selectedYear.value) selectedMonth.value = null;
+
+    // reset pagination when filters change (if page uses paging)
+    if (typeof repo.accountsPage !== 'undefined') repo.accountsPage = 1;
+    if (typeof repo.incomesPage !== 'undefined') repo.incomesPage = 1;
+    if (typeof repo.financesPage !== 'undefined') repo.financesPage = 1;
+
+    fetchAll();
+  }
+
+  function clearSearch() {
+    repo.accountsSearch = '';
+    fetchAll();
+  }
+
+  function openCreate() {
+    editId.value = null;
+    dialog.value = true;
+  }
+
+  function startEdit(payload) {
+    const row = getRow(payload);
+    editId.value = row?.id ?? null;
+    if (!editId.value) return;
+    dialog.value = true;
+  }
+
+  function onSaved() {
+    fetchAll();
     // refresh cards
-    await repo.FetchFinancesData({ page: 1, perPage: 1, search: "" });
-  } finally {
-    deleteDialog.value = false;
-    deleteTarget.value = null;
+    repo.FetchFinancesData({ page: 1, perPage: 1, search: '' });
   }
-}
 
-function onPage(p) {
-  repo.accountsPage = p;
-  fetchAll();
-}
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
 
-function onPerPage(pp) {
-  repo.accountsPerPage = pp;
-  repo.accountsPage = 1;
-  fetchAll();
-}
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    if (!row?.id) {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
+    }
 
-onMounted(async () => {
-  fetchAll();
-  // ✅ load cards summary
-  await repo.FetchFinancesData({ page: 1, perPage: 1, search: "" });
-});
+    try {
+      await repo.DeleteAccount(row.id);
+      await fetchAll();
+      // refresh cards
+      await repo.FetchFinancesData({ page: 1, perPage: 1, search: '' });
+    } finally {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+    }
+  }
+
+  function onPage(p) {
+    repo.accountsPage = p;
+    fetchAll();
+  }
+
+  function onPerPage(pp) {
+    repo.accountsPerPage = pp;
+    repo.accountsPage = 1;
+    fetchAll();
+  }
+  import { useCalendar } from '../../../../composables/useCalendar';
+
+  const { yearItemsFromGregorianYears } = useCalendar();
+
+  const yearItems = computed(
+    () => yearItemsFromGregorianYears(repo.availableYears, 'fa') // 'fa' or locale.value
+  );
+
+  onMounted(async () => {
+    fetchAll();
+    // ✅ load cards summary
+    await repo.FetchFinancesData({ page: 1, perPage: 1, search: '' });
+  });
+  onMounted(async () => {
+    await repo.FetchYears('accounts');
+    fetchAll();
+  });
 </script>
 
 <style scoped>
-.page-bg {
-  min-height: 100%;
-}
+  .page-bg {
+    min-height: 100%;
+  }
 
-.gap-2 {
-  gap: 8px;
-}
+  .gap-2 {
+    gap: 8px;
+  }
 
-/* Summary cards */
-.stat-card {
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  position: relative;
-}
-.stat-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(25, 118, 210, 0.07), rgba(156, 39, 176, 0.05));
-  pointer-events: none;
-}
-.stat-value {
-  letter-spacing: 0.2px;
-}
-.stat-icon-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: rgba(25, 118, 210, 0.08);
-}
+  /* Summary cards */
+  .stat-card {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    position: relative;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(25, 118, 210, 0.07), rgba(156, 39, 176, 0.05));
+    pointer-events: none;
+  }
+  .stat-value {
+    letter-spacing: 0.2px;
+  }
+  .stat-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(25, 118, 210, 0.08);
+  }
 
-.filters-card,
-.table-card {
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
+  .filters-card,
+  .table-card {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
 
-.icon-btn {
-  border-radius: 10px;
-}
-/* ✅ Finance/Income/Accounts summary cards font + look */
-.finance-cards {
-  font-family: var(--app-font) !important;
-}
+  .icon-btn {
+    border-radius: 10px;
+  }
+  /* ✅ Finance/Income/Accounts summary cards font + look */
+  .finance-cards {
+    font-family: var(--app-font) !important;
+  }
 
-.finance-card {
-  font-family: var(--app-font) !important;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  position: relative;
-}
+  .finance-card {
+    font-family: var(--app-font) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    position: relative;
+  }
 
-.finance-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(25, 118, 210, 0.07),
-    rgba(156, 39, 176, 0.05)
-  );
-  pointer-events: none;
-}
+  .finance-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(25, 118, 210, 0.07), rgba(156, 39, 176, 0.05));
+    pointer-events: none;
+  }
 
-.finance-card .finance-card__value {
-  font-family: var(--app-font) !important;
-  letter-spacing: 0.2px;
-}
+  .finance-card .finance-card__value {
+    font-family: var(--app-font) !important;
+    letter-spacing: 0.2px;
+  }
 
-.finance-card .finance-card__icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: rgba(25, 118, 210, 0.08);
-  font-family: var(--app-font) !important;
-
-}
-.family
-{
-  font-family: var(--app-font) !important;
-
-}
+  .finance-card .finance-card__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(25, 118, 210, 0.08);
+    font-family: var(--app-font) !important;
+  }
+  .family {
+    font-family: var(--app-font) !important;
+  }
 </style>

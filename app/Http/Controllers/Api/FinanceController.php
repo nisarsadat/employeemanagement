@@ -14,7 +14,20 @@ class FinanceController extends Controller
 {
     public function index(Request $request)
     {
+        // ✅ validate query filters
+        $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'account_id' => ['nullable', 'integer', 'exists:accounts,id'],
+            'office_employee_id' => ['nullable', 'integer', 'exists:office_employees,id'],
+            'year'  => ['nullable', 'integer', 'min:2000', 'max:2100'],
+            'month' => ['nullable', 'integer', 'min:1', 'max:12'],
+        ]);
+
         $search = $request->query('search');
+        $accountId = $request->integer('account_id');
+        $officeEmployeeId = $request->integer('office_employee_id');
+        $year  = $request->integer('year');
+        $month = $request->integer('month');
 
         $query = Finance::query()
             ->with([
@@ -25,14 +38,54 @@ class FinanceController extends Controller
             ->search($search)
             ->latest('id');
 
-        // ✅ SUMMARY TOTALS
-        $totalBalanceAllAccounts = (string) Account::query()->sum('price');
-        $totalIncomeAll          = (string) Income::query()->sum('amount');
-        $totalOutcomeAll         = (string) Finance::query()->sum('money_amount_number');
-        $filteredOutcome         = (string) Finance::query()->search($search)->sum('money_amount_number');
+        // ✅ filter by account/employee
+        if ($accountId) {
+            $query->where('account_id', $accountId);
+        }
+        if ($officeEmployeeId) {
+            $query->where('office_employee_id', $officeEmployeeId);
+        }
+
+        // ✅ filter by year/month on finance.date
+        if ($year) {
+            $query->whereYear('date', $year);
+        }
+        if ($month) {
+            $query->whereMonth('date', $month);
+        }
 
         // ✅ ALWAYS RETURN ALL (NO paginate)
         $rows = $query->get();
+
+        // =========================
+        // ✅ SUMMARY TOTALS
+        // =========================
+
+        // Total balance = current balances (normally not date-filtered)
+        $totalBalanceAllAccounts = (string) Account::query()->sum('price');
+
+        // Total income (filtered by year/month if provided)
+        $incomeQuery = Income::query();
+        // ⚠️ Change 'received_at' to your real income date column if different
+        if ($year) $incomeQuery->whereYear('received_at', $year);
+        if ($month) $incomeQuery->whereMonth('received_at', $month);
+        $totalIncomeAll = (string) $incomeQuery->sum('amount');
+
+        // Total outcome (filtered by year/month if provided)
+        $outcomeQuery = Finance::query();
+        if ($year) $outcomeQuery->whereYear('date', $year);
+        if ($month) $outcomeQuery->whereMonth('date', $month);
+        $totalOutcomeAll = (string) $outcomeQuery->sum('money_amount_number');
+
+        // Filtered outcome = apply same filters as list (search + account + employee + year + month)
+        $filteredOutcomeQuery = Finance::query()->search($search);
+
+        if ($accountId) $filteredOutcomeQuery->where('account_id', $accountId);
+        if ($officeEmployeeId) $filteredOutcomeQuery->where('office_employee_id', $officeEmployeeId);
+        if ($year) $filteredOutcomeQuery->whereYear('date', $year);
+        if ($month) $filteredOutcomeQuery->whereMonth('date', $month);
+
+        $filteredOutcome = (string) $filteredOutcomeQuery->sum('money_amount_number');
 
         return FinanceResource::collection($rows)->additional([
             'summary' => [
@@ -43,6 +96,7 @@ class FinanceController extends Controller
             ],
         ]);
     }
+
     public function show(Finance $finance)
     {
         $finance->load([
@@ -150,5 +204,14 @@ class FinanceController extends Controller
             'account_type' => ['nullable', 'string', 'max:120'],
             'notes'        => ['nullable', 'string'],
         ]);
+    }
+    public function years()
+    {
+        return Finance::query()
+            ->selectRaw('YEAR(date) as year')
+            ->whereNotNull('date')
+            ->distinct()
+            ->orderByDesc('year')
+            ->pluck('year');
     }
 }

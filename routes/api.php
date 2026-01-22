@@ -144,6 +144,7 @@ use App\Http\Controllers\Api\InformationReportController;
 use App\Http\Controllers\Api\JenayeeTypeController;
 use App\Http\Controllers\Api\JobTypeController;
 use App\Http\Controllers\Api\KhayratReportController;
+use App\Http\Controllers\Api\MarjaController;
 use App\Http\Controllers\Api\MawqafJahadiController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\OilSummaryController;
@@ -160,6 +161,7 @@ use App\Http\Controllers\Api\ResourceActivityTypeController;
 use App\Http\Controllers\Api\SeyaseeTypeController;
 use App\Http\Controllers\Api\ZoneController;
 use App\Http\Controllers\CaptiveDocumentController;
+use App\Http\Controllers\DocsTypeController;
 use App\Http\Controllers\EmployeeManagementDashboardController;
 
 /*
@@ -365,6 +367,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ---------------------- Finance ----------------------
     protectResource('account-types', 'account_types', AccountTypeController::class);
+    Route::get('/accounts/years', [AccountController::class, 'years']);
+    Route::get('/incomes/years', [IncomeController::class, 'years']);
+    Route::get('/finances/years', [FinanceController::class, 'years']);
     Route::apiResource('finances', FinanceController::class);
     Route::apiResource('incomes', IncomeController::class);
     Route::apiResource('accounts', AccountController::class);
@@ -588,6 +593,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('khayrat-reports', KhayratReportController::class);
         Route::apiResource('format-zones', FormatZoneController::class);
     });
-
+    Route::apiResource('docs-types', DocsTypeController::class);
+    Route::apiResource('marjas', MarjaController::class);
 
 });

@@ -151,6 +151,20 @@
       icon: 'mdi-map-marker-multiple-outline',
       to: { path: '/app/formatzone' },
     },
+    {
+      key: 'docstypes',
+      title: t('نوعیت اسناد'),
+      subtitle: t('مدیریت نوعیت اسناد'),
+      icon: 'mdi-map-marker-multiple-outline',
+      to: { path: '/app/docstypesindex' },
+    },
+    {
+      key: 'marjas',
+      title: t('مرجع'),
+      subtitle: t('مرجع صادره و وارده'),
+      icon: 'mdi-map-marker-multiple-outline',
+      to: { path: '/app/marjas' },
+    },
   ]);
 
   function go(item) {

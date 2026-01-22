@@ -564,7 +564,8 @@
     { title: t('مهارت‌های خاص'), key: 'specific_skills' },
     { title: t('فعالیت'), key: 'activity' },
     { title: t('مختصات'), key: 'coordinates' },
-
+    { title: t('مخافات'), key: 'makhafat' },
+    { title: t('مکافات'), key: 'makafat' },
     // Dates & finance
     { title: t('تاریخ آمدن'), key: 'join_date' },
     { title: t('تاریخ رفتن'), key: 'left_date' },

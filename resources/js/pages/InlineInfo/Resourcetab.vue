@@ -9,7 +9,7 @@
         </v-card-title>
 
         <!-- Codes (+ Name moved here to make 3 columns) -->
-        <v-card-text class="pa-0" :dir="isRtl ? 'rtl' : 'ltr'">
+        <v-card-text class="pa-0 pretty-scroll scroll-body max-h-form" :dir="isRtl ? 'rtl' : 'ltr'">
           <v-row class="tight-grid">
             <!-- resource_id -->
             <v-col cols="12" md="4">
@@ -338,7 +338,7 @@
             </v-col>
 
             <!-- ✅ NEW: maktop_number -->
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('شماره مکتوب') }}</v-card-subtitle>
               </v-card-item>
@@ -354,10 +354,10 @@
                   prepend-inner-icon="mdi-numeric"
                 />
               </v-card-text>
-            </v-col>
+            </v-col> -->
 
             <!-- ✅ NEW: organ -->
-            <v-col cols="12" md="8">
+            <v-col cols="12" md="12">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('ارگان') }}</v-card-subtitle>
               </v-card-item>
@@ -919,5 +919,67 @@
     .form-title {
       font-size: 1.3rem;
     }
+  }
+  /* ✅ only vertical scroll */
+  .max-h-form {
+    max-height: calc(87.5vh - 220px);
+    overflow-y: auto;
+    overflow-x: hidden; /* ❌ no horizontal scrollbar */
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+    padding-inline-end: 6px; /* RTL/LTR safe instead of padding-right */
+  }
+
+  /* ✅ extra safety: if something is wider, clip it */
+  .pretty-scroll {
+    overflow-x: hidden;
+  }
+
+  /* ✅ prevent long content from forcing width */
+  :deep(.v-field__input),
+  :deep(.v-textarea .v-field__input),
+  :deep(.v-autocomplete),
+  :deep(.v-select),
+  :deep(.v-text-field) {
+    max-width: 100%;
+  }
+
+  /* ✅ chips can cause horizontal overflow sometimes */
+  :deep(.v-chip-group) {
+    max-width: 100%;
+    overflow-x: hidden;
+    flex-wrap: wrap;
+  }
+
+  /* ✅ Pretty scrollbar (Chrome/Edge/Safari) */
+  .pretty-scroll::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .pretty-scroll::-webkit-scrollbar-track {
+    background: rgba(148, 163, 184, 0.18); /* soft slate */
+    border-radius: 999px;
+  }
+
+  .pretty-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.65), rgba(99, 102, 241, 0.65));
+    border-radius: 999px;
+    border: 2px solid rgba(248, 250, 252, 0.8); /* makes it look "floating" */
+  }
+
+  .pretty-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.85), rgba(99, 102, 241, 0.85));
+  }
+
+  /* ✅ Firefox */
+  .pretty-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(12, 111, 112, 0.54) rgba(148, 163, 184, 0.18);
+  }
+
+  /* Optional: nicer feel on touchpads */
+  .pretty-scroll {
+    -webkit-overflow-scrolling: touch;
   }
 </style>
