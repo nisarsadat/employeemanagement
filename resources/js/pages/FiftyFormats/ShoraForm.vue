@@ -8,16 +8,6 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ شورا موجود') : t('ثبت یک ریکارډ شورای جدید در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- FORM -->
@@ -233,14 +223,11 @@
               />
             </v-col>
             <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.shora_zone"
-                :label="t('زون شورا')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('shora_zone')"
-                :error-messages="getErrorMessages('shora_zone')"
-              />
+               <FormatZoneAutocomplete
+                    v-model="form.shora_zone"
+                    :label="t('زون شورا')"
+                    :disabled="saving"
+                  />
             </v-col>
             <v-col cols="12" md="3">
               <v-text-field
@@ -395,6 +382,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useWakilanoRepository();
   const route = useRoute();

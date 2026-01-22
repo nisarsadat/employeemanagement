@@ -10,16 +10,6 @@
           : t('ثبت یک ریکارډ اشخاص غیرمسؤول جدید در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- FORM -->
@@ -43,48 +33,6 @@
                   }}
                 </span>
               </div>
-
-              <v-row>
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.name"
-                    :label="t('نام *')"
-                    variant="outlined"
-                    density="compact"
-                    :rules="[rules.required]"
-                    :error="hasError('name')"
-                    :error-messages="getErrorMessages('name')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.nick_name"
-                    :label="t('نام مستعار')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('nick_name')"
-                    :error-messages="getErrorMessages('nick_name')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.father_name"
-                    :label="t('نام پدر')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('father_name')"
-                    :error-messages="getErrorMessages('father_name')"
-                  />
-                </v-col>
-              </v-row>
-
-              <!-- 🖼 Picture -->
-              <div class="section-header mt-4">
-                <span class="section-title">{{ t('عکس') }}</span>
-              </div>
-
               <v-row>
                 <v-col cols="12" md="6">
                   <v-file-input
@@ -140,6 +88,46 @@
                   </div>
                 </v-col>
               </v-row>
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.name"
+                    :label="t('نام *')"
+                    variant="outlined"
+                    density="compact"
+                    :rules="[rules.required]"
+                    :error="hasError('name')"
+                    :error-messages="getErrorMessages('name')"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.nick_name"
+                    :label="t('نام مستعار')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('nick_name')"
+                    :error-messages="getErrorMessages('nick_name')"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.father_name"
+                    :label="t('نام پدر')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('father_name')"
+                    :error-messages="getErrorMessages('father_name')"
+                  />
+                </v-col>
+              </v-row>
+
+              <!-- 🖼 Picture -->
+              <div class="section-header mt-4">
+                <span class="section-title">{{ t('عکس') }}</span>
+              </div>
 
               <!-- Main address -->
               <div class="section-header mt-4">
@@ -188,13 +176,10 @@
                 </v-col>
 
                 <v-col cols="12" md="3">
-                  <v-text-field
+                  <FormatZoneAutocomplete
                     v-model="form.now_zone"
                     :label="t('زون فعلی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('now_zone')"
-                    :error-messages="getErrorMessages('now_zone')"
+                    :disabled="saving"
                   />
                 </v-col>
 
@@ -535,6 +520,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useMawadRepository } from '@/stores/MawadRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useMawadRepository();
   const route = useRoute();

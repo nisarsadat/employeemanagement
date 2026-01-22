@@ -9,16 +9,6 @@
           : t('ثبت یک ریکارډ خانه مشکوک جدید در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- FORM -->
@@ -37,7 +27,68 @@
               {{ isEdit ? t('ویرایش ریکارډ خانه مشکوک') : t('ایجاد ریکارډ خانه مشکوک') }}
             </span>
           </div>
+          <!-- =========================
+               ✅ PICTURE SECTION (NEW)
+          ========================== -->
+          <v-divider class="my-4" />
+          <div class="section-header mb-2 d-flex align-center justify-space-between">
+            <span class="section-title">{{ t('عکس') }}</span>
+            <v-chip
+              size="small"
+              variant="tonal"
+              color="primary"
+              v-if="picturePreview || pictureUrlFromApi"
+            >
+              <v-icon start size="16">mdi-image</v-icon>
+              {{ t('پیش‌نمایش فعال است') }}
+            </v-chip>
+          </div>
 
+          <v-row class="align-center">
+            <v-col cols="12" md="3" class="d-flex justify-center">
+              <v-avatar size="110" class="picture-avatar" rounded="lg">
+                <v-img
+                  v-if="picturePreview || pictureUrlFromApi"
+                  :src="picturePreview || pictureUrlFromApi"
+                  cover
+                />
+                <div v-else class="empty-avatar">
+                  <v-icon size="44" color="grey-darken-1">mdi-home-city</v-icon>
+                </div>
+              </v-avatar>
+            </v-col>
+
+            <v-col cols="12" md="9">
+              <v-file-input
+                v-model="pictureInput"
+                accept=".png,.jpg,.jpeg,.webp"
+                variant="outlined"
+                density="compact"
+                prepend-icon="mdi-camera"
+                :label="t('عکس خانه را انتخاب کنید')"
+                show-size
+                clearable
+                @update:model-value="onPicturePicked"
+              />
+
+              <div class="d-flex align-center ga-2 mt-2 flex-wrap">
+                <v-btn
+                  variant="outlined"
+                  color="red"
+                  class="text-none rounded-pill secondary-action-btn"
+                  prepend-icon="mdi-delete"
+                  :disabled="!picturePreview && !pictureUrlFromApi && !form.picture"
+                  @click="clearPicture"
+                >
+                  {{ t('حذف عکس') }}
+                </v-btn>
+
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('نکته') }}: {{ t('عکس بعد از ذخیره ثبت می‌شود') }}
+                </div>
+              </div>
+            </v-col>
+          </v-row>
           <!-- Location -->
           <v-row class="mt-1">
             <v-col cols="12" md="12">
@@ -52,14 +103,7 @@
             </v-col>
 
             <v-col cols="12" md="9">
-              <v-text-field
-                v-model="form.zone"
-                :label="t('زون')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('zone')"
-                :error-messages="getErrorMessages('zone')"
-              />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
             </v-col>
 
             <v-col cols="12" md="3">
@@ -217,64 +261,6 @@
           </v-row>
 
           <!-- =========================
-               ✅ PICTURE SECTION (NEW)
-          ========================== -->
-          <v-divider class="my-4" />
-          <div class="section-header mb-2 d-flex align-center justify-space-between">
-            <span class="section-title">{{ t('عکس') }}</span>
-            <v-chip size="small" variant="tonal" color="primary" v-if="picturePreview || pictureUrlFromApi">
-              <v-icon start size="16">mdi-image</v-icon>
-              {{ t('پیش‌نمایش فعال است') }}
-            </v-chip>
-          </div>
-
-          <v-row class="align-center">
-            <v-col cols="12" md="3" class="d-flex justify-center">
-              <v-avatar size="110" class="picture-avatar" rounded="lg">
-                <v-img
-                  v-if="picturePreview || pictureUrlFromApi"
-                  :src="picturePreview || pictureUrlFromApi"
-                  cover
-                />
-                <div v-else class="empty-avatar">
-                  <v-icon size="44" color="grey-darken-1">mdi-home-city</v-icon>
-                </div>
-              </v-avatar>
-            </v-col>
-
-            <v-col cols="12" md="9">
-              <v-file-input
-                v-model="pictureInput"
-                accept=".png,.jpg,.jpeg,.webp"
-                variant="outlined"
-                density="compact"
-                prepend-icon="mdi-camera"
-                :label="t('عکس خانه را انتخاب کنید')"
-                show-size
-                clearable
-                @update:model-value="onPicturePicked"
-              />
-
-              <div class="d-flex align-center ga-2 mt-2 flex-wrap">
-                <v-btn
-                  variant="outlined"
-                  color="red"
-                  class="text-none rounded-pill secondary-action-btn"
-                  prepend-icon="mdi-delete"
-                  :disabled="!picturePreview && !pictureUrlFromApi && !form.picture"
-                  @click="clearPicture"
-                >
-                  {{ t('حذف عکس') }}
-                </v-btn>
-
-                <div class="text-caption text-medium-emphasis">
-                  {{ t('نکته') }}: {{ t('عکس بعد از ذخیره ثبت می‌شود') }}
-                </div>
-              </div>
-            </v-col>
-          </v-row>
-
-          <!-- =========================
                ✅ DOCUMENTS SECTION (REDESIGNED)
           ========================== -->
           <v-divider class="my-4" />
@@ -330,7 +316,9 @@
                 <v-icon size="18">mdi-folder</v-icon>
                 <span>{{ t('اسناد موجود') }}</span>
                 <v-spacer />
-                <v-chip size="small" color="primary" variant="tonal">{{ existingDocs.length }}</v-chip>
+                <v-chip size="small" color="primary" variant="tonal">{{
+                  existingDocs.length
+                }}</v-chip>
               </div>
 
               <div class="docs-grid">
@@ -341,7 +329,7 @@
 
                   <div class="doc-mid">
                     <div class="doc-name">
-                      {{ doc.file_name || doc.original_name || doc.name || ('doc_' + doc.id) }}
+                      {{ doc.file_name || doc.original_name || doc.name || 'doc_' + doc.id }}
                     </div>
                     <div class="doc-meta">
                       <span v-if="doc.mime_type">{{ doc.mime_type }}</span>
@@ -386,7 +374,7 @@
 
                   <div class="doc-mid">
                     <div class="doc-name">
-                      {{ f?.name || ('file_' + idx) }}
+                      {{ f?.name || 'file_' + idx }}
                     </div>
                     <div class="doc-meta" v-if="f?.size">
                       {{ formatBytes(f.size) }}
@@ -487,391 +475,392 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
-import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
+  import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
 
-import AppBar from '@/components/AppBar.vue';
-import { useMawadRepository } from '@/stores/MawadRepository';
+  import AppBar from '@/components/AppBar.vue';
+  import { useMawadRepository } from '@/stores/MawadRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
-const repo = useMawadRepository();
-const route = useRoute();
-const router = useRouter();
+  const repo = useMawadRepository();
+  const route = useRoute();
+  const router = useRouter();
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* MODE */
-const isEdit = computed(() => !!route.params.id);
+  /* MODE */
+  const isEdit = computed(() => !!route.params.id);
 
-/* FORM / STATE */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* FORM / STATE */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
 
-function showErrorMessage(message) {
-  errorMessage.value = message;
-  showError.value = true;
-}
-function showSuccessMessage(message) {
-  successMessage.value = message;
-  showSuccess.value = true;
-}
+  function showErrorMessage(message) {
+    errorMessage.value = message;
+    showError.value = true;
+  }
+  function showSuccessMessage(message) {
+    successMessage.value = message;
+    showSuccess.value = true;
+  }
 
-/* BACKEND ERRORS */
-const backendErrors = ref({});
-function setBackendErrors(errors) {
-  backendErrors.value = errors || {};
-}
-function clearBackendErrors() {
-  backendErrors.value = {};
-}
-function hasError(field) {
-  return !!backendErrors.value?.[field];
-}
-function getErrorMessages(field) {
-  return backendErrors.value?.[field] ?? [];
-}
+  /* BACKEND ERRORS */
+  const backendErrors = ref({});
+  function setBackendErrors(errors) {
+    backendErrors.value = errors || {};
+  }
+  function clearBackendErrors() {
+    backendErrors.value = {};
+  }
+  function hasError(field) {
+    return !!backendErrors.value?.[field];
+  }
+  function getErrorMessages(field) {
+    return backendErrors.value?.[field] ?? [];
+  }
 
-/* FORM MODEL */
-const blankForm = () => ({
-  id: null,
+  /* FORM MODEL */
+  const blankForm = () => ({
+    id: null,
 
-  province: '',
-  zone: '',
-  district: '',
-  village: '',
+    province: '',
+    zone: '',
+    district: '',
+    village: '',
 
-  specific_place: '',
-  street_number: '',
-  home_number: '',
-  coordinates: '',
+    specific_place: '',
+    street_number: '',
+    home_number: '',
+    coordinates: '',
 
-  home_type: '',
-  shak_symbols: '',
-  Province_addr: '',
+    home_type: '',
+    shak_symbols: '',
+    Province_addr: '',
 
-  resource_id: null,
-  resource_code: '',
-  resource_phone: '',
+    resource_id: null,
+    resource_code: '',
+    resource_phone: '',
 
-  note: '',
+    note: '',
 
-  // ✅ NEW
-  picture: null,
-});
+    // ✅ NEW
+    picture: null,
+  });
 
-const form = ref(blankForm());
+  const form = ref(blankForm());
 
-/* RESOURCES */
-const resources = computed(() => repo.resourcecode || []);
-function onResourceChange(id) {
-  const found = resources.value.find((r) => r.id === id);
-  form.value.resource_code = found?.code_number ?? '';
-  form.value.resource_phone = found?.phone_number ?? '';
-}
+  /* RESOURCES */
+  const resources = computed(() => repo.resourcecode || []);
+  function onResourceChange(id) {
+    const found = resources.value.find((r) => r.id === id);
+    form.value.resource_code = found?.code_number ?? '';
+    form.value.resource_phone = found?.phone_number ?? '';
+  }
 
-/* =========================
+  /* =========================
    ✅ PICTURE STATE (NEW)
 ========================= */
-const pictureInput = ref(null); // v-file-input model
-const picturePreview = ref(''); // blob url for preview
-const pictureUrlFromApi = ref(''); // API picture_url
+  const pictureInput = ref(null); // v-file-input model
+  const picturePreview = ref(''); // blob url for preview
+  const pictureUrlFromApi = ref(''); // API picture_url
 
-function revokePreview() {
-  if (picturePreview.value) URL.revokeObjectURL(picturePreview.value);
-  picturePreview.value = '';
-}
-
-function onPicturePicked(fileOrFiles) {
-  // v-file-input may return File OR File[]
-  const file = Array.isArray(fileOrFiles) ? fileOrFiles[0] : fileOrFiles;
-
-  revokePreview();
-
-  if (!file) {
-    form.value.picture = null;
-    pictureInput.value = null;
-    return;
+  function revokePreview() {
+    if (picturePreview.value) URL.revokeObjectURL(picturePreview.value);
+    picturePreview.value = '';
   }
 
-  form.value.picture = file; // ✅ will be appended to FormData
-  picturePreview.value = URL.createObjectURL(file);
-}
+  function onPicturePicked(fileOrFiles) {
+    // v-file-input may return File OR File[]
+    const file = Array.isArray(fileOrFiles) ? fileOrFiles[0] : fileOrFiles;
 
-function clearPicture() {
-  revokePreview();
-  pictureInput.value = null;
-  form.value.picture = null;
+    revokePreview();
 
-  // If you want “remove existing picture on save”, backend needs a flag.
-  // Since you said "no other changes", we only clear locally.
-  pictureUrlFromApi.value = '';
-}
-
-onBeforeUnmount(() => revokePreview());
-
-/* =========================
-   ✅ DOCUMENTS STATE
-========================= */
-const existingDocs = ref([]);
-const removed_document_ids = ref([]);
-const newDocs = ref([]);
-const newDocsInput = ref([]);
-
-const hasAnyDocs = computed(() => {
-  return (existingDocs.value?.length || 0) > 0 || (newDocs.value?.length || 0) > 0;
-});
-
-function normalizeDocsFromApi(x) {
-  const docs = x?.documents;
-  if (Array.isArray(docs)) return docs;
-  if (Array.isArray(docs?.data)) return docs.data;
-  return [];
-}
-
-function onNewDocsPicked(files) {
-  const list = Array.isArray(files) ? files : [];
-  const current = newDocs.value || [];
-  const merged = [...current];
-
-  for (const f of list) {
-    if (!f) continue;
-    const exists = merged.some((x) => x?.name === f.name && x?.size === f.size);
-    if (!exists) merged.push(f);
-  }
-
-  newDocs.value = merged;
-  newDocsInput.value = [];
-}
-
-function removeNewDoc(index) {
-  const arr = [...(newDocs.value || [])];
-  arr.splice(index, 1);
-  newDocs.value = arr;
-}
-
-function removeExistingDoc(doc) {
-  if (!doc?.id) return;
-  if (!removed_document_ids.value.includes(doc.id)) {
-    removed_document_ids.value.push(doc.id);
-  }
-  existingDocs.value = (existingDocs.value || []).filter((d) => d.id !== doc.id);
-}
-
-/* ZIP download */
-const downloadingZip = ref(false);
-async function downloadAllDocsZip() {
-  if (!isEdit.value) return;
-  const id = form.value.id;
-  if (!id) return;
-
-  const name = `mashkok_home_${id}`;
-  try {
-    downloadingZip.value = true;
-    if (typeof repo.DownloadMashkokHomesZip === 'function') {
-      await repo.DownloadMashkokHomesZip(id, name);
-    } else if (typeof repo.DownloadMashkokHomeZip === 'function') {
-      await repo.DownloadMashkokHomeZip(id, name);
-    } else {
-      showErrorMessage(t('دانلود ZIP برای این ماډل هنوز تنظیم نشده است'));
+    if (!file) {
+      form.value.picture = null;
+      pictureInput.value = null;
+      return;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دانلود اسناد'));
-  } finally {
-    downloadingZip.value = false;
-  }
-}
 
-/* MAP FROM API */
-function mapFromApi(payload = {}) {
-  const x = payload.data ?? payload;
-  const b = blankForm();
-
-  b.id = x.id ?? null;
-
-  b.province = x.province ?? '';
-  b.zone = x.zone ?? '';
-  b.district = x.district ?? '';
-  b.village = x.village ?? '';
-
-  b.specific_place = x.specific_place ?? '';
-  b.street_number = x.street_number ?? '';
-  b.home_number = x.home_number ?? '';
-  b.coordinates = x.coordinates ?? '';
-
-  b.home_type = x.home_type ?? '';
-  b.shak_symbols = x.shak_symbols ?? '';
-  b.Province_addr = x.Province_addr ?? '';
-
-  const r = x.resource || {};
-  b.resource_id = x.resource_id ?? r.id ?? null;
-  b.resource_code = x.resource_code ?? r.code_number ?? '';
-  b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
-
-  b.note = x.note ?? '';
-
-  // ✅ picture url from API (for preview)
-  pictureUrlFromApi.value = x.picture_url ?? '';
-  // do not set b.picture from API (must stay null/file)
-
-  return { b, x };
-}
-
-async function loadRecord() {
-  const id = route.params.id;
-  if (!id) {
-    form.value = blankForm();
-    existingDocs.value = [];
-    removed_document_ids.value = [];
-    newDocs.value = [];
-    newDocsInput.value = [];
-    pictureUrlFromApi.value = '';
-    clearPicture();
-    return;
+    form.value.picture = file; // ✅ will be appended to FormData
+    picturePreview.value = URL.createObjectURL(file);
   }
 
-  try {
-    await repo.FetchMashkokHomeData?.(id);
-    const single = Array.isArray(repo.MashkokHome) ? repo.MashkokHome[0] : repo.MashkokHome || {};
-    if (!single) return;
-
-    const { b, x } = mapFromApi(single);
-    form.value = { ...b };
-
-    existingDocs.value = normalizeDocsFromApi(x);
-    removed_document_ids.value = [];
-    newDocs.value = [];
-    newDocsInput.value = [];
-
-    // reset local picture file selection
+  function clearPicture() {
     revokePreview();
     pictureInput.value = null;
     form.value.picture = null;
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات خانه مشکوک'));
-  }
-}
 
-/* FORM DATA HELPERS */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
+    // If you want “remove existing picture on save”, backend needs a flag.
+    // Since you said "no other changes", we only clear locally.
+    pictureUrlFromApi.value = '';
+  }
+
+  onBeforeUnmount(() => revokePreview());
+
+  /* =========================
+   ✅ DOCUMENTS STATE
+========================= */
+  const existingDocs = ref([]);
+  const removed_document_ids = ref([]);
+  const newDocs = ref([]);
+  const newDocsInput = ref([]);
+
+  const hasAnyDocs = computed(() => {
+    return (existingDocs.value?.length || 0) > 0 || (newDocs.value?.length || 0) > 0;
   });
-  return fd;
-}
 
-function appendDocsToFormData(fd) {
-  for (const f of newDocs.value || []) {
-    if (!f) continue;
-    fd.append('_newDocs[]', f);
+  function normalizeDocsFromApi(x) {
+    const docs = x?.documents;
+    if (Array.isArray(docs)) return docs;
+    if (Array.isArray(docs?.data)) return docs.data;
+    return [];
   }
-  for (const id of removed_document_ids.value || []) {
-    if (!id) continue;
-    fd.append('removed_document_ids[]', String(id));
+
+  function onNewDocsPicked(files) {
+    const list = Array.isArray(files) ? files : [];
+    const current = newDocs.value || [];
+    const merged = [...current];
+
+    for (const f of list) {
+      if (!f) continue;
+      const exists = merged.some((x) => x?.name === f.name && x?.size === f.size);
+      if (!exists) merged.push(f);
+    }
+
+    newDocs.value = merged;
+    newDocsInput.value = [];
   }
-}
 
-function buildCreateFormData() {
-  const payload = { ...form.value };
-  const fd = toFormData(payload);
-  appendDocsToFormData(fd);
-  return fd;
-}
-
-function buildUpdateFormData() {
-  const payload = { ...form.value };
-  const fd = toFormData(payload);
-  appendDocsToFormData(fd);
-  return fd;
-}
-
-/* helpers */
-function formatBytes(bytes) {
-  const n = Number(bytes);
-  if (!n || n <= 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB'];
-  let i = 0;
-  let v = n;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i++;
+  function removeNewDoc(index) {
+    const arr = [...(newDocs.value || [])];
+    arr.splice(index, 1);
+    newDocs.value = arr;
   }
-  return `${v.toFixed(v >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
-}
 
-/* SCROLL TO FIRST INVALID */
-function scrollToFirstInvalid() {
-  const first =
-    document.querySelector('.v-input--error, [aria-invalid="true"]') ||
-    document.querySelector('.v-messages__message');
-  if (first) {
-    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = first.querySelector('input, textarea, .v-field__input');
-    if (input && typeof input.focus === 'function') input.focus();
+  function removeExistingDoc(doc) {
+    if (!doc?.id) return;
+    if (!removed_document_ids.value.includes(doc.id)) {
+      removed_document_ids.value.push(doc.id);
+    }
+    existingDocs.value = (existingDocs.value || []).filter((d) => d.id !== doc.id);
   }
-}
 
-/* =========================
+  /* ZIP download */
+  const downloadingZip = ref(false);
+  async function downloadAllDocsZip() {
+    if (!isEdit.value) return;
+    const id = form.value.id;
+    if (!id) return;
+
+    const name = `mashkok_home_${id}`;
+    try {
+      downloadingZip.value = true;
+      if (typeof repo.DownloadMashkokHomesZip === 'function') {
+        await repo.DownloadMashkokHomesZip(id, name);
+      } else if (typeof repo.DownloadMashkokHomeZip === 'function') {
+        await repo.DownloadMashkokHomeZip(id, name);
+      } else {
+        showErrorMessage(t('دانلود ZIP برای این ماډل هنوز تنظیم نشده است'));
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دانلود اسناد'));
+    } finally {
+      downloadingZip.value = false;
+    }
+  }
+
+  /* MAP FROM API */
+  function mapFromApi(payload = {}) {
+    const x = payload.data ?? payload;
+    const b = blankForm();
+
+    b.id = x.id ?? null;
+
+    b.province = x.province ?? '';
+    b.zone = x.zone ?? '';
+    b.district = x.district ?? '';
+    b.village = x.village ?? '';
+
+    b.specific_place = x.specific_place ?? '';
+    b.street_number = x.street_number ?? '';
+    b.home_number = x.home_number ?? '';
+    b.coordinates = x.coordinates ?? '';
+
+    b.home_type = x.home_type ?? '';
+    b.shak_symbols = x.shak_symbols ?? '';
+    b.Province_addr = x.Province_addr ?? '';
+
+    const r = x.resource || {};
+    b.resource_id = x.resource_id ?? r.id ?? null;
+    b.resource_code = x.resource_code ?? r.code_number ?? '';
+    b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
+
+    b.note = x.note ?? '';
+
+    // ✅ picture url from API (for preview)
+    pictureUrlFromApi.value = x.picture_url ?? '';
+    // do not set b.picture from API (must stay null/file)
+
+    return { b, x };
+  }
+
+  async function loadRecord() {
+    const id = route.params.id;
+    if (!id) {
+      form.value = blankForm();
+      existingDocs.value = [];
+      removed_document_ids.value = [];
+      newDocs.value = [];
+      newDocsInput.value = [];
+      pictureUrlFromApi.value = '';
+      clearPicture();
+      return;
+    }
+
+    try {
+      await repo.FetchMashkokHomeData?.(id);
+      const single = Array.isArray(repo.MashkokHome) ? repo.MashkokHome[0] : repo.MashkokHome || {};
+      if (!single) return;
+
+      const { b, x } = mapFromApi(single);
+      form.value = { ...b };
+
+      existingDocs.value = normalizeDocsFromApi(x);
+      removed_document_ids.value = [];
+      newDocs.value = [];
+      newDocsInput.value = [];
+
+      // reset local picture file selection
+      revokePreview();
+      pictureInput.value = null;
+      form.value.picture = null;
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات خانه مشکوک'));
+    }
+  }
+
+  /* FORM DATA HELPERS */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  function appendDocsToFormData(fd) {
+    for (const f of newDocs.value || []) {
+      if (!f) continue;
+      fd.append('_newDocs[]', f);
+    }
+    for (const id of removed_document_ids.value || []) {
+      if (!id) continue;
+      fd.append('removed_document_ids[]', String(id));
+    }
+  }
+
+  function buildCreateFormData() {
+    const payload = { ...form.value };
+    const fd = toFormData(payload);
+    appendDocsToFormData(fd);
+    return fd;
+  }
+
+  function buildUpdateFormData() {
+    const payload = { ...form.value };
+    const fd = toFormData(payload);
+    appendDocsToFormData(fd);
+    return fd;
+  }
+
+  /* helpers */
+  function formatBytes(bytes) {
+    const n = Number(bytes);
+    if (!n || n <= 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let i = 0;
+    let v = n;
+    while (v >= 1024 && i < units.length - 1) {
+      v /= 1024;
+      i++;
+    }
+    return `${v.toFixed(v >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
+  }
+
+  /* SCROLL TO FIRST INVALID */
+  function scrollToFirstInvalid() {
+    const first =
+      document.querySelector('.v-input--error, [aria-invalid="true"]') ||
+      document.querySelector('.v-messages__message');
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = first.querySelector('input, textarea, .v-field__input');
+      if (input && typeof input.focus === 'function') input.focus();
+    }
+  }
+
+  /* =========================
    EXPORT (unchanged)
 ========================= */
-function esc(v) {
-  return String(v ?? '').replace(/[&<>"']/g, (m) => {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return map[m];
-  });
-}
-function safeFileName(s) {
-  return String(s ?? '')
-    .replace(/[\\/:*?"<>|]/g, '-')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-function v(x) {
-  return x && String(x).trim() ? x : '—';
-}
-function exportRows() {
-  return [
-    { label: t('ولایت'), value: v(form.value.province) },
-    { label: t('زون'), value: v(form.value.zone) },
-    { label: t('ولسوالی'), value: v(form.value.district) },
-    { label: t('قریه/ناحیه'), value: v(form.value.village) },
-    { label: t('موقعیت مشخص'), value: v(form.value.specific_place) },
-    { label: t('شماره سرک'), value: v(form.value.street_number) },
-    { label: t('شماره خانه'), value: v(form.value.home_number) },
-    { label: t('مختصات'), value: v(form.value.coordinates) },
-    { label: t('نوع خانه'), value: v(form.value.home_type) },
-    { label: t('علایم شک'), value: v(form.value.shak_symbols) },
-    { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
-    { label: t('کود منبع'), value: v(form.value.resource_code) },
-    { label: t('شماره منبع'), value: v(form.value.resource_phone) },
-    { label: t('یادداشت'), value: v(form.value.note) },
-  ];
-}
-function buildSimpleTableHtml() {
-  const rows = exportRows()
-    .map(
-      (r) => `
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, (m) => {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return map[m];
+    });
+  }
+  function safeFileName(s) {
+    return String(s ?? '')
+      .replace(/[\\/:*?"<>|]/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  function v(x) {
+    return x && String(x).trim() ? x : '—';
+  }
+  function exportRows() {
+    return [
+      { label: t('ولایت'), value: v(form.value.province) },
+      { label: t('زون'), value: v(form.value.zone) },
+      { label: t('ولسوالی'), value: v(form.value.district) },
+      { label: t('قریه/ناحیه'), value: v(form.value.village) },
+      { label: t('موقعیت مشخص'), value: v(form.value.specific_place) },
+      { label: t('شماره سرک'), value: v(form.value.street_number) },
+      { label: t('شماره خانه'), value: v(form.value.home_number) },
+      { label: t('مختصات'), value: v(form.value.coordinates) },
+      { label: t('نوع خانه'), value: v(form.value.home_type) },
+      { label: t('علایم شک'), value: v(form.value.shak_symbols) },
+      { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
+      { label: t('کود منبع'), value: v(form.value.resource_code) },
+      { label: t('شماره منبع'), value: v(form.value.resource_phone) },
+      { label: t('یادداشت'), value: v(form.value.note) },
+    ];
+  }
+  function buildSimpleTableHtml() {
+    const rows = exportRows()
+      .map(
+        (r) => `
       <tr>
         <th>${esc(r.label)}</th>
         <td>${esc(r.value)}</td>
       </tr>
     `
-    )
-    .join('');
+      )
+      .join('');
 
-  return `
+    return `
     <h3 class="title">فورم خانه مشکوک</h3>
     <table class="simple-table">
       <tbody>
@@ -883,13 +872,13 @@ function buildSimpleTableHtml() {
       <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
     </div>
   `;
-}
-function buildDocumentHtml() {
-  const bodyHtml = buildSimpleTableHtml();
-  const safeId = esc(form.value.id || '');
-  const safeName = esc(form.value.province || '');
+  }
+  function buildDocumentHtml() {
+    const bodyHtml = buildSimpleTableHtml();
+    const safeId = esc(form.value.id || '');
+    const safeName = esc(form.value.province || '');
 
-  return `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html dir="rtl" xmlns:o="urn:schemas-microsoft-com:office:office"
       xmlns:w="urn:schemas-microsoft-com:office:word"
       xmlns="http://www.w3.org/TR/REC-html40">
@@ -911,283 +900,283 @@ function buildDocumentHtml() {
   ${bodyHtml}
 </body>
 </html>`;
-}
-function downloadPdf() {
-  const html = buildDocumentHtml();
-  const w = window.open('', '_blank', 'width=1024,height=768');
-  if (!w) return;
+  }
+  function downloadPdf() {
+    const html = buildDocumentHtml();
+    const w = window.open('', '_blank', 'width=1024,height=768');
+    if (!w) return;
 
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
 
-  setTimeout(() => {
-    w.focus();
-    w.print();
-  }, 350);
-}
-function downloadWord() {
-  const html = buildDocumentHtml();
-  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
+    setTimeout(() => {
+      w.focus();
+      w.print();
+    }, 350);
+  }
+  function downloadWord() {
+    const html = buildDocumentHtml();
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
 
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `خانه_مشکوک_${safeFileName(form.value.province || 'جدید')}_${Date.now()}.doc`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `خانه_مشکوک_${safeFileName(form.value.province || 'جدید')}_${Date.now()}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-  URL.revokeObjectURL(url);
-  showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
-}
-
-/* SUBMIT */
-async function onSubmit() {
-  clearBackendErrors();
-
-  const f = formRef.value;
-  if (!f) return;
-
-  const { valid } = await f.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
-    await nextTick();
-    scrollToFirstInvalid();
-    return;
+    URL.revokeObjectURL(url);
+    showSuccessMessage(t('فایل Word با موفقیت ایجاد شد'));
   }
 
-  if (!form.value.province?.trim() || !form.value.district?.trim()) {
-    showErrorMessage(t('ولایت و ولسوالی الزامی است'));
-    return;
-  }
+  /* SUBMIT */
+  async function onSubmit() {
+    clearBackendErrors();
 
-  saving.value = true;
+    const f = formRef.value;
+    if (!f) return;
 
-  try {
-    if (!isEdit.value) {
-      const fd = buildCreateFormData();
-      const created = await repo.CreateMashkokHome?.(fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
-
-      if (created?.id) {
-        showSuccessMessage(t('موفقانه ثبت شد'));
-        router.push('/app/mashkokhomes').catch(() => {});
-      } else {
-        showErrorMessage(t('ثبت معلومات ناکام شد'));
-      }
-    } else {
-      const fd = buildUpdateFormData();
-      const updated = await repo.UpdateMashkokHome?.(form.value.id, fd).catch((e) => {
-        if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-        return null;
-      });
-
-      if (updated?.id) {
-        showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-        router.push('/app/mashkokhomes').catch(() => {});
-      } else {
-        showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-      }
+    const { valid } = await f.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در ذخیره اطلاعات'));
-  } finally {
-    saving.value = false;
+
+    if (!form.value.province?.trim() || !form.value.district?.trim()) {
+      showErrorMessage(t('ولایت و ولسوالی الزامی است'));
+      return;
+    }
+
+    saving.value = true;
+
+    try {
+      if (!isEdit.value) {
+        const fd = buildCreateFormData();
+        const created = await repo.CreateMashkokHome?.(fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (created?.id) {
+          showSuccessMessage(t('موفقانه ثبت شد'));
+          router.push('/app/mashkokhomes').catch(() => {});
+        } else {
+          showErrorMessage(t('ثبت معلومات ناکام شد'));
+        }
+      } else {
+        const fd = buildUpdateFormData();
+        const updated = await repo.UpdateMashkokHome?.(form.value.id, fd).catch((e) => {
+          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+          return null;
+        });
+
+        if (updated?.id) {
+          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+          router.push('/app/mashkokhomes').catch(() => {});
+        } else {
+          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      saving.value = false;
+    }
   }
-}
 
-/* RESET & NAVIGATION */
-function resetForm() {
-  if (isEdit.value) {
-    loadRecord();
-  } else {
-    form.value = blankForm();
-    existingDocs.value = [];
-    removed_document_ids.value = [];
-    newDocs.value = [];
-    newDocsInput.value = [];
-    clearPicture();
+  /* RESET & NAVIGATION */
+  function resetForm() {
+    if (isEdit.value) {
+      loadRecord();
+    } else {
+      form.value = blankForm();
+      existingDocs.value = [];
+      removed_document_ids.value = [];
+      newDocs.value = [];
+      newDocsInput.value = [];
+      clearPicture();
+    }
+
+    clearBackendErrors();
+    formRef.value?.resetValidation?.();
+    showSuccessMessage(t('فرم پاک شد'));
   }
 
-  clearBackendErrors();
-  formRef.value?.resetValidation?.();
-  showSuccessMessage(t('فرم پاک شد'));
-}
-
-function goBack() {
-  router.push('/app/mashkokhomes');
-}
-
-/* INIT */
-onMounted(async () => {
-  await repo.GetResourceCode?.();
-  if (isEdit.value) {
-    await loadRecord();
+  function goBack() {
+    router.push('/app/mashkokhomes');
   }
-});
+
+  /* INIT */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
+    if (isEdit.value) {
+      await loadRecord();
+    }
+  });
 </script>
 
 <style scoped>
-/* main card */
-.simple-form-card {
-  padding: 16px 16px 20px;
-  border-radius: 12px;
-}
+  /* main card */
+  .simple-form-card {
+    padding: 16px 16px 20px;
+    border-radius: 12px;
+  }
 
-/* sections */
-.section-header {
-  display: flex;
-  align-items: center;
-  padding-block: 2px;
-}
-.section-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  opacity: 0.8;
-}
+  /* sections */
+  .section-header {
+    display: flex;
+    align-items: center;
+    padding-block: 2px;
+  }
+  .section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.8;
+  }
 
-/* slightly tighter fields */
-:deep(.v-field--variant-outlined .v-field__input) {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  min-height: 36px;
-}
+  /* slightly tighter fields */
+  :deep(.v-field--variant-outlined .v-field__input) {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    min-height: 36px;
+  }
 
-/* prettier buttons */
-.primary-action-btn {
-  padding-inline: 18px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
-}
-.secondary-action-btn {
-  padding-inline: 14px;
-  font-weight: 500;
-}
+  /* prettier buttons */
+  .primary-action-btn {
+    padding-inline: 18px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+  }
+  .secondary-action-btn {
+    padding-inline: 14px;
+    font-weight: 500;
+  }
 
-/* =========================
+  /* =========================
    Picture UI
 ========================= */
-.picture-avatar {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  background: #fff;
-}
-.empty-avatar {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.03);
-}
+  .picture-avatar {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    background: #fff;
+  }
+  .empty-avatar {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.03);
+  }
 
-/* =========================
+  /* =========================
    Docs UI (new design)
 ========================= */
-.docs-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-
-.docs-card {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 14px;
-  padding: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72));
-}
-
-.docs-block2 {
-  border: 1px dashed rgba(0, 0, 0, 0.18);
-  border-radius: 14px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.6);
-}
-
-.docs-title2 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 800;
-  opacity: 0.85;
-  margin-bottom: 10px;
-}
-
-.docs-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-@media (max-width: 960px) {
-  .docs-grid {
-    grid-template-columns: 1fr;
+  .docs-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
   }
-}
 
-.doc-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.04);
-}
-.doc-item-new {
-  border-color: rgba(76, 175, 80, 0.28);
-}
+  .docs-card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
+    padding: 12px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72));
+  }
 
-.doc-left {
-  width: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  .docs-block2 {
+    border: 1px dashed rgba(0, 0, 0, 0.18);
+    border-radius: 14px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.6);
+  }
 
-.doc-mid {
-  flex: 1;
-  min-width: 0;
-}
-.doc-name {
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.doc-meta {
-  font-size: 11px;
-  opacity: 0.65;
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+  .docs-title2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    opacity: 0.85;
+    margin-bottom: 10px;
+  }
 
-.doc-right {
-  display: flex;
-  align-items: center;
-}
+  .docs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  @media (max-width: 960px) {
+    .docs-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 
-.docs-empty {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px;
-  margin-top: 10px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.03);
-}
-.ga-2 {
-  gap: 8px;
-}
+  .doc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  }
+  .doc-item-new {
+    border-color: rgba(76, 175, 80, 0.28);
+  }
+
+  .doc-left {
+    width: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .doc-mid {
+    flex: 1;
+    min-width: 0;
+  }
+  .doc-name {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .doc-meta {
+    font-size: 11px;
+    opacity: 0.65;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .doc-right {
+    display: flex;
+    align-items: center;
+  }
+
+  .docs-empty {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    margin-top: 10px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.03);
+  }
+  .ga-2 {
+    gap: 8px;
+  }
 </style>

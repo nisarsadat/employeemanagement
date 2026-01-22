@@ -9,16 +9,7 @@
           : t('ثبت یک ریکارډ جدید منزل سرباز سابق در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          :prepend-icon="isRtl ? 'mdi-arrow-right' : 'mdi-arrow-left'"
-          class="text-none"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
+     
     </AppBar>
 
     <!-- FORM -->
@@ -48,15 +39,11 @@
               />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.zone"
-                :label="t('زون')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                :error="hasError('zone')"
-                :error-messages="getErrorMessages('zone')"
-              />
+              <FormatZoneAutocomplete
+                    v-model="form.zone"
+                    :label="t('زون ')"
+                    :disabled="saving"
+                  />
             </v-col>
 
             <v-col cols="12" md="6">
@@ -369,6 +356,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useMawadRepository } from '@/stores/MawadRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');

@@ -8,16 +8,6 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ لچکانو موجود') : t('ثبت یک ریکارډ جدید لچکانو در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- FORM -->
@@ -47,11 +37,7 @@
               />
 
               <v-avatar size="86" rounded="xl" class="picture-avatar" @click="triggerPickPicture">
-                <v-img
-                  v-if="currentPictureUrl"
-                  :src="currentPictureUrl"
-                  cover
-                />
+                <v-img v-if="currentPictureUrl" :src="currentPictureUrl" cover />
                 <v-icon v-else size="34">mdi-account-circle</v-icon>
               </v-avatar>
 
@@ -184,13 +170,10 @@
               />
             </v-col>
             <v-col cols="12" md="3">
-              <v-text-field
+              <FormatZoneAutocomplete
                 v-model="form.now_zone"
                 :label="t('زون فعلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('now_zone')"
-                :error-messages="getErrorMessages('now_zone')"
+                :disabled="saving"
               />
             </v-col>
 
@@ -416,7 +399,11 @@
             <div v-else class="text-caption text-medium-emphasis">{{ t('عکسی موجود نیست') }}</div>
           </v-card-text>
           <v-card-actions class="justify-end">
-            <v-btn variant="tonal" class="text-none rounded-pill" @click="picturePreviewOpen = false">
+            <v-btn
+              variant="tonal"
+              class="text-none rounded-pill"
+              @click="picturePreviewOpen = false"
+            >
               {{ t('بستن') }}
             </v-btn>
           </v-card-actions>
@@ -454,6 +441,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useMawadRepository } from '@/stores/MawadRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useMawadRepository();
   const route = useRoute();

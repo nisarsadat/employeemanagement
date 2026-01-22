@@ -10,16 +10,6 @@
           : t('ثبت یک ریکارډ سوپرمارکیت جدید در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- FORM -->
@@ -175,13 +165,10 @@
                 </v-col>
 
                 <v-col cols="12" md="3">
-                  <v-text-field
+                  <FormatZoneAutocomplete
                     v-model="form.zone"
                     :label="t('زون')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('zone')"
-                    :error-messages="getErrorMessages('zone')"
+                    :disabled="saving"
                   />
                 </v-col>
 
@@ -313,8 +300,6 @@
                 {{ t('Word ساده') }}
               </v-btn>
 
-              
-
               <v-btn
                 color="warning"
                 variant="tonal"
@@ -377,6 +362,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useWakilanoRepository();
   const route = useRoute();

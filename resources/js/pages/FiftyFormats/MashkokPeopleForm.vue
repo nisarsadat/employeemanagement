@@ -10,16 +10,6 @@
           : t('ثبت یک ریکارډ جدید فرد مشکوک در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- FORM -->
@@ -185,13 +175,10 @@
                 </v-col>
 
                 <v-col cols="12" md="3">
-                  <v-text-field
+                  <FormatZoneAutocomplete
                     v-model="form.now_zone"
                     :label="t('زون فعلی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('now_zone')"
-                    :error-messages="getErrorMessages('now_zone')"
+                    :disabled="saving"
                   />
                 </v-col>
 
@@ -283,7 +270,7 @@
               />
             </v-col>
 
-              <!-- <v-col cols="12" md="3">
+            <!-- <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.Province_addr"
                   :label="t('ولایت مربوطه')"
@@ -445,6 +432,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useBadmashanoRepository();
   const route = useRoute();
@@ -510,7 +498,7 @@
     main_village: '',
     now_province: '',
     now_zone: '',
-    now_districts: '',
+    now_district: '',
     now_village: '',
     now_specific_place: '',
     now_street_number: '',
@@ -627,7 +615,7 @@
 
     b.now_province = x.now_province ?? '';
     b.now_zone = x.now_zone ?? '';
-    b.now_districts = x.now_districts ?? '';
+    b.now_district = x.now_district ?? '';
     b.now_village = x.now_village ?? '';
     b.now_specific_place = x.now_specific_place ?? '';
     b.now_street_number = x.now_street_number ?? '';
@@ -744,7 +732,7 @@
 
       { label: t('ولایت فعلی'), value: v(form.value.now_province) },
       { label: t('زون فعلی'), value: v(form.value.now_zone) },
-      { label: t('ولسوالی‌های فعلی'), value: v(form.value.now_districts) },
+      { label: t('ولسوالی‌های فعلی'), value: v(form.value.now_district) },
       { label: t('قریه/ناحیه فعلی'), value: v(form.value.now_village) },
       { label: t('موقعیت مشخص فعلی'), value: v(form.value.now_specific_place) },
       { label: t('شماره سرک فعلی'), value: v(form.value.now_street_number) },

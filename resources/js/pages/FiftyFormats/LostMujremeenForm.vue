@@ -9,16 +9,6 @@
           : t('ثبت یک ریکارډ مجرم گم شده جدید در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          :prepend-icon="isRtl ? 'mdi-arrow-right' : 'mdi-arrow-left'"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- FORM -->
@@ -242,14 +232,7 @@
               />
             </v-col>
             <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.zone"
-                :label="t('زون')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('zone')"
-                :error-messages="getErrorMessages('zone')"
-              />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون ')" :disabled="saving" />
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
@@ -611,6 +594,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useMawadRepository } from '@/stores/MawadRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useMawadRepository();
   const route = useRoute();

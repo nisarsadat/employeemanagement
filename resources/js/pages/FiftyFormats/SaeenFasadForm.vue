@@ -9,16 +9,7 @@
           : t('ثبت یک ریکارډ جدید سعین فساد در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
+     
     </AppBar>
 
     <!-- FORM -->
@@ -183,13 +174,10 @@
                 </v-col>
 
                 <v-col cols="12" md="3">
-                  <v-text-field
+                  <FormatZoneAutocomplete
                     v-model="form.now_zone"
                     :label="t('زون فعلی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('now_zone')"
-                    :error-messages="getErrorMessages('now_zone')"
+                    :disabled="saving"
                   />
                 </v-col>
 
@@ -446,11 +434,15 @@
                   @click:close="markDocForRemoval(doc)"
                 >
                   <v-icon start size="18">mdi-file</v-icon>
-                  {{ doc.file_name || doc.name || ('doc_' + doc.id) }}
+                  {{ doc.file_name || doc.name || 'doc_' + doc.id }}
                 </v-chip>
               </div>
 
-              <div v-if="removed_document_ids.length" class="text-caption mt-2" style="opacity: 0.75">
+              <div
+                v-if="removed_document_ids.length"
+                class="text-caption mt-2"
+                style="opacity: 0.75"
+              >
                 {{ t('اسناد حذف‌شونده:') }}
                 {{ removed_document_ids.join(', ') }}
               </div>
@@ -475,7 +467,7 @@
                   @click:close="removeNewDoc(idx)"
                 >
                   <v-icon start size="18">mdi-file-plus</v-icon>
-                  {{ f?.name || ('file_' + idx) }}
+                  {{ f?.name || 'file_' + idx }}
                 </v-chip>
               </div>
             </v-col>
@@ -581,6 +573,7 @@
   import AppBar from '@/components/AppBar.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useFasadRepository();
   const route = useRoute();

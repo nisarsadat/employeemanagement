@@ -8,16 +8,6 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ شرکت موجود') : t('ثبت یک ریکارډ شرکت جدید در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- FORM -->
@@ -165,13 +155,10 @@
                   />
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-text-field
+                  <FormatZoneAutocomplete
                     v-model="form.com_zone"
                     :label="t('زون')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('com_zone')"
-                    :error-messages="getErrorMessages('com_zone')"
+                    :disabled="saving"
                   />
                 </v-col>
 
@@ -406,6 +393,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useWakilanoRepository();
   const route = useRoute();

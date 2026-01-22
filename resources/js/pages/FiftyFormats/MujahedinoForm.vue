@@ -8,16 +8,7 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ مجاهد موجود') : t('ثبت یک ریکارډ مجاهد جدید در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
+      
     </AppBar>
 
     <!-- FORM -->
@@ -170,14 +161,11 @@
             </v-col>
 
             <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_zone"
-                :label="t('زون فعلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('now_zone')"
-                :error-messages="getErrorMessages('now_zone')"
-              />
+              <FormatZoneAutocomplete
+                    v-model="form.now_zone"
+                    :label="t('زون فعلی')"
+                    :disabled="saving"
+                  />
             </v-col>
 
             <v-col cols="12" md="3">
@@ -406,6 +394,7 @@
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
   import AppBar from '@/components/AppBar.vue';
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useBadmashanoRepository();
   const route = useRoute();

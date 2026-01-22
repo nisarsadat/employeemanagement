@@ -8,16 +8,7 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ مسجد موجود') : t('ثبت یک ریکارډ مسجد جدید در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
+      
     </AppBar>
 
     <!-- FORM -->
@@ -232,14 +223,11 @@
               />
             </v-col>
             <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.masjid_zone"
-                :label="t('زون مسجد')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('masjid_zone')"
-                :error-messages="getErrorMessages('masjid_zone')"
-              />
+              <FormatZoneAutocomplete
+                    v-model="form.masjid_zone"
+                    :label="t('زون')"
+                    :disabled="saving"
+                  />
             </v-col>
             <v-col cols="12" md="3">
               <v-text-field
@@ -430,6 +418,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useWakilanoRepository();
   const route = useRoute();

@@ -7,16 +7,6 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ موجود سرباز') : t('ثبت یک ریکارډ جدید سرباز در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          :prepend-icon="isRtl ? 'mdi-arrow-right' : 'mdi-arrow-left'"
-          class="text-none"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- FORM -->
@@ -125,8 +115,6 @@
                 hide-details="auto"
               />
             </v-col>
-
-          
           </v-row>
 
           <!-- آدرس اصلی -->
@@ -183,12 +171,10 @@
               />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field
+              <FormatZoneAutocomplete
                 v-model="form.now_zone"
                 :label="t('زون فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+                :disabled="saving"
               />
             </v-col>
 
@@ -447,6 +433,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');

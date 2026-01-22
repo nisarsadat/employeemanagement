@@ -10,16 +10,7 @@
           : t('ثبت یک ریکارډ جدید DoneLostPlace در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
+      
     </AppBar>
 
     <v-container class="mt-4">
@@ -86,14 +77,11 @@
               />
             </v-col>
             <v-col cols="12" md="12">
-              <v-text-field
-                v-model="form.zone"
-                :label="t('زون محل')"
-                density="compact"
-                variant="outlined"
-                :error="hasError('zone')"
-                :error-messages="getErrorMessages('zone')"
-              />
+              <FormatZoneAutocomplete
+                    v-model="form.zone"
+                    :label="t('زون محل')"
+                    :disabled="saving"
+                  />
             </v-col>
           </v-row>
 
@@ -363,6 +351,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useWakilanoRepository();
   const route = useRoute();

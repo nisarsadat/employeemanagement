@@ -8,16 +8,6 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ بدماش موجود') : t('ثبت یک ریکارډ بدماش جدید در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- FORM -->
@@ -81,7 +71,7 @@
           </div>
 
           <v-row>
-<v-col cols="12" md="12">
+            <v-col cols="12" md="12">
               <ProvinceDistrictNameSelect
                 v-model:province="form.main_province"
                 v-model:district="form.main_district"
@@ -122,13 +112,10 @@
               />
             </v-col>
             <v-col cols="12" md="3">
-              <v-text-field
+              <FormatZoneAutocomplete
                 v-model="form.now_zone"
                 :label="t('زون فعلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('now_zone')"
-                :error-messages="getErrorMessages('now_zone')"
+                :disabled="saving"
               />
             </v-col>
 
@@ -397,6 +384,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useBadmashanoRepository();
   const route = useRoute();

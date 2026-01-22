@@ -2,18 +2,10 @@
   <!-- APP BAR -->
   <AppBar
     :title="isEdit ? t('اصلاح فساد') : t('اضافه کردن یک ریکارډ جدید فساد')"
-    :subtitle="isEdit ? t('ویرایش جزئیات یک ریکارډ موجود فساد') : t('ثبت یک ریکارډ جدید فساد در سیستم')"
+    :subtitle="
+      isEdit ? t('ویرایش جزئیات یک ریکارډ موجود فساد') : t('ثبت یک ریکارډ جدید فساد در سیستم')
+    "
   >
-    <template #actions>
-      <v-btn
-        variant="text"
-        :prepend-icon="isRtl ? 'mdi-arrow-right' : 'mdi-arrow-left'"
-        class="text-none"
-        @click="goBack"
-      >
-        {{ t('برگشت') }}
-      </v-btn>
-    </template>
   </AppBar>
 
   <div class="fasad-page" :dir="isRtl ? 'rtl' : 'ltr'">
@@ -86,7 +78,7 @@
                   </v-btn>
                 </div>
               </div>
-              <div class="text-caption mt-2" style="color:#666;">
+              <div class="text-caption mt-2" style="color: #666">
                 {{ t('عکس در سیستم ذخیره می‌شود. (picture)') }}
               </div>
             </v-col>
@@ -114,8 +106,8 @@
                 </v-btn>
 
                 <v-chip size="small" variant="outlined" class="text-caption">
-                  {{ t('فایل جدید') }}: {{ form._newDocs.length }} |
-                  {{ t('موجود') }}: {{ form.existingDocs.length }}
+                  {{ t('فایل جدید') }}: {{ form._newDocs.length }} | {{ t('موجود') }}:
+                  {{ form.existingDocs.length }}
                 </v-chip>
               </div>
 
@@ -158,7 +150,7 @@
                 </v-chip>
               </div>
 
-              <div class="text-caption mt-2" style="color:#666;">
+              <div class="text-caption mt-2" style="color: #666">
                 {{ t('اسناد به جدول جدا ذخیره می‌شوند. (documents[])') }}
               </div>
             </v-col>
@@ -268,12 +260,10 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <v-text-field
+              <FormatZoneAutocomplete
                 v-model="form.now_zone"
                 :label="t('زون فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+                :disabled="saving"
               />
             </v-col>
 
@@ -597,161 +587,36 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
-import AppBar from '@/components/AppBar.vue'
-import { useFasadRepository } from '@/stores/FasadRepository'
-import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue'
+  import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
+  import AppBar from '@/components/AppBar.vue';
+  import { useFasadRepository } from '@/stores/FasadRepository';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
-const { t, locale } = useI18n()
-const isRtl = ref(locale.value === 'fa')
-watch(locale, (l) => (isRtl.value = l === 'fa'))
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-const route = useRoute()
-const router = useRouter()
-const repo = useFasadRepository()
+  const route = useRoute();
+  const router = useRouter();
+  const repo = useFasadRepository();
 
-const isEdit = computed(() => !!route.params.id)
+  const isEdit = computed(() => !!route.params.id);
 
-/* Form state */
-const formRef = ref(null)
-const formValid = ref(false)
-const saving = ref(false)
+  /* Form state */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-/* ✅ picture/docs inputs */
-const pictureInput = ref(null)
-const docsInput = ref(null)
-const picturePreviewUrl = ref('')
+  /* ✅ picture/docs inputs */
+  const pictureInput = ref(null);
+  const docsInput = ref(null);
+  const picturePreviewUrl = ref('');
 
-const form = ref({
-  id: null,
-  nick_name: '',
-  name: '',
-  father_name: '',
-  main_province: '',
-  main_district: '',
-  main_village: '',
-  now_province: '',
-  now_zone: '',
-  now_district: '',
-  now_village: '',
-  specific_place: '',
-  street_number: '',
-  home_number: '',
-  jabha: '',
-  supplier_name: '',
-  responsibility: '',
-  activity_zone: '',
-  friends_number: '',
-  phone_number: '',
-  bond_distance: '',
-  last_band_reason: '',
-  band_place: '',
-  now_job: '',
-  Province_addr: '',
-  coordinates: '',
-  resource_code: '',
-  resource_phone: '',
-  resource_id: null,
-
-  // ✅ uploads
-  picture_url: '',           // existing URL from API
-  _newPicture: null,         // File
-  existingDocs: [],          // [{id,url,original_name,file_name}]
-  _newDocs: [],              // File[]
-  removed_document_ids: [],  // number[]
-})
-
-/* Rules */
-const rules = {
-  required: (v) => !!v || t('این فیلد الزامی است'),
-}
-
-/* Snackbar */
-const showError = ref(false)
-const errorMessage = ref('')
-const showSuccess = ref(false)
-const successMessage = ref('')
-
-function showErrorMessage(msg) {
-  errorMessage.value = msg
-  showError.value = true
-}
-function showSuccessMsg(msg) {
-  successMessage.value = msg
-  showSuccess.value = true
-}
-
-/* Resources dropdown */
-const resources = computed(() => repo.resourcecode || [])
-
-function onResourceCodeChange(code) {
-  const found = resources.value.find((r) => r.code_number === code)
-  form.value.resource_phone = found?.phone_number ?? ''
-  form.value.resource_id = found?.id ?? null
-}
-
-/* ✅ picture handlers */
-function triggerPicture() {
-  pictureInput.value?.click()
-}
-function onPickPicture(e) {
-  const file = (e.target.files && e.target.files[0]) || null
-  form.value._newPicture = file
-
-  if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value)
-  picturePreviewUrl.value = file ? URL.createObjectURL(file) : ''
-
-  if (pictureInput.value) pictureInput.value.value = ''
-}
-function clearPicture() {
-  form.value._newPicture = null
-  form.value.picture_url = '' // if you want to remove existing picture on update, backend must handle it (optional)
-  if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value)
-  picturePreviewUrl.value = ''
-  if (pictureInput.value) pictureInput.value.value = ''
-}
-
-/* ✅ docs handlers */
-function triggerDocs() {
-  docsInput.value?.click()
-}
-function onPickDocs(e) {
-  const files = Array.from(e.target.files || [])
-  form.value._newDocs = files
-  if (docsInput.value) docsInput.value.value = ''
-}
-function removeNewDocAt(index) {
-  if (!Array.isArray(form.value._newDocs)) return
-  form.value._newDocs.splice(index, 1)
-  if (docsInput.value) docsInput.value.value = ''
-}
-function shortName(name = '') {
-  const n = String(name || '')
-  if (n.length <= 18) return n
-  const dot = n.lastIndexOf('.')
-  if (dot === -1) return n.slice(0, 15) + '…'
-  const ext = n.slice(dot)
-  return `${n.slice(0, 15)}…${ext}`
-}
-function openDoc(url) {
-  if (url) window.open(url, '_blank')
-}
-function markDocForRemoval(doc) {
-  if (!doc?.id) return
-  if (!form.value.removed_document_ids.includes(doc.id)) {
-    form.value.removed_document_ids.push(doc.id)
-  }
-  form.value.existingDocs = (form.value.existingDocs || []).filter((d) => d.id !== doc.id)
-}
-
-/* Helpers */
-function resetForm() {
-  const keepId = isEdit.value ? form.value.id : null
-
-  form.value = {
-    id: keepId,
+  const form = ref({
+    id: null,
     nick_name: '',
     name: '',
     father_name: '',
@@ -781,168 +646,294 @@ function resetForm() {
     resource_phone: '',
     resource_id: null,
 
-    picture_url: '',
-    _newPicture: null,
-    existingDocs: [],
-    _newDocs: [],
-    removed_document_ids: [],
+    // ✅ uploads
+    picture_url: '', // existing URL from API
+    _newPicture: null, // File
+    existingDocs: [], // [{id,url,original_name,file_name}]
+    _newDocs: [], // File[]
+    removed_document_ids: [], // number[]
+  });
+
+  /* Rules */
+  const rules = {
+    required: (v) => !!v || t('این فیلد الزامی است'),
+  };
+
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
+
+  function showErrorMessage(msg) {
+    errorMessage.value = msg;
+    showError.value = true;
+  }
+  function showSuccessMsg(msg) {
+    successMessage.value = msg;
+    showSuccess.value = true;
   }
 
-  clearPicture()
-  formRef.value?.resetValidation?.()
-}
+  /* Resources dropdown */
+  const resources = computed(() => repo.resourcecode || []);
 
-function fillFormFromRecord(x = {}) {
-  form.value = {
-    id: x.id ?? null,
-    nick_name: x.nick_name ?? '',
-    name: x.name ?? '',
-    father_name: x.father_name ?? '',
-    main_province: x.main_province ?? '',
-    main_district: x.main_district ?? '',
-    main_village: x.main_village ?? '',
-    now_province: x.now_province ?? '',
-    now_zone: x.now_zone ?? '',
-    now_district: x.now_district ?? '',
-    now_village: x.now_village ?? '',
-    specific_place: x.specific_place ?? '',
-    street_number: x.street_number ?? '',
-    home_number: x.home_number ?? '',
-    jabha: x.jabha ?? '',
-    supplier_name: x.supplier_name ?? '',
-    responsibility: x.responsibility ?? '',
-    activity_zone: x.activity_zone ?? '',
-    friends_number: x.friends_number ?? '',
-    phone_number: x.phone_number ?? '',
-    bond_distance: x.bond_distance ?? '',
-    last_band_reason: x.last_band_reason ?? '',
-    band_place: x.band_place ?? '',
-    now_job: x.now_job ?? '',
-    Province_addr: x.Province_addr ?? '',
-    coordinates: x.coordinates ?? '',
-    resource_code: x.resource_code ?? '',
-    resource_phone: x.resource_phone ?? '',
-    resource_id: x.resource_id ?? null,
-
-    // ✅ API fields
-    picture_url: x.picture ?? x.picture_url ?? '',
-    _newPicture: null,
-    _newDocs: [],
-    removed_document_ids: [],
-
-    // ✅ documents array from API (make sure backend returns documents with url)
-    existingDocs: Array.isArray(x.documents)
-      ? x.documents.map((d) => ({
-          id: d.id,
-          url: d.url || d.full_url || d.path || '',
-          original_name: d.original_name || d.name || '',
-          file_name: d.file_name || '',
-        }))
-      : [],
+  function onResourceCodeChange(code) {
+    const found = resources.value.find((r) => r.code_number === code);
+    form.value.resource_phone = found?.phone_number ?? '';
+    form.value.resource_id = found?.id ?? null;
   }
 
-  // clear local preview
-  if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value)
-  picturePreviewUrl.value = ''
-}
+  /* ✅ picture handlers */
+  function triggerPicture() {
+    pictureInput.value?.click();
+  }
+  function onPickPicture(e) {
+    const file = (e.target.files && e.target.files[0]) || null;
+    form.value._newPicture = file;
 
-/* ✅ Build FormData (sends picture + documents) */
-function buildFormData() {
-  const fd = new FormData()
+    if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value);
+    picturePreviewUrl.value = file ? URL.createObjectURL(file) : '';
 
-  // normal fields (exclude client-only)
-  const payload = { ...form.value }
-  delete payload.picture_url
-  delete payload._newPicture
-  delete payload.existingDocs
-  delete payload._newDocs
-  delete payload.removed_document_ids
-
-  Object.entries(payload).forEach(([k, v]) => {
-    if (v === undefined || v === null) return
-    fd.append(k, v)
-  })
-
-  // picture
-  if (form.value._newPicture) {
-    fd.append('picture', form.value._newPicture)
+    if (pictureInput.value) pictureInput.value.value = '';
+  }
+  function clearPicture() {
+    form.value._newPicture = null;
+    form.value.picture_url = ''; // if you want to remove existing picture on update, backend must handle it (optional)
+    if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value);
+    picturePreviewUrl.value = '';
+    if (pictureInput.value) pictureInput.value.value = '';
   }
 
-  // documents[]
-  ;(form.value._newDocs || []).forEach((file) => {
-    fd.append('documents[]', file)
-  })
+  /* ✅ docs handlers */
+  function triggerDocs() {
+    docsInput.value?.click();
+  }
+  function onPickDocs(e) {
+    const files = Array.from(e.target.files || []);
+    form.value._newDocs = files;
+    if (docsInput.value) docsInput.value.value = '';
+  }
+  function removeNewDocAt(index) {
+    if (!Array.isArray(form.value._newDocs)) return;
+    form.value._newDocs.splice(index, 1);
+    if (docsInput.value) docsInput.value.value = '';
+  }
+  function shortName(name = '') {
+    const n = String(name || '');
+    if (n.length <= 18) return n;
+    const dot = n.lastIndexOf('.');
+    if (dot === -1) return n.slice(0, 15) + '…';
+    const ext = n.slice(dot);
+    return `${n.slice(0, 15)}…${ext}`;
+  }
+  function openDoc(url) {
+    if (url) window.open(url, '_blank');
+  }
+  function markDocForRemoval(doc) {
+    if (!doc?.id) return;
+    if (!form.value.removed_document_ids.includes(doc.id)) {
+      form.value.removed_document_ids.push(doc.id);
+    }
+    form.value.existingDocs = (form.value.existingDocs || []).filter((d) => d.id !== doc.id);
+  }
 
-  // removed_document_ids[]
-  ;(form.value.removed_document_ids || []).forEach((id) => {
-    fd.append('removed_document_ids[]', String(id))
-  })
+  /* Helpers */
+  function resetForm() {
+    const keepId = isEdit.value ? form.value.id : null;
 
-  return fd
-}
+    form.value = {
+      id: keepId,
+      nick_name: '',
+      name: '',
+      father_name: '',
+      main_province: '',
+      main_district: '',
+      main_village: '',
+      now_province: '',
+      now_zone: '',
+      now_district: '',
+      now_village: '',
+      specific_place: '',
+      street_number: '',
+      home_number: '',
+      jabha: '',
+      supplier_name: '',
+      responsibility: '',
+      activity_zone: '',
+      friends_number: '',
+      phone_number: '',
+      bond_distance: '',
+      last_band_reason: '',
+      band_place: '',
+      now_job: '',
+      Province_addr: '',
+      coordinates: '',
+      resource_code: '',
+      resource_phone: '',
+      resource_id: null,
 
-/* =========================
+      picture_url: '',
+      _newPicture: null,
+      existingDocs: [],
+      _newDocs: [],
+      removed_document_ids: [],
+    };
+
+    clearPicture();
+    formRef.value?.resetValidation?.();
+  }
+
+  function fillFormFromRecord(x = {}) {
+    form.value = {
+      id: x.id ?? null,
+      nick_name: x.nick_name ?? '',
+      name: x.name ?? '',
+      father_name: x.father_name ?? '',
+      main_province: x.main_province ?? '',
+      main_district: x.main_district ?? '',
+      main_village: x.main_village ?? '',
+      now_province: x.now_province ?? '',
+      now_zone: x.now_zone ?? '',
+      now_district: x.now_district ?? '',
+      now_village: x.now_village ?? '',
+      specific_place: x.specific_place ?? '',
+      street_number: x.street_number ?? '',
+      home_number: x.home_number ?? '',
+      jabha: x.jabha ?? '',
+      supplier_name: x.supplier_name ?? '',
+      responsibility: x.responsibility ?? '',
+      activity_zone: x.activity_zone ?? '',
+      friends_number: x.friends_number ?? '',
+      phone_number: x.phone_number ?? '',
+      bond_distance: x.bond_distance ?? '',
+      last_band_reason: x.last_band_reason ?? '',
+      band_place: x.band_place ?? '',
+      now_job: x.now_job ?? '',
+      Province_addr: x.Province_addr ?? '',
+      coordinates: x.coordinates ?? '',
+      resource_code: x.resource_code ?? '',
+      resource_phone: x.resource_phone ?? '',
+      resource_id: x.resource_id ?? null,
+
+      // ✅ API fields
+      picture_url: x.picture ?? x.picture_url ?? '',
+      _newPicture: null,
+      _newDocs: [],
+      removed_document_ids: [],
+
+      // ✅ documents array from API (make sure backend returns documents with url)
+      existingDocs: Array.isArray(x.documents)
+        ? x.documents.map((d) => ({
+            id: d.id,
+            url: d.url || d.full_url || d.path || '',
+            original_name: d.original_name || d.name || '',
+            file_name: d.file_name || '',
+          }))
+        : [],
+    };
+
+    // clear local preview
+    if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value);
+    picturePreviewUrl.value = '';
+  }
+
+  /* ✅ Build FormData (sends picture + documents) */
+  function buildFormData() {
+    const fd = new FormData();
+
+    // normal fields (exclude client-only)
+    const payload = { ...form.value };
+    delete payload.picture_url;
+    delete payload._newPicture;
+    delete payload.existingDocs;
+    delete payload._newDocs;
+    delete payload.removed_document_ids;
+
+    Object.entries(payload).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+
+    // picture
+    if (form.value._newPicture) {
+      fd.append('picture', form.value._newPicture);
+    }
+
+    // documents[]
+    (form.value._newDocs || []).forEach((file) => {
+      fd.append('documents[]', file);
+    });
+
+    // removed_document_ids[]
+    (form.value.removed_document_ids || []).forEach((id) => {
+      fd.append('removed_document_ids[]', String(id));
+    });
+
+    return fd;
+  }
+
+  /* =========================
    SIMPLE EXPORT (NO IMAGE, NO HEADERS)
 ========================= */
-function esc(v) {
-  return String(v ?? '').replace(/[&<>"']/g, (m) => {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }
-    return map[m]
-  })
-}
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, (m) => {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return map[m];
+    });
+  }
 
-function exportRows() {
-  return [
-    { label: 'تخلص', value: form.value.nick_name },
-    { label: 'نام', value: form.value.name },
-    { label: 'نام پدر', value: form.value.father_name },
-    { label: 'ولایت مربوطه', value: form.value.Province_addr },
-    { label: 'وظیفه فعلی', value: form.value.now_job },
+  function exportRows() {
+    return [
+      { label: 'تخلص', value: form.value.nick_name },
+      { label: 'نام', value: form.value.name },
+      { label: 'نام پدر', value: form.value.father_name },
+      { label: 'ولایت مربوطه', value: form.value.Province_addr },
+      { label: 'وظیفه فعلی', value: form.value.now_job },
 
-    { label: 'ولایت اصلی', value: form.value.main_province },
-    { label: 'ولسوالی اصلی', value: form.value.main_district },
-    { label: 'قریه/ناحیه اصلی', value: form.value.main_village },
+      { label: 'ولایت اصلی', value: form.value.main_province },
+      { label: 'ولسوالی اصلی', value: form.value.main_district },
+      { label: 'قریه/ناحیه اصلی', value: form.value.main_village },
 
-    { label: 'ولایت فعلی', value: form.value.now_province },
-    { label: 'زون فعلی', value: form.value.now_zone },
-    { label: 'ولسوالی فعلی', value: form.value.now_district },
-    { label: 'قریه/ناحیه فعلی', value: form.value.now_village },
+      { label: 'ولایت فعلی', value: form.value.now_province },
+      { label: 'زون فعلی', value: form.value.now_zone },
+      { label: 'ولسوالی فعلی', value: form.value.now_district },
+      { label: 'قریه/ناحیه فعلی', value: form.value.now_village },
 
-    { label: 'موقعیت مشخص فعلی', value: form.value.specific_place },
-    { label: 'شماره سرک', value: form.value.street_number },
-    { label: 'شماره خانه', value: form.value.home_number },
+      { label: 'موقعیت مشخص فعلی', value: form.value.specific_place },
+      { label: 'شماره سرک', value: form.value.street_number },
+      { label: 'شماره خانه', value: form.value.home_number },
 
-    { label: 'جبهه', value: form.value.jabha },
-    { label: 'نام تمویل‌کننده', value: form.value.supplier_name },
-    { label: 'مسئولیت', value: form.value.responsibility },
-    { label: 'ساحه فعالیت', value: form.value.activity_zone },
-    { label: 'تعداد دوستان', value: form.value.friends_number },
-    { label: 'شماره تماس', value: form.value.phone_number },
-    { label: 'فاصله ارتباط', value: form.value.bond_distance },
+      { label: 'جبهه', value: form.value.jabha },
+      { label: 'نام تمویل‌کننده', value: form.value.supplier_name },
+      { label: 'مسئولیت', value: form.value.responsibility },
+      { label: 'ساحه فعالیت', value: form.value.activity_zone },
+      { label: 'تعداد دوستان', value: form.value.friends_number },
+      { label: 'شماره تماس', value: form.value.phone_number },
+      { label: 'فاصله ارتباط', value: form.value.bond_distance },
 
-    { label: 'دلیل آخرین بند/ارتباط', value: form.value.last_band_reason },
-    { label: 'محل بند/ارتباط', value: form.value.band_place },
+      { label: 'دلیل آخرین بند/ارتباط', value: form.value.last_band_reason },
+      { label: 'محل بند/ارتباط', value: form.value.band_place },
 
-    { label: 'مختصات', value: form.value.coordinates },
+      { label: 'مختصات', value: form.value.coordinates },
 
-    { label: 'کود منبع', value: form.value.resource_code },
-    { label: 'شماره منبع', value: form.value.resource_phone },
-  ]
-}
+      { label: 'کود منبع', value: form.value.resource_code },
+      { label: 'شماره منبع', value: form.value.resource_phone },
+    ];
+  }
 
-function buildSimpleTableHtml() {
-  const rows = exportRows()
-    .map(
-      (r) => `
+  function buildSimpleTableHtml() {
+    const rows = exportRows()
+      .map(
+        (r) => `
       <tr>
         <th>${esc(r.label)}</th>
         <td>${esc(r.value)}</td>
       </tr>
     `
-    )
-    .join('')
+      )
+      .join('');
 
-  return `
+    return `
     <h3 class="title">فورم فساد</h3>
     <table class="simple-table">
       <tbody>
@@ -953,13 +944,13 @@ function buildSimpleTableHtml() {
       <div>امضاء / مهر مسئول: ____________________</div>
       <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
     </div>
-  `
-}
+  `;
+  }
 
-function buildDocumentHtml() {
-  const bodyHtml = buildSimpleTableHtml()
+  function buildDocumentHtml() {
+    const bodyHtml = buildSimpleTableHtml();
 
-  return `
+    return `
 <!DOCTYPE html>
 <html dir="rtl">
 <head>
@@ -983,152 +974,194 @@ function buildDocumentHtml() {
   ${bodyHtml}
 </body>
 </html>
-`
-}
-
-function downloadPdf() {
-  const html = buildDocumentHtml()
-  const w = window.open('', '_blank', 'width=1024,height=768')
-  if (!w) return
-  w.document.open()
-  w.document.write(html)
-  w.document.close()
-  w.focus()
-  w.print()
-}
-
-function downloadWord() {
-  const html = buildDocumentHtml()
-  const blob = new Blob(['\ufeff', html], { type: 'application/msword' })
-  const url = URL.createObjectURL(blob)
-
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `فساد_${form.value.name || 'جدید'}_${Date.now()}.doc`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-
-  URL.revokeObjectURL(url)
-  showSuccessMsg(t('فایل Word با موفقیت ایجاد شد'))
-}
-
-/* Submit */
-async function onSubmit() {
-  if (!formRef.value) return
-
-  const { valid } = await formRef.value.validate()
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'))
-    return
+`;
   }
 
-  saving.value = true
-  try {
-    const fd = buildFormData()
+  function downloadPdf() {
+    const html = buildDocumentHtml();
+    const w = window.open('', '_blank', 'width=1024,height=768');
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    w.print();
+  }
 
-    if (isEdit.value && form.value.id) {
-      const updated = await repo.UpdateFasad?.(form.value.id, fd)
-      if (updated && updated.id) {
-        showSuccessMsg(t('تغییرات موفقانه ذخیره شد'))
-        goBack()
-        return
-      }
-    } else {
-      const created = await repo.CreateFasad?.(fd)
-      if (created && created.id) {
-        showSuccessMsg(t('فساد جدید موفقانه ثبت شد'))
-        goBack()
-        return
-      }
+  function downloadWord() {
+    const html = buildDocumentHtml();
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `فساد_${form.value.name || 'جدید'}_${Date.now()}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+    showSuccessMsg(t('فایل Word با موفقیت ایجاد شد'));
+  }
+
+  /* Submit */
+  async function onSubmit() {
+    if (!formRef.value) return;
+
+    const { valid } = await formRef.value.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
+      return;
     }
 
-    showErrorMessage(t('خطا در ذخیره معلومات'))
-  } catch (e) {
-    console.error('Fasad save error', e)
-    showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''))
-  } finally {
-    saving.value = false
+    saving.value = true;
+    try {
+      const fd = buildFormData();
+
+      if (isEdit.value && form.value.id) {
+        const updated = await repo.UpdateFasad?.(form.value.id, fd);
+        if (updated && updated.id) {
+          showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
+          goBack();
+          return;
+        }
+      } else {
+        const created = await repo.CreateFasad?.(fd);
+        if (created && created.id) {
+          showSuccessMsg(t('فساد جدید موفقانه ثبت شد'));
+          goBack();
+          return;
+        }
+      }
+
+      showErrorMessage(t('خطا در ذخیره معلومات'));
+    } catch (e) {
+      console.error('Fasad save error', e);
+      showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
+    } finally {
+      saving.value = false;
+    }
   }
-}
 
-/* Navigation */
-function goBack() {
-  router.push('/app/fasads')
-}
-
-/* Load on edit */
-async function loadExisting() {
-  const id = route.params.id
-  if (!id) return
-  try {
-    await repo.FetchFasadData?.(id)
-    const rec = repo.Fasad && Array.isArray(repo.Fasad) ? repo.Fasad[0] : repo.Fasad || {}
-    fillFormFromRecord(rec)
-  } catch (e) {
-    console.error('loadExisting error', e)
-    showErrorMessage(t('خطا در دریافت معلومات فساد'))
+  /* Navigation */
+  function goBack() {
+    router.push('/app/fasads');
   }
-}
 
-/* Init */
-onMounted(async () => {
-  // ✅ you already have ProvinceDistrictNameSelect, no need lookups here
-  await repo.GetResourceCode?.()
-  if (isEdit.value) await loadExisting()
-})
+  /* Load on edit */
+  async function loadExisting() {
+    const id = route.params.id;
+    if (!id) return;
+    try {
+      await repo.FetchFasadData?.(id);
+      const rec = repo.Fasad && Array.isArray(repo.Fasad) ? repo.Fasad[0] : repo.Fasad || {};
+      fillFormFromRecord(rec);
+    } catch (e) {
+      console.error('loadExisting error', e);
+      showErrorMessage(t('خطا در دریافت معلومات فساد'));
+    }
+  }
 
-onBeforeUnmount(() => {
-  if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value)
-})
+  /* Init */
+  onMounted(async () => {
+    // ✅ you already have ProvinceDistrictNameSelect, no need lookups here
+    await repo.GetResourceCode?.();
+    if (isEdit.value) await loadExisting();
+  });
+
+  onBeforeUnmount(() => {
+    if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value);
+  });
 </script>
 
 <style scoped>
-/* ===== GENERAL ===== */
-.fasad-page {
-  background: #ffffff !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  font-size: 12px;
-}
+  /* ===== GENERAL ===== */
+  .fasad-page {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 12px;
+  }
 
-/* ===== SCREEN VIEW ===== */
-.no-print { display: block; }
+  /* ===== SCREEN VIEW ===== */
+  .no-print {
+    display: block;
+  }
 
-/* top buttons (not printed) */
-.top-bar { display:flex; justify-content:flex-start; gap:4px; margin:8px 16px; }
-.top-btn { font-size:12px; padding:4px 12px; background:#ffffff; border:1px solid #000; cursor:pointer; border-radius:4px; }
-.top-btn:hover { background:#f5f5f5; }
+  /* top buttons (not printed) */
+  .top-bar {
+    display: flex;
+    justify-content: flex-start;
+    gap: 4px;
+    margin: 8px 16px;
+  }
+  .top-btn {
+    font-size: 12px;
+    padding: 4px 12px;
+    background: #ffffff;
+    border: 1px solid #000;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .top-btn:hover {
+    background: #f5f5f5;
+  }
 
-/* Form container */
-.form-container { margin: 0 auto; }
+  /* Form container */
+  .form-container {
+    margin: 0 auto;
+  }
 
-/* Form styling */
-.section-title {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #37474f;
-  background-color: #f5f5f5;
-  padding: 8px 12px;
-  border-radius: 4px;
-  border-right: 4px solid #2196f3;
-}
+  /* Form styling */
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #37474f;
+    background-color: #f5f5f5;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border-right: 4px solid #2196f3;
+  }
 
-.hidden-file { display: none; }
+  .hidden-file {
+    display: none;
+  }
 
-.chips-row { display:flex; flex-wrap:wrap; gap:6px; }
-.chip-outline { border-style: dashed; }
-.chip-existing { cursor: pointer; }
+  .chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .chip-outline {
+    border-style: dashed;
+  }
+  .chip-existing {
+    cursor: pointer;
+  }
 
-.ga-2 { gap: 8px; }
-.ga-3 { gap: 12px; }
+  .ga-2 {
+    gap: 8px;
+  }
+  .ga-3 {
+    gap: 12px;
+  }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 960px) {
-  .form-container { padding: 8px !important; }
-  .v-card { padding: 16px !important; }
-  .d-flex.justify-space-between { flex-direction: column; gap: 16px; }
-  .d-flex.justify-space-between > div { width: 100%; justify-content: center; }
-}
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 960px) {
+    .form-container {
+      padding: 8px !important;
+    }
+    .v-card {
+      padding: 16px !important;
+    }
+    .d-flex.justify-space-between {
+      flex-direction: column;
+      gap: 16px;
+    }
+    .d-flex.justify-space-between > div {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 </style>

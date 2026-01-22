@@ -8,16 +8,6 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ وکیل موجود') : t('ثبت یک ریکارډ وکیل جدید در سیستم')
       "
     >
-      <template #actions>
-        <v-btn
-          variant="text"
-          prepend-icon="mdi-arrow-left"
-          class="text-none rounded-pill"
-          @click="goBack"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- FORM -->
@@ -42,11 +32,7 @@
             <v-col cols="12">
               <div class="picture-row">
                 <v-avatar size="92" class="picture-avatar" rounded="xl">
-                  <v-img
-                    v-if="picturePreviewSrc"
-                    :src="picturePreviewSrc"
-                    cover
-                  />
+                  <v-img v-if="picturePreviewSrc" :src="picturePreviewSrc" cover />
                   <v-icon v-else size="44">mdi-account-circle</v-icon>
                 </v-avatar>
 
@@ -187,13 +173,10 @@
               />
             </v-col>
             <v-col cols="12" md="12">
-              <v-text-field
+              <FormatZoneAutocomplete
                 v-model="form.now_zone"
                 :label="t('زون فعلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('now_zone')"
-                :error-messages="getErrorMessages('now_zone')"
+                :disabled="saving"
               />
             </v-col>
 
@@ -483,7 +466,9 @@
           </v-card-title>
           <v-card-text>
             <v-img v-if="picturePreviewSrc" :src="picturePreviewSrc" max-height="520" cover />
-            <div v-else class="text-caption text-medium-emphasis">{{ t('عکسی انتخاب نشده است') }}</div>
+            <div v-else class="text-caption text-medium-emphasis">
+              {{ t('عکسی انتخاب نشده است') }}
+            </div>
           </v-card-text>
         </v-card>
       </v-dialog>
@@ -515,6 +500,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
   const repo = useWakilanoRepository();
   const route = useRoute();
@@ -566,9 +552,9 @@
     id: null,
 
     // ✅ picture
-    picture: null,         // File
-    picture_url: '',       // from API
-    _remove_picture: 0,    // tell backend to remove if needed
+    picture: null, // File
+    picture_url: '', // from API
+    _remove_picture: 0, // tell backend to remove if needed
 
     name: '',
     f_name: '',
