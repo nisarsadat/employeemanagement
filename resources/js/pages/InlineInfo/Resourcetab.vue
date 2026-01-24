@@ -8,8 +8,9 @@
           {{ t('افزودن اطلاعات جدید') }}
         </v-card-title>
 
-        <!-- Codes (+ Name moved here to make 3 columns) -->
+        <!-- Body -->
         <v-card-text class="pa-0 pretty-scroll scroll-body max-h-form" :dir="isRtl ? 'rtl' : 'ltr'">
+          <!-- Codes (+ Name moved here to make 3 columns) -->
           <v-row class="tight-grid">
             <!-- resource_id -->
             <v-col cols="12" md="4">
@@ -53,427 +54,9 @@
                 />
               </v-card-text>
             </v-col>
-            <!-- name (moved up from Identity row) -->
+
+            <!-- ✅ trust_percentage (read-only) -->
             <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('نام') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-text-field
-                  v-model="draft.name"
-                  variant="outlined"
-                  density="compact"
-                  rounded="lg"
-                  class="cell"
-                  clearable
-                  :rules="[rules.required(t('نام'))]"
-                  prepend-inner-icon="mdi-account"
-                />
-              </v-card-text>
-            </v-col>
-            <!-- <v-col cols="12" md="6">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{
-                  t('کود کارمند تدابیری مربوطه')
-                }}</v-card-subtitle>
-              </v-card-item>
-              <v-autocomplete
-                class="primary-select"
-                v-model="draft.office_employee_tadabiri_id"
-                :items="officeEmployeesItems"
-                item-title="code_number"
-                item-value="id"
-                :label="t('کود کارمند تدابیری مربوطه')"
-                density="compact"
-                variant="outlined"
-                clearable
-              />
-            </v-col> -->
-
-            <v-col cols="12" md="12">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{
-                  t('کود کارمند اطلاع گیرنده')
-                }}</v-card-subtitle>
-              </v-card-item>
-              <v-autocomplete
-                class="primary-select"
-                v-model="draft.office_employee_info_id"
-                :items="officeEmployeesItems"
-                item-title="code_number"
-                item-value="id"
-                :label="t('کود کارمند اطلاع گیرنده')"
-                density="compact"
-                variant="outlined"
-                clearable
-              />
-            </v-col>
-          </v-row>
-
-          <!-- Identity (remaining 3 fields in 3-up layout) -->
-          <v-row class="tight-grid">
-            <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('نام مستعار') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-text-field
-                  v-model="draft.nick_name"
-                  variant="outlined"
-                  density="compact"
-                  rounded="lg"
-                  class="cell"
-                  clearable
-                  prepend-inner-icon="mdi-tag"
-                />
-              </v-card-text>
-            </v-col>
-
-            <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('نام پدر') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-text-field
-                  v-model="draft.father_name"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  rounded="lg"
-                  class="cell"
-                  prepend-inner-icon="mdi-account-supervisor"
-                />
-              </v-card-text>
-            </v-col>
-
-            <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('نام پدرکلان') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-text-field
-                  v-model="draft.grand_father_name"
-                  variant="outlined"
-                  density="compact"
-                  rounded="lg"
-                  class="cell"
-                  clearable
-                  prepend-inner-icon="mdi-account-supervisor-outline"
-                />
-              </v-card-text>
-            </v-col>
-          </v-row>
-
-          <!-- Addresses -->
-          <v-expansion-panels variant="accordion">
-            <v-expansion-panel>
-              <v-expansion-panel-title>
-                <v-icon class="mr-2">mdi-map-marker</v-icon>
-                {{ t('آدرس‌ها') }}
-              </v-expansion-panel-title>
-              <v-expansion-panel-text>
-                <!-- Main Address -->
-                <v-row class="tight-grid">
-                  <v-col cols="12">
-                    <v-card-subtitle class="section-subtitle mb-2">
-                      <v-icon size="small" class="mr-1">mdi-home</v-icon>
-                      {{ t('آدرس اصلی') }}
-                    </v-card-subtitle>
-                  </v-col>
-                  <v-col cols="12">
-                    <ProvinceDistrictNameSelect
-                      v-model:province="draft.main_province"
-                      v-model:district="draft.main_districts"
-                      :province-label="t('ولایت اصلی')"
-                      :district-label="t('ولسوالی اصلی')"
-                      :mdProvince="6"
-                      :mdDistrict="6"
-                    />
-                  </v-col>
-
-                  <v-col cols="12" md="12">
-                    <v-text-field
-                      v-model="draft.main_village"
-                      :label="t('قریه/ناحیه اصلی')"
-                      variant="outlined"
-                      density="compact"
-                      rounded="lg"
-                      clearable
-                    />
-                  </v-col>
-                </v-row>
-
-                <!-- Current Address -->
-                <v-row class="tight-grid">
-                  <v-col cols="12">
-                    <v-card-subtitle class="section-subtitle mb-2">
-                      <v-icon size="small" class="mr-1">mdi-map-marker</v-icon>
-                      {{ t('آدرس فعلی') }}
-                    </v-card-subtitle>
-                  </v-col>
-
-                  <v-col cols="12">
-                    <ProvinceDistrictNameSelect
-                      v-model:province="draft.now_province"
-                      v-model:district="draft.now_district"
-                      :province-label="t('ولایت فعلی')"
-                      :district-label="t('ولسوالی فعلی')"
-                      :mdProvince="6"
-                      :mdDistrict="6"
-                    />
-                  </v-col>
-
-                  <v-col cols="12" md="12">
-                    <v-text-field
-                      v-model="draft.now_village"
-                      :label="t('قریه/ناحیه فعلی')"
-                      variant="outlined"
-                      density="compact"
-                      clearable
-                      rounded="lg"
-                    />
-                  </v-col>
-                </v-row>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-          </v-expansion-panels>
-
-          <!-- Types + Time -->
-          <v-row class="tight-grid mt-2">
-            <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('سیاسی - نوع') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <SeyaseeTypeSelect
-                  v-model="draft.syasi_info_type"
-                  :label="t('سیاسی - نوع')"
-                  :cols="12"
-                  :md="12"
-                  :disabled="!!draft.jenayee_info_type"
-                />
-              </v-card-text>
-            </v-col>
-
-            <!-- jenayee_info_type -->
-            <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('جنایی') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <JenayeeTypeSelect
-                  v-model="draft.jenayee_info_type"
-                  :label="t('جنایی')"
-                  :cols="12"
-                  :md="12"
-                  :disabled="!!draft.syasi_info_type"
-                />
-              </v-card-text>
-            </v-col>
-
-            <!-- information_saved_date -->
-            <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('تاریخ اطلاع') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <div class="dateinput">
-                  <DateInput
-                    v-model="draft.information_saved_date"
-                    :rules="[rules.required]"
-                    :label="t('تاریخ اطلاع')"
-                  />
-                </div>
-              </v-card-text>
-            </v-col>
-
-            <!-- information_saved_hour -->
-            <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('ساعت اطلاع') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-text-field
-                  v-model="draft.information_saved_hour"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  type="time"
-                  step="60"
-                  placeholder="HH:MM"
-                  prepend-inner-icon="mdi-clock"
-                  rounded="lg"
-                  class="cell"
-                />
-              </v-card-text>
-            </v-col>
-
-            <!-- information_degree -->
-            <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('درجه موثقیت اطلاع') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-text-field
-                  v-model="draft.information_degree"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  prepend-inner-icon="mdi-star"
-                  rounded="lg"
-                  class="cell"
-                />
-              </v-card-text>
-            </v-col>
-            <!-- ✅ NEW: hamahangi_date -->
-            <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('تاریخ هم‌آهنگی') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <div class="dateinput">
-                  <DateInput v-model="draft.hamahangi_date" :label="t('تاریخ هم‌آهنگی')" />
-                </div>
-              </v-card-text>
-            </v-col>
-
-            <!-- ✅ NEW: maktop_number -->
-            <!-- <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('شماره مکتوب') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-text-field
-                  v-model="draft.maktop_number"
-                  :label="t('شماره مکتوب')"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  rounded="lg"
-                  class="cell"
-                  prepend-inner-icon="mdi-numeric"
-                />
-              </v-card-text>
-            </v-col> -->
-
-            <!-- ✅ NEW: organ -->
-            <v-col cols="12" md="12">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('ارگان') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <OrganSelect v-model="draft.organ" :label="t('ارگان')" :disabled="submitting" />
-              </v-card-text>
-            </v-col>
-
-            <!-- <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('ولایت مربوطه') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-text-field
-                  v-model="draft.Province_addr"
-                  :label="t('ولایت مربوطه')"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  rounded="lg"
-                  class="cell"
-                />
-              </v-card-text>
-            </v-col> -->
-          </v-row>
-
-          <!-- Long texts -->
-          <v-row class="tight-grid">
-            <v-col cols="12" md="12">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('تفصیل') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-textarea
-                  v-model="draft.tafseel"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  rounded="lg"
-                  rows="3"
-                  auto-grow
-                />
-              </v-card-text>
-            </v-col>
-
-            <!-- <v-col cols="12" md="6">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{
-                  t('گفتگو های انجام شده')
-                }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-textarea
-                  v-model="draft.talks"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  rounded="lg"
-                  rows="3"
-                  auto-grow
-                />
-              </v-card-text>
-            </v-col> -->
-
-            <v-col cols="12" md="12">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('نظر مدیر') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-textarea
-                  v-model="draft.manager_comment"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  rounded="lg"
-                  rows="2"
-                  auto-grow
-                />
-              </v-card-text>
-            </v-col>
-
-            <!-- <v-col cols="12" md="4">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('رهنمود رهبریت') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-textarea
-                  v-model="draft.lead_drirection"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  rounded="lg"
-                  rows="2"
-                  auto-grow
-                />
-              </v-card-text>
-            </v-col> -->
-
-            <v-col cols="12" md="12">
-              <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('ملاحظات') }}</v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <v-textarea
-                  v-model="draft.note"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  rounded="lg"
-                  rows="2"
-                  auto-grow
-                />
-              </v-card-text>
-            </v-col>
-            <!-- ✅ NEW: trust_percentage (read-only) -->
-            <v-col cols="12" md="12">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('فیصدی موثقیت') }}</v-card-subtitle>
               </v-card-item>
@@ -491,75 +74,530 @@
             </v-col>
           </v-row>
 
-          <!-- Documents -->
-          <v-card variant="outlined" class="docs-field-row">
-            <v-card-item>
-              <v-card-subtitle class="field-label">{{ t('اسناد / ضمایم') }}</v-card-subtitle>
+          <!-- ✅ SHEET: د متهم شهرت -->
+          <v-card variant="outlined" class="sheet-card px-4 py-3 mt-2">
+            <v-card-item class="sheet-title-row">
+              <v-icon class="mr-2" size="small">mdi-account-details</v-icon>
+              <v-card-subtitle class="sheet-title">{{ t('د متهم شهرت') }}</v-card-subtitle>
             </v-card-item>
-            <v-card-text>
-              <input
-                ref="fileInput"
-                type="file"
-                class="hidden-file"
-                rounded="lg"
-                multiple
-                @change="onFilesPicked($event)"
-              />
 
-              <v-row align="center" class="tight-grid">
-                <v-col cols="auto">
-                  <v-btn
-                    prepend-icon="mdi-tray-arrow-up"
-                    color="primary"
-                    @click="fileInput?.click()"
-                  >
-                    {{ t('آپلود فایل ها') }}
-                  </v-btn>
-                </v-col>
-                <v-col>
-                  <v-chip-group>
-                    <v-chip
-                      v-for="(f, i) in draft._newDocs"
-                      :key="'nf-' + i"
-                      size="small"
-                      variant="outlined"
-                      color="primary"
-                      :title="f.name"
-                      closable
-                      @click:close="removeFile(i)"
-                    >
-                      {{ shortName(f.name) }}
-                    </v-chip>
-                  </v-chip-group>
-                </v-col>
-              </v-row>
-
-              <v-row v-if="progress > 0 && progress < 100" class="mt-2 tight-grid">
-                <v-col cols="12">
-                  <v-progress-linear :model-value="progress" height="8" color="primary" rounded />
-                  <div class="text-caption mt-1 text-medium-emphasis">
-                    {{ t('در حال آپلود') }}... {{ progress }}%
-                  </div>
-                </v-col>
-              </v-row>
-              <v-row v-else-if="progress === 100" class="tight-grid">
-                <v-col cols="12">
-                  <v-alert type="success" density="compact" class="mt-2">
-                    {{ t('آپلود با موفقیت انجام شد') }}
-                  </v-alert>
-                </v-col>
-              </v-row>
-              <v-row class="pa-3">
-                <v-col cols="12" md="12">
+            <v-row class="tight-grid">
+              <!-- name -->
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('نام') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
                   <v-text-field
-                    v-model="draft.docs_note"
-                    :label="t('نوت راجع به اسناد')"
-                    density="compact"
+                    v-model="draft.name"
                     variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    class="cell"
+                    clearable
+                    :rules="[rules.required(t('نام'))]"
+                    prepend-inner-icon="mdi-account"
                   />
-                </v-col>
-              </v-row>
-            </v-card-text>
+                </v-card-text>
+              </v-col>
+
+              <!-- nick_name -->
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('نام مستعار') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.nick_name"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    class="cell"
+                    clearable
+                    prepend-inner-icon="mdi-tag"
+                  />
+                </v-card-text>
+              </v-col>
+
+              <!-- father_name -->
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('نام پدر') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.father_name"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    rounded="lg"
+                    class="cell"
+                    prepend-inner-icon="mdi-account-supervisor"
+                  />
+                </v-card-text>
+              </v-col>
+
+              <!-- grand_father_name -->
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('نام پدرکلان') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.grand_father_name"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    class="cell"
+                    clearable
+                    prepend-inner-icon="mdi-account-supervisor-outline"
+                  />
+                </v-card-text>
+              </v-col>
+
+              <!-- ✅ NEW: age -->
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('عمر') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.age"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    class="cell"
+                    clearable
+                    type="number"
+                    min="0"
+                    prepend-inner-icon="mdi-numeric"
+                  />
+                </v-card-text>
+              </v-col>
+
+              <!-- ✅ NEW: madani_halat (مجرد/متاحل) -->
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('حالت مدنی') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-select
+                    v-model="draft.madani_halat"
+                    :items="madaniHalatItems"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    class="cell"
+                    clearable
+                    prepend-inner-icon="mdi-account-heart"
+                  />
+                </v-card-text>
+              </v-col>
+
+              <!-- ✅ NEW: job -->
+              <v-col cols="12" md="12">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('وظیفه') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.job"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    class="cell"
+                    clearable
+                    prepend-inner-icon="mdi-briefcase"
+                  />
+                </v-card-text>
+              </v-col>
+            </v-row>
+          </v-card>
+
+          <!-- Addresses -->
+          <v-card variant="outlined" class="sheet-card px-4 py-3 mt-3">
+            <v-card-item class="sheet-title-row">
+              <v-icon class="mr-2" size="small">mdi-map-marker</v-icon>
+              <v-card-subtitle class="sheet-title">{{ t('آدرس‌ها') }}</v-card-subtitle>
+            </v-card-item>
+
+            <v-expansion-panels variant="accordion">
+              <v-expansion-panel>
+                <v-expansion-panel-title>
+                  <v-icon class="mr-2">mdi-map-marker</v-icon>
+                  {{ t('آدرس‌ها') }}
+                </v-expansion-panel-title>
+                <v-expansion-panel-text>
+                  <!-- Main Address -->
+                  <v-row class="tight-grid">
+                    <v-col cols="12">
+                      <v-card-subtitle class="section-subtitle mb-2">
+                        <v-icon size="small" class="mr-1">mdi-home</v-icon>
+                        {{ t('آدرس اصلی') }}
+                      </v-card-subtitle>
+                    </v-col>
+                    <v-col cols="12">
+                      <ProvinceDistrictNameSelect
+                        v-model:province="draft.main_province"
+                        v-model:district="draft.main_districts"
+                        :province-label="t('ولایت اصلی')"
+                        :district-label="t('ولسوالی اصلی')"
+                        :mdProvince="6"
+                        :mdDistrict="6"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="12">
+                      <v-text-field
+                        v-model="draft.main_village"
+                        :label="t('قریه/ناحیه اصلی')"
+                        variant="outlined"
+                        density="compact"
+                        rounded="lg"
+                        clearable
+                      />
+                    </v-col>
+                  </v-row>
+
+                  <!-- Current Address -->
+                  <v-row class="tight-grid">
+                    <v-col cols="12">
+                      <v-card-subtitle class="section-subtitle mb-2">
+                        <v-icon size="small" class="mr-1">mdi-map-marker</v-icon>
+                        {{ t('آدرس فعلی') }}
+                      </v-card-subtitle>
+                    </v-col>
+
+                    <v-col cols="12">
+                      <ProvinceDistrictNameSelect
+                        v-model:province="draft.now_province"
+                        v-model:district="draft.now_district"
+                        :province-label="t('ولایت فعلی')"
+                        :district-label="t('ولسوالی فعلی')"
+                        :mdProvince="6"
+                        :mdDistrict="6"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="12">
+                      <v-text-field
+                        v-model="draft.now_village"
+                        :label="t('قریه/ناحیه فعلی')"
+                        variant="outlined"
+                        density="compact"
+                        clearable
+                        rounded="lg"
+                      />
+                    </v-col>
+                  </v-row>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </v-card>
+
+          <!-- Types + Time -->
+          <v-card variant="outlined" class="sheet-card px-4 py-3 mt-3">
+            <v-card-item class="sheet-title-row">
+              <v-icon class="mr-2" size="small">mdi-timer-outline</v-icon>
+              <v-card-subtitle class="sheet-title">{{
+                t('د اطلاع اړوند اسناد او شواهد')
+              }}</v-card-subtitle>
+            </v-card-item>
+
+            <v-row class="tight-grid mt-2">
+              <v-col cols="12" md="12">
+                <!-- Documents -->
+                <v-card variant="outlined" class="docs-field-row sheet-card px-4 py-3 mt-3">
+                  <v-card-item class="sheet-title-row">
+                    <v-icon class="mr-2" size="small">mdi-paperclip</v-icon>
+                    <v-card-subtitle class="sheet-title">{{ t('اسناد / ضمایم') }}</v-card-subtitle>
+                  </v-card-item>
+
+                  <v-card-text>
+                    <input
+                      ref="fileInput"
+                      type="file"
+                      class="hidden-file"
+                      rounded="lg"
+                      multiple
+                      @change="onFilesPicked($event)"
+                    />
+
+                    <v-row align="center" class="tight-grid">
+                      <v-col cols="auto">
+                        <v-btn
+                          prepend-icon="mdi-tray-arrow-up"
+                          color="primary"
+                          @click="fileInput?.click()"
+                        >
+                          {{ t('آپلود فایل ها') }}
+                        </v-btn>
+                      </v-col>
+                      <v-col>
+                        <v-chip-group>
+                          <v-chip
+                            v-for="f in draft._newDocs"
+                            :key="fileKey(f)"
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            :title="f.name"
+                            closable
+                            @click:close="removeFile(f)"
+                          >
+                            {{ shortName(f.name) }}
+                          </v-chip>
+                        </v-chip-group>
+                      </v-col>
+                    </v-row>
+
+                    <v-row v-if="progress > 0 && progress < 100" class="mt-2 tight-grid">
+                      <v-col cols="12">
+                        <v-progress-linear
+                          :model-value="progress"
+                          height="8"
+                          color="primary"
+                          rounded
+                        />
+                        <div class="text-caption mt-1 text-medium-emphasis">
+                          {{ t('در حال آپلود') }}... {{ progress }}%
+                        </div>
+                      </v-col>
+                    </v-row>
+                    <v-row v-else-if="progress === 100" class="tight-grid">
+                      <v-col cols="12">
+                        <v-alert type="success" density="compact" class="mt-2">
+                          {{ t('آپلود با موفقیت انجام شد') }}
+                        </v-alert>
+                      </v-col>
+                    </v-row>
+
+                    <v-row class="pa-3">
+                      <v-col cols="12" md="12">
+                        <v-text-field
+                          v-model="draft.docs_note"
+                          :label="t('نوت راجع به اسناد')"
+                          density="compact"
+                          variant="outlined"
+                        />
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('سیاسی - نوع') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <SeyaseeTypeSelect
+                    v-model="draft.syasi_info_type"
+                    :label="t('سیاسی - نوع')"
+                    :cols="12"
+                    :md="12"
+                    :disabled="!!draft.jenayee_info_type"
+                  />
+                </v-card-text>
+              </v-col>
+
+              <!-- jenayee_info_type -->
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('جنایی') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <JenayeeTypeSelect
+                    v-model="draft.jenayee_info_type"
+                    :label="t('جنایی')"
+                    :cols="12"
+                    :md="12"
+                    :disabled="!!draft.syasi_info_type"
+                  />
+                </v-card-text>
+              </v-col>
+
+              <!-- information_saved_date -->
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('تاریخ اطلاع') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <div class="dateinput">
+                    <DateInput
+                      v-model="draft.information_saved_date"
+                      :rules="[rules.required]"
+                      :label="t('تاریخ اطلاع')"
+                    />
+                  </div>
+                </v-card-text>
+              </v-col>
+
+              <!-- information_saved_hour -->
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('ساعت اطلاع') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.information_saved_hour"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    type="time"
+                    step="60"
+                    placeholder="HH:MM"
+                    prepend-inner-icon="mdi-clock"
+                    rounded="lg"
+                    class="cell"
+                  />
+                </v-card-text>
+              </v-col>
+
+              <!-- information_degree -->
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{
+                    t('درجه موثقیت اطلاع')
+                  }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.information_degree"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    type="number"
+                    min="0"
+                    max="100"
+                    suffix="%"
+                    prepend-inner-icon="mdi-star"
+                    rounded="lg"
+                    class="cell"
+                  />
+                </v-card-text>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('درجه استعجالیت') }}</v-card-subtitle>
+                </v-card-item>
+                <v-select
+                  v-model="draft.estijalyat_degree"
+                  :items="[t('عاجل'), t('عادی')]"
+                  variant="outlined"
+                  density="compact"
+                  rounded="lg"
+                  class="cell"
+                  clearable
+                  prepend-inner-icon="mdi-alert-circle-outline"
+                />
+              </v-col>
+              <v-col cols="12" md="12">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('تفصیل') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-textarea
+                    v-model="draft.tafseel"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    rounded="lg"
+                    rows="3"
+                    auto-grow
+                  />
+                </v-card-text>
+              </v-col>
+            </v-row>
+          </v-card>
+          <v-card variant="outlined" class="sheet-card px-4 py-3 mt-3">
+            <v-card-item class="sheet-title-row">
+              <v-icon class="mr-2" size="small">mdi-timer-outline</v-icon>
+              <v-card-subtitle class="sheet-title">{{ t('هماهنګی') }}</v-card-subtitle>
+              <!-- ✅ hamahangi_date -->
+              <v-col cols="12" md="12">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('تاریخ هم‌آهنگی') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <div class="dateinput">
+                    <DateInput v-model="draft.hamahangi_date" :label="t('تاریخ هم‌آهنگی')" />
+                  </div>
+                </v-card-text>
+              </v-col>
+
+              <!-- ✅ organ -->
+              <v-col cols="12" md="12">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('ارگان') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <OrganSelect v-model="draft.organ" :label="t('ارگان')" :disabled="submitting" />
+                </v-card-text>
+              </v-col>
+            </v-card-item>
+          </v-card>
+
+          <!-- Long texts -->
+          <v-card variant="outlined" class="sheet-card px-4 py-3 mt-3">
+            <v-card-item class="sheet-title-row">
+              <v-icon class="mr-2" size="small">mdi-text-long</v-icon>
+              <v-card-subtitle class="sheet-title">{{ t('متن‌ها') }}</v-card-subtitle>
+            </v-card-item>
+
+            <v-row class="tight-grid">
+              <v-col cols="12" md="12">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{
+                    t('کود کارمند اطلاع گیرنده')
+                  }}</v-card-subtitle>
+                </v-card-item>
+                <v-autocomplete
+                  class="primary-select"
+                  v-model="draft.office_employee_info_id"
+                  :items="officeEmployeesItems"
+                  item-title="code_number"
+                  item-value="id"
+                  :label="t('کود کارمند اطلاع گیرنده')"
+                  density="compact"
+                  variant="outlined"
+                  clearable
+                />
+              </v-col>
+              <v-col cols="12" md="12">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('نظر مدیر') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-textarea
+                    v-model="draft.manager_comment"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    rounded="lg"
+                    rows="2"
+                    auto-grow
+                  />
+                </v-card-text>
+              </v-col>
+
+              <v-col cols="12" md="12">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('ملاحظات') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-textarea
+                    v-model="draft.note"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    rounded="lg"
+                    rows="2"
+                    auto-grow
+                  />
+                </v-card-text>
+              </v-col>
+            </v-row>
           </v-card>
         </v-card-text>
 
@@ -568,7 +606,7 @@
         <v-card-actions class="pa-0">
           <v-spacer />
 
-          <!-- ✅ NEW: PDF + Word (beside Create button) -->
+          <!-- PDF + Word -->
           <v-btn variant="tonal" color="primary" class="mr-2" @click="onDownloadPdf">
             <v-icon start>mdi-file-pdf-box</v-icon>
             PDF
@@ -640,6 +678,9 @@
   const seyasiItems = computed(() => toArray(repo.seyasiOptions));
   const jenayeeItems = computed(() => toArray(repo.jenayeeOptions));
 
+  /* ✅ NEW: madani halat items */
+  const madaniHalatItems = computed(() => [t('مجرد'), t('متاحل')]);
+
   /* DRAFT — exactly the single-row editor fields */
   const baseDraft = () => ({
     // codes
@@ -647,11 +688,16 @@
     office_employee_id: null,
     office_employee_tadabiri_id: null,
     office_employee_info_id: null,
-    // identity
+
+    // identity / شهرت
     name: '',
     nick_name: '',
     father_name: '',
     grand_father_name: '',
+    age: '', // ✅ NEW
+    madani_halat: '', // ✅ NEW (مجرد/متاحل)
+    job: '', // ✅ NEW
+
     // hamahangi
     hamahangi_date: '',
     maktop_number: '',
@@ -672,6 +718,7 @@
     information_saved_date: '',
     information_saved_hour: '',
     information_degree: '',
+    estijalyat_degree: '',
 
     // texts
     tafseel: '',
@@ -706,11 +753,31 @@
     const base = name.slice(0, 18);
     return `${base}…${ext}`;
   }
-  function onFilesPicked(e) {
-    draft._newDocs = Array.from(e.target?.files || []);
+  function fileKey(f) {
+    // stable enough for re-render + duplicates
+    return `${f.name}__${f.size}__${f.lastModified}`;
   }
-  function removeFile(index) {
-    draft._newDocs.splice(index, 1);
+
+  function onFilesPicked(e) {
+    const picked = Array.from(e.target?.files || []);
+    // choose ONE behavior:
+
+    // (A) replace:
+    draft._newDocs = picked;
+
+    // (B) append (if you want):
+    // draft._newDocs = [...draft._newDocs, ...picked];
+
+    // IMPORTANT: allow picking same file again
+    if (e?.target) e.target.value = '';
+  }
+
+  function removeFile(file) {
+    const key = fileKey(file);
+    draft._newDocs = draft._newDocs.filter((x) => fileKey(x) !== key);
+
+    // IMPORTANT: allow reselecting same file after removal
+    if (fileInput.value) fileInput.value.value = '';
   }
 
   function onDownloadPdf() {
@@ -790,6 +857,7 @@
     const id = r.id != null ? `#${r.id}` : '';
     return [code, nm, dad, id].filter(Boolean).join(' — ');
   };
+
   watch(
     () => draft.syasi_info_type,
     (val) => {
@@ -803,6 +871,7 @@
       if (val) draft.syasi_info_type = '';
     }
   );
+
   watch(
     () => draft.resource_id,
     (newVal) => {
@@ -862,10 +931,23 @@
     opacity: 1;
   }
 
+  /* ✅ SHEETS */
+  .sheet-card {
+    border-radius: 14px;
+  }
+  .sheet-title-row {
+    padding: 2px 0 6px 0;
+  }
+  .sheet-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    opacity: 1;
+  }
+
   /* Docs row */
   .docs-field-row {
-    display: flex;
-    align-items: center;
+    display: block; /* keep your doc layout stable inside sheet */
     gap: 4px;
     border: 1px dashed #9e9e9e;
     border-radius: 8px;
@@ -920,6 +1002,7 @@
       font-size: 1.3rem;
     }
   }
+
   /* ✅ only vertical scroll */
   .max-h-form {
     max-height: calc(87.5vh - 220px);

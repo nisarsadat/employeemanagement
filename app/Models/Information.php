@@ -21,7 +21,10 @@ class Information extends Model
         'father_name',
         'grand_father_name',
         'Province_addr',
-
+        'madani_halat',
+        'age',
+        'job',
+        'estijalyat_degree',
         'main_province',
         'main_districts',
         'main_village',

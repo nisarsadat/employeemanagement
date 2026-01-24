@@ -549,6 +549,9 @@
     { title: t('نام مستعار'), key: 'nick_name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
+    { title: t('حالت مدنی'), key: 'madani_halat' },
+    { title: t('سن'), key: 'age' },
+    { title: t('وظیفه'), key: 'job' },
 
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_districts' },

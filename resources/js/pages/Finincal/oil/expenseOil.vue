@@ -1,3 +1,4 @@
+<!-- src/pages/Oil/ExpenseOils/ExpenseOilsIndex.vue (or your current file path) -->
 <template>
   <v-container fluid class="pt-4" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- ✅ TOP SUMMARY CARDS -->
@@ -67,8 +68,8 @@
           variant="outlined"
           density="compact"
           clearable
-          @keyup.enter="fetchAll()"
-          @click:clear="() => { repo.Search=''; fetchAll(); }"
+          @keyup.enter="applyFilters"
+          @click:clear="() => { repo.Search=''; applyFilters(); }"
         />
       </v-col>
       <v-col cols="12" md="8" class="text-md-right">
@@ -78,52 +79,57 @@
       </v-col>
     </v-row>
 
-    <v-card elevation="2">
-      <v-data-table
-        :headers="headers"
-        :items="repo.ExpenseOils"
-        :items-length="repo.totalItems"
-        :items-per-page="repo.itemsPerPage"
-        :page="repo.page"
-        :loading="repo.loading"
-        item-key="id"
-        @update:page="onPage"
-        @update:items-per-page="onItemsPerPage"
-        class="elevation-0"
-        :dir="isRtl ? 'rtl' : 'ltr'"
-      >
-        <template #loading>
-          <div class="pa-6 text-center">{{ t('لېست د پورته کېدو په حال کې دی…') }}</div>
-        </template>
+    <v-card elevation="2" class="elevation-0">
+      <v-card-text class="pa-0">
+        <FilterableTable
+          :loading="repo.loading"
+          :headers="headersFT"
+          :rows="rowsFT"
+          :filters="filters"
+          :topGroups="topGroups"
+          :totalItems="repo.totalItems"
+          :page="repo.page"
+          :perPage="repo.itemsPerPage"
+          @update:page="onPage"
+          @update:perPage="onItemsPerPage"
+        >
+          <template #actions="{ item }">
+            <div class="d-flex align-center ga-2">
+              <v-tooltip :text="t('ویرایش')" location="top">
+                <template #activator="{ props: tooltipProps }">
+                  <v-btn
+                    v-bind="tooltipProps"
+                    icon
+                    size="x-small"
+                    variant="tonal"
+                    color="amber-darken-2"
+                    class="icon-btn"
+                    @click.stop="startEdit(item)"
+                  >
+                    <v-icon size="18">mdi-pencil</v-icon>
+                  </v-btn>
+                </template>
+              </v-tooltip>
 
-        <!-- Quantity -->
-        <template #item.oil_quantity="{ item }">
-          <strong>{{ liters(item.oil_quantity) }}</strong>
-        </template>
-
-        <!-- Account -->
-        <template #item.account="{ item }">
-          <span>{{ item?.account?.name ?? '—' }}</span>
-        </template>
-
-        <!-- Date (formatted) -->
-        <template #item.date="{ item }">
-          <span>{{ formatDisplay(item.date, locale.value) }}</span>
-        </template>
-
-        <!-- Actions -->
-        <template #item.actions="{ item }">
-          <v-btn size="small" variant="text" color="primary" icon="mdi-pencil" @click="openEdit(item.id)" />
-          <v-btn size="small" variant="text" color="error" icon="mdi-delete" @click="del(item)" />
-        </template>
-
-        <template #bottom>
-          <div class="px-4 py-3 d-flex align-center justify-space-between">
-            <div class="text-caption">{{ t('ټول') }}: <strong>{{ repo.totalItems }}</strong></div>
-            <v-pagination v-model="repo.page" :length="pageCount" total-visible="7" @update:modelValue="fetchAll" />
-          </div>
-        </template>
-      </v-data-table>
+              <v-tooltip :text="t('حذف')" location="top">
+                <template #activator="{ props: tooltipProps }">
+                  <v-btn
+                    v-bind="tooltipProps"
+                    icon
+                    size="x-small"
+                    variant="tonal"
+                    color="red-darken-2"
+                    class="icon-btn"
+                    @click.stop="openDeleteDialog(item)"
+                  >
+                    <v-icon size="18">mdi-delete</v-icon>
+                  </v-btn>
+                </template>
+              </v-tooltip>
+            </div>
+          </template>
+        </FilterableTable>
+      </v-card-text>
     </v-card>
 
     <ExpenseOilFormDialog
@@ -133,22 +139,35 @@
       :busy="repo.loading"
       @save="onSave"
     />
+
+    <DeleteConfirmDialog
+      v-model="deleteDialog"
+      :target="deleteTarget"
+      :is-rtl="isRtl"
+      @confirm="handleDeleteConfirmed"
+    />
   </v-container>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useOilRepository } from '@/stores/OilRepository';
-import ExpenseOilFormDialog from './ExpenseOilFormDialog.vue';
-import { useCalendar } from '../../../../composables/useCalendar';
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useOilRepository } from '@/stores/OilRepository'
+import ExpenseOilFormDialog from './ExpenseOilFormDialog.vue'
+import FilterableTable from '@/components/FilterableTable.vue'
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
+import { useCalendar } from '../../../../composables/useCalendar'
 
-const repo = useOilRepository();
-const { t, locale } = useI18n();
-const { formatDisplay, toIso } = useCalendar();
-const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
+const repo = useOilRepository()
+const { t, locale } = useI18n()
+const { formatDisplay, toIso } = useCalendar()
+const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
 
-const headers = computed(() => [
+function getRow(payload) {
+  return payload?.raw ?? payload
+}
+
+const headersFT = computed(() => [
   { title: t('نوعیت'), key: 'account', sortable: false },
   { title: t('نام'), key: 'name', sortable: false },
   { title: t('نام پدر'), key: 'father_name', sortable: false },
@@ -158,16 +177,37 @@ const headers = computed(() => [
   { title: t('نیټه'), key: 'date', sortable: false },
   { title: t('یادونه'), key: 'note', sortable: false },
   { title: t('تفصیل'), key: 'tafseel', sortable: false },
-  { title: t('کړنې'), key: 'actions', sortable: false, align: 'end' },
-]);
+])
 
-const pageCount = computed(() => {
-  const per = Number(repo.itemsPerPage || 10);
-  return Math.max(1, Math.ceil(Number(repo.totalItems || 0) / per));
-});
+// map backend -> table rows (same concept as your Finances rowsFT)
+const rowsFT = computed(() => {
+  return (repo.ExpenseOils || []).map((it, i) => ({
+    ...it,
+    index: i + 1,
 
-const dialog = ref(false);
-const editMode = ref(false);
+    // columns (safe display)
+    account: it?.account?.name ?? it?.account ?? '—',
+    name: it?.name ?? '—',
+    father_name: it?.father_name ?? '—',
+    officeemployee: it?.office_employee?.code_number ?? it?.officeemployee ?? '—',
+    payer: it?.payer ?? '—',
+    liter_in_number: litersRaw(it?.oil_quantity ?? it?.liter_in_number ?? 0),
+    date: formatDisplay(it?.date, locale.value),
+    note: it?.note ?? '',
+    tafseel: it?.tafseel ?? it?.destination ?? '',
+  }))
+})
+
+// keep empty like your pattern
+const filters = []
+const topGroups = []
+
+const dialog = ref(false)
+const editMode = ref(false)
+
+// delete dialog state
+const deleteDialog = ref(false)
+const deleteTarget = ref(null)
 
 const draft = reactive({
   id: null,
@@ -177,23 +217,36 @@ const draft = reactive({
   destination: '',
   oil_quantity: 0,
   note: '',
-});
+})
 
 const fetchAll = async () => {
-  // ✅ Load list
-  await repo.FetchExpenseOils({ page: repo.page, itemsPerPage: repo.itemsPerPage });
+  await repo.FetchExpenseOils({
+    page: repo.page,
+    itemsPerPage: repo.itemsPerPage,
+    search: repo.Search,
+  })
 
-  // ✅ Load cards summary (you must implement this in repo)
-  // Expected response example:
-  // { totalExpense, totalIncome, totalOilQuantity, expenseCount, incomeCount, oilAccountsCount }
-  if (repo.FetchOilSummary) await repo.FetchOilSummary();
-};
+  if (repo.FetchOilSummary) await repo.FetchOilSummary()
+}
 
-const onPage = async (p) => { repo.page = p || 1; await fetchAll(); };
-const onItemsPerPage = async (pp) => { repo.itemsPerPage = pp || 10; repo.page = 1; await fetchAll(); };
+const applyFilters = async () => {
+  repo.page = 1
+  await fetchAll()
+}
+
+const onPage = async (p) => {
+  repo.page = p || 1
+  await fetchAll()
+}
+
+const onItemsPerPage = async (pp) => {
+  repo.itemsPerPage = pp || 10
+  repo.page = 1
+  await fetchAll()
+}
 
 const openCreate = () => {
-  editMode.value = false;
+  editMode.value = false
   Object.assign(draft, {
     id: null,
     oil_account_id: null,
@@ -202,14 +255,19 @@ const openCreate = () => {
     destination: '',
     oil_quantity: 0,
     note: '',
-  });
-  dialog.value = true;
-};
+  })
+  dialog.value = true
+}
 
-const openEdit = async (id) => {
-  editMode.value = true;
-  await repo.FetchExpenseOil(id);
-  const d = repo.ExpenseOil || {};
+const startEdit = async (payload) => {
+  const row = getRow(payload)
+  const id = row?.id
+  if (!id) return
+
+  editMode.value = true
+  await repo.FetchExpenseOil(id)
+
+  const d = repo.ExpenseOil || {}
   Object.assign(draft, {
     id: d.id ?? null,
     oil_account_id: d.oil_account_id ?? d.account?.id ?? null,
@@ -218,26 +276,57 @@ const openEdit = async (id) => {
     destination: d.destination ?? '',
     oil_quantity: d.oil_quantity ?? 0,
     note: d.note ?? '',
-  });
-  dialog.value = true;
-};
+  })
+  dialog.value = true
+}
 
 const onSave = async (payload) => {
-  if (payload?.date) payload.date = toIso(payload.date);
-  if (editMode.value && payload.id) await repo.UpdateExpenseOil(payload.id, payload);
-  else await repo.CreateExpenseOil(payload);
-  dialog.value = false;
-  await fetchAll();
-};
+  if (payload?.date) payload.date = toIso(payload.date)
+  if (editMode.value && payload.id) await repo.UpdateExpenseOil(payload.id, payload)
+  else await repo.CreateExpenseOil(payload)
 
-const del = async (item) => {
-  if (!window.confirm(t('ایا د حذف کولو ډاډ لرئ؟'))) return;
-  await repo.DeleteExpenseOil(item.id);
-  await fetchAll();
-};
+  dialog.value = false
+  await fetchAll()
+}
 
-const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
-const liters = (n) => `${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} L`;
+// ✅ Delete dialog flow like FinancesIndex
+function openDeleteDialog(payload) {
+  const row = getRow(payload)
+  if (!row?.id) return
+  deleteTarget.value = row
+  deleteDialog.value = true
+}
 
-onMounted(fetchAll);
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value
+  if (!row?.id) {
+    deleteDialog.value = false
+    deleteTarget.value = null
+    return
+  }
+
+  try {
+    await repo.DeleteExpenseOil(row.id)
+    await fetchAll()
+  } finally {
+    deleteDialog.value = false
+    deleteTarget.value = null
+  }
+}
+
+// helpers (same output formatting you had)
+const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })
+const liters = (n) =>
+  `${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} L`
+
+// for table cell, already includes "L" in your cards, but here your column is "مقدار (L)"
+const litersRaw = (n) => Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+
+onMounted(fetchAll)
 </script>
+
+<style scoped>
+.icon-btn {
+  border-radius: 10px;
+}
+</style>

@@ -159,8 +159,9 @@
         </v-list>
       </v-menu>
 
-      <NotificationMenu />
-      <ChatMenu />
+      <!-- ✅ RBAC: show only if user has permission -->
+      <NotificationMenu v-if="canSeeNotifications" />
+      <ChatMenu v-if="canSeeChatbox" />
     </div>
   </v-app-bar>
 </template>
@@ -172,11 +173,13 @@
   import { useRouter } from 'vue-router';
   import { useEmployeOfficeRepository } from '@/stores/EmployeeRepository';
   import { useCalendar } from '../../composables/useCalendar';
+  import { useLoginRepository } from '@/stores/LoginRepository'; // ✅ ADD
   import NotificationMenu from './NotificationBell.vue';
   import ChatMenu from './chat/ChatMenu.vue';
   import DuplicateFinder from './DuplicateFinder.vue'; // Import the new component
 
   const repo = useEmployeOfficeRepository();
+  const login = useLoginRepository(); // ✅ ADD
   const router = useRouter();
   const { t, locale } = useI18n();
   const theme = useTheme();
@@ -195,6 +198,10 @@
   });
 
   defineEmits(['toggle-drawer']);
+
+  // ✅ RBAC guards (based on your config/rbac.php modules: notifications, chatbox)
+  const canSeeNotifications = computed(() => login?.can?.('notifications.view'));
+  const canSeeChatbox = computed(() => login?.can?.('chatbox.view'));
 
   /* 🔙 BACK */
   const goBack = () => {

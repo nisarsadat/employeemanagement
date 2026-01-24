@@ -137,29 +137,25 @@ export function useCalendar() {
   }
 
   // ============================================================
-  // ✅ NEW: YEAR helpers (NO new file)
+  // ✅ YEAR helpers (ONLY THIS PART MODIFIED)
   // ============================================================
 
   /**
    * Convert a *Gregorian year* to display year in current calendar.
-   * Example:
-   *  - gregorian: 2026
-   *  - jalali:    1404
-   *  - hijri:     1447
-   *
-   * We use July 1st to avoid "year edge" shifting around Jan/Mar.
+   * We intentionally use a safe date in JANUARY to represent that Gregorian year,
+   * so 2026 (Jan) shows Jalali 1404 (not 1405).
    */
   function formatYearDisplay(gYear, uiLocale = 'fa') {
     if (!gYear) return '';
 
-    const iso = `${gYear}-07-01`; // safe mid-year
+    // ✅ use mid-JAN to avoid "edge" issues AND match the Gregorian year start
+    const iso = `${gYear}-01-15`;
 
     if (calendar.value === 'gregorian') {
       return String(gYear);
     }
 
     if (calendar.value === 'jalali') {
-      // Get jalali year from formatted output: "YYYY/MM/DD"
       const out = safeFormat(iso, {
         calendar: 'persian',
         locale: uiLocale,
@@ -245,7 +241,7 @@ export function useCalendar() {
     formatForBackend,
     toIso,
 
-    // ✅ NEW year helpers
+    // year helpers
     formatYearDisplay,
     formatMonthYearDisplay,
     yearItemsFromGregorianYears,

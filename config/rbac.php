@@ -6,47 +6,92 @@ return [
     // Default CRUD actions used for each module
     'actions' => ['view', 'create', 'update', 'delete'],
 
-    // ---- Core (people/resources/info/events) ----
+    // ---- Modules ----
+    // NOTE:
+    // - These slugs must match frontend permFor(slug) usage
+    // - For pages: "<slug>.view"
+    // - For api resources: "<slug>.view" as well (same CRUD rule)
     'modules' => [
 
-        // app pages (routes in /app/*) — for route guarding (view)
-        // Keep these for page-level visibility:
+        // ---- App Pages (routes in /app/*) ----
         'dashboards',
         'activeandinactiveemployees',
+
         'users',
         'officeemployee',
         'resources',
         'events',
         'delevirycaptive',
         'informations',
+
         'inlineinfo',
         'resourceinfo',
         'resourcetab',
         'eventtabl',
+
         'fifthyformatsroute',
         'finincalindex',
+
         'map-afg',
         'offlinemap',
+
         'roles',
-        // inline info 
-        'Eventtab',
-        // the notification 
-        'notification',
+        'rolepermissions',
+
+        // notification + chat + reports + system
+        'notifications',
         'chatbox',
         'khayratreport',
         'systemsetting',
-        'outgiongincomming',
+        'outgoingincomming',
 
-        // API resources (exact module slugs for controllers)
+        // foul reports
+        'reports',
+        'dailyfoulreports',
+        'monthlyfoulreports',
+        'yearlyfoulreports',
+        'weeklyfoulreports',
+        'quarterlyfoulreports',
+        'alltimefoulreports',
+
+        // settings pages
+        'settings-provinces',
+        'settings-districts',
+        'settings-zones',
+        'settings-hawzas',
+        'event-types',
+        'event-specific-types',
+        'jenayee-type',
+        'seyasee-type',
+        'organs',
+        'jobs-type',
+        'resource-activity-types',
+        'formatzone',
+        'settings',
+        'mawqafjahadi',
+        'docstypesindex',
+        'marjas',
+        'event_types',
+        'provinces',
+        'districts',
+        'zones',
+        'hawzas',
+        'event_specific_types',
+        'jenayee_types',
+        'seyasee_types',
+        'organs',
+        'jobs',
+        'resource_activity_types',
+        'mawqafjahadi',
+        'formatzone',
+        'docstypes',
+        'marjas',
+        // ---- API Resources (exact controller/resource slugs) ----
         'users',
-        'resedints',
         'office_employees',
-        'resources_api',        // different from page 'resources' to avoid clash if you want
-        'informations_api',
-        'events_api',
         'captive_deliveries',
 
-        // Finance
+        // ---- Finance API ----
         'account_types',
         'accounts',
         'incomes',
@@ -54,22 +99,8 @@ return [
         'oil_accounts',
         'income_oils',
         'expense_oils',
-        'oil_reports',
-        'finance_reports',
-        'officeemployeereports',
-        'eventreports',
-        'informationreports',
 
-        //
-        'dailyfoulreports',
-        'monthlyfoulreports',
-        'yearlyfoulreports',
-        'weeklyfoulreports',
-        'quarterlyfoulreports',
-        'alltimefoulreports',
-        'rolepermissions',
-
-        // ---- 56 Formats (match your API resource names / page slugs) ----
+        // ---- 56 Formats (API/page slugs) ----
         // Base
         'fasads','saeen_fasads','heists','captives','mulkanos','entry_exits',
         'sarafyanos','clubs','mahajerats','soldiers',
@@ -91,26 +122,82 @@ return [
         'wakilanos','universities','masjids','highways','companies','donelostplaces',
         'econemyprojects','criminalcaptureplaces','pumps','shoras','checkpoints',
         'governmentplaces','supermarkets','parks','complexes','deplomaticplaces',
-       
     ],
 
     // Optional role bundles
     'roles' => [
         'admin'   => '*', // all permissions
+
         'manager' => [
             // view + update basics
             'office_employees.view','office_employees.update',
-            'resedints.view','resedints.update',
-            'resources_api.view','resources_api.update',
-            'informations_api.view','informations_api.update',
-            'events_api.view','events_api.update', 'delevirycaptive.view'
+            'captive_deliveries.view','captive_deliveries.update',
+
+            // pages
+            'dashboards.view',
+            'officeemployee.view','officeemployee.update',
+            'resources.view','resources.update',
+            'events.view','events.update',
+            'delevirycaptive.view','delevirycaptive.update',
+            'informations.view','informations.update',
+
+            // system settings + its cards
+            'systemsetting.view',
+            'settings-provinces.view',
+            'settings-districts.view',
+            'settings-zones.view',
+            'settings-hawzas.view',
+            'event-types.view',
+            'event-specific-types.view',
+            'jenayee-type.view',
+            'seyasee-type.view',
+            'organs.view',
+            'jobs-type.view',
+            'resource-activity-types.view',
+            'mawqafjahadi.view',
+            'formatzone.view',
+            'docstypesindex.view',
+            'marjas.view',
         ],
+
         'viewer'  => [
             'dashboards.view',
-            'office_employees.view','resedints.view','resources_api.view',
-            'informations_api.view','events_api.view',
-            'fasads.view','mawads.view','schools.view', // sample views
+            'activeandinactiveemployees.view',
+            'users.view',
+            'officeemployee.view',
+            'resources.view',
+            'events.view',
+            'delevirycaptive.view',
+            'informations.view',
+
+            'inlineinfo.view',
+            'resourceinfo.view',
+            'resourcetab.view',
+            'eventtabl.view',
+
+            'fifthyformatsroute.view',
+            'finincalindex.view',
+
+            // sample 56 formats views
+            'fasads.view','mawads.view','schools.view',
+
+            // optional: system settings for viewer
+            'systemsetting.view',
+            'settings-provinces.view',
+            'settings-districts.view',
+            'settings-zones.view',
+            'settings-hawzas.view',
+            'event-types.view',
+            'event-specific-types.view',
+            'jenayee-type.view',
+            'seyasee-type.view',
+            'organs.view',
+            'jobs-type.view',
+            'resource-activity-types.view',
+            'mawqafjahadi.view',
+            'formatzone.view',
+            'docstypesindex.view',
+            'marjas.view',
         ],
-        
     ],
 ];

@@ -2,12 +2,14 @@
 <template>
   <v-container fluid class="pt-6 settings-page" :dir="isRtl ? 'rtl' : 'ltr'">
     <AppBar :title="t('تنظیمات سیستم')" :subtitle="t('مدیریت مسیرهای تنظیمات سیستم')" />
+
     <v-alert variant="tonal" type="info" class="mt-6" border="start" :dir="isRtl ? 'rtl' : 'ltr'">
       {{ t('برای ورود به هر بخش، روی کارت آن کلیک کنید.') }}
     </v-alert>
+
     <v-row class="mt-2" dense :dir="isRtl ? 'rtl' : 'ltr'">
       <v-col
-        v-for="item in items"
+        v-for="item in visibleItems"
         :key="item.key"
         cols="12"
         sm="6"
@@ -45,19 +47,31 @@
         </v-card>
       </v-col>
     </v-row>
+
+    <!-- Optional: if user tries to open something they don't have access to -->
+    <v-snackbar v-model="denySnack" :timeout="2200" location="top">
+      {{ t('اجازه دسترسی ندارید') }}
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-  import { computed } from 'vue';
+  import { computed, ref } from 'vue';
   import { useRouter } from 'vue-router';
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
+  import { useLoginRepository } from '@/stores/LoginRepository';
 
   const router = useRouter();
   const { locale, t } = useI18n();
   const isRtl = computed(() => locale.value === 'fa');
 
+  // ✅ RBAC from your store
+  const loginRepo = useLoginRepository();
+
+  const denySnack = ref(false);
+
+  // ✅ Define permissions per item (change strings if your backend uses other names)
   const items = computed(() => [
     {
       key: 'provinces',
@@ -65,6 +79,7 @@
       subtitle: t('مدیریت لیست ولایت‌ها'),
       icon: 'mdi-map-marker-outline',
       to: { path: '/app/settings/provinces' },
+      permission: 'provinces.view',
     },
     {
       key: 'districts',
@@ -72,6 +87,7 @@
       subtitle: t('مدیریت لیست والسوالی‌ها'),
       icon: 'mdi-map-marker-radius-outline',
       to: { path: '/app/settings/districts' },
+      permission: 'districts.view',
     },
     {
       key: 'zones',
@@ -79,6 +95,7 @@
       subtitle: t('مدیریت زون‌ها'),
       icon: 'mdi-map-outline',
       to: { path: '/app/settings/zones/zones' },
+      permission: 'zones.view',
     },
     {
       key: 'hawzas',
@@ -86,6 +103,7 @@
       subtitle: t('مدیریت حوزه‌ها'),
       icon: 'mdi-map-legend',
       to: { path: '/app/settings/zones/hawzas' },
+      permission: 'hawzas.view',
     },
 
     {
@@ -94,6 +112,7 @@
       subtitle: t('مدیریت نوع رویداد'),
       icon: 'mdi-shape-outline',
       to: { path: '/app/event-types' },
+      permission: 'event_types.view',
     },
     {
       key: 'event-specific-types',
@@ -101,6 +120,7 @@
       subtitle: t('مدیریت نوع مشخص رویداد'),
       icon: 'mdi-shape-plus-outline',
       to: { path: '/app/event-specific-types' },
+      permission: 'event_specific_types.view',
     },
     {
       key: 'jenayee-types',
@@ -108,6 +128,7 @@
       subtitle: t('مدیریت نوعیت جینایی'),
       icon: 'mdi-shape-plus-outline',
       to: { path: '/app/jenayee-type' },
+      permission: 'jenayee_types.view',
     },
     {
       key: 'seyasee-types',
@@ -115,6 +136,7 @@
       subtitle: t('مدیریت نوع سیاسی'),
       icon: 'mdi-shape-plus-outline',
       to: { path: '/app/seyasee-type' },
+      permission: 'seyasee_types.view',
     },
     {
       key: 'organs',
@@ -122,6 +144,7 @@
       subtitle: t('مدیریت ارگان‌ها'),
       icon: 'mdi-domain',
       to: { path: '/app/organs' },
+      permission: 'organs.view',
     },
     {
       key: 'jobs',
@@ -129,6 +152,7 @@
       subtitle: t('مدیریت وظایف'),
       icon: 'mdi-briefcase-outline',
       to: { path: '/app/jobs-type' },
+      permission: 'jobs.view',
     },
     {
       key: 'resource-activity-types',
@@ -136,6 +160,7 @@
       subtitle: t('مدیریت نوعیت فعالیت منابع'),
       icon: 'mdi-clipboard-list-outline',
       to: { path: '/app/resource-activity-types' },
+      permission: 'resource_activity_types.view',
     },
     {
       key: 'mawqafjahadi',
@@ -143,6 +168,7 @@
       subtitle: t('مدیریت موقف جهادی'),
       icon: 'mdi-hand-peace',
       to: { path: '/app/mawqafjahadi' },
+      permission: 'mawqafjahadi.view',
     },
     {
       key: 'formatzone',
@@ -150,6 +176,7 @@
       subtitle: t('مدیریت فارمت زون‌ها'),
       icon: 'mdi-map-marker-multiple-outline',
       to: { path: '/app/formatzone' },
+      permission: 'formatzone.view',
     },
     {
       key: 'docstypes',
@@ -157,6 +184,7 @@
       subtitle: t('مدیریت نوعیت اسناد'),
       icon: 'mdi-map-marker-multiple-outline',
       to: { path: '/app/docstypesindex' },
+      permission: 'docstypes.view',
     },
     {
       key: 'marjas',
@@ -164,11 +192,23 @@
       subtitle: t('مرجع صادره و وارده'),
       icon: 'mdi-map-marker-multiple-outline',
       to: { path: '/app/marjas' },
+      permission: 'marjas.view',
     },
   ]);
 
+  // ✅ show only permitted items
+  const visibleItems = computed(() =>
+    items.value.filter((it) => !it.permission || loginRepo.can(it.permission))
+  );
+
   function go(item) {
     if (!item?.to) return;
+
+    if (item.permission && !loginRepo.can(item.permission)) {
+      denySnack.value = true;
+      return;
+    }
+
     router.push(item.to);
   }
 </script>

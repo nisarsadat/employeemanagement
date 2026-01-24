@@ -20,6 +20,10 @@ class UpdateInformationRequest extends FormRequest
             'nick_name'         => ['sometimes','nullable','string'],
             'father_name'       => ['sometimes','nullable','string'],
             'grand_father_name' => ['sometimes','nullable','string'],
+            'job' => ['sometimes','nullable','string'],
+            'madani_halat' => ['sometimes','nullable','string'],
+            'age' => ['sometimes','nullable','string'],
+            'estijalyat_degree' => ['sometimes','nullable','string'],
 
             'main_province'  => ['sometimes','nullable','string'],
             'main_districts' => ['sometimes','nullable','string'],

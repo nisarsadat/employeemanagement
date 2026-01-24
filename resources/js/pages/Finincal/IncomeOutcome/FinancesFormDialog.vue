@@ -11,10 +11,10 @@
 
             <div>
               <div class="text-h6 font-weight-bold mb-0">
-                {{ isEdit ? 'ویرایش مصرف' : 'ثبت مصرف جدید' }}
+                {{ isEdit ? t('finances.dialog.titleEdit') : t('finances.dialog.titleCreate') }}
               </div>
               <div class="text-caption opacity-90">
-                {{ isEdit ? 'اطلاعات مصرف را ویرایش کنید' : 'اطلاعات مصرف جدید را وارد کنید' }}
+                {{ isEdit ? t('finances.dialog.subtitleEdit') : t('finances.dialog.subtitleCreate') }}
               </div>
             </div>
           </div>
@@ -31,7 +31,7 @@
           <div class="section">
             <div class="section-title">
               <v-icon icon="mdi-information-outline" size="18" class="me-2" />
-              اطلاعات اصلی
+              {{ t('finances.form.sectionMain') }}
             </div>
 
             <div class="grid-2">
@@ -41,7 +41,7 @@
                 :items="accountOptions"
                 :item-title="accountTitle"
                 item-value="id"
-                label="حساب *"
+                :label="t('finances.form.accountRequired')"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-bank-outline"
@@ -58,7 +58,7 @@
               <!-- Date -->
               <DateInput
                 v-model="draft.date"
-                label="تاریخ *"
+                :label="t('finances.form.dateRequired')"
                 density="compact"
                 :rules="[rules.required]"
                 :error="hasError('date')"
@@ -69,7 +69,7 @@
               <!-- Amount Number -->
               <v-text-field
                 v-model="draft.money_amount_number"
-                label="مبلغ (عدد) *"
+                :label="t('finances.form.amountNumberRequired')"
                 density="compact"
                 variant="outlined"
                 type="number"
@@ -86,7 +86,7 @@
               <!-- Amount Words -->
               <v-text-field
                 v-model="draft.money_amount_words"
-                label="مبلغ (حروف)"
+                :label="t('finances.form.amountWords')"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-text-box-outline"
@@ -103,14 +103,14 @@
           <div class="section">
             <div class="section-title">
               <v-icon icon="mdi-account-group-outline" size="18" class="me-2" />
-              معلومات تکمیلی
+              {{ t('finances.form.sectionExtra') }}
             </div>
 
             <div class="grid-2">
               <!-- Employee Phone -->
               <v-text-field
                 v-model="draft.employee_phone"
-                label="شماره تلفن کارمند"
+                :label="t('finances.form.employeePhone')"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-phone-outline"
@@ -122,7 +122,7 @@
               <!-- Expense Result -->
               <v-text-field
                 v-model="draft.expense_result"
-                label="نتیجه مصرف"
+                :label="t('finances.form.expenseResult')"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-clipboard-check-outline"
@@ -134,7 +134,7 @@
               <!-- Payer -->
               <v-text-field
                 v-model="draft.payer"
-                label="پرداخت کننده"
+                :label="t('finances.form.payer')"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-account-arrow-right-outline"
@@ -146,7 +146,7 @@
               <!-- Receiver -->
               <v-text-field
                 v-model="draft.receiver"
-                label="دریافت کننده"
+                :label="t('finances.form.receiver')"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-account-arrow-left-outline"
@@ -163,17 +163,17 @@
           <div class="section">
             <div class="section-title">
               <v-icon icon="mdi-link-variant" size="18" class="me-2" />
-              ارتباطات (حداقل یکی ضروری)
+              {{ t('finances.form.sectionLinks') }}
             </div>
 
             <div class="grid-2">
-              <!-- Office Employee dropdown (✅ show code_number) -->
+              <!-- Office Employee dropdown -->
               <v-autocomplete
                 v-model="draft.office_employee_id"
                 :items="officeEmployeeOptions"
                 :item-title="officeEmployeeTitle"
                 item-value="id"
-                :label="draft.resource_id ? 'کارمند' : 'کارمند *'"
+                :label="draft.resource_id ? t('finances.form.employee') : t('finances.form.employeeRequired')"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-account-outline"
@@ -185,13 +185,13 @@
                 class="field"
               />
 
-              <!-- Resource dropdown (✅ show code_number) -->
+              <!-- Resource dropdown -->
               <v-autocomplete
                 v-model="draft.resource_id"
                 :items="resourceOptions"
                 :item-title="resourceTitle"
                 item-value="id"
-                :label="draft.office_employee_id ? 'منبع' : 'منبع *'"
+                :label="draft.office_employee_id ? t('finances.form.resource') : t('finances.form.resourceRequired')"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-link-box-outline"
@@ -211,12 +211,12 @@
           <div class="section">
             <div class="section-title">
               <v-icon icon="mdi-note-text-outline" size="18" class="me-2" />
-              یادداشت
+              {{ t('finances.form.sectionNotes') }}
             </div>
 
             <v-textarea
               v-model="draft.notes"
-              label="یادداشت"
+              :label="t('finances.form.notes')"
               density="compact"
               variant="outlined"
               rows="3"
@@ -234,9 +234,10 @@
               <div class="d-flex align-center gap-2">
                 <v-icon icon="mdi-alert-circle-outline" size="18" />
                 <div class="text-caption text-red">
-                  مبلغ مصرف ({{ formatAmount(draft.money_amount_number) }}) بیشتر از موجودی قابل مصرف ({{
-                    formatAmount(effectiveAvailableBalance ?? 0)
-                  }}) است!
+                  {{ t('finances.validation.amountGreaterThanBalance', {
+                    amount: formatAmount(draft.money_amount_number),
+                    balance: formatAmount(effectiveAvailableBalance ?? 0)
+                  }) }}
                 </div>
               </div>
             </v-alert>
@@ -254,7 +255,7 @@
           <!-- Actions -->
           <div class="actions mt-6">
             <v-btn variant="text" class="rounded-lg px-4" color="grey-darken-1" @click="close">
-              انصراف
+              {{ t('common.cancel') }}
             </v-btn>
 
             <v-btn
@@ -266,7 +267,7 @@
               prepend-icon="mdi-check"
               elevation="1"
             >
-              {{ isEdit ? 'ذخیره تغییرات' : 'ثبت مصرف' }}
+              {{ isEdit ? t('common.saveChanges') : t('finances.actions.createExpense') }}
             </v-btn>
           </div>
         </v-form>
@@ -277,8 +278,11 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useFinanceRepository } from '@/stores/financeRepository';
 import DateInput from '@/components/DateInput.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -352,17 +356,17 @@ function formatAmount(amount) {
 // Rules (✅ includes > 0)
 // =========================
 const rules = {
-  required: (v) => !!v || v === 0 || 'این فیلد ضروری است',
+  required: (v) => !!v || v === 0 || t('validation.required'),
   requiredNumber: (v) => {
-    if (v === null || v === undefined || v === '') return 'این فیلد ضروری است';
+    if (v === null || v === undefined || v === '') return t('validation.required');
     const n = toNumberSafe(v);
-    return Number.isFinite(n) ? true : 'عدد معتبر وارد کنید';
+    return Number.isFinite(n) ? true : t('validation.number');
   },
   positiveAmount: (v) => {
     if (v === null || v === undefined || v === '') return true; // requiredNumber handles empty
     const n = toNumberSafe(v);
-    if (!Number.isFinite(n)) return 'عدد معتبر وارد کنید';
-    if (n <= 0) return 'مبلغ باید بیشتر از ۰ باشد';
+    if (!Number.isFinite(n)) return t('validation.number');
+    if (n <= 0) return t('finances.validation.amountMustBeGreaterThanZero');
     return true;
   },
   maxAmount: (v) => {
@@ -373,7 +377,7 @@ const rules = {
 
     if (!Number.isFinite(amount)) return true;
     if (available !== null && amount > available) {
-      return `مبلغ نمی‌تواند بیشتر از ${formatAmount(available)} باشد`;
+      return t('finances.validation.amountCannotBeGreaterThan', { balance: formatAmount(available) });
     }
     return true;
   },
@@ -426,8 +430,8 @@ const selectedAccountBalance = computed(() => {
 });
 
 const selectedAccountBalanceHint = computed(() => {
-  if (!selectedAccount.value) return 'حساب را انتخاب کنید';
-  return `موجودی حساب: ${formatAmount(selectedAccountBalance.value)}`;
+  if (!selectedAccount.value) return t('finances.hints.selectAccount');
+  return t('finances.hints.accountBalance', { balance: formatAmount(selectedAccountBalance.value) });
 });
 
 // ✅ EFFECTIVE balance for EDIT:
@@ -450,13 +454,12 @@ const effectiveAvailableBalance = computed(() => {
 // Conditional rules
 // =========================
 const conditionalEmployeeRequired = (v) => {
-  if (!draft.resource_id && !v) return 'حداقل یکی از فیلدهای "کارمند" یا "منبع" باید پر شود';
+  if (!draft.resource_id && !v) return t('finances.validation.employeeOrResourceRequired');
   return true;
 };
 
 const conditionalResourceRequired = (v) => {
-  if (!draft.office_employee_id && !v)
-    return 'حداقل یکی از فیلدهای "کارمند" یا "منبع" باید پر شود';
+  if (!draft.office_employee_id && !v) return t('finances.validation.employeeOrResourceRequired');
   return true;
 };
 
@@ -486,11 +489,11 @@ const amountValidationHint = computed(() => {
   const available = effectiveAvailableBalance.value;
   if (available === null) return '';
 
-  if (amount <= 0) return '❌ مبلغ باید بیشتر از ۰ باشد';
-  if (amount > available) return `❌ بیش از موجودی (${formatAmount(available)})`;
+  if (amount <= 0) return t('finances.hints.amountGreaterThanZero');
+  if (amount > available) return t('finances.hints.amountMoreThanBalance', { balance: formatAmount(available) });
 
   const remaining = available - amount;
-  return `✅ قابل پرداخت - باقیمانده: ${formatAmount(remaining)}`;
+  return t('finances.hints.payableRemaining', { remaining: formatAmount(remaining) });
 });
 
 const disableSubmit = computed(() => {
@@ -618,12 +621,12 @@ async function onSubmit() {
   // ✅ extra hard block
   const amount = toNumberSafe(draft.money_amount_number);
   if (Number.isFinite(amount) && amount <= 0) {
-    backendErrors.money_amount_number = ['مبلغ باید بیشتر از ۰ باشد'];
+    backendErrors.money_amount_number = [t('finances.validation.amountMustBeGreaterThanZero')];
     return;
   }
 
   if (!draft.office_employee_id && !draft.resource_id) {
-    backendErrors.general = ['حداقل یکی از فیلدهای "کارمند" یا "منبع" باید پر شود'];
+    backendErrors.general = [t('finances.validation.employeeOrResourceRequired')];
     return;
   }
 
@@ -631,7 +634,7 @@ async function onSubmit() {
   const available = effectiveAvailableBalance.value;
   if (Number.isFinite(amount) && available !== null && amount > available) {
     backendErrors.money_amount_number = [
-      `مبلغ نمی‌تواند بیشتر از ${formatAmount(available)} باشد`,
+      t('finances.validation.amountCannotBeGreaterThan', { balance: formatAmount(available) }),
     ];
     return;
   }
@@ -667,7 +670,7 @@ async function onSubmit() {
     if (errors && typeof errors === 'object') {
       Object.assign(backendErrors, errors);
     } else {
-      backendErrors.general = ['خطا رخ داد. دوباره تلاش کنید.'];
+      backendErrors.general = [t('common.errorTryAgain')];
     }
   } finally {
     saving.value = false;
@@ -801,7 +804,7 @@ async function onSubmit() {
   line-height: 1.2;
 }
 
-/* ✅ ERROR messages RED (Vuetify 3: .field and .v-input--error are on SAME element) */
+/* ✅ ERROR messages RED */
 .field.v-input--error :deep(.v-messages__message),
 .field :deep(.v-field--error) :deep(.v-messages__message),
 .field :deep(.v-messages__message--error) {

@@ -321,7 +321,7 @@
         title: t('راپور خیریت'),
         icon: 'mdi-graph',
         to: { path: '/app/khayratreports' },
-        // perm: 'roles.view',
+        perm: 'khayratreport.view',
       },
       {
         key: 'roles',
@@ -336,19 +336,46 @@
         key: 'reports',
         title: t(' راپورها'),
         icon: 'mdi-graph',
+        perm: 'reports.view',
         children: [
-          { key: 'r-daily', title: t('راپور روزانه'), to: { path: '/app/dailyfoulreports' } },
-          { key: 'r-weekly', title: t('راپور هفته وار'), to: { path: '/app/weeklyfoulreports' } },
+          {
+            key: 'r-daily',
+            title: t('راپور روزانه'),
+            to: { path: '/app/dailyfoulreports' },
+            perm: 'dailyfoulreports.view',
+          },
+          {
+            key: 'r-weekly',
+            title: t('راپور هفته وار'),
+            to: { path: '/app/weeklyfoulreports' },
+            perm: 'weeklyfoulreports.view',
+          },
 
-          { key: 'r-monthly', title: t(' راپور ماهانه'), to: { path: '/app/monthlyfoulreports' } },
+          {
+            key: 'r-monthly',
+            title: t(' راپور ماهانه'),
+            to: { path: '/app/monthlyfoulreports' },
+            perm: 'monthlyfoulreports.view',
+          },
           {
             key: 'r-quarterly',
             title: t('راپور ربعه وار'),
             to: { path: '/app/quarterlyfoulreports' },
+            perm: 'quarterlyfoulreports.view',
           },
-          { key: 'r-yearly', title: t(' راپور سالانه'), to: { path: '/app/yearlyfoulreports' } },
-          
-          { key: 'r-archive', title: t('آرشیف'), to: { path: '/app/alltimefoulreports' } },
+          {
+            key: 'r-yearly',
+            title: t(' راپور سالانه'),
+            to: { path: '/app/yearlyfoulreports' },
+            perm: 'yearlyfoulreports.view',
+          },
+
+          {
+            key: 'r-archive',
+            title: t('آرشیف'),
+            to: { path: '/app/alltimefoulreports' },
+            perm: 'alltimefoulreports.view',
+          },
         ],
       },
 
@@ -358,7 +385,7 @@
         title: t('تنظیمات سیستم'),
         icon: 'mdi-cog',
         to: { path: '/app/settings' },
-        // perm: 'settings.view',
+        perm: 'settings.view',
       },
     ].map(withPerms)
   );

@@ -7121,5 +7121,167 @@
   "دلیت": "دلیت",
   "استفاده کننده دریافت نشد لطفا یکی را اضافه کنید!": "استفاده کننده دریافت نشد لطفا یکی را اضافه کنید!",
   "Close": "بندول",
-  "Open original": "اصلي خلاص کړئ"
+  "Open original": "اصلي خلاص کړئ",
+  "common": {
+    "search": "جستجو...",
+    "year": "سال",
+    "month": "ماه",
+    "apply": "اعمال",
+    "resetFilters": "ریست فلترها",
+    "delete": "حذف",
+    "noData": "دیتا موجود نیست",
+    "cancel": "لغو",
+    "saveChanges": "ذخیره تغییرات",
+    "errorTryAgain": "خطا رخ داد. دوباره تلاش کنید."
+  },
+
+  "validation": {
+    "required": "این فیلد ضروری است",
+    "number": "عدد معتبر وارد کنید"
+  },
+
+  "accounts": {
+    "summary": {
+      "balance": "مجموع موجودی",
+      "income": "مجموع عواید",
+      "outcome": "مجموع مصارف"
+    },
+    "actions": {
+      "create": "ایجاد حساب"
+    },
+    "table": {
+      "accountName": "نام حساب",
+      "balance": "موجودی",
+      "details": "جزئیات"
+    },
+    "tooltips": {
+      "edit": "ویرایش حساب"
+    },
+    "dialog": {
+      "createTitle": "ایجاد حساب",
+      "editTitle": "ویرایش حساب",
+      "createSubtitle": "ثبت یک حساب جدید در سیستم",
+      "editSubtitle": "ویرایش جزئیات حساب"
+    },
+    "form": {
+      "name": "نام حساب",
+      "price": "موجودی / مبلغ",
+      "details": "جزئیات"
+    }
+  },
+
+  "finances": {
+    "actions": {
+      "createExpense": "ثبت مصرف"
+    },
+    "tooltips": {
+      "editExpense": "ویرایش مصرف",
+      "deleteExpense": "حذف مصرف"
+    },
+    "dialog": {
+      "titleCreate": "ثبت مصرف",
+      "titleEdit": "ویرایش مصرف",
+      "subtitleCreate": "ثبت یک ریکارډ جدید مصرف",
+      "subtitleEdit": "ویرایش یک ریکارډ موجود مصرف"
+    },
+    "form": {
+      "sectionMain": "اطلاعات اصلی",
+      "sectionExtra": "اشخاص و نتیجه",
+      "sectionLinks": "ارتباطات",
+      "sectionNotes": "یادداشت‌ها",
+      "accountRequired": "حساب",
+      "dateRequired": "تاریخ پرداخت",
+      "amountNumberRequired": "مبلغ (عدد)",
+      "amountWords": "مبلغ (حروف)",
+      "employeePhone": "تلفن کارمند",
+      "expenseResult": "نتیجه مصرف",
+      "payer": "پرداخت‌کننده",
+      "receiver": "دریافت‌کننده",
+      "employeeRequired": "کارمند (ضروری)",
+      "employee": "کارمند",
+      "resourceRequired": "منبع (ضروری)",
+      "resource": "منبع",
+      "notes": "یادداشت‌ها"
+    },
+    "hints": {
+      "selectAccount": "برای دیدن موجودی، حساب را انتخاب کنید",
+      "accountBalance": "موجودی حساب: {balance}",
+      "amountGreaterThanZero": "مبلغ باید بیشتر از صفر باشد",
+      "amountMoreThanBalance": "مبلغ از موجودی بیشتر است ({balance})",
+      "payableRemaining": "باقی‌مانده پس از مصرف: {remaining}"
+    },
+    "validation": {
+      "amountMustBeGreaterThanZero": "مبلغ باید بیشتر از صفر باشد",
+      "amountCannotBeGreaterThan": "مبلغ نمی‌تواند از موجودی بیشتر باشد ({balance})",
+      "amountGreaterThanBalance": "مبلغ وارد شده ({amount}) از موجودی قابل دسترس ({balance}) بیشتر است",
+      "employeeOrResourceRequired": "لطفاً یکی از «کارمند» یا «منبع» را انتخاب کنید"
+    },
+    "table": {
+      "employeeCode": "کود کارمند",
+      "employeeName": "نام کارمند",
+      "amountNumber": "مبلغ (عدد)",
+      "amountWords": "مبلغ (حروف)",
+      "sourceCode": "کود منبع",
+      "sourceNickName": "نام مستعار منبع",
+      "paidDate": "تاریخ پرداخت",
+      "employeePhone": "تلفن کارمند",
+      "expenseReason": "دلیل مصرف",
+      "payer": "پرداخت‌کننده",
+      "notes": "یادداشت‌ها"
+    },
+    "export": {
+      "title": "گزارش مصارف",
+      "year": "سال",
+      "no": "شماره",
+      "employeeName": "نام کارمند",
+      "amount": "مبلغ",
+      "amountNumber": "عدد",
+      "amountWords": "حروف",
+      "source": "منبع",
+      "sourceNickName": "نام مستعار",
+      "sourceCode": "کود",
+      "paidDate": "تاریخ پرداخت",
+      "employeePhone": "تلفن کارمند",
+      "expenseReason": "دلیل مصرف",
+      "signature": "امضا",
+      "notes": "یادداشت‌ها",
+      "signTrusted": "معتمد",
+      "signManager": "مدیر",
+      "signChief": "آمر",
+      "signAudit": "تفتیش"
+    }
+  },
+
+  "incomes": {
+    "summary": {
+      "balance": "مجموع موجودی",
+      "income": "مجموع عواید",
+      "outcome": "مجموع مصارف"
+    },
+    "actions": {
+      "create": "ثبت عاید"
+    },
+    "tooltips": {
+      "edit": "ویرایش عاید",
+      "delete": "حذف عاید"
+    },
+    "dialog": {
+      "createTitle": "ثبت عاید",
+      "editTitle": "ویرایش عاید",
+      "createSubtitle": "ثبت یک ریکارډ جدید عاید",
+      "editSubtitle": "ویرایش یک ریکارډ موجود عاید"
+    },
+    "form": {
+      "account": "حساب",
+      "amount": "مبلغ",
+      "receivedAt": "تاریخ دریافت",
+      "note": "یادداشت"
+    },
+    "table": {
+      "account": "حساب",
+      "amount": "مبلغ",
+      "receivedAt": "تاریخ دریافت",
+      "note": "یادداشت"
+    }
+  }
 }

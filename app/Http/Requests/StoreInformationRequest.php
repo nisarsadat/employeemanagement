@@ -21,6 +21,10 @@ class StoreInformationRequest extends FormRequest
             'nick_name' => ['nullable','string'],
             'father_name' => ['nullable','string'],
             'grand_father_name' => ['nullable','string'],
+            'job' => ['nullable','string'],
+            'madani_halat' => ['nullable','string'],
+            'age' => ['nullable','string'],
+            'estijalyat_degree' => ['nullable','string'],
 
             'hamahangi_date' => ['nullable','string'],
             'maktop_number'  => ['nullable','string'],

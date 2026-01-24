@@ -1657,5 +1657,167 @@
   "دلیت": "Delete",
   "استفاده کننده دریافت نشد لطفا یکی را اضافه کنید!": "No users found, please add one!",
   "Close": "Close",
-  "Open original": "Open original"
+  "Open original": "Open original",
+  "common": {
+    "search": "Search...",
+    "year": "Year",
+    "month": "Month",
+    "apply": "Apply",
+    "resetFilters": "Reset Filters",
+    "delete": "Delete",
+    "noData": "No data",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "errorTryAgain": "Something went wrong. Please try again."
+  },
+
+  "validation": {
+    "required": "This field is required",
+    "number": "Please enter a valid number"
+  },
+
+  "accounts": {
+    "summary": {
+      "balance": "Total Balance",
+      "income": "Total Income",
+      "outcome": "Total Outcome"
+    },
+    "actions": {
+      "create": "Create Account"
+    },
+    "table": {
+      "accountName": "Account Name",
+      "balance": "Balance",
+      "details": "Details"
+    },
+    "tooltips": {
+      "edit": "Edit Account"
+    },
+    "dialog": {
+      "createTitle": "Create Account",
+      "editTitle": "Edit Account",
+      "createSubtitle": "Add a new account to the system",
+      "editSubtitle": "Update account details"
+    },
+    "form": {
+      "name": "Account Name",
+      "price": "Balance / Amount",
+      "details": "Details"
+    }
+  },
+
+  "finances": {
+    "actions": {
+      "createExpense": "Add Expense"
+    },
+    "tooltips": {
+      "editExpense": "Edit Expense",
+      "deleteExpense": "Delete Expense"
+    },
+    "dialog": {
+      "titleCreate": "Add Expense",
+      "titleEdit": "Edit Expense",
+      "subtitleCreate": "Register a new expense record",
+      "subtitleEdit": "Update an existing expense record"
+    },
+    "form": {
+      "sectionMain": "Main Information",
+      "sectionExtra": "People & Result",
+      "sectionLinks": "Links",
+      "sectionNotes": "Notes",
+      "accountRequired": "Account",
+      "dateRequired": "Paid Date",
+      "amountNumberRequired": "Amount (Number)",
+      "amountWords": "Amount (Words)",
+      "employeePhone": "Employee Phone",
+      "expenseResult": "Expense Result",
+      "payer": "Payer",
+      "receiver": "Receiver",
+      "employeeRequired": "Employee (Required)",
+      "employee": "Employee",
+      "resourceRequired": "Resource (Required)",
+      "resource": "Resource",
+      "notes": "Notes"
+    },
+    "hints": {
+      "selectAccount": "Select an account to see its balance",
+      "accountBalance": "Account balance: {balance}",
+      "amountGreaterThanZero": "Amount must be greater than 0",
+      "amountMoreThanBalance": "Amount is greater than balance ({balance})",
+      "payableRemaining": "Remaining balance after expense: {remaining}"
+    },
+    "validation": {
+      "amountMustBeGreaterThanZero": "Amount must be greater than 0",
+      "amountCannotBeGreaterThan": "Amount cannot be greater than balance ({balance})",
+      "amountGreaterThanBalance": "Entered amount ({amount}) is greater than available balance ({balance})",
+      "employeeOrResourceRequired": "Please select either an employee or a resource"
+    },
+    "table": {
+      "employeeCode": "Employee Code",
+      "employeeName": "Employee Name",
+      "amountNumber": "Amount (Number)",
+      "amountWords": "Amount (Words)",
+      "sourceCode": "Source Code",
+      "sourceNickName": "Source Nickname",
+      "paidDate": "Paid Date",
+      "employeePhone": "Employee Phone",
+      "expenseReason": "Expense Reason",
+      "payer": "Payer",
+      "notes": "Notes"
+    },
+    "export": {
+      "title": "Expenses Report",
+      "year": "Year",
+      "no": "No",
+      "employeeName": "Employee Name",
+      "amount": "Amount",
+      "amountNumber": "Number",
+      "amountWords": "Words",
+      "source": "Source",
+      "sourceNickName": "Nickname",
+      "sourceCode": "Code",
+      "paidDate": "Paid Date",
+      "employeePhone": "Employee Phone",
+      "expenseReason": "Expense Reason",
+      "signature": "Signature",
+      "notes": "Notes",
+      "signTrusted": "Trusted",
+      "signManager": "Manager",
+      "signChief": "Chief",
+      "signAudit": "Audit"
+    }
+  },
+
+  "incomes": {
+    "summary": {
+      "balance": "Total Balance",
+      "income": "Total Income",
+      "outcome": "Total Outcome"
+    },
+    "actions": {
+      "create": "Add Income"
+    },
+    "tooltips": {
+      "edit": "Edit Income",
+      "delete": "Delete Income"
+    },
+    "dialog": {
+      "createTitle": "Add Income",
+      "editTitle": "Edit Income",
+      "createSubtitle": "Register a new income record",
+      "editSubtitle": "Update an existing income record"
+    },
+    "form": {
+      "account": "Account",
+      "amount": "Amount",
+      "receivedAt": "Received At",
+      "note": "Note"
+    },
+    "table": {
+      "account": "Account",
+      "amount": "Amount",
+      "receivedAt": "Received At",
+      "note": "Note"
+    }
+  }
 }

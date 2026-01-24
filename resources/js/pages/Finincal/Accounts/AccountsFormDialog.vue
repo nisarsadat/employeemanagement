@@ -10,15 +10,25 @@
             </v-avatar>
             <div>
               <h2 class="text-h5 font-weight-bold text-white mb-1">
-                {{ isEdit ? "ویرایش حساب" : "ثبت حساب جدید" }}
+                {{ isEdit ? t('accounts.dialog.editTitle') : t('accounts.dialog.createTitle') }}
               </h2>
               <p class="text-white text-caption opacity-75 mb-0">
-                {{ isEdit ? "اطلاعات حساب را ویرایش کنید" : "اطلاعات حساب جدید را وارد کنید" }}
+                {{
+                  isEdit
+                    ? t('accounts.dialog.editSubtitle')
+                    : t('accounts.dialog.createSubtitle')
+                }}
               </p>
             </div>
           </div>
 
-          <v-btn icon="mdi-close" variant="text" color="white" size="small" @click="close" />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            color="white"
+            size="small"
+            @click="close"
+          />
         </div>
       </div>
 
@@ -29,7 +39,7 @@
           <div class="d-grid gap-3">
             <v-text-field
               v-model="draft.name"
-              label="نام حساب"
+              :label="t('accounts.form.name')"
               density="compact"
               variant="outlined"
               prepend-inner-icon="mdi-text"
@@ -40,7 +50,7 @@
 
             <v-text-field
               v-model="draft.price"
-              label="موجودی / قیمت"
+              :label="t('accounts.form.price')"
               density="compact"
               variant="outlined"
               type="number"
@@ -52,7 +62,7 @@
 
             <v-textarea
               v-model="draft.details"
-              label="جزئیات"
+              :label="t('accounts.form.details')"
               density="compact"
               variant="outlined"
               rows="3"
@@ -70,9 +80,12 @@
           </div>
 
           <div class="d-flex justify-end gap-2 mt-4">
-            <v-btn variant="text" @click="close">انصراف</v-btn>
+            <v-btn variant="text" @click="close">
+              {{ t('common.cancel') }}
+            </v-btn>
+
             <v-btn color="primary" :loading="saving" type="submit">
-              {{ isEdit ? "ذخیره تغییرات" : "ثبت حساب" }}
+              {{ isEdit ? t('common.saveChanges') : t('accounts.actions.create') }}
             </v-btn>
           </div>
         </v-form>
@@ -84,7 +97,11 @@
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
 import { useFinanceRepository } from "@/stores/financeRepository";
+  import { useI18n } from 'vue-i18n'
 
+  const { t } = useI18n()
+
+  const rtl = ref(true)
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   editId: { type: [Number, String, null], default: null },

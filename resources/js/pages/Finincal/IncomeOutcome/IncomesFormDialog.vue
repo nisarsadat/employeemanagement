@@ -10,10 +10,10 @@
             </v-avatar>
             <div>
               <h2 class="text-h5 font-weight-bold text-white mb-1">
-                {{ isEdit ? "ویرایش عاید" : "ثبت عاید جدید" }}
+                {{ isEdit ? t('incomes.dialog.editTitle') : t('incomes.dialog.createTitle') }}
               </h2>
               <p class="text-white text-caption opacity-75 mb-0">
-                {{ isEdit ? "اطلاعات عاید را ویرایش کنید" : "اطلاعات عاید جدید را وارد کنید" }}
+                {{ isEdit ? t('incomes.dialog.editSubtitle') : t('incomes.dialog.createSubtitle') }}
               </p>
             </div>
           </div>
@@ -33,7 +33,7 @@
               :items="accountOptions"
               item-title="name"
               item-value="id"
-              label="حساب"
+              :label="t('incomes.form.account')"
               density="compact"
               variant="outlined"
               prepend-inner-icon="mdi-bank"
@@ -45,7 +45,7 @@
             <!-- Amount -->
             <v-text-field
               v-model="draft.amount"
-              label="مبلغ"
+              :label="t('incomes.form.amount')"
               density="compact"
               variant="outlined"
               type="number"
@@ -58,7 +58,7 @@
             <!-- Received at with DateInput -->
             <DateInput
               v-model="draft.received_at"
-              label="تاریخ دریافت"
+              :label="t('incomes.form.receivedAt')"
               density="compact"
               :rules="[rules.required]"
               :error="hasError('received_at')"
@@ -68,7 +68,7 @@
             <!-- Note -->
             <v-textarea
               v-model="draft.note"
-              label="یادداشت"
+              :label="t('incomes.form.note')"
               density="compact"
               variant="outlined"
               rows="3"
@@ -86,9 +86,12 @@
           </div>
 
           <div class="d-flex justify-end gap-2 mt-4">
-            <v-btn variant="text" @click="close">انصراف</v-btn>
+            <v-btn variant="text" @click="close">
+              {{ t('common.cancel') }}
+            </v-btn>
+
             <v-btn color="success" :loading="saving" type="submit">
-              {{ isEdit ? "ذخیره تغییرات" : "ثبت عاید" }}
+              {{ isEdit ? t('common.saveChanges') : t('incomes.actions.create') }}
             </v-btn>
           </div>
         </v-form>
@@ -98,154 +101,158 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from "vue";
-import { useFinanceRepository } from "@/stores/financeRepository";
-import DateInput from "@/components/DateInput.vue"; // Import DateInput component
+  import { computed, reactive, ref, watch } from 'vue';
+  import { useFinanceRepository } from '@/stores/financeRepository';
+  import DateInput from '@/components/DateInput.vue'; // Import DateInput component
+  import { useI18n } from 'vue-i18n';
 
-const props = defineProps({
-  modelValue: { type: Boolean, default: false },
-  editId: { type: [Number, String, null], default: null },
-});
+  const { t } = useI18n();
 
-const emit = defineEmits(["update:modelValue", "saved"]);
-
-const repo = useFinanceRepository();
-
-const model = computed({
-  get: () => props.modelValue,
-  set: (v) => emit("update:modelValue", v),
-});
-
-const isEdit = computed(() => !!props.editId);
-
-const formRef = ref(null);
-const saving = ref(false);
-
-const draft = reactive({
-  account_id: null,
-  amount: "",
-  received_at: "",
-  note: "",
-});
-
-const backendErrors = reactive({});
-
-const rules = {
-  required: (v) => (!!v || v === 0) || "این فیلد ضروری است",
-  requiredNumber: (v) => {
-    if (v === null || v === undefined || v === "") return "این فیلد ضروری است";
-    const n = Number(v);
-    return Number.isFinite(n) ? true : "عدد معتبر وارد کنید";
-  },
-};
-
-const accountOptions = computed(() => repo.accounts || []);
-
-function clearErrors() {
-  Object.keys(backendErrors).forEach((k) => delete backendErrors[k]);
-}
-
-function hasError(key) {
-  return Array.isArray(backendErrors[key]) && backendErrors[key].length > 0;
-}
-function getErrorMessages(key) {
-  return backendErrors[key] || [];
-}
-
-function resetDraft() {
-  draft.account_id = null;
-  draft.amount = "";
-  draft.received_at = "";
-  draft.note = "";
-}
-
-async function ensureAccountsLoaded() {
-  // Load accounts once if empty (for autocomplete)
-  if (Array.isArray(repo.accounts) && repo.accounts.length) return;
-
-  await repo.FetchAccountsData({
-    page: 1,
-    perPage: 2000, // enough for dropdown
-    search: "",
+  const rtl = ref(true);
+  const props = defineProps({
+    modelValue: { type: Boolean, default: false },
+    editId: { type: [Number, String, null], default: null },
   });
-}
 
-async function loadForEdit() {
-  if (!props.editId) return;
-  clearErrors();
-  const item = await repo.FetchIncomeData(props.editId);
+  const emit = defineEmits(['update:modelValue', 'saved']);
 
-  draft.account_id = item?.account_id ?? null;
-  draft.amount = item?.amount ?? "";
-  // DateInput expects date string, no need to slice
-  draft.received_at = item?.received_at ?? "";
-  draft.note = item?.note ?? "";
-}
+  const repo = useFinanceRepository();
 
-watch(
-  () => model.value,
-  async (open) => {
-    if (!open) return;
+  const model = computed({
+    get: () => props.modelValue,
+    set: (v) => emit('update:modelValue', v),
+  });
 
-    resetDraft();
+  const isEdit = computed(() => !!props.editId);
+
+  const formRef = ref(null);
+  const saving = ref(false);
+
+  const draft = reactive({
+    account_id: null,
+    amount: '',
+    received_at: '',
+    note: '',
+  });
+
+  const backendErrors = reactive({});
+
+  const rules = {
+    required: (v) => !!v || v === 0 || 'این فیلد ضروری است',
+    requiredNumber: (v) => {
+      if (v === null || v === undefined || v === '') return 'این فیلد ضروری است';
+      const n = Number(v);
+      return Number.isFinite(n) ? true : 'عدد معتبر وارد کنید';
+    },
+  };
+
+  const accountOptions = computed(() => repo.accounts || []);
+
+  function clearErrors() {
+    Object.keys(backendErrors).forEach((k) => delete backendErrors[k]);
+  }
+
+  function hasError(key) {
+    return Array.isArray(backendErrors[key]) && backendErrors[key].length > 0;
+  }
+  function getErrorMessages(key) {
+    return backendErrors[key] || [];
+  }
+
+  function resetDraft() {
+    draft.account_id = null;
+    draft.amount = '';
+    draft.received_at = '';
+    draft.note = '';
+  }
+
+  async function ensureAccountsLoaded() {
+    // Load accounts once if empty (for autocomplete)
+    if (Array.isArray(repo.accounts) && repo.accounts.length) return;
+
+    await repo.FetchAccountsData({
+      page: 1,
+      perPage: 2000, // enough for dropdown
+      search: '',
+    });
+  }
+
+  async function loadForEdit() {
+    if (!props.editId) return;
     clearErrors();
-    await ensureAccountsLoaded();
+    const item = await repo.FetchIncomeData(props.editId);
 
-    if (props.editId) await loadForEdit();
+    draft.account_id = item?.account_id ?? null;
+    draft.amount = item?.amount ?? '';
+    // DateInput expects date string, no need to slice
+    draft.received_at = item?.received_at ?? '';
+    draft.note = item?.note ?? '';
   }
-);
 
-function close() {
-  model.value = false;
-}
+  watch(
+    () => model.value,
+    async (open) => {
+      if (!open) return;
 
-async function onSubmit() {
-  clearErrors();
+      resetDraft();
+      clearErrors();
+      await ensureAccountsLoaded();
 
-  const res = await formRef.value?.validate();
-  if (!res?.valid) return;
-
-  saving.value = true;
-  try {
-    const payload = {
-      account_id: draft.account_id,
-      amount: draft.amount,
-      received_at: draft.received_at,
-      note: draft.note,
-    };
-
-    if (isEdit.value) {
-      await repo.UpdateIncome(props.editId, payload);
-    } else {
-      await repo.CreateIncome(payload);
+      if (props.editId) await loadForEdit();
     }
+  );
 
-    emit("saved");
-    close();
-  } catch (e) {
-    const errors = e?.response?.data?.errors;
-    if (errors && typeof errors === "object") {
-      Object.assign(backendErrors, errors);
-    } else {
-      backendErrors.general = ["خطا رخ داد. دوباره تلاش کنید."];
-    }
-  } finally {
-    saving.value = false;
+  function close() {
+    model.value = false;
   }
-}
+
+  async function onSubmit() {
+    clearErrors();
+
+    const res = await formRef.value?.validate();
+    if (!res?.valid) return;
+
+    saving.value = true;
+    try {
+      const payload = {
+        account_id: draft.account_id,
+        amount: draft.amount,
+        received_at: draft.received_at,
+        note: draft.note,
+      };
+
+      if (isEdit.value) {
+        await repo.UpdateIncome(props.editId, payload);
+      } else {
+        await repo.CreateIncome(payload);
+      }
+
+      emit('saved');
+      close();
+    } catch (e) {
+      const errors = e?.response?.data?.errors;
+      if (errors && typeof errors === 'object') {
+        Object.assign(backendErrors, errors);
+      } else {
+        backendErrors.general = ['خطا رخ داد. دوباره تلاش کنید.'];
+      }
+    } finally {
+      saving.value = false;
+    }
+  }
 </script>
 
 <style scoped>
-.bg-gradient-success {
-  background: linear-gradient(135deg, rgba(46, 125, 50, 1), rgba(76, 175, 80, 0.9));
-}
-.d-grid {
-  display: grid;
-}
-.gap-3 {
-  gap: 12px;
-}
-.gap-2 {
-  gap: 8px;
-}
+  .bg-gradient-success {
+    background: linear-gradient(135deg, rgba(46, 125, 50, 1), rgba(76, 175, 80, 0.9));
+  }
+  .d-grid {
+    display: grid;
+  }
+  .gap-3 {
+    gap: 12px;
+  }
+  .gap-2 {
+    gap: 8px;
+  }
 </style>

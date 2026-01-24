@@ -261,6 +261,33 @@
                   :error-messages="getErrorMessages('grand_father_name')"
                 />
               </v-col>
+
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.job"
+                  :label="t('وظیفه')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.age"
+                  :label="t('سن')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-select
+                    v-model="form.madani_halat"
+                    :items="madaniHalatItems"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                  />
+              </v-col>
             </v-row>
           </v-sheet>
 
@@ -823,6 +850,9 @@
     hamahangi_date: repo.getCurrentDate ? repo.getCurrentDate() : '',
     maktop_number: '',
     organ: '',
+    age: '',
+    job: '',
+    madani_halat: '',
 
     main_province: '',
     main_districts: '',
@@ -868,6 +898,7 @@
   const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
   const seyasiItems = computed(() => toArray(repo.seyasiOptions));
   const jenayeeItems = computed(() => toArray(repo.jenayeeOptions));
+  const madaniHalatItems = computed(() => [t('مجرد'), t('متاحل')]);
 
   /* ===== RULES ===== */
   const rules = {
@@ -939,6 +970,9 @@
     base.hamahangi_date = x.hamahangi_date ?? '';
     base.maktop_number = x.maktop_number ?? '';
     base.organ = x.organ ?? '';
+    base.age = x.age ?? '';
+    base.job = x.job ?? '';
+    base.madani_halat = x.madani_halat ?? '';
 
     base.main_province = x.main_province ?? '';
     base.main_districts = x.main_districts ?? '';

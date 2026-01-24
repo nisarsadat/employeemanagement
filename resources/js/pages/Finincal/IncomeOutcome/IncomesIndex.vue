@@ -1,22 +1,21 @@
 <!-- src/pages/Incomes/IncomesIndex.vue -->
 <template>
   <v-container fluid class="pt-6 page-bg" :dir="rtl ? 'rtl' : 'ltr'">
-    <!-- ✅ SAME SUMMARY CARDS (reuse finances summary) -->
+    <!-- ✅ SAME SUMMARY CARDS (localized) -->
     <v-row class="mb-4" dense>
       <v-col cols="12" md="4">
         <v-card rounded="xl" class="shadow-sm stat-card">
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">موجود</div>
+                <div class="text-caption text-medium-emphasis family">
+                  {{ t('incomes.summary.balance') }}
+                </div>
                 <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_balance_all_accounts) }}
                 </div>
               </div>
-
-              <div class="stat-icon-wrap">
-                <v-icon size="26">mdi-bank</v-icon>
-              </div>
+              <div class="stat-icon-wrap"><v-icon size="26">mdi-bank</v-icon></div>
             </div>
           </v-card-text>
         </v-card>
@@ -27,15 +26,14 @@
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">عاید</div>
+                <div class="text-caption text-medium-emphasis family">
+                  {{ t('incomes.summary.income') }}
+                </div>
                 <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_income_all) }}
                 </div>
               </div>
-
-              <div class="stat-icon-wrap">
-                <v-icon size="26">mdi-cash-plus</v-icon>
-              </div>
+              <div class="stat-icon-wrap"><v-icon size="26">mdi-cash-plus</v-icon></div>
             </div>
           </v-card-text>
         </v-card>
@@ -46,15 +44,14 @@
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">مصرف</div>
+                <div class="text-caption text-medium-emphasis family">
+                  {{ t('incomes.summary.outcome') }}
+                </div>
                 <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_outcome_all) }}
                 </div>
               </div>
-
-              <div class="stat-icon-wrap">
-                <v-icon size="26">mdi-cash-minus</v-icon>
-              </div>
+              <div class="stat-icon-wrap"><v-icon size="26">mdi-cash-minus</v-icon></div>
             </div>
           </v-card-text>
         </v-card>
@@ -64,52 +61,129 @@
     <!-- Filters -->
     <v-card rounded="xl" class="shadow-sm mb-4 filters-card">
       <v-card-text class="pa-4">
-        <div class="d-flex align-center justify-space-between flex-wrap gap-2">
-          <div class="d-flex gap-2 flex-wrap">
+        <v-row dense class="align-center">
+          <!-- Search -->
+          <v-col cols="12" md="5" lg="5">
             <v-text-field
               v-model="repo.incomesSearch"
-              label="جستجو"
-              density="compact"
+              :label="t('common.search')"
+              density="comfortable"
               variant="outlined"
-              style="max-width: 320px"
+              rounded="lg"
               prepend-inner-icon="mdi-magnify"
-              @keyup.enter="fetchAll"
               clearable
+              hide-details="auto"
+              class="filter-input"
+              @keyup.enter="applyFilters"
               @click:clear="clearSearch"
             />
-          </div>
-          <div class="d-flex gap-2 flex-wrap">
-<v-select
-  v-model="selectedYear"
-  :items="yearItems"
-  item-title="title"
-  item-value="value"
-  label="سال"
-  density="compact"
-  variant="outlined"
-  clearable
-/>
+          </v-col>
 
+          <!-- Year/Month -->
+          <v-col cols="12" md="5" lg="5">
+            <div class="d-flex ga-2 flex-wrap">
+              <v-select
+                v-model="selectedYear"
+                :items="yearItems"
+                item-title="title"
+                item-value="value"
+                :label="t('common.year')"
+                density="comfortable"
+                variant="outlined"
+                rounded="lg"
+                clearable
+                hide-details="auto"
+                class="filter-input"
+                prepend-inner-icon="mdi-calendar"
+                @update:modelValue="onYearMonthChanged"
+              />
 
-            <v-select
-              v-model="selectedMonth"
-              :items="monthOptions"
-              label="ماه"
-              density="compact"
-              variant="outlined"
-              prepend-inner-icon="mdi-calendar-month"
-              clearable
-              :disabled="!selectedYear"
-              @update:modelValue="onYearMonthChanged"
-            />
-          </div>
+              <v-select
+                v-model="selectedMonth"
+                :items="monthOptions"
+                item-title="title"
+                item-value="value"
+                :label="t('common.month')"
+                density="comfortable"
+                variant="outlined"
+                rounded="lg"
+                clearable
+                hide-details="auto"
+                class="filter-input"
+                prepend-inner-icon="mdi-calendar-month"
+                :disabled="!selectedYear"
+                @update:modelValue="onYearMonthChanged"
+              />
+            </div>
+          </v-col>
 
-          <div class="d-flex gap-2">
-            <v-btn color="success" prepend-icon="mdi-plus" class="text-none" @click="openCreate">
-              ثبت عاید
-            </v-btn>
-          </div>
-        </div>
+          <!-- Actions -->
+          <v-col cols="12" md="2" lg="2" class="d-flex justify-end">
+            <div class="d-flex ga-2 flex-wrap w-100 justify-end">
+              <v-btn
+                variant="tonal"
+                color="primary"
+                class="text-none"
+                prepend-icon="mdi-filter"
+                @click="applyFilters"
+              >
+                {{ t('common.apply') }}
+              </v-btn>
+
+              <v-btn
+                variant="tonal"
+                color="grey-darken-1"
+                class="text-none"
+                prepend-icon="mdi-filter-remove"
+                @click="resetFilters"
+              >
+                {{ t('common.resetFilters') }}
+              </v-btn>
+
+              <v-btn color="success" class="text-none" prepend-icon="mdi-plus" @click="openCreate">
+                {{ t('incomes.actions.create') }}
+              </v-btn>
+            </div>
+          </v-col>
+
+          <!-- Active chips -->
+          <v-col cols="12" class="pt-2">
+            <div class="d-flex ga-2 flex-wrap">
+              <v-chip
+                v-if="repo.incomesSearch"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-magnify"
+                @click:close="clearSearch"
+                closable
+              >
+                {{ repo.incomesSearch }}
+              </v-chip>
+
+              <v-chip
+                v-if="selectedYear"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-calendar"
+                @click:close="clearYear"
+                closable
+              >
+                {{ yearItems?.find((y) => y.value === selectedYear)?.title ?? selectedYear }}
+              </v-chip>
+
+              <v-chip
+                v-if="selectedYear && selectedMonth"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-calendar-month"
+                @click:close="clearMonth"
+                closable
+              >
+                {{ String(selectedMonth).padStart(2, '0') }}
+              </v-chip>
+            </div>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
 
@@ -130,7 +204,7 @@
         >
           <template #actions="{ item }">
             <div class="d-flex align-center ga-2">
-              <v-tooltip text="ویرایش عاید" location="top">
+              <v-tooltip :text="t('incomes.tooltips.edit')" location="top">
                 <template #activator="{ props: tooltipProps }">
                   <v-btn
                     v-bind="tooltipProps"
@@ -146,7 +220,7 @@
                 </template>
               </v-tooltip>
 
-              <v-tooltip text="حذف عاید" location="top">
+              <v-tooltip :text="t('incomes.tooltips.delete')" location="top">
                 <template #activator="{ props: tooltipProps }">
                   <v-btn
                     v-bind="tooltipProps"
@@ -167,10 +241,8 @@
       </v-card-text>
     </v-card>
 
-    <!-- Create/Edit Dialog -->
     <IncomeFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
 
-    <!-- Delete confirm -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -181,53 +253,49 @@
 </template>
 
 <script setup>
-  import { computed, ref, onMounted } from 'vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
-  import IncomeFormDialog from './IncomesFormDialog.vue';
-  import { useFinanceRepository } from '@/stores/financeRepository';
+  import { computed, ref, onMounted } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import FilterableTable from '@/components/FilterableTable.vue'
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
+  import IncomeFormDialog from './IncomesFormDialog.vue'
+  import { useFinanceRepository } from '@/stores/financeRepository'
+  import { useCalendar } from '../../../../composables/useCalendar'
 
-  const rtl = ref(true);
-  const repo = useFinanceRepository();
+  const { t } = useI18n()
 
-  const dialog = ref(false);
-  const editId = ref(null);
+  const rtl = ref(true)
+  const repo = useFinanceRepository()
 
-  const deleteDialog = ref(false);
-  const deleteTarget = ref(null);
+  const dialog = ref(false)
+  const editId = ref(null)
+
+  const deleteDialog = ref(false)
+  const deleteTarget = ref(null)
 
   function getRow(payload) {
-    return payload?.raw ?? payload;
+    return payload?.raw ?? payload
   }
 
-  const accountOptions = computed(() => repo.accounts || []);
-
-  const headersFT = [
-    { title: 'حساب', key: 'account_name', sortable: true },
-    { title: 'مبلغ', key: 'amount', sortable: true },
-    { title: 'تاریخ', key: 'received_at', sortable: true },
-    { title: 'یادداشت', key: 'note', sortable: false },
-  ];
+  const headersFT = computed(() => [
+    { title: t('incomes.table.account'), key: 'account_name', sortable: true },
+    { title: t('incomes.table.amount'), key: 'amount', sortable: true },
+    { title: t('incomes.table.receivedAt'), key: 'received_at', sortable: true },
+    { title: t('incomes.table.note'), key: 'note', sortable: false },
+  ])
 
   const rowsFT = computed(() => {
-    const startIndex = (repo.incomesPage - 1) * repo.incomesPerPage;
-
+    const startIndex = (repo.incomesPage - 1) * repo.incomesPerPage
     return (repo.incomes || []).map((it, i) => ({
       ...it,
       index: startIndex + i + 1,
       account_name: it?.account?.name ?? it?.account_name ?? '',
       received_at: (it?.received_at ?? '').toString().slice(0, 10),
-    }));
-  });
+    }))
+  })
 
-  const filters = [];
-  const topGroups = [];
+  const filters = []
+  const topGroups = []
 
-  /**
-   * ✅ IMPORTANT:
-   * Your repository currently fills financesSummary ONLY when /finances is called.
-   * So we call FetchFinancesData once (lightweight) to get the summary for cards.
-   */
   const summary = computed(
     () =>
       repo.financesSummary || {
@@ -236,28 +304,17 @@
         total_outcome_all: '0.00',
         filtered_outcome: '0.00',
       }
-  );
+  )
 
   function fmtMoney(v) {
-    const n = Number(v ?? 0);
-    if (Number.isNaN(n)) return String(v ?? '');
-
-    // if integer => show without .00
-    if (Math.floor(n) === n) return String(n);
-
-    // if has decimals => show as-is (trim trailing zeros)
-    return String(n)
-      .replace(/(\.\d*?)0+$/, '$1')
-      .replace(/\.$/, '');
+    const n = Number(v ?? 0)
+    if (Number.isNaN(n)) return String(v ?? '')
+    if (Math.floor(n) === n) return String(n)
+    return String(n).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
   }
-  const selectedYear = ref(null); // ex: 2026
-  const selectedMonth = ref(null); // ex: 1..12
 
-  const yearOptions = computed(() => {
-    const now = new Date().getFullYear();
-    // last 6 years + current
-    return Array.from({ length: 7 }, (_, i) => now - i);
-  });
+  const selectedYear = ref(null)
+  const selectedMonth = ref(null)
 
   const monthOptions = computed(() => [
     { title: '01', value: 1 },
@@ -272,19 +329,10 @@
     { title: '10', value: 10 },
     { title: '11', value: 11 },
     { title: '12', value: 12 },
-  ]);
+  ])
 
-  function onYearMonthChanged() {
-    // if year cleared -> clear month too
-    if (!selectedYear.value) selectedMonth.value = null;
-
-    // reset pagination when filters change (if page uses paging)
-    if (typeof repo.accountsPage !== 'undefined') repo.accountsPage = 1;
-    if (typeof repo.incomesPage !== 'undefined') repo.incomesPage = 1;
-    if (typeof repo.financesPage !== 'undefined') repo.financesPage = 1;
-
-    fetchAll();
-  }
+  const { yearItemsFromGregorianYears } = useCalendar()
+  const yearItems = computed(() => yearItemsFromGregorianYears(repo.availableYears, 'fa'))
 
   function fetchAll() {
     repo.FetchIncomesData({
@@ -294,108 +342,120 @@
       account_id: repo.incomesAccountId,
       year: selectedYear.value,
       month: selectedMonth.value,
-    });
+    })
+  }
+
+  // ✅ cards follow filters
+  function refreshCardsWithFilters() {
+    repo.FetchFinancesData({
+      year: selectedYear.value,
+      month: selectedMonth.value,
+      search: repo.incomesSearch || undefined,
+      account_id: repo.incomesAccountId || undefined,
+      office_employee_id: undefined,
+    })
+  }
+
+  function applyFilters() {
+    repo.incomesPage = 1
+    fetchAll()
+    refreshCardsWithFilters()
+  }
+
+  function onYearMonthChanged() {
+    if (!selectedYear.value) selectedMonth.value = null
+    applyFilters()
   }
 
   function clearSearch() {
-    repo.incomesSearch = '';
-    fetchAll();
+    repo.incomesSearch = ''
+    applyFilters()
   }
 
-  async function ensureAccountsLoaded() {
-    if (Array.isArray(repo.accounts) && repo.accounts.length) return;
-    await repo.FetchAccountsData({ page: 1, perPage: 2000, search: '' });
+  function clearYear() {
+    selectedYear.value = null
+    selectedMonth.value = null
+    applyFilters()
+  }
+
+  function clearMonth() {
+    selectedMonth.value = null
+    applyFilters()
   }
 
   function resetFilters() {
-    if (typeof repo.ResetIncomesFilters === 'function') repo.ResetIncomesFilters();
+    selectedYear.value = null
+    selectedMonth.value = null
+    if (typeof repo.ResetIncomesFilters === 'function') repo.ResetIncomesFilters()
     else {
-      repo.incomesSearch = '';
-      repo.incomesAccountId = null;
-      repo.incomesPage = 1;
+      repo.incomesSearch = ''
+      repo.incomesAccountId = null
+      repo.incomesPage = 1
     }
-    fetchAll();
+    applyFilters()
   }
 
-  function onAccountFilterChanged() {
-    repo.incomesPage = 1;
-    fetchAll();
+  async function ensureAccountsLoaded() {
+    if (Array.isArray(repo.accounts) && repo.accounts.length) return
+    await repo.FetchAccountsData({ page: 1, perPage: 2000, search: '' })
   }
 
   function openCreate() {
-    editId.value = null;
-    dialog.value = true;
+    editId.value = null
+    dialog.value = true
   }
 
   function startEdit(payload) {
-    const row = getRow(payload);
-    editId.value = row?.id ?? null;
-    if (!editId.value) return;
-    dialog.value = true;
+    const row = getRow(payload)
+    editId.value = row?.id ?? null
+    if (!editId.value) return
+    dialog.value = true
   }
 
   function onSaved() {
-    fetchAll();
-    // refresh cards after save
-    repo.FetchFinancesData({ page: 1, perPage: 1, search: '' });
+    applyFilters()
   }
 
   function openDeleteDialog(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    deleteTarget.value = row;
-    deleteDialog.value = true;
+    const row = getRow(payload)
+    if (!row?.id) return
+    deleteTarget.value = row
+    deleteDialog.value = true
   }
 
   async function handleDeleteConfirmed(target) {
-    const row = target || deleteTarget.value;
+    const row = target || deleteTarget.value
     if (!row?.id) {
-      deleteDialog.value = false;
-      deleteTarget.value = null;
-      return;
+      deleteDialog.value = false
+      deleteTarget.value = null
+      return
     }
 
     try {
-      await repo.DeleteIncome(row.id);
-      await fetchAll();
-      // refresh cards after delete
-      await repo.FetchFinancesData({ page: 1, perPage: 1, search: '' });
+      await repo.DeleteIncome(row.id)
+      applyFilters()
     } finally {
-      deleteDialog.value = false;
-      deleteTarget.value = null;
+      deleteDialog.value = false
+      deleteTarget.value = null
     }
   }
 
   function onPage(p) {
-    repo.incomesPage = p;
-    fetchAll();
+    repo.incomesPage = p
+    fetchAll()
   }
 
   function onPerPage(pp) {
-    repo.incomesPerPage = pp;
-    repo.incomesPage = 1;
-    fetchAll();
+    repo.incomesPerPage = pp
+    repo.incomesPage = 1
+    fetchAll()
   }
-import { useCalendar } from '../../../../composables/useCalendar';
 
-const { yearItemsFromGregorianYears } = useCalendar();
-
-const yearItems = computed(() =>
-  yearItemsFromGregorianYears(repo.availableYears, 'fa') // 'fa' or locale.value
-);
   onMounted(async () => {
-    await ensureAccountsLoaded();
-
-    // ✅ fetch incomes list
-    fetchAll();
-
-    // ✅ fetch summary cards (loads totals)
-    await repo.FetchFinancesData({ page: 1, perPage: 1, search: '' });
-  });
-  onMounted(async () => {
-    await repo.FetchYears('incomes');
-    fetchAll();
-  });
+    await ensureAccountsLoaded()
+    await repo.FetchYears('incomes')
+    applyFilters()
+  })
 </script>
 
 <style scoped>
@@ -403,11 +463,6 @@ const yearItems = computed(() =>
     min-height: 100%;
   }
 
-  .gap-2 {
-    gap: 8px;
-  }
-
-  /* Summary cards */
   .stat-card {
     border: 1px solid rgba(0, 0, 0, 0.05);
     overflow: hidden;
@@ -440,40 +495,15 @@ const yearItems = computed(() =>
   .icon-btn {
     border-radius: 10px;
   }
-  /* ✅ Finance/Income/Accounts summary cards font + look */
-  .finance-cards {
-    font-family: var(--app-font) !important;
-  }
 
-  .finance-card {
-    font-family: var(--app-font) !important;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    overflow: hidden;
-    position: relative;
-  }
-
-  .finance-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(25, 118, 210, 0.07), rgba(156, 39, 176, 0.05));
-    pointer-events: none;
-  }
-
-  .finance-card .finance-card__value {
-    font-family: var(--app-font) !important;
-    letter-spacing: 0.2px;
-  }
-
-  .finance-card .finance-card__icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    display: grid;
-    place-items: center;
-    background: rgba(25, 118, 210, 0.08);
-  }
   .family {
     font-family: var(--app-font) !important;
+  }
+
+  .filter-input :deep(.v-field) {
+    border-radius: 16px !important;
+  }
+  .filter-input :deep(.v-field__prepend-inner) {
+    opacity: 0.85;
   }
 </style>
