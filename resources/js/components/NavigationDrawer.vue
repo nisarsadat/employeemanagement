@@ -301,7 +301,6 @@
         title: t('۵۶ فارمت'),
         icon: 'mdi-view-dashboard-outline',
         to: { path: '/app/fifthyformatsroute' },
-        perm: 'fifthyformatsroute.view',
       },
       {
         key: 'finance',
@@ -315,6 +314,8 @@
         title: t('صادره وارده'),
         icon: 'mdi-cash-multiple',
         to: { path: '/app/outgoingincommings' },
+        perm: 'outgoingincomming.view',
+
       },
       {
         key: 'khayratreports',

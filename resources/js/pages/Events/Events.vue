@@ -467,6 +467,7 @@
 
  /* headers */
 const headersFT = computed(() => [
+  { title: t('آی ډی'), key: 'id' },
   { title: t('منبع'), key: 'resource_display' },
   { title: t('کارمند دفتر'), key: 'office_employee_display' },
   { title: t('کود کارمند واقعه گیرنده'), key: 'office_employee_akhistonky_code' },
@@ -493,6 +494,7 @@ const headersFT = computed(() => [
   { title: t('کشته شده'), key: 'killed' },
 
   { title: t('تفصیل'), key: 'tafseel' },
+  { title: t('همغږی'), key: 'organ' },
   // { title: t('وضاحت'), key: 'talks' },
   { title: t('ملاحظات'), key: 'note' },
   { title: t('نوت راجع به اسناد'), key: 'docs_note' },

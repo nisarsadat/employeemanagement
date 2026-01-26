@@ -40,7 +40,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="8">
               <v-text-field
                 v-model="form.shora_goal"
                 :label="t('هدف شورا')"
@@ -51,7 +51,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.shora_village"
                 :label="t('قریه شورا')"
@@ -60,7 +60,7 @@
                 :error="hasError('shora_village')"
                 :error-messages="getErrorMessages('shora_village')"
               />
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <v-row>
@@ -229,17 +229,7 @@
                     :disabled="saving"
                   />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.shora_district"
-                :label="t('ولسوالی شورا')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('shora_district')"
-                :error-messages="getErrorMessages('shora_district')"
-              />
-            </v-col>
-
+           
             <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"

@@ -91,7 +91,7 @@
           </v-row>
 
           <v-row class="mt-1">
-            <v-col cols="12" md="6">
+            <!-- <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -99,7 +99,7 @@
                 variant="outlined"
                 hide-details="auto"
               />
-            </v-col>
+            </v-col> -->
 
             <v-col cols="12" md="6">
               <v-text-field

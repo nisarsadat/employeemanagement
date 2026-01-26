@@ -65,6 +65,7 @@ class InformationResource extends JsonResource
             'job'               => $info ? $info->job : null,
             'age'               => $info ? $info->age : null,
             'estijalyat_degree' => $info ? $info->estijalyat_degree : null,
+            'information_category' => $info ? $info->information_category : null,
 
             'main_province'  => $info ? $info->main_province : null,
             'main_districts' => $info ? $info->main_districts : null,

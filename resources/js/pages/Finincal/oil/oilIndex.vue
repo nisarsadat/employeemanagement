@@ -1,6 +1,61 @@
-<!-- src/pages/Oil/OilAccounts/OilAccountsIndex.vue (or your current file path) -->
+<!-- src/pages/Oil/OilAccounts/OilAccountsIndex.vue -->
 <template>
   <v-container fluid class="pt-4" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- ✅ TOP SUMMARY CARDS (Finance style - on every page) -->
+    <v-row class="mb-4" dense :dir="isRtl ? 'rtl' : 'ltr'">
+      <v-col cols="12" md="4">
+        <v-card elevation="2" rounded="xl" class="pa-4">
+          <div class="d-flex align-center justify-space-between">
+            <div>
+              <div class="text-caption text-medium-emphasis">{{ t('ټول مصرف') }}</div>
+              <div class="text-h6 font-weight-bold mt-1">{{ money(repo.summary?.totalExpense) }}</div>
+              <div class="text-caption mt-1">
+                {{ t('ریکارډونه') }}: <strong>{{ repo.summary?.expenseCount ?? 0 }}</strong>
+              </div>
+            </div>
+            <v-avatar size="44" class="elevation-1">
+              <v-icon size="24">mdi-cash-minus</v-icon>
+            </v-avatar>
+          </div>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <v-card elevation="2" rounded="xl" class="pa-4">
+          <div class="d-flex align-center justify-space-between">
+            <div>
+              <div class="text-caption text-medium-emphasis">{{ t('ټول عاید') }}</div>
+              <div class="text-h6 font-weight-bold mt-1">{{ money(repo.summary?.totalIncome) }}</div>
+              <div class="text-caption mt-1">
+                {{ t('ریکارډونه') }}: <strong>{{ repo.summary?.incomeCount ?? 0 }}</strong>
+              </div>
+            </div>
+            <v-avatar size="44" class="elevation-1">
+              <v-icon size="24">mdi-cash-plus</v-icon>
+            </v-avatar>
+          </div>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <v-card elevation="2" rounded="xl" class="pa-4">
+          <div class="d-flex align-center justify-space-between">
+            <div>
+              <div class="text-caption text-medium-emphasis">{{ t('ټول تېل (موجود)') }}</div>
+              <div class="text-h6 font-weight-bold mt-1">{{ liters(repo.summary?.totalOilQuantity) }}</div>
+              <div class="text-caption mt-1">
+                {{ t('حسابونه') }}: <strong>{{ repo.summary?.oilAccountsCount ?? repo.totalItems ?? 0 }}</strong>
+              </div>
+            </div>
+            <v-avatar size="44" class="elevation-1">
+              <v-icon size="24">mdi-fuel</v-icon>
+            </v-avatar>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- ✅ Top Bar (Finance style: Search + Year + Month + Create) -->
     <v-row class="align-center mb-4" dense>
       <v-col cols="12" md="4">
         <v-text-field
@@ -14,8 +69,36 @@
           @click:clear="() => { repo.Search=''; applyFilters(); }"
         />
       </v-col>
-      <v-col cols="12" md="8" class="text-md-right">
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
+
+      <v-col cols="12" md="3">
+        <v-select
+          v-model="repo.year"
+          :items="repo.availableYears"
+          :label="t('کال')"
+          variant="outlined"
+          density="compact"
+          clearable
+          :loading="repo.yearsLoading"
+          @update:modelValue="applyFilters"
+        />
+      </v-col>
+
+      <v-col cols="12" md="3">
+        <v-select
+          v-model="repo.month"
+          :items="monthOptions"
+          item-title="title"
+          item-value="value"
+          :label="t('میاشت')"
+          variant="outlined"
+          density="compact"
+          clearable
+          @update:modelValue="applyFilters"
+        />
+      </v-col>
+
+      <v-col cols="12" md="2" class="text-md-right">
+        <v-btn color="primary" prepend-icon="mdi-plus" block @click="openCreate">
           {{ t('نوی د تيلو حساب') }}
         </v-btn>
       </v-col>
@@ -103,6 +186,21 @@ const repo = useOilRepository()
 const { t, locale } = useI18n()
 const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
 
+const monthOptions = computed(() => ([
+  { title: t('جنوري'), value: 1 },
+  { title: t('فبروري'), value: 2 },
+  { title: t('مارچ'), value: 3 },
+  { title: t('اپریل'), value: 4 },
+  { title: t('می'), value: 5 },
+  { title: t('جون'), value: 6 },
+  { title: t('جولای'), value: 7 },
+  { title: t('اګست'), value: 8 },
+  { title: t('سپتمبر'), value: 9 },
+  { title: t('اکتوبر'), value: 10 },
+  { title: t('نومبر'), value: 11 },
+  { title: t('ډسمبر'), value: 12 },
+]))
+
 function getRow(payload) {
   return payload?.raw ?? payload
 }
@@ -123,7 +221,6 @@ const rowsFT = computed(() => {
   }))
 })
 
-// keep empty like your FinancesIndex pattern
 const filters = []
 const topGroups = []
 
@@ -136,11 +233,8 @@ const deleteTarget = ref(null)
 const draft = reactive({ id: null, name: '', details: '' })
 
 const fetchAll = async () => {
-  await repo.FetchOilAccounts({
-    page: repo.page,
-    itemsPerPage: repo.itemsPerPage,
-    search: repo.Search,
-  })
+  await repo.FetchOilAccounts({ page: repo.page, itemsPerPage: repo.itemsPerPage })
+  if (repo.FetchOilSummary) await repo.FetchOilSummary()
 }
 
 const applyFilters = async () => {
@@ -190,7 +284,6 @@ const onSave = async (payload) => {
   await fetchAll()
 }
 
-// ✅ delete flow like FinancesIndex
 function openDeleteDialog(payload) {
   const row = getRow(payload)
   if (!row?.id) return
@@ -218,7 +311,14 @@ async function handleDeleteConfirmed(target) {
 const qty = (n) =>
   Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
 
-onMounted(fetchAll)
+const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })
+const liters = (n) =>
+  `${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} L`
+
+onMounted(async () => {
+  if (repo.FetchYears) await repo.FetchYears('oil-accounts')
+  await fetchAll()
+})
 </script>
 
 <style scoped>

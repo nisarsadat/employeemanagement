@@ -14,7 +14,6 @@ class UpdateEntryExitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes','required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
 
             'entry_way' => ['nullable','string'],

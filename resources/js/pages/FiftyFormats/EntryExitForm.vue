@@ -31,7 +31,7 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.name"
                 :label="t('نام')"
@@ -41,7 +41,7 @@
                 :rules="[rules.required]"
                 required
               />
-            </v-col>
+            </v-col> -->
 
             <v-col cols="12" md="4">
               <v-text-field
@@ -78,8 +78,8 @@
               <ProvinceDistrictNameSelect
                 v-model:province="form.main_province"
                 v-model:district="form.main_district"
-                :province-label="t('ولایت اصلی')"
-                :district-label="t('ولسوالی اصلی')"
+                :province-label="t('ولایت')"
+                :district-label="t('ولسوالی')"
                 :mdProvince="6"
                 :mdDistrict="6"
               />

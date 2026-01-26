@@ -28,6 +28,7 @@ class BankResource extends JsonResource
             'village'              => $this->village,
             'specific_place'       => $this->specific_place,
             'coordinates'          => $this->coordinates,
+            'which_offices_sallary'          => $this->which_offices_sallary,
 
             'guard_quantity'       => $this->guard_quantity,
             'note'                 => $this->note,

@@ -54,17 +54,6 @@
                     :error-messages="getErrorMessages('parking_type')"
                   />
                 </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.parking_type_pe"
-                    :label="t('نوع پارکینگ (PE)')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('parking_type_pe')"
-                    :error-messages="getErrorMessages('parking_type_pe')"
-                  />
-                </v-col>
               </v-row>
 
               <!-- Responsible -->
@@ -200,7 +189,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -209,7 +198,7 @@
                 :error="hasError('Province_addr')"
                 :error-messages="getErrorMessages('Province_addr')"
               />
-            </v-col>
+            </v-col> -->
 
             <!-- Resource -->
             <v-col cols="12" md="4">

@@ -14,7 +14,6 @@ class StoreEntryExitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
 
             'entry_way' => ['nullable','string'],

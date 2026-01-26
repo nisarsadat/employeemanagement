@@ -5,11 +5,6 @@
       :title="isEdit ? t('اصلاح اطلاع') : t('اضافه کردن اطلاع')"
       :subtitle="isEdit ? t('ویرایش جزئیات یک اطلاع موجود') : t('ثبت یک اطلاع جدید در سیستم')"
     >
-      <template #actions>
-        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- STEPPER (DYNAMIC) -->
@@ -281,12 +276,12 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-select
-                    v-model="form.madani_halat"
-                    :items="madaniHalatItems"
-                    variant="outlined"
-                    density="compact"
-                    clearable
-                  />
+                  v-model="form.madani_halat"
+                  :items="madaniHalatItems"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
               </v-col>
             </v-row>
           </v-sheet>
@@ -472,7 +467,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="8">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.information_degree"
                   :label="t('درجه موثقیت اطلاع')"
@@ -480,6 +475,14 @@
                   variant="outlined"
                   :error="hasError('information_degree')"
                   :error-messages="getErrorMessages('information_degree')"
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="form.information_category"
+                  :label="t(' د اطلاع کتګوري')"
+                  density="compact"
+                  variant="outlined"
                 />
               </v-col>
             </v-row>
@@ -868,6 +871,7 @@
     information_saved_date: repo.getCurrentDate ? repo.getCurrentDate() : '',
     information_saved_hour: '',
     information_degree: '',
+    information_category: '',
 
     tafseel: '',
     manager_comment: '',
@@ -988,6 +992,7 @@
     base.information_saved_date = x.information_saved_date ?? '';
     base.information_saved_hour = x.information_saved_hour ?? '';
     base.information_degree = x.information_degree ?? '';
+    base.information_category = x.information_category ?? '';
 
     base.tafseel = x.tafseel ?? '';
     base.manager_comment = x.manager_comment ?? '';

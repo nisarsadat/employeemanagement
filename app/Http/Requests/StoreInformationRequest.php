@@ -25,6 +25,7 @@ class StoreInformationRequest extends FormRequest
             'madani_halat' => ['nullable','string'],
             'age' => ['nullable','string'],
             'estijalyat_degree' => ['nullable','string'],
+            'information_category' => ['nullable','string'],
 
             'hamahangi_date' => ['nullable','string'],
             'maktop_number'  => ['nullable','string'],

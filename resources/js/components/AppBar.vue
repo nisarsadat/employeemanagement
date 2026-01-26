@@ -23,7 +23,7 @@
 
       <div class="d-flex align-center title-section" style="gap: 12px">
         <v-toolbar-title class="font-weight-bold text-h5 main-title">
-          {{ t('مدیریت کارمندان') }}
+          {{ t('333') }}
         </v-toolbar-title>
 
         <v-divider vertical :thickness="2" class="border-opacity-25 title-divider" />

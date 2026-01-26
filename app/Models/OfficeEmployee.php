@@ -188,4 +188,8 @@ class OfficeEmployee extends Model
             100
         );
     }
+    public function khayratReports()
+    {
+        return $this->hasMany(KhayratReport::class, 'office_employee_id', 'id');
+    }
 }

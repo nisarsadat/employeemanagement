@@ -381,6 +381,7 @@ const headersFT = computed(() => [
   { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('تعداد محافظین'), key: 'guard_quantity' },
+  { title: t('د کومو ادارو معاشات تادیه کوی'), key: 'which_offices_sallary' },
   { title: t('ولایت مربوطه'), key: 'Province_addr' },
   { title: t('یادداشت'), key: 'note', width: 300 },
 

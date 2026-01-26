@@ -374,7 +374,7 @@
               <!-- organ (kept exactly as you wrote: v-model="draft.talks") -->
               <v-col cols="12" md="12">
                 <v-card-item>
-                  <v-card-subtitle class="field-label">{{ t('ارگان') }}</v-card-subtitle>
+                  <v-card-subtitle class="field-label">{{ t('همغږی') }}</v-card-subtitle>
                 </v-card-item>
                 <v-card-text>
                   <OrganSelect v-model="draft.talks" :label="t('ارگان')" :disabled="submitting" />

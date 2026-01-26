@@ -198,16 +198,7 @@
                     :disabled="saving"
                   />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.district"
-                :label="t('ولسوالی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('district')"
-                :error-messages="getErrorMessages('district')"
-              />
-            </v-col>
+          
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.village"

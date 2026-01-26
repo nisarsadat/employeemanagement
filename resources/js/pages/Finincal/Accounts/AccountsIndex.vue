@@ -8,23 +8,9 @@
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">{{ t('accounts.summary.balance') }}</div>
-                <div class="text-h6 font-weight-bold stat-value">
-                  {{ fmtMoney(summary.total_balance_all_accounts) }}
+                <div class="text-caption text-medium-emphasis family">
+                  {{ t('accounts.summary.income') }}
                 </div>
-              </div>
-              <div class="stat-icon-wrap"><v-icon size="26">mdi-bank</v-icon></div>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" md="4">
-        <v-card rounded="xl" class="shadow-sm stat-card">
-          <v-card-text class="pa-4">
-            <div class="d-flex align-center justify-space-between">
-              <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">{{ t('accounts.summary.income') }}</div>
                 <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_income_all) }}
                 </div>
@@ -40,12 +26,31 @@
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">{{ t('accounts.summary.outcome') }}</div>
+                <div class="text-caption text-medium-emphasis family">
+                  {{ t('accounts.summary.outcome') }}
+                </div>
                 <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_outcome_all) }}
                 </div>
               </div>
               <div class="stat-icon-wrap"><v-icon size="26">mdi-cash-minus</v-icon></div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col cols="12" md="4">
+        <v-card rounded="xl" class="shadow-sm stat-card">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="min-w-0">
+                <div class="text-caption text-medium-emphasis family">
+                  {{ t('accounts.summary.balance') }}
+                </div>
+                <div class="text-h6 font-weight-bold stat-value">
+                  {{ fmtMoney(summary.total_balance_all_accounts) }}
+                </div>
+              </div>
+              <div class="stat-icon-wrap"><v-icon size="26">mdi-bank</v-icon></div>
             </div>
           </v-card-text>
         </v-card>
@@ -237,45 +242,45 @@
 </template>
 
 <script setup>
-  import { computed, ref, onMounted } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import FilterableTable from '@/components/FilterableTable.vue'
-  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
-  import AccountFormDialog from './AccountsFormDialog.vue'
-  import { useFinanceRepository } from '@/stores/financeRepository'
-  import { useCalendar } from '../../../../composables/useCalendar'
+  import { computed, ref, onMounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AccountFormDialog from './AccountsFormDialog.vue';
+  import { useFinanceRepository } from '@/stores/financeRepository';
+  import { useCalendar } from '../../../../composables/useCalendar';
 
-  const { t } = useI18n()
+  const { t } = useI18n();
 
-  const rtl = ref(true)
-  const repo = useFinanceRepository()
+  const rtl = ref(true);
+  const repo = useFinanceRepository();
 
-  const dialog = ref(false)
-  const editId = ref(null)
+  const dialog = ref(false);
+  const editId = ref(null);
 
-  const deleteDialog = ref(false)
-  const deleteTarget = ref(null)
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
   function getRow(payload) {
-    return payload?.raw ?? payload
+    return payload?.raw ?? payload;
   }
 
   const headersFT = computed(() => [
     { title: t('accounts.table.accountName'), key: 'name', sortable: true },
     { title: t('accounts.table.balance'), key: 'price', sortable: true },
     { title: t('accounts.table.details'), key: 'details', sortable: false },
-  ])
+  ]);
 
   const rowsFT = computed(() => {
-    const startIndex = (repo.accountsPage - 1) * repo.accountsPerPage
+    const startIndex = (repo.accountsPage - 1) * repo.accountsPerPage;
     return (repo.accounts || []).map((it, i) => ({
       ...it,
       index: startIndex + i + 1,
-    }))
-  })
+    }));
+  });
 
-  const filters = []
-  const topGroups = []
+  const filters = [];
+  const topGroups = [];
 
   const summary = computed(
     () =>
@@ -285,17 +290,19 @@
         total_outcome_all: '0.00',
         filtered_outcome: '0.00',
       }
-  )
+  );
 
   function fmtMoney(v) {
-    const n = Number(v ?? 0)
-    if (Number.isNaN(n)) return String(v ?? '')
-    if (Math.floor(n) === n) return String(n)
-    return String(n).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
+    const n = Number(v ?? 0);
+    if (Number.isNaN(n)) return String(v ?? '');
+    if (Math.floor(n) === n) return String(n);
+    return String(n)
+      .replace(/(\.\d*?)0+$/, '$1')
+      .replace(/\.$/, '');
   }
 
-  const selectedYear = ref(null)
-  const selectedMonth = ref(null)
+  const selectedYear = ref(null);
+  const selectedMonth = ref(null);
 
   const monthOptions = computed(() => [
     { title: '01', value: 1 },
@@ -310,10 +317,10 @@
     { title: '10', value: 10 },
     { title: '11', value: 11 },
     { title: '12', value: 12 },
-  ])
+  ]);
 
-  const { yearItemsFromGregorianYears } = useCalendar()
-  const yearItems = computed(() => yearItemsFromGregorianYears(repo.availableYears, 'fa'))
+  const { yearItemsFromGregorianYears } = useCalendar();
+  const yearItems = computed(() => yearItemsFromGregorianYears(repo.availableYears, 'fa'));
 
   function fetchAll() {
     repo.FetchAccountsData({
@@ -322,7 +329,7 @@
       search: repo.accountsSearch,
       year: selectedYear.value,
       month: selectedMonth.value,
-    })
+    });
   }
 
   function refreshCardsWithFilters() {
@@ -332,112 +339,114 @@
       search: repo.accountsSearch || undefined,
       account_id: undefined,
       office_employee_id: undefined,
-    })
+    });
   }
 
   function applyFilters() {
-    repo.accountsPage = 1
-    fetchAll()
-    refreshCardsWithFilters()
+    repo.accountsPage = 1;
+    fetchAll();
+    refreshCardsWithFilters();
   }
 
   function onYearMonthChanged() {
-    if (!selectedYear.value) selectedMonth.value = null
-    applyFilters()
+    if (!selectedYear.value) selectedMonth.value = null;
+    applyFilters();
   }
 
   function clearSearch() {
-    repo.accountsSearch = ''
-    applyFilters()
+    repo.accountsSearch = '';
+    applyFilters();
   }
 
   function clearYear() {
-    selectedYear.value = null
-    selectedMonth.value = null
-    applyFilters()
+    selectedYear.value = null;
+    selectedMonth.value = null;
+    applyFilters();
   }
 
   function clearMonth() {
-    selectedMonth.value = null
-    applyFilters()
+    selectedMonth.value = null;
+    applyFilters();
   }
 
   function resetFilters() {
-    selectedYear.value = null
-    selectedMonth.value = null
+    selectedYear.value = null;
+    selectedMonth.value = null;
 
     if (typeof repo.ResetAccountsFilters === 'function') {
-      repo.ResetAccountsFilters()
+      repo.ResetAccountsFilters();
     } else {
-      repo.accountsSearch = ''
-      repo.accountsPage = 1
+      repo.accountsSearch = '';
+      repo.accountsPage = 1;
     }
 
-    applyFilters()
+    applyFilters();
   }
 
   function openCreate() {
-    editId.value = null
-    dialog.value = true
+    editId.value = null;
+    dialog.value = true;
   }
 
   function startEdit(payload) {
-    const row = getRow(payload)
-    editId.value = row?.id ?? null
-    if (!editId.value) return
-    dialog.value = true
+    const row = getRow(payload);
+    editId.value = row?.id ?? null;
+    if (!editId.value) return;
+    dialog.value = true;
   }
 
   function onSaved() {
-    applyFilters()
+    applyFilters();
   }
 
   function openDeleteDialog(payload) {
-    const row = getRow(payload)
-    if (!row?.id) return
-    deleteTarget.value = row
-    deleteDialog.value = true
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
   }
 
   async function handleDeleteConfirmed(target) {
-    const row = target || deleteTarget.value
+    const row = target || deleteTarget.value;
     if (!row?.id) {
-      deleteDialog.value = false
-      deleteTarget.value = null
-      return
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
     }
 
     try {
-      await repo.DeleteAccount(row.id)
-      applyFilters()
+      await repo.DeleteAccount(row.id);
+      applyFilters();
     } finally {
-      deleteDialog.value = false
-      deleteTarget.value = null
+      deleteDialog.value = false;
+      deleteTarget.value = null;
     }
   }
 
   function onPage(p) {
-    repo.accountsPage = p
-    fetchAll()
+    repo.accountsPage = p;
+    fetchAll();
   }
 
   function onPerPage(pp) {
-    repo.accountsPerPage = pp
-    repo.accountsPage = 1
-    fetchAll()
+    repo.accountsPerPage = pp;
+    repo.accountsPage = 1;
+    fetchAll();
   }
 
   onMounted(async () => {
-    await repo.FetchYears('accounts')
-    applyFilters()
-  })
+    await repo.FetchYears('accounts');
+    applyFilters();
+  });
 </script>
 
 <style scoped>
-  .page-bg { min-height: 100%; }
+  .page-bg {
+    min-height: 100%;
+  }
 
   .stat-card {
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     overflow: hidden;
     position: relative;
   }
@@ -445,20 +454,36 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(25,118,210,0.07), rgba(156,39,176,0.05));
+    background: linear-gradient(135deg, rgba(25, 118, 210, 0.07), rgba(156, 39, 176, 0.05));
     pointer-events: none;
   }
-  .stat-value { letter-spacing: 0.2px; }
+  .stat-value {
+    letter-spacing: 0.2px;
+  }
   .stat-icon-wrap {
-    width: 44px; height: 44px; border-radius: 14px;
-    display: grid; place-items: center;
-    background: rgba(25,118,210,0.08);
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(25, 118, 210, 0.08);
   }
 
-  .filters-card, .table-card { border: 1px solid rgba(0,0,0,0.05); }
-  .icon-btn { border-radius: 10px; }
-  .family { font-family: var(--app-font) !important; }
+  .filters-card,
+  .table-card {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .icon-btn {
+    border-radius: 10px;
+  }
+  .family {
+    font-family: var(--app-font) !important;
+  }
 
-  .filter-input :deep(.v-field) { border-radius: 16px !important; }
-  .filter-input :deep(.v-field__prepend-inner) { opacity: 0.85; }
+  .filter-input :deep(.v-field) {
+    border-radius: 16px !important;
+  }
+  .filter-input :deep(.v-field__prepend-inner) {
+    opacity: 0.85;
+  }
 </style>

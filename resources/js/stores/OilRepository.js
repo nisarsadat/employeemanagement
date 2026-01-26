@@ -44,6 +44,16 @@ export const useOilRepository = defineStore('OilRepository', {
       Search: '',
       from: null,
       to: null,
+
+      // ✅ NEW (year/month filters like finance)
+      year: null,  // 2026
+      month: null, // 1..12
+
+      // ✅ NEW: years dropdown (like finance)
+      availableYears: reactive([]),
+      yearsLoading: false,
+
+      // summary (cards)
       summary: reactive({
         totalExpense: 0,
         totalIncome: 0,
@@ -51,27 +61,78 @@ export const useOilRepository = defineStore('OilRepository', {
         expenseCount: 0,
         incomeCount: 0,
         oilAccountsCount: 0,
+
+        // ✅ optional extra fields (safe)
+        filteredExpense: 0,
+        filteredIncome: 0,
       }),
     };
   },
 
   actions: {
+    // =========================
+    // YEARS
+    // =========================
+    async FetchYears(type) {
+      // type examples:
+      //  - 'income-oils'  -> GET /income-oils/years
+      //  - 'expense-oils' -> GET /expense-oils/years
+      //  - 'oil-accounts' -> GET /oil-accounts/years (optional)
+      this.yearsLoading = true;
+      try {
+        setContentType('application/json');
+        const resp = await axios.get(`/${type}/years`);
+        this.availableYears = resp?.data ?? [];
+      } finally {
+        this.yearsLoading = false;
+      }
+    },
+
     // ------------------ ACCOUNTS ------------------
-    async FetchOilAccounts({ page, itemsPerPage }) {
+    async FetchOilAccounts({ page, itemsPerPage } = {}) {
       this.loading = true;
       setContentType('application/json');
-      const resp = await axios.get(
-        `/oil-accounts?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-          this.Search || ''
-        )}`
-      );
-      this.OilAccounts = resp?.data?.data ?? [];
-      this.totalItems = resp?.data?.meta?.total ?? 0;
-      this.loading = false;
+
+      const p = page ?? this.page;
+      const pp = itemsPerPage ?? this.itemsPerPage;
+
+      try {
+        const resp = await axios.get(`/oil-accounts`, {
+          params: {
+            page: p,
+            perPage: pp,
+            search: this.Search || '',
+            year: this.year ?? undefined,
+            month: this.month ?? undefined,
+          },
+        });
+
+        this.OilAccounts = resp?.data?.data ?? [];
+        this.totalItems = resp?.data?.meta?.total ?? 0;
+
+        // ✅ if backend later returns summary here, we support it
+        if (resp?.data?.summary) {
+          this.summary = resp.data.summary;
+        }
+      } finally {
+        this.loading = false;
+      }
     },
+
     async FetchOilSummary() {
+      // Expect backend can accept year/month/search to make cards follow filters
       setContentType('application/json');
-      const resp = await axios.get(`/oil/summary`);
+
+      const resp = await axios.get(`/oil/summary`, {
+        params: {
+          search: this.Search || undefined,
+          year: this.year ?? undefined,
+          month: this.month ?? undefined,
+          from: this.from ?? undefined,
+          to: this.to ?? undefined,
+        },
+      });
+
       this.summary = resp?.data ?? {
         totalExpense: 0,
         totalIncome: 0,
@@ -79,6 +140,8 @@ export const useOilRepository = defineStore('OilRepository', {
         expenseCount: 0,
         incomeCount: 0,
         oilAccountsCount: 0,
+        filteredExpense: 0,
+        filteredIncome: 0,
       };
     },
 
@@ -108,17 +171,36 @@ export const useOilRepository = defineStore('OilRepository', {
     },
 
     // ------------------ INCOME (comes) ------------------
-    async FetchIncomeOils({ page, itemsPerPage }) {
+    async FetchIncomeOils({ page, itemsPerPage } = {}) {
       this.loading = true;
       setContentType('application/json');
-      const resp = await axios.get(
-        `/income-oils?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-          this.Search || ''
-        )}`
-      );
-      this.IncomeOils = resp?.data?.data ?? [];
-      this.totalItems = resp?.data?.meta?.total ?? 0;
-      this.loading = false;
+
+      const p = page ?? this.page;
+      const pp = itemsPerPage ?? this.itemsPerPage;
+
+      try {
+        const resp = await axios.get(`/income-oils`, {
+          params: {
+            page: p,
+            perPage: pp,
+            search: this.Search || '',
+            from: this.from ?? undefined,
+            to: this.to ?? undefined,
+            year: this.year ?? undefined,
+            month: this.month ?? undefined,
+          },
+        });
+
+        this.IncomeOils = resp?.data?.data ?? [];
+        this.totalItems = resp?.data?.meta?.total ?? 0;
+
+        // ✅ support summary if backend returns it
+        if (resp?.data?.summary) {
+          this.summary = resp.data.summary;
+        }
+      } finally {
+        this.loading = false;
+      }
     },
 
     async FetchIncomeOil(id) {
@@ -129,7 +211,7 @@ export const useOilRepository = defineStore('OilRepository', {
 
     async CreateIncomeOil(payload) {
       setContentType('application/json');
-      await axios.post(`/income-oils`, payload); // { oil_account_id, oil_quantity, source, note }
+      await axios.post(`/income-oils`, payload);
       this.createDialog = false;
       await this.FetchIncomeOils({ page: this.page, itemsPerPage: this.itemsPerPage });
     },
@@ -147,17 +229,34 @@ export const useOilRepository = defineStore('OilRepository', {
     },
 
     // ------------------ EXPENSE (goes) ------------------
-    async FetchExpenseOils({ page, itemsPerPage }) {
+    async FetchExpenseOils({ page, itemsPerPage } = {}) {
       this.loading = true;
       setContentType('application/json');
-      const resp = await axios.get(
-        `/expense-oils?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-          this.Search || ''
-        )}`
-      );
-      this.ExpenseOils = resp?.data?.data ?? [];
-      this.totalItems = resp?.data?.meta?.total ?? 0;
-      this.loading = false;
+
+      const p = page ?? this.page;
+      const pp = itemsPerPage ?? this.itemsPerPage;
+
+      try {
+        const resp = await axios.get(`/expense-oils`, {
+          params: {
+            page: p,
+            perPage: pp,
+            search: this.Search || '',
+            year: this.year ?? undefined,
+            month: this.month ?? undefined,
+          },
+        });
+
+        this.ExpenseOils = resp?.data?.data ?? [];
+        this.totalItems = resp?.data?.meta?.total ?? 0;
+
+        // ✅ support summary if backend returns it
+        if (resp?.data?.summary) {
+          this.summary = resp.data.summary;
+        }
+      } finally {
+        this.loading = false;
+      }
     },
 
     async FetchExpenseOil(id) {
@@ -168,7 +267,7 @@ export const useOilRepository = defineStore('OilRepository', {
 
     async CreateExpenseOil(payload) {
       setContentType('application/json');
-      await axios.post(`/expense-oils`, payload); // { oil_account_id, name, destination, oil_quantity, note }
+      await axios.post(`/expense-oils`, payload);
       this.createDialog = false;
       await this.FetchExpenseOils({ page: this.page, itemsPerPage: this.itemsPerPage });
     },

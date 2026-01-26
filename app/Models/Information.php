@@ -43,6 +43,7 @@ class Information extends Model
         'information_saved_date',
         'information_saved_hour',
         'information_degree',
+        'information_category',
         'trust_percentage',
 
         'tafseel',

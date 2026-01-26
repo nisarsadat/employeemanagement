@@ -136,6 +136,7 @@
                       {{ model.nick_name }}
                     </span>
                   </div>
+
                   <div class="info-row" v-if="model.office_employee_code">
                     <span class="info-label fontfamily">{{ t('کود نمبر کارمند') }}</span>
                     <span class="info-value fontfamily">
@@ -363,9 +364,10 @@
 
   const rawList = computed(() => toArray(repo.Resources || repo.resource));
 
+  // ✅ FIX #1: normalize id to String to avoid number/string mismatch
   const resourceItems = computed(() =>
     rawList.value.map((r) => ({
-      id: r.id,
+      id: String(r.id),
       display: r.code_number
         ? `${r.name || ''} — ${r.code_number}`
         : r.name || r.nick_name || r.tazkira || `#${r.id}`,
@@ -398,8 +400,8 @@
       // ✅ keep this (chip under image uses it)
       code_number: r.code_number || '',
 
-      // ✅ new: show this in the info section instead of resource code
-      office_employee_code: r.office_employee.code_number || r.employee_code || '',
+      // ✅ FIX #2: avoid crash if office_employee is null
+      office_employee_code: r.office_employee?.code_number || r.employee_code || '',
 
       activity: r.activity || '',
       phone: r.phone_number || '',
@@ -708,6 +710,7 @@
       margin-bottom: 10px;
     }
   }
+
   .fontfamily {
     font-family: var(--app-font) !important;
   }

@@ -229,16 +229,7 @@
                     :disabled="saving"
                   />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.masjid_district"
-                :label="t('ولسوالی مسجد')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('masjid_district')"
-                :error-messages="getErrorMessages('masjid_district')"
-              />
-            </v-col>
+           
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.masjid_village"

@@ -32,8 +32,8 @@
               <ProvinceDistrictNameSelect
                 v-model:province="form.province"
                 v-model:district="form.district"
-                :province-label="t('ولایت اصلی')"
-                :district-label="t('ولسوالی اصلی')"
+                :province-label="t('ولایت')"
+                :district-label="t('ولسوالی')"
                 :mdProvince="6"
                 :mdDistrict="6"
               />
@@ -203,7 +203,7 @@
                 :error-messages="getErrorMessages('now_activity')"
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -213,7 +213,7 @@
                 :error="hasError('Province_addr')"
                 :error-messages="getErrorMessages('Province_addr')"
               />
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <v-row>

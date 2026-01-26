@@ -131,7 +131,7 @@
                 :mdDistrict="6"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
                <FormatZoneAutocomplete
                     v-model="form.zone"
                     :label="t('زون')"
@@ -139,16 +139,7 @@
                   />
             </v-col>
 
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.district"
-                :label="t('ولسوالی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('district')"
-                :error-messages="getErrorMessages('district')"
-              />
-            </v-col>
+          
 
             <v-col cols="12" md="6">
               <v-text-field

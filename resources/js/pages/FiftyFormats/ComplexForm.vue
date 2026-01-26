@@ -199,16 +199,7 @@
                     :disabled="saving"
                   />
                 </v-col>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.district"
-                    :label="t('ولسوالی')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('district')"
-                    :error-messages="getErrorMessages('district')"
-                  />
-                </v-col>
+                
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.village"
@@ -261,7 +252,7 @@
                     :error-messages="getErrorMessages('coordinates')"
                   />
                 </v-col>
-                <v-col cols="12" md="4">
+                <!-- <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.Province_addr"
                     :label="t('ولایت مربوطه')"
@@ -270,7 +261,7 @@
                     :error="hasError('Province_addr')"
                     :error-messages="getErrorMessages('Province_addr')"
                   />
-                </v-col>
+                </v-col> -->
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model.number="form.guard_quantity"

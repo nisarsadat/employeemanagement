@@ -119,18 +119,7 @@
               />
             </v-col>
 
-            <!-- NOTE: you already have district select above; kept as-is (no extra logic change) -->
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.main_district"
-                :label="t('ولسوالی اصلی')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('main_district')"
-                :error-messages="getErrorMessages('main_district')"
-              />
-            </v-col>
-
+          
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.main_village"

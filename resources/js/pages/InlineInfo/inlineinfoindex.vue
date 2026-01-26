@@ -8,6 +8,12 @@
   <!-- 🟩 Parent Row -->
   <v-container fluid class="bg-bgproject split-wrapper">
     <v-row class="align-start">
+      <!-- 🟩 Right Section (Resource Info) -->
+      <v-col cols="12" md="4" lg="5" v-if="auth.can('inlineinfo.view')">
+        <div class="column-scroll">
+          <ResourceInfo />
+        </div>
+      </v-col>
       <!-- 🟦 Left Section (tabs + window) -->
       <v-col cols="12" md="8" lg="7" class="border-end">
         <div class="column-scroll">
@@ -15,8 +21,7 @@
             <v-tab color="primary" value="resource">
               {{ t('اطلاعات') }}
             </v-tab>
-            <v-tab color="primary" value="event">
-              {{ t('واقعات') }} </v-tab
+            <v-tab color="primary" value="event"> {{ t('واقعات') }} </v-tab
             ><v-tab color="primary" value="khayrat">
               {{ t('راپور خیریت') }}
             </v-tab>
@@ -33,13 +38,6 @@
               <khayratreport />
             </v-window-item>
           </v-window>
-        </div>
-      </v-col>
-
-      <!-- 🟩 Right Section (Resource Info) -->
-      <v-col cols="12" md="4" lg="5" v-if="auth.can('inlineinfo.view')">
-        <div class="column-scroll">
-          <ResourceInfo />
         </div>
       </v-col>
     </v-row>

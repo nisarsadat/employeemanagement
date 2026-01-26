@@ -24,6 +24,7 @@ class UpdateInformationRequest extends FormRequest
             'madani_halat' => ['sometimes','nullable','string'],
             'age' => ['sometimes','nullable','string'],
             'estijalyat_degree' => ['sometimes','nullable','string'],
+            'information_category' => ['sometimes','nullable','string'],
 
             'main_province'  => ['sometimes','nullable','string'],
             'main_districts' => ['sometimes','nullable','string'],

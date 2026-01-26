@@ -215,7 +215,7 @@
                 :error-messages="getErrorMessages('specific_place')"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.street_number"
                 :label="t('شماره سرک')"
@@ -225,7 +225,7 @@
                 :error-messages="getErrorMessages('street_number')"
               />
             </v-col>
-            <v-col cols="12" md="9">
+            <!-- <v-col cols="12" md="9">
               <v-text-field
                 v-model="form.home_number"
                 :label="t('شماره خانه')"
@@ -234,7 +234,7 @@
                 :error="hasError('home_number')"
                 :error-messages="getErrorMessages('home_number')"
               />
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <v-divider class="my-4" />

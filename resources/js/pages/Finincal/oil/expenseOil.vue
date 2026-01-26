@@ -1,7 +1,7 @@
-<!-- src/pages/Oil/ExpenseOils/ExpenseOilsIndex.vue (or your current file path) -->
+<!-- src/pages/Oil/ExpenseOils/ExpenseOilsIndex.vue -->
 <template>
   <v-container fluid class="pt-4" :dir="isRtl ? 'rtl' : 'ltr'">
-    <!-- ✅ TOP SUMMARY CARDS -->
+    <!-- ✅ TOP SUMMARY CARDS (Finance style - on every page) -->
     <v-row class="mb-4" dense :dir="isRtl ? 'rtl' : 'ltr'">
       <!-- Total Expenses -->
       <v-col cols="12" md="4">
@@ -58,7 +58,7 @@
       </v-col>
     </v-row>
 
-    <!-- Top Bar -->
+    <!-- ✅ Top Bar (Finance style: Search + Year + Month + Create) -->
     <v-row class="align-center mb-4" dense>
       <v-col cols="12" md="4">
         <v-text-field
@@ -72,8 +72,36 @@
           @click:clear="() => { repo.Search=''; applyFilters(); }"
         />
       </v-col>
-      <v-col cols="12" md="8" class="text-md-right">
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
+
+      <v-col cols="12" md="3">
+        <v-select
+          v-model="repo.year"
+          :items="repo.availableYears"
+          :label="t('کال')"
+          variant="outlined"
+          density="compact"
+          clearable
+          :loading="repo.yearsLoading"
+          @update:modelValue="applyFilters"
+        />
+      </v-col>
+
+      <v-col cols="12" md="3">
+        <v-select
+          v-model="repo.month"
+          :items="monthOptions"
+          item-title="title"
+          item-value="value"
+          :label="t('میاشت')"
+          variant="outlined"
+          density="compact"
+          clearable
+          @update:modelValue="applyFilters"
+        />
+      </v-col>
+
+      <v-col cols="12" md="2" class="text-md-right">
+        <v-btn color="primary" prepend-icon="mdi-plus" block @click="openCreate">
           {{ t('نوی د تيلو مصرف') }}
         </v-btn>
       </v-col>
@@ -163,29 +191,43 @@ const { t, locale } = useI18n()
 const { formatDisplay, toIso } = useCalendar()
 const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
 
+const monthOptions = computed(() => ([
+  { title: t('جنوري'), value: 1 },
+  { title: t('فبروري'), value: 2 },
+  { title: t('مارچ'), value: 3 },
+  { title: t('اپریل'), value: 4 },
+  { title: t('می'), value: 5 },
+  { title: t('جون'), value: 6 },
+  { title: t('جولای'), value: 7 },
+  { title: t('اګست'), value: 8 },
+  { title: t('سپتمبر'), value: 9 },
+  { title: t('اکتوبر'), value: 10 },
+  { title: t('نومبر'), value: 11 },
+  { title: t('ډسمبر'), value: 12 },
+]))
+
 function getRow(payload) {
   return payload?.raw ?? payload
 }
 
 const headersFT = computed(() => [
-  { title: t('نوعیت'), key: 'account', sortable: false },
+  { title: t('کود کارمند'), key: 'officeemployee', sortable: false },
   { title: t('نام'), key: 'name', sortable: false },
   { title: t('نام پدر'), key: 'father_name', sortable: false },
-  { title: t('کود کارمند'), key: 'officeemployee', sortable: false },
-  { title: t('پرداخت کننده'), key: 'payer', sortable: false },
-  { title: t('مقدار (L)'), key: 'liter_in_number', sortable: false },
   { title: t('نیټه'), key: 'date', sortable: false },
-  { title: t('یادونه'), key: 'note', sortable: false },
+  { title: t('لیټر په عدد'), key: 'liter_in_number', sortable: false },
+  { title: t('لیتر په حروفو'), key: 'liter_in_words', sortable: false },
+  { title: t('نوعیت'), key: 'account', sortable: false },
   { title: t('تفصیل'), key: 'tafseel', sortable: false },
+  { title: t('پرداخت کننده'), key: 'payer', sortable: false },
+  { title: t('د اخیستونکی لاسلیک'), key: 'sign', sortable: false },
+  { title: t('ملاحظات'), key: 'note', sortable: false },
 ])
 
-// map backend -> table rows (same concept as your Finances rowsFT)
 const rowsFT = computed(() => {
   return (repo.ExpenseOils || []).map((it, i) => ({
     ...it,
     index: i + 1,
-
-    // columns (safe display)
     account: it?.account?.name ?? it?.account ?? '—',
     name: it?.name ?? '—',
     father_name: it?.father_name ?? '—',
@@ -198,14 +240,12 @@ const rowsFT = computed(() => {
   }))
 })
 
-// keep empty like your pattern
 const filters = []
 const topGroups = []
 
 const dialog = ref(false)
 const editMode = ref(false)
 
-// delete dialog state
 const deleteDialog = ref(false)
 const deleteTarget = ref(null)
 
@@ -220,12 +260,7 @@ const draft = reactive({
 })
 
 const fetchAll = async () => {
-  await repo.FetchExpenseOils({
-    page: repo.page,
-    itemsPerPage: repo.itemsPerPage,
-    search: repo.Search,
-  })
-
+  await repo.FetchExpenseOils({ page: repo.page, itemsPerPage: repo.itemsPerPage })
   if (repo.FetchOilSummary) await repo.FetchOilSummary()
 }
 
@@ -289,7 +324,6 @@ const onSave = async (payload) => {
   await fetchAll()
 }
 
-// ✅ Delete dialog flow like FinancesIndex
 function openDeleteDialog(payload) {
   const row = getRow(payload)
   if (!row?.id) return
@@ -314,15 +348,16 @@ async function handleDeleteConfirmed(target) {
   }
 }
 
-// helpers (same output formatting you had)
 const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })
 const liters = (n) =>
   `${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} L`
+const litersRaw = (n) =>
+  Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
 
-// for table cell, already includes "L" in your cards, but here your column is "مقدار (L)"
-const litersRaw = (n) => Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
-
-onMounted(fetchAll)
+onMounted(async () => {
+  if (repo.FetchYears) await repo.FetchYears('expense-oils')
+  await fetchAll()
+})
 </script>
 
 <style scoped>

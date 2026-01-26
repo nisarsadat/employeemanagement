@@ -317,7 +317,7 @@
           </v-row>
 
           <!-- ولایت مربوطه -->
-          <v-row class="mt-2">
+          <!-- <v-row class="mt-2">
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
@@ -327,7 +327,7 @@
                 hide-details="auto"
               />
             </v-col>
-          </v-row>
+          </v-row> -->
 
           <!-- منبع -->
           <v-row class="mt-2">

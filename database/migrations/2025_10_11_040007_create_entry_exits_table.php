@@ -10,11 +10,8 @@ return new class extends Migration {
         Schema::create('entry_exits', function (Blueprint $table) {
             $table->id();
 
-            // required
-            $table->string('name');
-
             // from your picture (kept as-is)
-            $table->string('entry_way')->nullable();
+            $table->string('entry_way');
             $table->string('way_type')->nullable();
             $table->string('province')->nullable();
             $table->string('zone')->nullable();
@@ -38,7 +35,7 @@ return new class extends Migration {
             $table->text('notes')->nullable();
 
             // ✅ UNIQUE: name + village + way_type
-            $table->unique(['name', 'village', 'way_type'], 'entry_exits_name_village_type_unique');
+            $table->unique([ 'village', 'way_type'], 'entry_exits_name_village_type_unique');
 
             $table->timestamps();
         });

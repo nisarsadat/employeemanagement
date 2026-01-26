@@ -7,7 +7,6 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ موجود کلب') : t('ثبت یک ریکارډ جدید کلب در سیستم')
       "
     >
-     
     </AppBar>
 
     <!-- FORM -->
@@ -124,11 +123,7 @@
               />
             </v-col>
             <v-col cols="12" md="6">
-              <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون ')"
-                    :disabled="saving"
-                  />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون ')" :disabled="saving" />
             </v-col>
 
             <v-col cols="12" md="6">
@@ -210,7 +205,7 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-autocomplete
                 v-model="form.resource_code"
                 :items="resources"
@@ -224,7 +219,7 @@
                 @update:model-value="onResourceCodeChange"
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.resource_phone_number"
                 :label="t('شماره منبع')"
@@ -232,6 +227,15 @@
                 variant="outlined"
                 hide-details="auto"
                 readonly
+              />
+            </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.notes"
+                :label="t('ملاحظات')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
               />
             </v-col>
           </v-row>

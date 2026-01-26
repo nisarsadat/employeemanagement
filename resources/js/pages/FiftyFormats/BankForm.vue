@@ -125,10 +125,10 @@
               <v-row>
                 <v-col cols="12" md="12">
                   <ProvinceDistrictNameSelect
-                    v-model:province="form.main_province"
-                    v-model:district="form.main_district"
-                    :province-label="t('ولایت اصلی')"
-                    :district-label="t('ولسوالی اصلی')"
+                    v-model:province="form.province"
+                    v-model:district="form.district"
+                    :province-label="t('ولایت')"
+                    :district-label="t('ولسوالی')"
                     :mdProvince="6"
                     :mdDistrict="6"
                   />
@@ -187,6 +187,16 @@
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
+                v-model.number="form.which_offices_sallary"
+                type="number"
+                :label="t('د کومو ادارو معاشات تادیه کوی')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-text-field
                 v-model.number="form.guard_quantity"
                 type="number"
                 :label="t('تعداد محافظین')"
@@ -197,7 +207,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -206,7 +216,7 @@
                 :error="hasError('Province_addr')"
                 :error-messages="getErrorMessages('Province_addr')"
               />
-            </v-col>
+            </v-col> -->
 
             <!-- Resource -->
             <v-col cols="12" md="4">
@@ -391,6 +401,7 @@
     coordinates: '',
 
     guard_quantity: '',
+    which_offices_sallary: '',
     Province_addr: '',
     note: '',
 
@@ -444,6 +455,7 @@
     b.coordinates = x.coordinates ?? '';
 
     b.guard_quantity = x.guard_quantity ?? '';
+    b.which_offices_sallary = x.which_offices_sallary ?? '';
     b.Province_addr = x.Province_addr ?? '';
     b.note = x.note ?? '';
 

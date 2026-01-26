@@ -9,6 +9,7 @@
               <v-icon icon="mdi-information" class="mr-2" size="20" />
               <strong class="title-text">{{ titleText }}</strong>
             </div>
+
             <div class="header-actions">
               <v-btn
                 color="primary"
@@ -21,7 +22,6 @@
                 PDF
               </v-btn>
 
-              <!-- ✅ Word Download -->
               <v-btn
                 color="primary"
                 variant="text"
@@ -66,21 +66,16 @@
               <div>هیڅ معلومات نشته</div>
             </div>
 
-            <div v-else class="layout-container">
-              <!-- Column 1: Image -->
-              <div class="col-image" :style="{ '--image-w': imageWidth, '--image-h': imageHeight }">
-                <div v-if="showBodyImage" class="image-container">
-                  <div v-if="hasImage" class="image-wrapper">
+            <div v-else class="layout-container" :class="{ 'no-image': !shouldShowImage }">
+              <!-- Image (ONLY if real picture exists) -->
+              <div v-if="shouldShowImage" class="col-image" :style="{ '--image-w': imageWidth, '--image-h': imageHeight }">
+                <div class="image-container">
+                  <div class="image-wrapper">
                     <v-img :src="imageSrc" class="profile-image" cover>
                       <template #placeholder>
-                        <div class="image-placeholder">
-                          <v-icon icon="mdi-account" size="32" color="white" />
-                        </div>
+                        <div class="image-placeholder"></div>
                       </template>
                     </v-img>
-                  </div>
-                  <div v-else class="icon-placeholder">
-                    <v-icon icon="mdi-account" size="48" color="white" />
                   </div>
 
                   <!-- Name under image -->
@@ -91,12 +86,13 @@
                 </div>
               </div>
 
-              <!-- Columns 2-5: Fields in 4 columns grid -->
+              <!-- Fields -->
               <div class="col-fields">
                 <div v-if="fieldsToShow.length === 0" class="no-fields">
                   <v-icon icon="mdi-database-off" size="32" color="grey" />
                   <div>هیڅ فیلډونه نشته</div>
                 </div>
+
                 <div v-else class="fields-grid">
                   <div v-for="(f, idx) in fieldsToShow" :key="idx" class="field-item">
                     <div class="field-label">{{ f.title }}</div>
@@ -221,7 +217,19 @@ function getByPath(obj, path) {
     : obj[path];
 }
 
-const hasImage = computed(() => !!(props.imageKey && getByPath(props.item, props.imageKey)));
+function resolveImageUrl(src) {
+  if (!src) return null;
+  if (/^(blob:|data:|https?:\/\/)/i.test(src)) return src;
+  const base =
+    props.fileBaseUrl || import.meta.env.VITE_FILE_BASE_URL || import.meta.env.VITE_API_URL || '';
+  if (!base) return src;
+  return `${String(base).replace(/\/+$/, '')}/${String(src).replace(/^\/+/, '')}`;
+}
+
+const imageRaw = computed(() => (props.imageKey ? getByPath(props.item, props.imageKey) : null));
+const imageSrc = computed(() => resolveImageUrl(imageRaw.value));
+const hasImage = computed(() => !!imageRaw.value);
+const shouldShowImage = computed(() => !!(props.showBodyImage && hasImage.value && imageSrc.value));
 
 const titleText = computed(() => {
   if (props.title) return props.title;
@@ -241,17 +249,6 @@ const displayPosition = computed(() => {
   const position = getByPath(props.item, props.positionKey);
   return position != null && position !== '' ? String(position) : null;
 });
-
-function resolveImageUrl(src) {
-  if (!src) return null;
-  if (/^(blob:|data:|https?:\/\/)/i.test(src)) return src;
-  const base =
-    props.fileBaseUrl || import.meta.env.VITE_FILE_BASE_URL || import.meta.env.VITE_API_URL || '';
-  if (!base) return src;
-  return `${String(base).replace(/\/+$/, '')}/${String(src).replace(/^\/+/, '')}`;
-}
-
-const imageSrc = computed(() => resolveImageUrl(getByPath(props.item, props.imageKey)));
 
 /* dates everywhere */
 const ISO_STRICT = /^\d{4}-\d{2}-\d{2}$/;
@@ -334,7 +331,7 @@ const fieldsToShow = computed(() => {
     }));
 });
 
-/* ================= PDF Generation (Landscape) ================ */
+/* ================= PDF Generation (OLD STYLE: Landscape, 4 columns + image on RIGHT) ================ */
 async function b64(path) {
   try {
     const res = await fetch(path, { cache: 'no-cache' });
@@ -429,11 +426,11 @@ async function downloadPdf() {
     }
 
     const fullName = displayName.value || '';
-    const position = displayPosition.value;
+    const position = displayPosition.value || '';
 
-    const img = await imgB64(imageSrc.value);
+    // ✅ if no picture -> do NOT render image block at all
+    const img = shouldShowImage.value ? await imgB64(imageSrc.value) : null;
 
-    // ✅ Landscape layout like your sample (fields wide + image on the RIGHT)
     const tableRows = buildFourColumnBodyRows();
 
     const fieldsTable =
@@ -454,24 +451,32 @@ async function downloadPdf() {
           }
         : { text: 'هیڅ معلومات نشته', style: 'fieldValue', alignment: 'right' };
 
-    const imageBlock = {
-      width: 220,
-      stack: [
-        img
-          ? { image: img, fit: [220, 300], alignment: 'center', margin: [0, 0, 0, 10] }
-          : {
-              table: { widths: [220], body: [[{ text: '', fillColor: '#e9eef6', height: 300 }]] },
-              layout: 'noBorders',
-              margin: [0, 0, 0, 10],
-            },
-        { text: fullName, style: 'nameUnder', alignment: 'center', margin: [0, 0, 0, 2] },
-        position ? { text: position, style: 'posUnder', alignment: 'center' } : null,
-      ].filter(Boolean),
-    };
+    // ✅ image block only if img exists
+    const imageBlock = img
+      ? {
+          width: 220,
+          stack: [
+            { image: img, fit: [220, 300], alignment: 'center', margin: [0, 0, 0, 10] },
+            ...(fullName
+              ? [{ text: fullName, style: 'nameUnder', alignment: 'center', margin: [0, 0, 0, 2] }]
+              : []),
+            ...(position ? [{ text: position, style: 'posUnder', alignment: 'center' }] : []),
+          ],
+        }
+      : null;
+
+    const contentColumns = img
+      ? [
+          { width: '*', stack: [fieldsTable] }, // fields (wide)
+          { width: 220, stack: [imageBlock], margin: [12, 0, 0, 0] }, // image on right
+        ]
+      : [
+          { width: '*', stack: [fieldsTable] }, // ✅ only fields, no empty column
+        ];
 
     const doc = {
       pageSize: 'A4',
-      pageOrientation: 'landscape', // ✅ مهم
+      pageOrientation: 'landscape', // ✅ old style
       pageMargins: [18, 18, 18, 18],
       defaultStyle: {
         font: regular ? 'Amiri' : 'Roboto',
@@ -492,10 +497,7 @@ async function downloadPdf() {
         { text: `جزییات ${fullName}`, style: 'header', margin: [0, 0, 0, 12], alignment: 'right' },
 
         {
-          columns: [
-            { width: '*', stack: [fieldsTable] }, // fields (wide)
-            { width: 220, stack: [imageBlock], margin: [12, 0, 0, 0] }, // image on right
-          ],
+          columns: contentColumns,
           columnGap: 12,
           margin: [0, 0, 0, 10],
         },
@@ -504,7 +506,7 @@ async function downloadPdf() {
       ],
     };
 
-    const safeName = fullName.replace(/[^\w\u0600-\u06FF\-]+/g, '_');
+    const safeName = (fullName || 'detail').replace(/[^\w\u0600-\u06FF\-]+/g, '_');
     const fileName = `${safeName}_جزییات.pdf`;
     pdfMake.createPdf(doc).download(fileName);
   } catch (error) {
@@ -513,7 +515,8 @@ async function downloadPdf() {
   }
 }
 
-/* ================= Word Download (Landscape-like layout) ================ */
+
+/* ================= Word Download (unchanged, but also hides image if missing) ================ */
 function escapeHtml(s) {
   return String(s ?? '')
     .replace(/&/g, '&amp;')
@@ -532,7 +535,7 @@ async function downloadWord() {
   try {
     const fullName = displayName.value || '';
     const position = displayPosition.value || '';
-    const img = await imgB64(imageSrc.value);
+    const img = shouldShowImage.value ? await imgB64(imageSrc.value) : null;
 
     const fields = (fieldsToShow.value || []).map((f) => ({
       title: String(f.title || '').replace(/\u00A0/g, ' '),
@@ -546,11 +549,9 @@ async function downloadWord() {
         <tbody>
           ${rows
             .map((r) => {
-              // pad to 4
               const rr = [...r];
               while (rr.length < 4) rr.push({ title: '', value: '' });
 
-              // each cell: label + value
               return `<tr>
                 ${rr
                   .map(
@@ -598,11 +599,15 @@ async function downloadWord() {
           ${tableHtml}
           <div class="footer">شماره: ${escapeHtml(props.id)}</div>
         </td>
-        <td class="imgBox">
-          ${img ? `<img src="${img}" />` : `<div style="width:260px;height:360px;border:1px solid #ddd;border-radius:4px;background:#f2f4f8;"></div>`}
-          <div class="name">${escapeHtml(fullName)}</div>
-          ${position ? `<div class="pos">${escapeHtml(position)}</div>` : ''}
-        </td>
+        ${
+          img
+            ? `<td class="imgBox">
+                <img src="${img}" />
+                <div class="name">${escapeHtml(fullName)}</div>
+                ${position ? `<div class="pos">${escapeHtml(position)}</div>` : ''}
+              </td>`
+            : ''
+        }
       </tr>
     </table>
   </div>
@@ -610,11 +615,10 @@ async function downloadWord() {
 </html>
     `.trim();
 
-    // Word download
     const blob = new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' });
     const url = URL.createObjectURL(blob);
 
-    const safeName = fullName.replace(/[^\w\u0600-\u06FF\-]+/g, '_');
+    const safeName = (fullName || 'detail').replace(/[^\w\u0600-\u06FF\-]+/g, '_');
     const fileName = `${safeName}_جزییات.doc`;
 
     const a = document.createElement('a');
@@ -694,17 +698,7 @@ defineExpose({ open, close });
   font-size: 14px;
 }
 
-.no-data {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  color: #666;
-  text-align: center;
-  gap: 12px;
-}
-
+.no-data,
 .no-fields {
   display: flex;
   flex-direction: column;
@@ -716,12 +710,24 @@ defineExpose({ open, close });
   gap: 12px;
 }
 
-/* Layout: Image + 4 columns */
+/* Layout */
 .layout-container {
   display: grid;
   grid-template-columns: var(--image-w, 40vh) 1fr;
   gap: 16px;
   align-items: start;
+}
+
+/* ✅ If no image: show ONLY fields (no empty column, no placeholder) */
+.layout-container.no-image {
+  grid-template-columns: 1fr;
+}
+
+.col-fields {
+  grid-column: 2;
+}
+.layout-container.no-image .col-fields {
+  grid-column: 1;
 }
 
 /* Image column */
@@ -753,21 +759,7 @@ defineExpose({ open, close });
 .image-placeholder {
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: #f5f5f5;
-}
-
-.icon-placeholder {
-  width: var(--image-w, 40vh);
-  height: var(--image-h, 65vh);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #1976d2, #1565c0);
-  border-radius: 4px;
-  border: 1px solid #1565c0;
 }
 
 .image-name {
@@ -789,11 +781,7 @@ defineExpose({ open, close });
   font-weight: 500;
 }
 
-/* Fields column - 4 columns grid */
-.col-fields {
-  grid-column: 2;
-}
-
+/* Fields grid */
 .fields-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -842,74 +830,6 @@ defineExpose({ open, close });
   background: #f8f9fa;
 }
 
-/* ✅ Print styles (Landscape like sample) */
-@media print {
-  @page {
-    size: A4 landscape; /* ✅ مهم */
-    margin: 12mm;
-  }
-
-  .simple-panel {
-    border: none !important;
-    box-shadow: none !important;
-    break-inside: avoid;
-    direction: rtl !important;
-  }
-
-  .panel-header {
-    background: white !important;
-  }
-
-  .header-actions,
-  .panel-footer {
-    display: none !important;
-  }
-
-  /* ✅ Put image on RIGHT, fields on LEFT (like your sample) */
-  .layout-container {
-    grid-template-columns: 70% 30% !important;
-    gap: 12px !important;
-  }
-  .col-fields {
-    grid-column: 1 !important;
-  }
-  .col-image {
-    grid-column: 2 !important;
-  }
-
-  .image-wrapper,
-  .icon-placeholder {
-    width: 100% !important;
-    height: 260px !important;
-  }
-
-  .fields-grid {
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 8px 6px !important;
-  }
-
-  .field-item {
-    padding: 4px !important;
-    min-height: 40px !important;
-  }
-
-  .field-label {
-    font-size: 10px !important;
-  }
-
-  .field-value {
-    font-size: 11px !important;
-  }
-
-  .name-text {
-    font-size: 14px !important;
-  }
-
-  .position-text {
-    font-size: 12px !important;
-  }
-}
-
 /* Responsive */
 @media (max-width: 1400px) {
   .fields-grid {
@@ -921,9 +841,11 @@ defineExpose({ open, close });
   .layout-container {
     grid-template-columns: 30vh 1fr;
   }
+  .layout-container.no-image {
+    grid-template-columns: 1fr;
+  }
 
-  .image-wrapper,
-  .icon-placeholder {
+  .image-wrapper {
     width: 30vh;
     height: 50vh;
   }
@@ -943,8 +865,7 @@ defineExpose({ open, close });
     grid-column: 1;
   }
 
-  .image-wrapper,
-  .icon-placeholder {
+  .image-wrapper {
     width: 100%;
     max-width: 300px;
     height: 400px;
@@ -961,8 +882,7 @@ defineExpose({ open, close });
     gap: 16px;
   }
 
-  .image-wrapper,
-  .icon-placeholder {
+  .image-wrapper {
     height: 350px;
   }
 
@@ -1002,8 +922,7 @@ defineExpose({ open, close });
     padding: 12px;
   }
 
-  .image-wrapper,
-  .icon-placeholder {
+  .image-wrapper {
     height: 300px;
   }
 

@@ -541,6 +541,7 @@
 
   /* ===== Headers for FilterableTable ===== */
   const headersFT = computed(() => [
+    { title: t('آی ډی'), key: 'id' },
     { title: t('کود منبع'), key: 'resource_code_number' },
     { title: t('کود کارمند مربوطه'), key: 'office_employee_code_number' },
     { title: t('کود کارمند  اطلاع گیرنده'), key: 'office_employee_info_code_number' },
@@ -567,6 +568,7 @@
     { title: t('تاریخ اطلاع'), key: 'information_saved_date' },
     { title: t('ساعت اطلاع'), key: 'information_saved_hour' },
     { title: t('درجه موثقیت اطلاع'), key: 'information_degree' },
+    { title: t('د اطلاع کتګوري'), key: 'information_category' },
 
     // ✅ NEW: Hamahangi fields
     { title: t('تاریخ هم‌آهنگی'), key: 'hamahangi_date' },

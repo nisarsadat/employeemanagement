@@ -13,7 +13,6 @@ class EntryExitResource extends JsonResource
 
         return [
             'id'              => $this->id,
-            'name'            => $this->name,
 
             'entry_way'       => $this->entry_way,
             'way_type'        => $this->way_type,

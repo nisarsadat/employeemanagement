@@ -29,6 +29,7 @@ class StoreBankRequest extends FormRequest
             'village'        => ['nullable','string'],
             'specific_place' => ['nullable','string'],
             'coordinates'    => ['nullable','string'],
+            'which_offices_sallary'    => ['nullable','string'],
 
             'guard_quantity' => ['nullable','integer','min:0'],
             'note'           => ['nullable','string'],

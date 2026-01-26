@@ -65,7 +65,7 @@
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.market_name"
-                :label="t('نام بازار')"
+                :label="t('نام مارکیت')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('market_name')"
@@ -162,7 +162,7 @@
                 :error-messages="getErrorMessages('mashkok_type')"
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -171,7 +171,7 @@
                 :error="hasError('Province_addr')"
                 :error-messages="getErrorMessages('Province_addr')"
               />
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <v-divider class="my-4" />

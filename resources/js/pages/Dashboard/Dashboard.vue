@@ -17,7 +17,38 @@
 
   <div class="dashboard-container" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- App Bar -->
-    <AppBar :title="t('داشبورد')" :subtitle="t('خلاصه عملکرد سیستم')"> </AppBar>
+    <AppBar :title="t('داشبورد')" :subtitle="t('خلاصه عملکرد سیستم')">
+      <!-- Finance Period Toggle -->
+      <template #right>
+        <div class="d-flex align-center gap-2">
+          <span class="text-caption text-medium-emphasis mr-2">{{ t('دوره مالی:') }}</span>
+          <v-btn-toggle
+            v-model="financePeriod"
+            density="compact"
+            mandatory
+            rounded="lg"
+            class="finance-period-toggle"
+            @update:modelValue="onFinancePeriodChanged"
+          >
+            <v-btn value="daily" size="small">
+              {{ t('روزانه') }}
+            </v-btn>
+            <v-btn value="weekly" size="small">
+              {{ t('هفته‌وار') }}
+            </v-btn>
+            <v-btn value="monthly" size="small">
+              {{ t('ماهانه') }}
+            </v-btn>
+            <v-btn value="yearly" size="small">
+              {{ t('سالانه') }}
+            </v-btn>
+            <v-btn value="all" size="small">
+              {{ t('همه') }}
+            </v-btn>
+          </v-btn-toggle>
+        </div>
+      </template>
+    </AppBar>
 
     <!-- Error Alert -->
     <transition name="slide-down">
@@ -35,10 +66,10 @@
       />
     </transition>
 
-    <!-- Stats Cards Grid (2 rows / 3 cards each on lg+) -->
+    <!-- Stats Cards Grid -->
     <div class="stats-grid px-4 py-4">
       <v-row dense>
-        <!-- Employees -->
+        <!-- Employees Card -->
         <v-col cols="12" sm="3" md="2" lg="2">
           <v-card
             rounded="xl"
@@ -73,28 +104,18 @@
                 <div class="text-h3 font-weight-black">{{ employeesTotal.toLocaleString() }}</div>
               </div>
 
-              <div class="stat-bottom mx-4">
+              <!-- Job Type Chips -->
+              <div class="stat-bottom mx-4 mt-2">
                 <div class="d-flex flex-wrap gap-1">
                   <v-chip
+                    v-for="jobType in employeesJobTypes"
+                    :key="jobType.type"
                     size="x-small"
                     variant="tonal"
-                    color="success"
+                    :color="jobType.type === 'اداري' ? 'primary' : 'teal'"
                     class="clickable-chip"
-                    @click.stop="goActiveEmployees"
                   >
-                    <v-icon start size="14">mdi-check-circle</v-icon>
-                    {{ t('فعال') }}: {{ num(employeesActive) }}
-                  </v-chip>
-
-                  <v-chip
-                    size="x-small"
-                    variant="tonal"
-                    color="error"
-                    class="clickable-chip"
-                    @click.stop="goInactiveEmployees"
-                  >
-                    <v-icon start size="14">mdi-close-circle</v-icon>
-                    {{ t('غیرفعال') }}: {{ num(employeesInactive) }}
+                    {{ jobType.type }}: {{ num(jobType.count) }}
                   </v-chip>
                 </div>
               </div>
@@ -102,7 +123,7 @@
           </v-card>
         </v-col>
 
-        <!-- Resources -->
+        <!-- Resources Card -->
         <v-col cols="12" sm="3" md="2" lg="2">
           <v-card rounded="xl" class="stat-card" :disabled="repo.loading">
             <div class="stat-accent teal"></div>
@@ -172,7 +193,7 @@
           </v-card>
         </v-col>
 
-        <!-- Informations -->
+        <!-- Informations Card -->
         <v-col cols="12" sm="3" md="2" lg="2">
           <v-card
             rounded="xl"
@@ -185,7 +206,6 @@
             <div class="stat-accent indigo"></div>
 
             <v-card-text class="pa-3">
-              <!-- ✅ ADD THIS (icon like others) -->
               <div class="d-flex align-center justify-space-between mb-2">
                 <div class="card-icon-wrapper indigo">
                   <v-icon color="indigo" size="20">mdi-file-document-multiple</v-icon>
@@ -195,8 +215,6 @@
                   {{ t('اطلاعات') }}
                 </v-chip>
               </div>
-
-              <!-- existing content -->
 
               <div class="d-flex align-baseline justify-space-between">
                 <div class="text-h3 font-weight-black">
@@ -221,7 +239,7 @@
           </v-card>
         </v-col>
 
-        <!-- Events -->
+        <!-- Events Card -->
         <v-col cols="12" sm="3" md="2" lg="2">
           <v-card
             rounded="xl"
@@ -256,18 +274,26 @@
                 </div>
               </div>
 
-              <!-- <div class="stat-bottom mt-2 d-flex align-center justify-space-between">
-            <div class="d-flex align-center gap-1">
-              <div class="dot success"></div>
-              <span class="text-caption">{{ t('فعال') }}</span>
-            </div>
-            <div class="text-caption text-medium-emphasis">{{ t('جاری') }}</div>
-          </div> -->
+              <!-- Event Type Chips -->
+              <div class="stat-bottom mx-1 mt-5">
+                <div class="d-flex flex-wrap gap-1">
+                  <v-chip
+                    v-for="eventType in eventsByType"
+                    :key="eventType.type"
+                    size="x-small"
+                    variant="tonal"
+                    :color="getEventTypeColor(eventType.type)"
+                    class="clickable-chip"
+                  >
+                    {{ eventType.type }}: {{ num(eventType.count) }}
+                  </v-chip>
+                </div>
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
 
-        <!-- Money Balance -->
+        <!-- Money Balance Card -->
         <v-col cols="12" sm="3" md="2" lg="2">
           <v-card
             rounded="xl"
@@ -323,7 +349,7 @@
           </v-card>
         </v-col>
 
-        <!-- Oil Balance -->
+        <!-- Oil Balance Card -->
         <v-col cols="12" sm="3" md="2" lg="2">
           <v-card
             rounded="xl"
@@ -394,7 +420,11 @@
                     <div>
                       <div class="text-h6 font-weight-black">{{ t('درجه‌بندی کارمندان') }}</div>
                       <div class="text-caption text-medium-emphasis">
-                        {{ t('بر اساس امتیاز (رویداد + منابع + اطلاعات)') }}
+                        {{
+                          tableMode === 'old'
+                            ? t('بر اساس امتیاز (رویداد + منابع + اطلاعات)')
+                            : t('بر اساس امتیاز (رویداد + منابع + اطلاعات + گزارش‌های خیرات)')
+                        }}
                       </div>
                     </div>
                   </div>
@@ -413,6 +443,23 @@
                 </div>
 
                 <div class="d-flex align-center flex-wrap gap-2">
+                  <!-- Table Mode Toggle -->
+                  <v-btn-toggle
+                    v-model="tableMode"
+                    density="compact"
+                    mandatory
+                    rounded="lg"
+                    class="table-mode-toggle"
+                    @update:modelValue="onTableModeChanged"
+                  >
+                    <v-btn value="old" size="small">
+                      {{ t('جدول قدیم') }}
+                    </v-btn>
+                    <v-btn value="new" size="small">
+                      {{ t('جدول جدید') }}
+                    </v-btn>
+                  </v-btn-toggle>
+
                   <v-text-field
                     v-model.trim="search"
                     density="compact"
@@ -539,6 +586,14 @@
                   </div>
                 </template>
 
+                <!-- Khayrat Reports (only in new mode) -->
+                <template v-if="tableMode === 'new'" #item.khayrat_reports_count="{ item }">
+                  <div class="metric-chip">
+                    <v-icon size="16" color="deep-orange">mdi-heart</v-icon>
+                    <span class="font-weight-bold">{{ num(item.khayrat_reports_count || 0) }}</span>
+                  </div>
+                </template>
+
                 <!-- Score -->
                 <template #item.score="{ item }">
                   <div class="score-cell">
@@ -636,82 +691,6 @@
             @zone-click="onZoneClick"
           />
         </v-col>
-        <!-- <v-col cols="12" lg="3">
-          <v-card rounded="xl" class="fancy-card" cols="12" lg="3">
-            <v-card-text class="pa-0">
-              <div class="zones-header pa-4">
-                <div class="d-flex align-center justify-space-between mb-2">
-                  <div class="d-flex align-center gap-2">
-                    <v-avatar size="34" class="bg-soft-primary">
-                      <v-icon color="primary">mdi-map-marker</v-icon>
-                    </v-avatar>
-                    <div>
-                      <div class="text-h6 font-weight-black">{{ t('آمار مناطق') }}</div>
-                      <div class="text-caption text-medium-emphasis">
-                        {{ t('بر اساس تعداد فرم') }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <v-chip size="small" variant="tonal" color="primary">
-                    {{ zones.length }} {{ t('منطقه') }}
-                  </v-chip>
-                </div>
-              </div>
-
-              <div class="zones-list pa-2">
-                <div
-                  v-for="(zone, index) in zonesTop"
-                  :key="`${zone.zone}-${index}`"
-                  class="zone-item pa-3"
-                  @click="viewZoneDetails(zone)"
-                >
-                  <div class="d-flex align-center gap-3">
-                    <div class="zone-rank">
-                      <div class="rank-number" :class="`rank-${index + 1}`">{{ index + 1 }}</div>
-                    </div>
-
-                    <div class="zone-info flex-grow-1">
-                      <div class="zone-name text-body-2 font-weight-bold mb-2">
-                        {{ zone.zone || t('نامشخص') }}
-                      </div>
-
-                      <v-progress-linear
-                        :model-value="getZonePercentage(zone.total)"
-                        height="7"
-                        rounded
-                        color="primary"
-                        bg-color="rgba(var(--v-theme-primary), 0.12)"
-                      />
-                    </div>
-
-                    <div class="zone-total text-body-2 font-weight-black">
-                      {{ num(zone.total) }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="zones-footer pa-3">
-                <div class="d-flex align-center justify-space-between">
-                  <div class="text-caption text-medium-emphasis">
-                    {{ t('نمایش') }} {{ zonesTop.length }} {{ t('از') }} {{ zones.length }}
-                  </div>
-
-                  <v-btn
-                    size="small"
-                    variant="text"
-                    color="primary"
-                    :to="{ name: 'yearlyfoulreports' }"
-                  >
-                    {{ t('مشاهده همه') }}
-                    <v-icon end size="16">mdi-arrow-left</v-icon>
-                  </v-btn>
-                </div>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col> -->
       </v-row>
     </div>
 
@@ -832,147 +811,225 @@
   import { useDashboardRepository } from '@/stores/DashboardRepository';
   import EmployeeDetailsDialog from './EmployeeDetailsDialog.vue';
   import ZoneFormatsDialog from './ZoneFormatsDialog.vue';
-  const zoneDialog = ref(false);
-  const selectedZone = ref(null);
-  const zoneDialogLoading = ref(false);
 
   const { t, locale } = useI18n();
   const { mobile } = useDisplay();
 
   const isRtl = computed(() => String(locale.value).toLowerCase().startsWith('fa'));
-
   const repo = useDashboardRepository();
 
   const search = ref('');
   const currentPage = ref(1);
   const itemsPerPage = 10;
-
   const sortKey = ref('score_desc');
-  const sortOptions = computed(() => [
-    { title: t('امتیاز (زیاد → کم)'), value: 'score_desc' },
-    { title: t('امتیاز (کم → زیاد)'), value: 'score_asc' },
-    { title: t('رویدادها (زیاد → کم)'), value: 'events_desc' },
-    { title: t('منابع (زیاد → کم)'), value: 'resources_desc' },
-    { title: t('اطلاعات (زیاد → کم)'), value: 'informations_desc' },
-    { title: t('نام (A → Z)'), value: 'name_asc' },
-  ]);
+  const tableMode = ref('old'); // 'old' or 'new'
+
+  const period = ref('yearly');
+  const financePeriod = ref('monthly'); // default finance period
+
   const employeeDialog = ref(false);
   const selectedEmployee = ref(null);
   const employeeDialogLoading = ref(false);
 
-  async function openEmployeeDialog(employee) {
-    // minimal data is already in table item
-    selectedEmployee.value = employee;
-    employeeDialog.value = true;
+  const zoneDialog = ref(false);
+  const selectedZone = ref(null);
+  const zoneDialogLoading = ref(false);
 
-    // OPTIONAL: if you have a repo method to fetch more details, use it:
-    // It will enrich the popup with full data (documents, more fields, etc.)
-    if (typeof repo.fetchEmployeeDetails === 'function') {
-      try {
-        employeeDialogLoading.value = true;
-        const full = await repo.fetchEmployeeDetails(employee.id);
-        selectedEmployee.value = full || employee;
-      } catch (_) {
-        // keep fallback
-        selectedEmployee.value = employee;
-      } finally {
-        employeeDialogLoading.value = false;
+  // Event type colors
+  function getEventTypeColor(type) {
+    const colors = {
+      سیاسي: 'blue',
+      جنایي: 'red',
+      الهی: 'green',
+      ترافیکي: 'orange',
+    };
+    return colors[type] || 'grey';
+  }
+
+  // Employee job types
+  const employeesJobTypes = computed(() => {
+    const types = repo.employees?.job_types || [];
+    // Ensure both types exist even with zero count
+    const defaultTypes = [
+      { type: 'اداري', count: 0 },
+      { type: 'اوپراتیفی', count: 0 },
+    ];
+
+    const result = [...defaultTypes];
+
+    types.forEach((item) => {
+      if (item.type === 'اداري' || item.type === 'اداری') {
+        result[0].count += item.count;
+      } else if (item.type === 'اوپراتیفی' || item.type === 'اوپراتیفي') {
+        result[1].count += item.count;
       }
-    }
-  }
+    });
 
-  function closeEmployeeDialog() {
-    employeeDialog.value = false;
-    // keep selectedEmployee for a smoother reopen, or reset after close:
-    // selectedEmployee.value = null;
-  }
+    return result.filter((t) => t.count > 0);
+  });
+
+  // Events by type
+  const eventsByType = computed(() => {
+    const types = repo.events?.types || [];
+    // Ensure all four types exist
+    const defaultTypes = [
+      { type: 'سیاسي', count: 0 },
+      { type: 'جنایي', count: 0 },
+      { type: 'الهی', count: 0 },
+      { type: 'ترافیکي', count: 0 },
+    ];
+
+    const result = [...defaultTypes];
+
+    types.forEach((item) => {
+      const index = result.findIndex((t) => t.type === item.type);
+      if (index !== -1) {
+        result[index].count = item.count;
+      }
+    });
+
+    return result.filter((t) => t.count > 0);
+  });
+
+  // Table sort options based on mode
+  const sortOptions = computed(() => {
+    const baseOptions = [
+      { title: t('امتیاز (زیاد → کم)'), value: 'score_desc' },
+      { title: t('امتیاز (کم → زیاد)'), value: 'score_asc' },
+      { title: t('رویدادها (زیاد → کم)'), value: 'events_desc' },
+      { title: t('منابع (زیاد → کم)'), value: 'resources_desc' },
+      { title: t('اطلاعات (زیاد → کم)'), value: 'informations_desc' },
+      { title: t('نام (A → Z)'), value: 'name_asc' },
+    ];
+
+    if (tableMode.value === 'new') {
+      return [...baseOptions, { title: t('خیرات (زیاد → کم)'), value: 'khayrat_desc' }];
+    }
+
+    return baseOptions;
+  });
+
+  // Employee headers based on mode
+  const employeeHeaders = computed(() => {
+    const baseHeaders = [
+      { title: t('رتبه'), key: 'rank', width: 90, sortable: false, align: 'center' },
+      { title: t('کارمند'), key: 'name', sortable: false },
+      { title: t('منابع'), key: 'resources_count', width: 110, sortable: false, align: 'center' },
+      {
+        title: t('اطلاعات'),
+        key: 'informations_count',
+        width: 110,
+        sortable: false,
+        align: 'center',
+      },
+      { title: t('رویدادها'), key: 'events_count', width: 110, sortable: false, align: 'center' },
+    ];
+
+    if (tableMode.value === 'new') {
+      baseHeaders.splice(5, 0, {
+        title: t('گزارش‌های خیرات'),
+        key: 'khayrat_reports_count',
+        width: 110,
+        sortable: false,
+        align: 'center',
+      });
+    }
+
+    baseHeaders.push(
+      { title: t('امتیاز'), key: 'score', width: 220, sortable: false, align: 'center' },
+      { title: t('عملیات'), key: 'actions', width: 70, sortable: false, align: 'center' }
+    );
+
+    return baseHeaders;
+  });
 
   onMounted(async () => {
-    if (!repo.dashboard) await repo.fetchDashboard({ period: period.value });
+    if (!repo.dashboard)
+      await repo.fetchDashboard({
+        period: period.value,
+        finance_period: financePeriod.value,
+      });
   });
 
   async function refreshData() {
-    await repo.fetchDashboard({ period: period.value });
+    await repo.fetchDashboard({
+      period: period.value,
+      finance_period: financePeriod.value,
+    });
+    currentPage.value = 1;
+  }
+
+  async function onPeriodChanged() {
+    currentPage.value = 1;
+    search.value = '';
+    await refreshData();
+  }
+
+  async function onFinancePeriodChanged() {
+    currentPage.value = 1;
+    search.value = '';
+    await refreshData();
+  }
+
+  function onTableModeChanged() {
+    currentPage.value = 1;
+    search.value = '';
+    // No need to fetch data, just switch between existing data
   }
 
   import { useRouter } from 'vue-router';
-
   const router = useRouter();
 
-  /** Small helper */
   function go(path, query = {}) {
     router.push({ path, query });
   }
 
-  /* ===========================
-   DASHBOARD CARD ROUTES
-=========================== */
-
-  // Employees list
   function goEmployees() {
     go('/app/officeemployee');
   }
+
   const employeesActive = computed(() => Number(repo.employees?.active ?? 0));
   const employeesInactive = computed(() => Number(repo.employees?.inactive ?? 0));
 
-  // Active / Inactive employees pages
   function goActiveEmployees() {
     go('/app/activeemployees');
   }
+
   function goInactiveEmployees() {
     go('/app/inactiveemployees');
   }
 
-  // Resources list (with optional filter)
   function goResources(status = null) {
     const query = status ? { status } : {};
     go('/app/resources', query);
   }
 
-  // Active / Inactive resources pages (you already have named routes, but path is safest)
   function goActiveResources() {
     go('/app/activeresource');
   }
+
   function goInactiveResources() {
     go('/app/inactiveresource');
   }
 
-  // Informations list
   function goInformations() {
     go('/app/informations');
   }
 
-  // Events list
   function goEvents() {
     go('/app/events');
   }
 
-  // Finance index (your route path is: 'finincalindex')
   function goFinance() {
     go('/app/finincalindex');
   }
 
-  // Oil page (⚠️ you DON'T have an oil route in router)
-  // If oil is inside finance, keep this:
   function goOil() {
-    go('/app/finincalindex', { tab: 'oil' }); // change tab key if you use a different one
+    go('/app/finincalindex', { tab: 'oil' });
   }
 
-  /* ===========================
-   TABLE / OTHER ROUTES
-=========================== */
-
-  // Employee details (⚠️ You must have this route, otherwise change it)
-  function viewEmployee(employee) {
-    // if you DO NOT have a route named employee-details, change to your real path
-    router.push({ name: 'employee-details', params: { id: employee.id } });
-  }
-
-  // Zones clicks
   function onZoneClick(zone) {
-    // zone might be { zone: 'X', total: n } or { name: 'X', value: n } depending on your chart
     const zName = zone?.zone || zone?.name;
-
     const found = zones.value.find((x) => String(x.zone) === String(zName));
     viewZoneDetails(found || { zone: zName, total: zone?.total ?? zone?.value ?? 0 });
   }
@@ -981,8 +1038,6 @@
     selectedZone.value = zone;
     zoneDialog.value = true;
 
-    // OPTIONAL: if you have an API to fetch full zone breakdown, use it
-    // Example: repo.fetchZoneDetails(zone.zone)
     if (typeof repo.fetchZoneDetails === 'function') {
       try {
         zoneDialogLoading.value = true;
@@ -1000,23 +1055,36 @@
     zoneDialog.value = false;
   }
 
+  async function openEmployeeDialog(employee) {
+    selectedEmployee.value = employee;
+    employeeDialog.value = true;
+
+    if (typeof repo.fetchEmployeeDetails === 'function') {
+      try {
+        employeeDialogLoading.value = true;
+        const full = await repo.fetchEmployeeDetails(employee.id);
+        selectedEmployee.value = full || employee;
+      } catch (_) {
+        selectedEmployee.value = employee;
+      } finally {
+        employeeDialogLoading.value = false;
+      }
+    }
+  }
+
+  function closeEmployeeDialog() {
+    employeeDialog.value = false;
+  }
+
   const readableError = computed(() => {
     const e = repo.error;
     if (!e) return '';
     return e?.response?.data?.message || e?.message || String(e);
   });
-  // fiters
-  const period = ref('monthly'); // default is ALL time
-
-  async function onPeriodChanged() {
-    currentPage.value = 1; // optional (good UX)
-    search.value = ''; // optional (if you want)
-    await repo.fetchDashboard({ period: period.value });
-  }
 
   /* ===========================
-Helpers
-=========================== */
+  Helpers
+  =========================== */
   function num(v) {
     const n = Number(v);
     return Number.isFinite(n) ? n.toLocaleString() : '0';
@@ -1051,8 +1119,8 @@ Helpers
   }
 
   /* ===========================
-Growth
-=========================== */
+  Growth
+  =========================== */
   const employeesGrowth = computed(() => {
     const growth = repo.dashboard?.growth?.employees;
     if (growth !== undefined) return growth;
@@ -1066,22 +1134,9 @@ Growth
     return 0;
   });
 
-  const informationsGrowth = computed(() => {
-    const growth = repo.dashboard?.growth?.informations;
-    if (growth !== undefined) return growth;
-
-    const trend = repo.informations?.trend;
-    if (trend?.current && trend?.previous) {
-      const prev = Number(trend.previous) || 0;
-      if (!prev) return 0;
-      return (((Number(trend.current) - prev) / prev) * 100).toFixed(1);
-    }
-    return 0;
-  });
-
   /* ===========================
-Stats
-=========================== */
+  Stats
+  =========================== */
   const employeesTotal = computed(() => repo.employees?.total ?? repo.employeesFlat?.length ?? 0);
 
   const resourcesTotal = computed(() => Number(repo.resources?.total ?? 0));
@@ -1090,9 +1145,7 @@ Stats
 
   const informationsTotal = computed(() => Number(repo.informations?.total ?? 0));
   const eventsTotal = computed(() => Number(repo.events?.total ?? 0));
-  /* ===========================
-Informations Types (NEW)
-=========================== */
+
   const infoJenayeeTypes = computed(() => {
     const arr = repo.informations?.jenayee_types;
     return Array.isArray(arr) ? arr : [];
@@ -1113,16 +1166,10 @@ Informations Types (NEW)
   }
 
   const infoCountSharOFasad = computed(() => findTypeCount(infoJenayeeTypes.value, ['شر او فساد']));
-
   const infoCountSaenBilFasad = computed(() =>
     findTypeCount(infoJenayeeTypes.value, ['ساعین بالفساد'])
   );
-
   const infoCountJasoosi = computed(() => findTypeCount(infoSyasiTypes.value, ['جاسوسی']));
-
-  const showInfoTypeChips = computed(
-    () => infoCountSharOFasad.value + infoCountSaenBilFasad.value + infoCountJasoosi.value > 0
-  );
 
   const resourcesActivePercentage = computed(() => {
     if (resourcesTotal.value === 0) return 0;
@@ -1142,28 +1189,45 @@ Informations Types (NEW)
   );
 
   /* ===========================
-Employees Logic
-=========================== */
+  Employees Logic
+  =========================== */
+  const baseEmployees = computed(() => {
+    // Use old or new data based on table mode
+    if (tableMode.value === 'new') {
+      const list = Array.isArray(repo.employees_new?.flat_sorted)
+        ? repo.employees_new.flat_sorted
+        : [];
+      return [...list].map((x) => ({
+        ...x,
+        score: Number(x.score || x.total || 0),
+      }));
+    } else {
+      const list = Array.isArray(repo.employees?.flat_sorted)
+        ? repo.employees.flat_sorted
+        : Array.isArray(repo.dashboard?.employees_flat)
+        ? repo.dashboard.employees_flat
+        : [];
+      return [...list].map((x) => ({
+        ...x,
+        score: Number(x.score || x.total || 0),
+      }));
+    }
+  });
+
   function employeeScoreNumber(item) {
     if (item?.score != null && Number.isFinite(Number(item.score))) return Number(item.score);
+
     const events = Number(item?.events_count) || 0;
     const resources = Number(item?.resources_count) || 0;
     const informations = Number(item?.informations_count) || 0;
+
+    if (tableMode.value === 'new') {
+      const khayrat = Number(item?.khayrat_reports_count) || 0;
+      return events + resources + informations + khayrat;
+    }
+
     return events + resources + informations;
   }
-
-  const baseEmployees = computed(() => {
-    const list = Array.isArray(repo.employees?.flat_sorted)
-      ? repo.employees.flat_sorted
-      : Array.isArray(repo.dashboard?.employees_flat)
-      ? repo.dashboard.employees_flat
-      : [];
-
-    return [...list].map((x) => ({
-      ...x,
-      score: employeeScoreNumber(x),
-    }));
-  });
 
   const filteredEmployees = computed(() => {
     const q = search.value?.trim()?.toLowerCase();
@@ -1180,6 +1244,7 @@ Employees Logic
     // sort
     const sorted = [...filtered].sort((a, b) => {
       const ak = sortKey.value;
+
       if (ak === 'score_desc') return employeeScoreNumber(b) - employeeScoreNumber(a);
       if (ak === 'score_asc') return employeeScoreNumber(a) - employeeScoreNumber(b);
 
@@ -1190,7 +1255,12 @@ Employees Logic
       if (ak === 'informations_desc')
         return (Number(b?.informations_count) || 0) - (Number(a?.informations_count) || 0);
 
+      if (tableMode.value === 'new' && ak === 'khayrat_desc') {
+        return (Number(b?.khayrat_reports_count) || 0) - (Number(a?.khayrat_reports_count) || 0);
+      }
+
       if (ak === 'name_asc') return String(a?.name || '').localeCompare(String(b?.name || ''));
+
       return 0;
     });
 
@@ -1225,22 +1295,6 @@ Employees Logic
 
   const getTopEmployeeName = computed(() => filteredEmployees.value[0]?.name || '—');
 
-  const employeeHeaders = computed(() => [
-    { title: t('رتبه'), key: 'rank', width: 90, sortable: false, align: 'center' },
-    { title: t('کارمند'), key: 'name', sortable: false },
-    { title: t('منابع'), key: 'resources_count', width: 110, sortable: false, align: 'center' },
-    {
-      title: t('اطلاعات'),
-      key: 'informations_count',
-      width: 110,
-      sortable: false,
-      align: 'center',
-    },
-    { title: t('رویدادها'), key: 'events_count', width: 110, sortable: false, align: 'center' },
-    { title: t('امتیاز'), key: 'score', width: 220, sortable: false, align: 'center' },
-    { title: t('عملیات'), key: 'actions', width: 70, sortable: false, align: 'center' },
-  ]);
-
   // Pagination for table
   const pageCount = computed(() =>
     Math.max(1, Math.ceil(filteredEmployees.value.length / itemsPerPage))
@@ -1256,13 +1310,14 @@ Employees Logic
     if (!filteredEmployees.value.length) return 0;
     return (Math.min(currentPage.value, pageCount.value) - 1) * itemsPerPage + 1;
   });
+
   const pageTo = computed(() =>
     Math.min(pageFrom.value + itemsPerPage - 1, filteredEmployees.value.length)
   );
 
   /* ===========================
-Formats By Zone Logic
-=========================== */
+  Formats By Zone Logic
+  =========================== */
   const zones = computed(() => {
     const z = repo.formats_by_zone?.zones;
     return Array.isArray(z) ? z : [];
@@ -1271,18 +1326,6 @@ Formats By Zone Logic
   const formatsTotal = computed(() =>
     zones.value.reduce((sum, z) => sum + Number(z?.total || 0), 0)
   );
-
-  const zonesTop = computed(() =>
-    zones.value.slice(0, mobile.value ? 5 : 8).map((zone) => ({
-      ...zone,
-      percentage: formatsTotal.value > 0 ? (Number(zone.total) / formatsTotal.value) * 100 : 0,
-    }))
-  );
-
-  function getZonePercentage(total) {
-    if (formatsTotal.value === 0) return 0;
-    return (Number(total) / formatsTotal.value) * 100;
-  }
 
   const formatsPieData = computed(() => {
     const list = zones.value
@@ -1323,6 +1366,18 @@ Formats By Zone Logic
 </script>
 
 <style scoped>
+  /* Add these styles for the new toggles */
+  .finance-period-toggle {
+    border: 1px solid rgba(var(--v-theme-primary), 0.2);
+    background: rgba(var(--v-theme-primary), 0.05);
+  }
+
+  .table-mode-toggle {
+    border: 1px solid rgba(var(--v-theme-primary), 0.2);
+    background: rgba(var(--v-theme-primary), 0.05);
+  }
+
+  /* Rest of the styles remain the same as your original... */
   .dashboard-container {
     min-height: 100vh;
     background: radial-gradient(
@@ -1476,10 +1531,6 @@ Formats By Zone Logic
   .activity-dot.active {
     background: rgba(var(--v-theme-primary), 1);
   }
-
-  /* .clickable-chip {
-    cursor: pointer;
-  } */
 
   /* Fancy cards */
   .fancy-card {
@@ -1639,83 +1690,131 @@ Formats By Zone Logic
     background: rgba(var(--v-theme-primary), 0.02);
   }
 
-  /* Zones */
-  .zones-header {
-    background: linear-gradient(
-      90deg,
-      rgba(var(--v-theme-primary), 0.06),
-      rgba(var(--v-theme-teal), 0.04)
-    );
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  }
-
-  .zones-list {
-    max-height: 340px;
-    overflow-y: auto;
-  }
-
-  .zone-item {
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.16s ease;
-    border: 1px solid transparent;
-  }
-
-  .zone-item:hover {
-    background: rgba(var(--v-theme-primary), 0.04);
-    border-color: rgba(var(--v-theme-primary), 0.12);
-  }
-
-  .rank-number {
-    width: 38px;
-    height: 38px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    background: rgba(var(--v-theme-primary), 0.1);
-    color: rgba(var(--v-theme-primary), 0.95);
-  }
-
-  .zones-footer {
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    background: rgba(var(--v-theme-primary), 0.02);
-  }
-
-  /* FAB */
-  .fab-refresh {
+  .fab-stack {
     position: fixed;
+    right: 24px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
     z-index: 100;
   }
 
-  /* Responsive */
-  @media (max-width: 960px) {
-    .search-field {
-      width: 220px;
-    }
-    .sort-field {
-      width: 190px;
-    }
+  /* Compact cards */
+  .stats-grid .stat-card {
+    min-height: 130px !important;
+    height: 130px !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
-  @media (max-width: 600px) {
-    .stats-grid .v-col {
-      padding: 6px !important;
-    }
-    .search-field,
-    .sort-field {
-      width: 100%;
-    }
-    .refresh-btn {
-      display: none;
-    }
-    .score-bar {
-      width: 90px;
-    }
+  .stats-grid .stat-card :deep(.v-card-text) {
+    padding: 10px 12px !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
-  /* Dark Mode */
+  .stats-grid .stat-card .card-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+  }
+
+  .stats-grid .stat-card .text-h3 {
+    font-size: 1.4rem !important;
+    line-height: 1.1 !important;
+    margin: 0 !important;
+  }
+
+  .stats-grid .stat-card .mb-4 {
+    margin-bottom: 6px !important;
+  }
+  .stats-grid .stat-card .mb-3 {
+    margin-bottom: 6px !important;
+  }
+  .stats-grid .stat-card .mb-2 {
+    margin-bottom: 4px !important;
+  }
+  .stats-grid .stat-card .mt-4 {
+    margin-top: 6px !important;
+  }
+  .stats-grid .stat-card .mt-3 {
+    margin-top: 6px !important;
+  }
+
+  .stats-grid .stat-card :deep(.v-chip) {
+    height: 22px !important;
+    padding: 0 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .stats-grid .stat-card :deep(.v-progress-linear) {
+    height: 5px !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* Scrollbar */
+  .table-scroll-wrap {
+    position: relative;
+  }
+
+  .table-scroll-wrap :deep(.v-data-table__wrapper),
+  .table-scroll-wrap :deep(.v-table__wrapper) {
+    overflow-y: auto !important;
+    scrollbar-gutter: stable;
+    padding-right: 2px;
+    scrollbar-width: none;
+    scrollbar-color: rgba(0, 0, 0, 0.28) transparent;
+  }
+
+  .table-scroll-wrap:hover :deep(.v-data-table__wrapper),
+  .table-scroll-wrap:hover :deep(.v-table__wrapper) {
+    scrollbar-width: thin;
+  }
+
+  .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar),
+  .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar) {
+    width: 0px;
+    height: 0px;
+  }
+
+  .table-scroll-wrap:hover :deep(.v-data-table__wrapper::-webkit-scrollbar),
+  .table-scroll-wrap:hover :deep(.v-table__wrapper::-webkit-scrollbar) {
+    width: 6px;
+    height: 6px;
+  }
+
+  .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar-track),
+  .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+
+  .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
+  .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
+    background: rgba(0, 0, 0, 0.22);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .table-scroll-wrap:hover :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
+  .table-scroll-wrap:hover :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
+    background: rgba(0, 0, 0, 0.32);
+  }
+
+  /* Dark mode */
+  :deep(.v-theme--dark) .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
+  :deep(.v-theme--dark) .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  :deep(.v-theme--dark)
+    .table-scroll-wrap:hover
+    :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
+  :deep(.v-theme--dark) .table-scroll-wrap:hover :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
+    background: rgba(255, 255, 255, 0.32);
+  }
+
   :deep(.v-theme--dark) .dashboard-container {
     background: radial-gradient(
         1200px 600px at 0% 0%,
@@ -1751,567 +1850,5 @@ Formats By Zone Logic
   :deep(.v-theme--dark) .metric-chip,
   :deep(.v-theme--dark) .mini-meta {
     background: rgba(255, 255, 255, 0.06);
-  }
-
-  :deep(.v-theme--dark) .zone-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-  }
-  /* ✅ Make stat cards shorter without touching logic */
-  .stat-card {
-    height: 100% !important; /* keep equal height in grid */
-  }
-
-  .stat-card :deep(.v-card-text) {
-    padding: 14px 16px !important; /* was pa-5 => too tall */
-  }
-
-  .stat-card .text-h3 {
-    font-size: 1.75rem !important; /* smaller number */
-    line-height: 1.2 !important;
-    margin: 0 !important;
-  }
-
-  .stat-card .mb-4 {
-    margin-bottom: 10px !important;
-  }
-  .stat-card .mt-4 {
-    margin-top: 10px !important;
-  }
-
-  /* make progress bars + chips slightly tighter */
-  .stat-card :deep(.v-progress-linear) {
-    margin-bottom: 10px !important;
-  }
-  .stat-card :deep(.v-chip) {
-    height: 24px !important;
-  }
-  /* 🔽 EXTRA compact stat cards */
-  .stat-card :deep(.v-card-text) {
-    padding: 10px 12px !important;
-  }
-
-  /* numbers smaller */
-  .stat-card .text-h3 {
-    font-size: 1.45rem !important;
-    line-height: 1.15 !important;
-  }
-
-  /* remove extra vertical spacing */
-  .stat-card .mb-4 {
-    margin-bottom: 6px !important;
-  }
-  .stat-card .mb-3 {
-    margin-bottom: 6px !important;
-  }
-  .stat-card .mt-4 {
-    margin-top: 6px !important;
-  }
-  .stat-card .mt-3 {
-    margin-top: 6px !important;
-  }
-
-  /* icons tighter */
-  .card-icon-wrapper {
-    width: 38px !important;
-    height: 38px !important;
-    border-radius: 10px !important;
-  }
-
-  /* chips & meta compact */
-  .stat-card :deep(.v-chip) {
-    height: 22px !important;
-    padding: 0 8px !important;
-    font-size: 0.7rem !important;
-  }
-
-  /* progress bars slimmer */
-  .stat-card :deep(.v-progress-linear) {
-    height: 5px !important;
-    margin-bottom: 6px !important;
-  }
-
-  /* mini meta pill */
-  .mini-meta {
-    padding: 4px 8px !important;
-    font-size: 0.7rem !important;
-  }
-  /* =========================================================
-   🔒 FORCE GLOBAL FONT — NO EXCEPTIONS
-   ========================================================= */
-
-  /* Root + browser */
-  html,
-  body,
-  #app {
-    font-family: var(--app-font) !important;
-  }
-
-  /* Vuetify root */
-  .v-application,
-  .v-application * {
-    font-family: var(--app-font) !important;
-  }
-
-  /* Inputs, buttons, labels */
-  input,
-  textarea,
-  select,
-  button,
-  .v-btn,
-  .v-field,
-  .v-field__input,
-  .v-field-label,
-  .v-label {
-    font-family: var(--app-font) !important;
-  }
-
-  /* Tables */
-  .v-data-table,
-  .v-data-table * {
-    font-family: var(--app-font) !important;
-  }
-
-  /* Chips, badges, alerts */
-  .v-chip,
-  .v-badge,
-  .v-alert,
-  .v-snackbar,
-  .v-tooltip,
-  .v-menu,
-  .v-list,
-  .v-list-item {
-    font-family: var(--app-font) !important;
-  }
-
-  /* Dialogs, cards, overlays */
-  .v-dialog,
-  .v-card,
-  .v-sheet,
-  .v-overlay,
-  .v-navigation-drawer,
-  .v-toolbar,
-  .v-app-bar {
-    font-family: var(--app-font) !important;
-  }
-
-  /* Pagination, tabs */
-  .v-pagination,
-  .v-tab,
-  .v-tabs,
-  .v-tabs-bar {
-    font-family: var(--app-font) !important;
-  }
-
-  /* Icons labels / helper text */
-  .v-icon,
-  .v-messages,
-  .v-messages__message,
-  .v-hint {
-    font-family: var(--app-font) !important;
-  }
-
-  /* Tailwind utility text (just in case) */
-  [class*='text-'],
-  [class*='font-'] {
-    font-family: var(--app-font) !important;
-  }
-  /* ===========================
-   ✅ EMPLOYEE TABLE HEADER (columns)
-   =========================== */
-
-  /* Light mode */
-  .cool-table :deep(.v-data-table__thead th),
-  .cool-table :deep(.v-table thead th) {
-    background-color: #f8fafc !important; /* very light, clean */
-    color: rgba(0, 0, 0, 0.82) !important;
-    font-weight: 800 !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-  }
-
-  /* remove primary accent shadow */
-  .cool-table :deep(.v-data-table__thead tr),
-  .cool-table :deep(.v-table thead tr) {
-    box-shadow: none !important;
-  }
-
-  /* Dark mode */
-  :deep(.v-theme--dark) .cool-table :deep(.v-data-table__thead th),
-  :deep(.v-theme--dark) .cool-table :deep(.v-table thead th) {
-    background-color: rgba(255, 255, 255, 0.06) !important;
-    color: rgba(255, 255, 255, 0.88) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-  }
-  /* ===========================
-   ✅ PERIOD TOGGLE (AppBar)
-   =========================== */
-  /* ===========================
- ✅ PERIOD TOGGLE (AppBar) — PREMIUM PILL
-=========================== */
-  .status-chip {
-    position: relative;
-    display: flex;
-    align-items: center;
-    padding: 0;
-    border-radius: 14px;
-    cursor: pointer;
-    overflow: hidden;
-    min-width: 120px;
-    height: 44px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    user-select: none;
-    border: 1.5px solid transparent;
-  }
-
-  .status-chip:hover {
-    transform: translateY(-2px) scale(1.05);
-  }
-
-  .status-chip:active {
-    transform: translateY(0) scale(0.98);
-  }
-
-  /* Glow effect */
-  .chip-glow {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 50% 0%, currentColor 0%, transparent 70%);
-    opacity: 0.15;
-    z-index: 0;
-  }
-
-  /* Active chip */
-  .active-chip {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--v-theme-success), 0.15),
-      rgba(var(--v-theme-success), 0.08)
-    );
-    border-color: rgba(var(--v-theme-success), 0.3);
-    box-shadow: 0 8px 20px rgba(var(--v-theme-success), 0.2), 0 4px 12px rgba(0, 0, 0, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  }
-
-  .active-chip:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--v-theme-success), 0.25),
-      rgba(var(--v-theme-success), 0.15)
-    );
-    border-color: rgba(var(--v-theme-success), 0.5);
-    box-shadow: 0 12px 28px rgba(var(--v-theme-success), 0.3), 0 6px 16px rgba(0, 0, 0, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  }
-
-  /* Inactive chip */
-  .inactive-chip {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--v-theme-error), 0.15),
-      rgba(var(--v-theme-error), 0.08)
-    );
-    border-color: rgba(var(--v-theme-error), 0.3);
-    box-shadow: 0 8px 20px rgba(var(--v-theme-error), 0.2), 0 4px 12px rgba(0, 0, 0, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  }
-
-  .inactive-chip:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--v-theme-error), 0.25),
-      rgba(var(--v-theme-error), 0.15)
-    );
-    border-color: rgba(var(--v-theme-error), 0.5);
-    box-shadow: 0 12px 28px rgba(var(--v-theme-error), 0.3), 0 6px 16px rgba(0, 0, 0, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  }
-
-  /* Chip content */
-  .chip-content {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0 16px;
-    position: relative;
-    z-index: 1;
-    flex: 1;
-  }
-
-  .chip-icon {
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-  }
-
-  .chip-text {
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.3px;
-  }
-
-  .chip-count {
-    margin-left: auto;
-    font-weight: 900;
-    font-size: 0.9rem;
-    background: rgba(0, 0, 0, 0.1);
-    padding: 4px 8px;
-    border-radius: 20px;
-    min-width: 36px;
-    text-align: center;
-    backdrop-filter: blur(10px);
-  }
-
-  .active-chip .chip-count {
-    background: rgba(var(--v-theme-success), 0.2);
-    color: rgba(var(--v-theme-success), 0.95);
-  }
-
-  .inactive-chip .chip-count {
-    background: rgba(var(--v-theme-error), 0.2);
-    color: rgba(var(--v-theme-error), 0.95);
-  }
-
-  /* Arrow indicator */
-  .chip-arrow {
-    padding: 0 12px;
-    opacity: 0.6;
-    transition: all 0.3s ease;
-  }
-
-  .status-chip:hover .chip-arrow {
-    opacity: 1;
-    transform: translateX(-2px);
-  }
-
-  /* View all button */
-  .view-all-btn {
-    border-radius: 12px !important;
-    height: 44px !important;
-    padding: 0 20px !important;
-    background: linear-gradient(
-      135deg,
-      rgba(var(--v-theme-teal), 0.1),
-      rgba(var(--v-theme-teal), 0.05)
-    ) !important;
-    border: 1.5px solid rgba(var(--v-theme-teal), 0.2) !important;
-    transition: all 0.3s ease !important;
-  }
-
-  .view-all-btn:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--v-theme-teal), 0.2),
-      rgba(var(--v-theme-teal), 0.1)
-    ) !important;
-    border-color: rgba(var(--v-theme-teal), 0.4) !important;
-    transform: translateY(-2px);
-  }
-
-  .btn-text {
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.3px;
-  }
-
-  .btn-icon {
-    transition: transform 0.3s ease;
-  }
-
-  .view-all-btn:hover .btn-icon {
-    transform: translateX(4px);
-  }
-
-  /* Loading state */
-  .status-chip.loading {
-    opacity: 0.7;
-    pointer-events: none;
-  }
-
-  .status-chip.loading .chip-content::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    animation: shimmer 1.5s infinite;
-  }
-
-  @keyframes shimmer {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(100%);
-    }
-  }
-
-  /* Dark mode adjustments */
-  :deep(.v-theme--dark) .active-chip {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--v-theme-success), 0.2),
-      rgba(var(--v-theme-success), 0.1)
-    );
-    border-color: rgba(var(--v-theme-success), 0.4);
-  }
-
-  :deep(.v-theme--dark) .inactive-chip {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--v-theme-error), 0.2),
-      rgba(var(--v-theme-error), 0.1)
-    );
-    border-color: rgba(var(--v-theme-error), 0.4);
-  }
-
-  :deep(.v-theme--dark) .chip-count {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  :deep(.v-theme--dark) .view-all-btn {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--v-theme-teal), 0.15),
-      rgba(var(--v-theme-teal), 0.08)
-    ) !important;
-    border-color: rgba(var(--v-theme-teal), 0.3) !important;
-  }
-  .fab-stack {
-    position: fixed;
-    right: 24px;
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    z-index: 100;
-  }
-  /* ====== COMPACT STAT CARDS (Dashboard) ====== */
-  .stats-grid .stat-card {
-    min-height: 130px !important; /* try 160-190 */
-    height: 130px !important; /* force equal short cards */
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  .stats-grid .stat-card :deep(.v-card-text) {
-    padding: 10px 12px !important; /* kills pa-5 */
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  .stats-grid .stat-card .card-icon-wrapper {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 10px !important;
-  }
-
-  .stats-grid .stat-card .text-h3 {
-    font-size: 1.4rem !important;
-    line-height: 1.1 !important;
-    margin: 0 !important;
-  }
-
-  /* tighten common spacings */
-  .stats-grid .stat-card .mb-4 {
-    margin-bottom: 6px !important;
-  }
-  .stats-grid .stat-card .mb-3 {
-    margin-bottom: 6px !important;
-  }
-  .stats-grid .stat-card .mb-2 {
-    margin-bottom: 4px !important;
-  }
-  .stats-grid .stat-card .mt-4 {
-    margin-top: 6px !important;
-  }
-  .stats-grid .stat-card .mt-3 {
-    margin-top: 6px !important;
-  }
-
-  /* compact chips */
-  .stats-grid .stat-card :deep(.v-chip) {
-    height: 22px !important;
-    padding: 0 8px !important;
-    font-size: 0.72rem !important;
-  }
-
-  /* progress bars slimmer */
-  .stats-grid .stat-card :deep(.v-progress-linear) {
-    height: 5px !important;
-    margin-bottom: 6px !important;
-  }
-
-  /* optional: push bottom actions down nicely */
-  .stats-grid .stat-card .clickable-chip {
-    margin-top: auto;
-  }
-  /* =========================================
-   ✅ EMPLOYEE TABLE SCROLLBAR (HOVER ONLY)
-   - hidden until hover
-   - thin + clean
-   ========================================= */
-  .table-scroll-wrap {
-    position: relative;
-  }
-
-  /* Target the real scroll container inside v-data-table */
-  .table-scroll-wrap :deep(.v-data-table__wrapper),
-  .table-scroll-wrap :deep(.v-table__wrapper) {
-    overflow-y: auto !important;
-    scrollbar-gutter: stable; /* prevents layout jump when scrollbar appears */
-    padding-right: 2px; /* tiny space so thumb doesn't overlap content */
-
-    /* Firefox */
-    scrollbar-width: none; /* hidden by default */
-    scrollbar-color: rgba(0, 0, 0, 0.28) transparent;
-  }
-
-  /* Show scrollbar only on hover */
-  .table-scroll-wrap:hover :deep(.v-data-table__wrapper),
-  .table-scroll-wrap:hover :deep(.v-table__wrapper) {
-    scrollbar-width: thin; /* Firefox */
-  }
-
-  /* Chrome / Edge / Safari */
-  .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar),
-  .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar) {
-    width: 0px; /* hidden by default */
-    height: 0px;
-  }
-
-  .table-scroll-wrap:hover :deep(.v-data-table__wrapper::-webkit-scrollbar),
-  .table-scroll-wrap:hover :deep(.v-table__wrapper::-webkit-scrollbar) {
-    width: 6px; /* thin */
-    height: 6px;
-  }
-
-  /* Track */
-  .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar-track),
-  .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar-track) {
-    background: transparent;
-  }
-
-  /* Thumb */
-  .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
-  .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
-    background: rgba(0, 0, 0, 0.22);
-    border-radius: 999px;
-    border: 2px solid transparent; /* makes it look slimmer */
-    background-clip: padding-box;
-  }
-
-  /* Thumb on hover (nicer) */
-  .table-scroll-wrap:hover :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
-  .table-scroll-wrap:hover :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
-    background: rgba(0, 0, 0, 0.32);
-  }
-
-  /* Dark mode */
-  :deep(.v-theme--dark) .table-scroll-wrap :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
-  :deep(.v-theme--dark) .table-scroll-wrap :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
-    background: rgba(255, 255, 255, 0.22);
-  }
-
-  :deep(.v-theme--dark)
-    .table-scroll-wrap:hover
-    :deep(.v-data-table__wrapper::-webkit-scrollbar-thumb),
-  :deep(.v-theme--dark) .table-scroll-wrap:hover :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
-    background: rgba(255, 255, 255, 0.32);
   }
 </style>

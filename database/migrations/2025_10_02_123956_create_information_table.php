@@ -28,6 +28,7 @@ return new class extends Migration {
             $table->string('job')->nullable();
             $table->string('madani_halat')->nullable();
             $table->string('estijalyat_degree')->nullable();
+            $table->string('information_category')->nullable();
 
             // ===============================
             // Main address

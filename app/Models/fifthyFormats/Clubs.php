@@ -16,6 +16,7 @@ class Clubs extends Model
         'province','zone','district','specific_place','cordinate',
         'am_students','pm_students',
         'Province_addr',
+        'notes',
         'resource_id',
     ];
 

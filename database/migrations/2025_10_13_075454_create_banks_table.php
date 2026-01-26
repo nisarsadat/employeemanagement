@@ -25,6 +25,7 @@ return new class extends Migration {
             $table->string('village')->nullable();
             $table->string('specific_place')->nullable();
             $table->string('coordinates')->nullable();
+            $table->string('which_offices_sallary')->nullable();
 
             $table->unsignedInteger('guard_quantity')->nullable();
 

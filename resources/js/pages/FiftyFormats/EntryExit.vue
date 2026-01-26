@@ -333,7 +333,7 @@
 
   /* TABLE HEADERS – list view */
   const headersFT = computed(() => [
-    { title: t('نام'), key: 'name' },
+    // { title: t('نام'), key: 'name' },
     { title: t('طریق ورود/خروج'), key: 'entry_way' },
     { title: t('نوعه طریق'), key: 'way_type' },
 

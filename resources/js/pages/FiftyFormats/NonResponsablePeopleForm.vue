@@ -352,7 +352,7 @@
             </v-col>
 
             <!-- Province addr + coordinates -->
-            <v-col cols="12" md="4">
+            <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -361,7 +361,7 @@
                 :error="hasError('Province_addr')"
                 :error-messages="getErrorMessages('Province_addr')"
               />
-            </v-col>
+            </v-col> -->
 
             <v-col cols="12" md="4">
               <v-text-field

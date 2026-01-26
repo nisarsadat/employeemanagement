@@ -64,7 +64,7 @@ app.use(router)
 app.use(vuetify)
 app.use(i18n)
 
-installUiDigitLocalizer(() => i18n.global.locale.value)
+// installUiDigitLocalizer(() => i18n.global.locale.value)
 
 app.use(Toast)
 app.use(VueApexCharts)

@@ -198,7 +198,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <!-- <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -207,7 +207,7 @@
                 :error="hasError('Province_addr')"
                 :error-messages="getErrorMessages('Province_addr')"
               />
-            </v-col>
+            </v-col> -->
 
             <!-- Resource -->
             <v-col cols="12" md="3">

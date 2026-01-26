@@ -390,6 +390,7 @@ const headersFT = computed(() => [
 
   { title: t('نام'), key: 'name' },
   { title: t('نام پدر'), key: 'father_name' },
+  { title: t('ش'), key: ('phone_number')},
 
   { title: t('ولایت اصلی'), key: 'main_province' },
   { title: t('ولسوالی اصلی'), key: 'main_district' },

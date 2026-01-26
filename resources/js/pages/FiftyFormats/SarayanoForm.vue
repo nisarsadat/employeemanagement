@@ -126,10 +126,10 @@
           <v-row>
             <v-col cols="12" md="12">
               <ProvinceDistrictNameSelect
-                v-model:province="form.now_province"
-                v-model:district="form.now_district"
-                :province-label="t('ولایت فعلی')"
-                :district-label="t('ولسوالی فعلی')"
+                v-model:province="form.province"
+                v-model:district="form.district"
+                :province-label="t('ولایت')"
+                :district-label="t('ولسوالی')"
                 :mdProvince="6"
                 :mdDistrict="6"
               />
@@ -138,7 +138,7 @@
             <v-col cols="12" md="3">
               <FormatZoneAutocomplete
                 v-model="form.zone"
-                :label="t('زون فعلی')"
+                :label="t('زون')"
                 :disabled="saving"
               />
             </v-col>

@@ -105,8 +105,17 @@
                 hide-details="auto"
               />
             </v-col>
-
             <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.phone_number"
+                :label="t('شماره تماس')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              />
+            </v-col>
+
+            <!-- <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.Province_addr"
                 :label="t('ولایت مربوطه')"
@@ -114,7 +123,7 @@
                 variant="outlined"
                 hide-details="auto"
               />
-            </v-col>
+            </v-col> -->
           </v-row>
 
           <!-- آدرس اصلی -->

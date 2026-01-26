@@ -25,7 +25,8 @@ class EntryExitController extends Controller
         $search = trim((string) $request->query('search', ''));
         $rid    = $request->query('resource_id');
 
-        $sortable = ['id', 'name', 'created_at', 'updated_at'];
+        // ❌ removed 'name' (column does not exist)
+        $sortable = ['id', 'created_at', 'updated_at'];
         $sortBy   = in_array($request->query('sort_by', 'created_at'), $sortable, true)
             ? $request->query('sort_by', 'created_at')
             : 'created_at';
@@ -39,8 +40,8 @@ class EntryExitController extends Controller
             ->with(['resource:id,name,code_number,phone_number'])
             ->when($search !== '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
-                    $x->where('name', 'like', "%{$search}%")
-                      ->orWhere('entry_way', 'like', "%{$search}%")
+                    // ❌ removed ->where('name', ...)
+                    $x->where('entry_way', 'like', "%{$search}%")
                       ->orWhere('way_type', 'like', "%{$search}%")
                       ->orWhere('province', 'like', "%{$search}%")
                       ->orWhere('district', 'like', "%{$search}%")
@@ -85,7 +86,8 @@ class EntryExitController extends Controller
                     module: 'داخل/خارج',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
-                    message: 'نوم: ' . ($entry_exit->name ?? ''),
+                    // ❌ removed name usage
+                    message: 'لار: ' . ($entry_exit->entry_way ?? ''),
                     routeName: 'entry-exits', // ⚠️ adjust to your real route name
                     routeParams: ['id' => $entry_exit->id],
                     level: 'success',
@@ -142,7 +144,8 @@ class EntryExitController extends Controller
                     module: 'داخل/خارج',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
-                    message: 'نوم: ' . ($entry_exit->name ?? ''),
+                    // ❌ removed name usage
+                    message: 'لار: ' . ($entry_exit->entry_way ?? ''),
                     routeName: 'entry-exits',
                     routeParams: ['id' => $entry_exit->id],
                     level: 'info',
@@ -171,7 +174,8 @@ class EntryExitController extends Controller
 
         return DB::transaction(function () use ($entry_exit, $user) {
 
-            $name = $entry_exit->name;
+            // ❌ removed name usage
+            $way = $entry_exit->entry_way;
             $entry_exit->delete();
 
             // 🔔 Notification: DELETED
@@ -180,7 +184,8 @@ class EntryExitController extends Controller
                 module: 'داخل/خارج',
                 action: 'deleted',
                 title: 'ریکارډ حذف شو',
-                message: 'نوم: ' . ($name ?? ''),
+                // ❌ removed name usage
+                message: 'لار: ' . ($way ?? ''),
                 routeName: null,
                 routeParams: ['entry-exits'],
                 level: 'warning',
