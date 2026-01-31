@@ -11,7 +11,6 @@ return new class extends Migration {
             $table->id();
 
             // Core block
-            $table->string('coordinates')->nullable();       // free text / GPS
             $table->string('picture')->nullable();       // free text / GPS
             $table->string('name')->nullable();
             $table->string('f_name')->nullable();
@@ -32,7 +31,10 @@ return new class extends Migration {
             $table->string('now_home_number')->nullable();
 
             // Misc
+            $table->string('hawza')->nullable();
+            $table->string('nahya')->nullable();
             $table->string('Guzar')->nullable();
+            $table->string('coordinates')->nullable();
             $table->string('place_tafseel')->nullable();
             $table->string('old_job')->nullable();
             $table->string('now_job')->nullable();

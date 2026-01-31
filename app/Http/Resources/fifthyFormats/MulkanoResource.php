@@ -33,6 +33,9 @@ class MulkanoResource extends JsonResource
             'street_number'       => $this->street_number,
             'home_number'         => $this->home_number,
             'guzar'               => $this->guzar,
+            'hawza'               => $this->hawza,
+            'nahya'               => $this->nahya,
+            'street'               => $this->street,
 
             'tafseel_sahi'        => $this->tafseel_sahi,
             'street_amount'       => $this->street_amount,

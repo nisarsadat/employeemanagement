@@ -13,6 +13,7 @@ class UpdateDeplomaticPlaceRequest extends FormRequest
         return [
             'deplomatic_place_name' => ['sometimes','nullable','string'],
             'activity_type'         => ['sometimes','nullable','string'],
+            'supplier_country'        => ['sometimes','nullable','string'],
             'activity_place'        => ['sometimes','nullable','string'],
 
             'enter_male_quantity'   => ['sometimes','nullable','integer'],

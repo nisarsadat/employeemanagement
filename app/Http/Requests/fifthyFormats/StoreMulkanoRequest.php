@@ -33,6 +33,9 @@ class StoreMulkanoRequest extends FormRequest
             'street_number' => ['nullable','string'],
             'home_number' => ['nullable','string'],
             'guzar' => ['nullable','string'],
+            'hawza' => ['nullable','string'],
+            'nahya' => ['nullable','string'],
+            'street' => ['nullable','string'],
 
             'tafseel_sahi' => ['nullable','string'],
             'street_amount' => ['nullable','string'],

@@ -17,6 +17,7 @@ class MashkokShops extends Model
         'village',
         'specific_place',
         'market_name',
+        'shop_number',
         'coordinates',
 
         'name',

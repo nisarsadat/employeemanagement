@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Checkpoint extends Model
 {
     protected $fillable = [
+        'check_point_place',
         'checkpoint_name','employee_quantity',
         'organ','create_reason',
         'officer_name','officer_f_name','officer_phone',

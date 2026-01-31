@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\FinanceResource;
 use App\Models\Account;
+use App\Models\Event;
 use App\Models\Finance;
-use App\Models\Income;
+use App\Models\Information;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -14,87 +15,24 @@ class FinanceController extends Controller
 {
     public function index(Request $request)
     {
-        // ✅ validate query filters
-        $request->validate([
-            'search' => ['nullable', 'string', 'max:255'],
-            'account_id' => ['nullable', 'integer', 'exists:accounts,id'],
-            'office_employee_id' => ['nullable', 'integer', 'exists:office_employees,id'],
-            'year'  => ['nullable', 'integer', 'min:2000', 'max:2100'],
-            'month' => ['nullable', 'integer', 'min:1', 'max:12'],
-        ]);
+        $perPage = (int) ($request->get('perPage', 10));
+        $search  = $request->get('search', '');
 
-        $search = $request->query('search');
-        $accountId = $request->integer('account_id');
-        $officeEmployeeId = $request->integer('office_employee_id');
-        $year  = $request->integer('year');
-        $month = $request->integer('month');
-
-        $query = Finance::query()
+        $q = Finance::query()
             ->with([
                 'resource:id,name,code_number,phone_number,nick_name',
                 'officeEmployee:id,name,code_number,phone_number',
                 'account:id,name,price',
+                'event:id,finance_status,finance_paid_at',
+                'information:id,finance_status,finance_paid_at',
             ])
-            ->search($search)
-            ->latest('id');
+            ->orderByDesc('id');
 
-        // ✅ filter by account/employee
-        if ($accountId) {
-            $query->where('account_id', $accountId);
-        }
-        if ($officeEmployeeId) {
-            $query->where('office_employee_id', $officeEmployeeId);
+        if ($search) {
+            $q->search($search);
         }
 
-        // ✅ filter by year/month on finance.date
-        if ($year) {
-            $query->whereYear('date', $year);
-        }
-        if ($month) {
-            $query->whereMonth('date', $month);
-        }
-
-        // ✅ ALWAYS RETURN ALL (NO paginate)
-        $rows = $query->get();
-
-        // =========================
-        // ✅ SUMMARY TOTALS
-        // =========================
-
-        // Total balance = current balances (normally not date-filtered)
-        $totalBalanceAllAccounts = (string) Account::query()->sum('price');
-
-        // Total income (filtered by year/month if provided)
-        $incomeQuery = Income::query();
-        // ⚠️ Change 'received_at' to your real income date column if different
-        if ($year) $incomeQuery->whereYear('received_at', $year);
-        if ($month) $incomeQuery->whereMonth('received_at', $month);
-        $totalIncomeAll = (string) $incomeQuery->sum('amount');
-
-        // Total outcome (filtered by year/month if provided)
-        $outcomeQuery = Finance::query();
-        if ($year) $outcomeQuery->whereYear('date', $year);
-        if ($month) $outcomeQuery->whereMonth('date', $month);
-        $totalOutcomeAll = (string) $outcomeQuery->sum('money_amount_number');
-
-        // Filtered outcome = apply same filters as list (search + account + employee + year + month)
-        $filteredOutcomeQuery = Finance::query()->search($search);
-
-        if ($accountId) $filteredOutcomeQuery->where('account_id', $accountId);
-        if ($officeEmployeeId) $filteredOutcomeQuery->where('office_employee_id', $officeEmployeeId);
-        if ($year) $filteredOutcomeQuery->whereYear('date', $year);
-        if ($month) $filteredOutcomeQuery->whereMonth('date', $month);
-
-        $filteredOutcome = (string) $filteredOutcomeQuery->sum('money_amount_number');
-
-        return FinanceResource::collection($rows)->additional([
-            'summary' => [
-                'total_balance_all_accounts' => $totalBalanceAllAccounts,
-                'total_income_all'           => $totalIncomeAll,
-                'total_outcome_all'          => $totalOutcomeAll,
-                'filtered_outcome'           => $filteredOutcome,
-            ],
-        ]);
+        return FinanceResource::collection($q->paginate($perPage));
     }
 
     public function show(Finance $finance)
@@ -103,6 +41,8 @@ class FinanceController extends Controller
             'resource:id,name,code_number,phone_number,nick_name',
             'officeEmployee:id,name,code_number,phone_number',
             'account:id,name,price',
+            'event:id,finance_status,finance_paid_at',
+            'information:id,finance_status,finance_paid_at',
         ]);
 
         return new FinanceResource($finance);
@@ -112,74 +52,110 @@ class FinanceController extends Controller
     {
         $data = $this->validatePayload($request);
 
-        $row = DB::transaction(function () use ($data) {
-            /** @var \App\Models\Account $account */
-            $account = Account::lockForUpdate()->findOrFail($data['account_id']);
+        // ✅ ensure one link exists
+        if (empty($data['event_id']) && empty($data['information_id'])) {
+            return response()->json([
+                'message' => 'event_id یا information_id باید انتخاب شي',
+                'errors' => [
+                    'event_id' => ['Select event or information'],
+                ],
+            ], 422);
+        }
 
-            // Subtract money (Outcome)
-            $amount = (float) $data['money_amount_number'];
-            $account->update(['price' => (float) $account->price - $amount]);
+        $finance = DB::transaction(function () use ($data) {
+            $finance = Finance::create($data);
 
-            return Finance::create($data);
+            // subtract from account
+            $this->applyAccountDelta(
+                (int) $data['account_id'],
+                -1 * (float) $data['money_amount_number']
+            );
+
+            // mark event/info paid (THIS fixes your "pending")
+            $this->markLinkedPaid($data);
+
+            return $finance;
         });
 
-        $row->load([
+        $finance->load([
             'resource:id,name,code_number,phone_number,nick_name',
             'officeEmployee:id,name,code_number,phone_number',
             'account:id,name,price',
+            'event:id,finance_status,finance_paid_at',
+            'information:id,finance_status,finance_paid_at',
         ]);
 
-        return new FinanceResource($row);
+        return new FinanceResource($finance);
     }
 
     public function update(Request $request, Finance $finance)
     {
         $data = $this->validatePayload($request);
 
-        $updated = DB::transaction(function () use ($data, $finance) {
-            // lock old account
-            $oldAccount = Account::lockForUpdate()->findOrFail($finance->account_id);
-            $newAccount = ($finance->account_id == $data['account_id'])
-                ? $oldAccount
-                : Account::lockForUpdate()->findOrFail($data['account_id']);
+        if (empty($data['event_id']) && empty($data['information_id'])) {
+            return response()->json([
+                'message' => 'event_id یا information_id باید انتخاب شي',
+                'errors' => [
+                    'event_id' => ['Select event or information'],
+                ],
+            ], 422);
+        }
 
-            $oldAmount = (float) $finance->money_amount_number;
-            $newAmount = (float) $data['money_amount_number'];
-
-            // revert old outcome
-            $oldAccount->update(['price' => (float) $oldAccount->price + $oldAmount]);
-
-            // apply new outcome
-            $newAccount->update(['price' => (float) $newAccount->price - $newAmount]);
+        DB::transaction(function () use ($finance, $data) {
+            $oldAccountId = (int) $finance->account_id;
+            $oldAmount    = (float) $finance->money_amount_number;
 
             $finance->update($data);
 
-            return $finance;
+            $newAccountId = (int) $finance->account_id;
+            $newAmount    = (float) $finance->money_amount_number;
+
+            if ($oldAccountId === $newAccountId) {
+                // balance = balance + old - new
+                $delta = $oldAmount - $newAmount;
+                if ($delta != 0.0) {
+                    $this->applyAccountDelta($newAccountId, $delta);
+                }
+            } else {
+                // return old amount to old account
+                $this->applyAccountDelta($oldAccountId, +1 * $oldAmount);
+                // subtract new amount from new account
+                $this->applyAccountDelta($newAccountId, -1 * $newAmount);
+            }
+
+            // mark linked paid
+            $this->markLinkedPaid($data);
         });
 
-        $updated->load([
+        $finance->refresh()->load([
             'resource:id,name,code_number,phone_number,nick_name',
             'officeEmployee:id,name,code_number,phone_number',
             'account:id,name,price',
+            'event:id,finance_status,finance_paid_at',
+            'information:id,finance_status,finance_paid_at',
         ]);
 
-        return new FinanceResource($updated);
+        return new FinanceResource($finance);
     }
 
     public function destroy(Finance $finance)
     {
         DB::transaction(function () use ($finance) {
-            $account = Account::lockForUpdate()->findOrFail($finance->account_id);
-
-            // revert outcome on delete
-            $amount = (float) $finance->money_amount_number;
-            $account->update(['price' => (float) $account->price + $amount]);
+            // return amount back to account
+            $this->applyAccountDelta(
+                (int) $finance->account_id,
+                +1 * (float) $finance->money_amount_number
+            );
 
             $finance->delete();
         });
 
-        return response()->json(['message' => 'Deleted successfully']);
+        return response()->json(['message' => 'Deleted'], 200);
     }
+
+    // =========================
+    // Helpers
+    // =========================
 
     private function validatePayload(Request $request): array
     {
@@ -188,30 +164,49 @@ class FinanceController extends Controller
             'resource_id'        => ['nullable', 'integer', 'exists:resources,id'],
             'account_id'         => ['required', 'integer', 'exists:accounts,id'],
 
-            'money_amount_number' => ['required', 'numeric', 'min:0'],
+            'event_id'           => ['nullable', 'integer', 'exists:events,id'],
+            'information_id'     => ['nullable', 'integer', 'exists:information,id'],
+
+            'money_amount_number' => ['required', 'numeric', 'gt:0'],
             'money_amount_words'  => ['nullable', 'string', 'max:500'],
 
-            'date' => ['nullable', 'date'],
-
-            'employee_phone' => ['nullable', 'string', 'max:50'],
-            'expense_result' => ['nullable', 'string', 'max:255'],
+            'date'            => ['nullable', 'date'],
+            'employee_phone'  => ['nullable', 'string', 'max:50'],
+            'expense_result'  => ['nullable', 'string', 'max:255'],
 
             'money_distributer' => ['nullable', 'string', 'max:255'],
-
-            'payer'    => ['nullable', 'string', 'max:255'],
-            'receiver' => ['nullable', 'string', 'max:255'],
+            'payer'            => ['nullable', 'string', 'max:255'],
+            'receiver'         => ['nullable', 'string', 'max:255'],
 
             'account_type' => ['nullable', 'string', 'max:120'],
             'notes'        => ['nullable', 'string'],
         ]);
     }
-    public function years()
+
+    private function applyAccountDelta(int $accountId, float $delta): void
     {
-        return Finance::query()
-            ->selectRaw('YEAR(date) as year')
-            ->whereNotNull('date')
-            ->distinct()
-            ->orderByDesc('year')
-            ->pluck('year');
+        $acc = Account::lockForUpdate()->findOrFail($accountId);
+        $acc->price = (float) $acc->price + $delta;
+        $acc->save();
+    }
+
+    private function markLinkedPaid(array $data): void
+    {
+        $now = now();
+
+        if (!empty($data['event_id'])) {
+            Event::where('id', $data['event_id'])->update([
+                'finance_status'  => 'paid',
+                'finance_paid_at' => $now,
+            ]);
+        }
+
+        // ✅ only works if Information table has these columns too
+        if (!empty($data['information_id'])) {
+            Information::where('id', $data['information_id'])->update([
+                'finance_status'  => 'paid',
+                'finance_paid_at' => $now,
+            ]);
+        }
     }
 }

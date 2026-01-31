@@ -10,6 +10,7 @@ return new class extends Migration {
         Schema::create('checkpoints', function (Blueprint $table) {
             $table->id();
 
+            $table->string('check_point_place')->nullable();
             $table->string('checkpoint_name')->nullable();
             $table->integer('employee_quantity')->nullable();
 

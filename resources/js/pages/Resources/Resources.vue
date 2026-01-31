@@ -586,7 +586,10 @@
     { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
     { title: t('شماره سرک'), key: 'now_street_number' },
     { title: t('شماره خانه'), key: 'now_home_number' },
-    { title: t('د تدارک محل'), key: 'tadarok_place' },
+    { title: t('د تدارک محل زون'), key: 'zone' },
+    { title: t('د تدارک محل حوزه'), key: 'hawza' },
+    { title: t('د تدارک محل مشخص ځای'), key: 'specefic_place' },
+    { title: t('مربوطه پروجکت'), key: 'project' },
 
     { title: t('وظیفه سابقه'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },

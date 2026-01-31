@@ -11,6 +11,7 @@ class UpdateCheckpointRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'check_point_place'   => ['sometimes','nullable','string'],
             'checkpoint_name'   => ['sometimes','nullable','string'],
             'employee_quantity' => ['sometimes','nullable','integer'],
 

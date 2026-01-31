@@ -53,6 +53,9 @@ class UpdateInformationRequest extends FormRequest
             'note'            => ['sometimes','nullable','string'],
             'docs_note'       => ['sometimes','nullable','string'],
             'result'            => ['sometimes','nullable','string'],
+            'message_to_finance'   => ['sometimes','nullable','string'],
+            'finance_status'   => ['sometimes','nullable','string'],
+            'finance_paid_at'   => ['sometimes','nullable','string'],
             'Province_addr' => ['nullable','string'],
 
             'documents'   => ['nullable','array'],

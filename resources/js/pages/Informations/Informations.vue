@@ -303,6 +303,19 @@
           <span v-else class="text-caption text-medium-emphasis"> — </span>
         </div>
       </template>
+      <!-- ✅ Finance status: Pashto chip -->
+      <template #cell-finance_status="{ row }">
+        <v-chip
+          size="small"
+          label
+          class="fontfamily"
+          :color="financeStatusColor(getRow(row).finance_status)"
+          variant="tonal"
+        >
+          <v-icon start size="14">mdi-cash-check</v-icon>
+          {{ financeStatusLabel(getRow(row).finance_status) }}
+        </v-chip>
+      </template>
 
       <!-- Actions column: 4 icons like OfficeEmployee (show/edit/download/delete) -->
       <template #actions="{ item }">
@@ -582,6 +595,8 @@
     { title: t('نتیجه'), key: 'result' },
     { title: t('ملاحظات'), key: 'note' },
     { title: t('نوت راجع به اسناد'), key: 'docs_note', width: 140 },
+    { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
+    { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
   ]);
 
   const topGroups = computed(() => [
@@ -623,6 +638,33 @@
       keys: ['tafseel', 'manager_comment', 'lead_drirection', 'note', 'result'],
     },
   ]);
+  // ✅ Finance status label (Pashto)
+  function financeStatusLabel(v) {
+    const s = String(v ?? '')
+      .trim()
+      .toLowerCase();
+
+    // handle common values from backend
+    if (s === 'paid' || s === 'پرداخت' || s === 'paid_finance') return 'پرداخت شوی';
+    if (s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid')
+      return 'ناپرداخت';
+
+    // empty / null
+    if (!s) return '—';
+
+    // fallback: show original
+    return v;
+  }
+
+  // ✅ Chip color by status (Vuetify uses color names)
+  function financeStatusColor(v) {
+    const s = String(v ?? '')
+      .trim()
+      .toLowerCase();
+    if (s === 'paid' || s === 'پرداخت' || s === 'paid_finance') return 'green';
+    if (s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid') return 'amber';
+    return 'grey';
+  }
 
   /* ===== Download helpers ===== */
   function hasDocuments(payload) {

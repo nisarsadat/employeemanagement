@@ -239,7 +239,19 @@
           :zoom="16"
         />
       </template>
-
+      <!-- ✅ Finance status: Pashto chip -->
+      <template #cell-finance_status="{ row }">
+        <v-chip
+          size="small"
+          label
+          class="fontfamily"
+          :color="financeStatusColor(getRow(row).finance_status)"
+          variant="tonal"
+        >
+          <v-icon start size="14">mdi-cash-check</v-icon>
+          {{ financeStatusLabel(getRow(row).finance_status) }}
+        </v-chip>
+      </template>
       <!-- ⚙️ ACTIONS -->
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
@@ -465,62 +477,91 @@
     }))
   );
 
- /* headers */
-const headersFT = computed(() => [
-  { title: t('آی ډی'), key: 'id' },
-  { title: t('منبع'), key: 'resource_display' },
-  { title: t('کارمند دفتر'), key: 'office_employee_display' },
-  { title: t('کود کارمند واقعه گیرنده'), key: 'office_employee_akhistonky_code' },
+  /* headers */
+  const headersFT = computed(() => [
+    { title: t('آی ډی'), key: 'id' },
+    { title: t('منبع'), key: 'resource_display' },
+    { title: t('کارمند دفتر'), key: 'office_employee_display' },
+    { title: t('کود کارمند واقعه گیرنده'), key: 'office_employee_akhistonky_code' },
 
-  { title: t('نوعیت واقعه'), key: 'event_type' },
-  { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
+    { title: t('نوعیت واقعه'), key: 'event_type' },
+    { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
 
-  { title: t('هدف کی بود؟/مکان بود؟'), key: 'target_person' },
-  { title: t('کی جرم را انجام داده؟'), key: 'criminal' },
+    { title: t('هدف کی بود؟/مکان بود؟'), key: 'target_person' },
+    { title: t('کی جرم را انجام داده؟'), key: 'criminal' },
 
-  { title: t('تاریخ واقعه'), key: 'event_date' },
-  { title: t('ساعت واقعه'), key: 'event_hour' },
+    { title: t('تاریخ واقعه'), key: 'event_date' },
+    { title: t('ساعت واقعه'), key: 'event_hour' },
 
-  { title: t('زون'), key: 'event_zone' },
-  { title: t('حوزه'), key: 'event_hawza' },
-  { title: t('محل مشخص'), key: 'event_specific_place' },
-  { title: t('کوردینات'), key: 'coordinates' },
+    { title: t('زون'), key: 'event_zone' },
+    { title: t('حوزه'), key: 'event_hawza' },
+    { title: t('محل مشخص'), key: 'event_specific_place' },
+    { title: t('کوردینات'), key: 'coordinates' },
 
-  // { title: t('تلفات جانی'), key: 'talafat_jani' },
-  { title: t('تلفات مالی'), key: 'talafat_mali' },
+    // { title: t('تلفات جانی'), key: 'talafat_jani' },
+    { title: t('تلفات مالی'), key: 'talafat_mali' },
 
-  // ✅ FIXED: these two were swapped in your snippet
-  { title: t('زخمی شده'), key: 'injured' },
-  { title: t('کشته شده'), key: 'killed' },
+    // ✅ FIXED: these two were swapped in your snippet
+    { title: t('زخمی شده'), key: 'injured' },
+    { title: t('کشته شده'), key: 'killed' },
 
-  { title: t('تفصیل'), key: 'tafseel' },
-  { title: t('همغږی'), key: 'organ' },
-  // { title: t('وضاحت'), key: 'talks' },
-  { title: t('ملاحظات'), key: 'note' },
-  { title: t('نوت راجع به اسناد'), key: 'docs_note' },
+    { title: t('تفصیل'), key: 'tafseel' },
+    { title: t('همغږی'), key: 'organ' },
+    // { title: t('وضاحت'), key: 'talks' },
+    { title: t('ملاحظات'), key: 'note' },
+    { title: t('نوت راجع به اسناد'), key: 'docs_note' },
+    { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
+    { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
 
-  // { title: t('ولایت مربوطه'), key: 'Province_addr' },
-  { title: t('نقشه'), key: 'map', sortable: false },
-]);
+    // { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    { title: t('نقشه'), key: 'map', sortable: false },
+  ]);
 
-const topGroups = computed(() => [
-  {
-    title: t('شناسه‌ها'),
-    // ✅ FIXED: group keys should match your header keys
-    keys: ['resource_display', 'office_employee_display', 'office_employee_akhistonky_code'],
-  },
-  { title: t('نوع واقعه'), keys: ['event_type', 'event_specific_type'] },
-  { title: t('هدف و عامل'), keys: ['target_person', 'criminal'] },
-  { title: t('زمان'), keys: ['event_date', 'event_hour'] },
-  {
-    title: t('مکان'),
-    keys: ['event_zone', 'event_hawza', 'event_specific_place', 'coordinates'],
-  },
-  // ✅ aligned with your headers (talafat_jani is commented out)
-  { title: t('تلفات'), keys: ['talafat_mali', 'injured', 'killed'] },
+  const topGroups = computed(() => [
+    {
+      title: t('شناسه‌ها'),
+      // ✅ FIXED: group keys should match your header keys
+      keys: ['resource_display', 'office_employee_display', 'office_employee_akhistonky_code'],
+    },
+    { title: t('نوع واقعه'), keys: ['event_type', 'event_specific_type'] },
+    { title: t('هدف و عامل'), keys: ['target_person', 'criminal'] },
+    { title: t('زمان'), keys: ['event_date', 'event_hour'] },
+    {
+      title: t('مکان'),
+      keys: ['event_zone', 'event_hawza', 'event_specific_place', 'coordinates'],
+    },
+    // ✅ aligned with your headers (talafat_jani is commented out)
+    { title: t('تلفات'), keys: ['talafat_mali', 'injured', 'killed'] },
 
-  { title: t('متن‌ها'), keys: ['tafseel', 'note', 'docs_note'] },
-]);
+    { title: t('متن‌ها'), keys: ['tafseel', 'note', 'docs_note'] },
+  ]);
+  // ✅ Finance status label (Pashto)
+  function financeStatusLabel(v) {
+    const s = String(v ?? '')
+      .trim()
+      .toLowerCase();
+
+    // handle common values from backend
+    if (s === 'paid' || s === 'پرداخت' || s === 'paid_finance') return 'پرداخت شوی';
+    if (s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid')
+      return 'ناپرداخت';
+
+    // empty / null
+    if (!s) return '—';
+
+    // fallback: show original
+    return v;
+  }
+
+  // ✅ Chip color by status (Vuetify uses color names)
+  function financeStatusColor(v) {
+    const s = String(v ?? '')
+      .trim()
+      .toLowerCase();
+    if (s === 'paid' || s === 'پرداخت' || s === 'paid_finance') return 'green';
+    if (s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid') return 'amber';
+    return 'grey';
+  }
 
   const filters = ref({});
 

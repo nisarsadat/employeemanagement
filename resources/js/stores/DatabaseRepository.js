@@ -76,6 +76,9 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     CaptiveDeliveries: reactive([]),
     CaptiveDelivery: reactive({}),
 
+    // // inside state()
+    financePrefill: null,
+
     // options
     activityOptions: ['فعال', 'غیر فعال'],
     halatMadaniOptions: ['مجرد', 'متاهل'],
@@ -189,6 +192,14 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       const m = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
       return `${y}-${m}-${day}`;
+    },
+
+    //
+    setFinancePrefill(payload) {
+      this.financePrefill = payload || null;
+    },
+    clearFinancePrefill() {
+      this.financePrefill = null;
     },
 
     // ---------------------- OfficeEmployee ----------------------

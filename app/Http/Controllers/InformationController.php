@@ -25,7 +25,9 @@ class InformationController extends Controller
         $search = trim((string) $request->query('search', ''));
 
         $q = Information::query()
-            ->with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents'])
+            ->with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents' , 
+            'finances',
+            ])
             ->when($search !== '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('name', 'like', "%{$search}%")
@@ -64,7 +66,9 @@ class InformationController extends Controller
                 }
             }
 
-            $info->load(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents']);
+            $info->load(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents' , 
+            'finances',
+            ]);
 
             // 🔔 Notification: CREATED
             NotificationService::record(
@@ -86,7 +90,9 @@ class InformationController extends Controller
     public function show($id)
     {
         // 🔹 Fetch by id + relations
-        $information = Information::with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents'])
+        $information = Information::with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents' , 
+            'finances',
+        ])
             ->findOrFail($id);
 
         return new InformationResource($information);
@@ -97,7 +103,10 @@ class InformationController extends Controller
         $user = $request->user(); // 🔔
 
         return DB::transaction(function () use ($request, $id, $user) {
-            $information = Information::with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents'])
+            $information = Information::with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents' , 
+            'finances',
+
+            ])
                 ->findOrFail($id);
 
             // 🧮 build changes BEFORE update
@@ -150,7 +159,9 @@ class InformationController extends Controller
                 }
             }
 
-            $information->load(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents']);
+            $information->load(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents' , 
+            'finances',
+            ]);
 
             // 🔔 Notification: UPDATED + changes
             NotificationService::record(

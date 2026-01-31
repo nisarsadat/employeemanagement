@@ -37,6 +37,10 @@ class EventResource extends JsonResource
             'talks' => $this->talks,
             'coordinates' => $this->coordinates,
             'note' => $this->note,
+            'message_to_finance' => $this->message_to_finance,
+            'finance_status' => $this->finance_status ?? 'pending',
+            'finance_paid_at' => optional($this->finance_paid_at)?->toISOString(),
+
             'docs_note' => $this->docs_note,
             'Province_addr' => $this->Province_addr,
 
@@ -52,6 +56,19 @@ class EventResource extends JsonResource
             'resource_code' => optional($this->resource)->code_number,
             'office_employee_code' => optional($this->officeEmployee)->code_number,
             'office_employee_akhistonky_code' => optional($this->akhistonkyEmployee)->code_number,
+            'finance_paid_amount' => $this->whenLoaded('finances', function () {
+                // sum of money_amount_number (cast to float)
+                return (float) $this->finances->sum(function ($f) {
+                    return (float) ($f->money_amount_number ?? 0);
+                });
+            }),
+
+            'finance_paid_amount_number' => $this->whenLoaded('finances', function () {
+                $sum = (float) $this->finances->sum(function ($f) {
+                    return (float) ($f->money_amount_number ?? 0);
+                });
+                return number_format($sum, 2, '.', '');
+            }),
 
             'documents' => $this->whenLoaded('documents', function () {
                 return $this->documents->map(function ($doc) {

@@ -134,7 +134,7 @@
                 <span class="section-title">{{ t('مسؤول کمپلکس') }}</span>
               </div>
               <v-row>
-                <v-col cols="12" md="3">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.responsible_name"
                     :label="t('مسؤول')"
@@ -142,6 +142,14 @@
                     density="compact"
                     :error="hasError('responsible_name')"
                     :error-messages="getErrorMessages('responsible_name')"
+                  />
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.responsible_job"
+                    :label="t('د مسؤول موقف')"
+                    variant="outlined"
+                    density="compact"
                   />
                 </v-col>
                 <v-col cols="12" md="3">
@@ -199,7 +207,7 @@
                     :disabled="saving"
                   />
                 </v-col>
-                
+
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.village"
@@ -470,6 +478,7 @@
 
     // responsible
     responsible_name: '',
+    responsible_job: '',
     responsible_f_name: '',
     responsible_phone: '',
     responsible_country: '',
@@ -535,6 +544,7 @@
     b.outer_femal_quantity = x.outer_femal_quantity ?? '';
 
     b.responsible_name = x.responsible_name ?? '';
+    b.responsible_job = x.responsible_job ?? '';
     b.responsible_f_name = x.responsible_f_name ?? '';
     b.responsible_phone = x.responsible_phone ?? '';
     b.responsible_country = x.responsible_country ?? '';
@@ -638,6 +648,7 @@
       { label: t('خروج اناث'), value: v(form.value.outer_femal_quantity) },
 
       { label: t('مسؤول'), value: v(form.value.responsible_name) },
+      { label: t('مسؤول موقف'), value: v(form.value.responsible_job) },
       { label: t('نام پدر مسؤول'), value: v(form.value.responsible_f_name) },
       { label: t('شماره تماس مسؤول'), value: v(form.value.responsible_phone) },
       { label: t('کشور مسؤول'), value: v(form.value.responsible_country) },

@@ -224,10 +224,35 @@
           </v-row>
 
           <v-row class="mt-1">
-            <v-col cols="12" md="12">
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.hawza"
+                :label="t('حوزه')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              /> </v-col
+            ><v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.nahya"
+                :label="t('ناحیه')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              /> </v-col
+            ><v-col cols="12" md="4">
               <v-text-field
                 v-model="form.guzar"
                 :label="t('گذر')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.street"
+                :label="t('کوڅه')"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
@@ -532,6 +557,9 @@
     street_number: '',
     home_number: '',
     guzar: '',
+    nahya: '',
+    hawza: '',
+    street: '',
 
     tafseel_sahi: '',
     street_amount: '',
@@ -660,6 +688,9 @@
       street_number: '',
       home_number: '',
       guzar: '',
+      hawza: '',
+      nahya: '',
+      street: '',
 
       tafseel_sahi: '',
       street_amount: '',
@@ -712,6 +743,9 @@
       street_number: x.street_number ?? '',
       home_number: x.home_number ?? '',
       guzar: x.guzar ?? '',
+      hawza: x.hawza ?? '',
+      nahya: x.nahya ?? '',
+      street: x.street ?? '',
 
       tafseel_sahi: x.tafseel_sahi ?? '',
       street_amount: x.street_amount ?? '',
@@ -849,7 +883,10 @@
       [t('موقعیت مشخص'), form.value.specific_place],
       [t('سرک نمبر'), form.value.street_number],
       [t('نمبر خانه'), form.value.home_number],
+      [t('حوزه'), form.value.hawza],
+      [t('ناحیه'), form.value.nahya],
       [t('گذر'), form.value.guzar],
+      [t('کوڅه'), form.value.street],
 
       [t('مقدار سرک'), form.value.street_amount],
       [t('تعداد عامل'), form.value.agent_quantity],

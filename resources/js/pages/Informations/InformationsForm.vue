@@ -173,7 +173,6 @@
                   density="compact"
                   variant="outlined"
                   clearable
-                  :rules="[rules.selectRequired(t('کود منبع'))]"
                   :error="hasError('resource_id')"
                   :error-messages="getErrorMessages('resource_id')"
                 />
@@ -582,6 +581,14 @@
                   variant="outlined"
                 />
               </v-col>
+               <v-col cols="12" md="12">
+                <v-text-field
+                  v-model="form.message_to_finance"
+                  :label="t('مسج مالی بخش ته ')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
             </v-row>
           </v-sheet>
           <!-- HAMAHANGI SECTION -->
@@ -880,6 +887,7 @@
     note: '',
     docs_note: '',
     result: '',
+    message_to_finance: '',
 
     existingDocs: [],
     _newDocs: [],
@@ -1001,6 +1009,7 @@
     base.note = x.note ?? '';
     base.docs_note = x.docs_note ?? '';
     base.result = x.result ?? '';
+    base.message_to_finance = x.message_to_finance ?? '';
 
     base.existingDocs = Array.isArray(x.documents) ? x.documents : [];
 

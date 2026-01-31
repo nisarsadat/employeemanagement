@@ -21,6 +21,7 @@ class StoreMashkokHomesRequest extends FormRequest
             'home_number'    => ['nullable','string','max:255'],
             'coordinates'    => ['nullable','string','max:255'],
             'home_type'      => ['nullable','string','max:255'],
+            'mashkok_type'   => ['nullable','string','max:255'],
             'shak_symbols'   => ['nullable','string','max:255'],
             'note'           => ['nullable','string'],
             'Province_addr'             => ['nullable','string'],

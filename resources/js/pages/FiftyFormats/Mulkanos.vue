@@ -374,6 +374,9 @@ const headersFT = computed(() => [
   { title: t('موقعیت مشخص'), key: 'specific_place' },
   { title: t('سرک #'), key: 'street_number' },
   { title: t('خانه #'), key: 'home_number' },
+  { title: t('حوزه'), key: 'hawza' },
+  { title: t('ناحیه'), key: 'nahya' },
+  { title: t('کوڅه'), key: 'street' },
   { title: t('گذر'), key: 'guzar' },
 
   { title: t('تفسیر صحیح'), key: 'tafseel_sahi' },

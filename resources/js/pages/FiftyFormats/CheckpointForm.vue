@@ -32,6 +32,15 @@
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
+                v-model="form.check_point_place"
+                :label="t('موقعیت د چک‌پوینت *')"
+                variant="outlined"
+                density="compact"
+                :rules="[rules.required]"
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
                 v-model="form.checkpoint_name"
                 :label="t('نام چک‌پوینت *')"
                 variant="outlined"
@@ -41,7 +50,6 @@
                 :error-messages="getErrorMessages('checkpoint_name')"
               />
             </v-col>
-
             <v-col cols="12" md="4">
               <v-text-field
                 v-model.number="form.employee_quantity"
@@ -362,6 +370,7 @@
     id: null,
 
     // base
+    check_point_place: '',
     checkpoint_name: '',
     employee_quantity: '',
     organ: '',
@@ -418,6 +427,7 @@
 
     b.id = x.id ?? null;
 
+    b.check_point_place = x.check_point_place ?? '';
     b.checkpoint_name = x.checkpoint_name ?? '';
     b.employee_quantity = x.employee_quantity ?? '';
     b.organ = x.organ ?? '';
@@ -507,6 +517,7 @@
   }
   function exportRows() {
     return [
+      { label: t('موقعیت د چک‌پوینت'), value: v(form.value.check_point_place) },
       { label: t('نام چک‌پوینت'), value: v(form.value.checkpoint_name) },
       { label: t('تعداد کارمندان'), value: v(form.value.employee_quantity) },
       { label: t('ارگان مربوط'), value: v(form.value.organ) },

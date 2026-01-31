@@ -12,6 +12,7 @@ return new class extends Migration {
 
             $table->string('deplomatic_place_name')->nullable();
             $table->string('activity_type')->nullable();
+            $table->string('supplier_country')->nullable();
             $table->string('activity_place')->nullable();
 
             $table->integer('enter_male_quantity')->nullable();

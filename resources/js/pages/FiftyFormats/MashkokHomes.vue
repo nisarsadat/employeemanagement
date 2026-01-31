@@ -363,6 +363,7 @@
 
     { title: t('نوع خانه'), key: 'home_type' },
     { title: t('علایم شک'), key: 'shak_symbols' },
+    { title: t('مشکوکیت نوعیت'), key: 'mashkok_type' },
 
     { title: t('یادداشت'), key: 'note', width: 260 },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },

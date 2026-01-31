@@ -8,7 +8,6 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ مجاهد موجود') : t('ثبت یک ریکارډ مجاهد جدید در سیستم')
       "
     >
-      
     </AppBar>
 
     <!-- FORM -->
@@ -162,10 +161,10 @@
 
             <v-col cols="12" md="3">
               <FormatZoneAutocomplete
-                    v-model="form.now_zone"
-                    :label="t('زون فعلی')"
-                    :disabled="saving"
-                  />
+                v-model="form.now_zone"
+                :label="t('زون فعلی')"
+                :disabled="saving"
+              />
             </v-col>
 
             <v-col cols="12" md="3">
@@ -221,16 +220,25 @@
           </div>
           <v-row>
             <v-col cols="12" md="4">
-              <v-text-field
+              <v-select
                 v-model="form.duty_type"
-                :label="t('نوع وظیفه')"
+                :items="dudtytypeofthemujahid"
+                :label="t('نوع خدمت')"
                 variant="outlined"
                 density="compact"
+                clearable
                 :error="hasError('duty_type')"
                 :error-messages="getErrorMessages('duty_type')"
               />
             </v-col>
-
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.friends_quantity"
+                :label="t('تعداد دوستان')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_job"
@@ -425,6 +433,7 @@
     successMessage.value = message;
     showSuccess.value = true;
   }
+  const dudtytypeofthemujahid = computed(() => [t('محافظ مشر'), t('ډلګی مشر'), t('سرګروپ'), t('فرد')]);
 
   /* BACKEND ERRORS */
   const backendErrors = ref({});
@@ -502,6 +511,7 @@
     now_home_number: '',
 
     duty_type: '',
+    friends_quantity: '',
     now_job: '',
     organ: '',
     phone_number: '',
@@ -563,6 +573,7 @@
     b.now_home_number = x.now_home_number ?? '';
 
     b.duty_type = x.duty_type ?? '';
+    b.friends_quantity = x.friends_quantity ?? '';
     b.now_job = x.now_job ?? '';
     b.organ = x.organ ?? '';
     b.phone_number = x.phone_number ?? '';
@@ -680,7 +691,8 @@
       { label: t('شماره سرک فعلی'), value: v(form.value.now_street_number) },
       { label: t('شماره خانه فعلی'), value: v(form.value.now_home_number) },
 
-      { label: t('نوع وظیفه'), value: v(form.value.duty_type) },
+      { label: t('نوع خدمت'), value: v(form.value.duty_type) },
+      { label: t('تعداد دوستان'), value: v(form.value.friends_quantity) },
       { label: t('وظیفه فعلی'), value: v(form.value.now_job) },
       { label: t('اداره/ارگان'), value: v(form.value.organ) },
 

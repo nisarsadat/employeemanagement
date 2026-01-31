@@ -24,7 +24,8 @@ return new class extends Migration {
             $table->foreignId('account_id')
                 ->constrained('accounts')
                 ->cascadeOnDelete();
-
+            $table->foreignId('event_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('information_id')->nullable()->constrained()->nullOnDelete();
             // 💰 Money
             $table->decimal('money_amount_number', 14, 2)->default(0);
             $table->string('money_amount_words', 500)->nullable();

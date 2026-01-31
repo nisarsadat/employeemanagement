@@ -367,6 +367,7 @@ const headersFT = computed(() => [
   { title: t('خروج اناث'), key: 'outer_femal_quantity' },
 
   { title: t('مسؤول'), key: 'responsible_name' },
+  { title: t('مسؤول موقف'), key: 'responsible_job' },
   { title: t('نام پدر مسؤول'), key: 'responsible_f_name' },
   { title: t('شماره مسؤول'), key: 'responsible_phone' },
   { title: t('کشور مسؤول'), key: 'responsible_country' },

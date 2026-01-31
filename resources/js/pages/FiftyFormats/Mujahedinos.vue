@@ -407,7 +407,8 @@
     { title: t('شماره سرک فعلی'), key: 'now_street_number' },
     { title: t('شماره خانه فعلی'), key: 'now_home_number' },
 
-    { title: t('نوع وظیفه'), key: 'duty_type' },
+    { title: t('نوع خدمت'), key: 'duty_type' },
+    { title: t('تعداد دوستان'), key: 'friends_quantity' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
     { title: t('اداره/ارگان'), key: 'organ' },
 

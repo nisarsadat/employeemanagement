@@ -19,6 +19,9 @@ class Mulkano extends Model
         'agent_quantity','home_quantity','phone_number',
         'Province_addr',
         'coordinates',
+        'hawza',
+        'nahya',
+        'street',
         'jorm_history','tanzim','notes','resource_id',
     ];
 

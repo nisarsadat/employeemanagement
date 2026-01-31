@@ -394,7 +394,20 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
       .etype-purple{ background:#ede9fe; border-color:#ddd6fe; color:#5b21b6; }
       .etype-blue{ background:#dbeafe; border-color:#bfdbfe; color:#1e40af; }
       .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; color:#374151; }
-
+      .hero-logo{
+        display:flex;
+        align-items:center;
+        justify-content:flex-end;
+        padding:10px 12px;
+        border-radius:12px;
+        min-width: 150px;
+      }
+      .hero-logo img{
+        height:42px;
+        width:auto;
+        object-fit:contain;
+        display:block;
+      }
       .footer{
         margin-top:10px;
         padding:10px 12px;
@@ -453,7 +466,10 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
 
     const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
     const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
-
+    function getLogoUrl() {
+      // ✅ logo must be inside /public so it works in print window
+      return `${window.location.origin}/logo.png`;
+    }
     const infoTr = infoTypes.length
       ? infoTypes
           .map((x) => {
@@ -512,12 +528,11 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
             <div class="hero no-break">
               <div class="hero-top">
                 <div>
-                  <h1 class="hero-title">د سیستم عمومي راپور (ټول وخت)</h1>
+                  <h1 class="hero-title">د 333 عمومي راپور (ټول وخت)</h1>
                   <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو د ټول وخت عمومي کتنه</p>
                 </div>
-                <div class="hero-date">
-                  <div class="date-big">ټول وخت</div>
-                  <div class="date-small">${escapeHtml(headerIso)}</div>
+                <div class="hero-logo">
+                  <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
 
@@ -528,9 +543,9 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">سرچینې</div>
+                    <div class="stat-label">منابع</div>
                     <div class="stat-number">${resourcesTotal}</div>
-                    <span class="badge b-primary">ټول</span>
+                    <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
                   </div>
                 </div>
               </div>
@@ -538,7 +553,7 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">معلومات</div>
+                    <div class="stat-label">اطلاعات</div>
                     <div class="stat-number">${informationsTotal}</div>
                     <span class="badge b-info">شتون لري</span>
                   </div>
@@ -558,9 +573,8 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">۵۰ فارمت فورمونه</div>
+                    <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
                     <div class="stat-number">${formatsActive}</div>
-                    <span class="badge b-success">فعال</span>
                   </div>
                 </div>
               </div>
@@ -572,7 +586,7 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
                   <div class="header-strip bg-primary">
                     <div class="strip-left">
                       <div>
-                        <div class="strip-title">د معلوماتو ډولونه</div>
+                        <div class="strip-title"> اطلاعات</div>
                         <div class="strip-sub">د ډول له مخې وېش (ټول وخت)</div>
                       </div>
                     </div>
@@ -596,23 +610,11 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
                   <div class="header-strip bg-success">
                     <div class="strip-left">
                       <div>
-                        <div class="strip-title">فورمونه</div>
-                        <div class="strip-sub">د ۵۰ فارمت فورمونو لنډیز (ټول وخت)</div>
+                        <div class="strip-title">لیټري دوسیه</div>
+                        <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
                       </div>
                     </div>
                     <span class="chip chip-success">${formatsActive}</span>
-                  </div>
-
-                  <div style="padding:0;">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th style="width:70%;">د فورم نوم</th>
-                          <th class="td-end" style="width:30%;">ورودي</th>
-                        </tr>
-                      </thead>
-                      <tbody>${formatsTr}</tbody>
-                    </table>
                   </div>
                 </div>
               </div>
@@ -621,8 +623,8 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
                 <div class="header-strip bg-warning">
                   <div class="strip-left">
                     <div>
-                      <div class="strip-title">پېښې (د ډول له مخې)</div>
-                      <div class="strip-sub">د ټول وخت د پېښو وېش</div>
+                      <div class="strip-title">ثبت شوې پېښې</div>
+                      <div class="strip-sub">د سیمې له مخې د پېښو جزیات</div>
                     </div>
                   </div>
                   <span class="chip chip-warning">${eventsTotal}</span>
@@ -638,11 +640,6 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
                     </thead>
                     <tbody>${eventsTr}</tbody>
                   </table>
-                </div>
-
-                <div class="footer">
-                  <div>د ټولو پېښو شمېر: <span style="color:#1e40af;">${eventsTotal}</span></div>
-                  <div>د فورمونو د ورودیانو جمع: <span style="color:#065f46;">${formatsSum}</span></div>
                 </div>
               </div>
             </div>

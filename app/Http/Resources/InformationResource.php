@@ -74,6 +74,22 @@ class InformationResource extends JsonResource
             'hamahangi_date' => $this->hamahangi_date,
             'maktop_number'  => $this->maktop_number,
             'organ'          => $this->organ,
+            'message_to_finance'          => $this->message_to_finance,
+            'finance_status' => $this->finance_status ?? 'pending',
+            'finance_paid_at' => optional($this->finance_paid_at)?->toISOString(),
+            'finance_paid_amount' => $this->whenLoaded('finances', function () {
+                // sum of money_amount_number (cast to float)
+                return (float) $this->finances->sum(function ($f) {
+                    return (float) ($f->money_amount_number ?? 0);
+                });
+            }),
+
+            'finance_paid_amount_number' => $this->whenLoaded('finances', function () {
+                $sum = (float) $this->finances->sum(function ($f) {
+                    return (float) ($f->money_amount_number ?? 0);
+                });
+                return number_format($sum, 2, '.', '');
+            }),
 
 
             'now_province' => $info ? $info->now_province : null,

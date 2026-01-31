@@ -562,7 +562,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-
     // Outgoing/Incoming CRUD
 
     Route::apiResource('outgoing-incomings', OutgoingIncomingController::class);

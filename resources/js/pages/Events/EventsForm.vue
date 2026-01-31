@@ -5,11 +5,6 @@
       :title="isEdit ? t('اصلاح واقعه') : t('اضافه کردن واقعه')"
       :subtitle="isEdit ? t('ویرایش جزئیات یک واقعه موجود') : t('ثبت یک واقعه جدید در سیستم')"
     >
-      <template #actions>
-        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- STEPPER (sticky style like office employee) -->
@@ -144,14 +139,14 @@
 
             <v-row class="pa-3">
               <v-col cols="12" md="6">
-                  <EventTypeSpecificSelect
-                    v-model:event_type="form.event_type"
-                    v-model:event_specific_type="form.event_specific_type"
-                    :cols-event-type="12"
-                    :md-event-type="6"
-                    :cols-specific-type="12"
-                    :md-specific-type="6"
-                  />
+                <EventTypeSpecificSelect
+                  v-model:event_type="form.event_type"
+                  v-model:event_specific_type="form.event_specific_type"
+                  :cols-event-type="12"
+                  :md-event-type="6"
+                  :cols-specific-type="12"
+                  :md-specific-type="6"
+                />
               </v-col>
 
               <!-- منبع -->
@@ -404,6 +399,14 @@
                   variant="outlined"
                   :error="hasError('note')"
                   :error-messages="getErrorMessages('note')"
+                />
+              </v-col>
+              <v-col cols="12" md="12">
+                <v-text-field
+                  v-model="form.message_to_finance"
+                  :label="t('مسج مالی بخش ته ')"
+                  density="compact"
+                  variant="outlined"
                 />
               </v-col>
             </v-row>
@@ -663,6 +666,7 @@
     talks: '',
     note: '',
     docs_note: '',
+    message_to_finance: '',
 
     existingDocs: [],
     _newDocs: [],
@@ -736,6 +740,7 @@
     f.tafseel = x.tafseel ?? '';
     f.talks = x.talks ?? '';
     f.note = x.note ?? '';
+    f.message_to_finance = x.message_to_finance ?? '';
     f.docs_note = x.docs_note ?? '';
 
     f.existingDocs = Array.isArray(x.documents) ? x.documents : [];

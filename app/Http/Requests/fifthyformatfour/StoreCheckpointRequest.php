@@ -11,6 +11,7 @@ class StoreCheckpointRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'check_point_place'   => ['nullable','string'],
             'checkpoint_name'   => ['nullable','string'],
             'employee_quantity' => ['nullable','integer'],
 

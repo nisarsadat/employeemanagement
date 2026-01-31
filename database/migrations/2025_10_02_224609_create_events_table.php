@@ -27,7 +27,9 @@ return new class extends Migration {
                 $table->string('event_zone')->nullable();
                 $table->string('event_hawza')->nullable();
                 $table->string('event_specific_place')->nullable();
-
+                $table->string('finance_status')->default('pending');
+                $table->timestamp('finance_paid_at')->nullable();
+                $table->string('message_to_finance')->nullable();
                 $table->string('talafat_jani')->nullable();
                 $table->string('talafat_mali')->nullable();
                 $table->string('injured')->nullable();

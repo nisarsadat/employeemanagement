@@ -55,6 +55,9 @@ class StoreInformationRequest extends FormRequest
             'docs_note' => ['nullable','string'],
             'result' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
+            'message_to_finance' => ['nullable','string'],
+            'finance_status' => ['nullable','string'],
+            'finance_paid_at' => ['nullable','string'],
 
             'documents' => ['nullable','array'],
             'documents.*' => ['file'],

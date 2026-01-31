@@ -37,7 +37,6 @@ class WakilanoResource extends JsonResource
             'picture'            => $model->picture,
             'picture_url'        => $pictureUrl,
 
-            'coordinates'        => $model->coordinates,
             'name'               => $model->name,
             'f_name'             => $model->f_name,
             'grand_father_name'  => $model->grand_father_name,
@@ -54,7 +53,10 @@ class WakilanoResource extends JsonResource
             'now_street_number'  => $model->now_street_number,
             'now_home_number'    => $model->now_home_number,
 
+            'hawza'              => $model->hawza,
+            'nahya'              => $model->nahya,
             'Guzar'              => $model->Guzar,
+            'coordinates'        => $model->coordinates,
             'place_tafseel'      => $model->place_tafseel,
             'old_job'            => $model->old_job,
             'now_job'            => $model->now_job,

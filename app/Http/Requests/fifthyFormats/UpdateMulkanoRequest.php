@@ -33,6 +33,9 @@ class UpdateMulkanoRequest extends FormRequest
             'street_number' => ['nullable','string'],
             'home_number' => ['nullable','string'],
             'guzar' => ['nullable','string'],
+            'nahya' => ['nullable','string'],
+            'hawza' => ['nullable','string'],
+            'street' => ['nullable','string'],
 
             'tafseel_sahi' => ['nullable','string'],
             'street_amount' => ['nullable','string'],

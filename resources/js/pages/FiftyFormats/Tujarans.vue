@@ -405,6 +405,7 @@
     { title: t('اداره/ارگان'), key: 'organ' },
 
     { title: t('تعداد محافظین'), key: 'guard_guntity' },
+    { title: t('متوجه تهدید'), key: 'tahdid_mutawaji' },
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('نوع افراد'), key: 'people_type' },
 

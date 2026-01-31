@@ -5,11 +5,6 @@
       :title="isEdit ? t('اصلاح معلومات منبع') : t('اضافه کردن منبع')"
       :subtitle="isEdit ? t('ویرایش جزئیات یک منبع موجود') : t('ثبت یک منبع جدید در سیستم')"
     >
-      <template #actions>
-        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- STEPPER (sticky when scrolling) -->
@@ -487,8 +482,8 @@
                   :label="t('د تدارک محل')"
                   density="compact"
                   variant="outlined"
-                />
-              </v-col><v-col cols="6" md="12">
+                /> </v-col
+              ><v-col cols="6" md="12">
                 <v-text-field
                   v-model="form.coordinates"
                   :label="t('کوردینات')"
@@ -650,7 +645,53 @@
               </v-col>
             </v-row>
           </v-sheet>
+          <!-- SECTION 4: تاریخ و نوت -->
+          <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
+            <div class="section-header docs-header">
+              <div class="d-flex align-center">
+                <v-icon class="ml-2 section-icon">mdi-calendar</v-icon>
+                <span class="text-subtitle-2 font-weight-medium section-title">
+                  {{ t('محل تدارک') }}
+                </span>
+              </div>
+            </div>
+            <v-divider />
 
+            <v-row class="pa-3">
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.zone"
+                  :label="t('زون')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.hawza"
+                  :label="t('حوزه')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.specefic_place"
+                  :label="t('محل مشخص')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.project"
+                  :label="t('پروجکت مربوطه')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+            </v-row>
+          </v-sheet>
           <!-- SECTION 4: تاریخ و نوت -->
           <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
             <div class="section-header docs-header">

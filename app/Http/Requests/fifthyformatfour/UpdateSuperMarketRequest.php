@@ -27,6 +27,7 @@ class UpdateSuperMarketRequest extends FormRequest
         'responsible_name'     => ['nullable','string'],
         'responsible_f_name'   => ['nullable','string'],
         'responsible_phone'    => ['nullable','string'],
+        'responsible_job'    => ['nullable','string'],
         'province'             => ['nullable','string'],
         'zone'                 => ['nullable','string'],
         'district'             => ['nullable','string'],

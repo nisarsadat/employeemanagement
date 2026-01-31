@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->string('coordinates')->nullable();
 
             $table->string('home_type')->nullable();
+            $table->string('mashkok_type')->nullable();
             $table->string('shak_symbols')->nullable();
 
             $table->text('note')->nullable();

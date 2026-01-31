@@ -28,6 +28,7 @@
         "@mapbox/mapbox-gl-rtl-text": "^0.2.3",
         "@mapbox/vector-tile": "^2.0.4",
         "@mdi/font": "^7.4.47",
+        "@mdi/js": "^7.4.47",
         "chart.js": "^4.5.0",
         "dayjs": "^1.11.18",
         "echarts": "^6.0.0",

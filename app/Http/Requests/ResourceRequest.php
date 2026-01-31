@@ -32,7 +32,6 @@ class ResourceRequest extends FormRequest
             'now_specific_place' => ['nullable','string'],
             'now_street_number' => ['nullable','string'],
             'now_home_number' => ['nullable','string'],
-            'tadarok_place' => ['nullable','string'],
 
             // jobs
             'old_job' => ['nullable','string'],
@@ -62,6 +61,10 @@ class ResourceRequest extends FormRequest
             'coordinates' => ['nullable','string'],
             'resedint_code' => ['nullable' , 'string'],
             'note' => ['nullable','string'],
+            'zone' => ['nullable','string'],
+            'hawza' => ['nullable','string'],
+            'specefic_place' => ['nullable','string'],
+            'project' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
 
         ];

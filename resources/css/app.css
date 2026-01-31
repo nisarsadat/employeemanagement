@@ -16,13 +16,41 @@
 
   --v-font-family: var(--app-font); /* Vuetify will read this */
 }
-html[dir="rtl"] * {
+html[dir='rtl'] * {
   direction: rtl;
 }
-html[dir="ltr"] * {
+html[dir='ltr'] * {
   direction: ltr;
 }
-  
+/* 🔤 Force app font for any text content block */
+.app-text {
+  font-family: var(--app-font) !important;
+}
+
+/* Make sure all children (numbers, chips, buttons text, table text) inherit */
+.app-text,
+.app-text * {
+  font-family: var(--app-font) !important;
+  letter-spacing: normal;
+}
+/* ✅ Global chip font override */
+.v-chip,
+.v-chip__content,
+.v-chip__content * {
+  font-family: var(--app-font) !important;
+}
+/* 🔥 MASTER FONT LOCK FOR ENTIRE APP */
+.app-text,
+.app-text *:not(i):not(.v-icon):not(svg):not(path) {
+  font-family: var(--app-font) !important;
+  font-variant-numeric: normal;
+  letter-spacing: normal;
+}
+/* ✅ FORCE APP FONT EVERYWHERE (but don't break icons) */
+.v-application :where(*):not(i):not(.v-icon):not(svg):not(path) {
+  font-family: var(--app-font) !important;
+}
+
 /* Apply to the whole app */
 html,
 body,

@@ -32,6 +32,7 @@ class ComplexResource extends JsonResource
             'outer_femal_quantity'   => $model->outer_femal_quantity,
 
             'responsible_name'       => $model->responsible_name,
+            'responsible_job'        => $model->responsible_job,
             'responsible_f_name'     => $model->responsible_f_name,
             'responsible_phone'      => $model->responsible_phone,
             'responsible_country'    => $model->responsible_country,

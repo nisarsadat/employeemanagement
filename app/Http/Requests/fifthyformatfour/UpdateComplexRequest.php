@@ -30,6 +30,7 @@ class UpdateComplexRequest extends FormRequest
             'outer_femal_quantity'   => ['sometimes','nullable','integer'],
 
             'responsible_name'       => ['sometimes','nullable','string'],
+            'responsible_job'       => ['sometimes','nullable','string'],
             'responsible_f_name'     => ['sometimes','nullable','string'],
             'responsible_phone'      => ['sometimes','nullable','string'],
             'responsible_country'    => ['sometimes','nullable','string'],

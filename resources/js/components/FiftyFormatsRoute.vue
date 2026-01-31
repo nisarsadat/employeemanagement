@@ -431,7 +431,7 @@
     },
     {
       slug: 'hostels',
-      labelFa: 'فورم‌های هوسٹل‌ها',
+      labelFa: 'فورم‌های لیله ها و اطاق های کرایی',
       path: '/hostels',
       icon: '🛏️',
       perm: 'hostels',
@@ -567,7 +567,7 @@
     },
     {
       slug: 'complexes',
-      labelFa: 'فورم‌های مجتمع‌ها',
+      labelFa: 'فورم‌های موسسه ها و نهاد های داخلی',
       path: '/complexes',
       icon: '🏬',
       perm: 'complexes',

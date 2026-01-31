@@ -119,7 +119,6 @@
               />
             </v-col>
 
-          
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.main_village"
@@ -149,11 +148,11 @@
             </v-col>
 
             <v-col cols="12" md="3">
-               <FormatZoneAutocomplete
-                    v-model="form.now_zone"
-                    :label="t('زون فعلی')"
-                    :disabled="saving"
-                  />
+              <FormatZoneAutocomplete
+                v-model="form.now_zone"
+                :label="t('زون فعلی')"
+                :disabled="saving"
+              />
             </v-col>
 
             <v-col cols="12" md="3">
@@ -241,7 +240,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.guard_guntity"
                 :label="t('تعداد محافظین')"
@@ -253,7 +252,7 @@
             </v-col>
 
             <!-- Phone (✅ exactly 10 digits) -->
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.phone_number"
                 :label="t('شماره تماس')"
@@ -264,15 +263,22 @@
                 :error-messages="getErrorMessages('phone_number')"
               />
             </v-col>
-
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
+                v-model="form.tahdid_mutawaji"
+                :label="t('متوجه تهدید')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-select
                 v-model="form.people_type"
+                :items="typetujaran"
                 :label="t('نوع افراد')"
                 variant="outlined"
                 density="compact"
-                :error="hasError('people_type')"
-                :error-messages="getErrorMessages('people_type')"
+                clearable
               />
             </v-col>
           </v-row>
@@ -443,6 +449,7 @@
     successMessage.value = message;
     showSuccess.value = true;
   }
+  const typetujaran = computed(() => [t('علما'), t('متنفذین'), t('عالي رتبه'), t('تجاران')]);
 
   /* BACKEND ERRORS */
   const backendErrors = ref({});
@@ -537,6 +544,7 @@
 
     guard_guntity: '',
     phone_number: '',
+    tahdid_mutawaji: '',
     people_type: '',
 
     Province_addr: '',
@@ -592,6 +600,7 @@
 
     b.guard_guntity = x.guard_guntity ?? '';
     b.phone_number = x.phone_number ?? '';
+    b.tahdid_mutawaji = x.tahdid_mutawaji ?? '';
     b.people_type = x.people_type ?? '';
 
     b.Province_addr = x.Province_addr ?? '';
@@ -599,7 +608,7 @@
 
     const r = x.resource || {};
     b.resource_code = x.resource_code ?? r.code_number ?? '';
-    b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
+    b.resource_phone = x.resource_phone  ?? '';
     b.resource_id = x.resource_id ?? r.id ?? null;
 
     b.note = x.note ?? '';
@@ -714,6 +723,7 @@
 
       { label: t('تعداد محافظین'), value: v(form.value.guard_guntity) },
       { label: t('شماره تماس'), value: v(form.value.phone_number) },
+      { label: t('متوجه تهدید'), value: v(form.value.tahdid_mutawaji) },
       { label: t('نوع افراد'), value: v(form.value.people_type) },
 
       { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },

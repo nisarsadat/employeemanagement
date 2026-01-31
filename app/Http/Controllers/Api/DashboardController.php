@@ -24,24 +24,27 @@ use Carbon\Carbon;
 class DashboardController extends Controller
 {
     /**
-     * GET /api/dashboard?period=daily|weekly|monthly|yearly|all&finance_period=monthly|daily|weekly|yearly|all
+     * GET /api/dashboard?period=daily|weekly|monthly|yearly|all&finance_period=daily|weekly|monthly|yearly|all
+     *
+     * ✅ period: cards + formats + khayrat + general dashboard data
+     * ✅ finance_period: money + oil + office employee tables (old/new)
      */
     public function index(Request $request): JsonResponse
     {
         /* -------------------------------------------------
-         | ✅ PERIOD FILTERS
+         | ✅ TWO PERIOD FILTERS
          |-------------------------------------------------*/
         $period        = strtolower((string) $request->query('period', 'yearly'));
         $financePeriod = strtolower((string) $request->query('finance_period', 'monthly'));
 
-        // Main filter for cards and formats
+        // Main filter (cards + formats + khayrat + etc.)
         [$from, $to] = $this->resolvePeriodRange($period);
 
-        // Separate filter for finance/oil
+        // Finance filter (money + oil + office employee tables)
         [$financeFrom, $financeTo] = $this->resolvePeriodRange($financePeriod);
 
         /* -------------------------------------------------
-        | EMPLOYEES SUMMARY (filtered by main period)
+        | ✅ EMPLOYEES SUMMARY (filtered by MAIN period)
         |-------------------------------------------------*/
         $employeesTotal = OfficeEmployee::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
@@ -58,7 +61,8 @@ class DashboardController extends Controller
             ->count();
 
         /* -------------------------------------------------
-        | ✅ EMPLOYEES BY JOB TYPE (for chips)
+        | ✅ EMPLOYEES BY JOB TYPE (chips) - MAIN period
+        |    ✅ returns job_type value + count (ALL types)
         |-------------------------------------------------*/
         $employeesByJobType = OfficeEmployee::query()
             ->select('job_type', DB::raw('COUNT(*) as total'))
@@ -67,46 +71,44 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($row) {
                 $type = trim((string) $row->job_type);
-                if (empty($type)) $type = 'نامعلوم';
+                if ($type === '') $type = 'نامعلوم';
 
-                // Normalize for display
+                // Normalize (Arabic -> Persian)
                 $type = str_replace(['ي', 'ى'], 'ی', $type);
                 $type = str_replace('ك', 'ک', $type);
+
+                // normalize spaces
+                $type = preg_replace('/\s+/', ' ', $type);
+                $type = trim($type);
+
+                // unify common variants
+                $noSpace = str_replace(' ', '', $type);
+                if (in_array($noSpace, ['اوپراتیفی', 'اوپراتیفي'])) $type = 'اوپراتیفی';
+                if (in_array($noSpace, ['اداري', 'اداری'])) $type = 'اداري';
 
                 return [
                     'type'  => $type,
                     'count' => (int) $row->total,
                 ];
             })
-            ->filter(function ($item) {
-                // Only include recognized job types
-                $normalized = str_replace(' ', '', $item['type']);
-                return in_array($normalized, ['اداري', 'اوپراتیفی', 'اداری', 'اوپراتیفي']);
-            })
-            ->groupBy(function ($item) {
-                // Group variants together
-                $normalized = str_replace(' ', '', $item['type']);
-                if (in_array($normalized, ['اوپراتیفی', 'اوپراتیفي'])) return 'اوپراتیفی';
-                if (in_array($normalized, ['اداري', 'اداری'])) return 'اداري';
-                return $item['type'];
-            })
-            ->map(function ($group) {
-                return [
-                    'type'  => $group->first()['type'],
-                    'count' => $group->sum('count'),
-                ];
-            })
+            ->groupBy('type')
+            ->map(fn ($group, $type) => [
+                'type'  => $type,
+                'count' => (int) $group->sum('count'),
+            ])
+            ->values()
+            ->sortByDesc('count')
             ->values();
 
         /* -------------------------------------------------
-        | EMPLOYEES WITH COUNTS (OLD METHOD - for old table view)
+        | ✅ EMPLOYEES TABLE (OLD) - FINANCE period
         |-------------------------------------------------*/
-        $employees = OfficeEmployee::query()
+        $employeesOld = OfficeEmployee::query()
             ->select('id', 'name', 'code_number')
             ->withCount([
-                'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to),
-                'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to),
-                'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to),
+                'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+                'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+                'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
             ])
             ->orderByDesc('events_count')
             ->orderByDesc('resources_count')
@@ -114,13 +116,11 @@ class DashboardController extends Controller
             ->orderBy('name')
             ->get();
 
-        $employeesForDashboard = $employees
-            ->filter(function ($e) {
-                return ((int) $e->events_count + (int) $e->resources_count + (int) $e->informations_count) > 0;
-            })
+        $employeesForDashboardOld = $employeesOld
+            ->filter(fn ($e) => ((int) $e->events_count + (int) $e->resources_count + (int) $e->informations_count) > 0)
             ->values();
 
-        $employeesScored = $employeesForDashboard->map(function ($e) {
+        $employeesScoredOld = $employeesForDashboardOld->map(function ($e) {
             $events     = (int) $e->events_count;
             $resources  = (int) $e->resources_count;
             $infos      = (int) $e->informations_count;
@@ -136,18 +136,17 @@ class DashboardController extends Controller
             ];
         });
 
-        $employeesSorted = $employeesScored
+        $employeesSortedOld = $employeesScoredOld
             ->sortByDesc('events_count')
             ->sortByDesc('resources_count')
             ->sortByDesc('informations_count')
             ->sortByDesc('total')
             ->values();
 
-        $maxTotal = (int) ($employeesSorted->max('total') ?? 0);
+        $maxTotalOld = (int) ($employeesSortedOld->max('total') ?? 0);
 
-        $gradeOf = function (int $total) use ($maxTotal) {
+        $gradeOf = function (int $total, int $maxTotal) {
             if ($maxTotal <= 0) return 'نامعلوم';
-
             $p = ($total / $maxTotal) * 100;
 
             if ($p >= 80) return 'عالی';
@@ -157,25 +156,23 @@ class DashboardController extends Controller
             return 'خیلی کم';
         };
 
-        $employeesRankedOld = $employeesSorted->map(function ($row, $idx) use ($gradeOf) {
+        $employeesRankedOld = $employeesSortedOld->map(function ($row, $idx) use ($gradeOf, $maxTotalOld) {
             $row['rank']  = $idx + 1;
-            $row['grade'] = $gradeOf((int) $row['total']);
+            $row['grade'] = $gradeOf((int) $row['total'], $maxTotalOld);
             return $row;
         })->values();
 
         /* -------------------------------------------------
-        | EMPLOYEES WITH KHAYRAT REPORTS (NEW METHOD - for new table view)
+        | ✅ EMPLOYEES TABLE (NEW) - includes KHAYRAT - FINANCE period
+        |    Khayrat uses saved_date
         |-------------------------------------------------*/
         $employeesNew = OfficeEmployee::query()
             ->select('id', 'name', 'code_number')
             ->withCount([
-                'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to),
-                'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to),
-                'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to),
-
-                // ✅ IMPORTANT FIX:
-                // KhayratReport uses saved_date (date), not created_at.
-                'khayratReports as khayrat_reports_count' => fn ($q) => $this->applyDateRange($q, 'saved_date', $from, $to),
+                'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+                'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+                'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+                'khayratReports as khayrat_reports_count' => fn ($q) => $this->applyDateRange($q, 'saved_date', $financeFrom, $financeTo),
             ])
             ->orderByDesc('events_count')
             ->orderByDesc('resources_count')
@@ -202,14 +199,14 @@ class DashboardController extends Controller
             $khayrat   = (int) $e->khayrat_reports_count;
 
             return [
-                'id'                   => $e->id,
-                'name'                 => $e->name,
-                'code_number'          => $e->code_number,
-                'events_count'         => $events,
-                'resources_count'      => $resources,
-                'informations_count'   => $infos,
+                'id'                    => $e->id,
+                'name'                  => $e->name,
+                'code_number'           => $e->code_number,
+                'events_count'          => $events,
+                'resources_count'       => $resources,
+                'informations_count'    => $infos,
                 'khayrat_reports_count' => $khayrat,
-                'total'                => $events + $resources + $infos + $khayrat,
+                'total'                 => $events + $resources + $infos + $khayrat,
             ];
         });
 
@@ -223,14 +220,14 @@ class DashboardController extends Controller
 
         $maxTotalNew = (int) ($employeesSortedNew->max('total') ?? 0);
 
-        $employeesRankedNew = $employeesSortedNew->map(function ($row, $idx) use ($gradeOf) {
+        $employeesRankedNew = $employeesSortedNew->map(function ($row, $idx) use ($gradeOf, $maxTotalNew) {
             $row['rank']  = $idx + 1;
-            $row['grade'] = $gradeOf((int) $row['total']);
+            $row['grade'] = $gradeOf((int) $row['total'], $maxTotalNew);
             return $row;
         })->values();
 
         /* -------------------------------------------------
-         | RESOURCES (filtered by main period)
+         | RESOURCES (MAIN period)
          |-------------------------------------------------*/
         $resourcesTotal = Resource::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
@@ -247,13 +244,12 @@ class DashboardController extends Controller
             ->count();
 
         /* -------------------------------------------------
-         | INFORMATIONS (filtered by main period)
+         | INFORMATIONS (MAIN period)
          |-------------------------------------------------*/
         $informationsTotal = Information::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
 
-        // Jenayee types
         $informationsByJenayeeType = Information::query()
             ->select('jenayee_info_type', DB::raw('COUNT(*) as total'))
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
@@ -269,7 +265,6 @@ class DashboardController extends Controller
             ->sortByDesc('count')
             ->values();
 
-        // Syasi types
         $informationsBySyasiType = Information::query()
             ->select('syasi_info_type', DB::raw('COUNT(*) as total'))
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
@@ -286,13 +281,12 @@ class DashboardController extends Controller
             ->values();
 
         /* -------------------------------------------------
-         | EVENTS (filtered by main period)
+         | EVENTS (MAIN period) + types chips
          |-------------------------------------------------*/
         $eventsTotal = Event::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
 
-        // Event types breakdown (سیاسي، جنایي، الهی، ترافیکي)
         $eventsByType = Event::query()
             ->select(DB::raw('COALESCE(event_type, event_specific_type) as type'), DB::raw('COUNT(*) as total'))
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
@@ -302,24 +296,20 @@ class DashboardController extends Controller
                 $type = trim((string) $row->type);
                 if ($type === '') $type = 'نامعلوم';
                 return [
-                    'type' => $type,
+                    'type'  => $type,
                     'count' => (int) $row->total,
                 ];
             })
-            ->filter(function ($item) {
-                return in_array($item['type'], ['سیاسي', 'جنایي', 'الهی', 'ترافیکي']);
-            })
+            ->filter(fn ($item) => in_array($item['type'], ['سیاسي', 'جنایي', 'الهی', 'ترافیکي']))
             ->sortByDesc('count')
             ->values();
 
-
-        // Fill missing types with zero
         $allEventTypes = ['سیاسي', 'جنایي', 'الهی', 'ترافیکي'];
         $eventsByTypeFinal = collect($allEventTypes)->map(function ($type) use ($eventsByType) {
             $found = $eventsByType->firstWhere('type', $type);
             return [
                 'type'  => $type,
-                'count' => $found ? $found['count'] : 0,
+                'count' => $found ? (int) $found['count'] : 0,
             ];
         })->values();
 
@@ -328,7 +318,7 @@ class DashboardController extends Controller
             ->count();
 
         /* -------------------------------------------------
-        | MONEY TOTALS (filtered by finance period)
+        | MONEY TOTALS (FINANCE period)
         |-------------------------------------------------*/
         $incomeDateCol  = $this->detectModelDateColumn(new Income(),  ['debut', 'date', 'income_date', 'paid_at', 'created_at']);
         $financeDateCol = $this->detectModelDateColumn(new Finance(), ['debut', 'date', 'finance_date', 'created_at']);
@@ -344,7 +334,7 @@ class DashboardController extends Controller
         $accountsTotalBalance = (float) Account::query()->sum('price');
 
         /* -------------------------------------------------
-        | OIL TOTALS (filtered by finance period)
+        | OIL TOTALS (FINANCE period)
         |-------------------------------------------------*/
         $incomeOilDateCol  = $this->detectModelDateColumn(new IncomeOil(),  ['debut', 'date', 'oil_date', 'created_at']);
         $expenseOilDateCol = $this->detectModelDateColumn(new ExpenseOil(), ['debut', 'date', 'oil_date', 'created_at']);
@@ -360,13 +350,13 @@ class DashboardController extends Controller
         $oilBalance = $oilIncomeTotal - $oilExpensedTotal;
 
         /* -------------------------------------------------
-         | FORMATS BY MAIN DISTRICT (filtered by main period)
+         | ✅ 56 FORMATS BY MAIN DISTRICT (MAIN period)
          |-------------------------------------------------*/
         $formatTables  = $this->formatsTables();
         $formatsByZone = $this->countFormatsByMainDistrictSafely($formatTables, $from, $to);
 
         /* -------------------------------------------------
-         | ✅ KHAYRAT REPORTS SUMMARY (filtered by main period)
+         | ✅ KHAYRAT REPORTS (MAIN period)
          |-------------------------------------------------*/
         $khayratReportsTotal = KhayratReport::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'saved_date', $from, $to))
@@ -417,16 +407,20 @@ class DashboardController extends Controller
                 'to'   => $financeTo?->toDateTimeString(),
             ],
 
+            // ✅ cards + chips
             'employees' => [
                 'total'        => $employeesTotal,
                 'active'       => $employeesActive,
                 'inactive'     => $employeesInactive,
                 'job_types'    => $employeesByJobType,
-                'max_total'    => $maxTotal,
+
+                // ✅ old employee table (finance_period)
+                'max_total'    => $maxTotalOld,
                 'flat_sorted'  => $employeesRankedOld->values(),
-                'ranked_total' => $employeesForDashboard->count(),
+                'ranked_total' => $employeesForDashboardOld->count(),
             ],
 
+            // ✅ new employee table (finance_period)
             'employees_new' => [
                 'flat_sorted' => $employeesRankedNew->values(),
                 'max_total'   => $maxTotalNew,
@@ -453,32 +447,34 @@ class DashboardController extends Controller
                 'total' => $captiveDeliveriesTotal,
             ],
 
+            // ✅ finance_period applies here
             'money' => [
                 'income_total'   => $moneyIncomeTotal,
                 'expensed_total' => $moneyExpensedTotal,
                 'balance'        => $accountsTotalBalance,
             ],
 
+            // ✅ finance_period applies here
             'oil' => [
                 'income_total'   => $oilIncomeTotal,
                 'expensed_total' => $oilExpensedTotal,
                 'balance'        => $oilBalance,
             ],
 
-            // ✅ existing formats payload
+            // ✅ 56 formats (MAIN period)
             'formats_by_zone' => $formatsByZone,
 
-            // ✅ new khayrat payload (optional for your frontend)
+            // ✅ khayrat (MAIN period)
             'khayrat' => [
-                'total' => $khayratReportsTotal,
+                'total'   => $khayratReportsTotal,
                 'by_zone' => $khayratByZone,
-                'by_hawza' => $khayratByHawza,
+                'by_hawza'=> $khayratByHawza,
             ],
         ]);
     }
 
     /* =====================================================
-     | HELPER METHODS
+     | HELPERS
      |=====================================================*/
     private function resolvePeriodRange(string $period): array
     {
@@ -533,12 +529,13 @@ class DashboardController extends Controller
 
     private function formatDateOverrides(): array
     {
-        // If any table uses a special date column, return: ['table_name' => 'date_col']
+        // Put custom overrides if any table does not use created_at/debut/date.
+        // example: return ['khayrat_reports' => 'saved_date'];
         return [];
     }
 
     /* =====================================================
-     | FORMAT TABLES
+     | 56 FORMAT TABLES
      |=====================================================*/
     private function formatsTables(): array
     {
@@ -623,7 +620,7 @@ class DashboardController extends Controller
         $usedTables = [];
         $missingTables = [];
         $noDistrictColumn = [];
-        $noCreatedAtColumn = [];
+        $noDateColumn = [];
         $labels = $this->formatLabels();
 
         $dateCandidates = [
@@ -654,17 +651,15 @@ class DashboardController extends Controller
             $dateCol = null;
             if (isset($overrides[$table]) && is_string($overrides[$table]) && $overrides[$table] !== '') {
                 $overrideCol = $overrides[$table];
-                if (Schema::hasColumn($table, $overrideCol)) {
-                    $dateCol = $overrideCol;
-                } else {
-                    $dateCol = $this->detectTableDateColumn($table, $dateCandidates);
-                }
+                $dateCol = Schema::hasColumn($table, $overrideCol)
+                    ? $overrideCol
+                    : $this->detectTableDateColumn($table, $dateCandidates);
             } else {
                 $dateCol = $this->detectTableDateColumn($table, $dateCandidates);
             }
 
             if (!$dateCol) {
-                $noCreatedAtColumn[] = $table;
+                $noDateColumn[] = $table;
             }
 
             $usedTables[] = $table;
@@ -677,7 +672,6 @@ class DashboardController extends Controller
 
             $q->cursor()->each(function ($row) use (&$districtMap, $table, $districtCol) {
                 $district = is_string($row->{$districtCol}) ? trim($row->{$districtCol}) : '';
-
                 if ($district === '') $district = 'نامعلوم';
 
                 if (!isset($districtMap[$district])) {
@@ -720,7 +714,7 @@ class DashboardController extends Controller
                 'used_tables' => $usedTables,
                 'missing_tables' => $missingTables,
                 'tables_without_zone' => $noDistrictColumn,
-                'tables_without_created_at' => $noCreatedAtColumn,
+                'tables_without_date_col' => $noDateColumn,
                 'strategy' => 'php_counting_no_group_by',
                 'grouped_by' => 'main_district',
             ],

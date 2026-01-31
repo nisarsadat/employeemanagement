@@ -30,7 +30,7 @@
           </div>
 
           <v-row>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.deplomatic_place_name"
                 :label="t('نام محل دیپلوماتیک *')"
@@ -41,7 +41,7 @@
                 :error-messages="getErrorMessages('deplomatic_place_name')"
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.activity_type"
                 :label="t('نوع فعالیت')"
@@ -51,7 +51,7 @@
                 :error-messages="getErrorMessages('activity_type')"
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.activity_place"
                 :label="t('محل فعالیت')"
@@ -59,6 +59,13 @@
                 density="compact"
                 :error="hasError('activity_place')"
                 :error-messages="getErrorMessages('activity_place')"
+              /> </v-col
+            ><v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.supplier_country"
+                :label="t('کشوره حمایه  کننده')"
+                variant="outlined"
+                density="compact"
               />
             </v-col>
           </v-row>
@@ -192,13 +199,9 @@
               />
             </v-col>
             <v-col cols="12" md="3">
-              <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون')"
-                    :disabled="saving"
-                  />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
             </v-col>
-          
+
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.village"
@@ -449,6 +452,7 @@
     deplomatic_place_name: '',
     activity_type: '',
     activity_place: '',
+    supplier_country: '',
 
     enter_male_quantity: '',
     outer_male_quantity: '',
@@ -510,6 +514,7 @@
     b.deplomatic_place_name = x.deplomatic_place_name ?? '';
     b.activity_type = x.activity_type ?? '';
     b.activity_place = x.activity_place ?? '';
+    b.supplier_country = x.supplier_country ?? '';
 
     b.enter_male_quantity = x.enter_male_quantity ?? '';
     b.outer_male_quantity = x.outer_male_quantity ?? '';
@@ -613,6 +618,7 @@
       { label: t('نام محل دیپلوماتیک'), value: v(form.value.deplomatic_place_name) },
       { label: t('نوع فعالیت'), value: v(form.value.activity_type) },
       { label: t('محل فعالیت'), value: v(form.value.activity_place) },
+      { label: t('کشور حمایه کننده'), value: v(form.value.supplier_country) },
 
       { label: t('ورودی ذکور'), value: v(form.value.enter_male_quantity) },
       { label: t('خروجی ذکور'), value: v(form.value.outer_male_quantity) },

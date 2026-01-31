@@ -4,41 +4,87 @@
   <div class="map-wrap" :dir="isRtl ? 'rtl' : 'ltr'">
     <div ref="mapEl" class="map"></div>
 
-    <!-- ABSOLUTE SEARCH + SAVED ICON -->
+    <!-- ✅ OFFLINE TOP TOOLS (NO ONLINE SEARCH) -->
     <div class="map-top-tools" @click.stop>
       <PmtilesSearchMap class="search-panel" @flyTo="flyTo" />
 
-      <v-tooltip :text="isRtl ? 'نقطه‌های ذخیره‌شده' : 'Saved points'" location="bottom">
+      <!-- ✅ Points Menu Button -->
+      <v-menu v-model="pointsMenuOpen" :close-on-content-click="false" location="bottom">
         <template #activator="{ props }">
           <v-btn
             v-bind="props"
-            icon
-            variant="tonal"
-            size="small"
-            color="primary"
-            @click.stop="savedDrawerOpen = true"
+            class="points-btn"
+            variant="elevated"
+            density="comfortable"
+            rounded="xl"
+            prepend-icon="mdi-format-list-bulleted"
           >
-            <v-icon color="red">mdi-layers-triple</v-icon>
+            نقاط ({{ allMapItems.length }})
           </v-btn>
         </template>
-      </v-tooltip>
+
+        <v-card class="points-menu-card" rounded="xl">
+          <div class="points-menu-head">
+            <div class="points-title">نقاط روی نقشه</div>
+            <div class="points-sub">مجموع: {{ allMapItems.length }}</div>
+          </div>
+
+          <v-divider />
+
+          <v-card-text class="points-menu-body">
+            <!-- Types -->
+            <div v-for="g in groupedPoints" :key="g.type" class="type-block">
+              <div class="type-head">
+                <div class="type-name">
+                  <span class="type-dot"></span>
+                  {{ g.label }}
+                </div>
+                <div class="type-count">{{ g.count }}</div>
+              </div>
+
+              <v-list density="compact" class="type-list" nav>
+                <v-list-item
+                  v-for="it in g.items"
+                  :key="`${it.type}:${it.id}`"
+                  @click="
+                    () => {
+                      pointsMenuOpen = false;
+                      flyToItem(it);
+                      openDetailsMenu(it);
+                    }
+                  "
+                >
+                  <template #prepend>
+                    <!-- ✅ Vuetify mdi font icon -->
+                    <v-icon :color="it.type === 'resource' ? 'green-darken-2' : 'primary'">
+                      {{ safeMdiFor(it) }}
+                    </v-icon>
+                  </template>
+
+                  <v-list-item-title class="mini-title">
+                    {{ it.title || it.id }}
+                  </v-list-item-title>
+
+                  <v-list-item-subtitle class="mini-sub">
+                    {{ it.subtitle }}
+                  </v-list-item-subtitle>
+                </v-list-item>
+              </v-list>
+            </div>
+
+            <div v-if="!groupedPoints.length" class="empty-points">هیچ نقطه‌ای یافت نشد.</div>
+          </v-card-text>
+
+          <v-divider />
+
+          <div class="points-menu-actions">
+            <v-btn variant="text" rounded="lg" @click="() => (pointsMenuOpen = false)">
+              بستن
+            </v-btn>
+          </div>
+        </v-card>
+      </v-menu>
     </div>
-
-    <!-- ✅ Saved Points Drawer -->
-    <SavedPointsDrawer
-      v-model="savedDrawerOpen"
-      :rtl="isRtl"
-      :points="savedPointsAll"
-      @refresh="loadSavedMapPoints"
-      @select="onSelectSavedPoint"
-    />
-
-    <!-- Dialog to save person/place at clicked coordinates -->
-    <AddMapPointDialog
-      v-model="dialogOpen"
-      :coordinates="selectedCoordinates"
-      @saved="handlePointSaved"
-    />
 
     <!-- ✅ Separate details menu drawer -->
     <MapDetailsDrawer
@@ -58,25 +104,12 @@
   import maplibregl from 'maplibre-gl';
   import 'maplibre-gl/dist/maplibre-gl.css';
   import { PMTiles, Protocol } from 'pmtiles';
-
   import PmtilesSearchMap from './PmtilesSearchMap.vue';
-  import AddMapPointDialog from './AddMapPointDialog.vue';
   import MapDetailsDrawer from './MapDetailsDrawer.vue';
 
-  import { useMapPointsRepository } from '../../stores/MapPointsRepository';
   import { useMapBusStore } from '../../stores/MapBusStore';
   import AppBar from '@/components/AppBar.vue';
-  import SavedPointsDrawer from './SavedPointsDrawer.vue';
 
-  const savedDrawerOpen = ref(false);
-
-  // combine external props.dbPoints + fetched dbPointsLocal
-  const savedPointsAll = computed(() => [
-    ...(props.dbPoints || []),
-    ...(dbPointsLocal.value || []),
-  ]);
-
-  const mapPointsStore = useMapPointsRepository();
   const mapBus = useMapBusStore();
 
   const { locale } = useI18n();
@@ -84,38 +117,13 @@
     ['fa', 'prs', 'ps', 'ar'].includes(String(locale.value || '').toLowerCase())
   );
 
-  /* ---------- PNG icons ---------- */
-  import provinceIcon from './province.png';
-  import districtIcon from './districts.png';
-  import zoneIcon from './zone.png';
-  import roadIcon from './road.png';
-  import streetIcon from './street.png';
-  import schoolIcon from './school.png';
-  import locationIcon from './location.png'; // default fallback
-
-  /* ---------- props (optional) ---------- */
-  const props = defineProps({
-    dbPoints: { type: Array, default: () => [] }, // optional external points
-  });
-  const emit = defineEmits(['selectCoordinates', 'markerClick']);
-
   const mapEl = ref(null);
-  let map, protocol;
+  const map = ref(null);
+  let protocol;
   const pmtilesUrl = '/pmtiles-range/afghanistan.pmtiles';
 
-  // highlighted marker from search
+  // highlighted marker from mapBus flyTarget (OFFLINE)
   let highlightMarker = null;
-
-  // saved map-points markers (from map-points table)
-  let savedPointMarkers = [];
-
-  // unified markers (all module tables)
-  let unifiedMarkers = [];
-
-  /* ---------- dialog + local saved points ---------- */
-  const dialogOpen = ref(false);
-  const selectedCoordinates = ref('');
-  const dbPointsLocal = ref([]);
 
   /* ---------- separate details drawer state ---------- */
   const detailsOpen = ref(false);
@@ -125,8 +133,11 @@
 
   const loadingAll = ref(false);
 
+  /* ---------- ✅ points menu ---------- */
+  const pointsMenuOpen = ref(false);
+
   /* ============================================================
-   ✅ MODULE SOURCES (ALL ROUTES YOU SHARED)
+ ✅ MODULE SOURCES (your endpoints)
 ============================================================ */
   const MAP_SOURCES = [
     {
@@ -398,7 +409,7 @@
     { type: 'parks', label: 'پارک', list: '/api/parks', show: (id) => `/api/parks/${id}` },
     {
       type: 'complexes',
-      label: 'کمپلکس',
+      label: 'موسسه ',
       list: '/api/complexes',
       show: (id) => `/api/complexes/${id}`,
     },
@@ -434,17 +445,127 @@
       : { Accept: 'application/json' };
   }
 
-  /* ---------- load saved map points ---------- */
-  async function loadSavedMapPoints() {
+  /* ---------- helpers ---------- */
+  function parseCoordinates(str) {
+    if (!str) return null;
+    const m = String(str)
+      .trim()
+      .match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+    if (!m) return null;
+    const lng = parseFloat(m[1]);
+    const lat = parseFloat(m[2]);
+    if (!isFinite(lng) || !isFinite(lat)) return null;
+    return [lng, lat];
+  }
+
+  function buildTitle(row, src) {
+    return (
+      row?.name ||
+      row?.title ||
+      row?.block_name ||
+      row?.park_name ||
+      row?.responsible_name ||
+      row?.code_number ||
+      row?.id ||
+      src.label
+    );
+  }
+
+  function buildSubtitle(row) {
+    const parts = [];
+    if (row?.code_number) parts.push(`کد: ${row.code_number}`);
+    if (row?.phone_number) parts.push(`تماس: ${row.phone_number}`);
+    if (row?.phone) parts.push(`تماس: ${row.phone}`);
+    if (row?.responsible_phone) parts.push(`تماس: ${row.responsible_phone}`);
+    if (row?.note) parts.push(String(row.note).slice(0, 40));
+    return parts.join(' • ');
+  }
+
+  function pickPicture(row) {
+    return (
+      row?.picture || row?.picture_url || row?.image_url || row?.photo_url || row?.photo || null
+    );
+  }
+
+  /* ============================================================
+ ✅ UNIFIED MODULE points loader
+============================================================ */
+  const allMapItems = ref([]);
+
+  async function loadAllModulePoints() {
+    loadingAll.value = true;
     try {
-      dbPointsLocal.value = await mapPointsStore.FetchMapPoints();
-      updateSavedPointMarkers();
+      const requests = MAP_SOURCES.map(async (src) => {
+        const url = `${src.list}?perPage=all`;
+        const res = await fetch(url, { headers: authHeaders() }).then((r) => r.json());
+        const rows = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+
+        return rows
+          .map((row) => ({
+            type: src.type,
+            typeLabel: src.label,
+            id: row.id,
+            coordinates:
+              row.coordinates ||
+              row.coordenates ||
+              row.masjid_coordinates ||
+              row.com_coordinates ||
+              row.cordinate ||
+              row.cordinates ||
+              row.cordenate ||
+              row.cordenates ||
+              row.coordinate,
+            title: buildTitle(row, src),
+            subtitle: buildSubtitle(row),
+            picture: pickPicture(row),
+            _showUrl: src.show(row.id),
+            _raw: row,
+          }))
+          .filter((x) => parseCoordinates(x.coordinates));
+      });
+
+      const results = await Promise.all(requests);
+      allMapItems.value = results.flat();
+      console.log('All module markers:', allMapItems.value.length);
     } catch (e) {
-      console.error('Failed to load map points', e);
+      console.error('loadAllModulePoints failed', e);
+    } finally {
+      loadingAll.value = false;
     }
   }
 
-  /* ---------- Bilingual labels (unchanged) ---------- */
+  async function openDetailsMenu(item) {
+    selectedItem.value = item;
+    detailsOpen.value = true;
+    detailsLoading.value = true;
+    detailsData.value = null;
+
+    try {
+      const res = await fetch(item._showUrl, { headers: authHeaders() }).then((r) => r.json());
+      detailsData.value = res?.data ?? res;
+    } catch (e) {
+      console.error('details load failed', e);
+      detailsData.value = null;
+    } finally {
+      detailsLoading.value = false;
+    }
+  }
+
+  function flyToItem(item) {
+    const coords = parseCoordinates(item?.coordinates);
+    if (!coords || !map.value) return;
+    const [lng, lat] = coords;
+
+    map.value.flyTo({
+      center: [lng, lat],
+      zoom: 16,
+      essential: true,
+      speed: 1.3,
+      curve: 1.3,
+    });
+  }
+
+  /* ---------- bilingual labels (unchanged) ---------- */
   const LOCAL_NAME_ORDER = [
     'name:fa',
     'name:prs',
@@ -482,44 +603,193 @@
     return style;
   }
 
-  /* ---------- icon chooser for search highlight ---------- */
-  function getIconForFeature(feature) {
-    const t = String(
-      feature?.type ||
-        feature?.kind ||
-        feature?.properties?.kind ||
-        feature?.properties?.type ||
-        feature?.properties?.class ||
-        ''
-    ).toLowerCase();
+  /* ============================================================
+ ✅ MARKERS (OFFLINE + mdi font icons)
+============================================================ */
 
-    if (['province', 'wilaya', 'velayat', 'state', 'region'].includes(t)) return provinceIcon;
-    if (['district', 'woleswali', 'county', 'city', 'town'].includes(t)) return districtIcon;
-    if (
-      [
-        'zone',
-        'nahia',
-        'hawza',
-        'village',
-        'hamlet',
-        'suburb',
-        'neighbourhood',
-        'neighborhood',
-      ].includes(t)
-    )
-      return zoneIcon;
-    if (t === 'road' || t === 'highway') return roadIcon;
-    if (['street', 'residential', 'primary', 'secondary'].includes(t)) return streetIcon;
-    if (['school', 'university', 'college'].includes(t)) return schoolIcon;
+  const LABEL_ZOOM = 11;
 
-    return locationIcon;
+  // ✅ mdi icon names (Vuetify font icons)
+  const ICONS = {
+    office_employee: { label: 'کارمند', mdi: 'mdi-account' },
+    resource: { label: 'منبع', mdi: 'mdi-circle' },
+    event: { label: 'پیښې', mdi: 'mdi-circle' },
+    hotels: { label: 'مسافر خانی او میلمستون', mdi: 'mdi-silverware-fork-knife' },
+    hostels: { label: 'لیلی او کرایی اطاقونه', mdi: 'mdi-bed' },
+
+    tujarans: { label: 'علماء او متنفذین', mdi: 'mdi-account-multiple-plus' },
+    mujahedinos: { label: 'مجاهدین', mdi: 'mdi-account-check' },
+
+    old_soldiers_homes: { label: 'د مسولینو کورونه', mdi: 'mdi-home-plus-outline' },
+
+    old_jahadis: { label: 'پخوانی جهادی قومندانان', mdi: 'mdi-account-star' },
+    mashkok_people: { label: 'مشکوک افراد', mdi: 'mdi-account-question' },
+
+    madrasas: { label: 'دینی مدرسی', mdi: 'mdi-town-hall' },
+    schools: { label: 'ښوونځی او روزنیز مرکزونه', mdi: 'mdi-book-open-blank-variant-outline' },
+
+    hado_bus_stops: { label: 'د هډو په اړه', mdi: 'mdi-car-multiple' },
+    transport_companies: { label: 'ترانسپورتی شرکتونه', mdi: 'mdi-bus-multiple' },
+    car_sales_companies: { label: 'موټر پلورنځی', mdi: 'mdi-car-hatchback' },
+    parkings: { label: 'د پارکینونو په اړه', mdi: 'mdi-car-brake-parking' },
+
+    banks: { label: 'بانکونه او نماینده ګیانی', mdi: 'mdi-bank' },
+    apartments: { label: 'رهایشی بلاکونه', mdi: 'mdi-city' },
+
+    rahnoma_mamlats: { label: 'رهنماء معاملات', mdi: 'mdi-store-search-outline' },
+    hosppitals: { label: 'روغتونونه', mdi: 'mdi-hospital-box' },
+    work_shops: { label: 'مستری خانی', mdi: 'mdi-car-wrench' },
+
+    wakilanos: { label: 'وکیلان او ملکان', mdi: 'mdi-account-edit' },
+    sarayanos: { label: 'د کوڅو نماینده کان', mdi: 'mdi-account-details' },
+
+    universities: { label: 'پوهنتونونه', mdi: 'mdi-school' },
+    masjids: { label: 'مساجد، خانقاوی', mdi: 'mdi-mosque' },
+    companies: { label: 'شرکتونه', mdi: 'mdi-factory' },
+
+    complexes: { label: 'مجتمع او موسسو', mdi: 'mdi-traffic-light-outline' },
+
+    captives: { label: 'اختطاف شوی', mdi: 'mdi-account-lock' },
+
+    econemy_projects: { label: 'مهم تاسیسات', mdi: 'mdi-greenhouse' },
+
+    criminal_capture_places: { label: 'هغه ساحی چې مجرمین پکې نیول شوی', mdi: 'mdi-account-alert' },
+
+    pumps: { label: 'پمپونه', mdi: 'mdi-gas-station' },
+    shoras: { label: 'محلی شورا ګانی', mdi: 'mdi-account-switch' },
+    parks: { label: 'پارکونه', mdi: 'mdi-tree-outline' },
+    governmentplaces: { label: 'دولتی ځایونه', mdi: 'mdi-home-analytics' },
+    supermarkets: { label: 'سوپر مارکیټونه', mdi: 'mdi-cart' },
+
+    emarat_offices: { label: 'داخلی مؤسسه او بنسټونه', mdi: 'mdi-briefcase' },
+    deplomaticplaces: { label: 'دیپلوماتیک ځایونه', mdi: 'mdi-briefcase-variant' },
+    checkpoints: { label: 'پوستی او چیک پاینټونه', mdi: 'mdi-shield-lock' },
+  };
+
+  function safeLabelFor(item) {
+    const m = ICONS[item?.type];
+    return m?.label || item?.typeLabel || item?.type || '';
   }
 
-  /* ---------- HTML bubble for selected place (search result / flyTo) ---------- */
+  function safeMdiFor(item) {
+    const m = ICONS[item?.type];
+    return m?.mdi || 'mdi-map-marker';
+  }
+
+  function createMarkerEl(item, showLabel) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'mmi-marker';
+    wrapper.dir = isRtl.value ? 'rtl' : 'ltr';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'mmi-bubble';
+
+    const iconWrap = document.createElement('div');
+    iconWrap.className = 'mmi-icon';
+
+    // ✅ mdi font icon inside marker (NO SVG)
+    const i = document.createElement('i');
+    i.className = `mdi ${safeMdiFor(item)}`;
+    i.style.fontSize = '18px';
+    i.style.lineHeight = '1';
+
+    if (item.type === 'resource') {
+      i.style.color = '#16a34a'; // green dot
+    } else {
+      i.style.color = '#1f2937'; // default dark
+    }
+
+    iconWrap.appendChild(i);
+
+    const label = document.createElement('div');
+    label.className = 'mmi-label';
+    label.textContent = safeLabelFor(item);
+    if (!showLabel) label.style.display = 'none';
+
+    bubble.appendChild(iconWrap);
+    bubble.appendChild(label);
+
+    wrapper.appendChild(bubble);
+    return { wrapper, label };
+  }
+
+  const markers = ref([]);
+  let zoomHandler = null;
+
+  function clearMarkers() {
+    markers.value.forEach((m) => m.marker.remove());
+    markers.value = [];
+  }
+
+  function rebuildMarkers() {
+    const m = map.value;
+    if (!m) return;
+
+    clearMarkers();
+
+    const showLabel = m.getZoom() >= LABEL_ZOOM;
+
+    (allMapItems.value || []).forEach((item) => {
+      const coords = parseCoordinates(item?.coordinates);
+      if (!coords) return;
+
+      const { wrapper, label } = createMarkerEl(item, showLabel);
+
+      const mk = new maplibregl.Marker({ element: wrapper, anchor: 'bottom' })
+        .setLngLat(coords)
+        .addTo(m);
+
+      wrapper.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        openDetailsMenu(item);
+      });
+
+      markers.value.push({ marker: mk, label });
+    });
+
+    if (!zoomHandler) {
+      zoomHandler = () => {
+        const visible = m.getZoom() >= LABEL_ZOOM;
+        markers.value.forEach((mm) => {
+          if (mm?.label) mm.label.style.display = visible ? 'block' : 'none';
+        });
+      };
+      m.on('zoom', zoomHandler);
+    }
+  }
+
+  /* ============================================================
+ ✅ Points menu data (group + count + items)
+============================================================ */
+  const groupedPoints = computed(() => {
+    const arr = Array.isArray(allMapItems.value) ? allMapItems.value : [];
+    const mapG = new Map();
+
+    for (const it of arr) {
+      const key = it.type || 'unknown';
+      if (!mapG.has(key)) {
+        mapG.set(key, {
+          type: key,
+          label: safeLabelFor(it) || it.typeLabel || key,
+          items: [],
+          count: 0,
+        });
+      }
+      const g = mapG.get(key);
+      g.items.push(it);
+      g.count++;
+    }
+
+    return Array.from(mapG.values()).sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return String(a.label).localeCompare(String(b.label), 'fa');
+    });
+  });
+
+  /* ---------- Highlight marker (optional, OFFLINE) ---------- */
   function createHighlightElement(feature) {
     const props = feature?.properties || {};
     const photoUrl = props.photoUrl || '';
-
     const el = document.createElement('div');
 
     if (photoUrl) {
@@ -557,344 +827,21 @@
     el.style.cursor = 'pointer';
     el.style.transform = 'translateY(-4px)';
 
-    const img = document.createElement('img');
-    img.src = getIconForFeature(feature);
-    img.alt = 'selected place';
-    img.style.width = '14px';
-    img.style.height = '14px';
-    img.style.objectFit = 'contain';
-    img.style.pointerEvents = 'none';
+    const dot = document.createElement('div');
+    dot.style.width = '10px';
+    dot.style.height = '10px';
+    dot.style.borderRadius = '999px';
+    dot.style.background = '#2563eb';
+    el.appendChild(dot);
 
-    el.appendChild(img);
     return el;
   }
 
-  /* ---------- marker element with optional photo (KEEP AS-IS) ---------- */
-  function createMarkerElementFromItem(item) {
-    const el = document.createElement('div');
-
-    el.style.width = '20px';
-    el.style.height = '19px';
-    el.style.borderRadius = '50%';
-    el.style.overflow = 'hidden';
-    el.style.background = '#ffffff';
-    el.style.boxShadow = '0 0 0 2px #ffffff, 0 1px 4px rgba(0,0,0,0.35)';
-    el.style.cursor = 'pointer';
-    el.style.display = 'flex';
-    el.style.alignItems = 'center';
-    el.style.justifyContent = 'center';
-
-    const img = document.createElement('img');
-    img.alt = item?.title || item?.typeLabel || 'marker';
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.objectFit = 'cover';
-    img.style.pointerEvents = 'none';
-
-    const origin = window.location.origin;
-    const raw = item?.picture || null;
-
-    let pictureUrl = null;
-    if (raw) {
-      const pic = String(raw).trim();
-      if (pic.startsWith('http://') || pic.startsWith('https://')) {
-        pictureUrl = pic;
-      } else {
-        const clean = pic.replace(/^\/+/, '');
-        pictureUrl = `${origin}/${clean}`;
-      }
-    }
-
-    img.src = pictureUrl || locationIcon;
-
-    el.appendChild(img);
-    return el;
-  }
-
-  /* ---------- helpers ---------- */
-  function clearMarkerList(list) {
-    list.forEach((m) => m.remove());
-    list.length = 0;
-  }
-
-  function parseCoordinates(str) {
-    if (!str) return null;
-    const m = String(str)
-      .trim()
-      .match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
-    if (!m) return null;
-    const lng = parseFloat(m[1]);
-    const lat = parseFloat(m[2]);
-    if (!isFinite(lng) || !isFinite(lat)) return null;
-    return [lng, lat];
-  }
-
-  /* ============================================================
-   ✅ 1) SAVED MAP-POINTS markers (from map-points store)
-============================================================ */
-  function updateSavedPointMarkers() {
-    if (!map) return;
-
-    clearMarkerList(savedPointMarkers);
-
-    const allPoints = [...(props.dbPoints || []), ...(dbPointsLocal.value || [])];
-
-    allPoints.forEach((p) => {
-      const coords = parseCoordinates(p.coordinates || p.coordinate || p.coords);
-      if (!coords) return;
-
-      const el = createMarkerElementFromItem({
-        title: p.name || 'بدون نام',
-        picture: p.picture || p.picture_url || p.image_url || p.photo_url || p.photo || null,
-      });
-
-      const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
-        .setLngLat(coords)
-        .addTo(map);
-
-      el.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        openDetailsFromLocalPoint(p);
-      });
-
-      savedPointMarkers.push(marker);
-    });
-  }
-
-  function openDetailsFromLocalPoint(p) {
-    selectedItem.value = {
-      type: 'map_point',
-      typeLabel: 'نقطه ذخیره شده',
-      id: p.id ?? null,
-      coordinates: p.coordinates,
-      title: p.name || 'بدون نام',
-      subtitle: p.note || '',
-      picture: p.picture || null,
-      _showUrl: null,
-      _raw: p,
-    };
-
-    detailsOpen.value = true;
-    detailsLoading.value = false;
-    detailsData.value = p;
-  }
-
-  /* ============================================================
-   ✅ 2) UNIFIED MODULE markers (ALL TABLES)
-============================================================ */
-  const allMapItems = ref([]);
-
-  function buildTitle(row, src) {
-    return (
-      row?.name ||
-      row?.title ||
-      row?.block_name ||
-      row?.park_name ||
-      row?.responsible_name ||
-      row?.code_number ||
-      row?.id ||
-      src.label
-    );
-  }
-
-  function buildSubtitle(row) {
-    const parts = [];
-    if (row?.code_number) parts.push(`کد: ${row.code_number}`);
-    if (row?.phone_number) parts.push(`تماس: ${row.phone_number}`);
-    if (row?.phone) parts.push(`تماس: ${row.phone}`);
-    if (row?.responsible_phone) parts.push(`تماس: ${row.responsible_phone}`);
-    if (row?.note) parts.push(String(row.note).slice(0, 40));
-    return parts.join(' • ');
-  }
-
-  function pickPicture(row) {
-    return (
-      row?.picture || row?.picture_url || row?.image_url || row?.photo_url || row?.photo || null
-    );
-  }
-
-  async function loadAllModulePoints() {
-    loadingAll.value = true;
-    try {
-      const requests = MAP_SOURCES.map(async (src) => {
-        const url = `${src.list}?perPage=all`;
-
-        const res = await fetch(url, { headers: authHeaders() }).then((r) => r.json());
-
-        const rows = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-
-        return rows
-          .map((row) => ({
-            type: src.type,
-            typeLabel: src.label,
-            id: row.id,
-            coordinates: row.coordinates,
-            title: buildTitle(row, src),
-            subtitle: buildSubtitle(row),
-            picture: pickPicture(row),
-            _showUrl: src.show(row.id),
-            _raw: row,
-          }))
-          .filter((x) => parseCoordinates(x.coordinates));
-      });
-
-      const results = await Promise.all(requests);
-      allMapItems.value = results.flat();
-
-      updateUnifiedMarkers();
-    } catch (e) {
-      console.error('loadAllModulePoints failed', e);
-    } finally {
-      loadingAll.value = false;
-    }
-  }
-
-  function updateUnifiedMarkers() {
-    if (!map) return;
-
-    clearMarkerList(unifiedMarkers);
-
-    allMapItems.value.forEach((item) => {
-      const coords = parseCoordinates(item.coordinates);
-      if (!coords) return;
-
-      const el = createMarkerElementFromItem(item);
-
-      const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
-        .setLngLat(coords)
-        .addTo(map);
-
-      el.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        openDetailsMenu(item);
-      });
-
-      unifiedMarkers.push(marker);
-    });
-
-    console.log('Unified markers:', unifiedMarkers.length);
-  }
-
-  async function openDetailsMenu(item) {
-    selectedItem.value = item;
-    detailsOpen.value = true;
-    detailsLoading.value = true;
-    detailsData.value = null;
-
-    try {
-      const res = await fetch(item._showUrl, { headers: authHeaders() }).then((r) => r.json());
-      detailsData.value = res?.data ?? res;
-    } catch (e) {
-      console.error('details load failed', e);
-      detailsData.value = null;
-    } finally {
-      detailsLoading.value = false;
-    }
-  }
-
-  function flyToItem(item) {
-    const coords = parseCoordinates(item?.coordinates);
-    if (!coords || !map) return;
-
-    const [lng, lat] = coords;
-
-    map.flyTo({
-      center: [lng, lat],
-      zoom: 16,
-      essential: true,
-      speed: 1.3,
-      curve: 1.3,
-    });
-  }
-
-  /* ---------- Initialize map ---------- */
-  onMounted(async () => {
-    const ORIGIN = window.location.origin;
-    const STYLE_JSON = `${ORIGIN}/styles/bright-complete.json`;
-    const SPRITE_URL = `${ORIGIN}/sprites/sprite`;
-    const GLYPHS_URL = `${ORIGIN}/fonts/{fontstack}/{range}.pbf`;
-    const RTL_PLUGIN_URL = `${ORIGIN}/vendor/maplibre/mapbox-gl-rtl-text.js`;
-
-    protocol = new Protocol();
-
-    try {
-      maplibregl.addProtocol('pmtiles', protocol.tile);
-    } catch {
-      // ignore if already added
-    }
-
-    const pm = new PMTiles(`${ORIGIN}${pmtilesUrl}`);
-    protocol.add(pm);
-
-    try {
-      maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, null, true);
-    } catch {
-      // ignore plugin error
-    }
-
-    let style = await fetch(STYLE_JSON).then((r) => r.json());
-
-    for (const [, src] of Object.entries(style.sources)) {
-      if (src.type === 'vector') {
-        src.url = `pmtiles://${ORIGIN}${pmtilesUrl}`;
-        delete src.tiles;
-      }
-    }
-
-    style.sprite = SPRITE_URL;
-    style.glyphs = GLYPHS_URL;
-    style = applyBilingualLabels(style);
-
-    map = new maplibregl.Map({
-      container: mapEl.value,
-      style,
-      center: [69.2, 34.5],
-      zoom: 7,
-      minZoom: 3,
-      maxZoom: 18,
-    });
-
-    map.addControl(new maplibregl.NavigationControl(), 'top-right');
-    map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
-
-    map.on('load', async () => {
-      // ✅ load saved points + all module points
-      await loadSavedMapPoints();
-      await loadAllModulePoints();
-
-      // ✅ apply flyTarget if any
-      applyFlyTarget(mapBus.flyTarget);
-    });
-
-    // ✅ REMOVED: map.on('click', ...)  (no more create-person/place popup)
-  });
-
-  // for the items category
-  function onSelectSavedPoint(it) {
-    const coords = parseCoordinates(it?.coordinates);
-    if (!coords || !map) return;
-
-    const [lng, lat] = coords;
-
-    map.flyTo({
-      center: [lng, lat],
-      zoom: 16,
-      essential: true,
-      speed: 1.3,
-      curve: 1.3,
-    });
-
-    // optional: open details drawer too (if you want)
-    // openDetailsFromLocalPoint(it._raw);
-  }
-
-  /* ---------- Fly from search + highlight ---------- */
   function flyTo(payload) {
-    if (!map) return;
-
+    if (!map.value) return;
     const { lng, lat, zoom, feature } = payload;
 
-    map.flyTo({
+    map.value.flyTo({
       center: [lng, lat],
       zoom: zoom || 14,
       essential: true,
@@ -908,16 +855,13 @@
     }
 
     const el = createHighlightElement(feature || {});
-    highlightMarker = new maplibregl.Marker({
-      element: el,
-      anchor: 'bottom',
-    })
+    highlightMarker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
       .setLngLat([lng, lat])
-      .addTo(map);
+      .addTo(map.value);
   }
 
   function applyFlyTarget(val) {
-    if (!val || !val.coords || !map) return;
+    if (!val || !val.coords || !map.value) return;
 
     const coords = typeof val.coords === 'string' ? parseCoordinates(val.coords) : val.coords;
     if (!coords) return;
@@ -940,30 +884,73 @@
     });
   }
 
-  function handlePointSaved(point) {
-    dbPointsLocal.value.unshift(point);
-    updateSavedPointMarkers();
-  }
+  /* ---------- Initialize map (local assets served from same origin) ---------- */
+  onMounted(async () => {
+    const ORIGIN = window.location.origin;
+    const STYLE_JSON = `${ORIGIN}/styles/bright-complete.json`;
+    const SPRITE_URL = `${ORIGIN}/sprites/sprite`;
+    const GLYPHS_URL = `${ORIGIN}/fonts/{fontstack}/{range}.pbf`;
+    const RTL_PLUGIN_URL = `${ORIGIN}/vendor/maplibre/mapbox-gl-rtl-text.js`;
 
-  watch(
-    () => props.dbPoints,
-    () => updateSavedPointMarkers(),
-    { deep: true }
-  );
+    protocol = new Protocol();
 
+    try {
+      maplibregl.addProtocol('pmtiles', protocol.tile);
+    } catch {}
+
+    const pm = new PMTiles(`${ORIGIN}${pmtilesUrl}`);
+    protocol.add(pm);
+
+    try {
+      maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, null, true);
+    } catch {}
+
+    let style = await fetch(STYLE_JSON).then((r) => r.json());
+
+    for (const [, src] of Object.entries(style.sources)) {
+      if (src.type === 'vector') {
+        src.url = `pmtiles://${ORIGIN}${pmtilesUrl}`;
+        delete src.tiles;
+      }
+    }
+
+    style.sprite = SPRITE_URL;
+    style.glyphs = GLYPHS_URL;
+    style = applyBilingualLabels(style);
+
+    map.value = new maplibregl.Map({
+      container: mapEl.value,
+      style,
+      center: [69.2, 34.5],
+      zoom: 7,
+      minZoom: 3,
+      maxZoom: 18,
+    });
+
+    map.value.addControl(new maplibregl.NavigationControl(), 'top-right');
+    map.value.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
+
+    map.value.on('load', async () => {
+      await loadAllModulePoints();
+      rebuildMarkers();
+      applyFlyTarget(mapBus.flyTarget);
+    });
+  });
+
+  /* reload */
   watch(
     () => mapBus.reloadTs,
     async (ts) => {
-      if (!ts || !map) return;
-      await loadSavedMapPoints();
+      if (!ts || !map.value) return;
       await loadAllModulePoints();
+      rebuildMarkers();
     }
   );
 
   watch(
     () => mapBus.flyTarget,
     (val) => {
-      if (!val || !val.coords || !map) return;
+      if (!val || !val.coords || !map.value) return;
 
       const coords = typeof val.coords === 'string' ? parseCoordinates(val.coords) : val.coords;
       if (!coords) return;
@@ -971,7 +958,7 @@
       const [lng, lat] = coords;
       const meta = val.meta || {};
 
-      map.flyTo({
+      map.value.flyTo({
         center: [lng, lat],
         zoom: meta.zoom || 16,
         essential: true,
@@ -980,7 +967,6 @@
       });
 
       const skipHighlight = meta.type === 'office_employee' || meta.disableHighlight === true;
-
       if (skipHighlight) {
         if (highlightMarker) {
           highlightMarker.remove();
@@ -1006,16 +992,35 @@
     { deep: true }
   );
 
+  watch(
+    () => allMapItems.value,
+    () => {
+      if (!map.value) return;
+      rebuildMarkers();
+    },
+    { deep: true }
+  );
+
+  watch(
+    () => isRtl.value,
+    () => {
+      if (!map.value) return;
+      rebuildMarkers();
+    }
+  );
+
   onBeforeUnmount(() => {
     if (highlightMarker) {
       highlightMarker.remove();
       highlightMarker = null;
     }
-
-    clearMarkerList(savedPointMarkers);
-    clearMarkerList(unifiedMarkers);
-
-    map?.remove();
+    const m = map.value;
+    if (m && zoomHandler) {
+      m.off('zoom', zoomHandler);
+    }
+    zoomHandler = null;
+    clearMarkers();
+    m?.remove();
   });
 </script>
 
@@ -1023,54 +1028,17 @@
   .map-wrap {
     position: relative;
   }
-
   .map {
     width: 100%;
     height: 100vh;
     background: #eef3f7;
   }
 
-  .search-panel {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    max-width: 420px;
-  }
-
-  .spin {
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin {
-    from {
-      transform: rotate(0);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  .search-row {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    max-width: 520px;
-  }
-
-  .search-panel {
-    position: static !important;
-    flex: 1;
-    max-width: none !important;
-  }
-
   .map-top-tools {
     position: absolute;
-    top: calc(var(--v-layout-top, 12px) - 52px); /* ✅ below AppBar */
+    top: calc(var(--v-layout-top, 12px) - 52px);
     left: -42px !important;
-    z-index: 1; /* ✅ lower than AppBar */
+    z-index: 1;
     width: 520px;
     margin-right: 34px;
     max-width: calc(100vw - 12px);
@@ -1079,20 +1047,144 @@
     gap: 10px;
   }
 
-  /* keep your search inside */
-  .search-panel {
-    flex: 1;
-    min-width: 0;
-  }
-
-  /* icon button next to search */
-  .saved-btn {
-    background: white !important;
-  }
-
-  /* ✅ if RTL, move to right side automatically */
   :dir(rtl) .map-top-tools {
     left: auto;
     right: 12px;
+  }
+
+  /* ✅ points button */
+  .points-btn {
+    height: 40px;
+    min-width: 140px;
+    font-weight: 800;
+  }
+
+  .points-menu-card {
+    width: min(560px, calc(100vw - 24px));
+    max-height: 72vh;
+    overflow: hidden;
+  }
+
+  .points-menu-head {
+    padding: 12px 14px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .points-title {
+    font-weight: 900;
+    font-size: 14px;
+  }
+  .points-sub {
+    font-size: 12px;
+    opacity: 0.75;
+    font-weight: 700;
+  }
+
+  .points-menu-body {
+    padding: 12px 12px 2px 12px;
+    overflow: auto;
+    max-height: 58vh;
+  }
+
+  .type-block {
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    background: #fff;
+  }
+
+  .type-head {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(37, 99, 235, 0.04);
+  }
+
+  .type-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 900;
+    font-size: 13px;
+  }
+
+  .type-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+
+  .type-count {
+    font-size: 12px;
+    font-weight: 900;
+    opacity: 0.85;
+  }
+
+  .type-list {
+    padding: 0;
+  }
+
+  .mini-title {
+    font-weight: 800;
+    font-size: 12.5px;
+  }
+  .mini-sub {
+    font-size: 11px;
+    opacity: 0.8;
+  }
+
+  .empty-points {
+    padding: 14px;
+    font-weight: 800;
+    opacity: 0.7;
+    text-align: center;
+  }
+
+  .points-menu-actions {
+    padding: 10px 12px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* ===== markers styles (mdi font icons) ===== */
+  :deep(.mmi-marker) {
+    transform: translateY(-4px);
+    cursor: pointer;
+  }
+
+  :deep(.mmi-bubble) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px #ffffff, 0 1px 6px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+  }
+
+  :deep(.mmi-icon) {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(37, 99, 235, 0.08);
+    color: #1f2937;
+  }
+
+  :deep(.mmi-label) {
+    font-size: 12px;
+    font-weight: 700;
+    color: #111827;
+    opacity: 0.95;
+    line-height: 1;
   }
 </style>

@@ -53,10 +53,14 @@ class Information extends Model
         'note',
         'docs_note',
         'result',
+        'message_to_finance',
+        'finance_status',
+        'finance_paid_at',
     ];
 
     protected $casts = [
         'information_saved_date' => 'date',
+        'finance_paid_at' => 'datetime',
     ];
 
     /* =========================================================
@@ -80,6 +84,12 @@ class Information extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(InformationDocument::class, 'information_id', 'id');
+    }
+    // Information.php
+
+    public function finances()
+    {
+        return $this->hasMany(Finance::class, 'information_id');
     }
 
     /* =========================================================

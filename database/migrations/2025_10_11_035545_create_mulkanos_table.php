@@ -29,6 +29,9 @@ return new class extends Migration {
             $table->string('street_number')->nullable();
             $table->string('home_number')->nullable();
             $table->string('guzar')->nullable();
+            $table->string('hawza')->nullable();
+            $table->string('nahya')->nullable();
+            $table->string('street')->nullable();
 
             // misc
             $table->string('tafseel_sahi')->nullable();

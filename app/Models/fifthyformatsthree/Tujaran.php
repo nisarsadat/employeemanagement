@@ -38,6 +38,7 @@ class Tujaran extends Model
         // Other
         'guard_guntity',   // kept spelling as provided in the note
         'phone_number',
+        'tahdid_mutawaji',
         'people_type',
 
         'note',

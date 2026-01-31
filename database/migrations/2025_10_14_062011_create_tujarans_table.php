@@ -36,6 +36,7 @@ return new class extends Migration {
             // Other
             $table->string('guard_guntity')->nullable();
             $table->string('phone_number')->nullable();
+            $table->string('tahdid_mutawaji')->nullable();
             $table->string('people_type')->nullable();
 
             $table->text('note')->nullable();

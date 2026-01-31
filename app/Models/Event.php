@@ -33,10 +33,14 @@ class Event extends Model
         'coordinates',
         'note',
         'docs_note',
+        'message_to_finance',
+        'finance_status',
+        'finance_paid_at',
     ];
 
     protected $casts = [
         'event_date' => 'date',
+        'finance_paid_at' => 'datetime',
     ];
 
     public function resource()
@@ -58,6 +62,12 @@ class Event extends Model
     public function documents()
     {
         return $this->hasMany(EventDocument::class);
+    }
+    // Event.php
+
+    public function finances()
+    {
+        return $this->hasMany(Finance::class, 'event_id');
     }
 
     protected static function booted()

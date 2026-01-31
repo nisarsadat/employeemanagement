@@ -39,6 +39,7 @@ class MashkokHomesResource extends JsonResource
             'home_number'    => $this->home_number,
             'coordinates'    => $this->coordinates,
             'home_type'      => $this->home_type,
+            'mashkok_type'   => $this->mashkok_type,
             'shak_symbols'   => $this->shak_symbols,
             'note'           => $this->note,
             'Province_addr'  => $this->Province_addr,

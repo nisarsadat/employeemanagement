@@ -198,7 +198,14 @@
                 :error-messages="getErrorMessages('shak_symbols')"
               />
             </v-col>
-
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.mashkok_type"
+                :label="t('مشکوکیت نوعیت')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
             <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
@@ -545,6 +552,7 @@
 
     home_type: '',
     shak_symbols: '',
+    mashkok_type: '',
     Province_addr: '',
 
     resource_id: null,
@@ -699,6 +707,7 @@
 
     b.home_type = x.home_type ?? '';
     b.shak_symbols = x.shak_symbols ?? '';
+    b.mashkok_type = x.mashkok_type ?? '';
     b.Province_addr = x.Province_addr ?? '';
 
     const r = x.resource || {};
@@ -841,6 +850,7 @@
       { label: t('شماره خانه'), value: v(form.value.home_number) },
       { label: t('مختصات'), value: v(form.value.coordinates) },
       { label: t('نوع خانه'), value: v(form.value.home_type) },
+      { label: t('مشکوکیت نوعیت'), value: v(form.value.mashkok_type) },
       { label: t('علایم شک'), value: v(form.value.shak_symbols) },
       { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
       { label: t('کود منبع'), value: v(form.value.resource_code) },

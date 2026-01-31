@@ -72,7 +72,15 @@
                 :error-messages="getErrorMessages('market_name')"
               />
             </v-col>
-            <v-col cols="12" md="9">
+             <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.shop_number"
+                :label="t('د دوکان شمیره')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.coordinates"
                 :label="t('مختصات')"
@@ -355,6 +363,7 @@
     village: '',
     specific_place: '',
     market_name: '',
+    shop_number: '',
     coordinates: '',
 
     name: '',
@@ -403,6 +412,7 @@
 
     b.specific_place = x.specific_place ?? '';
     b.market_name = x.market_name ?? '';
+    b.shop_number = x.shop_number ?? '';
     b.coordinates = x.coordinates ?? '';
 
     b.name = x.name ?? '';
@@ -502,6 +512,7 @@
 
       { label: t('موقعیت مشخص'), value: v(form.value.specific_place) },
       { label: t('نام بازار'), value: v(form.value.market_name) },
+      { label: t('د دوکان نمبر'), value: v(form.value.shop_number) },
       { label: t('مختصات'), value: v(form.value.coordinates) },
 
       { label: t('نام مالک'), value: v(form.value.name) },

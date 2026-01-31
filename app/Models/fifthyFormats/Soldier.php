@@ -18,6 +18,7 @@ class Soldier extends Model
         'now_province','now_zone','now_district','now_village',
         'specific_place','street_number','home_number',
         'Province_addr',
+        'phone_number',
         'old_job','now_job','guard_amount','phone_number',
         'notes','resource_id', 'coordinates'
     ];

@@ -33,6 +33,7 @@ class OldJahadi extends Model
         'now_job',
         'employee_quantity',
         'supplier',
+        'phone_number',
         'tanzim',
         'note',
         'organ',

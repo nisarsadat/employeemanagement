@@ -295,6 +295,8 @@
 
     { title: t('finances.table.expenseReason'), key: 'expense_result', sortable: false, width: 200 },
     { title: t('finances.table.payer'), key: 'payer', sortable: true },
+    { title: t('واقعات'), key: 'event_id', sortable: true },
+    { title: t('اطلاعات'), key: 'information_id', sortable: true },
     { title: t('finances.table.notes'), key: 'notes', sortable: true },
   ])
 

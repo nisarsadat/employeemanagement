@@ -4,139 +4,120 @@ import { ref } from 'vue';
 import axios from '@/axios';
 import { toast } from 'vue3-toastify';
 
-export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyReportsRepository', () => {
-  const loading = ref(false);
+export const useFoulQuarterlyReportsRepository = defineStore(
+  'FoulQuarterlyReportsRepository',
+  () => {
+    const loading = ref(false);
 
-  // ✅ IMPORTANT: keep error as STRING (never object)
-  const error = ref('');
+    // ✅ IMPORTANT: keep error as STRING (never object)
+    const error = ref('');
 
-  // Quarterly report payload from backend
-  const quarterly = ref(null);
+    // Quarterly report payload from backend
+    const quarterly = ref(null);
 
-  // Filters
-  const selectedQuarter = ref(''); // YYYY-Q1..Q3
+    // Filters
+    const selectedQuarter = ref(''); // YYYY-Q1..Q3
 
-  // =========================
-  // Helpers
-  // =========================
-  function currentQuarterLabel() {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = now.getMonth() + 1; // 1..12
-    const q = m <= 4 ? 1 : m <= 8 ? 2 : 3;
-    return `${y}-Q${q}`;
-  }
+    // =========================
+    // Helpers
+    // =========================
+    function currentQuarterLabel() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth() + 1; // 1..12
+      const q = m <= 4 ? 1 : m <= 8 ? 2 : 3;
+      return `${y}-Q${q}`;
+    }
 
-  function todayIso() {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
+    function todayIso() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
 
-  function quarterToIsoDate(quarterLabel) {
-    // "YYYY-Qn" -> representative date within quarter (YYYY-01-01 / YYYY-05-01 / YYYY-09-01)
-    const s = String(quarterLabel ?? '').trim();
-    const m = s.match(/^(\d{4})-Q([1-3])$/i);
-    if (!m) return todayIso();
+    function quarterToIsoDate(quarterLabel) {
+      // "YYYY-Qn" -> representative date within quarter (YYYY-01-01 / YYYY-05-01 / YYYY-09-01)
+      const s = String(quarterLabel ?? '').trim();
+      const m = s.match(/^(\d{4})-Q([1-3])$/i);
+      if (!m) return todayIso();
 
-    const year = m[1];
-    const q = Number(m[2]);
-    const month = q === 1 ? '01' : q === 2 ? '05' : '09'; // Q1..Q3 (4-month quarters)
-    return `${year}-${month}-01`;
-  }
+      const year = m[1];
+      const q = Number(m[2]);
+      const month = q === 1 ? '01' : q === 2 ? '05' : '09'; // Q1..Q3 (4-month quarters)
+      return `${year}-${month}-01`;
+    }
 
-  function safeNum(val) {
-    const n = Number(val ?? 0);
-    return Number.isFinite(n) ? n : 0;
-  }
+    function safeNum(val) {
+      const n = Number(val ?? 0);
+      return Number.isFinite(n) ? n : 0;
+    }
 
-  function formatMoney(val) {
-    return safeNum(val).toLocaleString();
-  }
+    function formatMoney(val) {
+      return safeNum(val).toLocaleString();
+    }
 
-  function escapeHtml(s) {
-    const str = String(s ?? '');
-    return str
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
+    function escapeHtml(s) {
+      const str = String(s ?? '');
+      return str
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
 
-  function normalizeError(e) {
-    const data = e?.response?.data;
+    function normalizeError(e) {
+      const data = e?.response?.data;
 
-    let msg = 'د ربعه راپور ترلاسه کولو کې ستونزه رامنځته شوه.';
+      let msg = 'د ربعه راپور ترلاسه کولو کې ستونزه رامنځته شوه.';
 
-    if (typeof data === 'string') return data;
+      if (typeof data === 'string') return data;
 
-    if (data && typeof data === 'object') {
-      if (typeof data.message === 'string') return data.message;
+      if (data && typeof data === 'object') {
+        if (typeof data.message === 'string') return data.message;
 
-      if (data.message && typeof data.message === 'object') {
-        const merged = Object.values(data.message).flat().filter(Boolean).join(' ، ');
-        return merged || msg;
+        if (data.message && typeof data.message === 'object') {
+          const merged = Object.values(data.message).flat().filter(Boolean).join(' ، ');
+          return merged || msg;
+        }
+
+        if (data.errors && typeof data.errors === 'object') {
+          const merged = Object.values(data.errors).flat().filter(Boolean).join(' ، ');
+          return merged || msg;
+        }
+
+        if (typeof data.error === 'string') return data.error;
+
+        try {
+          return JSON.stringify(data);
+        } catch {
+          return msg;
+        }
       }
 
-      if (data.errors && typeof data.errors === 'object') {
-        const merged = Object.values(data.errors).flat().filter(Boolean).join(' ، ');
-        return merged || msg;
-      }
-
-      if (typeof data.error === 'string') return data.error;
+      if (typeof e?.message === 'string' && e.message.trim()) return e.message;
 
       try {
-        return JSON.stringify(data);
+        return String(e);
       } catch {
         return msg;
       }
     }
 
-    if (typeof e?.message === 'string' && e.message.trim()) return e.message;
-
-    try {
-      return String(e);
-    } catch {
-      return msg;
+    // =========================
+    // Dates (Miladi + Hijri Shamsi + Hijri Qamari) -> SAME as Daily/Monthly/Weekly design
+    // =========================
+    function formatMiladi(dateIso) {
+      const d = String(dateIso || '').trim();
+      return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : '';
     }
-  }
 
-  // =========================
-  // Dates (Miladi + Hijri Shamsi + Hijri Qamari) -> SAME as Daily/Monthly/Weekly design
-  // =========================
-  function formatMiladi(dateIso) {
-    const d = String(dateIso || '').trim();
-    return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : '';
-  }
-
-  function formatHijriShamsi(dateIso) {
-    try {
-      const d = new Date(`${dateIso}T00:00:00`);
-      return new Intl.DateTimeFormat('fa-AF-u-ca-persian', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      }).format(d);
-    } catch {
-      return '';
-    }
-  }
-
-  function formatHijriQamari(dateIso) {
-    try {
-      const d = new Date(`${dateIso}T00:00:00`);
-      return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      }).format(d);
-    } catch {
+    function formatHijriShamsi(dateIso) {
       try {
         const d = new Date(`${dateIso}T00:00:00`);
-        return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+        return new Intl.DateTimeFormat('fa-AF-u-ca-persian', {
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
@@ -145,35 +126,55 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
         return '';
       }
     }
-  }
 
-  function buildDatePillsSameDay(dateIso) {
-    const miladi = formatMiladi(dateIso);
-    const shamsi = formatHijriShamsi(dateIso);
-    const qamari = formatHijriQamari(dateIso);
+    function formatHijriQamari(dateIso) {
+      try {
+        const d = new Date(`${dateIso}T00:00:00`);
+        return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(d);
+      } catch {
+        try {
+          const d = new Date(`${dateIso}T00:00:00`);
+          return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          }).format(d);
+        } catch {
+          return '';
+        }
+      }
+    }
 
-    const pills = [];
+    function buildDatePillsSameDay(dateIso) {
+      const miladi = formatMiladi(dateIso);
+      const shamsi = formatHijriShamsi(dateIso);
+      const qamari = formatHijriQamari(dateIso);
 
-    if (miladi)
-      pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
-    if (shamsi)
-      pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
-    if (qamari)
-      pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
+      const pills = [];
 
-    return pills.join('');
-  }
+      if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
+      if (shamsi)
+        pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
+      if (qamari)
+        pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
 
-  // =========================
-  // Export CSS (same as Yearly dashboard)
-  // =========================
-  function baseExportCss() {
-    const fontStack =
-      `'Amiri', 'Scheherazade New', ui-sans-serif, -apple-system, BlinkMacSystemFont,` +
-      ` 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji',` +
-      ` 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif`;
+      return pills.join('');
+    }
 
-    return `
+    // =========================
+    // Export CSS (same as Yearly dashboard)
+    // =========================
+    function baseExportCss() {
+      const fontStack =
+        `'Amiri', 'Scheherazade New', ui-sans-serif, -apple-system, BlinkMacSystemFont,` +
+        ` 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji',` +
+        ` 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif`;
+
+      return `
       @page { size: A4 portrait; margin: 14mm; }
 
       :root{
@@ -451,7 +452,20 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
         color: rgba(17,24,39,.65);
         font-weight:900;
       }
-
+      .hero-logo{
+        display:flex;
+        align-items:center;
+        justify-content:flex-end;
+        padding:10px 12px;
+        border-radius:12px;
+        min-width: 150px;
+      }
+      .hero-logo img{
+        height:42px;
+        width:auto;
+        object-fit:contain;
+        display:block;
+      }
       .no-break { break-inside: avoid; page-break-inside: avoid; }
       .card { break-inside: avoid; page-break-inside: avoid; }
 
@@ -460,106 +474,109 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
         .grid-2{ grid-template-columns: 1fr; }
       }
     `;
-  }
+    }
 
-  function eventTypeClass(type) {
-    const t = String(type ?? '').trim();
+    function eventTypeClass(type) {
+      const t = String(type ?? '').trim();
 
-    const map = {
-      حادثه: 'etype-red',
-      پېښه: 'etype-red',
-      تخریب: 'etype-amber',
-      ويجاړۍ: 'etype-amber',
-      درگیری: 'etype-amber',
-      نښته: 'etype-amber',
-      طبیعی: 'etype-blue',
-      طبيعي: 'etype-blue',
-      سیاسی: 'etype-purple',
-      سياسي: 'etype-purple',
-    };
+      const map = {
+        حادثه: 'etype-red',
+        پېښه: 'etype-red',
+        تخریب: 'etype-amber',
+        ويجاړۍ: 'etype-amber',
+        درگیری: 'etype-amber',
+        نښته: 'etype-amber',
+        طبیعی: 'etype-blue',
+        طبيعي: 'etype-blue',
+        سیاسی: 'etype-purple',
+        سياسي: 'etype-purple',
+      };
 
-    return map[t] || 'etype-gray';
-  }
+      return map[t] || 'etype-gray';
+    }
 
-  function quarterTitleFromLabel(label) {
-    // "YYYY-Qn" -> readable range
-    const s = String(label ?? '').trim();
-    const m = s.match(/^(\d{4})-Q([1-3])$/i);
-    if (!m) return s;
+    function quarterTitleFromLabel(label) {
+      // "YYYY-Qn" -> readable range
+      const s = String(label ?? '').trim();
+      const m = s.match(/^(\d{4})-Q([1-3])$/i);
+      if (!m) return s;
 
-    const q = Number(m[2]);
-    const range = q === 1 ? 'جنوري - اپرېل' : q === 2 ? 'می - اګست' : 'سېپتمبر - ډسمبر';
-    return `ربعه ${q} (${range})`;
-  }
+      const q = Number(m[2]);
+      const range = q === 1 ? 'جنوري - اپرېل' : q === 2 ? 'می - اګست' : 'سېپتمبر - ډسمبر';
+      return `ربعه ${q} (${range})`;
+    }
 
-  // =========================
-  // Quarterly HTML (same dashboard style)
-  // =========================
-  function buildQuarterlyDashboardHtml(report, quarterLabel) {
-    const qLabel = String(quarterLabel || selectedQuarter.value || currentQuarterLabel());
-    const headerIso = quarterToIsoDate(qLabel);
-    const pills = buildDatePillsSameDay(headerIso);
+    // =========================
+    // Quarterly HTML (same dashboard style)
+    // =========================
+    function buildQuarterlyDashboardHtml(report, quarterLabel) {
+      const qLabel = String(quarterLabel || selectedQuarter.value || currentQuarterLabel());
+      const headerIso = quarterToIsoDate(qLabel);
+      const pills = buildDatePillsSameDay(headerIso);
 
-    const resourcesTotal = safeNum(report?.resources?.total);
-    const informationsTotal = safeNum(report?.informations?.total);
-    const eventsTotal = safeNum(report?.events?.total);
+      const resourcesTotal = safeNum(report?.resources?.total);
+      const informationsTotal = safeNum(report?.informations?.total);
+      const eventsTotal = safeNum(report?.events?.total);
 
-    const formats = Array.isArray(report?.formats) ? report.formats : [];
-    const formatsActive = formats.length;
-    const formatsSum = formats.reduce((s, f) => s + safeNum(f?.count), 0);
+      const formats = Array.isArray(report?.formats) ? report.formats : [];
+      const formatsActive = formats.length;
+      const formatsSum = formats.reduce((s, f) => s + safeNum(f?.count), 0);
 
-    const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
-    const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
-
-    const infoTr = infoTypes.length
-      ? infoTypes
-          .map((x) => {
-            const label = escapeHtml(x?.label ?? '');
-            const count = safeNum(x?.count);
-            return `
+      const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
+      const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
+      function getLogoUrl() {
+        // ✅ logo must be inside /public so it works in print window
+        return `${window.location.origin}/logo.png`;
+      }
+      const infoTr = infoTypes.length
+        ? infoTypes
+            .map((x) => {
+              const label = escapeHtml(x?.label ?? '');
+              const count = safeNum(x?.count);
+              return `
               <tr>
                 <td>${label}</td>
                 <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
               </tr>
             `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ معلومات نشته</td></tr>`;
+            })
+            .join('')
+        : `<tr><td colspan="2" class="td-center">هیڅ معلومات نشته</td></tr>`;
 
-    const formatsTr = formats.length
-      ? formats
-          .map((f) => {
-            const name = escapeHtml(f?.name ?? '');
-            const count = safeNum(f?.count);
-            return `
+      const formatsTr = formats.length
+        ? formats
+            .map((f) => {
+              const name = escapeHtml(f?.name ?? '');
+              const count = safeNum(f?.count);
+              return `
               <tr>
                 <td>${name}</td>
                 <td class="td-end"><span class="count-pill count-success">${count}</span></td>
               </tr>
             `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ فورم کې معلومات نشته</td></tr>`;
+            })
+            .join('')
+        : `<tr><td colspan="2" class="td-center">هیڅ فورم کې معلومات نشته</td></tr>`;
 
-    const eventsTr = eventTypes.length
-      ? eventTypes
-          .map((t) => {
-            const label = escapeHtml(t?.label ?? '');
-            const count = safeNum(t?.count);
-            const cls = eventTypeClass(label);
-            return `
+      const eventsTr = eventTypes.length
+        ? eventTypes
+            .map((t) => {
+              const label = escapeHtml(t?.label ?? '');
+              const count = safeNum(t?.count);
+              const cls = eventTypeClass(label);
+              return `
               <tr>
                 <td><span class="etype ${cls}">${label || '-'}</span></td>
                 <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
               </tr>
             `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ پېښه نه ده ثبت شوې</td></tr>`;
+            })
+            .join('')
+        : `<tr><td colspan="2" class="td-center">هیڅ پېښه نه ده ثبت شوې</td></tr>`;
 
-    const quarterTitle = quarterTitleFromLabel(qLabel);
+      const quarterTitle = quarterTitleFromLabel(qLabel);
 
-    return `
+      return `
       <html dir="rtl">
         <head>
           <meta charset="utf-8" />
@@ -571,12 +588,11 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
             <div class="hero no-break">
               <div class="hero-top">
                 <div>
-                  <h1 class="hero-title">د سیستم ربعه راپور</h1>
+                  <h1 class="hero-title">د 333 ربعه راپور</h1>
                   <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو د ربعه عمومي کتنه</p>
                 </div>
-                <div class="hero-date">
-                  <div class="date-big">${escapeHtml(quarterTitle)}</div>
-                  <div class="date-small">${escapeHtml(qLabel)}</div>
+                 <div class="hero-logo">
+                  <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
 
@@ -587,9 +603,9 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">سرچینې</div>
+                    <div class="stat-label">منابع</div>
                     <div class="stat-number">${resourcesTotal}</div>
-                    <span class="badge b-primary">ټول</span>
+                    <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
                   </div>
                 </div>
               </div>
@@ -597,7 +613,7 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">معلومات</div>
+                    <div class="stat-label">اطلاعات</div>
                     <div class="stat-number">${informationsTotal}</div>
                     <span class="badge b-info">شتون لري</span>
                   </div>
@@ -617,9 +633,8 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">۵۰ فارمت فورمونه</div>
+                    <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
                     <div class="stat-number">${formatsActive}</div>
-                    <span class="badge b-success">فعال</span>
                   </div>
                 </div>
               </div>
@@ -655,23 +670,11 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
                   <div class="header-strip bg-success">
                     <div class="strip-left">
                       <div>
-                        <div class="strip-title">فورمونه</div>
-                        <div class="strip-sub">د ۵۰ فارمت فورمونو لنډیز (ربعه)</div>
+                        <div class="strip-title">لیټري دوسیه</div>
+                        <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
                       </div>
                     </div>
                     <span class="chip chip-success">${formatsActive}</span>
-                  </div>
-
-                  <div style="padding:0;">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th style="width:70%;">د فورم نوم</th>
-                          <th class="td-end" style="width:30%;">ورودي</th>
-                        </tr>
-                      </thead>
-                      <tbody>${formatsTr}</tbody>
-                    </table>
                   </div>
                 </div>
               </div>
@@ -698,126 +701,122 @@ export const useFoulQuarterlyReportsRepository = defineStore('FoulQuarterlyRepor
                     <tbody>${eventsTr}</tbody>
                   </table>
                 </div>
-
-                <div class="footer">
-                  <div>د ټولو پېښو شمېر: <span style="color:#1e40af;">${eventsTotal}</span></div>
-                  <div>د فورمونو د ورودیانو جمع: <span style="color:#065f46;">${formatsSum}</span></div>
-                </div>
               </div>
             </div>
           </div>
         </body>
       </html>
     `;
-  }
+    }
 
-  function openPrintWindow(html) {
-    const w = window.open('', '_blank', 'width=1100,height=800');
-    if (!w) return false;
+    function openPrintWindow(html) {
+      const w = window.open('', '_blank', 'width=1100,height=800');
+      if (!w) return false;
 
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
 
-    w.addEventListener('load', () => {
-      w.focus();
-      w.print();
-    });
-
-    return true;
-  }
-
-  function downloadWordFile(html, filename) {
-    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-  }
-
-  // =========================
-  // API
-  // =========================
-  const FetchQuarterlyFoulReport = async (quarter) => {
-    try {
-      loading.value = true;
-      error.value = '';
-
-      const finalQuarter = quarter || selectedQuarter.value || currentQuarterLabel();
-      selectedQuarter.value = String(finalQuarter);
-
-      const { data } = await axios.get('/reports/foul/quarterly', {
-        params: { quarter: selectedQuarter.value }, // backend expects "YYYY-Qn"
+      w.addEventListener('load', () => {
+        w.focus();
+        w.print();
       });
 
-      quarterly.value = data;
-      return data;
-    } catch (e) {
-      console.error(e);
-      quarterly.value = null;
-
-      error.value = normalizeError(e);
-      toast.error(error.value);
-
-      return null;
-    } finally {
-      loading.value = false;
+      return true;
     }
-  };
 
-  const ResetQuarterly = () => {
-    quarterly.value = null;
-    error.value = '';
-    selectedQuarter.value = currentQuarterLabel();
-  };
+    function downloadWordFile(html, filename) {
+      const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
 
-  // Init defaults
-  if (!selectedQuarter.value) selectedQuarter.value = currentQuarterLabel();
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-  // =========================
-  // EXPORT ACTIONS (new dashboard design)
-  // =========================
-  const DownloadQuarterlyFoulPdf = () => {
-    const report = quarterly.value;
-    if (!report) return;
+      URL.revokeObjectURL(url);
+    }
 
-    const qText = selectedQuarter.value || currentQuarterLabel();
-    const html = buildQuarterlyDashboardHtml(report, qText);
-    openPrintWindow(html);
-  };
+    // =========================
+    // API
+    // =========================
+    const FetchQuarterlyFoulReport = async (quarter) => {
+      try {
+        loading.value = true;
+        error.value = '';
 
-  const DownloadQuarterlyFoulWord = () => {
-    const report = quarterly.value;
-    if (!report) return;
+        const finalQuarter = quarter || selectedQuarter.value || currentQuarterLabel();
+        selectedQuarter.value = String(finalQuarter);
 
-    const qText = selectedQuarter.value || currentQuarterLabel();
-    const html = buildQuarterlyDashboardHtml(report, qText);
-    downloadWordFile(html, `quarterly_dashboard_${qText}.doc`);
-  };
+        const { data } = await axios.get('/reports/foul/quarterly', {
+          params: { quarter: selectedQuarter.value }, // backend expects "YYYY-Qn"
+        });
 
-  return {
-    // state
-    loading,
-    error,
+        quarterly.value = data;
+        return data;
+      } catch (e) {
+        console.error(e);
+        quarterly.value = null;
 
-    // payload
-    quarterly,
+        error.value = normalizeError(e);
+        toast.error(error.value);
 
-    // filter
-    selectedQuarter,
+        return null;
+      } finally {
+        loading.value = false;
+      }
+    };
 
-    // actions
-    FetchQuarterlyFoulReport,
-    ResetQuarterly,
+    const ResetQuarterly = () => {
+      quarterly.value = null;
+      error.value = '';
+      selectedQuarter.value = currentQuarterLabel();
+    };
 
-    // export
-    DownloadQuarterlyFoulPdf,
-    DownloadQuarterlyFoulWord,
-  };
-});
+    // Init defaults
+    if (!selectedQuarter.value) selectedQuarter.value = currentQuarterLabel();
+
+    // =========================
+    // EXPORT ACTIONS (new dashboard design)
+    // =========================
+    const DownloadQuarterlyFoulPdf = () => {
+      const report = quarterly.value;
+      if (!report) return;
+
+      const qText = selectedQuarter.value || currentQuarterLabel();
+      const html = buildQuarterlyDashboardHtml(report, qText);
+      openPrintWindow(html);
+    };
+
+    const DownloadQuarterlyFoulWord = () => {
+      const report = quarterly.value;
+      if (!report) return;
+
+      const qText = selectedQuarter.value || currentQuarterLabel();
+      const html = buildQuarterlyDashboardHtml(report, qText);
+      downloadWordFile(html, `quarterly_dashboard_${qText}.doc`);
+    };
+
+    return {
+      // state
+      loading,
+      error,
+
+      // payload
+      quarterly,
+
+      // filter
+      selectedQuarter,
+
+      // actions
+      FetchQuarterlyFoulReport,
+      ResetQuarterly,
+
+      // export
+      DownloadQuarterlyFoulPdf,
+      DownloadQuarterlyFoulWord,
+    };
+  }
+);

@@ -10,7 +10,6 @@
           : t('ثبت یک ریکارډ جدید جهادی قدیم در سیستم')
       "
     >
-      
     </AppBar>
 
     <!-- FORM -->
@@ -160,11 +159,11 @@
               />
             </v-col>
             <v-col cols="12" md="3">
-               <FormatZoneAutocomplete
-                    v-model="form.now_zone"
-                    :label="t('زون فعلی')"
-                    :disabled="saving"
-                  />
+              <FormatZoneAutocomplete
+                v-model="form.now_zone"
+                :label="t('زون فعلی')"
+                :disabled="saving"
+              />
             </v-col>
 
             <v-col cols="12" md="3">
@@ -248,7 +247,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.employee_quantity"
                 type="number"
@@ -260,7 +259,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.supplier"
                 :label="t('تمویل کننده')"
@@ -270,8 +269,16 @@
                 :error-messages="getErrorMessages('supplier')"
               />
             </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.phone_number"
+                :label="t('شماره تماس')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.tanzim"
                 :label="t('تنظیم مربوطه')"
@@ -541,6 +548,7 @@
     organ: '',
     employee_quantity: '',
     supplier: '',
+    phone_number: '',
     tanzim: '',
 
     Province_addr: '',
@@ -597,6 +605,7 @@
 
     b.employee_quantity = x.employee_quantity ?? '';
     b.supplier = x.supplier ?? '';
+    b.phone_number = x.phone_number ?? '';
     b.tanzim = x.tanzim ?? '';
 
     b.Province_addr = x.Province_addr ?? '';
@@ -604,7 +613,7 @@
 
     const r = x.resource || {};
     b.resource_code = x.resource_code ?? r.code_number ?? '';
-    b.resource_phone_number = x.resource_phone ?? x.resource_phone_number ?? r.phone_number ?? '';
+    b.resource_phone_number = x.resource_phone ?? x.resource_phone_number ?? '';
     b.resource_id = x.resource_id ?? r.id ?? null;
 
     b.note = x.note ?? '';
@@ -713,6 +722,7 @@
       { label: t('اداره/ارگان'), value: v(form.value.organ) },
       { label: t('تعداد کارمندان'), value: v(form.value.employee_quantity) },
       { label: t('تمویل کننده'), value: v(form.value.supplier) },
+      { label: t('شماره تماس'), value: v(form.value.phone_number) },
       { label: t('تنظیم مربوطه'), value: v(form.value.tanzim) },
 
       { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },

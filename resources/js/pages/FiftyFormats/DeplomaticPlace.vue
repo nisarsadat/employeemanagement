@@ -359,6 +359,7 @@ const headersFT = computed(() => [
   { title: t('نام محل دیپلوماتیک'), key: 'deplomatic_place_name' },
   { title: t('نوع فعالیت'), key: 'activity_type' },
   { title: t('محل فعالیت'), key: 'activity_place' },
+  { title: t('کشور حمایه کننده'), key: 'supplier_country' },
 
   { title: t('ورودی ذکور'), key: 'enter_male_quantity' },
   { title: t('خروجی ذکور'), key: 'outer_male_quantity' },

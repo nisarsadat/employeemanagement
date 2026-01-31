@@ -54,6 +54,7 @@ class TujaranResource extends JsonResource
             'Province_addr' => $model->Province_addr,
 
             'guard_guntity' => $model->guard_guntity,
+            'tahdid_mutawaji'  => $model->tahdid_mutawaji,
             'phone_number'  => $model->phone_number,
             'people_type'   => $model->people_type,
 

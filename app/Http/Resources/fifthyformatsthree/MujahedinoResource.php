@@ -36,6 +36,7 @@ class MujahedinoResource extends JsonResource
             'duty_type' => $model->duty_type,
             'now_job' => $model->now_job,
             'organ' => $model->organ,
+            'friends_quantity' => $model->friends_quantity,
             'phone_number' => $model->phone_number,
             'note' => $model->note,
             'coordinates' => $model->coordinates,

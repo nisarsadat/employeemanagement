@@ -18,34 +18,119 @@
   <div class="dashboard-container" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- App Bar -->
     <AppBar :title="t('داشبورد')" :subtitle="t('خلاصه عملکرد سیستم')">
-      <!-- Finance Period Toggle -->
-      <template #right>
-        <div class="d-flex align-center gap-2">
-          <span class="text-caption text-medium-emphasis mr-2">{{ t('دوره مالی:') }}</span>
-          <v-btn-toggle
-            v-model="financePeriod"
-            density="compact"
-            mandatory
-            rounded="lg"
-            class="finance-period-toggle"
-            @update:modelValue="onFinancePeriodChanged"
-          >
-            <v-btn value="daily" size="small">
-              {{ t('روزانه') }}
-            </v-btn>
-            <v-btn value="weekly" size="small">
-              {{ t('هفته‌وار') }}
-            </v-btn>
-            <v-btn value="monthly" size="small">
-              {{ t('ماهانه') }}
-            </v-btn>
-            <v-btn value="yearly" size="small">
-              {{ t('سالانه') }}
-            </v-btn>
-            <v-btn value="all" size="small">
-              {{ t('همه') }}
-            </v-btn>
-          </v-btn-toggle>
+      <template #actions>
+        <div class="d-flex align-center gap-2 flex-wrap">
+          <!-- ✅ Button 1: Finance menu -->
+          <v-menu location="bottom" transition="scale-transition" :close-on-content-click="false">
+            <template #activator="{ props }">
+              <v-tooltip :text="t('فیلتر دوره مالی (تیل + مالی + جدول کارمندان)')">
+                <template #activator="{ props: tipProps }">
+                  <v-btn
+                    v-bind="{ ...props, ...tipProps }"
+                    variant="tonal"
+                    color="primary"
+                    rounded="lg"
+                    size="small"
+                    prepend-icon="mdi-finance"
+                    class="dash-filter-btn"
+                  >
+                    {{ t('دوره مالی') }}
+                    <v-icon end size="16">mdi-chevron-down</v-icon>
+                  </v-btn>
+                </template>
+              </v-tooltip>
+            </template>
+
+            <v-card rounded="xl" class="dash-filter-menu">
+              <v-card-title class="d-flex align-center justify-space-between py-3">
+                <div class="d-flex align-center gap-2">
+                  <v-icon color="primary">mdi-finance</v-icon>
+                  <span class="text-subtitle-2 font-weight-bold">
+                    {{ t('انتخاب دوره مالی') }}
+                  </span>
+                </div>
+
+                <v-chip size="x-small" variant="tonal" color="primary">
+                  {{ financePeriod }}
+                </v-chip>
+              </v-card-title>
+
+              <v-divider />
+
+              <v-card-text class="py-3">
+                <v-btn-toggle
+                  v-model="financePeriod"
+                  density="compact"
+                  mandatory
+                  rounded="lg"
+                  class="finance-period-toggle"
+                  @update:modelValue="onFinancePeriodChanged"
+                >
+                  <v-btn value="daily" size="small">{{ t('روزانه') }}</v-btn>
+                  <v-btn value="weekly" size="small">{{ t('هفته‌وار') }}</v-btn>
+                  <v-btn value="monthly" size="small">{{ t('ماهانه') }}</v-btn>
+                  <v-btn value="yearly" size="small">{{ t('سالانه') }}</v-btn>
+                  <v-btn value="all" size="small">{{ t('همه') }}</v-btn>
+                </v-btn-toggle>
+              </v-card-text>
+            </v-card>
+          </v-menu>
+
+          <!-- ✅ Button 2: General menu -->
+          <v-menu location="bottom" transition="scale-transition" :close-on-content-click="false">
+            <template #activator="{ props }">
+              <v-tooltip :text="t('فیلتر عمومی (کارت‌ها + فرم‌ها)')">
+                <template #activator="{ props: tipProps }">
+                  <v-btn
+                    v-bind="{ ...props, ...tipProps }"
+                    variant="tonal"
+                    color="teal"
+                    rounded="lg"
+                    size="small"
+                    prepend-icon="mdi-filter-variant"
+                    class="dash-filter-btn"
+                  >
+                    {{ t('دوره عمومی') }}
+                    <v-icon end size="16">mdi-chevron-down</v-icon>
+                  </v-btn>
+                </template>
+              </v-tooltip>
+            </template>
+
+            <v-card rounded="xl" class="dash-filter-menu">
+              <v-card-title class="d-flex align-center justify-space-between py-3">
+                <div class="d-flex align-center gap-2">
+                  <v-icon color="teal">mdi-filter-variant</v-icon>
+                  <span class="text-subtitle-2 font-weight-bold">
+                    {{ t('انتخاب دوره عمومی') }}
+                  </span>
+                </div>
+
+                <v-chip size="x-small" variant="tonal" color="teal">
+                  {{ period }}
+                </v-chip>
+              </v-card-title>
+
+              <v-divider />
+
+              <v-card-text class="py-3">
+                <v-btn-toggle
+                  v-model="period"
+                  density="compact"
+                  mandatory
+                  rounded="lg"
+                  class="table-mode-toggle"
+                  @update:modelValue="onPeriodChanged"
+                >
+                  <v-btn value="daily" size="small">{{ t('روزانه') }}</v-btn>
+                  <v-btn value="weekly" size="small">{{ t('هفته‌وار') }}</v-btn>
+                  <v-btn value="monthly" size="small">{{ t('ماهانه') }}</v-btn>
+                  <v-btn value="yearly" size="small">{{ t('سالانه') }}</v-btn>
+                  <v-btn value="all" size="small">{{ t('همه') }}</v-btn>
+                </v-btn-toggle>
+              </v-card-text>
+            </v-card>
+          </v-menu>
         </div>
       </template>
     </AppBar>
@@ -68,9 +153,9 @@
 
     <!-- Stats Cards Grid -->
     <div class="stats-grid px-4 py-4">
-      <v-row dense>
+      <v-row dense class="stats-row">
         <!-- Employees Card -->
-        <v-col cols="12" sm="3" md="2" lg="2">
+        <v-col cols="12" sm="6" md="4" lg="2">
           <v-card
             rounded="xl"
             class="stat-card"
@@ -81,8 +166,8 @@
           >
             <div class="stat-accent primary"></div>
 
-            <v-card-text class="pa-3">
-              <div class="d-flex align-center justify-space-between mb-1">
+            <v-card-text class="stat-card-body">
+              <div class="stat-top">
                 <div class="card-icon-wrapper primary">
                   <v-icon color="primary" size="20">mdi-account-group</v-icon>
                 </div>
@@ -98,24 +183,23 @@
                 </v-chip>
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-1">{{ t('کل کارمندان') }}</div>
+              <div class="stat-title">{{ t('کل کارمندان') }}</div>
 
-              <div class="d-flex align-baseline justify-space-between">
-                <div class="text-h3 font-weight-black">{{ employeesTotal.toLocaleString() }}</div>
+              <div class="stat-main">
+                <div class="stat-number">{{ employeesTotal.toLocaleString() }}</div>
               </div>
 
-              <!-- Job Type Chips -->
-              <div class="stat-bottom mx-4 mt-2">
-                <div class="d-flex flex-wrap gap-1">
+              <div class="stat-bottom">
+                <div class="chips-grid">
                   <v-chip
-                    v-for="jobType in employeesJobTypes"
-                    :key="jobType.type"
+                    v-for="chip in employeesCardChips"
+                    :key="chip.key"
                     size="x-small"
                     variant="tonal"
-                    :color="jobType.type === 'اداري' ? 'primary' : 'teal'"
-                    class="clickable-chip"
+                    :color="chip.color"
+                    class="chip-compact"
                   >
-                    {{ jobType.type }}: {{ num(jobType.count) }}
+                    {{ chip.label }}: {{ num(chip.value) }}
                   </v-chip>
                 </div>
               </div>
@@ -124,39 +208,36 @@
         </v-col>
 
         <!-- Resources Card -->
-        <v-col cols="12" sm="3" md="2" lg="2">
+        <v-col cols="12" sm="6" md="4" lg="2">
           <v-card rounded="xl" class="stat-card" :disabled="repo.loading">
             <div class="stat-accent teal"></div>
 
-            <v-card-text class="pa-3">
-              <div class="d-flex align-center justify-space-between mb-2">
+            <v-card-text class="stat-card-body">
+              <div class="stat-top">
                 <div class="card-icon-wrapper teal">
                   <v-icon color="teal" size="20">mdi-database</v-icon>
                 </div>
-
-                <v-chip size="x-small" variant="tonal" color="teal">
-                  {{ t('منابع') }}
-                </v-chip>
+                <v-chip size="x-small" variant="tonal" color="teal">{{ t('منابع') }}</v-chip>
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-1">{{ t('منابع') }}</div>
+              <div class="stat-title">{{ t('منابع') }}</div>
 
               <v-progress-linear
                 :model-value="resourcesActivePercentage"
-                height="4"
+                height="5"
                 rounded
                 color="teal"
                 bg-color="rgba(var(--v-theme-teal), 0.12)"
-                class="mb-2"
+                class="stat-progress"
               />
 
               <div class="stat-bottom">
-                <div class="d-flex flex-wrap gap-1 align-center">
+                <div class="actions-row">
                   <v-chip
                     size="x-small"
                     variant="tonal"
                     color="success"
-                    class="clickable-chip"
+                    class="chip-compact"
                     @click.stop="goActiveResources"
                   >
                     <v-icon start size="14">mdi-check-circle</v-icon>
@@ -167,7 +248,7 @@
                     size="x-small"
                     variant="tonal"
                     color="error"
-                    class="clickable-chip"
+                    class="chip-compact"
                     @click.stop="goInactiveResources"
                   >
                     <v-icon start size="14">mdi-close-circle</v-icon>
@@ -194,7 +275,7 @@
         </v-col>
 
         <!-- Informations Card -->
-        <v-col cols="12" sm="3" md="2" lg="2">
+        <v-col cols="12" sm="6" md="4" lg="2">
           <v-card
             rounded="xl"
             class="stat-card"
@@ -205,32 +286,29 @@
           >
             <div class="stat-accent indigo"></div>
 
-            <v-card-text class="pa-3">
-              <div class="d-flex align-center justify-space-between mb-2">
+            <v-card-text class="stat-card-body">
+              <div class="stat-top">
                 <div class="card-icon-wrapper indigo">
                   <v-icon color="indigo" size="20">mdi-file-document-multiple</v-icon>
                 </div>
-
-                <v-chip size="x-small" variant="tonal" color="indigo">
-                  {{ t('اطلاعات') }}
-                </v-chip>
+                <v-chip size="x-small" variant="tonal" color="indigo">{{ t('اطلاعات') }}</v-chip>
               </div>
 
-              <div class="d-flex align-baseline justify-space-between">
-                <div class="text-h3 font-weight-black">
-                  {{ informationsTotal.toLocaleString() }}
-                </div>
+              <div class="stat-title">{{ t('اطلاعات') }}</div>
+
+              <div class="stat-main">
+                <div class="stat-number">{{ informationsTotal.toLocaleString() }}</div>
               </div>
 
-              <div class="stat-bottom mx-1 mt-5">
-                <div class="d-flex flex-wrap gap-1">
-                  <v-chip size="x-small" variant="tonal" color="error">
+              <div class="stat-bottom">
+                <div class="chips-grid">
+                  <v-chip size="x-small" variant="tonal" color="error" class="chip-compact">
                     {{ t('شر او فساد') }}: {{ num(infoCountSharOFasad) }}
                   </v-chip>
-                  <v-chip size="x-small" variant="tonal" color="warning">
+                  <v-chip size="x-small" variant="tonal" color="warning" class="chip-compact">
                     {{ t('ساعین بالفساد') }}: {{ num(infoCountSaenBilFasad) }}
                   </v-chip>
-                  <v-chip size="x-small" variant="tonal" color="primary">
+                  <v-chip size="x-small" variant="tonal" color="primary" class="chip-compact">
                     {{ t('جاسوسی') }}: {{ num(infoCountJasoosi) }}
                   </v-chip>
                 </div>
@@ -240,7 +318,7 @@
         </v-col>
 
         <!-- Events Card -->
-        <v-col cols="12" sm="3" md="2" lg="2">
+        <v-col cols="12" sm="6" md="4" lg="2">
           <v-card
             rounded="xl"
             class="stat-card"
@@ -251,8 +329,8 @@
           >
             <div class="stat-accent cyan"></div>
 
-            <v-card-text class="pa-3">
-              <div class="d-flex align-center justify-space-between mb-2">
+            <v-card-text class="stat-card-body">
+              <div class="stat-top">
                 <div class="card-icon-wrapper cyan">
                   <v-icon color="teal-darken-1" size="20">mdi-calendar-multiple</v-icon>
                 </div>
@@ -264,26 +342,21 @@
                 </div>
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-1">{{ t('رویدادها') }}</div>
+              <div class="stat-title">{{ t('رویدادها') }}</div>
 
-              <div class="d-flex align-baseline justify-space-between">
-                <div class="text-h3 font-weight-black">{{ eventsTotal.toLocaleString() }}</div>
-                <div class="mini-meta">
-                  <v-icon size="14" color="teal-darken-1">mdi-calendar</v-icon>
-                  <span class="text-caption">{{ t('کل') }}</span>
-                </div>
+              <div class="stat-main">
+                <div class="stat-number">{{ eventsTotal.toLocaleString() }}</div>
               </div>
 
-              <!-- Event Type Chips -->
-              <div class="stat-bottom mx-1 mt-5">
-                <div class="d-flex flex-wrap gap-1">
+              <div class="stat-bottom">
+                <div class="chips-grid">
                   <v-chip
                     v-for="eventType in eventsByType"
                     :key="eventType.type"
                     size="x-small"
                     variant="tonal"
                     :color="getEventTypeColor(eventType.type)"
-                    class="clickable-chip"
+                    class="chip-compact"
                   >
                     {{ eventType.type }}: {{ num(eventType.count) }}
                   </v-chip>
@@ -294,7 +367,7 @@
         </v-col>
 
         <!-- Money Balance Card -->
-        <v-col cols="12" sm="3" md="2" lg="2">
+        <v-col cols="12" sm="6" md="4" lg="2">
           <v-card
             rounded="xl"
             class="stat-card"
@@ -305,8 +378,8 @@
           >
             <div class="stat-accent success"></div>
 
-            <v-card-text class="pa-3">
-              <div class="d-flex align-center justify-space-between mb-2">
+            <v-card-text class="stat-card-body">
+              <!-- <div class="stat-top">
                 <div class="card-icon-wrapper success">
                   <v-icon color="success" size="20">mdi-cash-multiple</v-icon>
                 </div>
@@ -315,34 +388,32 @@
                   size="x-small"
                   variant="tonal"
                   :color="moneyBalance >= 0 ? 'success' : 'warning'"
-                  class="font-weight-bold"
+                  class="chip-compact font-weight-bold"
                 >
                   <v-icon start size="12" :icon="moneyBalance >= 0 ? 'mdi-plus' : 'mdi-minus'" />
                   <span>{{ t('موجودی:') }}</span>
                   <span>{{ num(moneyBalance) }}</span>
                 </v-chip>
+              </div> -->
+
+              <div class="stat-title">{{ t('ټولې پاتې پیسې') }}</div>
+
+              <div class="stat-main">
+                <div class="stat-number">{{ num(moneyBalance) }}</div>
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-1">{{ t('بیلانس مالی') }}</div>
-
-              <div class="d-flex align-baseline justify-space-between mb-۱">
-                <div class="text-h3 font-weight-black">{{ num(moneyBalance) }}</div>
-                <div class="mini-meta">
-                  <v-icon size="14" color="success">mdi-cash</v-icon>
-                  <span class="text-caption">{{ t('افغانی') }}</span>
-                </div>
-              </div>
-
-              <div class="stat-bottom d-flex justify-space-between mx-2">
-                <div class="d-flex align-center gap-1">
-                  <v-icon size="12" color="success">mdi-arrow-down</v-icon>
-                  <span class="text-caption">{{ t('عاید:') }}</span>
-                  <span class="text-caption">{{ num(moneyIncomeTotal) }}</span>
-                </div>
-                <div class="d-flex align-center gap-1">
-                  <v-icon size="12" color="error">mdi-arrow-up</v-icon>
-                  <span class="text-caption">{{ t('مصرف:') }}</span>
-                  <span class="text-caption">{{ num(moneyExpenseTotal) }}</span>
+              <div class="stat-bottom">
+                <div class="split-meta">
+                  <div class="meta-item">
+                    <v-icon size="12" color="success">mdi-arrow-down</v-icon>
+                    <span class="text-caption">{{ t('ټول راغلي پیسې:') }}</span>
+                    <span class="text-caption font-weight-bold">{{ num(moneyIncomeTotal) }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <v-icon size="12" color="error">mdi-arrow-up</v-icon>
+                    <span class="text-caption">{{ t('ټول مصرف شوي پیسې:') }}</span>
+                    <span class="text-caption font-weight-bold">{{ num(moneyExpenseTotal) }}</span>
+                  </div>
                 </div>
               </div>
             </v-card-text>
@@ -350,7 +421,7 @@
         </v-col>
 
         <!-- Oil Balance Card -->
-        <v-col cols="12" sm="3" md="2" lg="2">
+        <v-col cols="12" sm="6" md="4" lg="2">
           <v-card
             rounded="xl"
             class="stat-card"
@@ -361,8 +432,8 @@
           >
             <div class="stat-accent warning"></div>
 
-            <v-card-text class="pa-3">
-              <div class="d-flex align-center justify-space-between mb-2">
+            <v-card-text class="stat-card-body">
+              <div class="stat-top">
                 <div class="card-icon-wrapper warning">
                   <v-icon color="warning" size="20">mdi-fuel</v-icon>
                 </div>
@@ -371,30 +442,29 @@
                   size="x-small"
                   variant="tonal"
                   :color="oilBalance >= 0 ? 'warning' : 'error'"
+                  class="chip-compact"
                 >
                   <v-icon start size="12">{{ oilBalance >= 0 ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
                   {{ num(oilBalance) }}
                 </v-chip>
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-1">{{ t('بیلانس تیل') }}</div>
+              <div class="stat-title">{{ t('بیلانس تیل') }}</div>
 
-              <div class="d-flex align-baseline justify-space-between mb-۱">
-                <div class="text-h3 font-weight-black">{{ num(oilBalance) }}</div>
-                <div class="mini-meta">
-                  <v-icon size="14" color="warning">mdi-water</v-icon>
-                  <span class="text-caption">{{ t('لیتر') }}</span>
-                </div>
+              <div class="stat-main">
+                <div class="stat-number">{{ num(oilBalance) }}</div>
               </div>
 
-              <div class="stat-bottom d-flex justify-space-between mx-2">
-                <div class="d-flex align-center gap-1">
-                  <v-icon size="12" color="success">mdi-arrow-down</v-icon>
-                  <span class="text-caption">{{ num(oilIncomeTotal) }}</span>
-                </div>
-                <div class="d-flex align-center gap-1">
-                  <v-icon size="12" color="error">mdi-arrow-up</v-icon>
-                  <span class="text-caption">{{ num(oilExpenseTotal) }}</span>
+              <div class="stat-bottom">
+                <div class="split-meta">
+                  <div class="meta-item">
+                    <v-icon size="12" color="success">mdi-arrow-down</v-icon>
+                    <span class="text-caption font-weight-bold">{{ num(oilIncomeTotal) }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <v-icon size="12" color="error">mdi-arrow-up</v-icon>
+                    <span class="text-caption font-weight-bold">{{ num(oilExpenseTotal) }}</span>
+                  </div>
                 </div>
               </div>
             </v-card-text>
@@ -420,11 +490,7 @@
                     <div>
                       <div class="text-h6 font-weight-black">{{ t('درجه‌بندی کارمندان') }}</div>
                       <div class="text-caption text-medium-emphasis">
-                        {{
-                          tableMode === 'old'
-                            ? t('بر اساس امتیاز (رویداد + منابع + اطلاعات)')
-                            : t('بر اساس امتیاز (رویداد + منابع + اطلاعات + گزارش‌های خیرات)')
-                        }}
+                        {{ t('بر اساس امتیاز (رویداد + منابع + اطلاعات + گزارش‌های خیرات)') }}
                       </div>
                     </div>
                   </div>
@@ -443,23 +509,6 @@
                 </div>
 
                 <div class="d-flex align-center flex-wrap gap-2">
-                  <!-- Table Mode Toggle -->
-                  <v-btn-toggle
-                    v-model="tableMode"
-                    density="compact"
-                    mandatory
-                    rounded="lg"
-                    class="table-mode-toggle"
-                    @update:modelValue="onTableModeChanged"
-                  >
-                    <v-btn value="old" size="small">
-                      {{ t('جدول قدیم') }}
-                    </v-btn>
-                    <v-btn value="new" size="small">
-                      {{ t('جدول جدید') }}
-                    </v-btn>
-                  </v-btn-toggle>
-
                   <v-text-field
                     v-model.trim="search"
                     density="compact"
@@ -587,7 +636,7 @@
                 </template>
 
                 <!-- Khayrat Reports (only in new mode) -->
-                <template v-if="tableMode === 'new'" #item.khayrat_reports_count="{ item }">
+                <template #item.khayrat_reports_count="{ item }">
                   <div class="metric-chip">
                     <v-icon size="16" color="deep-orange">mdi-heart</v-icon>
                     <span class="font-weight-bold">{{ num(item.khayrat_reports_count || 0) }}</span>
@@ -694,7 +743,7 @@
       </v-row>
     </div>
 
-    <!-- Refresh + Filter FAB -->
+    <!-- Refresh FAB (filter removed: now filters are in AppBar as requested) -->
     <div class="fab-stack" :class="{ rtl: isRtl }" :style="{ bottom: mobile ? '80px' : '24px' }">
       <v-tooltip location="top">
         <template #activator="{ props }">
@@ -711,101 +760,15 @@
         </template>
         <span>{{ t('تازه‌سازی') }}</span>
       </v-tooltip>
-
-      <!-- Filter menu -->
-      <v-menu location="top" offset="6">
-        <template #activator="{ props: menuProps }">
-          <v-tooltip location="top">
-            <template #activator="{ props: tipProps }">
-              <v-btn
-                v-bind="{ ...menuProps, ...tipProps }"
-                fab
-                color="secondary"
-                size="small"
-                :disabled="repo.loading"
-              >
-                <v-icon>mdi-filter-variant</v-icon>
-              </v-btn>
-            </template>
-            <span>{{ t('فیلتر زمان') }}</span>
-          </v-tooltip>
-        </template>
-
-        <v-card rounded="xl" class="pa-3" min-width="260">
-          <div class="text-subtitle-2 font-weight-bold mb-2">
-            {{ t('فیلتر زمان') }}
-          </div>
-
-          <v-btn-toggle
-            v-model="period"
-            density="compact"
-            mandatory
-            class="w-100"
-            @update:modelValue="onPeriodChanged"
-          >
-            <v-tooltip location="top">
-              <template #activator="{ props }">
-                <v-btn v-bind="props" value="daily" class="flex-1">
-                  <v-icon start size="16">mdi-calendar-today</v-icon>
-                  {{ t('روزانه') }}
-                </v-btn>
-              </template>
-              <span>{{ t('نمایش روزانه') }}</span>
-            </v-tooltip>
-
-            <!-- Weekly -->
-            <v-tooltip location="top">
-              <template #activator="{ props }">
-                <v-btn v-bind="props" value="weekly" class="flex-1">
-                  <v-icon start size="16">mdi-calendar-week</v-icon>
-                  {{ t('هفته‌وار') }}
-                </v-btn>
-              </template>
-              <span>{{ t('نمایش هفته‌وار') }}</span>
-            </v-tooltip>
-
-            <!-- Monthly -->
-            <v-tooltip location="top">
-              <template #activator="{ props }">
-                <v-btn v-bind="props" value="monthly" class="flex-1">
-                  <v-icon start size="16">mdi-calendar-month</v-icon>
-                  {{ t('ماهانه') }}
-                </v-btn>
-              </template>
-              <span>{{ t('نمایش ماهانه') }}</span>
-            </v-tooltip>
-
-            <v-tooltip location="top">
-              <template #activator="{ props }">
-                <v-btn v-bind="props" value="yearly" class="flex-1">
-                  <v-icon start size="16">mdi-calendar</v-icon>
-                  {{ t('سالانه') }}
-                </v-btn>
-              </template>
-              <span>{{ t('نمایش سالانه') }}</span>
-            </v-tooltip>
-
-            <!-- All -->
-            <v-tooltip location="top">
-              <template #activator="{ props }">
-                <v-btn v-bind="props" value="all" class="flex-1">
-                  <v-icon start size="16">mdi-infinity</v-icon>
-                  {{ t('همه') }}
-                </v-btn>
-              </template>
-              <span>{{ t('نمایش همه داده‌ها') }}</span>
-            </v-tooltip>
-          </v-btn-toggle>
-        </v-card>
-      </v-menu>
     </div>
   </div>
 </template>
-
 <script setup>
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useDisplay } from 'vuetify';
+  import { useRouter } from 'vue-router';
+
   import AppBar from '@/components/AppBar.vue';
   import FormatsPieChart from '@/components/charts/FormatZonePieChart.vue';
   import { useDashboardRepository } from '@/stores/DashboardRepository';
@@ -814,6 +777,7 @@
 
   const { t, locale } = useI18n();
   const { mobile } = useDisplay();
+  const router = useRouter();
 
   const isRtl = computed(() => String(locale.value).toLowerCase().startsWith('fa'));
   const repo = useDashboardRepository();
@@ -822,10 +786,10 @@
   const currentPage = ref(1);
   const itemsPerPage = 10;
   const sortKey = ref('score_desc');
-  const tableMode = ref('old'); // 'old' or 'new'
 
-  const period = ref('yearly');
-  const financePeriod = ref('monthly'); // default finance period
+  // ✅ Two periods
+  const period = ref('yearly'); // for everything except (oil/finance/employee table)
+  const financePeriod = ref('monthly'); // for oil + finance + employee table
 
   const employeeDialog = ref(false);
   const selectedEmployee = ref(null);
@@ -835,6 +799,36 @@
   const selectedZone = ref(null);
   const zoneDialogLoading = ref(false);
 
+  function go(path, query = {}) {
+    router.push({ path, query });
+  }
+
+  function goEmployees() {
+    go('/app/officeemployee');
+  }
+  function goResources(status = null) {
+    const query = status ? { status } : {};
+    go('/app/resources', query);
+  }
+  function goActiveResources() {
+    go('/app/activeresource');
+  }
+  function goInactiveResources() {
+    go('/app/inactiveresource');
+  }
+  function goInformations() {
+    go('/app/informations');
+  }
+  function goEvents() {
+    go('/app/events');
+  }
+  function goFinance() {
+    go('/app/finincalindex');
+  }
+  function goOil() {
+    go('/app/finincalindex', { tab: 'oil' });
+  }
+
   // Event type colors
   function getEventTypeColor(type) {
     const colors = {
@@ -842,113 +836,120 @@
       جنایي: 'red',
       الهی: 'green',
       ترافیکي: 'orange',
+      ترافیکی: 'orange', // tolerate spelling
+      الهي: 'green', // tolerate spelling
     };
     return colors[type] || 'grey';
   }
 
-  // Employee job types
+  /* ===========================
+  Backend-driven counts
+  =========================== */
+  const employeesTotal = computed(() => repo.employees?.total ?? repo.employeesFlat?.length ?? 0);
+  const employeesActive = computed(() => Number(repo.employees?.active ?? 0));
+  const employeesInactive = computed(() => Number(repo.employees?.inactive ?? 0));
+
+  // ✅ job types (اداري / اوپراتیفي) from backend repo.employees.job_types
   const employeesJobTypes = computed(() => {
     const types = repo.employees?.job_types || [];
-    // Ensure both types exist even with zero count
-    const defaultTypes = [
+
+    const result = [
+      { type: 'فعال', count: Number(repo.employees?.active || 0) },
+      { type: 'غیر فعال', count: Number(repo.employees?.inactive || 0) },
       { type: 'اداري', count: 0 },
-      { type: 'اوپراتیفی', count: 0 },
+      { type: 'اوپراتیفي', count: 0 },
     ];
 
-    const result = [...defaultTypes];
-
     types.forEach((item) => {
-      if (item.type === 'اداري' || item.type === 'اداری') {
-        result[0].count += item.count;
-      } else if (item.type === 'اوپراتیفی' || item.type === 'اوپراتیفي') {
-        result[1].count += item.count;
-      }
+      const t = String(item.type || '').trim();
+
+      if (t.includes('اداري')) result[2].count += Number(item.count || 0);
+      if (t.includes('اوپراتی')) result[3].count += Number(item.count || 0);
     });
 
-    return result.filter((t) => t.count > 0);
+    return result; // ✅ keep all chips even if 0
   });
 
-  // Events by type
+  // ✅ Employee card chips: فعال / غیر فعال / اداري / اوپراتیفي
+  const employeesCardChips = computed(() => {
+    const jt = employeesJobTypes.value;
+    const admin = jt.find((x) => x.type === 'اداري')?.count ?? 0;
+    const oper = jt.find((x) => x.type === 'اوپراتیفي')?.count ?? 0;
+
+    return [
+      { key: 'active', label: t('فعال'), value: employeesActive.value, color: 'success' },
+      { key: 'inactive', label: t('غیر فعال'), value: employeesInactive.value, color: 'error' },
+      { key: 'admin', label: 'اداري', value: admin, color: 'primary' },
+      { key: 'oper', label: 'اوپراتیفي', value: oper, color: 'teal' },
+    ];
+  });
+
+  // ✅ Events by type (سیاسي/جنایي/الهی/ترافیکي) from backend repo.events.types
   const eventsByType = computed(() => {
     const types = repo.events?.types || [];
-    // Ensure all four types exist
-    const defaultTypes = [
+
+    const result = [
       { type: 'سیاسي', count: 0 },
       { type: 'جنایي', count: 0 },
       { type: 'الهی', count: 0 },
       { type: 'ترافیکي', count: 0 },
     ];
 
-    const result = [...defaultTypes];
-
     types.forEach((item) => {
-      const index = result.findIndex((t) => t.type === item.type);
-      if (index !== -1) {
-        result[index].count = item.count;
-      }
+      const t = String(item.type || '').trim();
+      const found = result.find((r) => t.includes(r.type));
+      if (found) found.count += Number(item.count || 0);
     });
 
-    return result.filter((t) => t.count > 0);
+    return result;
   });
 
-  // Table sort options based on mode
-  const sortOptions = computed(() => {
-    const baseOptions = [
-      { title: t('امتیاز (زیاد → کم)'), value: 'score_desc' },
-      { title: t('امتیاز (کم → زیاد)'), value: 'score_asc' },
-      { title: t('رویدادها (زیاد → کم)'), value: 'events_desc' },
-      { title: t('منابع (زیاد → کم)'), value: 'resources_desc' },
-      { title: t('اطلاعات (زیاد → کم)'), value: 'informations_desc' },
-      { title: t('نام (A → Z)'), value: 'name_asc' },
-    ];
+  /* ===========================
+  Sort options / headers
+  =========================== */
+  const sortOptions = computed(() => [
+    { title: t('امتیاز (زیاد → کم)'), value: 'score_desc' },
+    { title: t('امتیاز (کم → زیاد)'), value: 'score_asc' },
+    { title: t('رویدادها (زیاد → کم)'), value: 'events_desc' },
+    { title: t('منابع (زیاد → کم)'), value: 'resources_desc' },
+    { title: t('اطلاعات (زیاد → کم)'), value: 'informations_desc' },
+    { title: t('خیرات (زیاد → کم)'), value: 'khayrat_desc' },
+    { title: t('نام (A → Z)'), value: 'name_asc' },
+  ]);
 
-    if (tableMode.value === 'new') {
-      return [...baseOptions, { title: t('خیرات (زیاد → کم)'), value: 'khayrat_desc' }];
-    }
+  const employeeHeaders = computed(() => [
+    { title: t('رتبه'), key: 'rank', width: 90, sortable: false, align: 'center' },
+    { title: t('کارمند'), key: 'name', sortable: false },
+    { title: t('منابع'), key: 'resources_count', width: 110, sortable: false, align: 'center' },
+    {
+      title: t('اطلاعات'),
+      key: 'informations_count',
+      width: 110,
+      sortable: false,
+      align: 'center',
+    },
+    { title: t('رویدادها'), key: 'events_count', width: 110, sortable: false, align: 'center' },
+    {
+      title: t('گزارش‌های خیرات'),
+      key: 'khayrat_reports_count',
+      width: 110,
+      sortable: false,
+      align: 'center',
+    },
+    { title: t('امتیاز'), key: 'score', width: 220, sortable: false, align: 'center' },
+    { title: t('عملیات'), key: 'actions', width: 70, sortable: false, align: 'center' },
+  ]);
 
-    return baseOptions;
-  });
-
-  // Employee headers based on mode
-  const employeeHeaders = computed(() => {
-    const baseHeaders = [
-      { title: t('رتبه'), key: 'rank', width: 90, sortable: false, align: 'center' },
-      { title: t('کارمند'), key: 'name', sortable: false },
-      { title: t('منابع'), key: 'resources_count', width: 110, sortable: false, align: 'center' },
-      {
-        title: t('اطلاعات'),
-        key: 'informations_count',
-        width: 110,
-        sortable: false,
-        align: 'center',
-      },
-      { title: t('رویدادها'), key: 'events_count', width: 110, sortable: false, align: 'center' },
-    ];
-
-    if (tableMode.value === 'new') {
-      baseHeaders.splice(5, 0, {
-        title: t('گزارش‌های خیرات'),
-        key: 'khayrat_reports_count',
-        width: 110,
-        sortable: false,
-        align: 'center',
-      });
-    }
-
-    baseHeaders.push(
-      { title: t('امتیاز'), key: 'score', width: 220, sortable: false, align: 'center' },
-      { title: t('عملیات'), key: 'actions', width: 70, sortable: false, align: 'center' }
-    );
-
-    return baseHeaders;
-  });
-
+  /* ===========================
+  Fetching
+  =========================== */
   onMounted(async () => {
-    if (!repo.dashboard)
+    if (!repo.dashboard) {
       await repo.fetchDashboard({
         period: period.value,
         finance_period: financePeriod.value,
       });
+    }
   });
 
   async function refreshData() {
@@ -966,116 +967,15 @@
   }
 
   async function onFinancePeriodChanged() {
+    // ✅ This affects: oil + finance + employee table (backend should apply finance_period there)
     currentPage.value = 1;
     search.value = '';
     await refreshData();
   }
 
-  function onTableModeChanged() {
-    currentPage.value = 1;
-    search.value = '';
-    // No need to fetch data, just switch between existing data
-  }
-
-  import { useRouter } from 'vue-router';
-  const router = useRouter();
-
-  function go(path, query = {}) {
-    router.push({ path, query });
-  }
-
-  function goEmployees() {
-    go('/app/officeemployee');
-  }
-
-  const employeesActive = computed(() => Number(repo.employees?.active ?? 0));
-  const employeesInactive = computed(() => Number(repo.employees?.inactive ?? 0));
-
-  function goActiveEmployees() {
-    go('/app/activeemployees');
-  }
-
-  function goInactiveEmployees() {
-    go('/app/inactiveemployees');
-  }
-
-  function goResources(status = null) {
-    const query = status ? { status } : {};
-    go('/app/resources', query);
-  }
-
-  function goActiveResources() {
-    go('/app/activeresource');
-  }
-
-  function goInactiveResources() {
-    go('/app/inactiveresource');
-  }
-
-  function goInformations() {
-    go('/app/informations');
-  }
-
-  function goEvents() {
-    go('/app/events');
-  }
-
-  function goFinance() {
-    go('/app/finincalindex');
-  }
-
-  function goOil() {
-    go('/app/finincalindex', { tab: 'oil' });
-  }
-
-  function onZoneClick(zone) {
-    const zName = zone?.zone || zone?.name;
-    const found = zones.value.find((x) => String(x.zone) === String(zName));
-    viewZoneDetails(found || { zone: zName, total: zone?.total ?? zone?.value ?? 0 });
-  }
-
-  async function viewZoneDetails(zone) {
-    selectedZone.value = zone;
-    zoneDialog.value = true;
-
-    if (typeof repo.fetchZoneDetails === 'function') {
-      try {
-        zoneDialogLoading.value = true;
-        const full = await repo.fetchZoneDetails(zone.zone);
-        selectedZone.value = full || zone;
-      } catch (_) {
-        selectedZone.value = zone;
-      } finally {
-        zoneDialogLoading.value = false;
-      }
-    }
-  }
-
-  function closeZoneDialog() {
-    zoneDialog.value = false;
-  }
-
-  async function openEmployeeDialog(employee) {
-    selectedEmployee.value = employee;
-    employeeDialog.value = true;
-
-    if (typeof repo.fetchEmployeeDetails === 'function') {
-      try {
-        employeeDialogLoading.value = true;
-        const full = await repo.fetchEmployeeDetails(employee.id);
-        selectedEmployee.value = full || employee;
-      } catch (_) {
-        selectedEmployee.value = employee;
-      } finally {
-        employeeDialogLoading.value = false;
-      }
-    }
-  }
-
-  function closeEmployeeDialog() {
-    employeeDialog.value = false;
-  }
-
+  /* ===========================
+  Error
+  =========================== */
   const readableError = computed(() => {
     const e = repo.error;
     if (!e) return '';
@@ -1137,8 +1037,6 @@
   /* ===========================
   Stats
   =========================== */
-  const employeesTotal = computed(() => repo.employees?.total ?? repo.employeesFlat?.length ?? 0);
-
   const resourcesTotal = computed(() => Number(repo.resources?.total ?? 0));
   const resourcesActive = computed(() => Number(repo.resources?.active ?? 0));
   const resourcesInactive = computed(() => Number(repo.resources?.inactive ?? 0));
@@ -1189,29 +1087,13 @@
   );
 
   /* ===========================
-  Employees Logic
+  Employees Logic (table)
   =========================== */
   const baseEmployees = computed(() => {
-    // Use old or new data based on table mode
-    if (tableMode.value === 'new') {
-      const list = Array.isArray(repo.employees_new?.flat_sorted)
-        ? repo.employees_new.flat_sorted
-        : [];
-      return [...list].map((x) => ({
-        ...x,
-        score: Number(x.score || x.total || 0),
-      }));
-    } else {
-      const list = Array.isArray(repo.employees?.flat_sorted)
-        ? repo.employees.flat_sorted
-        : Array.isArray(repo.dashboard?.employees_flat)
-        ? repo.dashboard.employees_flat
-        : [];
-      return [...list].map((x) => ({
-        ...x,
-        score: Number(x.score || x.total || 0),
-      }));
-    }
+    const list = Array.isArray(repo.employees_new?.flat_sorted)
+      ? repo.employees_new.flat_sorted
+      : [];
+    return [...list].map((x) => ({ ...x, score: Number(x.score || x.total || 0) }));
   });
 
   function employeeScoreNumber(item) {
@@ -1220,13 +1102,9 @@
     const events = Number(item?.events_count) || 0;
     const resources = Number(item?.resources_count) || 0;
     const informations = Number(item?.informations_count) || 0;
+    const khayrat = Number(item?.khayrat_reports_count) || 0;
 
-    if (tableMode.value === 'new') {
-      const khayrat = Number(item?.khayrat_reports_count) || 0;
-      return events + resources + informations + khayrat;
-    }
-
-    return events + resources + informations;
+    return events + resources + informations + khayrat;
   }
 
   const filteredEmployees = computed(() => {
@@ -1241,7 +1119,6 @@
           return name.includes(q) || code.includes(q);
         });
 
-    // sort
     const sorted = [...filtered].sort((a, b) => {
       const ak = sortKey.value;
 
@@ -1255,21 +1132,15 @@
       if (ak === 'informations_desc')
         return (Number(b?.informations_count) || 0) - (Number(a?.informations_count) || 0);
 
-      if (tableMode.value === 'new' && ak === 'khayrat_desc') {
-        return (Number(b?.khayrat_reports_count) || 0) - (Number(a?.khayrat_reports_count) || 0);
-      }
+      // if (tableMode.value === 'new' && ak === 'khayrat_desc') {
+      //   return (Number(b?.khayrat_reports_count) || 0) - (Number(a?.khayrat_reports_count) || 0);
+      // }
 
       if (ak === 'name_asc') return String(a?.name || '').localeCompare(String(b?.name || ''));
-
       return 0;
     });
 
-    // rank after sorting
-    return sorted.map((x, i) => ({
-      ...x,
-      rank: i + 1,
-      score: employeeScoreNumber(x),
-    }));
+    return sorted.map((x, i) => ({ ...x, rank: i + 1, score: employeeScoreNumber(x) }));
   });
 
   const maxEmployeeScore = computed(() => {
@@ -1295,7 +1166,6 @@
 
   const getTopEmployeeName = computed(() => filteredEmployees.value[0]?.name || '—');
 
-  // Pagination for table
   const pageCount = computed(() =>
     Math.max(1, Math.ceil(filteredEmployees.value.length / itemsPerPage))
   );
@@ -1363,19 +1233,66 @@
     for (let i = 0; i < s.length; i++) hash += s.charCodeAt(i);
     return colors[hash % colors.length];
   }
-</script>
 
+  function onZoneClick(zone) {
+    const zName = zone?.zone || zone?.name;
+    const found = zones.value.find((x) => String(x.zone) === String(zName));
+    viewZoneDetails(found || { zone: zName, total: zone?.total ?? zone?.value ?? 0 });
+  }
+
+  async function viewZoneDetails(zone) {
+    selectedZone.value = zone;
+    zoneDialog.value = true;
+
+    if (typeof repo.fetchZoneDetails === 'function') {
+      try {
+        zoneDialogLoading.value = true;
+        const full = await repo.fetchZoneDetails(zone.zone);
+        selectedZone.value = full || zone;
+      } catch (_) {
+        selectedZone.value = zone;
+      } finally {
+        zoneDialogLoading.value = false;
+      }
+    }
+  }
+
+  function closeZoneDialog() {
+    zoneDialog.value = false;
+  }
+
+  async function openEmployeeDialog(employee) {
+    selectedEmployee.value = employee;
+    employeeDialog.value = true;
+
+    if (typeof repo.fetchEmployeeDetails === 'function') {
+      try {
+        employeeDialogLoading.value = true;
+        const full = await repo.fetchEmployeeDetails(employee.id);
+        selectedEmployee.value = full || employee;
+      } catch (_) {
+        selectedEmployee.value = employee;
+      } finally {
+        employeeDialogLoading.value = false;
+      }
+    }
+  }
+
+  function closeEmployeeDialog() {
+    employeeDialog.value = false;
+  }
+</script>
 <style scoped>
   /* Add these styles for the new toggles */
   .finance-period-toggle {
     border: 1px solid rgba(var(--v-theme-primary), 0.2);
     background: rgba(var(--v-theme-primary), 0.05);
   }
-
+  /* 
   .table-mode-toggle {
     border: 1px solid rgba(var(--v-theme-primary), 0.2);
     background: rgba(var(--v-theme-primary), 0.05);
-  }
+  } */
 
   /* Rest of the styles remain the same as your original... */
   .dashboard-container {
@@ -1505,19 +1422,6 @@
     background: rgba(0, 0, 0, 0.04);
   }
 
-  .dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.25);
-  }
-  .dot.success {
-    background: rgba(var(--v-theme-success), 1);
-  }
-  .dot.error {
-    background: rgba(var(--v-theme-error), 1);
-  }
-
   .activity-dots {
     display: flex;
     gap: 4px;
@@ -1611,19 +1515,6 @@
     color: rgba(var(--v-theme-primary), 0.95);
   }
 
-  .rank-1 {
-    background: linear-gradient(135deg, #ffd700, #ffa500);
-    color: white;
-  }
-  .rank-2 {
-    background: linear-gradient(135deg, #c0c0c0, #808080);
-    color: white;
-  }
-  .rank-3 {
-    background: linear-gradient(135deg, #cd7f32, #a0522d);
-    color: white;
-  }
-
   .employee-cell {
     display: flex;
     align-items: center;
@@ -1700,57 +1591,224 @@
   }
 
   /* Compact cards */
-  .stats-grid .stat-card {
-    min-height: 130px !important;
-    height: 130px !important;
-    display: flex !important;
-    flex-direction: column !important;
+  /* =========================
+   Cards (Beautiful + no fixed height)
+   ========================= */
+
+  .stats-row {
+    row-gap: 12px;
   }
 
-  .stats-grid .stat-card :deep(.v-card-text) {
-    padding: 10px 12px !important;
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
+  .stat-card {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    position: relative;
+    overflow: hidden;
   }
 
-  .stats-grid .stat-card .card-icon-wrapper {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 10px !important;
+  .stat-card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.12) !important;
+    border-color: rgba(var(--v-theme-primary), 0.22);
   }
 
-  .stats-grid .stat-card .text-h3 {
-    font-size: 1.4rem !important;
-    line-height: 1.1 !important;
-    margin: 0 !important;
+  .stat-card-body {
+    padding: 12px 12px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
-  .stats-grid .stat-card .mb-4 {
-    margin-bottom: 6px !important;
-  }
-  .stats-grid .stat-card .mb-3 {
-    margin-bottom: 6px !important;
-  }
-  .stats-grid .stat-card .mb-2 {
-    margin-bottom: 4px !important;
-  }
-  .stats-grid .stat-card .mt-4 {
-    margin-top: 6px !important;
-  }
-  .stats-grid .stat-card .mt-3 {
-    margin-top: 6px !important;
+  /* Accent line */
+  .stat-accent {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 4px;
+    opacity: 0.95;
   }
 
-  .stats-grid .stat-card :deep(.v-chip) {
+  .stat-accent.primary {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-primary), 1),
+      rgba(var(--v-theme-secondary), 1)
+    );
+  }
+
+  .stat-accent.teal {
+    background: linear-gradient(90deg, rgba(var(--v-theme-teal), 1), rgba(var(--v-theme-cyan), 1));
+  }
+
+  .stat-accent.indigo {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-indigo), 1),
+      rgba(var(--v-theme-primary), 1)
+    );
+  }
+
+  .stat-accent.cyan {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-teal), 1),
+      rgba(var(--v-theme-primary), 1)
+    );
+  }
+
+  .stat-accent.success {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-success), 1),
+      rgba(var(--v-theme-primary), 1)
+    );
+  }
+
+  .stat-accent.warning {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-warning), 1),
+      rgba(var(--v-theme-error), 0.9)
+    );
+  }
+
+  /* Top row inside card */
+  .stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  /* Icon wrapper */
+  .card-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--v-theme-primary), 0.08);
+  }
+
+  .card-icon-wrapper.primary {
+    background: rgba(var(--v-theme-primary), 0.1);
+  }
+  .card-icon-wrapper.teal {
+    background: rgba(var(--v-theme-teal), 0.1);
+  }
+  .card-icon-wrapper.indigo {
+    background: rgba(var(--v-theme-indigo), 0.1);
+  }
+  .card-icon-wrapper.cyan {
+    background: rgba(var(--v-theme-teal), 0.1);
+  }
+  .card-icon-wrapper.success {
+    background: rgba(var(--v-theme-success), 0.1);
+  }
+  .card-icon-wrapper.warning {
+    background: rgba(var(--v-theme-warning), 0.12);
+  }
+
+  /* Title + Number */
+  .stat-title {
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.55);
+  }
+
+  .stat-main {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .stat-number {
+    font-size: 1.45rem;
+    line-height: 1.1;
+    font-weight: 900;
+    letter-spacing: 0.2px;
+  }
+
+  /* Bottom area */
+  .stat-bottom {
+    margin-top: 2px;
+  }
+
+  /* Chips grid that wraps nicely */
+  .chips-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* Compact chip look */
+  .chip-compact {
     height: 22px !important;
     padding: 0 8px !important;
     font-size: 0.72rem !important;
   }
 
-  .stats-grid .stat-card :deep(.v-progress-linear) {
-    height: 5px !important;
-    margin-bottom: 6px !important;
+  /* Progress spacing */
+  .stat-progress {
+    margin-top: 2px;
+    margin-bottom: 2px;
+  }
+
+  /* Resources actions line */
+  .actions-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Money/Oil bottom split meta */
+  .split-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  /* Activity dots (events card) */
+  .activity-dots {
+    display: flex;
+    gap: 4px;
+  }
+  .activity-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(var(--v-theme-primary), 0.22);
+  }
+  .activity-dot.active {
+    background: rgba(var(--v-theme-primary), 1);
+  }
+
+  /* Dark mode tweaks */
+  :deep(.v-theme--dark) .stat-card {
+    background: #1e1e1e;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :deep(.v-theme--dark) .stat-title {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  :deep(.v-theme--dark) .meta-item {
+    background: rgba(255, 255, 255, 0.06);
   }
 
   /* Scrollbar */
@@ -1850,5 +1908,32 @@
   :deep(.v-theme--dark) .metric-chip,
   :deep(.v-theme--dark) .mini-meta {
     background: rgba(255, 255, 255, 0.06);
+  }
+  .two-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .two-metrics > div {
+    border-radius: 10px;
+    padding: 4px 6px;
+    background: rgba(0, 0, 0, 0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .dash-filter-btn {
+    height: 40px;
+    border: 1px solid rgba(var(--v-theme-outline), 0.14);
+    margin-left: 12px;
+  }
+
+  .dash-filter-menu {
+    min-width: 360px;
+    border: 1px solid rgba(var(--v-theme-outline), 0.12);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.12);
   }
 </style>

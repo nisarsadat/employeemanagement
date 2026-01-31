@@ -19,8 +19,9 @@ class MashkokShopsResource extends JsonResource
             'village'         => $this->village,
             'specific_place'  => $this->specific_place,
             'market_name'     => $this->market_name,
+            'shop_number'     => $this->shop_number,
             'coordinates'     => $this->coordinates,
-            'Province_addr'               => $this->Province_addr,
+            'Province_addr'   => $this->Province_addr,
 
             'name'            => $this->name,
             'father_name'     => $this->father_name,

@@ -32,6 +32,7 @@ class StoreMujahedinoRequest extends FormRequest
             'duty_type'   => ['nullable','string'],
             'now_job'     => ['nullable','string'],
             'organ'       => ['nullable','string'],
+            'friends_quantity' => ['nullable','string'],
             'phone_number'=> ['nullable','string'],
             'Province_addr' => ['nullable','string'],
 

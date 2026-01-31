@@ -192,7 +192,7 @@
               <v-text-field
                 v-model.number="form.employee_quantity"
                 type="number"
-                :label="t('تعداد کارمندان')"
+                :label="t('تعداد محافطین')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('employee_quantity')"
@@ -549,7 +549,7 @@
       { label: t('موقعیت مشخص'), value: v(form.value.specefic_place) },
       { label: t('مختصات'), value: v(form.value.coordinates) },
 
-      { label: t('تعداد کارمندان'), value: v(form.value.employee_quantity) },
+      { label: t('تعداد محافطین'), value: v(form.value.employee_quantity) },
       { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
 
       { label: t('کود منبع'), value: v(form.value.resource_code) },

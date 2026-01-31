@@ -1742,12 +1742,12 @@
   }
 
   .table-header {
-    background-color: #08989f;
+    background-color: #4a8fa4;
   }
 
   .table-header th {
-    background-color: #08989f;
-    border-color: #08989f !important;
+    background-color: #4a8fa4;
+    border-color: #4a8fa4 !important;
   }
 
   tbody td {
@@ -1831,15 +1831,15 @@
   }
 
   .table-header {
-    background-color: #08989f !important;
+    background-color: #4a8fa4 !important;
   }
 
   .table-header th {
-    background-color: #08989f !important;
-    border-top: 1px solid #08989f !important;
-    border-bottom: 1px solid #08989f !important;
-    border-left: 1px solid #08989f !important;
-    border-right: 1px solid #08989f !important;
+    background-color: #4a8fa4 !important;
+    border-top: 1px solid #4a8fa4 !important;
+    border-bottom: 1px solid #4a8fa4 !important;
+    border-left: 1px solid #4a8fa4 !important;
+    border-right: 1px solid #4a8fa4 !important;
     color: #ffffff !important;
   }
 
@@ -1849,12 +1849,12 @@
 
   tbody tr {
     position: relative;
-    box-shadow: inset 4px 0 0 0 #08989f;
+    box-shadow: inset 4px 0 0 0 #4a8fa4;
     border-bottom: 1px solid white !important;
   }
 
   [dir='rtl'] tbody tr {
-    box-shadow: inset -4px 0 0 0 #08989f;
+    box-shadow: inset -4px 0 0 0 #4a8fa4;
     border-bottom: 1px solid white !important;
   }
 

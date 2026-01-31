@@ -5,11 +5,6 @@
       :title="isEdit ? t('اصلاح معلومات کارمند') : t('اضافه کردن کارمند مدیریت')"
       :subtitle="isEdit ? t('ویرایش جزئیات یک کارمند موجود') : t('ثبت یک کارمند جدید در سیستم')"
     >
-      <template #actions>
-        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- STEPPER (sticky when scrolling) -->

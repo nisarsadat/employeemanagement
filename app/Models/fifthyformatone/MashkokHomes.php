@@ -21,6 +21,7 @@ class MashkokHomes extends Model
         'home_number',
         'coordinates',
         'home_type',
+        'mashkok_type',
         'Province_addr',
         'shak_symbols',
         'note',

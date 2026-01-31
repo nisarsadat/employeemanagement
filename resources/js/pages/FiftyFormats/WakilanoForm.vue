@@ -213,7 +213,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="2">
+            <v-col cols="12" md="5">
               <v-text-field
                 v-model="form.now_home_number"
                 :label="t('شماره خانه')"
@@ -221,17 +221,6 @@
                 density="compact"
                 :error="hasError('now_home_number')"
                 :error-messages="getErrorMessages('now_home_number')"
-              />
-            </v-col>
-
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.Guzar"
-                :label="t('گذر')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Guzar')"
-                :error-messages="getErrorMessages('Guzar')"
               />
             </v-col>
 
@@ -326,7 +315,33 @@
           </div>
 
           <v-row>
-            <v-col cols="12" md="12">
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.hawza"
+                :label="t('حوزه')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.nahay"
+                :label="t('ناحیه')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.Guzar"
+                :label="t('گذر')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('Guzar')"
+                :error-messages="getErrorMessages('Guzar')"
+              />
+            </v-col>
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.coordinates"
                 :label="t('مختصات')"
@@ -571,6 +586,8 @@
     now_specific_place: '',
     now_street_number: '',
     now_home_number: '',
+    hawza: '',
+    nahya: '',
     Guzar: '',
     place_tafseel: '',
 
@@ -701,6 +718,8 @@
     b.now_street_number = x.now_street_number ?? '';
     b.now_home_number = x.now_home_number ?? '';
     b.Guzar = x.Guzar ?? '';
+    b.hawza = x.hawza ?? '';
+    b.nahya = x.nahya ?? '';
     b.place_tafseel = x.place_tafseel ?? '';
 
     b.old_job = x.old_job ?? '';

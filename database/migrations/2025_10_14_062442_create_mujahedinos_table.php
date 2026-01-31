@@ -33,6 +33,7 @@ return new class extends Migration {
             $table->string('duty_type')->nullable();
             $table->string('now_job')->nullable();
             $table->string('organ')->nullable();
+            $table->string('friends_quantity')->nullable();
             $table->string('phone_number')->nullable();
 
             $table->text('note')->nullable();

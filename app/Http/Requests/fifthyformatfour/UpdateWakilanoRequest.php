@@ -32,6 +32,8 @@ class UpdateWakilanoRequest extends FormRequest
             'now_street_number'  => ['sometimes','nullable','string'],
             'now_home_number'    => ['sometimes','nullable','string'],
 
+            'hawza'              => ['sometimes','nullable','string'],
+            'nahya'              => ['sometimes','nullable','string'],
             'Guzar'              => ['sometimes','nullable','string'],
             'place_tafseel'      => ['sometimes','nullable','string'],
             'old_job'            => ['sometimes','nullable','string'],

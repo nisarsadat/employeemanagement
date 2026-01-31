@@ -33,6 +33,7 @@ return new class extends Migration {
 
             // Responsible person
             $table->string('responsible_name')->nullable();
+            $table->string('responsible_job')->nullable();
             $table->string('responsible_f_name')->nullable();
             $table->string('responsible_phone')->nullable();
             $table->string('responsible_country')->nullable();

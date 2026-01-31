@@ -18,6 +18,7 @@
           color="primary"
         >
           <v-tab value="accounts">{{ t('حسابونه') }}</v-tab>
+          <v-tab value="messages">{{ t('مسجونه') }}</v-tab>
           <v-tab value="cashflow">{{ t('عاید او مصرف') }}</v-tab>
           <v-tab value="oil">{{ t('تیل') }}</v-tab>
         </v-tabs>
@@ -39,6 +40,32 @@
               <v-window v-model="accountsTab" v-if="auth.can('finincalindex.view')">
                 <v-window-item value="list">
                   <AccountsIndex />
+                </v-window-item>
+              </v-window>
+            </v-card>
+          </v-window-item>
+
+          <!-- ========== Messages Window (Events + Informations) ========== -->
+          <v-window-item value="messages">
+            <v-card elevation="2" class="pa-2 rounded-xl">
+              <v-tabs
+                v-model="messagesTab"
+                grow
+                class="mb-2 rounded-lg"
+                color="primary"
+                density="comfortable"
+              >
+                <v-tab value="events">{{ t('د پیښو مسجونه') }}</v-tab>
+                <v-tab value="informations">{{ t('د معلوماتو مسجونه') }}</v-tab>
+              </v-tabs>
+
+              <v-window v-model="messagesTab" v-if="auth.can('finincalindex.view')">
+                <v-window-item value="events">
+                  <EventsToFinanceTable />
+                </v-window-item>
+
+                <v-window-item value="informations">
+                  <InformationsToFinanceTable />
                 </v-window-item>
               </v-window>
             </v-card>
@@ -104,61 +131,65 @@
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue';
-  import { useI18n } from 'vue-i18n';
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-  import AppBar from '../../components/AppBar.vue';
+import AppBar from '../../components/AppBar.vue';
 
-  // Accounts area
-  import AccountsIndex from './Accounts/AccountsIndex.vue';
+// Accounts area
+import AccountsIndex from './Accounts/AccountsIndex.vue';
 
-  // Cashflow area
-  import IncomesIndex from './IncomeOutcome/IncomesIndex.vue';
-  import Finances from './IncomeOutcome/Finances.vue';
+// Messages area
+import EventsToFinanceTable from './IncomeOutcome/EventsToFinanceTable.vue';
+import InformationsToFinanceTable from './IncomeOutcome/InformationsToFinanceTable.vue';
 
-  // Oil area (normalized PascalCase)
-  import OilIndex from './oil/oilindex.vue';
-  import OilIncomeIndex from './oil/oilIncomeIndex.vue';
-  import OilExpenseIndex from './oil/expenseOil.vue';
+// Cashflow area
+import IncomesIndex from './IncomeOutcome/IncomesIndex.vue';
+import Finances from './IncomeOutcome/Finances.vue';
 
-  import { useLoginRepository } from '../../stores/LoginRepository';
-  const auth = useLoginRepository();
+// Oil area
+import OilIndex from './oil/oilindex.vue';
+import OilIncomeIndex from './oil/oilIncomeIndex.vue';
+import OilExpenseIndex from './oil/expenseOil.vue';
 
-  const { t, locale } = useI18n();
-  const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
+import { useLoginRepository } from '../../stores/LoginRepository';
+const auth = useLoginRepository();
 
-  const drawer = ref(false);
+const { t, locale } = useI18n();
+const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 
-  // Main tabs: accounts | cashflow | oil | report
-  const mainTab = ref('accounts');
+const drawer = ref(false);
 
-  // Sub-tabs
-  const accountsTab = ref('list'); // list | types
-  const cashflowTab = ref('income'); // income | expense
-  const oilTab = ref('income'); // income | expense | account
-  const reportTab = ref('oilreport'); // oilreport | moneyreport
+// Main tabs: accounts | messages | cashflow | oil
+const mainTab = ref('accounts');
+
+// Sub-tabs
+const accountsTab = ref('list');
+const messagesTab = ref('events'); // ✅ events | informations
+const cashflowTab = ref('income');
+const oilTab = ref('income');
 </script>
 
 <style scoped>
-  :deep(.v-tabs) {
-    backdrop-filter: saturate(120%) blur(2px);
-  }
+:deep(.v-tabs) {
+  backdrop-filter: saturate(120%) blur(2px);
+}
 
-  :deep(.v-tab) {
-    font-weight: 600;
-    letter-spacing: 0.2px;
-  }
+:deep(.v-tab) {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
 
-  :deep(.v-card) {
-    border-radius: 16px;
-  }
+:deep(.v-card) {
+  border-radius: 16px;
+}
 
-  :deep(.v-window-item) {
-    padding: 8px;
-  }
+:deep(.v-window-item) {
+  padding: 8px;
+}
 
-  /* Better spacing for RTL/LTR */
-  .v-container[dir='rtl'] :deep(.v-tab__slider) {
-    inset-inline-start: 0 !important;
-  }
+/* Better spacing for RTL/LTR */
+.v-container[dir='rtl'] :deep(.v-tab__slider) {
+  inset-inline-start: 0 !important;
+}
 </style>

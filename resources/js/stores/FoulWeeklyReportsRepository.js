@@ -34,7 +34,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const dayNum = date.getUTCDay() || 7; // 1..7 (Mon..Sun)
     date.setUTCDate(date.getUTCDate() + 4 - dayNum); // nearest Thu
     const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+    const weekNo = Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
     const yyyy = date.getUTCFullYear();
     const ww = String(weekNo).padStart(2, '0');
     return `${yyyy}-W${ww}`;
@@ -171,8 +171,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
 
     const pills = [];
 
-    if (miladi)
-      pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
+    if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
     if (shamsi)
       pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
     if (qamari)
@@ -468,7 +467,20 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         color: rgba(17,24,39,.65);
         font-weight:900;
       }
-
+      .hero-logo{
+        display:flex;
+        align-items:center;
+        justify-content:flex-end;
+        padding:10px 12px;
+        border-radius:12px;
+        min-width: 150px;
+      }
+      .hero-logo img{
+        height:42px;
+        width:auto;
+        object-fit:contain;
+        display:block;
+      }
       .no-break { break-inside: avoid; page-break-inside: avoid; }
       .card { break-inside: avoid; page-break-inside: avoid; }
 
@@ -513,7 +525,10 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const formats = Array.isArray(report?.formats) ? report.formats : [];
     const formatsActive = formats.length;
     const formatsSum = formats.reduce((s, f) => s + safeNum(f?.count), 0);
-
+    function getLogoUrl() {
+      // ✅ logo must be inside /public so it works in print window
+      return `${window.location.origin}/logo.png`;
+    }
     const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
     const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
 
@@ -575,12 +590,11 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
             <div class="hero no-break">
               <div class="hero-top">
                 <div>
-                  <h1 class="hero-title">د سیستم اوونیز راپور</h1>
+                  <h1 class="hero-title">د 333 اوونیز راپور</h1>
                   <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو اوونیز عمومي کتنه</p>
                 </div>
-                <div class="hero-date">
-                  <div class="date-big">${escapeHtml(weekVal)}</div>
-                  <div class="date-small">اوونیز راپور</div>
+                <div class="hero-logo">
+                  <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
 
@@ -591,9 +605,9 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">سرچینې</div>
+                    <div class="stat-label">منابع</div>
                     <div class="stat-number">${resourcesTotal}</div>
-                    <span class="badge b-primary">ټول</span>
+                    <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
                   </div>
                 </div>
               </div>
@@ -601,7 +615,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">معلومات</div>
+                    <div class="stat-label">اطلاعات</div>
                     <div class="stat-number">${informationsTotal}</div>
                     <span class="badge b-info">شتون لري</span>
                   </div>
@@ -621,9 +635,8 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">۵۰ فارمت فورمونه</div>
+                    <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
                     <div class="stat-number">${formatsActive}</div>
-                    <span class="badge b-success">فعال</span>
                   </div>
                 </div>
               </div>
@@ -635,7 +648,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
                   <div class="header-strip bg-primary">
                     <div class="strip-left">
                       <div>
-                        <div class="strip-title">د معلوماتو ډولونه</div>
+                        <div class="strip-title">د اطلاعات ډولونه</div>
                         <div class="strip-sub">د ډول له مخې وېش (اوونۍ)</div>
                       </div>
                     </div>
@@ -659,24 +672,14 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
                   <div class="header-strip bg-success">
                     <div class="strip-left">
                       <div>
-                        <div class="strip-title">فورمونه</div>
-                        <div class="strip-sub">د ۵۰ فارمت فورمونو لنډیز (اوونۍ)</div>
+                        <div class="strip-title">لیټري دوسیه</div>
+                        <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
                       </div>
                     </div>
                     <span class="chip chip-success">${formatsActive}</span>
                   </div>
 
-                  <div style="padding:0;">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th style="width:70%;">د فورم نوم</th>
-                          <th class="td-end" style="width:30%;">ورودي</th>
-                        </tr>
-                      </thead>
-                      <tbody>${formatsTr}</tbody>
-                    </table>
-                  </div>
+                  
                 </div>
               </div>
 
@@ -703,10 +706,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
                   </table>
                 </div>
 
-                <div class="footer">
-                  <div>د ټولو پېښو شمېر: <span style="color:#1e40af;">${eventsTotal}</span></div>
-                  <div>د فورمونو د ورودیانو جمع: <span style="color:#065f46;">${formatsSum}</span></div>
-                </div>
+                
               </div>
             </div>
           </div>

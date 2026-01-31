@@ -13,15 +13,22 @@ class FinanceResource extends JsonResource
         $employee = $this->getRelationValue('officeEmployee');
         $account  = $this->getRelationValue('account');
 
+        $event = $this->getRelationValue('event');
+        $info  = $this->getRelationValue('information');
+
         return [
             'id' => $this->id,
 
             'office_employee_id' => $this->office_employee_id,
-            'resource_id' => $this->resource_id,
-            'account_id' => $this->account_id,
+            'resource_id'        => $this->resource_id,
+            'account_id'         => $this->account_id,
+
+            // ✅ NEW: link finance to event/information (nullable)
+            'event_id'           => $this->event_id,
+            'information_id'     => $this->information_id,
 
             'money_amount_number' => $this->money_amount_number,
-            'money_amount_words' => $this->money_amount_words,
+            'money_amount_words'  => $this->money_amount_words,
 
             'date' => optional($this->date)->toDateString(),
             'employee_phone' => $this->employee_phone,
@@ -66,6 +73,19 @@ class FinanceResource extends JsonResource
                     'id' => $account->id,
                     'name' => $account->name,
                     'price' => $account->price,
+                ] : null;
+            }),
+
+            // ✅ NEW: minimal embedded event/information (safe shape)
+            'event' => $this->whenLoaded('event', function () use ($event) {
+                return $event ? [
+                    'id' => $event->id,
+                ] : null;
+            }),
+
+            'information' => $this->whenLoaded('information', function () use ($info) {
+                return $info ? [
+                    'id' => $info->id,
                 ] : null;
             }),
 

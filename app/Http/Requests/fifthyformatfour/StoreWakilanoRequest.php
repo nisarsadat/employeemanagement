@@ -32,6 +32,8 @@ class StoreWakilanoRequest extends FormRequest
             'now_street_number'  => ['nullable','string'],
             'now_home_number'    => ['nullable','string'],
 
+            'hawza'              => ['nullable','string'],
+            'nahya'              => ['nullable','string'],
             'Guzar'              => ['nullable','string'],
             'place_tafseel'      => ['nullable','string'],
             'old_job'            => ['nullable','string'],

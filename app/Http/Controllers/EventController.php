@@ -39,6 +39,7 @@ class EventController extends Controller
             'officeEmployee:id,code_number',
             'akhistonkyEmployee:id,code_number',
             'documents',
+            'finances',
         ])->when($request->search, function ($q) use ($request) {
             $s = trim((string) $request->search);
             $q->where(function ($qq) use ($s) {
@@ -91,6 +92,8 @@ class EventController extends Controller
                     'officeEmployee',
                     'akhistonkyEmployee',
                     'documents',
+            'finances',
+
                 ]);
 
                 // 🔔 Notification: CREATED
@@ -125,6 +128,8 @@ class EventController extends Controller
             'officeEmployee',
             'akhistonkyEmployee',
             'documents',
+            'finances',
+
         ])->findOrFail($id);
 
         return new EventResource($event);
@@ -175,6 +180,8 @@ class EventController extends Controller
                     'officeEmployee',
                     'akhistonkyEmployee',
                     'documents',
+            'finances',
+
                 ]);
 
                 // 🔔 Notification: UPDATED

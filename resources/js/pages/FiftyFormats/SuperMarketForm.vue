@@ -111,7 +111,7 @@
               </div>
 
               <v-row>
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.responsible_name"
                     :label="t('مسؤول')"
@@ -122,7 +122,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.responsible_f_name"
                     :label="t('نام پدر مسؤول')"
@@ -133,7 +133,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.responsible_phone"
                     :label="t('شماره تماس مسؤول')"
@@ -143,6 +143,15 @@
                     :rules="[rules.phone10]"
                     :error="hasError('responsible_phone')"
                     :error-messages="getErrorMessages('responsible_phone')"
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.responsible_job"
+                    :label="t(' موقف مسؤول')"
+                    variant="outlined"
+                    density="compact"
+                    inputmode="numeric"
                   />
                 </v-col>
               </v-row>
@@ -429,6 +438,7 @@
     responsible_name: '',
     responsible_f_name: '',
     responsible_phone: '',
+    responsible_job: '',
 
     // address
     province: '',
@@ -482,6 +492,7 @@
       [t('مسؤول'), form.value.responsible_name],
       [t('نام پدر مسؤول'), form.value.responsible_f_name],
       [t('شماره تماس مسؤول'), form.value.responsible_phone],
+      [t(' موقف مسؤول'), form.value.responsible_job],
 
       [t('ولایت'), form.value.province],
       [t('زون'), form.value.zone],
@@ -623,6 +634,7 @@
     b.responsible_name = x.responsible_name ?? '';
     b.responsible_f_name = x.responsible_f_name ?? '';
     b.responsible_phone = x.responsible_phone ?? '';
+    b.responsible_job = x.responsible_job ?? '';
 
     b.province = x.province ?? '';
     b.zone = x.zone ?? '';

@@ -29,6 +29,9 @@ return new class extends Migration {
             $table->string('madani_halat')->nullable();
             $table->string('estijalyat_degree')->nullable();
             $table->string('information_category')->nullable();
+            $table->string('message_to_finance')->nullable();
+            $table->string('finance_status')->default('pending');
+            $table->timestamp('finance_paid_at')->nullable();
 
             // ===============================
             // Main address

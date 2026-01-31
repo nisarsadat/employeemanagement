@@ -151,8 +151,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
     const pills = [];
 
-    if (miladi)
-      pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
+    if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
     if (shamsi)
       pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
     if (qamari)
@@ -456,6 +455,20 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         font-weight:900;
       }
 
+      .hero-logo{
+        display:flex;
+        align-items:center;
+        justify-content:flex-end;
+        padding:10px 12px;
+        border-radius:12px;
+        min-width: 150px;
+      }
+      .hero-logo img{
+        height:42px;
+        width:auto;
+        object-fit:contain;
+        display:block;
+      }
       .no-break { break-inside: avoid; page-break-inside: avoid; }
       .card { break-inside: avoid; page-break-inside: avoid; }
 
@@ -502,6 +515,10 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
     const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
     const eventRows = Array.isArray(report?.events?.rows) ? report.events.rows : [];
+    function getLogoUrl() {
+      // ✅ logo must be inside /public so it works in print window
+      return `${window.location.origin}/logo.png`;
+    }
 
     // ✅ three dates: miladi + shamsi + qamari (SAME day)
     const heroDatePills = buildDatePillsSameDay(dateText);
@@ -573,12 +590,11 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
             <div class="hero no-break">
               <div class="hero-top">
                 <div>
-                  <h1 class="hero-title">د سیستم ورځنی راپور</h1>
+                  <h1 class="hero-title">د 333 ورځنی راپور</h1>
                   <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو ورځنۍ عمومي کتنه</p>
                 </div>
-                <div class="hero-date">
-                  <div class="date-big">${escapeHtml(dateText)}</div>
-                  <div class="date-small">ورځنی راپور</div>
+                <div class="hero-logo">
+                  <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
 
@@ -589,9 +605,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">سرچینې</div>
+                    <div class="stat-label">منابع</div>
                     <div class="stat-number">${resourcesTotal}</div>
-                    <span class="badge b-primary">ټول</span>
+                    <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
                   </div>
                 </div>
               </div>
@@ -599,7 +615,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">معلومات</div>
+                    <div class="stat-label">اطلاعات</div>
                     <div class="stat-number">${informationsTotal}</div>
                     <span class="badge b-info">شتون لري</span>
                   </div>
@@ -619,9 +635,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">۵۰ فارمت فورمونه</div>
+                    <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
                     <div class="stat-number">${formatsActive}</div>
-                    <span class="badge b-success">فعال</span>
                   </div>
                 </div>
               </div>
@@ -633,7 +648,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                   <div class="header-strip bg-primary">
                     <div class="strip-left">
                       <div>
-                        <div class="strip-title">د معلوماتو ډولونه</div>
+                        <div class="strip-title"> اطلاعات</div>
                         <div class="strip-sub">د ډول له مخې وېش</div>
                       </div>
                     </div>
@@ -657,24 +672,14 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                   <div class="header-strip bg-success">
                     <div class="strip-left">
                       <div>
-                        <div class="strip-title">فورمونه</div>
-                        <div class="strip-sub">د ۵۰ فارمت فورمونو لنډیز</div>
+                        <div class="strip-title">لیټري دوسیه</div>
+                        <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
                       </div>
                     </div>
                     <span class="chip chip-success">${formatsActive}</span>
                   </div>
 
-                  <div style="padding:0;">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th style="width:70%;">د فورم نوم</th>
-                          <th class="td-end" style="width:30%;">ورودي</th>
-                        </tr>
-                      </thead>
-                      <tbody>${formatsTr}</tbody>
-                    </table>
-                  </div>
+                 
                 </div>
               </div>
 
@@ -705,10 +710,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                   </table>
                 </div>
 
-                <div class="footer">
-                  <div>د ټولو پېښو شمېر: <span style="color:#1e40af;">${eventsTotal}</span></div>
-                  <div>د فورمونو د ورودیانو جمع: <span style="color:#065f46;">${formatsSum}</span></div>
-                </div>
+                
               </div>
             </div>
           </div>
@@ -734,7 +736,10 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
     const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
     const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
-
+    function getLogoUrl() {
+      // ✅ logo must be inside /public so it works in print window
+      return `${window.location.origin}/logo.png`;
+    }
     // ✅ three dates for THAT day (month start day)
     const heroDatePills = buildDatePillsSameDay(headerIso);
 
@@ -796,12 +801,11 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
             <div class="hero no-break">
               <div class="hero-top">
                 <div>
-                  <h1 class="hero-title">د سیستم میاشتنی راپور</h1>
+                  <h1 class="hero-title">د 333 میاشتنی راپور</h1>
                   <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو میاشتنی عمومي کتنه</p>
                 </div>
-                <div class="hero-date">
-                  <div class="date-big">${escapeHtml(monthVal)}</div>
-                  <div class="date-small">میاشتنی راپور</div>
+                <div class="hero-logo">
+                  <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
 
@@ -812,9 +816,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">سرچینې</div>
+                    <div class="stat-label">منابع</div>
                     <div class="stat-number">${resourcesTotal}</div>
-                    <span class="badge b-primary">ټول</span>
+                    <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
                   </div>
                 </div>
               </div>
@@ -822,7 +826,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">معلومات</div>
+                    <div class="stat-label">اطلاعات</div>
                     <div class="stat-number">${informationsTotal}</div>
                     <span class="badge b-info">شتون لري</span>
                   </div>
@@ -842,9 +846,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               <div class="card">
                 <div class="stat-card">
                   <div>
-                    <div class="stat-label">۵۰ فارمت فورمونه</div>
+                    <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
                     <div class="stat-number">${formatsActive}</div>
-                    <span class="badge b-success">فعال</span>
+                    
                   </div>
                 </div>
               </div>
@@ -856,7 +860,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                   <div class="header-strip bg-primary">
                     <div class="strip-left">
                       <div>
-                        <div class="strip-title">د معلوماتو ډولونه</div>
+                        <div class="strip-title">د اطلاعات ډولونه</div>
                         <div class="strip-sub">د ډول له مخې وېش</div>
                       </div>
                     </div>
@@ -880,24 +884,14 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                   <div class="header-strip bg-success">
                     <div class="strip-left">
                       <div>
-                        <div class="strip-title">فورمونه</div>
-                        <div class="strip-sub">د ۵۰ فارمت فورمونو لنډیز</div>
+                        <div class="strip-title">لیټري دوسیه</div>
+                        <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
                       </div>
                     </div>
                     <span class="chip chip-success">${formatsActive}</span>
                   </div>
 
-                  <div style="padding:0;">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th style="width:70%;">د فورم نوم</th>
-                          <th class="td-end" style="width:30%;">ورودي</th>
-                        </tr>
-                      </thead>
-                      <tbody>${formatsTr}</tbody>
-                    </table>
-                  </div>
+                 
                 </div>
               </div>
 
@@ -924,10 +918,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                   </table>
                 </div>
 
-                <div class="footer">
-                  <div>د ټولو پېښو شمېر: <span style="color:#1e40af;">${eventsTotal}</span></div>
-                  <div>د فورمونو د ورودیانو جمع: <span style="color:#065f46;">${formatsSum}</span></div>
-                </div>
+                
               </div>
             </div>
           </div>

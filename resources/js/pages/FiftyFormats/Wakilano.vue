@@ -388,7 +388,10 @@
     { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
     { title: t('شماره سرک'), key: 'now_street_number' },
     { title: t('شماره خانه'), key: 'now_home_number' },
+    { title: t('حوزه'), key: 'hawza' },
+    { title: t('ناحیه'), key: 'nahya' },
     { title: t('گذر'), key: 'Guzar' },
+    { title: t('مختصات'), key: 'coordinates' },
     { title: t('تفصیل موقعیت'), key: 'place_tafseel' },
 
     { title: t('وظیفه قبلی'), key: 'old_job' },
@@ -402,7 +405,6 @@
     { title: t('شماره منبع'), key: 'resource_phone' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
-    { title: t('مختصات'), key: 'coordinates' },
     { title: t('یادداشت'), key: 'note' },
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);

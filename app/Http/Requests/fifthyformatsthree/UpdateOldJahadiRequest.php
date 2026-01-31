@@ -32,6 +32,7 @@ class UpdateOldJahadiRequest extends FormRequest
             'now_job' => ['nullable','string'],
             'employee_quantity' => ['nullable','string'],
             'supplier' => ['nullable','string'],
+            'phone_number' => ['nullable','string'],
             'tanzim' => ['nullable','string'],
             'organ' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],

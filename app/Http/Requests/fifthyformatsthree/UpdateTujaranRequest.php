@@ -32,6 +32,7 @@ class UpdateTujaranRequest extends FormRequest
             'organ'    => ['nullable','string'],
 
             'guard_guntity' => ['nullable','string'],
+            'tahdid_mutawaji' => ['nullable','string'],
             'phone_number'  => ['nullable','string'],
             'people_type'   => ['nullable','string'],
             'Province_addr' => ['nullable','string'],

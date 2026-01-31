@@ -14,6 +14,10 @@ class Finance extends Model
         'resource_id',
         'account_id',
 
+        // ✅ NEW (fix)
+        'event_id',
+        'information_id',
+
         'money_amount_number',
         'money_amount_words',
         'date',
@@ -44,6 +48,16 @@ class Finance extends Model
     public function account()
     {
         return $this->belongsTo(Account::class, 'account_id');
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class, 'event_id');
+    }
+
+    public function information()
+    {
+        return $this->belongsTo(Information::class, 'information_id');
     }
 
     public function scopeSearch($q, $search)

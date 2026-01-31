@@ -7,7 +7,7 @@ import axios from 'axios';
  *  - Accounts
  *  - Income
  *  - Finance (Expense/Outcome)
- *  - Dropdown options: OfficeEmployees + Resources
+ *  - Dropdown options: OfficeEmployees + Resources + Events + Informations
  */
 
 export const useFinanceRepository = defineStore('FinanceRepository', () => {
@@ -60,6 +60,38 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
       resources.value = resp.data?.data ?? resp.data ?? [];
     } finally {
       resourcesLoading.value = false;
+    }
+  }
+
+  // ✅ Events (same pattern)
+  const events = ref([]);
+  const eventsLoading = ref(false);
+
+  async function FetchEventsOptions({ search = '' } = {}) {
+    eventsLoading.value = true;
+    try {
+      const resp = await axios.get('/events', {
+        params: { search },
+      });
+      events.value = resp.data?.data ?? resp.data ?? [];
+    } finally {
+      eventsLoading.value = false;
+    }
+  }
+
+  // ✅ Informations (same pattern)
+  const informations = ref([]);
+  const informationsLoading = ref(false);
+
+  async function FetchInformationsOptions({ search = '' } = {}) {
+    informationsLoading.value = true;
+    try {
+      const resp = await axios.get('/informations', {
+        params: { search },
+      });
+      informations.value = resp.data?.data ?? resp.data ?? [];
+    } finally {
+      informationsLoading.value = false;
     }
   }
 
@@ -338,6 +370,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
       filtered_outcome: '0.00',
     };
   }
+
   async function FetchYears(type) {
     yearsLoading.value = true;
     try {
@@ -362,6 +395,16 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     resources,
     resourcesLoading,
     FetchResourcesOptions,
+
+    // ✅ Events dropdown
+    events,
+    eventsLoading,
+    FetchEventsOptions,
+
+    // ✅ Informations dropdown
+    informations,
+    informationsLoading,
+    FetchInformationsOptions,
 
     // Accounts
     accounts,

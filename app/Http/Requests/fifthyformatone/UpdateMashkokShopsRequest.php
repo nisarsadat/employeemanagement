@@ -17,6 +17,7 @@ class UpdateMashkokShopsRequest extends FormRequest
             'village'        => ['nullable','string','max:255'],
             'specific_place' => ['nullable','string','max:255'],
             'market_name'    => ['nullable','string','max:255'],
+            'shop_number'    => ['nullable','string','max:255'],
             'coordinates'    => ['nullable','string','max:255'],
 
             'name'           => ['sometimes','required','string','max:255'],

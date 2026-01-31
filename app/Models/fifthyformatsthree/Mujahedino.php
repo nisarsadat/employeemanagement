@@ -32,6 +32,7 @@ class Mujahedino extends Model
         'duty_type',
         'now_job',
         'organ',
+        'friends_quantity',
         'phone_number',
         'note',
         'coordinates',

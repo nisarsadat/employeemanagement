@@ -13,6 +13,7 @@ class CheckpointResource extends JsonResource
         return [
             'id'                 => $model->id,
 
+            'check_point_place'    => $model->check_point_place,
             'checkpoint_name'    => $model->checkpoint_name,
             'employee_quantity'  => $model->employee_quantity,
 

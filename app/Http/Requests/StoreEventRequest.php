@@ -36,8 +36,10 @@ class StoreEventRequest extends FormRequest
             'coordinates'           => 'nullable|string',
             'note'                  => 'nullable|string',
             'docs_note'             => 'nullable|string',
-            'Province_addr' => ['nullable','string'],
-
+            'Province_addr'         => ['nullable','string'],
+            'message_to_finance'         => ['nullable','string'],
+            'finance_status' => ['nullable','string'],
+            'finance_paid_at' => ['nullable','string'],
             'documents.*'           => 'nullable|file',
         ];
     }

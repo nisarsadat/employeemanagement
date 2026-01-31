@@ -358,6 +358,7 @@ const headersFT = computed(() => [
 
   { title: t('موقعیت مشخص'), key: 'specific_place' },
   { title: t('نام بازار'), key: 'market_name' },
+  { title: t('د دوکان شمیره'), key: 'shop_number' },
   { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('نام مالک'), key: 'name' },

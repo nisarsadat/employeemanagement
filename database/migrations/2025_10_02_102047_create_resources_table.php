@@ -19,6 +19,10 @@ return new class extends Migration {
             $table->string('nick_name')->nullable();
             $table->string('code_number')->nullable()->index();
             $table->string('tazkira')->nullable();
+            $table->string('project')->nullable();
+            $table->string('zone')->nullable();
+            $table->string('hawza')->nullable();
+            $table->string('specefic_place')->nullable();
 
             // main address
             $table->string('main_province')->nullable();
@@ -32,7 +36,6 @@ return new class extends Migration {
             $table->string('now_specific_place')->nullable();
             $table->string('now_street_number')->nullable();
             $table->string('now_home_number')->nullable();
-            $table->string('tadarok_place')->nullable();
 
             // jobs
             $table->string('old_job')->nullable();

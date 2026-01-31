@@ -351,6 +351,7 @@
   /* TABLE HEADERS – ALL INPUTS + map */
   const headersFT = computed(() => [
     { title: t('نام چک‌پوینت'), key: 'checkpoint_name' },
+    { title: t('موقعیت چک‌پوینت'), key: 'check_point_place' },
     { title: t('تعداد کارمندان'), key: 'employee_quantity' },
     { title: t('ارگان مربوط'), key: 'organ' },
     { title: t('دلیل ایجاد'), key: 'create_reason' },

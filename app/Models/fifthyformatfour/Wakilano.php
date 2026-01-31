@@ -9,7 +9,6 @@ class Wakilano extends Model
 {
     protected $fillable = [
         'picture',
-        'coordinates',
         'name',
         'f_name',
         'grand_father_name',
@@ -23,7 +22,10 @@ class Wakilano extends Model
         'now_specific_place',
         'now_street_number',
         'now_home_number',
+        'hawza',
+        'nahya',
         'Guzar',
+        'coordinates',
         'place_tafseel',
         'old_job',
         'now_job',

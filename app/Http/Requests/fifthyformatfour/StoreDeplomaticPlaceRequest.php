@@ -13,6 +13,7 @@ class StoreDeplomaticPlaceRequest extends FormRequest
         return [
             'deplomatic_place_name' => ['nullable','string'],
             'activity_type'         => ['nullable','string'],
+            'supplier_country'        => ['nullable','string'],
             'activity_place'        => ['nullable','string'],
 
             'enter_male_quantity'   => ['nullable','integer'],

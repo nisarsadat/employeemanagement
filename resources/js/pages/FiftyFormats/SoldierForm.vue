@@ -290,6 +290,15 @@
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
+                v-model="form.phone_number"
+                :label="t('شماره تماس')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
                 v-model="form.coordinates"
                 :label="t('مختصات')"
                 density="compact"
@@ -484,6 +493,7 @@
     Province_addr: '',
     phone_number: '',
     coordinates: '',
+    phone_number: '',
     resource_code: '',
     resource_phone_number: '',
     resource_id: null,
@@ -615,6 +625,7 @@
       Province_addr: '',
       phone_number: '',
       coordinates: '',
+      phone_number: '',
       resource_code: '',
       resource_phone_number: '',
       resource_id: null,
@@ -651,6 +662,7 @@
       Province_addr: x.Province_addr ?? '',
       phone_number: x.phone_number ?? '',
       coordinates: x.coordinates ?? '',
+      phone_number: x.phone_number ?? '',
       resource_code: x.resource_code ?? '',
       resource_phone_number: x.resource_phone_number ?? '',
       resource_id: x.resource_id ?? null,
@@ -786,6 +798,7 @@
       [t('وظیفه فعلی'), form.value.now_job],
       [t('تعداد محافظ'), form.value.guard_amount],
 
+      [t('شماره تماس'), form.value.phone_number],
       [t('مختصات'), form.value.coordinates],
 
       [t('کود منبع'), form.value.resource_code],

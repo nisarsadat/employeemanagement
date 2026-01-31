@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('village')->nullable();
             $table->string('specific_place')->nullable();
             $table->string('market_name')->nullable();
+            $table->string('shop_number')->nullable();
             $table->string('coordinates')->nullable();
 
             $table->string('name');

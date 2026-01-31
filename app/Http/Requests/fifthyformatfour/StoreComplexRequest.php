@@ -30,6 +30,7 @@ class StoreComplexRequest extends FormRequest
             'outer_femal_quantity'   => ['nullable','integer'],
 
             'responsible_name'       => ['nullable','string'],
+            'responsible_job'       => ['nullable','string'],
             'responsible_f_name'     => ['nullable','string'],
             'responsible_phone'      => ['nullable','string'],
             'responsible_country'    => ['nullable','string'],

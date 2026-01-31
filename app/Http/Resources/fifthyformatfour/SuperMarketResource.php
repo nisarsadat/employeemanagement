@@ -19,6 +19,7 @@ class SuperMarketResource extends JsonResource
             'responsible_name'     => $model->responsible_name,
             'responsible_f_name'   => $model->responsible_f_name,
             'responsible_phone'    => $model->responsible_phone,
+            'responsible_job'      => $model->responsible_job,
             'province'             => $model->province,
             'zone'                 => $model->zone,
             'district'             => $model->district,

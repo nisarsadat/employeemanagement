@@ -10,7 +10,6 @@
           : t('ثبت یک ریکارډ امارت آفس جدید در سیستم')
       "
     >
-     
     </AppBar>
 
     <!-- FORM -->
@@ -46,7 +45,7 @@
                 </v-col>
 
                 <v-col cols="12" md="3">
-                   <FormatZoneAutocomplete
+                  <FormatZoneAutocomplete
                     v-model="form.zone"
                     :label="t('زون')"
                     :disabled="saving"
@@ -105,16 +104,17 @@
 
               <v-row>
                 <v-col cols="12" md="4">
-                  <v-text-field
+                  <v-select
                     v-model="form.home_type"
+                    :items="hometypefortheemaratoffice"
                     :label="t('نوع خانه/اداره')"
                     variant="outlined"
                     density="compact"
+                    clearable
                     :error="hasError('home_type')"
                     :error-messages="getErrorMessages('home_type')"
                   />
                 </v-col>
-
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.responsible_office"
@@ -361,6 +361,7 @@
   function getErrorMessages(field) {
     return backendErrors.value?.[field] ?? [];
   }
+  const hometypefortheemaratoffice = computed(() => [t('کرایی'), t('ګروی'), t('خپل')]);
 
   /* FORM MODEL */
   const blankForm = () => ({
