@@ -11,7 +11,7 @@
     <v-container class="pa-0">
       <v-row class="align-center">
         <!-- Search Field -->
-        <v-col cols="12" sm="8" md="9" lg="10">
+        <v-col cols="12" sm="12" md="12" lg="12">
           <v-text-field
             v-model.trim="repo.Search"
             :label="t('جستجو در واقعات...')"
@@ -26,6 +26,55 @@
             @click:clear="clearSearch"
             class="bg-white search-field"
           />
+        </v-col>
+
+        <!-- ✅ NEW: Year -->
+        <v-col cols="12" sm="7" md="7" lg="7">
+          <v-select
+            v-model="filterYear"
+            :items="yearItems"
+            item-title="title"
+            item-value="value"
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            hide-details
+            clearable
+            :label="t('سال')"
+            class="bg-white"
+          />
+        </v-col>
+
+        <!-- ✅ NEW: Month -->
+        <v-col cols="12" sm="4" md="2" lg="2">
+          <v-select
+            v-model="filterMonth"
+            :items="monthItems"
+            item-title="title"
+            item-value="value"
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            hide-details
+            clearable
+            :label="t('ماه')"
+            class="bg-white"
+          />
+        </v-col>
+
+        <!-- ✅ NEW: Filter button -->
+        <v-col cols="12" sm="4" md="1" lg="1">
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter"
+            @click="applyMonthYearFilter"
+          >
+            {{ t('فلتر') }}
+          </v-btn>
         </v-col>
 
         <!-- Create Button -->
@@ -71,6 +120,7 @@
           </v-card-text>
         </v-card>
       </v-col>
+
       <!-- سیاسی -->
       <v-col cols="12" md="3" lg="3">
         <v-card
@@ -173,7 +223,7 @@
       @peek="openPeek"
       class="mb-20 mx-2"
     >
-      <!-- 🔗 Resource cell: route to Resource page -->
+      <!-- 🔗 Resource cell -->
       <template #cell-resource_display="{ row }">
         <v-tooltip :text="t('برای رفتن به صفحه منبع کلیک کنید')" location="top">
           <template #activator="{ props: tooltipProps }">
@@ -192,7 +242,7 @@
         </v-tooltip>
       </template>
 
-      <!-- 🔗 Office employee cell: route to OfficeEmployee page -->
+      <!-- 🔗 Office employee cell -->
       <template #cell-office_employee_display="{ row }">
         <v-tooltip :text="t('برای رفتن به صفحه کارمند کلیک کنید')" location="top">
           <template #activator="{ props: tooltipProps }">
@@ -210,7 +260,7 @@
           </template>
         </v-tooltip>
       </template>
-      <!-- 🔗 Office employee cell: route to OfficeEmployee page -->
+
       <template #cell-office_employee_akhistonky_code="{ row }">
         <v-tooltip :text="t('برای رفتن به صفحه کارمند کلیک کنید')" location="top">
           <template #activator="{ props: tooltipProps }">
@@ -229,7 +279,7 @@
         </v-tooltip>
       </template>
 
-      <!-- 🗺 Map cell: FlyToMapButton -->
+      <!-- 🗺 Map cell -->
       <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="getRow(row).coordinates"
@@ -239,7 +289,8 @@
           :zoom="16"
         />
       </template>
-      <!-- ✅ Finance status: Pashto chip -->
+
+      <!-- ✅ Finance status chip -->
       <template #cell-finance_status="{ row }">
         <v-chip
           size="small"
@@ -252,10 +303,10 @@
           {{ financeStatusLabel(getRow(row).finance_status) }}
         </v-chip>
       </template>
+
       <!-- ⚙️ ACTIONS -->
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
-          <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده واقعه')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon size="small" v-bind="tooltipProps" color="blue" @click.stop="openPeek(item)">
@@ -264,7 +315,6 @@
             </template>
           </v-tooltip>
 
-          <!-- ویرایش -->
           <v-tooltip :text="t('ویرایش واقعه')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -278,7 +328,6 @@
             </template>
           </v-tooltip>
 
-          <!-- دانلود اسناد -->
           <v-tooltip :text="t('دانلود اسناد واقعه')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -293,7 +342,6 @@
             </template>
           </v-tooltip>
 
-          <!-- حذف با دیالوگ تایید -->
           <v-tooltip :text="t('حذف واقعه')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -335,6 +383,8 @@
   import { ref, onMounted, watch, computed } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
+  import dayjs from 'dayjs';
+  import { useCalendar } from '../../../composables/useCalendar';
 
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
@@ -351,10 +401,10 @@
 
   /* i18n / RTL */
   const { t, locale } = useI18n();
+  const { calendar, formatYearDisplay } = useCalendar();
+
   const isRtl = ref(locale.value === 'fa');
-  watch(locale, (newLocale) => {
-    isRtl.value = newLocale === 'fa';
-  });
+  watch(locale, (newLocale) => (isRtl.value = newLocale === 'fa'));
 
   /* snackbar */
   const showError = ref(false);
@@ -367,6 +417,124 @@
   /* helpers */
   const getRow = (s) => (s && s.raw ? s.raw : s);
 
+  // ✅ selected values that will be SENT to backend (gregorian)
+  const filterYear = ref(null); // e.g. 2026
+  const filterMonth = ref(null); // 1..12
+
+  // ✅ dynamic year items from backend (REAL DB years)
+  const yearItems = ref([]); // [{ value: 2026, title: '...' }, ...]
+  const yearNumbers = ref([]); // ✅ (only for auto-rebuilding titles)
+
+  async function fetchYearItemsFromDb() {
+    try {
+      const res = await repo.FetchEventDateOptions({ date_field: 'event_date' });
+      const years = res?.data?.years || [];
+
+      yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
+
+      yearItems.value = yearNumbers.value.map((y) => ({
+        value: y,
+        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      }));
+    } catch (e) {
+      console.error('fetchYearItemsFromDb error', e);
+    }
+  }
+
+  // ✅ auto-update year titles when AppBar/calendar format changes (NO change to selected value)
+  watch(
+    [calendar, locale],
+    () => {
+      if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
+      yearItems.value = yearNumbers.value.map((y) => ({
+        value: y,
+        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      }));
+    },
+    { immediate: false }
+  );
+
+  // ✅ month names for UI (based on current calendar mode)
+  // BUT item.value stays gregorian 1..12 always.
+  const JALALI_MONTHS_FA = [
+    'حمل',
+    'ثور',
+    'جوزا',
+    'سرطان',
+    'اسد',
+    'سنبله',
+    'میزان',
+    'عقرب',
+    'قوس',
+    'جدی',
+    'دلو',
+    'حوت',
+  ];
+
+  const HIJRI_QAMARI_MONTHS_FA = [
+    'محرم',
+    'صفر',
+    'ربیع‌الاول',
+    'ربیع‌الثانی',
+    'جمادی‌الاول',
+    'جمادی‌الثانی',
+    'رجب',
+    'شعبان',
+    'رمضان',
+    'شوال',
+    'ذوالقعده',
+    'ذوالحجه',
+  ];
+
+  function monthTitleFromGregorianMonth(gYear, gMonth) {
+    const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
+
+    if (calendar.value === 'gregorian') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
+      } catch {
+        return String(gMonth);
+      }
+    }
+
+    if (calendar.value === 'jalali') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat(locale.value, { calendar: 'persian', month: 'numeric' });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
+      } catch {}
+      return JALALI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    if (calendar.value === 'hijri') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat('ar', { calendar: 'islamic-umalqura', month: 'numeric' });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
+      } catch {}
+      return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    return String(gMonth);
+  }
+
+  const monthItems = computed(() => {
+    const y = filterYear.value || dayjs().year();
+    return Array.from({ length: 12 }).map((_, i) => {
+      const m = i + 1;
+      return { value: m, title: monthTitleFromGregorianMonth(y, m) };
+    });
+  });
+
+  async function applyMonthYearFilter() {
+    await fetchAll();
+  }
+
   /* === Card filter state === */
   const activeCard = ref('all'); // 'syasi' | 'jenayee' | 'today' | 'all'
   const setCardFilter = (type) => {
@@ -376,20 +544,6 @@
   /* === Base events from API === */
   const baseEvents = computed(() => repo.Events || []);
 
-  /* date helper for display YYYY-MM-DD */
-  function formatDateYMD(value) {
-    if (!value) return '';
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) {
-      // fallback: try first 10 chars if it is already string
-      const s = String(value);
-      return s.length >= 10 ? s.slice(0, 10) : s;
-    }
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
   function normalizeText(v) {
     return String(v || '')
       .trim()
@@ -404,7 +558,6 @@
 
   function isJenayeeType(eventType) {
     const s = normalizeText(eventType);
-    // supports both جینایی and جنایی spellings + latin
     return (
       s === 'جینایی' ||
       s === 'جنایی' ||
@@ -416,13 +569,9 @@
       s.includes('jenayee')
     );
   }
-  const syasiCount = computed(
-    () => baseEvents.value.filter((r) => isSyasiType(r.event_type)).length
-  );
 
-  const jenayeeCount = computed(
-    () => baseEvents.value.filter((r) => isJenayeeType(r.event_type)).length
-  );
+  const syasiCount = computed(() => baseEvents.value.filter((r) => isSyasiType(r.event_type)).length);
+  const jenayeeCount = computed(() => baseEvents.value.filter((r) => isJenayeeType(r.event_type)).length);
 
   function isSameDate(dateValue, today) {
     if (!dateValue) return false;
@@ -435,49 +584,47 @@
     );
   }
 
-  /* === Stats (always based on ALL events) === */
   const totalCount = computed(() => baseEvents.value.length);
-
-  const withDocumentsCount = computed(() => baseEvents.value.filter((r) => hasDocsRow(r)).length);
-
-  const withCoordinatesCount = computed(
-    () => baseEvents.value.filter((r) => hasCoordsRow(r)).length
-  );
 
   const todayAddedCount = computed(() => {
     const today = new Date();
     return baseEvents.value.filter((r) => isSameDate(r.created_at, today)).length;
   });
 
-  /* === Filtered list for table based on activeCard === */
   const filteredEvents = computed(() => {
     const all = baseEvents.value;
 
-    if (activeCard.value === 'syasi') {
-      return all.filter((r) => isSyasiType(r.event_type));
-    }
-    if (activeCard.value === 'jenayee') {
-      return all.filter((r) => isJenayeeType(r.event_type));
-    }
+    if (activeCard.value === 'syasi') return all.filter((r) => isSyasiType(r.event_type));
+    if (activeCard.value === 'jenayee') return all.filter((r) => isJenayeeType(r.event_type));
     if (activeCard.value === 'today') {
       const today = new Date();
       return all.filter((r) => isSameDate(r.created_at, today));
     }
-    return all; // 'all'
+    return all;
   });
 
-  /* rows for FilterableTable (uses filteredEvents) */
+  function formatDateYMD(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) {
+      const s = String(value);
+      return s.length >= 10 ? s.slice(0, 10) : s;
+    }
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
   const rowsFT = computed(() =>
     (filteredEvents.value || []).map((e) => ({
       ...e,
-      // formatted date for display
       event_date: formatDateYMD(e.event_date),
-      resource_display: e.resource.code_number || e.resource_id || '',
-      office_employee_display: e.office_employee_code || e.office_employee_id || '',
+      resource_display: e.resource?.code_number || e.resource_id || '',
+      office_employee_display: e.officeEmployee?.code_number || e.office_employee_id || '',
     }))
   );
 
-  /* headers */
   const headersFT = computed(() => [
     { title: t('آی ډی'), key: 'id' },
     { title: t('منبع'), key: 'resource_display' },
@@ -498,66 +645,43 @@
     { title: t('محل مشخص'), key: 'event_specific_place' },
     { title: t('کوردینات'), key: 'coordinates' },
 
-    // { title: t('تلفات جانی'), key: 'talafat_jani' },
     { title: t('تلفات مالی'), key: 'talafat_mali' },
-
-    // ✅ FIXED: these two were swapped in your snippet
     { title: t('زخمی شده'), key: 'injured' },
     { title: t('کشته شده'), key: 'killed' },
 
     { title: t('تفصیل'), key: 'tafseel' },
     { title: t('همغږی'), key: 'organ' },
-    // { title: t('وضاحت'), key: 'talks' },
     { title: t('ملاحظات'), key: 'note' },
     { title: t('نوت راجع به اسناد'), key: 'docs_note' },
     { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
     { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
 
-    // { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   const topGroups = computed(() => [
     {
       title: t('شناسه‌ها'),
-      // ✅ FIXED: group keys should match your header keys
       keys: ['resource_display', 'office_employee_display', 'office_employee_akhistonky_code'],
     },
     { title: t('نوع واقعه'), keys: ['event_type', 'event_specific_type'] },
     { title: t('هدف و عامل'), keys: ['target_person', 'criminal'] },
     { title: t('زمان'), keys: ['event_date', 'event_hour'] },
-    {
-      title: t('مکان'),
-      keys: ['event_zone', 'event_hawza', 'event_specific_place', 'coordinates'],
-    },
-    // ✅ aligned with your headers (talafat_jani is commented out)
+    { title: t('مکان'), keys: ['event_zone', 'event_hawza', 'event_specific_place', 'coordinates'] },
     { title: t('تلفات'), keys: ['talafat_mali', 'injured', 'killed'] },
-
     { title: t('متن‌ها'), keys: ['tafseel', 'note', 'docs_note'] },
   ]);
-  // ✅ Finance status label (Pashto)
+
   function financeStatusLabel(v) {
-    const s = String(v ?? '')
-      .trim()
-      .toLowerCase();
-
-    // handle common values from backend
+    const s = String(v ?? '').trim().toLowerCase();
     if (s === 'paid' || s === 'پرداخت' || s === 'paid_finance') return 'پرداخت شوی';
-    if (s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid')
-      return 'ناپرداخت';
-
-    // empty / null
+    if (s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid') return 'ناپرداخت';
     if (!s) return '—';
-
-    // fallback: show original
     return v;
   }
 
-  // ✅ Chip color by status (Vuetify uses color names)
   function financeStatusColor(v) {
-    const s = String(v ?? '')
-      .trim()
-      .toLowerCase();
+    const s = String(v ?? '').trim().toLowerCase();
     if (s === 'paid' || s === 'پرداخت' || s === 'paid_finance') return 'green';
     if (s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid') return 'amber';
     return 'grey';
@@ -598,7 +722,6 @@
     fetchOne(row.id);
   }
 
-  /* navigation */
   function goCreate() {
     router.push('/app/eventsform');
   }
@@ -609,7 +732,6 @@
     router.push(`/app/eventsform/${row.id}`);
   }
 
-  // 🔗 Go to office employee from event row
   function goOfficeEmployee(payload) {
     const row = getRow(payload);
     const empId = row?.office_employee_id;
@@ -621,7 +743,6 @@
     });
   }
 
-  // 🔗 Go to resource from event row
   function goResource(payload) {
     const row = getRow(payload);
     const resId = row?.resource_id;
@@ -633,7 +754,6 @@
     });
   }
 
-  /* documents */
   function hasDocuments(payload) {
     const row = getRow(payload);
     const docs = row?.documents;
@@ -655,7 +775,7 @@
     }
   }
 
-  /* ===== Delete with dialog ===== */
+  /* Delete dialog */
   const deleteDialog = ref(false);
   const deleteTarget = ref(null);
 
@@ -691,13 +811,17 @@
     }
   }
 
-  /* Fetch all */
   async function fetchAll() {
     try {
       await repo.FetchEventsData({
         page: 1,
-        itemsPerPage: 100000,
+        perPage: 100000, // ✅ match backend key
         search: repo.Search,
+
+        // ✅ NEW: Month/Year filter support
+        year: filterYear.value,
+        month: filterMonth.value,
+        date_field: 'event_date',
       });
     } catch (e) {
       console.error('fetchAll events error', e);
@@ -710,8 +834,8 @@
     fetchAll();
   }
 
-  /* init */
   onMounted(async () => {
+    await fetchYearItemsFromDb();
     await fetchAll();
   });
 </script>
@@ -735,7 +859,6 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
   }
 
-  /* active card highlight */
   .stat-card--active {
     border-color: #1976d2 !important;
     box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.25) !important;
@@ -753,7 +876,6 @@
     color: #9c27b0 !important;
   }
 
-  /* 🔹 make search field height similar to large button */
   .search-field :deep(.v-field) {
     min-height: 48px;
   }

@@ -24,9 +24,20 @@ class InformationController extends Controller
 
         $search = trim((string) $request->query('search', ''));
 
+        // ✅ DATE OPTION + FILTER (created_at)
+        // - date=YYYY-MM-DD (single day)
+        // - date_from=YYYY-MM-DD & date_to=YYYY-MM-DD (range)
+        $date     = trim((string) $request->query('date', ''));
+        $dateFrom = trim((string) $request->query('date_from', $request->query('from_date', '')));
+        $dateTo   = trim((string) $request->query('date_to', $request->query('to_date', '')));
+
         $q = Information::query()
-            ->with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents' , 
-            'finances',
+            ->with([
+                'resource',
+                'officeEmployee',
+                'officeEmployeeInfo',
+                'documents',
+                'finances',
             ])
             ->when($search !== '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
@@ -34,6 +45,20 @@ class InformationController extends Controller
                       ->orWhere('father_name', 'like', "%{$search}%")
                       ->orWhere('nick_name', 'like', "%{$search}%");
                 });
+            })
+            // ✅ DATE filter logic
+            ->when($date !== '', function ($sub) use ($date) {
+                $sub->whereDate('created_at', $date);
+            })
+            ->when($dateFrom !== '' && $dateTo !== '', function ($sub) use ($dateFrom, $dateTo) {
+                $sub->whereDate('created_at', '>=', $dateFrom)
+                    ->whereDate('created_at', '<=', $dateTo);
+            })
+            ->when($dateFrom !== '' && $dateTo === '' && $date === '', function ($sub) use ($dateFrom) {
+                $sub->whereDate('created_at', '>=', $dateFrom);
+            })
+            ->when($dateTo !== '' && $dateFrom === '' && $date === '', function ($sub) use ($dateTo) {
+                $sub->whereDate('created_at', '<=', $dateTo);
             })
             ->orderByDesc('id');
 
@@ -66,8 +91,12 @@ class InformationController extends Controller
                 }
             }
 
-            $info->load(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents' , 
-            'finances',
+            $info->load([
+                'resource',
+                'officeEmployee',
+                'officeEmployeeInfo',
+                'documents',
+                'finances',
             ]);
 
             // 🔔 Notification: CREATED
@@ -90,10 +119,13 @@ class InformationController extends Controller
     public function show($id)
     {
         // 🔹 Fetch by id + relations
-        $information = Information::with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents' , 
+        $information = Information::with([
+            'resource',
+            'officeEmployee',
+            'officeEmployeeInfo',
+            'documents',
             'finances',
-        ])
-            ->findOrFail($id);
+        ])->findOrFail($id);
 
         return new InformationResource($information);
     }
@@ -103,11 +135,13 @@ class InformationController extends Controller
         $user = $request->user(); // 🔔
 
         return DB::transaction(function () use ($request, $id, $user) {
-            $information = Information::with(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents' , 
-            'finances',
-
-            ])
-                ->findOrFail($id);
+            $information = Information::with([
+                'resource',
+                'officeEmployee',
+                'officeEmployeeInfo',
+                'documents',
+                'finances',
+            ])->findOrFail($id);
 
             // 🧮 build changes BEFORE update
             $original  = $information->getOriginal();
@@ -130,6 +164,7 @@ class InformationController extends Controller
 
             // 🔄 apply update
             $information->update($validated);
+
             // 🔔 Reset missing-result notification tracking when result is provided
             if (
                 array_key_exists('result', $validated) &&
@@ -143,7 +178,6 @@ class InformationController extends Controller
                 ]);
                 $information->save(); // still a 2nd query, but cleaner on model state
             }
-
 
             // 📎 new documents
             if ($request->hasFile('documents')) {
@@ -159,8 +193,12 @@ class InformationController extends Controller
                 }
             }
 
-            $information->load(['resource', 'officeEmployee', 'officeEmployeeInfo' , 'documents' , 
-            'finances',
+            $information->load([
+                'resource',
+                'officeEmployee',
+                'officeEmployeeInfo',
+                'documents',
+                'finances',
             ]);
 
             // 🔔 Notification: UPDATED + changes

@@ -264,10 +264,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post  ('informations/{information}/documents',               [InformationDocumentController::class, 'store']);
     Route::delete('informations/{information}/documents/{document}',    [InformationDocumentController::class, 'destroy']);
     Route::get   ('informations/{information}/documents/zip',           [InformationDocumentController::class, 'downloadAll']);
-
+    Route::get('informations/date-options', [InformationController::class, 'dateOptions']);
     // events (API) => module: events_api
     protectResource('events', 'events_api', EventController::class);
     Route::get('events/{event}/documents/zip', [EventDocumentController::class, 'downloadAll']);
+    Route::get('events/date-options', [EventController::class, 'dateOptions']);
 
     // captive-deliveries => module: captive_deliveries
     protectResource('captive-deliveries', 'captive_deliveries', CaptiveDeliveryController::class);
@@ -550,7 +551,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/resource-activity/counts', [ResourceActivityController::class, 'counts']);
     Route::get('/resource-activity', [ResourceActivityController::class, 'index']);
     Route::get('/resource-activity/{id}', [ResourceActivityController::class, 'show']);
-
+    Route::get('resources/date-options', [ResourceController::class, 'dateOptions']);
 
     // daily report + monthly report + yearly report
 

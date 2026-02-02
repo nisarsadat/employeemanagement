@@ -6,11 +6,11 @@
       </template>
     </AppBar>
 
-    <!-- Search + Create -->
+    <!-- Search + Create + Year/Month Filter -->
     <v-container class="pa-0">
       <v-row class="align-center">
-        <!-- Search Field -->
-        <v-col cols="12" sm="8" md="9" lg="10">
+        <!-- Search -->
+        <v-col cols="12" sm="12" md="12" lg="12">
           <v-text-field
             v-model.trim="repo.Search"
             :label="t('جستجو در اطلاعات...')"
@@ -27,7 +27,56 @@
           />
         </v-col>
 
-        <!-- Create Button -->
+        <!-- ✅ NEW: Year -->
+        <v-col cols="12" sm="7" md="7" lg="7">
+          <v-select
+            v-model="filterYear"
+            :items="yearItems"
+            item-title="title"
+            item-value="value"
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            hide-details
+            clearable
+            :label="t('سال')"
+            class="bg-white"
+          />
+        </v-col>
+
+        <!-- ✅ NEW: Month -->
+        <v-col cols="12" sm="4" md="2" lg="2">
+          <v-select
+            v-model="filterMonth"
+            :items="monthItems"
+            item-title="title"
+            item-value="value"
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            hide-details
+            clearable
+            :label="t('ماه')"
+            class="bg-white"
+          />
+        </v-col>
+
+        <!-- ✅ NEW: Filter button -->
+        <v-col cols="12" sm="4" md="1" lg="1">
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter"
+            @click="applyMonthYearFilter"
+          >
+            {{ t('فلتر') }}
+          </v-btn>
+        </v-col>
+
+        <!-- Create -->
         <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
           <v-btn
             color="primary"
@@ -44,9 +93,9 @@
         </v-col>
       </v-row>
     </v-container>
+
     <!-- STATS CARDS -->
     <v-row class="px-2 d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
-      <!-- 1) Total Resources -->
       <v-col cols="12" sm="2">
         <v-card
           class="stat-card cursor-pointer"
@@ -70,7 +119,6 @@
         </v-card>
       </v-col>
 
-      <!-- 2) ساعین فساد -->
       <v-col cols="12" sm="2">
         <v-card
           class="stat-card cursor-pointer"
@@ -94,7 +142,6 @@
         </v-card>
       </v-col>
 
-      <!-- 3) شر او فساد -->
       <v-col cols="12" sm="2">
         <v-card
           class="stat-card cursor-pointer"
@@ -118,7 +165,6 @@
         </v-card>
       </v-col>
 
-      <!-- 4) جاسوسی -->
       <v-col cols="12" sm="2">
         <v-card
           class="stat-card cursor-pointer"
@@ -142,7 +188,6 @@
         </v-card>
       </v-col>
 
-      <!-- 5) Today -->
       <v-col cols="12" sm="2">
         <v-card
           class="stat-card cursor-pointer"
@@ -196,14 +241,10 @@
       :dateKeys="['information_saved_date']"
       class="mb-20 mx-2"
     >
-      <!-- RESOURCE: فقط کود + tooltip -->
+      <!-- RESOURCE -->
       <template #cell-resource_id="{ row }">
         <div class="d-flex flex-column align-start">
-          <v-tooltip
-            v-if="row.resource_id"
-            text="برای رفتن به صفحه منابع کلیک کنید"
-            location="top"
-          >
+          <v-tooltip v-if="row.resource_id" text="برای رفتن به صفحه منابع کلیک کنید" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-btn
                 v-bind="tooltipProps"
@@ -213,18 +254,15 @@
                 @click.stop="goToResource(row)"
               >
                 <v-icon start size="16">mdi-account-search</v-icon>
-                <span class="text-caption">
-                  {{ row.resource_id }}
-                </span>
+                <span class="text-caption">{{ row.resource_id }}</span>
               </v-btn>
             </template>
           </v-tooltip>
-
           <span v-else class="text-caption text-medium-emphasis"> — </span>
         </div>
       </template>
 
-      <!-- OFFICE EMPLOYEE: فقط کود + tooltip -->
+      <!-- OFFICE EMPLOYEE codes -->
       <template #cell-office_employee_code_number="{ row }">
         <div class="d-flex flex-column align-start">
           <v-tooltip
@@ -241,16 +279,14 @@
                 @click.stop="goToOfficeEmployee(row)"
               >
                 <v-icon start size="16">mdi-account-badge</v-icon>
-                <span class="text-caption">
-                  {{ row.office_employee_code_number }}
-                </span>
+                <span class="text-caption">{{ row.office_employee_code_number }}</span>
               </v-btn>
             </template>
           </v-tooltip>
-
           <span v-else class="text-caption text-medium-emphasis"> — </span>
-        </div> </template
-      ><!-- OFFICE EMPLOYEE: فقط کود + tooltip -->
+        </div>
+      </template>
+
       <template #cell-office_employee_info_code_number="{ row }">
         <div class="d-flex flex-column align-start">
           <v-tooltip
@@ -267,43 +303,15 @@
                 @click.stop="goToOfficeEmployee(row)"
               >
                 <v-icon start size="16">mdi-account-badge</v-icon>
-                <span class="text-caption">
-                  {{ row.office_employee_info_code_number }}
-                </span>
+                <span class="text-caption">{{ row.office_employee_info_code_number }}</span>
               </v-btn>
             </template>
           </v-tooltip>
-
           <span v-else class="text-caption text-medium-emphasis"> — </span>
         </div>
       </template>
-      <template #cell-office_employee_info_id="{ row }">
-        <div class="d-flex flex-column align-start">
-          <v-tooltip
-            v-if="row.office_employee_info_id"
-            text="برای رفتن به صفحه کارمندان مدیریت کلیک کنید"
-            location="top"
-          >
-            <template #activator="{ props: tooltipProps }">
-              <v-btn
-                v-bind="tooltipProps"
-                color="deep-purple"
-                variant="tonal"
-                class="text-none px-2 py-1"
-                @click.stop="goToOfficeEmployee(row)"
-              >
-                <v-icon start size="16">mdi-account-badge</v-icon>
-                <span class="text-caption">
-                  {{ row.office_employee_info_id }}
-                </span>
-              </v-btn>
-            </template>
-          </v-tooltip>
 
-          <span v-else class="text-caption text-medium-emphasis"> — </span>
-        </div>
-      </template>
-      <!-- ✅ Finance status: Pashto chip -->
+      <!-- Finance status -->
       <template #cell-finance_status="{ row }">
         <v-chip
           size="small"
@@ -317,10 +325,9 @@
         </v-chip>
       </template>
 
-      <!-- Actions column: 4 icons like OfficeEmployee (show/edit/download/delete) -->
+      <!-- Actions -->
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
-          <!-- مشاهده -->
           <v-tooltip text="مشاهده اطلاع" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon size="small" v-bind="tooltipProps" color="blue" @click.stop="openPeek(item)">
@@ -329,7 +336,6 @@
             </template>
           </v-tooltip>
 
-          <!-- ویرایش -->
           <v-tooltip text="تغییر جزیات اطلاع" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -343,7 +349,6 @@
             </template>
           </v-tooltip>
 
-          <!-- دانلود اسناد -->
           <v-tooltip text="دانلود اسناد مربوط به اطلاع" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -358,7 +363,6 @@
             </template>
           </v-tooltip>
 
-          <!-- حذف -->
           <v-tooltip text="حذف اطلاع" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -371,6 +375,7 @@
               </v-icon>
             </template>
           </v-tooltip>
+
           <v-tooltip text="فرم معلومات (PDF / Word)" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -387,7 +392,6 @@
       </template>
     </FilterableTable>
 
-    <!-- 🔁 Reusable Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -395,7 +399,6 @@
       @confirm="handleDeleteConfirmed"
     />
 
-    <!-- Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
@@ -409,76 +412,177 @@
 
 <script setup>
   import { ref, onMounted, computed, watch } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { useRouter, useRoute } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
+  import dayjs from 'dayjs';
+
   import AppBar from '../../components/AppBar.vue';
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
-  import { useI18n } from 'vue-i18n';
+
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
-  import { useRoute } from 'vue-router';
-  const route = useRoute();
+
+  import { useCalendar } from '../../../composables/useCalendar';
 
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const repo = useDatabaseRepository();
   const router = useRouter();
+  const route = useRoute();
 
+  const { calendar, formatYearDisplay } = useCalendar();
+
+  /* ===== RTL ===== */
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (newLocale) => (isRtl.value = newLocale === 'fa'));
+
+  /* ===== unwrap helper ===== */
+  function getRow(payload) {
+    return payload?.raw ?? payload;
+  }
+
+  /* ==========================
+   * ✅ NEW: Month/Year Filters
+   * ========================== */
+  const filterYear = ref(null); // gregorian year number
+  const filterMonth = ref(null); // 1..12
+
+  const yearItems = ref([]); // [{value: 2026, title:'...'}]
+  const yearNumbers = ref([]);
+
+  async function fetchYearItemsFromDb() {
+    try {
+      const res = await repo.FetchInformationDateOptions?.({
+        date_field: 'information_saved_date',
+      });
+      const years = res?.data?.years || [];
+
+      yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
+
+      yearItems.value = yearNumbers.value.map((y) => ({
+        value: y,
+        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      }));
+    } catch (e) {
+      console.error('fetchYearItemsFromDb error', e);
+    }
+  }
+
+  // auto-update year titles when calendar/locale changes (selected value stays same)
+  watch(
+    [calendar, locale],
+    () => {
+      if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
+      yearItems.value = yearNumbers.value.map((y) => ({
+        value: y,
+        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      }));
+    },
+    { immediate: false }
+  );
+
+  const JALALI_MONTHS_FA = [
+    'حمل',
+    'ثور',
+    'جوزا',
+    'سرطان',
+    'اسد',
+    'سنبله',
+    'میزان',
+    'عقرب',
+    'قوس',
+    'جدی',
+    'دلو',
+    'حوت',
+  ];
+  const HIJRI_QAMARI_MONTHS_FA = [
+    'محرم',
+    'صفر',
+    'ربیع‌الاول',
+    'ربیع‌الثانی',
+    'جمادی‌الاول',
+    'جمادی‌الثانی',
+    'رجب',
+    'شعبان',
+    'رمضان',
+    'شوال',
+    'ذوالقعده',
+    'ذوالحجه',
+  ];
+
+  function monthTitleFromGregorianMonth(gYear, gMonth) {
+    const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
+
+    if (calendar.value === 'gregorian') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
+      } catch {
+        return String(gMonth);
+      }
+    }
+
+    if (calendar.value === 'jalali') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat(locale.value, {
+          calendar: 'persian',
+          month: 'numeric',
+        });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
+      } catch {}
+      return JALALI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    if (calendar.value === 'hijri') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat('ar', {
+          calendar: 'islamic-umalqura',
+          month: 'numeric',
+        });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
+      } catch {}
+      return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    return String(gMonth);
+  }
+
+  const monthItems = computed(() => {
+    const y = filterYear.value || dayjs().year();
+    return Array.from({ length: 12 }).map((_, i) => {
+      const m = i + 1;
+      return { value: m, title: monthTitleFromGregorianMonth(y, m) };
+    });
+  });
+
+  async function applyMonthYearFilter() {
+    await fetchAll();
+  }
+
+  /* ===== Error snackbar ===== */
   const showError = ref(false);
   const errorMessage = ref('');
-  const activeStat = ref(null);
-
   function showErrorMessage(message) {
     errorMessage.value = message;
     showError.value = true;
   }
 
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (newLocale) => {
-    isRtl.value = newLocale === 'fa';
-  });
+  /* ===== Active stat cards ===== */
+  const activeStat = ref(null);
 
-  /* ===== helper to unwrap row/raw ===== */
-  function getRow(payload) {
-    return payload?.raw ?? payload;
+  function filterByStat(stat) {
+    activeStat.value = activeStat.value === stat ? null : stat;
   }
-  function goPrint(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    router.push(`/app/informations/print/${row.id}`);
-  }
-  const filterOfficeEmployeeId = computed(() => {
-    const v = route.query?.office_employee_id;
-    return v ? Number(v) : null;
-  });
 
-  const filteredRows = computed(() => {
-    let rows = allRows.value;
-
-    // ✅ URL filter (from OfficeEmployee page)
-    if (filterOfficeEmployeeId.value) {
-      rows = rows.filter((r) => Number(r.office_employee_id) === filterOfficeEmployeeId.value);
-    }
-
-    // ✅ Stat filters
-    if (activeStat.value === 'today') {
-      const today = new Date().toISOString().split('T')[0];
-      rows = rows.filter((item) => item.information_saved_date === today);
-    } else if (activeStat.value === 'saeen') {
-      rows = rows.filter((item) => matchType(item, 'ساعین بالفساد'));
-    } else if (activeStat.value === 'shar') {
-      rows = rows.filter((item) => matchType(item, 'شر و فساد'));
-    } else if (activeStat.value === 'spy') {
-      rows = rows.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی'));
-    } else if (activeStat.value === 'resources') {
-      rows = allRows.value; // keep list unchanged
-    }
-
-    return rows;
-  });
-
-  /* ===== Data sources to arrays ===== */
+  /* ===== Data sources ===== */
   const toArray = (v) => {
     if (v && typeof v.then === 'function') return [];
     if (Array.isArray(v)) return v;
@@ -488,23 +592,14 @@
     return [];
   };
 
-  /* ===== Stats Calculations ===== */
   const allRows = computed(() => toArray(repo.Informations));
-
-  const resourcesRows = computed(() => {
-    const src = repo.Informations;
-
-    return toArray(src);
-  });
-
-  const totalResourcesCount = computed(() => resourcesRows.value.length);
+  const totalResourcesCount = computed(() => allRows.value.length);
 
   const todayCount = computed(() => {
     const today = new Date().toISOString().split('T')[0];
     return allRows.value.filter((item) => item.information_saved_date === today).length;
   });
 
-  // matches from BOTH types (seyasi + jenayee) as you requested
   function matchType(item, wanted) {
     const a = (item?.syasi_info_type ?? '').toString().trim();
     const b = (item?.jenayee_info_type ?? '').toString().trim();
@@ -512,7 +607,6 @@
     return a === w || b === w;
   }
 
-  // Your 3 cards (from your options list)
   const saeenFasadCount = computed(
     () => allRows.value.filter((item) => matchType(item, 'ساعین بالفساد')).length
   );
@@ -526,33 +620,37 @@
       allRows.value.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی')).length
   );
 
-  /* ===== Filtered Rows based on active stat ===== */
-  // const filteredRows = computed(() => {
-  //   let rows = allRows.value;
+  const filterOfficeEmployeeId = computed(() => {
+    const v = route.query?.office_employee_id;
+    return v ? Number(v) : null;
+  });
 
-  //   if (activeStat.value === 'today') {
-  //     const today = new Date().toISOString().split('T')[0];
-  //     rows = rows.filter((item) => item.information_saved_date === today);
-  //   } else if (activeStat.value === 'saeen') {
-  //     rows = rows.filter((item) => matchType(item, 'ساعین بالفساد'));
-  //   } else if (activeStat.value === 'shar') {
-  //     rows = rows.filter((item) => matchType(item, 'شر و فساد'));
-  //   } else if (activeStat.value === 'spy') {
-  //     rows = rows.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی'));
-  //   } else if (activeStat.value === 'resources') {
-  //     // this card is just for total resources count (not a list filter),
-  //     // so we keep informations list unchanged.
-  //     rows = allRows.value;
-  //   }
+  const filteredRows = computed(() => {
+    let rows = allRows.value;
 
-  //   return rows;
-  // });
+    // URL filter from OfficeEmployee page
+    if (filterOfficeEmployeeId.value) {
+      rows = rows.filter((r) => Number(r.office_employee_id) === filterOfficeEmployeeId.value);
+    }
 
-  function filterByStat(stat) {
-    activeStat.value = activeStat.value === stat ? null : stat;
-  }
+    // stat filters
+    if (activeStat.value === 'today') {
+      const today = new Date().toISOString().split('T')[0];
+      rows = rows.filter((item) => item.information_saved_date === today);
+    } else if (activeStat.value === 'saeen') {
+      rows = rows.filter((item) => matchType(item, 'ساعین بالفساد'));
+    } else if (activeStat.value === 'shar') {
+      rows = rows.filter((item) => matchType(item, 'شر و فساد'));
+    } else if (activeStat.value === 'spy') {
+      rows = rows.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی'));
+    } else if (activeStat.value === 'resources') {
+      rows = allRows.value;
+    }
 
-  /* ===== Headers for FilterableTable ===== */
+    return rows;
+  });
+
+  /* ===== Headers / Groups (unchanged) ===== */
   const headersFT = computed(() => [
     { title: t('آی ډی'), key: 'id' },
     { title: t('کود منبع'), key: 'resource_id' },
@@ -583,7 +681,6 @@
     { title: t('درجه موثقیت اطلاع'), key: 'information_degree' },
     { title: t('د اطلاع کتګوري'), key: 'information_category' },
 
-    // ✅ NEW: Hamahangi fields
     { title: t('تاریخ هم‌آهنگی'), key: 'hamahangi_date' },
     { title: t('شماره مکتوب'), key: 'maktop_number' },
     { title: t('ارگان'), key: 'organ' },
@@ -591,7 +688,6 @@
     { title: t('تفصیل'), key: 'tafseel' },
     { title: t('نظر مدیر'), key: 'manager_comment' },
     { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
-    // { title: t('گفت‌وگوها'), key: 'talks' },
     { title: t('نتیجه'), key: 'result' },
     { title: t('ملاحظات'), key: 'note' },
     { title: t('نوت راجع به اسناد'), key: 'docs_note', width: 140 },
@@ -600,22 +696,10 @@
   ]);
 
   const topGroups = computed(() => [
-    {
-      title: t('کودها'),
-      keys: ['resource_id', 'office_employee_id'],
-    },
-    {
-      title: t('معرفت'),
-      keys: ['name', 'nick_name', 'father_name', 'grand_father_name'],
-    },
-    {
-      title: t('آدرس اصلی'),
-      keys: ['main_province', 'main_districts', 'main_village'],
-    },
-    {
-      title: t('آدرس فعلی'),
-      keys: ['now_province', 'now_district', 'now_village'],
-    },
+    { title: t('کودها'), keys: ['resource_id', 'office_employee_id'] },
+    { title: t('معرفت'), keys: ['name', 'nick_name', 'father_name', 'grand_father_name'] },
+    { title: t('آدرس اصلی'), keys: ['main_province', 'main_districts', 'main_village'] },
+    { title: t('آدرس فعلی'), keys: ['now_province', 'now_district', 'now_village'] },
     {
       title: t('نوع و زمان اطلاع'),
       keys: [
@@ -626,37 +710,25 @@
         'information_degree',
       ],
     },
-
-    // ✅ NEW group for the 3 fields
-    {
-      title: t('هم‌آهنگی'),
-      keys: ['hamahangi_date', 'maktop_number', 'organ'],
-    },
-
+    { title: t('هم‌آهنگی'), keys: ['hamahangi_date', 'maktop_number', 'organ'] },
     {
       title: t('متن‌ها'),
       keys: ['tafseel', 'manager_comment', 'lead_drirection', 'note', 'result'],
     },
   ]);
-  // ✅ Finance status label (Pashto)
+
+  /* ===== Finance chip helpers ===== */
   function financeStatusLabel(v) {
     const s = String(v ?? '')
       .trim()
       .toLowerCase();
-
-    // handle common values from backend
     if (s === 'paid' || s === 'پرداخت' || s === 'paid_finance') return 'پرداخت شوی';
     if (s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid')
       return 'ناپرداخت';
-
-    // empty / null
     if (!s) return '—';
-
-    // fallback: show original
     return v;
   }
 
-  // ✅ Chip color by status (Vuetify uses color names)
   function financeStatusColor(v) {
     const s = String(v ?? '')
       .trim()
@@ -666,7 +738,7 @@
     return 'grey';
   }
 
-  /* ===== Download helpers ===== */
+  /* ===== Documents download ===== */
   function hasDocuments(payload) {
     const row = getRow(payload);
     const docs = row?.documents;
@@ -683,7 +755,6 @@
       if (typeof repo.DownloadInformationZip === 'function') {
         await repo.DownloadInformationZip(row.id, name);
       } else {
-        console.warn('Download method for Informations not implemented on repo');
         showErrorMessage(t('دانلود اسناد برای این اطلاع هنوز تنظیم نشده است'));
       }
     } catch (e) {
@@ -692,7 +763,7 @@
     }
   }
 
-  /* ===== DELETE with reusable 3-step dialog ===== */
+  /* ===== Delete ===== */
   const deleteDialog = ref(false);
   const deleteTarget = ref(null);
 
@@ -715,11 +786,9 @@
       if (typeof repo.DeleteInformation === 'function') {
         await repo.DeleteInformation(row.id);
       } else {
-        console.warn('DeleteInformation not implemented on repo');
         showErrorMessage(t('حذف برای این اطلاع هنوز تنظیم نشده است'));
         return;
       }
-
       await fetchAll();
     } catch (e) {
       console.error('handleDeleteConfirmed error', e);
@@ -730,7 +799,7 @@
     }
   }
 
-  /* ===== Peek / Fetch one ===== */
+  /* ===== Peek ===== */
   const filters = ref({});
   const expanded = ref(false);
   const selectedId = ref(null);
@@ -748,8 +817,7 @@
             : repo.Information) || {};
       } else {
         await fetchAll();
-        const list = allRows.value || [];
-        detail.value = list.find((r) => r.id === id) || {};
+        detail.value = allRows.value.find((r) => r.id === id) || {};
       }
     } finally {
       loading.value = false;
@@ -759,32 +827,9 @@
   function openPeek(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
-
     selectedId.value = row.id;
     expanded.value = true;
     fetchOne(row.id);
-  }
-
-  watch(
-    detail,
-    (newDetail) => {
-      console.log('Detail updated:', newDetail);
-    },
-    { deep: true }
-  );
-
-  /* ===== List Fetch ===== */
-  async function fetchAll() {
-    try {
-      await repo.FetchInformationsData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search,
-      });
-    } catch (e) {
-      console.error('fetchAll error', e);
-      showErrorMessage(t('خطا در دریافت معلومات'));
-    }
   }
 
   /* ===== Navigation ===== */
@@ -798,32 +843,24 @@
     router.push(`/app/informationform/${row.id}`);
   }
 
-  // 🔹 Go to RESOURCE page (listing / main page)
+  function goPrint(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/informations/print/${row.id}`);
+  }
+
   function goToResource(payload) {
     const row = getRow(payload);
     const id = row?.resource_id;
     if (!id) return;
-
-    router.push({
-      path: '/app/resources',
-      query: { id: String(id), open: 'peek' },
-    });
+    router.push({ path: '/app/resources', query: { id: String(id), open: 'peek' } });
   }
 
-  // 🔹 Go to OFFICE EMPLOYEE page (listing / main page)
   function goToOfficeEmployee(payload) {
     const row = getRow(payload);
-
-    // choose the correct key you have in Informations rows
-    const id =
-      row?.office_employee_id || row?.office_employee_info_id || row?.office_employee_info_id; // keep only what exists in your API
-
+    const id = row?.office_employee_id || row?.office_employee_info_id;
     if (!id) return;
-
-    router.push({
-      path: '/app/officeemployee',
-      query: { id: String(id), open: 'peek' }, // open=peek is optional
-    });
+    router.push({ path: '/app/officeemployee', query: { id: String(id), open: 'peek' } });
   }
 
   function clearSearch() {
@@ -831,8 +868,28 @@
     fetchAll();
   }
 
+  /* ===== Fetch list ===== */
+  async function fetchAll() {
+    try {
+      await repo.FetchInformationsData?.({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search,
+
+        // ✅ NEW: filter payload
+        year: filterYear.value,
+        month: filterMonth.value,
+        date_field: 'information_saved_date',
+      });
+    } catch (e) {
+      console.error('fetchAll error', e);
+      showErrorMessage(t('خطا در دریافت معلومات'));
+    }
+  }
+
   /* ===== Init ===== */
   onMounted(async () => {
+    await fetchYearItemsFromDb(); // ✅ NEW
     await Promise.allSettled([repo.GetOfficeEmployee?.(), repo.GetResource?.()]);
     await fetchAll();
   });
@@ -865,22 +922,6 @@
 
   .cursor-pointer {
     cursor: pointer;
-  }
-
-  .text-green {
-    color: #4caf50 !important;
-  }
-
-  .text-amber {
-    color: #ff9800 !important;
-  }
-
-  .text-purple {
-    color: #9c27b0 !important;
-  }
-
-  table th {
-    white-space: nowrap;
   }
 
   :deep(.v-field-label),
@@ -917,6 +958,7 @@
   :deep(.v-btn--icon:hover) {
     transform: scale(1.1);
   }
+
   .fontfamily {
     font-family: var(--app-font) !important;
   }

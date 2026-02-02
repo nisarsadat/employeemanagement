@@ -9,7 +9,7 @@ use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\NotificationService;
-use Illuminate\Database\QueryException; // ✅ ADDED
+use Illuminate\Database\QueryException;
 
 class ResourceController extends Controller
 {
@@ -33,14 +33,36 @@ class ResourceController extends Controller
         ], 422);
     }
 
+    // =========================
+    // ✅ INDEX (with month/year filter)
+    // =========================
     public function index(Request $req)
     {
         $search = trim((string) $req->get('search', ''));
 
+        // ✅ NEW: month/year filter inputs
+        $year  = $req->filled('year') ? (int) $req->get('year') : null;
+        $month = $req->filled('month') ? (int) $req->get('month') : null;
+
+        // ✅ NEW: safe date field
+        $dateField = $req->get('date_field', 'resource_saved_date');
+        $allowedDateFields = ['resource_saved_date', 'created_at', 'updated_at'];
+        if (!in_array($dateField, $allowedDateFields, true)) {
+            $dateField = 'resource_saved_date';
+        }
+
         $q = Resource::query()
             ->with(['officeEmployee:id,name,code_number,father_name'])
-            // ✅ NEW: sum of all finance money for each resource
             ->withSum('finances as payed_money', 'money_amount_number')
+
+            // ✅ NEW: apply year/month filter
+            ->when($year !== null, function ($w) use ($dateField, $year) {
+                $w->whereNotNull($dateField)->whereYear($dateField, $year);
+            })
+            ->when($month !== null && $month >= 1 && $month <= 12, function ($w) use ($dateField, $month) {
+                $w->whereNotNull($dateField)->whereMonth($dateField, $month);
+            })
+
             ->when($search !== '', function ($w) use ($search) {
                 $w->where(function ($q2) use ($search) {
                     $q2->where('name', 'like', "%{$search}%")
@@ -81,7 +103,6 @@ class ResourceController extends Controller
     {
         $row = Resource::query()
             ->with(['officeEmployee:id,name,code_number,father_name,nick_name'])
-            // ✅ NEW: sum for single record too
             ->withSum('finances as payed_money', 'money_amount_number')
             ->findOrFail($id);
 
@@ -92,7 +113,7 @@ class ResourceController extends Controller
     {
         try {
             $data = $req->validated();
-            $user = $req->user(); // 👈 who did this action
+            $user = $req->user();
 
             // Image upload (optional)
             if ($req->hasFile('picture')) {
@@ -102,14 +123,13 @@ class ResourceController extends Controller
 
             $row = Resource::create($data);
 
-            // 🔔 create notification (ONLY code_number in message)
             NotificationService::record(
                 $user,
                 module: 'resources',
                 action: 'created',
                 title: 'منبع جدید ثبت شد',
                 message: 'کد منبع: ' . ($row->code_number ?? ''),
-                routeName: 'resources.edit',              // 👈 edit page route
+                routeName: 'resources.edit',
                 routeParams: ['id' => $row->id],
                 level: 'success',
             );
@@ -138,7 +158,7 @@ class ResourceController extends Controller
         try {
             $row  = Resource::findOrFail($id);
             $data = $req->validated();
-            $user = $req->user(); // 👈
+            $user = $req->user();
 
             // Replace image if a new one is provided
             if ($req->hasFile('picture')) {
@@ -149,20 +169,18 @@ class ResourceController extends Controller
                 $path = $req->file('picture')->store('uploads/resources', 'public');
                 $data['picture'] = "storage/{$path}";
             } else {
-                // don't null out existing if not sent
-                unset($data['picture']);
+                unset($data['picture']); // keep existing
             }
 
             $row->fill($data)->save();
 
-            // 🔔 notification for update (ONLY code_number in message)
             NotificationService::record(
                 $user,
                 module: 'resources',
                 action: 'updated',
                 title: 'منبع اصلاح شد',
                 message: 'کد منبع: ' . ($row->code_number ?? ''),
-                routeName: 'resources',              // if you want edit page: 'resources.edit'
+                routeName: 'resources',
                 routeParams: ['id' => $row->id],
                 level: 'info',
             );
@@ -186,9 +204,8 @@ class ResourceController extends Controller
     public function destroy(Request $request, $id)
     {
         $row  = Resource::findOrFail($id);
-        $user = $request->user(); // 👈
+        $user = $request->user();
 
-        // keep code_number before delete
         $code = $row->code_number;
 
         if ($row->picture && str_starts_with($row->picture, 'storage/')) {
@@ -197,18 +214,42 @@ class ResourceController extends Controller
 
         $row->delete();
 
-        // 🔔 notification for delete (ONLY code_number in message)
         NotificationService::record(
             $user,
             module: 'resources',
             action: 'deleted',
             title: 'منبع حذف شد',
             message: 'کد منبع: ' . ($code ?? ''),
-            routeName: null,          // no specific page for delete
+            routeName: null,
             routeParams: [],
             level: 'warning',
         );
 
         return response()->json(['message' => 'Deleted']);
+    }
+
+    // =========================
+    // ✅ YEARS OPTIONS (for year dropdown)
+    // =========================
+    public function dateOptions(Request $req)
+    {
+        $dateField = $req->get('date_field', 'resource_saved_date');
+
+        // allow only safe columns
+        if (!in_array($dateField, ['resource_saved_date', 'created_at', 'updated_at'], true)) {
+            $dateField = 'resource_saved_date';
+        }
+
+        $years = Resource::query()
+            ->whereNotNull($dateField)
+            ->selectRaw("YEAR($dateField) as y")
+            ->groupBy('y')
+            ->orderBy('y', 'desc')
+            ->pluck('y')
+            ->values();
+
+        return response()->json([
+            'years' => $years,
+        ]);
     }
 }

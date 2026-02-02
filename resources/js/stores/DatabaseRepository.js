@@ -262,28 +262,34 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       }
     },
 
-    async FetchResourcesData({ page, itemsPerPage }) {
+    async FetchResourcesData(params = {}) {
       this.loading = true;
       try {
-        setContentType('application/json');
-        const { data: res } = await axios.get(
-          `resources?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        this.Resources = res.data ?? res;
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Resources.length;
+        const res = await axios.get('/resources', {
+          params: {
+            page: params.page ?? 1,
+            perPage: params.itemsPerPage ?? 100000,
+            search: params.search ?? this.Search ?? '',
+
+            // ✅ NEW FILTERS
+            year: params.year ?? null,
+            month: params.month ?? null,
+            date_field: params.date_field ?? 'resource_saved_date',
+          },
+        });
+
+        const items = res.data?.data ?? res.data ?? [];
+        this.Resources = Array.isArray(items) ? items : [];
       } catch (e) {
         console.error(e);
-        this.error = e;
-        this.Resources = [];
-        this.totalItems = 0;
-        toast.error('نشو کولای اوس منابع لود وشیو');
       } finally {
         this.loading = false;
       }
     },
-
+    async FetchResourceDateOptions(params = {}) {
+      // params: { date_field: 'resource_saved_date' }
+      return await axios.get('/resources/date-options', { params });
+    },
     async FetchResourceData(id) {
       try {
         setContentType('application/json');
@@ -362,26 +368,37 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     },
 
     // ====================== EVENTS  ======================
-    async FetchEventsData({ page, itemsPerPage }) {
+    async FetchEventDateOptions(params) {
+      return axios.get('/events/date-options', { params });
+    },
+
+    async FetchEventsData(params = {}) {
       this.loading = true;
+
       try {
         setContentType('application/json');
-        const { data } = await axios.get(
-          `events?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
 
-        // ✅ normalize like Informations
-        const list = Array.isArray(data) ? data : data.data ?? data.items ?? [];
-        this.Events = list;
-        this.totalItems = data?.meta?.total ?? data?.total ?? list.length;
+        const res = await axios.get('/events', {
+          params: {
+            page: params.page ?? this.page,
+            perPage: params.perPage ?? params.itemsPerPage ?? this.itemsPerPage,
+            search: params.search ?? this.Search ?? '',
+
+            // ✅ NEW: filter support
+            year: params.year ?? null,
+            month: params.month ?? null,
+            date_field: params.date_field ?? 'event_date',
+          },
+        });
+
+        const items = res.data?.data ?? res.data ?? [];
+        this.Events = Array.isArray(items) ? items : [];
+        this.totalItems = res.data?.meta?.total ?? res.data?.total ?? this.Events.length;
       } catch (e) {
         console.error(e);
         this.error = e;
         this.Events = [];
         this.totalItems = 0;
-        toast.error('د پیشی اخیستل ناکامه وو');
       } finally {
         this.loading = false;
       }
@@ -505,26 +522,65 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     },
 
     // ====================== INFORMATIONS ======================
-    async FetchInformationsData({ page, itemsPerPage }) {
+    async FetchInformationsData(params = {}) {
       this.loading = true;
+
       try {
         setContentType('application/json');
-        const { data } = await axios.get(
-          `informations?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
 
-        // Accept both paginated and plain array shapes
-        const list = Array.isArray(data) ? data : data.data ?? data.items ?? [];
-        this.Informations = list;
-        this.totalItems = data?.meta?.total ?? data?.total ?? list.length;
+        const res = await axios.get('/informations', {
+          params: {
+            page: params.page ?? 1,
+            perPage: params.itemsPerPage ?? params.perPage ?? 100000,
+            search: params.search ?? this.Search ?? '',
+
+            // ✅ NEW: month/year filter support (same as officeemployees)
+            year: params.year ?? null,
+            month: params.month ?? null,
+            date_field: params.date_field ?? 'information_saved_date',
+          },
+        });
+
+        const items = res.data?.data ?? res.data ?? [];
+        this.Informations = Array.isArray(items) ? items : [];
+        this.totalItems = res.data?.meta?.total ?? res.data?.total ?? this.Informations.length;
       } catch (e) {
         console.error(e);
         this.error = e;
         this.Informations = [];
         this.totalItems = 0;
-        toast.error('د اطلاعاتو اخیستل ناکامه شو');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async FetchInformationsData(params = {}) {
+      this.loading = true;
+
+      try {
+        setContentType('application/json');
+
+        const res = await axios.get('/informations', {
+          params: {
+            page: params.page ?? 1,
+            perPage: params.itemsPerPage ?? params.perPage ?? 100000,
+            search: params.search ?? this.Search ?? '',
+
+            // ✅ NEW: month/year filter support (same as officeemployees)
+            year: params.year ?? null,
+            month: params.month ?? null,
+            date_field: params.date_field ?? 'information_saved_date',
+          },
+        });
+
+        const items = res.data?.data ?? res.data ?? [];
+        this.Informations = Array.isArray(items) ? items : [];
+        this.totalItems = res.data?.meta?.total ?? res.data?.total ?? this.Informations.length;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        this.Informations = [];
+        this.totalItems = 0;
       } finally {
         this.loading = false;
       }

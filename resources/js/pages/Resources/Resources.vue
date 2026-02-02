@@ -11,7 +11,7 @@
     <v-container class="pa-0">
       <v-row class="align-center">
         <!-- Search Field -->
-        <v-col cols="12" sm="8" md="9" lg="10">
+        <v-col cols="12" sm="12" md="12" lg="12">
           <v-text-field
             v-model.trim="repo.Search"
             :label="t('جستجو در منابع...')"
@@ -26,6 +26,44 @@
             @click:clear="clearSearch"
             class="bg-white search-field"
           />
+        </v-col>
+
+        <!-- YEAR -->
+        <v-col cols="12" sm="6" md="5">
+          <v-select
+            v-model="filterYear"
+            :items="yearItems"
+            item-title="title"
+            item-value="value"
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            hide-details
+            clearable
+            :label="t('سال')"
+          />
+        </v-col>
+
+        <!-- MONTH -->
+        <v-col cols="12" sm="4" md="3">
+          <v-select
+            v-model="filterMonth"
+            :items="monthItems"
+            item-title="title"
+            item-value="value"
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            hide-details
+            clearable
+            :label="t('ماه')"
+          />
+        </v-col>
+
+        <v-col cols="12" sm="4" md="2">
+          <v-btn color="primary" block @click="applyMonthYearFilter">
+            {{ t('فلتر') }}
+          </v-btn>
         </v-col>
 
         <!-- Create Button -->
@@ -176,6 +214,7 @@
           <v-icon v-else size="20">mdi-account</v-icon>
         </v-avatar>
       </template>
+
       <!-- 🟢🔴 Activity dot (فعال/غیر فعال) -->
       <template #cell-activity="{ row }">
         <div class="d-flex align-center justify-center">
@@ -409,6 +448,8 @@
   import { ref, computed, watch, onMounted } from 'vue';
   import { useRouter, useRoute } from 'vue-router';
   import { useI18n } from 'vue-i18n';
+  import dayjs from 'dayjs';
+  import { useCalendar } from '../../../composables/useCalendar';
 
   import AppBar from '@/components/AppBar.vue';
   import PeekButton from '@/components/PeekButton.vue';
@@ -418,9 +459,12 @@
 
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+
   const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();
+  const { calendar, formatYearDisplay } = useCalendar();
+
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
 
@@ -435,7 +479,6 @@
 
   function normalizeUrl(url) {
     if (!url) return null;
-    // fix duplicate /storage/storage/
     return url.replace('/storage/storage/', '/storage/');
   }
 
@@ -445,18 +488,155 @@
     return normalizeUrl(row.picture || row.picture_url);
   }
 
+  /* ===== Month/Year Filter ===== */
+  const filterYear = ref(null); // sent to backend (gregorian)
+  const filterMonth = ref(null); // sent to backend (gregorian 1..12)
+
+  // ✅ year items from DB, but titles follow calendar mode
+  const yearItems = ref([]);
+  const yearNumbers = ref([]);
+
+  async function fetchYearItemsFromDb() {
+    try {
+      const res = await repo.FetchResourceDateOptions({ date_field: 'resource_saved_date' });
+      const years = res?.data?.years || [];
+
+      yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
+
+      yearItems.value = yearNumbers.value.map((y) => ({
+        value: y,
+        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      }));
+    } catch (e) {
+      console.error('fetchYearItemsFromDb error', e);
+      showErrorMessage(t('خطا در دریافت سال‌ها'));
+    }
+  }
+
+  // ✅ update year titles when calendar/locale changes (selected value stays same)
+  watch(
+    [calendar, locale],
+    () => {
+      if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
+      yearItems.value = yearNumbers.value.map((y) => ({
+        value: y,
+        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      }));
+    },
+    { immediate: false }
+  );
+
+  // ✅ month titles follow calendar mode, but values stay gregorian 1..12
+  const JALALI_MONTHS_FA = [
+    'حمل',
+    'ثور',
+    'جوزا',
+    'سرطان',
+    'اسد',
+    'سنبله',
+    'میزان',
+    'عقرب',
+    'قوس',
+    'جدی',
+    'دلو',
+    'حوت',
+  ];
+
+  const HIJRI_QAMARI_MONTHS_FA = [
+    'محرم',
+    'صفر',
+    'ربیع‌الاول',
+    'ربیع‌الثانی',
+    'جمادی‌الاول',
+    'جمادی‌الثانی',
+    'رجب',
+    'شعبان',
+    'رمضان',
+    'شوال',
+    'ذوالقعده',
+    'ذوالحجه',
+  ];
+
+  function monthTitleFromGregorianMonth(gYear, gMonth) {
+    const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
+
+    if (calendar.value === 'gregorian') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
+      } catch {
+        return String(gMonth);
+      }
+    }
+
+    if (calendar.value === 'jalali') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat(locale.value, {
+          calendar: 'persian',
+          month: 'numeric',
+        });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
+      } catch {}
+      return JALALI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    if (calendar.value === 'hijri') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat('ar', {
+          calendar: 'islamic-umalqura',
+          month: 'numeric',
+        });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
+      } catch {}
+      return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    return String(gMonth);
+  }
+
+  const monthItems = computed(() => {
+    const y = filterYear.value || dayjs().year();
+    return Array.from({ length: 12 }).map((_, i) => {
+      const m = i + 1;
+      return { value: m, title: monthTitleFromGregorianMonth(y, m) };
+    });
+  });
+
+  async function applyMonthYearFilter() {
+    await fetchAll();
+  }
+
+  async function fetchAll() {
+    try {
+      await repo.FetchResourcesData({
+        search: repo.Search,
+        year: filterYear.value,
+        month: filterMonth.value,
+        date_field: 'resource_saved_date',
+      });
+    } catch (e) {
+      console.error('fetchAll error', e);
+      showErrorMessage(t('خطا در دریافت فهرست منابع'));
+    }
+  }
+
+  /* ===== Office employee ===== */
   function getOfficeEmployee(payload) {
     const row = getRow(payload);
     if (!row) return null;
-    // assuming nested relation: office_employee: { id, name, code_number }
     return row.office_employee || null;
   }
+
   // 🔗 Go to events of this resource
   function goResourceEvents(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
-
-    // adjust path/query to your real events route
     router.push({ path: '/app/events', query: { resource_id: row.id } });
   }
 
@@ -464,8 +644,6 @@
   function goResourceInformations(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
-
-    // adjust path/query to your real informations route
     router.push({ path: '/app/informations', query: { resource_id: row.id } });
   }
 
@@ -473,10 +651,9 @@
   function goResourceFiftySixFormats(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
-
-    // adjust path/query to your real 56-formats route
     router.push({ path: '/app/fifthyformatsroute', query: { resource_id: row.id } });
   }
+
   /* ===== Data for table ===== */
   const rowsFT = computed(() => repo.Resources || []);
 
@@ -492,24 +669,6 @@
     );
   }
 
-  function isWithinLastDays(dateValue, days) {
-    if (!dateValue) return false;
-    const d = new Date(dateValue);
-    if (Number.isNaN(d.getTime())) return false;
-    const today = new Date();
-    const diffMs = today.getTime() - d.getTime();
-    if (diffMs < 0) return false;
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    return diffDays <= days;
-  }
-
-  function isSameMonth(dateValue, today) {
-    if (!dateValue) return false;
-    const d = new Date(dateValue);
-    if (Number.isNaN(d.getTime())) return false;
-    return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth();
-  }
-
   /* ===== Stats ===== */
   const totalCount = computed(() => rowsFT.value.length);
 
@@ -521,7 +680,6 @@
 
   function isActiveResource(r) {
     const v = (r?.activity ?? r?.status ?? r?.is_active ?? '').toString().trim().toLowerCase();
-    // handles: "فعال", "active", 1, true, etc.
     return v === 'فعال' || v === 'active' || v === '1' || v === 'true';
   }
 
@@ -542,6 +700,11 @@
   function applyQuickFilter(mode) {
     quickFilter.value = mode;
   }
+
+  const routeResourceId = computed(() => {
+    const v = route.query?.resource_id;
+    return v ? Number(v) : null;
+  });
 
   const displayedRowsFT = computed(() => {
     let data = rowsFT.value || [];
@@ -566,7 +729,6 @@
     { title: t('تعداد واقعات'), key: 'events_count' },
     { title: t(' تعداد اطلاعات'), key: 'informations_count' },
     { title: t(' تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
-    // FK: office employee
     { title: t('کارمند مربوطه'), key: 'office_employee_id' },
     { title: t('رزیدنت مربوطه'), key: 'resedint_code' },
     { title: t('نام'), key: 'name' },
@@ -613,7 +775,6 @@
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('کوردینات'), key: 'coordinates' },
     { title: t('نوت'), key: 'note' },
-    // { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);
@@ -711,22 +872,6 @@
     fetchOne(row.id);
   }
 
-  /* ===== Fetch ALL ===== */
-  async function fetchAll() {
-    try {
-      if (typeof repo.FetchResourcesData === 'function') {
-        await repo.FetchResourcesData({
-          page: 1,
-          itemsPerPage: 100000,
-          search: repo.Search,
-        });
-      }
-    } catch (e) {
-      console.error('fetchAll error', e);
-      showErrorMessage(t('خطا در دریافت فهرست منابع'));
-    }
-  }
-
   function clearSearch() {
     repo.Search = '';
     fetchAll();
@@ -813,13 +958,10 @@
       deleteTarget.value = null;
     }
   }
-  const routeResourceId = computed(() => {
-    const v = route.query?.resource_id;
-    return v ? Number(v) : null;
-  });
 
   /* ===== Init ===== */
   onMounted(async () => {
+    await fetchYearItemsFromDb();
     await fetchAll();
   });
 </script>
@@ -872,6 +1014,7 @@
   .text-grey {
     color: #9e9e9e;
   }
+
   .status-dot {
     width: 10px;
     height: 10px;
@@ -881,10 +1024,10 @@
   }
 
   .status-dot--active {
-    background: #4caf50; /* green */
+    background: #4caf50;
   }
 
   .status-dot--inactive {
-    background: #f44336; /* red */
+    background: #f44336;
   }
 </style>
