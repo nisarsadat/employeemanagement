@@ -398,6 +398,7 @@
     { title: t('دلیل آخرین بند'), key: 'last_band_reason' },
     { title: t('محل بند'), key: 'band_place' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
+    { title: t('تفصیل'), key: 'tafseel' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },

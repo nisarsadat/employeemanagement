@@ -265,6 +265,14 @@
                 :error-messages="getErrorMessages('note')"
               />
             </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.tafseel"
+                :label="t('تفصیل')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
           </v-row>
 
           <!-- =========================
@@ -560,6 +568,7 @@
     resource_phone: '',
 
     note: '',
+    tafseel: '',
 
     // ✅ NEW
     picture: null,
@@ -716,6 +725,7 @@
     b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
 
     b.note = x.note ?? '';
+    b.tafseel = x.tafseel ?? '';
 
     // ✅ picture url from API (for preview)
     pictureUrlFromApi.value = x.picture_url ?? '';
@@ -856,6 +866,7 @@
       { label: t('کود منبع'), value: v(form.value.resource_code) },
       { label: t('شماره منبع'), value: v(form.value.resource_phone) },
       { label: t('یادداشت'), value: v(form.value.note) },
+      { label: t('تفصیل'), value: v(form.value.tafseel) },
     ];
   }
   function buildSimpleTableHtml() {

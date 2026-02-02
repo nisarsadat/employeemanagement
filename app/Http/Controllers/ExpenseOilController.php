@@ -68,7 +68,7 @@ class ExpenseOilController extends Controller
         $expenseTotalQuery = ExpenseOil::query();
         if ($year)  $expenseTotalQuery->whereYear('date', $year);
         if ($month) $expenseTotalQuery->whereMonth('date', $month);
-        $totalExpenseQuantity = (string) $expenseTotalQuery->sum('oil_quantity');
+        $totalExpenseQuantity = (string) $expenseTotalQuery->sum('liter_in_number');
 
         // filtered expense quantity (same filters as list)
         $filteredExpenseQuery = ExpenseOil::query()->search($search);
@@ -77,7 +77,7 @@ class ExpenseOilController extends Controller
         if ($year)  $filteredExpenseQuery->whereYear('date', $year);
         if ($month) $filteredExpenseQuery->whereMonth('date', $month);
 
-        $filteredExpenseQuantity = (string) $filteredExpenseQuery->sum('oil_quantity');
+        $filteredExpenseQuantity = (string) $filteredExpenseQuery->sum('liter_in_number');
 
         return ExpenseOilResource::collection($query->paginate($perPage))->additional([
             'summary' => [
@@ -110,7 +110,7 @@ class ExpenseOilController extends Controller
             $row = ExpenseOil::create($payload);
 
             // ✅ expense reduces quantity
-            $qty = (string) ($payload['oil_quantity'] ?? '0');
+            $qty = (string) ($payload['liter_in_number'] ?? '0');
             $account->quantity = bcsub((string)$account->quantity, $qty, 3);
             $account->save();
 
@@ -138,8 +138,8 @@ class ExpenseOilController extends Controller
                 ? $oldAccount
                 : OilAccount::lockForUpdate()->findOrFail($payload['oil_account_id']);
 
-            $oldQty = (string) ($expenseOil->oil_quantity ?? '0');
-            $newQty = (string) ($payload['oil_quantity'] ?? '0');
+            $oldQty = (string) ($expenseOil->liter_in_number ?? '0');
+            $newQty = (string) ($payload['liter_in_number'] ?? '0');
 
             // revert old expense (add back)
             $oldAccount->quantity = bcadd((string)$oldAccount->quantity, $oldQty, 3);
@@ -170,7 +170,7 @@ class ExpenseOilController extends Controller
             $account = OilAccount::lockForUpdate()->findOrFail($expenseOil->oil_account_id);
 
             // revert expense on delete (add back)
-            $oldQty = (string) ($expenseOil->oil_quantity ?? '0');
+            $oldQty = (string) ($expenseOil->liter_in_number ?? '0');
             $account->quantity = bcadd((string)$account->quantity, $oldQty, 3);
             $account->save();
 

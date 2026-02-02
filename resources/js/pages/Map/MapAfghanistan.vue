@@ -613,6 +613,7 @@
   const ICONS = {
     office_employee: { label: 'کارمند', mdi: 'mdi-account' },
     resource: { label: 'منبع', mdi: 'mdi-circle' },
+    fasad: { label: 'فساد', mdi: 'mdi-account-multiple-outline' },
     event: { label: 'پیښې', mdi: 'mdi-circle' },
     hotels: { label: 'مسافر خانی او میلمستون', mdi: 'mdi-silverware-fork-knife' },
     hostels: { label: 'لیلی او کرایی اطاقونه', mdi: 'mdi-bed' },

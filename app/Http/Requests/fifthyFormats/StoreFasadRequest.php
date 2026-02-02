@@ -41,6 +41,7 @@ class StoreFasadRequest extends FormRequest
             'last_band_reason' => ['nullable', 'string', ],
             'band_place'       => ['nullable', 'string', ],
             'now_job'          => ['nullable', 'string', ],
+            'tafseel'          => ['nullable', 'string', ],
 
             'resource_code'    => ['nullable', 'string', ],
             'resource_phone'   => ['nullable', 'string', ],

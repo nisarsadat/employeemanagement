@@ -34,6 +34,7 @@ use App\Http\Controllers\fifthyFormats\{
     EntryExitController,
     SarafyanoController,
     ClubsController,
+    JawasisController,
     MahajeratController,
     SoldierController
 };
@@ -244,7 +245,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('office-employees/active',         [AE::class, 'active']);
     Route::get('office-employees/inactive',       [AE::class, 'inactive']);
 
+    Route::get('officeemployees/date-options', [OfficeEmployeeController::class, 'dateOptions']);
+
     protectResource('office-employees', 'office_employees', OfficeEmployeeController::class);
+
+
+    Route::get('officeemployees/date-options', [OfficeEmployeeController::class, 'dateOptions']);
 
     Route::get('office-employees/{officeEmployee}/documents/download-all', [OfficeEmployeeDocumentController::class, 'downloadAll']);
     Route::delete('office-employees/{officeEmployee}/documents/{document}', [OfficeEmployeeController::class, 'destroyDocument']);
@@ -594,5 +600,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::apiResource('docs-types', DocsTypeController::class);
     Route::apiResource('marjas', MarjaController::class);
+
+
+    Route::apiResource('jawasis', JawasisController::class);
+    Route::post('jawasis/bulk-delete', [JawasisController::class, 'bulkDelete']);
+    Route::delete('jawasis/document/{id}', [JawasisController::class, 'deleteDocument']);
+    Route::get('jawasis/{id}/download-zip', [JawasisController::class, 'downloadZip']);
 
 });

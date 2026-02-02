@@ -2,7 +2,7 @@
   <div :dir="rtl ? 'rtl' : 'ltr'" class="max-w-full">
     <!-- Toolbar -->
     <div
-      class="mb-4 flex items-center justify-between gap-2 print:hidden p-3 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-100 shadow-sm"
+      class="mb-4 flex items-center justify-between gap-2 print:hidden p-3 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100 shadow-sm"
       :dir="rtl ? 'ltr' : 'rtl'"
     >
       <!-- ✅ Records Counter (START side) -->
@@ -63,7 +63,7 @@
             <!-- dropdown -->
             <div
               v-show="showColumnsPanel"
-              class="absolute z-[9999] mt-2 w-[320px] max-w-[92vw] bg-white border border-gray-200 shadow-2xl rounded-xl overflow-hidden"
+              class="absolute z-[9999] mt-2 w-[320px] max-w-[92vw] bg-white border border-gray-200 shadow-2xl rounded-lg overflow-hidden"
               :class="rtl ? 'left-0' : 'right-0'"
               @click.stop
             >
@@ -295,10 +295,10 @@
     <!-- Table (zoomed 67%) -->
     <div
       id="print-this-table"
-      class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-xl overflow-hidden table-zoom"
+      class="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 shadow-xl overflow-hidden table-zoom"
     >
       <!-- 👇 fixed height + vertical scroll -->
-      <div class="overflow-x-auto overflow-y-auto rounded-2xl max-h-[55vh]">
+      <div class="overflow-x-auto overflow-y-auto rounded-lg max-h-[55vh]">
         <table class="min-w-full table-auto">
           <colgroup>
             <col v-if="selectable" style="width: 48px" />

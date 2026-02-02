@@ -197,10 +197,10 @@
       class="mb-20 mx-2"
     >
       <!-- RESOURCE: فقط کود + tooltip -->
-      <template #cell-resource_code_number="{ row }">
+      <template #cell-resource_id="{ row }">
         <div class="d-flex flex-column align-start">
           <v-tooltip
-            v-if="row.resource_code_number"
+            v-if="row.resource_id"
             text="برای رفتن به صفحه منابع کلیک کنید"
             location="top"
           >
@@ -214,7 +214,7 @@
               >
                 <v-icon start size="16">mdi-account-search</v-icon>
                 <span class="text-caption">
-                  {{ row.resource_code_number }}
+                  {{ row.resource_id }}
                 </span>
               </v-btn>
             </template>
@@ -555,7 +555,7 @@
   /* ===== Headers for FilterableTable ===== */
   const headersFT = computed(() => [
     { title: t('آی ډی'), key: 'id' },
-    { title: t('کود منبع'), key: 'resource_code_number' },
+    { title: t('کود منبع'), key: 'resource_id' },
     { title: t('کود کارمند مربوطه'), key: 'office_employee_code_number' },
     { title: t('کود کارمند  اطلاع گیرنده'), key: 'office_employee_info_code_number' },
 

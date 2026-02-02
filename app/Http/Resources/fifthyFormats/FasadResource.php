@@ -42,6 +42,7 @@ class FasadResource extends JsonResource
             'last_band_reason' => $this->last_band_reason,
             'band_place' => $this->band_place,
             'now_job' => $this->now_job,
+            'tafseel' => $this->tafseel,
 
             'resource_code' => $this->resource_code,
             'resource_phone' => $this->resource_phone,

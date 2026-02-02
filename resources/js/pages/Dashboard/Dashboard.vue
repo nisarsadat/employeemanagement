@@ -638,7 +638,6 @@
                 <!-- Khayrat Reports (only in new mode) -->
                 <template #item.khayrat_reports_count="{ item }">
                   <div class="metric-chip">
-                    <v-icon size="16" color="deep-orange">mdi-heart</v-icon>
                     <span class="font-weight-bold">{{ num(item.khayrat_reports_count || 0) }}</span>
                   </div>
                 </template>

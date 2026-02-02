@@ -38,6 +38,7 @@ class SaeenFasad extends Model
         'resource_code',
         'resource_phone_number',
         'note',
+        'tafseel',
         'resource_id',
     ];
 

@@ -329,6 +329,14 @@
                 :error-messages="getErrorMessages('note')"
               />
             </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.tafseel"
+                :label="t('تفصیل')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
           </v-row>
 
           <!-- Actions (BOTTOM) -->
@@ -518,6 +526,7 @@
 
     // note
     note: '',
+    tafseel: '',
   });
 
   const form = ref(blankForm());
@@ -633,6 +642,7 @@
     b.resource_id = x.resource_id ?? r.id ?? null;
 
     b.note = x.note ?? '';
+    b.tafseel = x.tafseel ?? '';
 
     return b;
   }
@@ -748,6 +758,7 @@
       { label: t('شماره منبع'), value: v(form.value.resource_phone) },
 
       { label: t('ملاحظات'), value: v(form.value.note) },
+      { label: t('تفصیل'), value: v(form.value.tafseel) },
     ];
   }
   function buildSimpleTableHtml() {

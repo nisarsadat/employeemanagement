@@ -164,7 +164,9 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
       const day = today.getDate().toString().padStart(2, '0');
       return `${year}-${month}-${day}`;
     },
-
+    async FetchEmployeeDateOptions(params) {
+      return axios.get('/officeemployees/date-options', { params });
+    },
     // ---------------------- CURRENCIES ----------------------
     async GetCurrencies() {
       this.loading = true;
@@ -211,19 +213,29 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
     },
 
     // ====================== OFFICE EMPLOYEES ======================
-    async FetchEmployeesData({ page, itemsPerPage }) {
+    async FetchEmployeesData(params = {}) {
       this.loading = true;
+
       try {
         setContentType('application/json');
-        const response = await axios.get(
-          `office-employees?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = response.data?.data ?? response.data ?? [];
+
+        const res = await axios.get('/office-employees', {
+          params: {
+            page: params.page ?? this.page,
+            perPage: params.perPage ?? this.itemsPerPage, // ✅ keep backend key: perPage
+            search: params.search ?? this.Search ?? '',
+
+            // ✅ NEW: filter support
+            year: params.year ?? null,
+            month: params.month ?? null,
+            date_field: params.date_field ?? 'join_date',
+            status: params.status ?? 'all',
+          },
+        });
+
+        const items = res.data?.data ?? res.data ?? [];
         this.Employees = Array.isArray(items) ? items : [];
-        this.totalItems =
-          response.data?.meta?.total ?? response.data?.total ?? this.Employees.length;
+        this.totalItems = res.data?.meta?.total ?? res.data?.total ?? this.Employees.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -233,7 +245,6 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
         this.loading = false;
       }
     },
-
     async DeleteEmployee(id) {
       try {
         await axios.delete(`/office-employees/${id}`);

@@ -30,6 +30,7 @@ class MashkokShops extends Model
         'mashkok_type',
 
         'note',
+        'tafseel',
         'resource_id',
     ];
 

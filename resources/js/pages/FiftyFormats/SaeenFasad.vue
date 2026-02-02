@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
-    <AppBar :title="t('فساد (ساعین)')" :subtitle="t('فهرست، جستجو و مدیریت ساعین فساد')">
+    <AppBar :title="t('ساعین بالفساد')" :subtitle="t('فهرست، جستجو و مدیریت ساعین فساد')">
       <template #actions>
         <v-btn icon />
       </template>
@@ -417,6 +417,7 @@
     { title: t('شماره منبع'), key: 'resource_phone_number' },
 
     { title: t('ملاحظات'), key: 'note' },
+    { title: t('تفصیل'), key: 'tafseel' },
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 

@@ -457,6 +457,16 @@
                 persistent-hint
               />
             </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.tafseel"
+                :label="t('تفصیل')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                persistent-hint
+              />
+            </v-col>
           </v-row>
 
           <!-- منبع -->
@@ -642,6 +652,7 @@
     now_job: '',
     Province_addr: '',
     coordinates: '',
+    tafseel: '',
     resource_code: '',
     resource_phone: '',
     resource_id: null,
@@ -768,6 +779,7 @@
       now_job: '',
       Province_addr: '',
       coordinates: '',
+      tafseel: '',
       resource_code: '',
       resource_phone: '',
       resource_id: null,
@@ -811,6 +823,7 @@
       now_job: x.now_job ?? '',
       Province_addr: x.Province_addr ?? '',
       coordinates: x.coordinates ?? '',
+      tafseel: x.tafseel ?? '',
       resource_code: x.resource_code ?? '',
       resource_phone: x.resource_phone ?? '',
       resource_id: x.resource_id ?? null,

@@ -441,6 +441,7 @@ const headersFT = computed(() => [
   { title: t('شماره منبع'), key: 'resource_phone' },
 
   { title: t('یادداشت'), key: 'note', width: 300 },
+  { title: t('تفصیل'), key: 'tafseel', width: 300 },
 
   { title: t('نقشه'), key: 'map', sortable: false },
 ]);

@@ -11,7 +11,7 @@ use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\QueryException; // ✅ ADDED
+use Illuminate\Database\QueryException;
 
 class OfficeEmployeeController extends Controller
 {
@@ -35,24 +35,38 @@ class OfficeEmployeeController extends Controller
         ], 422);
     }
 
-    /**
-     * List all office employees with search and documents.
-     */
-    public function index(Request $request)
+    // =========================
+    // ✅ DATE FILTER HELPERS
+    // =========================
+    private function resolveDateField(?string $dateField): string
     {
-        $request->validate([
-            'page'    => 'sometimes|integer|min:1',
-            'perPage' => 'sometimes',
-            'search'  => 'nullable|string',
-            'status'  => 'nullable|string',
-        ]);
+        $allowed = ['join_date', 'left_date', 'created_at'];
 
-        $search     = $request->input('search');
-        $rawPerPage = $request->input('perPage', null);
-        $page       = (int) $request->input('page', 1);
-        $status     = $request->input('status', 'all');
+        $field = trim((string) $dateField);
+        if ($field === '' || !in_array($field, $allowed, true)) {
+            return 'join_date';
+        }
 
-        $query = OfficeEmployee::query()
+        return $field;
+    }
+
+    private function applyMonthYearFilter($query, ?int $year, ?int $month, string $dateField)
+    {
+        if ($year) {
+            $query->whereYear($dateField, $year);
+        }
+
+        if ($month) {
+            $query->whereMonth($dateField, $month);
+        }
+
+        return $query;
+    }
+
+    // ✅ keep the main list query consistent everywhere
+    private function baseListQuery()
+    {
+        return OfficeEmployee::query()
             ->with(['documents'])
             ->withSum('finances as payed_money', 'money_amount_number')
             ->withCount([
@@ -63,7 +77,89 @@ class OfficeEmployeeController extends Controller
                 'informations',
                 'infoInformations',
                 'documents',
-            ])
+            ]);
+    }
+
+    /**
+     * ✅ NEW: Return available years/months based on REAL DB data.
+     *
+     * Query params:
+     * - date_field (join_date|left_date|created_at) default join_date
+     * - year (optional) if provided, returns available months for that year too
+     *
+     * Response:
+     * {
+     *   "date_field": "join_date",
+     *   "years": [2026,2025,2024],
+     *   "months": [1,2,3] // only when year is given
+     * }
+     */
+    public function dateOptions(Request $request)
+    {
+        $request->validate([
+            'date_field' => 'nullable|string',
+            'year'       => 'nullable|integer|min:1900|max:2500',
+        ]);
+
+        $dateField = $this->resolveDateField($request->input('date_field'));
+        $year      = $request->filled('year') ? (int) $request->input('year') : null;
+
+        $base = OfficeEmployee::query()->whereNotNull($dateField);
+
+        $years = (clone $base)
+            ->selectRaw("YEAR($dateField) as y")
+            ->distinct()
+            ->orderByDesc('y')
+            ->pluck('y')
+            ->filter()
+            ->values()
+            ->all();
+
+        $months = [];
+        if ($year) {
+            $months = (clone $base)
+                ->whereYear($dateField, $year)
+                ->selectRaw("MONTH($dateField) as m")
+                ->distinct()
+                ->orderBy('m')
+                ->pluck('m')
+                ->filter()
+                ->values()
+                ->all();
+        }
+
+        return response()->json([
+            'date_field' => $dateField,
+            'years'      => $years,
+            'months'     => $months,
+        ]);
+    }
+
+    /**
+     * List all office employees with search + month/year filters.
+     */
+    public function index(Request $request)
+    {
+        $request->validate([
+            'page'       => 'sometimes|integer|min:1',
+            'perPage'    => 'sometimes',
+            'search'     => 'nullable|string',
+            'status'     => 'nullable|string',
+            'year'       => 'nullable|integer|min:1900|max:2500',
+            'month'      => 'nullable|integer|min:1|max:12',
+            'date_field' => 'nullable|string',
+        ]);
+
+        $search     = $request->input('search');
+        $rawPerPage = $request->input('perPage', null);
+        $page       = (int) $request->input('page', 1);
+        $status     = $request->input('status', 'all');
+
+        $year      = $request->filled('year') ? (int) $request->input('year') : null;
+        $month     = $request->filled('month') ? (int) $request->input('month') : null;
+        $dateField = $this->resolveDateField($request->input('date_field'));
+
+        $query = $this->baseListQuery()
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($qq) use ($search) {
                     $qq->where('name', 'like', "%{$search}%")
@@ -71,17 +167,20 @@ class OfficeEmployeeController extends Controller
                        ->orWhere('phone_number', 'like', "%{$search}%");
                 });
             })
-           ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
+            ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
                 $activeVals   = ['active', OfficeEmployee::ACTIVE];
                 $inactiveVals = ['inactive', OfficeEmployee::INACTIVE];
 
                 if (in_array($status, $activeVals, true)) {
-                    $q->active();     // ✅ >= 100 active resources
+                    $q->active();
                 } elseif (in_array($status, $inactiveVals, true)) {
-                    $q->inactive();   // ✅ < 100 active resources
+                    $q->inactive();
                 }
-            })
-            ->orderByDesc('id');
+            });
+
+        $this->applyMonthYearFilter($query, $year, $month, $dateField);
+
+        $query->orderByDesc('id');
 
         if (is_null($rawPerPage) || $rawPerPage === '' || strtolower((string) $rawPerPage) === 'all' || (int) $rawPerPage === 0) {
             return OfficeEmployeeResource::collection($query->get());
@@ -94,20 +193,7 @@ class OfficeEmployeeController extends Controller
 
     public function show($id)
     {
-        $officeEmployee = OfficeEmployee::query()
-            ->with(['documents'])
-            ->withSum('finances as payed_money', 'money_amount_number')
-            ->withCount([
-                'events',
-                'resources',
-                'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
-                'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
-                'informations',
-                'infoInformations',
-                'documents',
-            ])
-            ->findOrFail($id);
-
+        $officeEmployee = $this->baseListQuery()->findOrFail($id);
         return new OfficeEmployeeResource($officeEmployee);
     }
 
@@ -120,9 +206,6 @@ class OfficeEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Store a new office employee.
-     */
     public function store(OfficeEmployeeRequest $request)
     {
         DB::beginTransaction();
@@ -350,29 +433,31 @@ class OfficeEmployeeController extends Controller
         }
     }
 
-   public function inactive(Request $request)
+    public function inactive(Request $request)
     {
-        $query = OfficeEmployee::query()->inactive()
-            ->with(['documents'])
-            ->withSum('finances as payed_money', 'money_amount_number')
-            ->withCount([
-                'events',
-                'resources',
-                'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
-                'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
-                'informations',
-                'infoInformations',
-                'documents',
-            ])
-            ->orderByDesc('id');
+        $request->validate([
+            'search'     => 'nullable|string',
+            'perPage'    => 'sometimes',
+            'year'       => 'nullable|integer|min:1900|max:2500',
+            'month'      => 'nullable|integer|min:1|max:12',
+            'date_field' => 'nullable|string',
+        ]);
+
+        $year      = $request->filled('year') ? (int) $request->input('year') : null;
+        $month     = $request->filled('month') ? (int) $request->input('month') : null;
+        $dateField = $this->resolveDateField($request->input('date_field'));
+
+        $query = $this->baseListQuery()->inactive()->orderByDesc('id');
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                ->orWhere('code_number', 'like', "%{$search}%")
-                ->orWhere('phone_number', 'like', "%{$search}%");
+                  ->orWhere('code_number', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$search}%");
             });
         }
+
+        $this->applyMonthYearFilter($query, $year, $month, $dateField);
 
         $perPage = $request->input('perPage', 0);
 
@@ -382,5 +467,4 @@ class OfficeEmployeeController extends Controller
 
         return OfficeEmployeeResource::collection($query->paginate((int) $perPage));
     }
-
 }

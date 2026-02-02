@@ -118,6 +118,7 @@ const CORE = [
 const FIFTY_FORMATS = [
   // Base
   { slug: 'fasads', path: '/app/fasads' },
+  { slug: 'jawasis', path: '/app/jawasis' },
   { slug: 'saeen_fasads', path: '/app/saeenfasad' },
   { slug: 'heists', path: '/app/heist' },
   { slug: 'captives', path: '/app/captives' },

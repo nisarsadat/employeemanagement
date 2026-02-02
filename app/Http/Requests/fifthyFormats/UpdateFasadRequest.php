@@ -41,6 +41,7 @@ class UpdateFasadRequest extends FormRequest
             'last_band_reason' => ['sometimes', 'nullable', 'string'],
             'band_place'       => ['sometimes', 'nullable', 'string'],
             'now_job'          => ['sometimes', 'nullable', 'string'],
+            'tafseel'          => ['sometimes', 'nullable', 'string'],
 
             'resource_code'    => ['sometimes', 'nullable', 'string'],
             'resource_phone'   => ['sometimes', 'nullable', 'string'],

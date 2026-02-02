@@ -41,6 +41,7 @@ class MashkokPeopleResource extends JsonResource
             'Province_addr'      => $this->Province_addr,
 
             'note'               => $this->note,
+            'tafseel'               => $this->tafseel,
             'resource_id'        => $this->resource_id,
 
             // Flattened from Resource

@@ -44,7 +44,7 @@
         </header>
 
         <!-- Toolbar -->
-        <v-card class="mb-4 mb-md-6 pa-4 pa-sm-5" elevation="2" rounded="xl" >
+        <v-card class="mb-4 mb-md-6 pa-4 pa-sm-5" elevation="2" rounded="xl">
           <div class="d-flex align-center justify-space-between flex-wrap gap-3">
             <!-- Results Counter -->
             <div class="text-body-2 text-grey-darken-1 font-weight-medium fontfamilyis">
@@ -191,7 +191,7 @@
   // 🔹 56 formats list (names taken from routes/api.php)
   const original = ref([
     // ---------------------- Main Fifty Formats (10) ----------------------
-     {
+    {
       slug: 'saeenfasad',
       labelFa: 'فورم‌های فساد ساعین',
       path: '/saeenfasad',
@@ -205,7 +205,13 @@
       icon: '🧩',
       perm: 'fasads',
     },
-   
+    {
+      slug: 'jawasis',
+      labelFa: ' جواسیس',
+      path: '/jawasis',
+      icon: '🐱‍👤',
+      perm: 'jawasis',
+    },
     {
       slug: 'heist',
       labelFa: 'فورم‌های سرقت',

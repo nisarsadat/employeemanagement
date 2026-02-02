@@ -35,6 +35,7 @@ class MashkokPeople extends Model
         'mushkokyat_points', // kept spelling as requested
 
         'note',
+        'tafseel',
         'resource_id',
     ];
 

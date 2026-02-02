@@ -25,6 +25,7 @@ class MashkokHomes extends Model
         'Province_addr',
         'shak_symbols',
         'note',
+        'tafseel',
         'resource_id',
     ];
 

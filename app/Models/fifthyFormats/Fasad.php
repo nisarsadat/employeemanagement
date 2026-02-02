@@ -35,6 +35,7 @@ class Fasad extends Model
         'last_band_reason',
         'band_place',
         'now_job',
+        'tafseel',
         'resource_code',
         'resource_phone',
         'resource_id',

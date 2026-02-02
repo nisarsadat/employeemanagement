@@ -32,6 +32,7 @@ class MashkokShopsResource extends JsonResource
             'mashkok_type'    => $this->mashkok_type,
 
             'note'            => $this->note,
+            'tafseel'            => $this->tafseel,
             'resource_id'     => $this->resource_id,
 
             // Flattened related fields

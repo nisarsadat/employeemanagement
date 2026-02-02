@@ -46,6 +46,7 @@ class SaeenFasadResource extends JsonResource
             'old_job'               => $this->old_job,
             'now_job'               => $this->now_job,
             'note'                  => $this->note,
+            'tafseel'               => $this->tafseel,
             'Province_addr'         => $this->Province_addr,
             'coordinates'           => $this->coordinates,
 

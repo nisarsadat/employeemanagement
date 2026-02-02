@@ -198,6 +198,8 @@ import Khayratreport from '../pages/InlineInfo/khayratreport.vue';
 import FormatZonePage from '../pages/Settings/FormatZone/FormatZonePage.vue';
 import DocsTypesIndex from '../pages/Settings/DocsType/DocsTypesIndex.vue';
 import MarjasIndex from '../pages/Settings/Marja/MarjasIndex.vue';
+import JawasisIndex from '../pages/FiftyFormats/JawasisIndex.vue';
+import JawasisForm from '../pages/FiftyFormats/JawasiForm.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -458,6 +460,29 @@ const router = createRouter({
           component: Fasads,
           meta: { requiresAuth: true, perm: permFor('fasads') },
         },
+        {
+          path: 'jawasis',
+          component: JawasisIndex,
+          meta: { requiresAuth: true, perm: permFor('jawasis') },
+        },
+        // ✅ Jawasis CREATE (form)
+        // ✅ Jawasis CREATE
+        {
+          path: '/jawasis/create',
+          name: 'JawasisCreate',
+          component: JawasisForm,
+          meta: { requiresAuth: true, perm: permFor('jawasis') },
+        },
+
+        // ✅ Jawasis EDIT (needs :id)
+        {
+          path: '/jawasis/edit/:id',
+          name: 'JawasisEdit',
+          component: JawasisForm,
+          props: (route) => ({ id: Number(route.params.id) }), // optional but clean
+          meta: { requiresAuth: true, perm: permFor('jawasis') },
+        },
+
         {
           path: '/app/fasadform',
           name: 'fasads.create',

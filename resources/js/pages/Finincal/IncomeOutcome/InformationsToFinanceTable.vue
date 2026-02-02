@@ -8,7 +8,7 @@
           variant="outlined"
           prepend-icon="mdi-refresh"
           density="comfortable"
-          class="rounded-lg"
+          class="rounded-lg bg-blue"
           :loading="dbRepo.loading"
           @click="fetch"
         >
@@ -75,10 +75,8 @@ const financeDialog = ref(false);
 
 const headers = [
   { title: 'ID', key: 'id', sortable: true },
-  { title: 'Resource Code', key: 'resource_code_number', sortable: true },
-  { title: 'Employee Code', key: 'office_employee_code_number', sortable: true },
-  { title: 'نوم', key: 'name', sortable: true },
-  { title: 'نتیجه', key: 'result', sortable: true },
+  { title: ' منبع کوډ', key: 'resource_code_number', sortable: true },
+  { title: 'کارمندکوډ', key: 'office_employee_code_number', sortable: true },
   { title: 'پیغام مالی', key: 'message_to_finance', sortable: false },
   { title: 'حالت', key: 'status', sortable: false },
   { title: 'عملیات', key: 'actions', sortable: false },

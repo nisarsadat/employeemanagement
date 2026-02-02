@@ -288,7 +288,7 @@
     { title: t('finances.table.amountWords'), key: 'money_amount_words', sortable: false },
 
     { title: t('finances.table.sourceCode'), key: 'source_code', sortable: false, width: 160 },
-    { title: t('finances.table.sourceNickName'), key: 'source_nick_name', sortable: false, width: 160 },
+    { title: t('finances.table.sourceNickName'), key: 'resource.name', sortable: false, width: 160 },
 
     { title: t('finances.table.paidDate'), key: 'date', sortable: true },
     { title: t('finances.table.employeePhone'), key: 'employee_phone', sortable: false },

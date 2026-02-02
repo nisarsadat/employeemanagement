@@ -365,7 +365,8 @@
     { title: t('علایم شک'), key: 'shak_symbols' },
     { title: t('مشکوکیت نوعیت'), key: 'mashkok_type' },
 
-    { title: t('یادداشت'), key: 'note', width: 260 },
+    { title: t('یادداشت'), key: 'note'},
+    { title: t('تفصیل'), key: 'tafseel'},
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },

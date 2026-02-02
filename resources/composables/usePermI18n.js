@@ -107,6 +107,7 @@ export const MODULE_PASHTO = {
 
   // ---- 56 Formats ----
   fasads: 'فسادونه',
+  jawasis: 'جواسیس',
   saeen_fasads: 'سعین فسادونه',
   heists: 'وسله‌والې غلاوې',
   captives: 'بندیان',

@@ -72,7 +72,7 @@
                 :error-messages="getErrorMessages('market_name')"
               />
             </v-col>
-             <v-col cols="12" md="3">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.shop_number"
                 :label="t('د دوکان شمیره')"
@@ -222,6 +222,12 @@
                 density="compact"
                 :error="hasError('note')"
                 :error-messages="getErrorMessages('note')"
+              />
+              <v-text-field
+                v-model="form.tafseel"
+                :label="t('تفصیل')"
+                variant="outlined"
+                density="compact"
               />
             </v-col>
           </v-row>
@@ -376,6 +382,7 @@
     Province_addr: '',
 
     note: '',
+    tafseel: '',
 
     resource_id: null,
     resource_code: '',
@@ -425,6 +432,7 @@
     b.Province_addr = x.Province_addr ?? '';
 
     b.note = x.note ?? '';
+    b.tafseel = x.tafseel ?? '';
 
     const r = x.resource || {};
     b.resource_id = x.resource_id ?? r.id ?? null;
@@ -528,6 +536,7 @@
       { label: t('شماره منبع'), value: v(form.value.resource_phone) },
 
       { label: t('یادداشت'), value: v(form.value.note) },
+      { label: t('تفصیل'), value: v(form.value.tafseel) },
     ];
   }
   function buildSimpleTableHtml() {

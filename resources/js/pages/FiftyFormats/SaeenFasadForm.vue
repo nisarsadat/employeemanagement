@@ -2,14 +2,13 @@
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
     <AppBar
-      :title="isEdit ? t('ویرایش فساد (سعین)') : t('ایجاد ریکارډ سعین فساد')"
+      :title="isEdit ? t('ویرایش بالفساد') : t('ایجاد ریکارډ ساعین بالفساد')"
       :subtitle="
         isEdit
-          ? t('ویرایش جزئیات یک ریکارډ موجود سعین فساد')
-          : t('ثبت یک ریکارډ جدید سعین فساد در سیستم')
+          ? t('ویرایش جزئیات یک ریکارډ موجود ساعین  بالفساد')
+          : t('ثبت یک ریکارډ جدید ساعین بالفساد در سیستم')
       "
     >
-     
     </AppBar>
 
     <!-- FORM -->
@@ -87,7 +86,9 @@
               <!-- Identity -->
               <div class="section-header">
                 <span class="section-title">
-                  {{ isEdit ? t('ویرایش معلومات سعین فساد') : t('ایجاد ریکارډ سعین فساد') }}
+                  {{
+                    isEdit ? t('ویرایش معلومات ساعین  بالفساد') : t('ایجاد ریکارډ ساعین  بالفساد')
+                  }}
                 </span>
               </div>
 
@@ -128,7 +129,7 @@
               </v-row>
 
               <!-- Main address -->
-              <div class="section-header mt-4">
+              <div class="section-header mt-4 mb-4">
                 <span class="section-title">{{ t('آدرس اصلی') }}</span>
               </div>
 
@@ -157,7 +158,7 @@
               </v-row>
 
               <!-- Now address -->
-              <div class="section-header mt-4">
+              <div class="section-header mt-4 mb-4">
                 <span class="section-title">{{ t('آدرس فعلی') }}</span>
               </div>
 
@@ -379,6 +380,14 @@
                 :error-messages="getErrorMessages('note')"
               />
             </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.tafseel"
+                :label="t('تفصیل')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
           </v-row>
 
           <!-- ✅ DOCUMENTS SECTION -->
@@ -484,7 +493,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت سعین فساد') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت ساعین  بالفساد') }}
               </v-btn>
 
               <v-btn
@@ -665,6 +674,7 @@
     // contact & notes
     phone_number: '',
     note: '',
+    tafseel: '',
   });
 
   const form = ref(blankForm());
@@ -819,6 +829,7 @@
 
     b.phone_number = x.phone_number ?? '';
     b.note = x.note ?? '';
+    b.tafseel = x.tafseel ?? '';
 
     // ✅ docs from API
     const docs = Array.isArray(x.documents) ? x.documents : [];
@@ -856,7 +867,7 @@
       pictureChanged.value = false;
     } catch (e) {
       console.error(e);
-      showErrorMessage(t('خطا در دریافت معلومات سعین فساد'));
+      showErrorMessage(t('خطا در دریافت معلومات ساعین  بالفساد'));
     }
   }
 
@@ -961,7 +972,7 @@
       { label: 'محل فعالیت', value: form.value.activity_place },
       { label: 'تعداد دوستان', value: form.value.friends_number },
 
-      { label: 'فاصله بانډ', value: form.value.band_distince },
+      { label: 'مدت بند', value: form.value.band_distince },
       { label: 'محل بند', value: form.value.band_place },
 
       { label: 'وظیفه قبلی', value: form.value.old_job },
@@ -991,7 +1002,7 @@
       .join('');
 
     return `
-    <h3 class="title">فورم سعین فساد</h3>
+    <h3 class="title">فورم ساعین  بالفساد</h3>
     <table class="simple-table">
       <tbody>
         ${rows}

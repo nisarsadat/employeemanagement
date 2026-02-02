@@ -45,6 +45,7 @@ class StoreSaeenFasadRequest extends FormRequest
             'resource_code' => ['nullable','string'],
             'resource_phone_number' => ['nullable','string'],
             'note' => ['nullable','string'],
+            'tafseel' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
 
         ];

@@ -11,7 +11,7 @@
     <v-container class="pa-0">
       <v-row class="align-center">
         <!-- Search Field -->
-        <v-col cols="12" sm="8" md="9" lg="10">
+        <v-col cols="12" sm="12" md="12" lg="12">
           <v-text-field
             v-model.trim="repo.Search"
             :label="t('جستجو در کارمندان...')"
@@ -26,6 +26,55 @@
             @click:clear="clearSearch"
             class="bg-white search-field"
           />
+        </v-col>
+
+        <!-- ✅ NEW: Year -->
+        <v-col cols="12" sm="7" md="7" lg="7">
+          <v-select
+            v-model="filterYear"
+            :items="yearItems"
+            item-title="title"
+            item-value="value"
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            hide-details
+            clearable
+            :label="t('سال')"
+            class="bg-white"
+          />
+        </v-col>
+
+        <!-- ✅ NEW: Month -->
+        <v-col cols="12" sm="4" md="2" lg="2">
+          <v-select
+            v-model="filterMonth"
+            :items="monthItems"
+            item-title="title"
+            item-value="value"
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            hide-details
+            clearable
+            :label="t('ماه')"
+            class="bg-white"
+          />
+        </v-col>
+
+        <!-- ✅ NEW: Filter button -->
+        <v-col cols="12" sm="4" md="1" lg="1">
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter"
+            @click="applyMonthYearFilter"
+          >
+            {{ t('فلتر') }}
+          </v-btn>
         </v-col>
 
         <!-- Create Button -->
@@ -185,6 +234,7 @@
           <v-icon v-else size="20">mdi-account</v-icon>
         </v-avatar>
       </template>
+
       <!-- 🟢🔴 Activity dot (فعال/غیر فعال) -->
       <template #cell-activity="{ row }">
         <div class="d-flex align-center justify-center">
@@ -258,6 +308,7 @@
         </v-tooltip>
         <span v-else class="text-red">0</span>
       </template>
+
       <!-- ✅ Active resources count -->
       <template #cell-resources_active_count="{ row }">
         <v-tooltip
@@ -434,10 +485,10 @@
 
 <script setup>
   import { ref, computed, watch, onMounted } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { useRouter, useRoute } from 'vue-router';
   import { useI18n } from 'vue-i18n';
-  import { useRoute } from 'vue-router';
-  const route = useRoute();
+  import dayjs from 'dayjs';
+  import { useCalendar } from '../../../composables/useCalendar';
 
   import AppBar from '@/components/AppBar.vue';
   import PeekButton from '@/components/PeekButton.vue';
@@ -449,9 +500,141 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
 
   const router = useRouter();
+  const route = useRoute();
   const { t, locale } = useI18n();
+  const { calendar, formatYearDisplay } = useCalendar();
+
   const repo = useEmployeOfficeRepository();
   const auth = useLoginRepository();
+
+  // ✅ selected values that will be SENT to backend (gregorian)
+  const filterYear = ref(null); // e.g. 2026
+  const filterMonth = ref(null); // 1..12
+
+  // ✅ dynamic year items from backend (REAL DB years)
+  const yearItems = ref([]); // [{ value: 2026, title: '...' }, ...]
+  const yearNumbers = ref([]); // ✅ (only for auto-rebuilding titles)
+
+  async function fetchYearItemsFromDb() {
+    try {
+      const res = await repo.FetchEmployeeDateOptions({ date_field: 'join_date' });
+      const years = res?.data?.years || [];
+
+      // ✅ store numeric years once
+      yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
+
+      // ✅ build titles based on current AppBar calendar format
+      yearItems.value = yearNumbers.value.map((y) => ({
+        value: y,
+        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      }));
+    } catch (e) {
+      console.error('fetchYearItemsFromDb error', e);
+    }
+  }
+
+  // ✅ auto-update year titles when AppBar/calendar format changes (NO change to selected value)
+  watch(
+    [calendar, locale],
+    () => {
+      if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
+      yearItems.value = yearNumbers.value.map((y) => ({
+        value: y,
+        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      }));
+    },
+    { immediate: false }
+  );
+
+  // ✅ month names for UI (based on current calendar mode)
+  // BUT item.value stays gregorian 1..12 always.
+  const JALALI_MONTHS_FA = [
+    'حمل',
+    'ثور',
+    'جوزا',
+    'سرطان',
+    'اسد',
+    'سنبله',
+    'میزان',
+    'عقرب',
+    'قوس',
+    'جدی',
+    'دلو',
+    'حوت',
+  ];
+
+  const HIJRI_QAMARI_MONTHS_FA = [
+    'محرم',
+    'صفر',
+    'ربیع‌الاول',
+    'ربیع‌الثانی',
+    'جمادی‌الاول',
+    'جمادی‌الثانی',
+    'رجب',
+    'شعبان',
+    'رمضان',
+    'شوال',
+    'ذوالقعده',
+    'ذوالحجه',
+  ];
+
+  function monthTitleFromGregorianMonth(gYear, gMonth) {
+    // Use the 15th to avoid edge conversion issues
+    const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
+
+    if (calendar.value === 'gregorian') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
+      } catch {
+        return String(gMonth);
+      }
+    }
+
+    if (calendar.value === 'jalali') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat(locale.value, {
+          calendar: 'persian',
+          month: 'numeric',
+        });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
+      } catch {}
+      return JALALI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    if (calendar.value === 'hijri') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat('ar', {
+          calendar: 'islamic-umalqura',
+          month: 'numeric',
+        });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
+      } catch {}
+      return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    return String(gMonth);
+  }
+
+  const monthItems = computed(() => {
+    const y = filterYear.value || dayjs().year();
+    return Array.from({ length: 12 }).map((_, i) => {
+      const m = i + 1;
+      return { value: m, title: monthTitleFromGregorianMonth(y, m) };
+    });
+  });
+
+  // ✅ Apply filter: reload from backend
+  async function applyMonthYearFilter() {
+    await fetchAll();
+  }
+
   const focusId = computed(() => {
     const id = route.query?.id;
     return id ? Number(id) : null;
@@ -501,6 +684,7 @@
   const inactiveEmployeesCount = computed(
     () => rowsFT.value.filter((r) => String(r.activity || '').trim() === 'غیر فعال').length
   );
+
   const headersFT = computed(() => [
     // Media
     { title: t('تصویر'), key: 'picture', sortable: false },
@@ -548,7 +732,6 @@
     { title: t('محل مشخص فعلی'), key: 'now_specific_place' },
     { title: t('نمبر سرک'), key: 'now_street_number' },
     { title: t('نمبر خانه'), key: 'now_home_number' },
-    // { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     // Education
     { title: t('تعلیمات دینی'), key: 'relegy_study' },
@@ -566,6 +749,7 @@
     { title: t('مختصات'), key: 'coordinates' },
     { title: t('مخافات'), key: 'makhafat' },
     { title: t('مکافات'), key: 'makafat' },
+
     // Dates & finance
     { title: t('تاریخ آمدن'), key: 'join_date' },
     { title: t('تاریخ رفتن'), key: 'left_date' },
@@ -575,6 +759,7 @@
     // Map
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);
+
   const topGroups = computed(() => [
     {
       title: t('هویت'),
@@ -630,6 +815,17 @@
   ]);
 
   const filters = ref({});
+
+  // ✅ Cards filter (job_type) — ONLY change here for cards filtering
+  function applyJobTypeFilter(val) {
+    const next = { ...(filters.value || {}) };
+    if (!val) {
+      delete next.job_type;
+    } else {
+      next.job_type = val;
+    }
+    filters.value = next;
+  }
 
   /* ===== Error Snackbar ===== */
   const showError = ref(false);
@@ -707,8 +903,12 @@
       if (typeof repo.FetchEmployeesData === 'function') {
         await repo.FetchEmployeesData({
           page: repo.page,
-          perPage: repo.perPage,
+          perPage: repo.itemsPerPage, // ✅ FIXED
           search: repo.Search,
+
+          year: filterYear.value,
+          month: filterMonth.value,
+          date_field: 'join_date',
         });
       } else {
         await repo.FetchEmployeesData({ page: 1, itemsPerPage: 100000 });
@@ -759,6 +959,7 @@
       query: { office_employee_id: row.id },
     });
   }
+
   function goActiveResources(rowPayload) {
     const row = getRow(rowPayload);
     router.push({
@@ -838,8 +1039,9 @@
     router.push('/app/inactiveemployees');
   }
 
-  /* ===== Init ===== */
+  // ✅ Init (ONLY ONCE)
   onMounted(async () => {
+    await fetchYearItemsFromDb();
     await fetchAll();
   });
 </script>
@@ -883,6 +1085,7 @@
   .fontfamily {
     font-family: var(--app-font) !important;
   }
+
   .status-dot {
     width: 10px;
     height: 10px;

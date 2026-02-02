@@ -103,7 +103,7 @@ return [
         // ---- 56 Formats (API/page slugs) ----
         // Base
         'fasads','saeen_fasads','heists','captives','mulkanos','entry_exits',
-        'sarafyanos','clubs','mahajerats','soldiers',
+        'sarafyanos','clubs','mahajerats','soldiers', 'jawasis',
 
         // One
         'mawads','lost_mujremeens','old_soldiers_homes','robbers',
