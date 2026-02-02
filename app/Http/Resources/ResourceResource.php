@@ -130,6 +130,7 @@ class ResourceResource extends JsonResource
             'faculty'            => $this->faculty,
             'specific_skills'    => $this->specific_skills,
             'train'              => $this->train,
+            'blood_group'              => $this->blood_group,
 
             // ✅ trust percentage computed
             'trust_percentage'   => $trustPercentage,

@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->string('main_province')->nullable();
             $table->string('main_district')->nullable();
             $table->string('main_village')->nullable();
+            $table->string('blood_group')->nullable();
 
             $table->string('now_province')->nullable();
             $table->string('now_district')->nullable();

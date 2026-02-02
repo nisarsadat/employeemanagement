@@ -655,6 +655,7 @@
     { title: t('نوت راجع به اسناد'), key: 'docs_note' },
     { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
     { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
+    { title: t('وجه مصرف'), key: 'money_amount_words' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
   ]);

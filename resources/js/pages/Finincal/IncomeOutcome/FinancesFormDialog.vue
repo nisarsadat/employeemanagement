@@ -1,3 +1,4 @@
+<!-- src/pages/Finances/FinancesFormDialog.vue -->
 <template>
   <v-dialog v-model="model" max-width="980" scrollable>
     <v-card rounded="xl" class="dialog-card overflow-hidden">
@@ -83,6 +84,8 @@
                 persistent-hint
                 @blur="validateAmount"
                 class="field"
+                :disabled="amountLocked"
+                :readonly="amountLocked"
               />
 
               <!-- Amount Words -->
@@ -95,6 +98,8 @@
                 :error="hasError('money_amount_words')"
                 :error-messages="getErrorMessages('money_amount_words')"
                 class="field"
+                :disabled="wordsLocked"
+                :readonly="wordsLocked"
               />
             </div>
           </div>
@@ -233,6 +238,11 @@
                 @update:search="onInformationSearch"
               />
             </div>
+
+            <!-- tiny hint when locked -->
+            <div v-if="amountLocked || wordsLocked" class="mt-2 text-caption opacity-75">
+              {{ t('finances.hints.amountLockedFromMessage') }}
+            </div>
           </div>
 
           <v-divider class="my-4" />
@@ -314,6 +324,10 @@
   const originalAccountId = ref(null);
   const originalAmount = ref(0);
 
+  // ✅ Lock flags (freeze/disabled)
+  const amountLocked = ref(false);
+  const wordsLocked = ref(false);
+
   const draft = reactive({
     account_id: null,
     money_amount_number: '',
@@ -344,15 +358,65 @@
   function getErrorMessages(key) {
     return backendErrors[key] || [];
   }
+
   function toNumberSafe(v) {
     if (v === null || v === undefined || v === '') return NaN;
     const n = Number(v);
     return Number.isFinite(n) ? n : NaN;
   }
+
   function formatAmount(amount) {
     const n = Number(amount);
     if (!Number.isFinite(n)) return '0';
     return new Intl.NumberFormat('fa-IR').format(n);
+  }
+
+  // ✅ parse number from message_to_finance safely
+  function parseAmountFromMessage(msg) {
+    const s = String(msg ?? '').trim();
+    if (!s) return '';
+    // find first chunk like 12,000 or 12000 or 12.5
+    const m = s.match(/(\d[\d,]*\.?\d*)/);
+    if (!m) return '';
+    const cleaned = String(m[1]).replace(/,/g, '');
+    const n = Number(cleaned);
+    if (!Number.isFinite(n)) return '';
+    return String(n);
+  }
+
+  function applyLockedAmountsFromLinkedRow(row) {
+    if (!row) return;
+
+    // ✅ amount number from message_to_finance
+    const amountFromMsg = parseAmountFromMessage(row.message_to_finance);
+    if (amountFromMsg !== '') {
+      draft.money_amount_number = amountFromMsg;
+      amountLocked.value = true;
+    }
+
+    // ✅ words from money_amount_words
+    const words = String(row.money_amount_words ?? '').trim();
+    if (words) {
+      draft.money_amount_words = words;
+      wordsLocked.value = true;
+    }
+  }
+
+  // ✅ beautify expense_result ONLY when it's empty (doesn't overwrite manual)
+  function setExpenseResultLabelFromLink() {
+    const eid = draft.event_id;
+    const iid = draft.information_id;
+
+    if (String(draft.expense_result ?? '').trim() !== '') return;
+
+    if (eid) {
+      draft.expense_result = `واقعه ${eid}`;
+      return;
+    }
+    if (iid) {
+      draft.expense_result = `اطلاع ${iid}`;
+      return;
+    }
   }
 
   const rules = {
@@ -531,6 +595,10 @@
 
     originalAccountId.value = null;
     originalAmount.value = 0;
+
+    // ✅ reset locks every open
+    amountLocked.value = false;
+    wordsLocked.value = false;
   }
 
   async function ensureAccountsLoaded() {
@@ -545,6 +613,7 @@
     if (Array.isArray(repo.resources) && repo.resources.length) return;
     await repo.FetchResourcesOptions({ search: '' });
   }
+
   async function ensureEventsLoaded() {
     if (Array.isArray(repo.events) && repo.events.length) return;
 
@@ -562,6 +631,7 @@
       }
     }
   }
+
   async function ensureInformationsLoaded() {
     if (Array.isArray(repo.informations) && repo.informations.length) return;
 
@@ -617,6 +687,7 @@
       }
     }
   }
+
   async function fetchInformationsBySearch(search) {
     const s = String(search ?? '').trim();
     const fns = [
@@ -650,6 +721,7 @@
       }
     }, 250);
   }
+
   function onInformationSearch(v) {
     if (infoSearchT) clearTimeout(infoSearchT);
     infoSearchT = setTimeout(async () => {
@@ -703,10 +775,22 @@
     }
   );
 
+  // ✅ When selecting event manually -> auto fill + freeze amount/words
+  // ✅ ALSO: event/info are OPTIONAL and mutually exclusive (event picked => clear info)
   watch(
     () => draft.event_id,
     (eid) => {
-      if (!eid) return;
+      if (!eid) {
+        // unlock ONLY if no information selected too
+        if (!draft.information_id) {
+          amountLocked.value = false;
+          wordsLocked.value = false;
+        }
+        return;
+      }
+
+      // ✅ event picked => clear information (optional)
+      if (draft.information_id) draft.information_id = null;
 
       const ev = eventOptions.value.find((x) => sameId(x.id, eid));
       if (ev) selectedEventsById[String(eid)] = ev;
@@ -716,13 +800,30 @@
 
       if (rid) draft.resource_id = rid;
       setEmployeeAndPhone(empId);
+
+      // ✅ autofill from Event (freeze)
+      if (ev) applyLockedAmountsFromLinkedRow(ev);
+
+      // ✅ optional label (doesn't overwrite manual)
+      setExpenseResultLabelFromLink();
     }
   );
 
+  // ✅ When selecting information manually -> auto fill + freeze amount/words
+  // ✅ ALSO: event/info are OPTIONAL and mutually exclusive (info picked => clear event)
   watch(
     () => draft.information_id,
     (iid) => {
-      if (!iid) return;
+      if (!iid) {
+        if (!draft.event_id) {
+          amountLocked.value = false;
+          wordsLocked.value = false;
+        }
+        return;
+      }
+
+      // ✅ info picked => clear event (optional)
+      if (draft.event_id) draft.event_id = null;
 
       const inf = informationOptions.value.find((x) => sameId(x.id, iid));
       if (inf) selectedInfosById[String(iid)] = inf;
@@ -732,6 +833,12 @@
 
       if (rid) draft.resource_id = rid;
       setEmployeeAndPhone(empId);
+
+      // ✅ autofill from Information (freeze)
+      if (inf) applyLockedAmountsFromLinkedRow(inf);
+
+      // ✅ optional label (doesn't overwrite manual)
+      setExpenseResultLabelFromLink();
     }
   );
 
@@ -743,12 +850,57 @@
       if (!r) return;
 
       const empId = r.office_employee_id ?? r.office_employee?.id ?? r.officeEmployee?.id ?? null;
-
-      // if resource implies employee, select it
       setEmployeeAndPhone(empId);
     }
   );
 
+  // ✅ helper: find event/info row from dbRepo lists if repo options are missing
+  function findFromDbRepo(type, id) {
+    const sid = String(id);
+    if (type === 'event') {
+      const list = Array.isArray(dbRepo.Events)
+        ? dbRepo.Events
+        : Array.isArray(dbRepo.events)
+        ? dbRepo.events
+        : [];
+      return list.find((x) => String(x?.id) === sid) || null;
+    }
+    if (type === 'info') {
+      const list = Array.isArray(dbRepo.Informations)
+        ? dbRepo.Informations
+        : Array.isArray(dbRepo.informations)
+        ? dbRepo.informations
+        : [];
+      return list.find((x) => String(x?.id) === sid) || null;
+    }
+    return null;
+  }
+
+  async function fetchSingleIfPossible(type, id) {
+    // best effort (no breaking if missing)
+    const fns =
+      type === 'event'
+        ? ['FetchEventData', 'FetchEvent', 'FetchEventById', 'GetEvent']
+        : ['FetchInformationData', 'FetchInformation', 'FetchInformationById', 'GetInformation'];
+
+    for (const fn of fns) {
+      if (typeof repo[fn] === 'function') {
+        try {
+          const item = await repo[fn](id);
+          if (item) return item;
+        } catch {}
+      }
+      if (typeof dbRepo[fn] === 'function') {
+        try {
+          const item = await dbRepo[fn](id);
+          if (item) return item;
+        } catch {}
+      }
+    }
+    return null;
+  }
+
+  // ✅ on open: read prefill, set links, then auto fill & freeze amounts
   watch(
     () => model.value,
     async (open) => {
@@ -764,9 +916,9 @@
       await ensureEventsLoaded();
       await ensureInformationsLoaded();
 
-      // ✅ Prefill from table click
       const pre = dbRepo.financePrefill;
 
+      // ✅ link priority: event > info
       if (pre?.event_id) {
         draft.event_id = pre.event_id;
         draft.information_id = null;
@@ -775,13 +927,40 @@
         draft.event_id = null;
       }
 
-      // ✅ Also prefill direct links (resource/employee)
+      // ✅ direct links
       if (pre?.resource_id) draft.resource_id = pre.resource_id;
       if (pre?.office_employee_id) setEmployeeAndPhone(pre.office_employee_id);
 
-      dbRepo.clearFinancePrefill();
+      // ✅ IMPORTANT: amount/words autofill from linked row + freeze (from prefill)
+      if (pre?.event_id) {
+        let ev =
+          eventOptions.value.find((x) => sameId(x.id, pre.event_id)) ||
+          findFromDbRepo('event', pre.event_id);
 
-      // edit mode
+        if (!ev) ev = await fetchSingleIfPossible('event', pre.event_id);
+
+        if (ev) {
+          selectedEventsById[String(pre.event_id)] = ev;
+          applyLockedAmountsFromLinkedRow(ev);
+          setExpenseResultLabelFromLink();
+        }
+      } else if (pre?.information_id) {
+        let inf =
+          informationOptions.value.find((x) => sameId(x.id, pre.information_id)) ||
+          findFromDbRepo('info', pre.information_id);
+
+        if (!inf) inf = await fetchSingleIfPossible('info', pre.information_id);
+
+        if (inf) {
+          selectedInfosById[String(pre.information_id)] = inf;
+          applyLockedAmountsFromLinkedRow(inf);
+          setExpenseResultLabelFromLink();
+        }
+      }
+
+      dbRepo.clearFinancePrefill?.();
+
+      // ✅ edit mode (do NOT lock; edit should remain editable unless you want otherwise)
       if (props.editId) {
         clearErrors();
         const item = await repo.FetchFinanceData(props.editId);
@@ -806,6 +985,9 @@
           event_id: item?.event_id ?? null,
           information_id: item?.information_id ?? null,
         });
+
+        amountLocked.value = false;
+        wordsLocked.value = false;
       }
     }
   );

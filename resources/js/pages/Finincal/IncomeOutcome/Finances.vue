@@ -8,7 +8,9 @@
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">{{ t('accounts.summary.balance') }}</div>
+                <div class="text-caption text-medium-emphasis family">
+                  {{ t('accounts.summary.balance') }}
+                </div>
                 <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_balance_all_accounts) }}
                 </div>
@@ -24,7 +26,9 @@
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">{{ t('accounts.summary.income') }}</div>
+                <div class="text-caption text-medium-emphasis family">
+                  {{ t('accounts.summary.income') }}
+                </div>
                 <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_income_all) }}
                 </div>
@@ -40,7 +44,9 @@
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="min-w-0">
-                <div class="text-caption text-medium-emphasis family">{{ t('accounts.summary.outcome') }}</div>
+                <div class="text-caption text-medium-emphasis family">
+                  {{ t('accounts.summary.outcome') }}
+                </div>
                 <div class="text-h6 font-weight-bold stat-value">
                   {{ fmtMoney(summary.total_outcome_all) }}
                 </div>
@@ -57,7 +63,7 @@
       <v-card-text class="pa-4">
         <v-row dense class="align-center">
           <!-- Search -->
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="3">
             <v-text-field
               v-model="repo.financesSearch"
               :label="t('common.search')"
@@ -74,7 +80,7 @@
           </v-col>
 
           <!-- Year / Month -->
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="3">
             <div class="d-flex ga-2 flex-wrap">
               <v-select
                 v-model="selectedYear"
@@ -112,7 +118,7 @@
           </v-col>
 
           <!-- Actions -->
-          <v-col cols="12" md="4" class="d-flex justify-end">
+          <v-col cols="12" md="6" class="d-flex justify-end">
             <div class="d-flex ga-2 flex-wrap justify-end w-100">
               <v-btn
                 variant="tonal"
@@ -146,6 +152,14 @@
                 @click="exportWordAll"
               >
                 {{ t('word') }}
+              </v-btn>
+              <v-btn
+                color="primary"
+                class="text-none"
+                prepend-icon="mdi-refresh"
+                @click="refreshTable"
+              >
+                {{ t('refresh') }}
               </v-btn>
             </div>
           </v-col>
@@ -206,6 +220,35 @@
           @update:page="onPage"
           @update:perPage="onPerPage"
         >
+          <!-- ✅ BEAUTIFUL CHIP for Expense Result -->
+          <template #expense_result="{ item }">
+            <div class="d-flex align-center">
+              <v-chip
+                size="small"
+                class="rounded-lg"
+                variant="tonal"
+                :color="
+                  item?.expense_kind === 'information'
+                    ? 'info'
+                    : item?.expense_kind === 'event'
+                    ? 'deep-purple'
+                    : 'grey'
+                "
+              >
+                <v-icon start size="16">
+                  {{
+                    item?.expense_kind === 'information'
+                      ? 'mdi-information-outline'
+                      : item?.expense_kind === 'event'
+                      ? 'mdi-calendar-alert'
+                      : 'mdi-clipboard-text-outline'
+                  }}
+                </v-icon>
+                {{ item?.expense_label || '—' }}
+              </v-chip>
+            </div>
+          </template>
+
           <template #actions="{ item }">
             <div class="d-flex align-center ga-2">
               <v-tooltip :text="t('finances.tooltips.editExpense')" location="top">
@@ -257,27 +300,27 @@
 </template>
 
 <script setup>
-  import { computed, ref, onMounted } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import FilterableTable from '@/components/FilterableTable.vue'
-  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
-  import FinanceFormDialog from './FinancesFormDialog.vue'
-  import { useFinanceRepository } from '@/stores/financeRepository'
-  import { useCalendar } from '../../../../composables/useCalendar'
+  import { computed, ref, onMounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import FinanceFormDialog from './FinancesFormDialog.vue';
+  import { useFinanceRepository } from '@/stores/financeRepository';
+  import { useCalendar } from '../../../../composables/useCalendar';
 
-  const { t } = useI18n()
+  const { t } = useI18n();
 
-  const rtl = ref(true)
-  const repo = useFinanceRepository()
+  const rtl = ref(true);
+  const repo = useFinanceRepository();
 
-  const dialog = ref(false)
-  const editId = ref(null)
+  const dialog = ref(false);
+  const editId = ref(null);
 
-  const deleteDialog = ref(false)
-  const deleteTarget = ref(null)
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
   function getRow(payload) {
-    return payload?.raw ?? payload
+    return payload?.raw ?? payload;
   }
 
   const headersFT = computed(() => [
@@ -288,25 +331,46 @@
     { title: t('finances.table.amountWords'), key: 'money_amount_words', sortable: false },
 
     { title: t('finances.table.sourceCode'), key: 'source_code', sortable: false, width: 160 },
-    { title: t('finances.table.sourceNickName'), key: 'resource.name', sortable: false, width: 160 },
+    {
+      title: t('finances.table.sourceNickName'),
+      key: 'resource.name',
+      sortable: false,
+      width: 160,
+    },
 
     { title: t('finances.table.paidDate'), key: 'date', sortable: true },
     { title: t('finances.table.employeePhone'), key: 'employee_phone', sortable: false },
 
-    { title: t('finances.table.expenseReason'), key: 'expense_result', sortable: false, width: 200 },
+    {
+      title: t('finances.table.expenseReason'),
+      key: 'expense_result',
+      sortable: false,
+      width: 200,
+    },
     { title: t('finances.table.payer'), key: 'payer', sortable: true },
-    { title: t('واقعات'), key: 'event_id', sortable: true },
-    { title: t('اطلاعات'), key: 'information_id', sortable: true },
     { title: t('finances.table.notes'), key: 'notes', sortable: true },
-  ])
+  ]);
 
   function toDate10(v) {
-    return (v ?? '').toString().slice(0, 10)
+    return (v ?? '').toString().slice(0, 10);
+  }
+
+  function prettyExpenseInfo(it) {
+    const infoId = it?.information_id ?? it?.information?.id ?? null;
+    const eventId = it?.event_id ?? it?.event?.id ?? null;
+
+    if (infoId) return { kind: 'information', label: `اطلاع ${infoId}` };
+    if (eventId) return { kind: 'event', label: `واقعه ${eventId}` };
+
+    const text = String(it?.expense_result ?? '').trim();
+    return { kind: 'manual', label: text || '—' };
   }
 
   const rowsFT = computed(() => {
     return (repo.finances || []).map((it, i) => {
-      const amount = it?.money_amount_number ?? it?.amount ?? ''
+      const amount = it?.money_amount_number ?? it?.amount ?? '';
+      const exp = prettyExpenseInfo(it);
+
       return {
         ...it,
         index: i + 1,
@@ -323,16 +387,21 @@
 
         employee_phone: it?.office_employee?.phone_number ?? '—',
 
-        expense_result: it?.expense_result ?? '',
+        // ✅ label + kind (used by the chip slot)
+        expense_kind: exp.kind,
+        expense_label: exp.label,
+        // keep original key so exports/search still work
+        expense_result: exp.label,
+
         notes: it?.notes ?? '',
         date: toDate10(it?.date),
         signature: it?.signature ?? '—',
-      }
-    })
-  })
+      };
+    });
+  });
 
-  const filters = []
-  const topGroups = []
+  const filters = [];
+  const topGroups = [];
 
   const summary = computed(
     () =>
@@ -342,17 +411,19 @@
         total_outcome_all: '0.00',
         filtered_outcome: '0.00',
       }
-  )
+  );
 
   function fmtMoney(v) {
-    const n = Number(v ?? 0)
-    if (Number.isNaN(n)) return String(v ?? '')
-    if (Math.floor(n) === n) return String(n)
-    return String(n).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
+    const n = Number(v ?? 0);
+    if (Number.isNaN(n)) return String(v ?? '');
+    if (Math.floor(n) === n) return String(n);
+    return String(n)
+      .replace(/(\.\d*?)0+$/, '$1')
+      .replace(/\.$/, '');
   }
 
-  const selectedYear = ref(null)
-  const selectedMonth = ref(null)
+  const selectedYear = ref(null);
+  const selectedMonth = ref(null);
 
   const monthOptions = computed(() => [
     { title: '01', value: 1 },
@@ -367,10 +438,10 @@
     { title: '10', value: 10 },
     { title: '11', value: 11 },
     { title: '12', value: 12 },
-  ])
+  ]);
 
-  const { yearItemsFromGregorianYears } = useCalendar()
-  const yearItems = computed(() => yearItemsFromGregorianYears(repo.availableYears, 'fa'))
+  const { yearItemsFromGregorianYears } = useCalendar();
+  const yearItems = computed(() => yearItemsFromGregorianYears(repo.availableYears, 'fa'));
 
   function fetchAll() {
     repo.FetchFinancesData({
@@ -379,110 +450,113 @@
       office_employee_id: repo.financesOfficeEmployeeId,
       year: selectedYear.value,
       month: selectedMonth.value,
-    })
+    });
   }
 
   function applyFilters() {
-    repo.financesPage = 1
-    fetchAll()
+    repo.financesPage = 1;
+    fetchAll();
   }
 
   function onYearMonthChanged() {
-    if (!selectedYear.value) selectedMonth.value = null
-    applyFilters()
+    if (!selectedYear.value) selectedMonth.value = null;
+    applyFilters();
   }
 
   function clearSearch() {
-    repo.financesSearch = ''
-    applyFilters()
+    repo.financesSearch = '';
+    applyFilters();
   }
 
   function clearYear() {
-    selectedYear.value = null
-    selectedMonth.value = null
-    applyFilters()
+    selectedYear.value = null;
+    selectedMonth.value = null;
+    applyFilters();
   }
 
   function clearMonth() {
-    selectedMonth.value = null
-    applyFilters()
+    selectedMonth.value = null;
+    applyFilters();
   }
 
   async function ensureAccountsLoaded() {
-    if (Array.isArray(repo.accounts) && repo.accounts.length) return
-    await repo.FetchAccountsData({ page: 1, perPage: 2000, search: '' })
+    if (Array.isArray(repo.accounts) && repo.accounts.length) return;
+    await repo.FetchAccountsData({ page: 1, perPage: 2000, search: '' });
   }
 
   function openCreate() {
-    editId.value = null
-    dialog.value = true
+    editId.value = null;
+    dialog.value = true;
   }
 
   function startEdit(payload) {
-    const row = getRow(payload)
-    editId.value = row?.id ?? null
-    if (!editId.value) return
-    dialog.value = true
+    const row = getRow(payload);
+    editId.value = row?.id ?? null;
+    if (!editId.value) return;
+    dialog.value = true;
+  }
+  function refreshTable() {
+    fetchAll();
   }
 
   function onSaved() {
-    applyFilters()
+    applyFilters();
   }
 
   function openDeleteDialog(payload) {
-    const row = getRow(payload)
-    if (!row?.id) return
-    deleteTarget.value = row
-    deleteDialog.value = true
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
   }
 
   async function handleDeleteConfirmed(target) {
-    const row = target || deleteTarget.value
+    const row = target || deleteTarget.value;
     if (!row?.id) {
-      deleteDialog.value = false
-      deleteTarget.value = null
-      return
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
     }
 
     try {
-      await repo.DeleteFinance(row.id)
-      applyFilters()
+      await repo.DeleteFinance(row.id);
+      applyFilters();
     } finally {
-      deleteDialog.value = false
-      deleteTarget.value = null
+      deleteDialog.value = false;
+      deleteTarget.value = null;
     }
   }
 
   function resetFilters() {
-    selectedYear.value = null
-    selectedMonth.value = null
+    selectedYear.value = null;
+    selectedMonth.value = null;
 
     if (typeof repo.ResetFinancesFilters === 'function') {
-      repo.ResetFinancesFilters()
+      repo.ResetFinancesFilters();
     } else {
-      repo.financesSearch = ''
-      repo.financesAccountId = null
-      repo.financesOfficeEmployeeId = null
-      repo.financesPage = 1
+      repo.financesSearch = '';
+      repo.financesAccountId = null;
+      repo.financesOfficeEmployeeId = null;
+      repo.financesPage = 1;
     }
 
-    applyFilters()
+    applyFilters();
   }
 
   function onPage(p) {
-    repo.financesPage = p
-    fetchAll()
+    repo.financesPage = p;
+    fetchAll();
   }
 
   function onPerPage(pp) {
-    repo.financesPerPage = pp
-    repo.financesPage = 1
-    fetchAll()
+    repo.financesPerPage = pp;
+    repo.financesPage = 1;
+    fetchAll();
   }
 
   // export html (same as your code)
   function buildExportHtml(rows, title) {
-    const year = new Date().getFullYear()
+    const year = new Date().getFullYear();
 
     const thead = `
       <tr>
@@ -502,13 +576,13 @@
         <th>${t('finances.export.sourceNickName')}</th>
         <th>${t('finances.export.sourceCode')}</th>
       </tr>
-    `
+    `;
 
     const esc = (v) =>
       String(v ?? '')
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
+        .replaceAll('>', '&gt;');
 
     const tbody = (rows || [])
       .map(
@@ -528,7 +602,7 @@
         </tr>
       `
       )
-      .join('')
+      .join('');
 
     return `
       <!doctype html>
@@ -557,7 +631,12 @@
           </div>
           <table>
             <thead>${thead}</thead>
-            <tbody>${tbody || "<tr><td colspan='11' style='text-align:center'>" + esc(t('common.noData')) + "</td></tr>"}</tbody>
+            <tbody>${
+              tbody ||
+              "<tr><td colspan='11' style='text-align:center'>" +
+                esc(t('common.noData')) +
+                '</td></tr>'
+            }</tbody>
           </table>
           <div class="signs">
             <div>${t('finances.export.signTrusted')}</div>
@@ -567,47 +646,49 @@
           </div>
         </body>
       </html>
-    `
+    `;
   }
 
   function exportPdfAll() {
-    const html = buildExportHtml(rowsFT.value || [], t('finances.export.title'))
-    const w = window.open('', '_blank')
-    if (!w) return
-    w.document.open()
-    w.document.write(html)
-    w.document.close()
-    w.focus()
-    w.print()
+    const html = buildExportHtml(rowsFT.value || [], t('finances.export.title'));
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    w.print();
   }
 
   function exportWordAll() {
-    const html = buildExportHtml(rowsFT.value || [], t('finances.export.title'))
-    const blob = new Blob(['\ufeff', html], { type: 'application/msword' })
-    const url = URL.createObjectURL(blob)
+    const html = buildExportHtml(rowsFT.value || [], t('finances.export.title'));
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
 
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `مصارف_${new Date().toISOString().slice(0, 10)}.doc`
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `مصارف_${new Date().toISOString().slice(0, 10)}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   onMounted(async () => {
-    await ensureAccountsLoaded()
-    await repo.FetchYears('finances')
-    applyFilters()
-  })
+    await ensureAccountsLoaded();
+    await repo.FetchYears('finances');
+    applyFilters();
+  });
 </script>
 
 <style scoped>
-  .page-bg { min-height: 100%; }
+  .page-bg {
+    min-height: 100%;
+  }
 
   .stat-card {
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     overflow: hidden;
     position: relative;
   }
@@ -615,22 +696,40 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(25,118,210,0.07), rgba(156,39,176,0.05));
+    background: linear-gradient(135deg, rgba(25, 118, 210, 0.07), rgba(156, 39, 176, 0.05));
     pointer-events: none;
   }
-  .stat-value { letter-spacing: 0.2px; }
+  .stat-value {
+    letter-spacing: 0.2px;
+  }
   .stat-icon-wrap {
-    width: 44px; height: 44px; border-radius: 14px;
-    display: grid; place-items: center;
-    background: rgba(25,118,210,0.08);
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(25, 118, 210, 0.08);
   }
 
-  .filters-card, .table-card { border: 1px solid rgba(0,0,0,0.05); }
-  .icon-btn { border-radius: 10px; }
-  :deep(.v-table) { border-radius: 16px; }
+  .filters-card,
+  .table-card {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .icon-btn {
+    border-radius: 10px;
+  }
+  :deep(.v-table) {
+    border-radius: 16px;
+  }
 
-  .family { font-family: var(--app-font) !important; }
+  .family {
+    font-family: var(--app-font) !important;
+  }
 
-  .filter-input :deep(.v-field) { border-radius: 16px !important; }
-  .filter-input :deep(.v-field__prepend-inner) { opacity: 0.85; }
+  .filter-input :deep(.v-field) {
+    border-radius: 16px !important;
+  }
+  .filter-input :deep(.v-field__prepend-inner) {
+    opacity: 0.85;
+  }
 </style>

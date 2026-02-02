@@ -115,6 +115,9 @@ class ResourceController extends Controller
             $data = $req->validated();
             $user = $req->user();
 
+            // ✅ IMPORTANT: code_number must always be ID (ignore incoming code_number)
+            unset($data['code_number']);
+
             // Image upload (optional)
             if ($req->hasFile('picture')) {
                 $path = $req->file('picture')->store('uploads/resources', 'public');
@@ -122,6 +125,10 @@ class ResourceController extends Controller
             }
 
             $row = Resource::create($data);
+
+            // ✅ SET code_number = id right after create
+            $row->code_number = $row->id;
+            $row->save();
 
             NotificationService::record(
                 $user,
@@ -160,6 +167,9 @@ class ResourceController extends Controller
             $data = $req->validated();
             $user = $req->user();
 
+            // ✅ IMPORTANT: freeze code_number (never update it)
+            unset($data['code_number']);
+
             // Replace image if a new one is provided
             if ($req->hasFile('picture')) {
                 if ($row->picture && str_starts_with($row->picture, 'storage/')) {
@@ -173,6 +183,12 @@ class ResourceController extends Controller
             }
 
             $row->fill($data)->save();
+
+            // ✅ Ensure code_number stays correct (safety)
+            if ((string) $row->code_number !== (string) $row->id) {
+                $row->code_number = $row->id;
+                $row->save();
+            }
 
             NotificationService::record(
                 $user,

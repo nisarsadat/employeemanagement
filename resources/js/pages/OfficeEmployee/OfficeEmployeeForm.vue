@@ -268,8 +268,10 @@
                       :label="t('کود نمبر')"
                       density="compact"
                       variant="outlined"
-                      :error="hasError('code_number')"
-                      :error-messages="getErrorMessages('code_number')"
+                      readonly
+                      disabled
+                      hint="Auto"
+                      persistent-hint
                     />
                   </v-col>
 
@@ -333,6 +335,18 @@
                       :label="t('مهارت‌های خاص')"
                       density="compact"
                       variant="outlined"
+                    />
+                  </v-col>
+                  <v-col cols="12" md="12">
+                    <v-select
+                      v-model="form.blood_group"
+                      :items="bloodGroups"
+                      :label="t('گروپ خون')"
+                      density="compact"
+                      variant="outlined"
+                      clearable
+                      :error="hasError('blood_group')"
+                      :error-messages="getErrorMessages('blood_group')"
                     />
                   </v-col>
                 </v-row>
@@ -888,6 +902,7 @@
   watch(locale, (newLocale) => {
     isRtl.value = newLocale === 'fa';
   });
+  const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
   /* ===== ROUTE / MODE ===== */
   const idParam = computed(() => route.params.id);
@@ -966,6 +981,7 @@
     now_home_number: '',
     Province_addr: '',
     coordinates: '',
+    blood_group: '',
 
     // job / org / zone / hawza
     makhafat: '',
@@ -1147,6 +1163,7 @@
     b.language = x.language ?? '';
     b.nation = x.nation ?? '';
     b.specific_skills = x.specific_skills ?? '';
+    b.blood_group = x.blood_group ?? '';
 
     // addresses
     b.main_province = x.main_province ?? '';
@@ -1229,7 +1246,6 @@
     });
     return fd;
   }
-
   function buildCreateFormData() {
     const payload = { ...form.value };
 
@@ -1238,6 +1254,9 @@
     delete payload.existingDocs;
     delete payload._newDocs;
     delete payload.removed_document_ids;
+
+    // ✅ NEW: backend sets this automatically
+    delete payload.code_number;
 
     const fd = toFormData(payload);
 
@@ -1251,7 +1270,6 @@
 
     return fd;
   }
-
   function buildUpdateFormData() {
     const payload = { ...form.value };
     const removed = payload.removed_document_ids || [];
@@ -1261,17 +1279,15 @@
     delete payload.existingDocs;
     delete payload._newDocs;
     delete payload.removed_document_ids;
-    delete payload.picture; // we handle picture separately
+    delete payload.picture;
+
+    // ✅ NEW: backend does not allow updating this
+    delete payload.code_number;
 
     const fd = toFormData(payload);
 
-    // only send new file if user changed it
     if (pictureChanged.value && pictureFile.value) {
       fd.append('picture', pictureFile.value);
-      if (form.value.picture && typeof form.value.picture === 'string') {
-        // raw path for removing old file
-        fd.append('old_picture', form.value.picture);
-      }
     }
 
     (form.value._newDocs || []).forEach((file) => {

@@ -38,6 +38,7 @@ class EventResource extends JsonResource
             'coordinates' => $this->coordinates,
             'note' => $this->note,
             'message_to_finance' => $this->message_to_finance,
+            'money_amount_words' => $this->money_amount_words,
             'finance_status' => $this->finance_status ?? 'pending',
             'finance_paid_at' => optional($this->finance_paid_at)?->toISOString(),
 

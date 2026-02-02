@@ -48,19 +48,10 @@ class FinanceController extends Controller
         return new FinanceResource($finance);
     }
 
+    // ✅ NOW supports normal expense too (event_id / information_id can be null)
     public function store(Request $request)
     {
         $data = $this->validatePayload($request);
-
-        // ✅ ensure one link exists
-        if (empty($data['event_id']) && empty($data['information_id'])) {
-            return response()->json([
-                'message' => 'event_id یا information_id باید انتخاب شي',
-                'errors' => [
-                    'event_id' => ['Select event or information'],
-                ],
-            ], 422);
-        }
 
         $finance = DB::transaction(function () use ($data) {
             $finance = Finance::create($data);
@@ -71,7 +62,7 @@ class FinanceController extends Controller
                 -1 * (float) $data['money_amount_number']
             );
 
-            // mark event/info paid (THIS fixes your "pending")
+            // mark event/info paid ONLY if linked
             $this->markLinkedPaid($data);
 
             return $finance;
@@ -88,18 +79,10 @@ class FinanceController extends Controller
         return new FinanceResource($finance);
     }
 
+    // ✅ NOW supports normal expense too (event_id / information_id can be null)
     public function update(Request $request, Finance $finance)
     {
         $data = $this->validatePayload($request);
-
-        if (empty($data['event_id']) && empty($data['information_id'])) {
-            return response()->json([
-                'message' => 'event_id یا information_id باید انتخاب شي',
-                'errors' => [
-                    'event_id' => ['Select event or information'],
-                ],
-            ], 422);
-        }
 
         DB::transaction(function () use ($finance, $data) {
             $oldAccountId = (int) $finance->account_id;
@@ -123,7 +106,7 @@ class FinanceController extends Controller
                 $this->applyAccountDelta($newAccountId, -1 * $newAmount);
             }
 
-            // mark linked paid
+            // mark linked paid ONLY if linked
             $this->markLinkedPaid($data);
         });
 
@@ -164,6 +147,7 @@ class FinanceController extends Controller
             'resource_id'        => ['nullable', 'integer', 'exists:resources,id'],
             'account_id'         => ['required', 'integer', 'exists:accounts,id'],
 
+            // ✅ optional (normal expense can have none)
             'event_id'           => ['nullable', 'integer', 'exists:events,id'],
             'information_id'     => ['nullable', 'integer', 'exists:information,id'],
 

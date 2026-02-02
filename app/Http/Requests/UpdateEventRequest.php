@@ -36,6 +36,7 @@ class UpdateEventRequest extends FormRequest
             'coordinates'           => 'sometimes|nullable|string',
             'note'                  => 'sometimes|nullable|string',
             'docs_note'             => 'sometimes|nullable|string',
+            'money_amount_words'    => 'sometimes|nullable|string',
             'message_to_finance'    => 'sometimes|nullable|string',
             'finance_status'   => ['sometimes','nullable','string'],
             'finance_paid_at'   => ['sometimes','nullable','string'],

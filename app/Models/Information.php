@@ -54,6 +54,7 @@ class Information extends Model
         'docs_note',
         'result',
         'message_to_finance',
+        'money_amount_words',
         'finance_status',
         'finance_paid_at',
     ];

@@ -34,6 +34,7 @@ class Event extends Model
         'note',
         'docs_note',
         'message_to_finance',
+        'money_amount_words',
         'finance_status',
         'finance_paid_at',
     ];

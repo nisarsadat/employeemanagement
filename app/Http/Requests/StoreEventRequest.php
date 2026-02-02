@@ -37,6 +37,7 @@ class StoreEventRequest extends FormRequest
             'note'                  => 'nullable|string',
             'docs_note'             => 'nullable|string',
             'Province_addr'         => ['nullable','string'],
+            'money_amount_words'         => ['nullable','string'],
             'message_to_finance'         => ['nullable','string'],
             'finance_status' => ['nullable','string'],
             'finance_paid_at' => ['nullable','string'],

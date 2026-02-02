@@ -581,10 +581,18 @@
                   variant="outlined"
                 />
               </v-col>
-               <v-col cols="12" md="12">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.message_to_finance"
                   :label="t('مسج مالی بخش ته ')"
+                  density="compact"
+                  type="number"
+                  variant="outlined"
+                /> </v-col
+              ><v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.money_amount_words"
+                  :label="t('مقدار په حروف')"
                   density="compact"
                   variant="outlined"
                 />
@@ -888,6 +896,7 @@
     docs_note: '',
     result: '',
     message_to_finance: '',
+    money_amount_words: '',
 
     existingDocs: [],
     _newDocs: [],
@@ -1010,6 +1019,7 @@
     base.docs_note = x.docs_note ?? '';
     base.result = x.result ?? '';
     base.message_to_finance = x.message_to_finance ?? '';
+    base.money_amount_words = x.money_amount_words ?? '';
 
     base.existingDocs = Array.isArray(x.documents) ? x.documents : [];
 

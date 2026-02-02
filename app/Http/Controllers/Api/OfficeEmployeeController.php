@@ -215,6 +215,11 @@ class OfficeEmployeeController extends Controller
 
             $employee = OfficeEmployee::create($request->validated());
 
+            // ✅ ONLY CHANGE: set code_number = id (after create)
+            if (empty($employee->code_number)) {
+                $employee->update(['code_number' => (string) $employee->id]);
+            }
+
             if ($request->hasFile('picture')) {
                 $path = $request->file('picture')->store('uploads/office-employees', 'public');
                 $employee->update(['picture' => $path]);
@@ -291,7 +296,12 @@ class OfficeEmployeeController extends Controller
             $officeEmployee = OfficeEmployee::with(['documents'])->findOrFail($id);
 
             $original = $officeEmployee->getOriginal();
-            $officeEmployee->fill($request->validated());
+
+            // ✅ ONLY CHANGE: never allow updating code_number
+            $data = $request->validated();
+            unset($data['code_number']);
+
+            $officeEmployee->fill($data);
 
             $dirty   = $officeEmployee->getDirty();
             $changes = [];

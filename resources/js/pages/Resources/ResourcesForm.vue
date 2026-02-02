@@ -261,15 +261,14 @@
                       :error-messages="getErrorMessages('nick_name')"
                     />
                   </v-col>
-
                   <v-col cols="12" md="3">
                     <v-text-field
                       v-model="form.code_number"
                       :label="t('کود نمبر')"
                       density="compact"
                       variant="outlined"
-                      :error="hasError('code_number')"
-                      :error-messages="getErrorMessages('code_number')"
+                      readonly
+                      :placeholder="!isEdit ? t('بعد از ثبت، سیستم خودکار میسازد') : ''"
                     />
                   </v-col>
 
@@ -350,12 +349,24 @@
                     />
                   </v-col>
 
-                  <v-col cols="12" md="12">
+                  <v-col cols="12" md="6">
                     <v-text-field
                       v-model="form.specific_skills"
                       :label="t('مهارت‌های خاص')"
                       density="compact"
                       variant="outlined"
+                    />
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-select
+                      v-model="form.blood_group"
+                      :items="bloodGroups"
+                      :label="t('گروپ خون')"
+                      density="compact"
+                      variant="outlined"
+                      clearable
+                      :error="hasError('blood_group')"
+                      :error-messages="getErrorMessages('blood_group')"
                     />
                   </v-col>
                 </v-row>
@@ -817,6 +828,7 @@
   const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();
+  const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
   /* ===== Direction ===== */
   const isRtl = ref(locale.value === 'fa');
@@ -885,6 +897,7 @@
     tazkira: '',
     age: '',
     phone_number: '',
+    blood_group: '',
 
     phone_number_1: '',
     phone_number_2: '',
@@ -1030,6 +1043,7 @@
     b.elmi_level = x.elmi_level ?? '';
     b.faculty = x.faculty ?? '';
     b.train = x.train ?? '';
+    b.blood_group = x.blood_group ?? '';
 
     // jobs & status
     b.old_job = x.old_job ?? '';
@@ -1065,6 +1079,9 @@
     delete payload.previewUrl;
     delete payload.picture_url;
 
+    // ✅ code_number is backend-controlled (id)
+    delete payload.code_number;
+
     const fd = toFormData(payload);
 
     if (pictureFile.value) {
@@ -1079,6 +1096,9 @@
 
     delete payload.previewUrl;
     delete payload.picture_url;
+
+    // ✅ code_number is frozen (id)
+    delete payload.code_number;
 
     // we handle picture separately
     const picturePath = payload.picture;

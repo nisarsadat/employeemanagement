@@ -34,6 +34,7 @@ class OfficeEmployee extends Model
         'jahadi_mawaqaf',
         'jahad_time_responsibility',
         'tazkira',
+        'blood_group',
 
         'jahad_place',
         'main_province',

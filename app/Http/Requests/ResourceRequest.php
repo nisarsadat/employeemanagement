@@ -19,6 +19,7 @@ class ResourceRequest extends FormRequest
             'nick_name' => ['nullable','string'],
             'code_number' => ['nullable','string'],
             'tazkira' => ['nullable','string'],
+            'tazblood_groupkira' => ['nullable','string'],
 
             // main address
             'main_province' => ['nullable','string'],

@@ -79,6 +79,7 @@ class Resource extends Model
         'main_province',
         'main_district',
         'main_village',
+        'blood_group',
 
         // current address
         'now_province',

@@ -75,6 +75,7 @@ class InformationResource extends JsonResource
             'maktop_number'  => $this->maktop_number,
             'organ'          => $this->organ,
             'message_to_finance'          => $this->message_to_finance,
+            'money_amount_words' => $this->money_amount_words,
             'finance_status' => $this->finance_status ?? 'pending',
             'finance_paid_at' => optional($this->finance_paid_at)?->toISOString(),
             'finance_paid_amount' => $this->whenLoaded('finances', function () {

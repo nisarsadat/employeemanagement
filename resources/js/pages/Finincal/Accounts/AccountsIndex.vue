@@ -79,7 +79,7 @@
           </v-col>
 
           <!-- Year / Month -->
-          <v-col cols="12" md="4" lg="4">
+          <v-col cols="12" md="3" lg="3">
             <div class="d-flex ga-2 flex-wrap">
               <v-select
                 v-model="selectedYear"
@@ -117,7 +117,7 @@
           </v-col>
 
           <!-- Actions -->
-          <v-col cols="12" md="3" lg="3" class="d-flex justify-end">
+          <v-col cols="12" md="4" lg="4" class="d-flex justify-end">
             <div class="d-flex ga-2 flex-wrap justify-end w-100">
               <v-btn
                 variant="tonal"
@@ -131,6 +131,14 @@
 
               <v-btn color="primary" class="text-none" prepend-icon="mdi-plus" @click="openCreate">
                 {{ t('accounts.actions.create') }}
+              </v-btn>
+              <v-btn
+                color="primary"
+                class="text-none"
+                prepend-icon="mdi-refresh"
+                @click="refreshTable"
+              >
+                {{ t('refresh') }}
               </v-btn>
             </div>
           </v-col>
@@ -386,6 +394,9 @@
   function openCreate() {
     editId.value = null;
     dialog.value = true;
+  }
+  function refreshTable() {
+    fetchAll();
   }
 
   function startEdit(payload) {

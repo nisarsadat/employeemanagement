@@ -401,10 +401,18 @@
                   :error-messages="getErrorMessages('note')"
                 />
               </v-col>
-              <v-col cols="12" md="12">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.message_to_finance"
                   :label="t('مسج مالی بخش ته ')"
+                  type="number"
+                  density="compact"
+                  variant="outlined"
+                /> </v-col
+              ><v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.money_amount_words"
+                  :label="t('مقدار په حروف')"
                   density="compact"
                   variant="outlined"
                 />
@@ -667,6 +675,7 @@
     note: '',
     docs_note: '',
     message_to_finance: '',
+    money_amount_words: '',
 
     existingDocs: [],
     _newDocs: [],
@@ -741,6 +750,7 @@
     f.talks = x.talks ?? '';
     f.note = x.note ?? '';
     f.message_to_finance = x.message_to_finance ?? '';
+    f.money_amount_words = x.money_amount_words ?? '';
     f.docs_note = x.docs_note ?? '';
 
     f.existingDocs = Array.isArray(x.documents) ? x.documents : [];

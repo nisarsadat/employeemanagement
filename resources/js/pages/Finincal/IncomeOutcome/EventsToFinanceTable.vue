@@ -74,11 +74,8 @@ const financeDialog = ref(false);
 
 const headers = [
   { title: 'ID', key: 'id', sortable: true },
-  { title: 'Resource Code', key: 'resource.code_number', sortable: true },
-  { title: 'Employee Code', key: 'office_employee_code', sortable: true },
-  { title: 'نوعیت', key: 'event_type', sortable: true },
-  { title: 'نوع خاص', key: 'event_specific_type', sortable: true },
-  // { title: 'نیټه', key: 'event_date', sortable: true },
+  { title: 'کود منبع', key: 'resource.code_number', sortable: true },
+  { title: 'کود کارمند', key: 'office_employee_code', sortable: true },
   { title: 'پیغام مالی', key: 'message_to_finance', sortable: false },
   { title: 'حالت', key: 'status', sortable: false },
   { title: 'عملیات', key: 'actions', sortable: false },

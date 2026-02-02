@@ -56,6 +56,7 @@ class StoreInformationRequest extends FormRequest
             'result' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
             'message_to_finance' => ['nullable','string'],
+            'money_amount_words'         => ['nullable','string'],
             'finance_status' => ['nullable','string'],
             'finance_paid_at' => ['nullable','string'],
 

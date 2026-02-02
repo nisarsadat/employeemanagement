@@ -386,6 +386,7 @@ Route::middleware('auth:sanctum')->group(function () {
     protectResource('oil-accounts', 'oil_accounts',  OilAccountController::class);
     protectResource('income-oils',  'income_oils',   IncomeOilController::class);
     protectResource('expense-oils', 'expense_oils',  ExpenseOilController::class);
+    
     Route::get('/oil/summary', [OilSummaryController::class, 'index']);
 
     Route::get('oil-reports', [OilReportController::class, 'index']);

@@ -28,6 +28,7 @@ return new class extends Migration {
             $table->text('jahadi_mawaqaf')->nullable();
             $table->text('jahad_time_responsibility')->nullable();
             $table->string('tazkira')->nullable();
+            $table->string('blood_group')->nullable();
 
             // Places
             $table->string('jahad_place')->nullable();

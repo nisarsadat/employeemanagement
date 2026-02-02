@@ -63,7 +63,7 @@
       <v-card-text class="pa-4">
         <v-row dense class="align-center">
           <!-- Search -->
-          <v-col cols="12" md="5" lg="5">
+          <v-col cols="12" md="4" lg="4">
             <v-text-field
               v-model="repo.incomesSearch"
               :label="t('common.search')"
@@ -80,7 +80,7 @@
           </v-col>
 
           <!-- Year/Month -->
-          <v-col cols="12" md="5" lg="5">
+          <v-col cols="12" md="4" lg="4">
             <div class="d-flex ga-2 flex-wrap">
               <v-select
                 v-model="selectedYear"
@@ -118,7 +118,7 @@
           </v-col>
 
           <!-- Actions -->
-          <v-col cols="12" md="2" lg="2" class="d-flex justify-end">
+          <v-col cols="12" md="4" lg="4" class="d-flex justify-end">
             <div class="d-flex ga-2 flex-wrap w-100 justify-end">
               <v-btn
                 variant="tonal"
@@ -142,6 +142,14 @@
 
               <v-btn color="success" class="text-none" prepend-icon="mdi-plus" @click="openCreate">
                 {{ t('incomes.actions.create') }}
+              </v-btn>
+              <v-btn
+                color="primary"
+                class="text-none"
+                prepend-icon="mdi-refresh"
+                @click="refreshTable"
+              >
+                {{ t('refresh') }}
               </v-btn>
             </div>
           </v-col>
@@ -253,27 +261,27 @@
 </template>
 
 <script setup>
-  import { computed, ref, onMounted } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import FilterableTable from '@/components/FilterableTable.vue'
-  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
-  import IncomeFormDialog from './IncomesFormDialog.vue'
-  import { useFinanceRepository } from '@/stores/financeRepository'
-  import { useCalendar } from '../../../../composables/useCalendar'
+  import { computed, ref, onMounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import IncomeFormDialog from './IncomesFormDialog.vue';
+  import { useFinanceRepository } from '@/stores/financeRepository';
+  import { useCalendar } from '../../../../composables/useCalendar';
 
-  const { t } = useI18n()
+  const { t } = useI18n();
 
-  const rtl = ref(true)
-  const repo = useFinanceRepository()
+  const rtl = ref(true);
+  const repo = useFinanceRepository();
 
-  const dialog = ref(false)
-  const editId = ref(null)
+  const dialog = ref(false);
+  const editId = ref(null);
 
-  const deleteDialog = ref(false)
-  const deleteTarget = ref(null)
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
   function getRow(payload) {
-    return payload?.raw ?? payload
+    return payload?.raw ?? payload;
   }
 
   const headersFT = computed(() => [
@@ -281,20 +289,20 @@
     { title: t('incomes.table.amount'), key: 'amount', sortable: true },
     { title: t('incomes.table.receivedAt'), key: 'received_at', sortable: true },
     { title: t('incomes.table.note'), key: 'note', sortable: false },
-  ])
+  ]);
 
   const rowsFT = computed(() => {
-    const startIndex = (repo.incomesPage - 1) * repo.incomesPerPage
+    const startIndex = (repo.incomesPage - 1) * repo.incomesPerPage;
     return (repo.incomes || []).map((it, i) => ({
       ...it,
       index: startIndex + i + 1,
       account_name: it?.account?.name ?? it?.account_name ?? '',
       received_at: (it?.received_at ?? '').toString().slice(0, 10),
-    }))
-  })
+    }));
+  });
 
-  const filters = []
-  const topGroups = []
+  const filters = [];
+  const topGroups = [];
 
   const summary = computed(
     () =>
@@ -304,17 +312,19 @@
         total_outcome_all: '0.00',
         filtered_outcome: '0.00',
       }
-  )
+  );
 
   function fmtMoney(v) {
-    const n = Number(v ?? 0)
-    if (Number.isNaN(n)) return String(v ?? '')
-    if (Math.floor(n) === n) return String(n)
-    return String(n).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
+    const n = Number(v ?? 0);
+    if (Number.isNaN(n)) return String(v ?? '');
+    if (Math.floor(n) === n) return String(n);
+    return String(n)
+      .replace(/(\.\d*?)0+$/, '$1')
+      .replace(/\.$/, '');
   }
 
-  const selectedYear = ref(null)
-  const selectedMonth = ref(null)
+  const selectedYear = ref(null);
+  const selectedMonth = ref(null);
 
   const monthOptions = computed(() => [
     { title: '01', value: 1 },
@@ -329,10 +339,10 @@
     { title: '10', value: 10 },
     { title: '11', value: 11 },
     { title: '12', value: 12 },
-  ])
+  ]);
 
-  const { yearItemsFromGregorianYears } = useCalendar()
-  const yearItems = computed(() => yearItemsFromGregorianYears(repo.availableYears, 'fa'))
+  const { yearItemsFromGregorianYears } = useCalendar();
+  const yearItems = computed(() => yearItemsFromGregorianYears(repo.availableYears, 'fa'));
 
   function fetchAll() {
     repo.FetchIncomesData({
@@ -342,7 +352,7 @@
       account_id: repo.incomesAccountId,
       year: selectedYear.value,
       month: selectedMonth.value,
-    })
+    });
   }
 
   // ✅ cards follow filters
@@ -353,109 +363,112 @@
       search: repo.incomesSearch || undefined,
       account_id: repo.incomesAccountId || undefined,
       office_employee_id: undefined,
-    })
+    });
   }
 
   function applyFilters() {
-    repo.incomesPage = 1
-    fetchAll()
-    refreshCardsWithFilters()
+    repo.incomesPage = 1;
+    fetchAll();
+    refreshCardsWithFilters();
   }
 
   function onYearMonthChanged() {
-    if (!selectedYear.value) selectedMonth.value = null
-    applyFilters()
+    if (!selectedYear.value) selectedMonth.value = null;
+    applyFilters();
   }
 
   function clearSearch() {
-    repo.incomesSearch = ''
-    applyFilters()
+    repo.incomesSearch = '';
+    applyFilters();
   }
 
   function clearYear() {
-    selectedYear.value = null
-    selectedMonth.value = null
-    applyFilters()
+    selectedYear.value = null;
+    selectedMonth.value = null;
+    applyFilters();
   }
 
   function clearMonth() {
-    selectedMonth.value = null
-    applyFilters()
+    selectedMonth.value = null;
+    applyFilters();
   }
 
   function resetFilters() {
-    selectedYear.value = null
-    selectedMonth.value = null
-    if (typeof repo.ResetIncomesFilters === 'function') repo.ResetIncomesFilters()
+    selectedYear.value = null;
+    selectedMonth.value = null;
+    if (typeof repo.ResetIncomesFilters === 'function') repo.ResetIncomesFilters();
     else {
-      repo.incomesSearch = ''
-      repo.incomesAccountId = null
-      repo.incomesPage = 1
+      repo.incomesSearch = '';
+      repo.incomesAccountId = null;
+      repo.incomesPage = 1;
     }
-    applyFilters()
+    applyFilters();
   }
 
   async function ensureAccountsLoaded() {
-    if (Array.isArray(repo.accounts) && repo.accounts.length) return
-    await repo.FetchAccountsData({ page: 1, perPage: 2000, search: '' })
+    if (Array.isArray(repo.accounts) && repo.accounts.length) return;
+    await repo.FetchAccountsData({ page: 1, perPage: 2000, search: '' });
   }
 
   function openCreate() {
-    editId.value = null
-    dialog.value = true
+    editId.value = null;
+    dialog.value = true;
+  }
+  function refreshTable() {
+    fetchAll();
   }
 
   function startEdit(payload) {
-    const row = getRow(payload)
-    editId.value = row?.id ?? null
-    if (!editId.value) return
-    dialog.value = true
+    const row = getRow(payload);
+    editId.value = row?.id ?? null;
+    if (!editId.value) return;
+    dialog.value = true;
   }
 
   function onSaved() {
-    applyFilters()
+    applyFilters();
   }
 
   function openDeleteDialog(payload) {
-    const row = getRow(payload)
-    if (!row?.id) return
-    deleteTarget.value = row
-    deleteDialog.value = true
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
   }
 
   async function handleDeleteConfirmed(target) {
-    const row = target || deleteTarget.value
+    const row = target || deleteTarget.value;
     if (!row?.id) {
-      deleteDialog.value = false
-      deleteTarget.value = null
-      return
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
     }
 
     try {
-      await repo.DeleteIncome(row.id)
-      applyFilters()
+      await repo.DeleteIncome(row.id);
+      applyFilters();
     } finally {
-      deleteDialog.value = false
-      deleteTarget.value = null
+      deleteDialog.value = false;
+      deleteTarget.value = null;
     }
   }
 
   function onPage(p) {
-    repo.incomesPage = p
-    fetchAll()
+    repo.incomesPage = p;
+    fetchAll();
   }
 
   function onPerPage(pp) {
-    repo.incomesPerPage = pp
-    repo.incomesPage = 1
-    fetchAll()
+    repo.incomesPerPage = pp;
+    repo.incomesPage = 1;
+    fetchAll();
   }
 
   onMounted(async () => {
-    await ensureAccountsLoaded()
-    await repo.FetchYears('incomes')
-    applyFilters()
-  })
+    await ensureAccountsLoaded();
+    await repo.FetchYears('incomes');
+    applyFilters();
+  });
 </script>
 
 <style scoped>

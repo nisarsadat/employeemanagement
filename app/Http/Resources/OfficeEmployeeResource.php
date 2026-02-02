@@ -45,6 +45,7 @@ class OfficeEmployeeResource extends JsonResource
             // 🔹 Rank / Level
             'bast'  => $this->bast,
             'level' => $this->level,
+            'blood_group' => $this->blood_group,
 
             // 🔹 Background
             'history_jahad'             => $this->history_jahad,

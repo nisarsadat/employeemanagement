@@ -522,36 +522,9 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     },
 
     // ====================== INFORMATIONS ======================
-    async FetchInformationsData(params = {}) {
-      this.loading = true;
-
-      try {
-        setContentType('application/json');
-
-        const res = await axios.get('/informations', {
-          params: {
-            page: params.page ?? 1,
-            perPage: params.itemsPerPage ?? params.perPage ?? 100000,
-            search: params.search ?? this.Search ?? '',
-
-            // ✅ NEW: month/year filter support (same as officeemployees)
-            year: params.year ?? null,
-            month: params.month ?? null,
-            date_field: params.date_field ?? 'information_saved_date',
-          },
-        });
-
-        const items = res.data?.data ?? res.data ?? [];
-        this.Informations = Array.isArray(items) ? items : [];
-        this.totalItems = res.data?.meta?.total ?? res.data?.total ?? this.Informations.length;
-      } catch (e) {
-        console.error(e);
-        this.error = e;
-        this.Informations = [];
-        this.totalItems = 0;
-      } finally {
-        this.loading = false;
-      }
+    // ✅ Informations date-options
+    async FetchInformationDateOptions(params = {}) {
+      return await axios.get('/informations/date-options', { params });
     },
 
     async FetchInformationsData(params = {}) {
@@ -749,7 +722,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       try {
         await axios.delete(`/captive-deliveries/${id}`);
         toast.success('Delevery Captive deleted', { autoClose: 1100 });
-        await this.FetchInformationsData({
+        await this.FetchCaptiveDeliveriesData({
           page: this.page,
           itemsPerPage: this.itemsPerPage,
         });

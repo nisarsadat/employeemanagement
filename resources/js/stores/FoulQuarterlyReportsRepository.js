@@ -107,7 +107,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // Dates (Miladi + Hijri Shamsi + Hijri Qamari) -> SAME as Daily/Monthly/Weekly design
+    // Dates (Miladi + Hijri Shamsi + Hijri Qamari)
     // =========================
     function formatMiladi(dateIso) {
       const d = String(dateIso || '').trim();
@@ -163,6 +163,33 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
 
       return pills.join('');
+    }
+
+    // =========================
+    // ✅ Format name localization (NOT English in PDF/Word)
+    // =========================
+    function formatNameLocal(name) {
+      const n = String(name ?? '').trim();
+      if (!n) return '';
+
+      const map = {
+        Resources: 'منابع',
+        Informations: 'اطلاعات',
+        Information: 'اطلاعات',
+        Events: 'پېښې',
+        Event: 'پېښه',
+        Finance: 'مالي',
+        Finances: 'مالي',
+        Daily: 'ورځنی',
+        Monthly: 'میاشتنی',
+        Weekly: 'اوونیز',
+        Quarterly: 'ربعه',
+        Report: 'راپور',
+        Form: 'فورم',
+        Forms: 'فورمونه',
+      };
+
+      return map[n] || n;
     }
 
     // =========================
@@ -244,30 +271,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         font-weight:700;
       }
 
-      .hero-date{
-        display:flex;
-        flex-direction:column;
-        align-items:flex-end;
-        gap:6px;
-        padding:10px 12px;
-        border-radius:12px;
-        border:1px solid rgba(255,255,255,.24);
-        background: rgba(255,255,255,.16);
-        color:#fff;
-        white-space:nowrap;
-        min-width: 150px;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
-      }
-      .hero-date .date-big{
-        font-weight:900;
-        font-size:12px;
-      }
-      .hero-date .date-small{
-        font-weight:800;
-        font-size:10px;
-        opacity:.92;
-      }
-
       .pills{
         margin-top:10px;
         display:flex;
@@ -342,13 +345,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       .b-info{ background:#e0f2fe; color:#075985; border-color:#bae6fd; }
       .b-warning{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
       .b-success{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
-
-      .grid-2{
-        display:grid;
-        grid-template-columns: 5fr 7fr;
-        gap:10px;
-        margin-top:10px;
-      }
 
       .header-strip{
         padding:10px 12px;
@@ -439,19 +435,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       .etype-blue{ background:#dbeafe; border-color:#bfdbfe; color:#1e40af; }
       .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; color:#374151; }
 
-      .footer{
-        margin-top:10px;
-        padding:10px 12px;
-        background:#f8fafc;
-        border-top:1px solid #eef2f7;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:10px;
-        font-size:10px;
-        color: rgba(17,24,39,.65);
-        font-weight:900;
-      }
       .hero-logo{
         display:flex;
         align-items:center;
@@ -471,7 +454,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
 
       @media print{
         .stats-grid{ grid-template-columns: repeat(2, 1fr); }
-        .grid-2{ grid-template-columns: 1fr; }
       }
     `;
     }
@@ -495,19 +477,8 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       return map[t] || 'etype-gray';
     }
 
-    function quarterTitleFromLabel(label) {
-      // "YYYY-Qn" -> readable range
-      const s = String(label ?? '').trim();
-      const m = s.match(/^(\d{4})-Q([1-3])$/i);
-      if (!m) return s;
-
-      const q = Number(m[2]);
-      const range = q === 1 ? 'جنوري - اپرېل' : q === 2 ? 'می - اګست' : 'سېپتمبر - ډسمبر';
-      return `ربعه ${q} (${range})`;
-    }
-
     // =========================
-    // Quarterly HTML (same dashboard style)
+    // Quarterly HTML (✅ stacked tables like Weekly)
     // =========================
     function buildQuarterlyDashboardHtml(report, quarterLabel) {
       const qLabel = String(quarterLabel || selectedQuarter.value || currentQuarterLabel());
@@ -520,14 +491,15 @@ export const useFoulQuarterlyReportsRepository = defineStore(
 
       const formats = Array.isArray(report?.formats) ? report.formats : [];
       const formatsActive = formats.length;
-      const formatsSum = formats.reduce((s, f) => s + safeNum(f?.count), 0);
 
       const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
       const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
+
       function getLogoUrl() {
         // ✅ logo must be inside /public so it works in print window
         return `${window.location.origin}/logo.png`;
       }
+
       const infoTr = infoTypes.length
         ? infoTypes
             .map((x) => {
@@ -546,11 +518,11 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       const formatsTr = formats.length
         ? formats
             .map((f) => {
-              const name = escapeHtml(f?.name ?? '');
+              const name = escapeHtml(formatNameLocal(f?.name ?? ''));
               const count = safeNum(f?.count);
               return `
               <tr>
-                <td>${name}</td>
+                <td>${name || '-'}</td>
                 <td class="td-end"><span class="count-pill count-success">${count}</span></td>
               </tr>
             `;
@@ -574,8 +546,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             .join('')
         : `<tr><td colspan="2" class="td-center">هیڅ پېښه نه ده ثبت شوې</td></tr>`;
 
-      const quarterTitle = quarterTitleFromLabel(qLabel);
-
       return `
       <html dir="rtl">
         <head>
@@ -591,7 +561,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
                   <h1 class="hero-title">د 333 ربعه راپور</h1>
                   <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو د ربعه عمومي کتنه</p>
                 </div>
-                 <div class="hero-logo">
+                <div class="hero-logo">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
@@ -640,45 +610,60 @@ export const useFoulQuarterlyReportsRepository = defineStore(
               </div>
             </div>
 
-            <div class="grid-2 section">
-              <div>
-                <div class="card no-break">
-                  <div class="header-strip bg-primary">
-                    <div class="strip-left">
-                      <div>
-                        <div class="strip-title">د معلوماتو ډولونه</div>
-                        <div class="strip-sub">د ډول له مخې وېش (ربعه)</div>
-                      </div>
+            <!-- ✅ stacked tables (same as Weekly) -->
+            <div class="section">
+              <div class="card no-break">
+                <div class="header-strip bg-primary">
+                  <div class="strip-left">
+                    <div>
+                      <div class="strip-title">د معلوماتو ډولونه</div>
+                      <div class="strip-sub">د ډول له مخې وېش (ربعه)</div>
                     </div>
-                    <span class="chip chip-primary">${informationsTotal}</span>
                   </div>
-
-                  <div style="padding:0;">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th style="width:70%;">ډول</th>
-                          <th class="td-end" style="width:30%;">شمېر</th>
-                        </tr>
-                      </thead>
-                      <tbody>${infoTr}</tbody>
-                    </table>
-                  </div>
+                  <span class="chip chip-primary">${informationsTotal}</span>
                 </div>
 
-                <div class="card no-break" style="margin-top:10px;">
-                  <div class="header-strip bg-success">
-                    <div class="strip-left">
-                      <div>
-                        <div class="strip-title">لیټري دوسیه</div>
-                        <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
-                      </div>
-                    </div>
-                    <span class="chip chip-success">${formatsActive}</span>
-                  </div>
+                <div style="padding:0;">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:70%;">ډول</th>
+                        <th class="td-end" style="width:30%;">شمېر</th>
+                      </tr>
+                    </thead>
+                    <tbody>${infoTr}</tbody>
+                  </table>
                 </div>
               </div>
+            </div>
 
+            <div class="section">
+              <div class="card no-break">
+                <div class="header-strip bg-success">
+                  <div class="strip-left">
+                    <div>
+                      <div class="strip-title">لیټري دوسیه</div>
+                      <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
+                    </div>
+                  </div>
+                  <span class="chip chip-success">${formatsActive}</span>
+                </div>
+
+                <div style="padding:0;">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:70%;">فورم</th>
+                        <th class="td-end" style="width:30%;">شمېر</th>
+                      </tr>
+                    </thead>
+                    <tbody>${formatsTr}</tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
               <div class="card">
                 <div class="header-strip bg-warning">
                   <div class="strip-left">
@@ -703,6 +688,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
                 </div>
               </div>
             </div>
+
           </div>
         </body>
       </html>
