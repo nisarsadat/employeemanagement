@@ -388,6 +388,12 @@ Route::middleware('auth:sanctum')->group(function () {
     protectResource('expense-oils', 'expense_oils',  ExpenseOilController::class);
     
     Route::get('/oil/summary', [OilSummaryController::class, 'index']);
+    Route::get('/expense-oils', [ExpenseOilController::class, 'index']);
+    Route::get('/expense-oils/years', [ExpenseOilController::class, 'years']);
+    Route::get('/expense-oils/{expenseOil}', [ExpenseOilController::class, 'show']);
+    Route::post('/expense-oils', [ExpenseOilController::class, 'store']);
+    Route::put('/expense-oils/{expenseOil}', [ExpenseOilController::class, 'update']);
+    Route::delete('/expense-oils/{expenseOil}', [ExpenseOilController::class, 'destroy']);
 
     Route::get('oil-reports', [OilReportController::class, 'index']);
 

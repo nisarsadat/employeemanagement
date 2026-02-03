@@ -2,20 +2,9 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import axios from 'axios';
 
-/**
- * Single repo for:
- *  - Accounts
- *  - Income
- *  - Finance (Expense/Outcome)
- *  - Dropdown options: OfficeEmployees + Resources + Events + Informations
- */
-
 export const useFinanceRepository = defineStore('FinanceRepository', () => {
   const loading = ref(false);
 
-  // =========================
-  // COMMON HELPERS
-  // =========================
   function unwrapListResponse(resp) {
     const data = resp.data?.data ?? resp.data ?? [];
     const total =
@@ -31,64 +20,52 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
   // DROPDOWN OPTIONS
   // =========================
 
-  // Office Employees
   const officeEmployees = ref([]);
   const officeEmployeesLoading = ref(false);
 
   async function FetchOfficeEmployeesOptions({ search = '' } = {}) {
     officeEmployeesLoading.value = true;
     try {
-      const resp = await axios.get('/office-employees', {
-        params: { search },
-      });
+      const resp = await axios.get('/office-employees', { params: { search } });
       officeEmployees.value = resp.data?.data ?? resp.data ?? [];
     } finally {
       officeEmployeesLoading.value = false;
     }
   }
 
-  // Resources
   const resources = ref([]);
   const resourcesLoading = ref(false);
 
   async function FetchResourcesOptions({ search = '' } = {}) {
     resourcesLoading.value = true;
     try {
-      const resp = await axios.get('/resources', {
-        params: { search },
-      });
+      const resp = await axios.get('/resources', { params: { search } });
       resources.value = resp.data?.data ?? resp.data ?? [];
     } finally {
       resourcesLoading.value = false;
     }
   }
 
-  // ✅ Events (same pattern)
   const events = ref([]);
   const eventsLoading = ref(false);
 
   async function FetchEventsOptions({ search = '' } = {}) {
     eventsLoading.value = true;
     try {
-      const resp = await axios.get('/events', {
-        params: { search },
-      });
+      const resp = await axios.get('/events', { params: { search } });
       events.value = resp.data?.data ?? resp.data ?? [];
     } finally {
       eventsLoading.value = false;
     }
   }
 
-  // ✅ Informations (same pattern)
   const informations = ref([]);
   const informationsLoading = ref(false);
 
   async function FetchInformationsOptions({ search = '' } = {}) {
     informationsLoading.value = true;
     try {
-      const resp = await axios.get('/informations', {
-        params: { search },
-      });
+      const resp = await axios.get('/informations', { params: { search } });
       informations.value = resp.data?.data ?? resp.data ?? [];
     } finally {
       informationsLoading.value = false;
@@ -106,9 +83,8 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
   const accountsPerPage = ref(10);
   const accountsSearch = ref('');
 
-  // ✅ NEW
-  const accountsYear = ref(null); // 2026
-  const accountsMonth = ref(null); // 1..12
+  const accountsYear = ref(null);
+  const accountsMonth = ref(null);
 
   // =========================
   // INCOMES STATE
@@ -122,7 +98,6 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
   const incomesSearch = ref('');
   const incomesAccountId = ref(null);
 
-  // ✅ NEW
   const incomesYear = ref(null);
   const incomesMonth = ref(null);
 
@@ -142,16 +117,19 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
   const availableYears = ref([]);
   const yearsLoading = ref(false);
 
-  // ✅ NEW
   const financesYear = ref(null);
   const financesMonth = ref(null);
 
-  // ✅ summary returned from backend
   const financesSummary = ref({
     total_balance_all_accounts: '0.00',
     total_income_all: '0.00',
     total_outcome_all: '0.00',
     filtered_outcome: '0.00',
+
+    // ✅ new optional fields
+    filtered_income: null,
+    filtered_balance: null,
+    has_filters: false,
   });
 
   // =========================
@@ -173,13 +151,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
       accountsMonth.value = month ?? null;
 
       const resp = await axios.get('/accounts', {
-        params: {
-          page,
-          perPage,
-          search,
-          year: year ?? undefined,
-          month: month ?? undefined,
-        },
+        params: { page, perPage, search, year: year ?? undefined, month: month ?? undefined },
       });
 
       const { data, total } = unwrapListResponse(resp);
@@ -310,6 +282,8 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
 
       const resp = await axios.get('/finances', {
         params: {
+          page,
+          perPage,
           search,
           account_id: account_id ?? undefined,
           office_employee_id: office_employee_id ?? undefined,
@@ -318,12 +292,14 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
         },
       });
 
-      // ✅ summary from backend
       financesSummary.value = resp.data?.summary ?? {
         total_balance_all_accounts: '0.00',
         total_income_all: '0.00',
         total_outcome_all: '0.00',
         filtered_outcome: '0.00',
+        filtered_income: null,
+        filtered_balance: null,
+        has_filters: false,
       };
 
       const { data, total } = unwrapListResponse(resp);
@@ -356,7 +332,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
 
   function ResetFinancesFilters() {
     financesPage.value = 1;
-    financesPerPage.value = 999999;
+    financesPerPage.value = 10;
     financesSearch.value = '';
     financesAccountId.value = null;
     financesOfficeEmployeeId.value = null;
@@ -368,6 +344,9 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
       total_income_all: '0.00',
       total_outcome_all: '0.00',
       filtered_outcome: '0.00',
+      filtered_income: null,
+      filtered_balance: null,
+      has_filters: false,
     };
   }
 
@@ -381,9 +360,6 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     }
   }
 
-  // =========================
-  // EXPORT STORE API
-  // =========================
   return {
     loading,
 
@@ -396,12 +372,10 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     resourcesLoading,
     FetchResourcesOptions,
 
-    // ✅ Events dropdown
     events,
     eventsLoading,
     FetchEventsOptions,
 
-    // ✅ Informations dropdown
     informations,
     informationsLoading,
     FetchInformationsOptions,

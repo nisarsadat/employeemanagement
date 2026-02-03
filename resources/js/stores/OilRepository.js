@@ -1,16 +1,16 @@
 // src/stores/OilRepository.js
-import { defineStore } from 'pinia';
-import { reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { defineStore } from 'pinia'
+import { reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 // tiny helper to match your pattern
 function setContentType(type) {
   if (!type) {
-    delete axios.defaults.headers.common['Content-Type'];
-    return;
+    delete axios.defaults.headers.common['Content-Type']
+    return
   }
-  axios.defaults.headers.common['Content-Type'] = type;
+  axios.defaults.headers.common['Content-Type'] = type
 }
 
 export const useOilRepository = defineStore('OilRepository', {
@@ -45,11 +45,12 @@ export const useOilRepository = defineStore('OilRepository', {
       from: null,
       to: null,
 
-      // ✅ NEW (year/month filters like finance)
+      // ✅ year/month filters (Gregorian values ONLY)
+      // UI can display Shamsi/Qamari labels, but we always send these numbers to backend.
       year: null,  // 2026
       month: null, // 1..12
 
-      // ✅ NEW: years dropdown (like finance)
+      // ✅ years dropdown (Gregorian years from backend)
       availableYears: reactive([]),
       yearsLoading: false,
 
@@ -66,7 +67,7 @@ export const useOilRepository = defineStore('OilRepository', {
         filteredExpense: 0,
         filteredIncome: 0,
       }),
-    };
+    }
   },
 
   actions: {
@@ -78,23 +79,23 @@ export const useOilRepository = defineStore('OilRepository', {
       //  - 'income-oils'  -> GET /income-oils/years
       //  - 'expense-oils' -> GET /expense-oils/years
       //  - 'oil-accounts' -> GET /oil-accounts/years (optional)
-      this.yearsLoading = true;
+      this.yearsLoading = true
       try {
-        setContentType('application/json');
-        const resp = await axios.get(`/${type}/years`);
-        this.availableYears = resp?.data ?? [];
+        setContentType('application/json')
+        const resp = await axios.get(`/${type}/years`)
+        this.availableYears = resp?.data ?? []
       } finally {
-        this.yearsLoading = false;
+        this.yearsLoading = false
       }
     },
 
     // ------------------ ACCOUNTS ------------------
     async FetchOilAccounts({ page, itemsPerPage } = {}) {
-      this.loading = true;
-      setContentType('application/json');
+      this.loading = true
+      setContentType('application/json')
 
-      const p = page ?? this.page;
-      const pp = itemsPerPage ?? this.itemsPerPage;
+      const p = page ?? this.page
+      const pp = itemsPerPage ?? this.itemsPerPage
 
       try {
         const resp = await axios.get(`/oil-accounts`, {
@@ -105,23 +106,23 @@ export const useOilRepository = defineStore('OilRepository', {
             year: this.year ?? undefined,
             month: this.month ?? undefined,
           },
-        });
+        })
 
-        this.OilAccounts = resp?.data?.data ?? [];
-        this.totalItems = resp?.data?.meta?.total ?? 0;
+        this.OilAccounts = resp?.data?.data ?? []
+        this.totalItems = resp?.data?.meta?.total ?? 0
 
         // ✅ if backend later returns summary here, we support it
         if (resp?.data?.summary) {
-          this.summary = resp.data.summary;
+          this.summary = resp.data.summary
         }
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     async FetchOilSummary() {
       // Expect backend can accept year/month/search to make cards follow filters
-      setContentType('application/json');
+      setContentType('application/json')
 
       const resp = await axios.get(`/oil/summary`, {
         params: {
@@ -131,7 +132,7 @@ export const useOilRepository = defineStore('OilRepository', {
           from: this.from ?? undefined,
           to: this.to ?? undefined,
         },
-      });
+      })
 
       this.summary = resp?.data ?? {
         totalExpense: 0,
@@ -142,41 +143,41 @@ export const useOilRepository = defineStore('OilRepository', {
         oilAccountsCount: 0,
         filteredExpense: 0,
         filteredIncome: 0,
-      };
+      }
     },
 
     async FetchOilAccount(id) {
-      setContentType('application/json');
-      const resp = await axios.get(`/oil-accounts/${id}`);
-      this.OilAccount = resp?.data?.data ?? {};
+      setContentType('application/json')
+      const resp = await axios.get(`/oil-accounts/${id}`)
+      this.OilAccount = resp?.data?.data ?? {}
     },
 
     async CreateOilAccount(payload) {
-      setContentType('application/json');
-      await axios.post(`/oil-accounts`, payload);
-      this.createDialog = false;
-      await this.FetchOilAccounts({ page: this.page, itemsPerPage: this.itemsPerPage });
+      setContentType('application/json')
+      await axios.post(`/oil-accounts`, payload)
+      this.createDialog = false
+      await this.FetchOilAccounts({ page: this.page, itemsPerPage: this.itemsPerPage })
     },
 
     async UpdateOilAccount(id, payload) {
-      setContentType('application/json');
-      await axios.put(`/oil-accounts/${id}`, payload);
-      this.updateDialog = false;
-      await this.FetchOilAccounts({ page: this.page, itemsPerPage: this.itemsPerPage });
+      setContentType('application/json')
+      await axios.put(`/oil-accounts/${id}`, payload)
+      this.updateDialog = false
+      await this.FetchOilAccounts({ page: this.page, itemsPerPage: this.itemsPerPage })
     },
 
     async DeleteOilAccount(id) {
-      await axios.delete(`/oil-accounts/${id}`);
-      await this.FetchOilAccounts({ page: this.page, itemsPerPage: this.itemsPerPage });
+      await axios.delete(`/oil-accounts/${id}`)
+      await this.FetchOilAccounts({ page: this.page, itemsPerPage: this.itemsPerPage })
     },
 
     // ------------------ INCOME (comes) ------------------
     async FetchIncomeOils({ page, itemsPerPage } = {}) {
-      this.loading = true;
-      setContentType('application/json');
+      this.loading = true
+      setContentType('application/json')
 
-      const p = page ?? this.page;
-      const pp = itemsPerPage ?? this.itemsPerPage;
+      const p = page ?? this.page
+      const pp = itemsPerPage ?? this.itemsPerPage
 
       try {
         const resp = await axios.get(`/income-oils`, {
@@ -189,52 +190,52 @@ export const useOilRepository = defineStore('OilRepository', {
             year: this.year ?? undefined,
             month: this.month ?? undefined,
           },
-        });
+        })
 
-        this.IncomeOils = resp?.data?.data ?? [];
-        this.totalItems = resp?.data?.meta?.total ?? 0;
+        this.IncomeOils = resp?.data?.data ?? []
+        this.totalItems = resp?.data?.meta?.total ?? 0
 
         // ✅ support summary if backend returns it
         if (resp?.data?.summary) {
-          this.summary = resp.data.summary;
+          this.summary = resp.data.summary
         }
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     async FetchIncomeOil(id) {
-      setContentType('application/json');
-      const resp = await axios.get(`/income-oils/${id}`);
-      this.IncomeOil = resp?.data?.data ?? {};
+      setContentType('application/json')
+      const resp = await axios.get(`/income-oils/${id}`)
+      this.IncomeOil = resp?.data?.data ?? {}
     },
 
     async CreateIncomeOil(payload) {
-      setContentType('application/json');
-      await axios.post(`/income-oils`, payload);
-      this.createDialog = false;
-      await this.FetchIncomeOils({ page: this.page, itemsPerPage: this.itemsPerPage });
+      setContentType('application/json')
+      await axios.post(`/income-oils`, payload)
+      this.createDialog = false
+      await this.FetchIncomeOils({ page: this.page, itemsPerPage: this.itemsPerPage })
     },
 
     async UpdateIncomeOil(id, payload) {
-      setContentType('application/json');
-      await axios.put(`/income-oils/${id}`, payload);
-      this.updateDialog = false;
-      await this.FetchIncomeOils({ page: this.page, itemsPerPage: this.itemsPerPage });
+      setContentType('application/json')
+      await axios.put(`/income-oils/${id}`, payload)
+      this.updateDialog = false
+      await this.FetchIncomeOils({ page: this.page, itemsPerPage: this.itemsPerPage })
     },
 
     async DeleteIncomeOil(id) {
-      await axios.delete(`/income-oils/${id}`);
-      await this.FetchIncomeOils({ page: this.page, itemsPerPage: this.itemsPerPage });
+      await axios.delete(`/income-oils/${id}`)
+      await this.FetchIncomeOils({ page: this.page, itemsPerPage: this.itemsPerPage })
     },
 
     // ------------------ EXPENSE (goes) ------------------
     async FetchExpenseOils({ page, itemsPerPage } = {}) {
-      this.loading = true;
-      setContentType('application/json');
+      this.loading = true
+      setContentType('application/json')
 
-      const p = page ?? this.page;
-      const pp = itemsPerPage ?? this.itemsPerPage;
+      const p = page ?? this.page
+      const pp = itemsPerPage ?? this.itemsPerPage
 
       try {
         const resp = await axios.get(`/expense-oils`, {
@@ -245,43 +246,43 @@ export const useOilRepository = defineStore('OilRepository', {
             year: this.year ?? undefined,
             month: this.month ?? undefined,
           },
-        });
+        })
 
-        this.ExpenseOils = resp?.data?.data ?? [];
-        this.totalItems = resp?.data?.meta?.total ?? 0;
+        this.ExpenseOils = resp?.data?.data ?? []
+        this.totalItems = resp?.data?.meta?.total ?? 0
 
         // ✅ support summary if backend returns it
         if (resp?.data?.summary) {
-          this.summary = resp.data.summary;
+          this.summary = resp.data.summary
         }
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     async FetchExpenseOil(id) {
-      setContentType('application/json');
-      const resp = await axios.get(`/expense-oils/${id}`);
-      this.ExpenseOil = resp?.data?.data ?? {};
+      setContentType('application/json')
+      const resp = await axios.get(`/expense-oils/${id}`)
+      this.ExpenseOil = resp?.data?.data ?? {}
     },
 
     async CreateExpenseOil(payload) {
-      setContentType('application/json');
-      await axios.post(`/expense-oils`, payload);
-      this.createDialog = false;
-      await this.FetchExpenseOils({ page: this.page, itemsPerPage: this.itemsPerPage });
+      setContentType('application/json')
+      await axios.post(`/expense-oils`, payload)
+      this.createDialog = false
+      await this.FetchExpenseOils({ page: this.page, itemsPerPage: this.itemsPerPage })
     },
 
     async UpdateExpenseOil(id, payload) {
-      setContentType('application/json');
-      await axios.put(`/expense-oils/${id}`, payload);
-      this.updateDialog = false;
-      await this.FetchExpenseOils({ page: this.page, itemsPerPage: this.itemsPerPage });
+      setContentType('application/json')
+      await axios.put(`/expense-oils/${id}`, payload)
+      this.updateDialog = false
+      await this.FetchExpenseOils({ page: this.page, itemsPerPage: this.itemsPerPage })
     },
 
     async DeleteExpenseOil(id) {
-      await axios.delete(`/expense-oils/${id}`);
-      await this.FetchExpenseOils({ page: this.page, itemsPerPage: this.itemsPerPage });
+      await axios.delete(`/expense-oils/${id}`)
+      await this.FetchExpenseOils({ page: this.page, itemsPerPage: this.itemsPerPage })
     },
   },
-});
+})

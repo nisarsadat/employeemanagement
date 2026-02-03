@@ -57,7 +57,7 @@
 
     <!-- ✅ Top Bar (Finance style: Search + Year + Month + Create) -->
     <v-row class="align-center mb-4" dense>
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="10">
         <v-text-field
           v-model.trim="repo.Search"
           :label="t('د راتلونکو تېلو لټون')"
@@ -70,7 +70,7 @@
         />
       </v-col>
 
-      <v-col cols="12" md="3">
+      <!-- <v-col cols="12" md="3">
         <v-select
           v-model="repo.year"
           :items="repo.availableYears"
@@ -95,7 +95,7 @@
           clearable
           @update:modelValue="applyFilters"
         />
-      </v-col>
+      </v-col> -->
 
       <v-col cols="12" md="2" class="text-md-right">
         <v-btn color="primary" prepend-icon="mdi-plus" block @click="openCreate">
