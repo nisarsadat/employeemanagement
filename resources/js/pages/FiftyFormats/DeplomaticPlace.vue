@@ -116,17 +116,17 @@
         <v-col cols="12" sm="6" md="3">
           <v-card
             class="stat-card"
-            :class="{ 'stat-card--active': cardFilter === 'withResource' }"
-            @click="cardFilter = 'withResource'"
+            :class="{ 'stat-card--active': cardFilter === 'withemployeecount' }"
+            @click="cardFilter = 'withemployeecount'"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
                 <v-icon>mdi-account-search</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('دارای منبع') }}</div>
+                <div class="stat-card-title">{{ t('تعداد کارمندان') }}</div>
                 <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withResource }}
+                  {{ t('تعداد') }}: {{ stats.withemployeecount }}
                 </div>
               </div>
             </div>
@@ -324,11 +324,11 @@ const stats = computed(() => {
       String(r.guard_quantity).trim() !== '' &&
       Number(r.guard_quantity) > 0,
   ).length;
-  const withResource = rows.filter(
-    (r) => r && r.resource_code && String(r.resource_code).trim() !== '',
+  const withemployeecount = rows.filter(
+    (r) => r && r.enter_male_quantity && String(r.enter_male_quantity).trim() !== '',
   ).length;
 
-  return { total, withCoordinates, withGuards, withResource };
+  return { total, withCoordinates, withGuards, withemployeecount };
 });
 
 const filteredRowsFT = computed(() => {
@@ -345,7 +345,7 @@ const filteredRowsFT = computed(() => {
           String(r.guard_quantity).trim() !== '' &&
           Number(r.guard_quantity) > 0,
       );
-    case 'withResource':
+    case 'withemployeecount':
       return base.filter(
         (r) => r && r.resource_code && String(r.resource_code).trim() !== '',
       );

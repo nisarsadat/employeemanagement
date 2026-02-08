@@ -156,6 +156,7 @@
                 v-model="form.resource_code"
                 :label="t('کود منبع')"
                 variant="outlined"
+                :rules="[rules.required]"
                 density="compact"
                 readonly
               />

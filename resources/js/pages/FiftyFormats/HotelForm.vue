@@ -202,6 +202,7 @@
                 :label="t('کود منبع')"
                 variant="outlined"
                 density="compact"
+                :rules="[rules.required]"
                 clearable
                 @update:model-value="onResourceCodeChange"
                 :error="hasError('resource_code')"

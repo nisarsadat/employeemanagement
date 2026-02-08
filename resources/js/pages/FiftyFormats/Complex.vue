@@ -118,17 +118,17 @@
         <v-col cols="12" sm="6" md="3">
           <v-card
             class="stat-card"
-            :class="{ 'stat-card--active': cardFilter === 'withGuards' }"
-            @click="cardFilter = 'withGuards'"
+            :class="{ 'stat-card--active': cardFilter === 'withemployeecount' }"
+            @click="cardFilter = 'withemployeecount'"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
                 <v-icon>mdi-shield-account</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('دارای محافظ') }}</div>
+                <div class="stat-card-title">{{ t('تعداد کارمندان') }}</div>
                 <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withGuards }}
+                  {{ t('تعداد') }}: {{ stats.withemployeecount }}
                 </div>
               </div>
             </div>
@@ -327,11 +327,11 @@ const stats = computed(() => {
   const withPhone = rows.filter(
     (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
   ).length;
-  const withGuards = rows.filter(
-    (r) => r && r.guard_quantity && String(r.guard_quantity).trim() !== '' && Number(r.guard_quantity) > 0
+  const withemployeecount = rows.filter(
+    (r) => r && r.enter_male_quantity && String(r.enter_male_quantity).trim() !== '' && Number(r.enter_male_quantity) > 0
   ).length;
 
-  return { total, withCoordinates, withPhone, withGuards };
+  return { total, withCoordinates, withPhone, withemployeecount };
 });
 
 const filteredRowsFT = computed(() => {
@@ -345,7 +345,7 @@ const filteredRowsFT = computed(() => {
       return base.filter(
         (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
       );
-    case 'withGuards':
+    case 'withemployeecount':
       return base.filter(
         (r) => r && r.guard_quantity && String(r.guard_quantity).trim() !== '' && Number(r.guard_quantity) > 0
       );

@@ -64,7 +64,7 @@ use App\Models\fifthyformatfour\SuperMarket;
 use App\Models\fifthyformatfour\Park;
 use App\Models\fifthyformatfour\Complex;
 use App\Models\fifthyformatfour\DeplomaticPlace;
-
+use App\Models\fifthyFormats\Jawasis;
 // Format Three
 use App\Models\fifthyformatsthree\Badmashano;
 use App\Models\fifthyformatsthree\EmaratOffice;
@@ -266,104 +266,105 @@ class QuarterlyFoulReportController extends Controller
      * Returns only formats with count > 0:
      * [ {key, name, count}, ... ]
      */
-    private function formatCounts(Carbon $start, Carbon $end): array
-    {
-        $map = [
-            // FifthyFormats (original)
-            ['key' => 'fasads', 'name' => 'fasads', 'model' => Fasad::class],
-            ['key' => 'saeenFasads', 'name' => 'saeenFasads', 'model' => SaeenFasad::class],
-            ['key' => 'heists', 'name' => 'heists', 'model' => Heist::class],
-            ['key' => 'captives', 'name' => 'captives', 'model' => Captive::class],
-            ['key' => 'mulkanos', 'name' => 'mulkanos', 'model' => Mulkano::class],
-            ['key' => 'entryExits', 'name' => 'entryExits', 'model' => EntryExit::class],
-            ['key' => 'sarafyanos', 'name' => 'sarafyanos', 'model' => Sarafyano::class],
-            ['key' => 'clubs', 'name' => 'clubs', 'model' => Clubs::class],
-            ['key' => 'mahajerats', 'name' => 'mahajerats', 'model' => Mahajerat::class],
-            ['key' => 'soldiers', 'name' => 'soldiers', 'model' => Soldier::class],
+    private function formatCounts(Carbon $date): array
+{
+    $map = [
 
-            // Format One
-            ['key' => 'mawads', 'name' => 'mawads', 'model' => Mawad::class],
-            ['key' => 'lostmujremeens', 'name' => 'lostmujremeens', 'model' => LostMujremeen::class],
-            ['key' => 'oldSoldiersHomes', 'name' => 'oldSoldiersHomes', 'model' => OldSoldiersHomes::class],
-            ['key' => 'robbers', 'name' => 'robbers', 'model' => Robbers::class],
-            ['key' => 'nonResponsablePeople', 'name' => 'nonResponsablePeople', 'model' => NonResponsablePeople::class],
-            ['key' => 'mashkokHomes', 'name' => 'mashkokHomes', 'model' => MashkokHomes::class],
-            ['key' => 'damagePlaces', 'name' => 'damagePlaces', 'model' => DamagePlaces::class],
-            ['key' => 'damageRasanPlaces', 'name' => 'damageRasanPlaces', 'model' => DamageRasanPlaces::class],
-            ['key' => 'mashkokShops', 'name' => 'mashkokShops', 'model' => MashkokShops::class],
-            ['key' => 'luchakano', 'name' => 'luchakano', 'model' => Luchakano::class],
+        // FifthyFormats
+        ['key' => 'fasads', 'name' => 'فسادونه', 'model' => Fasad::class],
+        ['key' => 'saeenFasads', 'name' => 'ساعین بالفساد ', 'model' => SaeenFasad::class],
+        ['key' => 'heists', 'name' => 'غلاوې', 'model' => Heist::class],
+        ['key' => 'captives', 'name' => 'اسیران', 'model' => Captive::class],
+        ['key' => 'mulkanos', 'name' => 'نمایندهگانو', 'model' => Mulkano::class],
+        ['key' => 'entryExits', 'name' => 'داخل او خارج', 'model' => EntryExit::class],
+        ['key' => 'sarafyanos', 'name' => 'صرافان', 'model' => Sarafyano::class],
+        ['key' => 'clubs', 'name' => 'کلبونه', 'model' => Clubs::class],
+        ['key' => 'mahajerats', 'name' => 'مهاجرین', 'model' => Mahajerat::class],
+        ['key' => 'soldiers', 'name' => 'سرتیري', 'model' => Soldier::class],
 
-            // Format Two
-            ['key' => 'workshops', 'name' => 'workshops', 'model' => WorkShop::class],
-            ['key' => 'hosppitals', 'name' => 'hosppitals', 'model' => Hosppital::class],
-            ['key' => 'rahnomaMamlats', 'name' => 'rahnomaMamlats', 'model' => RahnomaMamlat::class],
-            ['key' => 'apartments', 'name' => 'apartments', 'model' => Apartment::class],
-            ['key' => 'banks', 'name' => 'banks', 'model' => Bank::class],
-            ['key' => 'transportCompanies', 'name' => 'transportCompanies', 'model' => TransportCompany::class],
-            ['key' => 'hadoBusStops', 'name' => 'hadoBusStops', 'model' => HadoBusStop::class],
-            ['key' => 'carSalesCompanies', 'name' => 'carSalesCompanies', 'model' => CarSalesCompany::class],
-            ['key' => 'schools', 'name' => 'schools', 'model' => School::class],
-            ['key' => 'parkings', 'name' => 'parkings', 'model' => Parking::class],
+        // Format One
+        ['key' => 'mawads', 'name' => 'مواد', 'model' => Mawad::class],
+        ['key' => 'lostmujremeens', 'name' => 'ورک مجرمین', 'model' => LostMujremeen::class],
+        ['key' => 'oldSoldiersHomes', 'name' => 'د پخوانیو عسکرو کورونه', 'model' => OldSoldiersHomes::class],
+        ['key' => 'robbers', 'name' => 'غله', 'model' => Robbers::class],
+        ['key' => 'nonResponsablePeople', 'name' => 'بې مسؤله خلک', 'model' => NonResponsablePeople::class],
+        ['key' => 'mashkokHomes', 'name' => 'مشکوک کورونه', 'model' => MashkokHomes::class],
+        ['key' => 'damagePlaces', 'name' => 'زیانمن ځایونه', 'model' => DamagePlaces::class],
+        ['key' => 'damageRasanPlaces', 'name' => 'زیان رسونکي ځایونه', 'model' => DamageRasanPlaces::class],
+        ['key' => 'mashkokShops', 'name' => 'مشکوک دوکانونه', 'model' => MashkokShops::class],
+        ['key' => 'luchakano', 'name' => 'لوچکان', 'model' => Luchakano::class],
 
-            // Format Four
-            ['key' => 'wakilanos', 'name' => 'wakilanos', 'model' => Wakilano::class],
-            ['key' => 'universities', 'name' => 'universities', 'model' => University::class],
-            ['key' => 'masjids', 'name' => 'masjids', 'model' => Masjid::class],
-            ['key' => 'highways', 'name' => 'highways', 'model' => Highway::class],
-            ['key' => 'companies', 'name' => 'companies', 'model' => Company::class],
-            ['key' => 'donelostplaces', 'name' => 'donelostplaces', 'model' => Donelostplace::class],
-            ['key' => 'econemyProjects', 'name' => 'econemyProjects', 'model' => EconemyProject::class],
-            ['key' => 'criminalCapturePlaces', 'name' => 'criminalCapturePlaces', 'model' => CriminalCapturePlace::class],
-            ['key' => 'pumps', 'name' => 'pumps', 'model' => Pump::class],
-            ['key' => 'shoras', 'name' => 'shoras', 'model' => Shora::class],
-            ['key' => 'checkpoints', 'name' => 'checkpoints', 'model' => Checkpoint::class],
-            ['key' => 'governmentplaces', 'name' => 'governmentplaces', 'model' => GovernmentPlace::class],
-            ['key' => 'supermarkets', 'name' => 'supermarkets', 'model' => SuperMarket::class],
-            ['key' => 'parks', 'name' => 'parks', 'model' => Park::class],
-            ['key' => 'complexes', 'name' => 'complexes', 'model' => Complex::class],
-            ['key' => 'deplomaticplaces', 'name' => 'deplomaticplaces', 'model' => DeplomaticPlace::class],
+        // Format Two
+        ['key' => 'workshops', 'name' => 'ورکشاپونه', 'model' => WorkShop::class],
+        ['key' => 'hosppitals', 'name' => 'روغتونونه', 'model' => Hosppital::class],
+        ['key' => 'rahnomaMamlats', 'name' => 'راهنما معاملات', 'model' => RahnomaMamlat::class],
+        ['key' => 'apartments', 'name' => 'اپارتمانونه', 'model' => Apartment::class],
+        ['key' => 'banks', 'name' => 'بانکونه', 'model' => Bank::class],
+        ['key' => 'transportCompanies', 'name' => 'ترانسپورتي شرکتونه', 'model' => TransportCompany::class],
+        ['key' => 'hadoBusStops', 'name' => 'بس تمځایونه', 'model' => HadoBusStop::class],
+        ['key' => 'carSalesCompanies', 'name' => 'د موټر خرڅلاو شرکتونه', 'model' => CarSalesCompany::class],
+        ['key' => 'schools', 'name' => 'ښوونځي', 'model' => School::class],
+        ['key' => 'parkings', 'name' => 'پارکینګونه', 'model' => Parking::class],
 
-            // Format Three
-            ['key' => 'badmashanos', 'name' => 'badmashanos', 'model' => Badmashano::class],
-            ['key' => 'emaratOffices', 'name' => 'emaratOffices', 'model' => EmaratOffice::class],
-            ['key' => 'hostels', 'name' => 'hostels', 'model' => Hostel::class],
-            ['key' => 'hotels', 'name' => 'hotels', 'model' => Hotel::class],
-            ['key' => 'madrasas', 'name' => 'madrasas', 'model' => Madrasa::class],
-            ['key' => 'mashkokPeople', 'name' => 'mashkokPeople', 'model' => MashkokPeople::class],
-            ['key' => 'mujahedinos', 'name' => 'mujahedinos', 'model' => Mujahedino::class],
-            ['key' => 'oldJahadis', 'name' => 'oldJahadis', 'model' => OldJahadi::class],
-            ['key' => 'sarayanos', 'name' => 'sarayanos', 'model' => Sarayano::class],
-            ['key' => 'tujarans', 'name' => 'tujarans', 'model' => Tujaran::class],
-        ];
+        // Format Four
+        ['key' => 'wakilanos', 'name' => 'وکیلان', 'model' => Wakilano::class],
+        ['key' => 'universities', 'name' => 'پوهنتونونه', 'model' => University::class],
+        ['key' => 'masjids', 'name' => 'جوماتونه', 'model' => Masjid::class],
+        ['key' => 'highways', 'name' => 'لویې لارې', 'model' => Highway::class],
+        ['key' => 'companies', 'name' => 'شرکتونه', 'model' => Company::class],
+        ['key' => 'donelostplaces', 'name' => 'ورک شوي ځایونه', 'model' => Donelostplace::class],
+        ['key' => 'econemyProjects', 'name' => 'اقتصادي پروژې', 'model' => EconemyProject::class],
+        ['key' => 'criminalCapturePlaces', 'name' => 'د مجرم نیولو ځایونه', 'model' => CriminalCapturePlace::class],
+        ['key' => 'pumps', 'name' => 'پمپونه', 'model' => Pump::class],
+        ['key' => 'shoras', 'name' => 'شوراګانې', 'model' => Shora::class],
+        ['key' => 'checkpoints', 'name' => 'چک پاینتونه', 'model' => Checkpoint::class],
+        ['key' => 'governmentplaces', 'name' => 'دولتې ځایونه', 'model' => GovernmentPlace::class],
+        ['key' => 'supermarkets', 'name' => 'سوپرمارکېټونه', 'model' => SuperMarket::class],
+        ['key' => 'parks', 'name' => 'پارکونه', 'model' => Park::class],
+        ['key' => 'complexes', 'name' => 'بنسټونو او موسسو ګانو', 'model' => Complex::class],
+        ['key' => 'deplomaticplaces', 'name' => 'دیپلوماتیک ځایونه', 'model' => DeplomaticPlace::class],
 
-        $out = [];
+        // Format Three
+        ['key' => 'badmashanos', 'name' => 'بدماشانو', 'model' => Badmashano::class],
+        ['key' => 'emaratOffices', 'name' => 'امارت دفترونه', 'model' => EmaratOffice::class],
+        ['key' => 'hostels', 'name' => 'لیلي او کرایي اطاقونه', 'model' => Hostel::class],
+        ['key' => 'hotels', 'name' => 'هوټلونه', 'model' => Hotel::class],
+        ['key' => 'madrasas', 'name' => 'مدرسې', 'model' => Madrasa::class],
+        ['key' => 'mashkokPeople', 'name' => 'مشکوک خلک', 'model' => MashkokPeople::class],
+        ['key' => 'mujahedinos', 'name' => 'مجاهدین', 'model' => Mujahedino::class],
+        ['key' => 'oldJahadis', 'name' => 'پخواني جهادي قومندانان', 'model' => OldJahadi::class],
+        ['key' => 'sarayanos', 'name' => 'سرایان', 'model' => Sarayano::class],
+        ['key' => 'tujarans', 'name' => 'تجاران', 'model' => Tujaran::class],
+        ['key' => 'jawasis', 'name' => 'جواسیس', 'model' => Jawasis::class],
+    ];
 
-        foreach ($map as $item) {
-            $modelClass = $item['model'];
-            $model = new $modelClass;
+    $out = [];
 
-            $q = $modelClass::query();
+    foreach ($map as $item) {
+        $modelClass = $item['model'];
+        $model = new $modelClass;
 
-            // filter on created_at ONLY if table has created_at
-            $table = $model->getTable();
-            if (Schema::hasColumn($table, 'created_at')) {
-                $q->whereDate('created_at', '>=', $start)
-                  ->whereDate('created_at', '<', $end);
-            }
+        $q = $modelClass::query();
+        $table = $model->getTable();
 
-            $count = (int) $q->count();
-
-            if ($count > 0) {
-                $out[] = [
-                    'key' => $item['key'],
-                    'name' => $item['name'],
-                    'count' => $count,
-                ];
-            }
+        if (Schema::hasColumn($table, 'created_at')) {
+            $q->whereDate('created_at', $date);
         }
 
-        usort($out, fn ($a, $b) => $b['count'] <=> $a['count']);
+        $count = (int) $q->count();
 
-        return $out;
+        if ($count > 0) {
+            $out[] = [
+                'key' => $item['key'],
+                'name' => $item['name'],
+                'count' => $count,
+            ];
+        }
     }
+
+    usort($out, fn($a, $b) => $b['count'] <=> $a['count']);
+
+    return $out;
+}
+
 }

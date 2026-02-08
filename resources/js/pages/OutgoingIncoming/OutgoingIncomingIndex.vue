@@ -53,7 +53,7 @@
             <div>
               <div class="text-h5 font-weight-bold text-primary fontfamily">{{ amirCount }}</div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('میرالمومنین شیخ صاحب فرامین') }}
+                {{ t('امیرالمومنین شیخ صاحب فرامین') }}
               </div>
             </div>
             <v-avatar color="primary" variant="tonal" size="48">

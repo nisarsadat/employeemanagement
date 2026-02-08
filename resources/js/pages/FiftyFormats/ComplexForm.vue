@@ -303,6 +303,7 @@
                     density="compact"
                     clearable
                     @update:model-value="onResourceCodeChange"
+                :rules="[rules.required]"
                     :error="hasError('resource_code')"
                     :error-messages="getErrorMessages('resource_code')"
                   />

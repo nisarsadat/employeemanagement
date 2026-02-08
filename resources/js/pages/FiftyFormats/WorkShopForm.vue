@@ -200,6 +200,7 @@
                 item-value="code_number"
                 :label="t('کود منبع')"
                 variant="outlined"
+                :rules="[rules.required]"
                 density="compact"
                 clearable
                 @update:model-value="onResourceCodeChange"

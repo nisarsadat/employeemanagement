@@ -425,8 +425,21 @@
               </div>
             </div>
           </div>
+
+         
         </v-card>
       </v-col>
+       <v-row class="mt-4">
+            <v-col cols="12">
+              <ReportNotesPeriodTable
+                type="daily"
+                :anchor-date="repo.selectedDate"
+                :rtl="isRtl"
+                :locale="locale"
+                :per-page="50"
+              />
+            </v-col>
+          </v-row>
     </v-row>
   </v-container>
 </template>
@@ -434,6 +447,8 @@
 <script setup>
   import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
+  import ReportNotesPeriodTable from './ReportNotesPeriodTable.vue';
+  import { useReportNoteRepository } from '@/stores/ReportNoteRepository'; // already exists (optional)
 
   import AppBar from '@/components/AppBar.vue';
   import DateInput from '@/components/DateInput.vue';

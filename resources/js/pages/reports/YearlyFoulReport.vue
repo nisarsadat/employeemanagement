@@ -413,6 +413,15 @@
           </div>
         </v-card>
       </v-col>
+      <v-col>
+        <ReportNotesPeriodTable
+          type="yearly"
+          :anchor-date="repo.selectedDate"
+          :rtl="isRtl"
+          :locale="locale"
+          :per-page="50"
+        />
+      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -420,6 +429,7 @@
 <script setup>
   import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
+  import ReportNotesPeriodTable from './ReportNotesPeriodTable.vue';
 
   import AppBar from '@/components/AppBar.vue';
   import DateInput from '@/components/DateInput.vue';
@@ -489,11 +499,7 @@
     const dt = new Date(y, m - 1, d);
 
     const fmtLocale =
-      cal === 'jalali'
-        ? 'fa-IR-u-ca-persian'
-        : cal === 'hijri'
-          ? 'ar-SA-u-ca-islamic'
-          : 'en-US';
+      cal === 'jalali' ? 'fa-IR-u-ca-persian' : cal === 'hijri' ? 'ar-SA-u-ca-islamic' : 'en-US';
 
     const yearText = new Intl.DateTimeFormat(fmtLocale, { year: 'numeric' }).format(dt);
     return toLatinDigits(yearText);

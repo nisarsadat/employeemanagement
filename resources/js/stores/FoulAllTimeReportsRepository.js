@@ -376,7 +376,7 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
         min-width: 150px;
       }
       .hero-logo img{
-        height:42px;
+        height:82px;
         width:auto;
         object-fit:contain;
         display:block;
@@ -427,7 +427,7 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
 
     function getLogoUrl() {
       // ✅ logo must be inside /public so it works in print window
-      return `${window.location.origin}/logo.png`;
+      return `${window.location.origin}/logo.jpeg`;
     }
 
     const infoTr = infoTypes.length

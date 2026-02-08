@@ -330,7 +330,9 @@
               </v-avatar>
               <div>
                 <div class="card-title fontfamily">{{ t('رویدادهای ثبت‌شده') }}</div>
-                <div class="card-subtitle fontfamily">{{ t('جزئیات رویدادها بر اساس نوع رویداد') }}</div>
+                <div class="card-subtitle fontfamily">
+                  {{ t('جزئیات رویدادها بر اساس نوع رویداد') }}
+                </div>
               </div>
             </div>
             <v-chip color="warning" variant="tonal" size="small" class="fontfamily">
@@ -353,7 +355,12 @@
               no-data-text="هیچ رویدادی ثبت نشده"
             >
               <template #item.count="{ item }">
-                <v-chip color="warning" variant="outlined" size="small" class="font-weight-bold fontfamily">
+                <v-chip
+                  color="warning"
+                  variant="outlined"
+                  size="small"
+                  class="font-weight-bold fontfamily"
+                >
                   {{ item.count }}
                 </v-chip>
               </template>
@@ -390,6 +397,15 @@
           </div>
         </v-card>
       </v-col>
+      <v-col>
+        <ReportNotesPeriodTable
+          type="monthly"
+          :anchor-month="repo.selectedMonth"
+          :rtl="isRtl"
+          :locale="locale"
+          :per-page="50"
+        />
+      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -398,6 +414,7 @@
   import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
+  import ReportNotesPeriodTable from './ReportNotesPeriodTable.vue';
 
   import AppBar from '@/components/AppBar.vue';
   import DateInput from '@/components/DateInput.vue';

@@ -327,6 +327,7 @@
                 :items="resources"
                 item-title="code_number"
                 item-value="code_number"
+                :rules="[rules.required]"
                 :label="t('کود منبع')"
                 density="compact"
                 variant="outlined"

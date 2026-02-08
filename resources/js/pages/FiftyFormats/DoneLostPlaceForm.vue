@@ -231,6 +231,7 @@
                 item-title="code_number"
                 item-value="code_number"
                 :label="t('کود منبع')"
+                :rules="[rules.required]"
                 density="compact"
                 variant="outlined"
                 clearable

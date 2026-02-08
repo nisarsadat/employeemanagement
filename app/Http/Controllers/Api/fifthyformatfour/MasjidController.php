@@ -81,7 +81,9 @@ class MasjidController extends Controller
 
                 $row = Masjid::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
-
+                if (!empty($data['resource_id'])) {
+                    $this->ensureResourceIsUniqueForThisTable((int) $data['resource_id']);
+                }
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
@@ -124,6 +126,9 @@ class MasjidController extends Controller
                 // 🧮 build changes BEFORE update (like InformationController)
                 $original  = $masjid->getOriginal();
                 $validated = $request->validated();
+                if (!empty($validated['resource_id'])) {
+                    $this->ensureResourceIsUniqueForThisTable((int) $validated['resource_id'], $masjid->id);
+                }
                 $changes   = [];
 
                 foreach ($validated as $field => $newValue) {
@@ -181,6 +186,24 @@ class MasjidController extends Controller
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
             throw $e;
+        }
+    }
+
+    private function ensureResourceIsUniqueForThisTable(int $resourceId, ?int $ignoreId = null): void
+    {
+        $q = Masjid::query()->where('resource_id', $resourceId);
+
+        if ($ignoreId) {
+            $q->where('id', '!=', $ignoreId);
+        }
+
+        if ($q->exists()) {
+            abort(response()->json([
+                'message' => 'این منبع قبلاً استفاده شده است.',
+                'errors' => [
+                    'resource_id' => ['برای این منبع قبلاً یک مسجد ثبت شده است.'],
+                ],
+            ], 422));
         }
     }
 

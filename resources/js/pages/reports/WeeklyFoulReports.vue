@@ -176,7 +176,12 @@
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card class="stat-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'" @click="goInformations">
+        <v-card
+          class="stat-card"
+          elevation="0"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+          @click="goInformations"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="stat-label fontfamily">{{ t('اطلاعات') }}</div>
@@ -214,7 +219,12 @@
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card class="stat-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'" @click="goFiftyFormatsHub">
+        <v-card
+          class="stat-card"
+          elevation="0"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+          @click="goFiftyFormatsHub"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="stat-label fontfamily">{{ t('فورم‌های ۵۰ فارمت') }}</div>
@@ -403,6 +413,15 @@
           </div>
         </v-card>
       </v-col>
+      <v-col>
+        <ReportNotesPeriodTable
+          type="weekly"
+          :anchor-date="repo.selectedDate"
+          :rtl="isRtl"
+          :locale="locale"
+          :per-page="50"
+        />
+      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -410,6 +429,7 @@
 <script setup>
   import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
+  import ReportNotesPeriodTable from './ReportNotesPeriodTable.vue';
 
   import AppBar from '@/components/AppBar.vue';
   import DateInput from '@/components/DateInput.vue';
@@ -481,7 +501,7 @@
     const isoYear = date.getUTCFullYear();
 
     const yearStart = new Date(Date.UTC(isoYear, 0, 1));
-    const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+    const weekNo = Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
 
     return `${isoYear}-W${String(weekNo).padStart(2, '0')}`;
   }

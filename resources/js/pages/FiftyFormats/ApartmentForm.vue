@@ -231,6 +231,7 @@
                 v-model="form.resource_phone"
                 :label="t('شماره منبع')"
                 variant="outlined"
+                :rules="[rules.required]"
                 density="compact"
                 readonly
               />

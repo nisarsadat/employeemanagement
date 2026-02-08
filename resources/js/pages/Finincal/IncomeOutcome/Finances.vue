@@ -403,18 +403,18 @@ const selectedYear = ref(null);
 const selectedMonth = ref(null);
 
 const monthOptions = computed(() => [
-  { title: '1', value: 1 },
-  { title: '2', value: 2 },
-  { title: '3', value: 3 },
-  { title: '4', value: 4 },
-  { title: '5', value: 5 },
-  { title: '6', value: 6 },
-  { title: '7', value: 7 },
-  { title: '8', value: 8 },
-  { title: '9', value: 9 },
-  { title: '10', value: 10 },
-  { title: '11', value: 11 },
-  { title: '12', value: 12 },
+  { title: '1 - حمل', value: 1 },
+  { title: '2 - ثور', value: 2 },
+  { title: '3 - جوزا', value: 3 },
+  { title: '4 - سرطان', value: 4 },
+  { title: '5 - اسد', value: 5 },
+  { title: '6 - سنبله', value: 6 },   // ✅ around Sep
+  { title: '7 - میزان', value: 7 },
+  { title: '8 - عقرب', value: 8 },
+  { title: '9 - قوس', value: 9 },
+  { title: '10 - جدی', value: 10 },
+  { title: '11 - دلو', value: 11 },
+  { title: '12 - حوت', value: 12 },
 ]);
 
 const { yearItemsFromGregorianYears } = useCalendar();

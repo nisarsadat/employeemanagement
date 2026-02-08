@@ -490,6 +490,7 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :rules="[rules.required]"
                 clearable
                 @update:model-value="onResourceCodeChange"
               />

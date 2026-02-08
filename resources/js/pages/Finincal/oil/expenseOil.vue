@@ -202,8 +202,6 @@ const { t, locale } = useI18n()
 const cal = useCalendar()
 const formatDisplay = cal.formatDisplay
 const toIso = cal.toIso
-
-// ✅ THIS is what AppBar changes: calendar.value = 'gregorian' | 'jalali' | 'hijri'
 const calendar = cal.calendar
 
 const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
@@ -212,13 +210,8 @@ function getRow(payload) {
   return payload?.raw ?? payload
 }
 
-// ✅ key to force v-select re-render when calendar changes
 const calKey = computed(() => String(calendar?.value || 'gregorian'))
 
-// =========================
-// ✅ Month options (label changes by calendar)
-// value ALWAYS 1..12 (Gregorian month index) -> sent to backend
-// =========================
 const monthOptions = computed(() => {
   const c = String(calendar?.value || 'gregorian')
 
@@ -272,28 +265,26 @@ const monthOptions = computed(() => {
   ]
 })
 
-// =========================
-// ✅ Year options
-// value = Gregorian year (backend filter)
-// title = calendar converted display (from your composable helper)
-// =========================
 const yearOptions = computed(() => {
-  // uses your useCalendar.js helper (it reads calendar.value internally)
-  return cal.yearItemsFromGregorianYears(repo.availableYears || [], locale.value)
+  const y = repo.availableYears
+
+  // unwrap common API shapes
+  const arr =
+    Array.isArray(y) ? y :
+    Array.isArray(y?.data) ? y.data :
+    Array.isArray(y?.years) ? y.years :
+    []
+
+  return cal.yearItemsFromGregorianYears(arr, locale.value)
 })
 
-// =========================
-// ✅ Cards summary adapter (supports both camelCase and snake_case)
-// =========================
 const summaryView = computed(() => {
   const s = repo.summary || {}
 
-  // backend (snake_case)
   const totalExpenseSnake = s.total_expense_quantity ?? s.filtered_expense_quantity
   const totalIncomeSnake = s.total_income_quantity
   const totalOilSnake = s.total_quantity_all_accounts
 
-  // frontend (camelCase)
   const totalExpenseCamel = s.totalExpense ?? s.filteredExpense
   const totalIncomeCamel = s.totalIncome
   const totalOilCamel = s.totalOilQuantity
@@ -307,9 +298,6 @@ const summaryView = computed(() => {
   }
 })
 
-// =========================
-// TABLE
-// =========================
 const headersFT = computed(() => [
   { title: t('کود کارمند'), key: 'officeemployee', sortable: false },
   { title: t('نام'), key: 'name', sortable: false },
@@ -326,9 +314,11 @@ const headersFT = computed(() => [
 const litersRaw = (n) =>
   Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
 
+// ✅ FIX: add idOrTmp (stable) so FilterableTable doesn't fallback to row-index keys
 const rowsFT = computed(() => {
   return (repo.ExpenseOils || []).map((it, i) => ({
     ...it,
+    idOrTmp: it?.id ?? `tmp-${i}`, // ✅ IMPORTANT
     index: i + 1,
     account: it?.account?.name ?? it?.account ?? '—',
     name: it?.name ?? '—',
@@ -346,9 +336,6 @@ const rowsFT = computed(() => {
 const filters = []
 const topGroups = []
 
-// =========================
-// Dialogs / CRUD
-// =========================
 const dialog = ref(false)
 const editMode = ref(false)
 
@@ -366,7 +353,6 @@ const draft = reactive({
 })
 
 const fetchAll = async () => {
-  // ✅ This call returns list + summary (backend additional).
   await repo.FetchExpenseOils({ page: repo.page, itemsPerPage: repo.itemsPerPage })
 }
 

@@ -265,6 +265,7 @@
                 :label="t('کود منبع')"
                 density="compact"
                 variant="outlined"
+                :rules="[rules.required]"
                 hide-details="auto"
                 clearable
                 @update:model-value="onResourceCodeChange"

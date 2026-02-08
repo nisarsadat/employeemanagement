@@ -1,7 +1,6 @@
 // src/stores/OilRepository.js
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
-import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 // tiny helper to match your pattern
@@ -16,8 +15,6 @@ function setContentType(type) {
 export const useOilRepository = defineStore('OilRepository', {
   state() {
     return {
-      router: useRouter(),
-
       // shared pagination/meta
       page: 1,
       itemsPerPage: 10,
@@ -45,14 +42,15 @@ export const useOilRepository = defineStore('OilRepository', {
       from: null,
       to: null,
 
+      // ✅ YEARS dropdown loading
+      yearsLoading: false,
+
       // ✅ year/month filters (Gregorian values ONLY)
-      // UI can display Shamsi/Qamari labels, but we always send these numbers to backend.
-      year: null,  // 2026
+      year: null, // 2026
       month: null, // 1..12
 
       // ✅ years dropdown (Gregorian years from backend)
       availableYears: reactive([]),
-      yearsLoading: false,
 
       // summary (cards)
       summary: reactive({
@@ -63,7 +61,7 @@ export const useOilRepository = defineStore('OilRepository', {
         incomeCount: 0,
         oilAccountsCount: 0,
 
-        // ✅ optional extra fields (safe)
+        // optional extra fields (safe)
         filteredExpense: 0,
         filteredIncome: 0,
       }),
@@ -75,15 +73,17 @@ export const useOilRepository = defineStore('OilRepository', {
     // YEARS
     // =========================
     async FetchYears(type) {
-      // type examples:
-      //  - 'income-oils'  -> GET /income-oils/years
-      //  - 'expense-oils' -> GET /expense-oils/years
-      //  - 'oil-accounts' -> GET /oil-accounts/years (optional)
       this.yearsLoading = true
       try {
-        setContentType('application/json')
         const resp = await axios.get(`/${type}/years`)
-        this.availableYears = resp?.data ?? []
+        const payload = resp.data
+
+        // ✅ ALWAYS force array
+        this.availableYears =
+          Array.isArray(payload) ? payload
+          : Array.isArray(payload?.data) ? payload.data
+          : Array.isArray(payload?.years) ? payload.years
+          : []
       } finally {
         this.yearsLoading = false
       }
@@ -111,17 +111,13 @@ export const useOilRepository = defineStore('OilRepository', {
         this.OilAccounts = resp?.data?.data ?? []
         this.totalItems = resp?.data?.meta?.total ?? 0
 
-        // ✅ if backend later returns summary here, we support it
-        if (resp?.data?.summary) {
-          this.summary = resp.data.summary
-        }
+        if (resp?.data?.summary) this.summary = resp.data.summary
       } finally {
         this.loading = false
       }
     },
 
     async FetchOilSummary() {
-      // Expect backend can accept year/month/search to make cards follow filters
       setContentType('application/json')
 
       const resp = await axios.get(`/oil/summary`, {
@@ -195,10 +191,7 @@ export const useOilRepository = defineStore('OilRepository', {
         this.IncomeOils = resp?.data?.data ?? []
         this.totalItems = resp?.data?.meta?.total ?? 0
 
-        // ✅ support summary if backend returns it
-        if (resp?.data?.summary) {
-          this.summary = resp.data.summary
-        }
+        if (resp?.data?.summary) this.summary = resp.data.summary
       } finally {
         this.loading = false
       }
@@ -251,10 +244,7 @@ export const useOilRepository = defineStore('OilRepository', {
         this.ExpenseOils = resp?.data?.data ?? []
         this.totalItems = resp?.data?.meta?.total ?? 0
 
-        // ✅ support summary if backend returns it
-        if (resp?.data?.summary) {
-          this.summary = resp.data.summary
-        }
+        if (resp?.data?.summary) this.summary = resp.data.summary
       } finally {
         this.loading = false
       }

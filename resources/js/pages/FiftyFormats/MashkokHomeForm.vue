@@ -226,6 +226,7 @@
                 item-value="id"
                 :label="t('منبع (کود)')"
                 variant="outlined"
+                :rules="[rules.required]"
                 density="compact"
                 clearable
                 @update:model-value="onResourceChange"

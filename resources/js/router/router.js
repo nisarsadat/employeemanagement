@@ -200,6 +200,7 @@ import DocsTypesIndex from '../pages/Settings/DocsType/DocsTypesIndex.vue';
 import MarjasIndex from '../pages/Settings/Marja/MarjasIndex.vue';
 import JawasisIndex from '../pages/FiftyFormats/JawasisIndex.vue';
 import JawasisForm from '../pages/FiftyFormats/JawasiForm.vue';
+import ReportNotesIndex from '../pages/reports/ReportNotesIndex.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -366,37 +367,37 @@ const router = createRouter({
           path: 'dailyfoulreports',
           name: 'dailyfoulreports',
           component: DailyFoulReport,
-          // meta: { requiresAuth: true, perm: permFor('informations') },
+          meta: { requiresAuth: true, perm: permFor('reports') },
         },
         {
           path: 'monthlyfoulreports',
           name: 'monthlyfoulreports',
           component: MonthlyFoulReport,
-          // meta: { requiresAuth: true, perm: permFor('informations') },
+          meta: { requiresAuth: true, perm: permFor('reports') },
         },
         {
           path: 'yearlyfoulreports',
           name: 'yearlyfoulreports',
           component: YearlyFoulReport,
-          // meta: { requiresAuth: true, perm: permFor('informations') },
+          meta: { requiresAuth: true, perm: permFor('reports') },
         },
         {
           path: 'weeklyfoulreports',
           name: 'weeklyfoulreports',
           component: WeeklyFoulReports,
-          // meta: { requiresAuth: true, perm: permFor('informations') },
+          meta: { requiresAuth: true, perm: permFor('reports') },
         },
         {
           path: 'quarterlyfoulreports',
           name: 'quarterlyfoulreports',
           component: FoulQuarterlyReports,
-          // meta: { requiresAuth: true, perm: permFor('informations') },
+          meta: { requiresAuth: true, perm: permFor('reports') },
         },
         {
           path: 'alltimefoulreports',
           name: 'alltimefoulreports',
           component: AllTimeFoulReports,
-          // meta: { requiresAuth: true, perm: permFor('informations') },
+          meta: { requiresAuth: true, perm: permFor('reports') },
         },
         // Inline info
         {
@@ -1455,6 +1456,12 @@ const router = createRouter({
           name: 'roles',
           component: Roles,
           meta: { requiresAuth: true, perm: permFor('roles') },
+        },
+        {
+          path: 'reportnote',
+          name: 'reportnote',
+          component: ReportNotesIndex,
+          meta: { requiresAuth: true, perm: permFor('reports') },
         },
         // {
         //   path: 'permissions',

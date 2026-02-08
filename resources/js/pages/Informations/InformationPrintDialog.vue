@@ -1,165 +1,178 @@
+<!-- src/pages/Informations/InformationPrint.vue -->
 <template>
-  <AppBar :title="t('فورم اطلاع شخص')">
+  <AppBar :title="t('فورم اطلاع شخص')" @back="goBack">
     <template #actions>
-      <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
-        {{ t('برگشت') }}
-      </v-btn>
+      <div class="top-actions no-print">
+        <button class="btn btn-pdf" type="button" @click="downloadPdf">
+          <span class="dot dot-pdf" /> PDF
+        </button>
+        <button class="btn btn-word" type="button" @click="downloadWord">
+          <span class="dot dot-word" /> Word
+        </button>
+      </div>
     </template>
   </AppBar>
-  <div class="info-print-page" dir="rtl">
-    <!-- TOP BAR (only for app view, hidden on print) -->
-    <div class="top-bar no-print">
-      <div>
-        <button type="button" class="top-btn" @click="downloadPdf">PDF</button>
-        <button type="button" class="top-btn" @click="downloadWord">Word</button>
-      </div>
-    </div>
 
-    <!-- PAGE BODY (centered horizontally) -->
-    <div ref="printArea" class="page-body">
-      <!-- HEADER: titles + logo + Bismillah -->
-      <table class="header-table">
-        <tr>
-          <!-- RIGHT side (stacked 4 items) -->
-          <td class="stack-cell" style="text-align: right">
-            فورم ثبت اطلاع <br />
-            فورم ثبت اطلاع <br />
-            فورم ثبت اطلاع <br />
-            فورم ثبت اطلاع
-          </td>
+  <!-- ✅ ALWAYS RTL -->
+  <div class="page-shell" dir="rtl">
+    <div ref="printArea" class="paper" dir="rtl">
+      <!-- Header -->
+      <header class="hdr">
+        <!-- ✅ Brand must be on RIGHT -->
+        <div class="hdr-left ml-36 mr-12">
+          <div class="brand">
+            <img :src="logoSrc" class="brand-logo" alt="Logo" />
+            <div class="brand-text">
+              <div class="brand-title">{{ systemName }}</div>
+              <div class="brand-sub">{{ t('سند رسمی / پرنټ') }}</div>
+            </div>
+          </div>
+        </div>
 
-          <!-- CENTER LOGO -->
-          <td class="logo-cell">
-            <img :src="logoSrc" alt="logo" />
-          </td>
+        <!-- ✅ Meta pills must be on LEFT -->
+        <div class="hdr-right">
+          <div class="meta-pill">
+            <div class="meta-k">{{ t('شمېره') }}</div>
+            <div class="meta-v">{{ item.id || '—' }}</div>
+          </div>
+          <div class="meta-pill">
+            <div class="meta-k">{{ t('تاریخ') }}</div>
+            <div class="meta-v">{{ formattedInformationDate || '—' }}</div>
+          </div>
+          <div class="meta-pill">
+            <div class="meta-k">{{ t('ساعت') }}</div>
+            <div class="meta-v">{{ item.information_saved_hour || '—' }}</div>
+          </div>
+        </div>
+      </header>
 
-          <!-- LEFT side (stacked 5 items) -->
-          <td class="stack-cell" style="text-align: left">
-            د اطلاع ثبت فورم <br />
-            د اطلاع ثبت فورم <br />
-            د اطلاع ثبت فورم <br />
-            د اطلاع ثبت فورم <br />
-            د اطلاع ثبت فورم
-          </td>
-        </tr>
-      </table>
+      <div class="rule" />
 
-      <div class="bismillah-cell">بسم الله الرحمن الرحیم</div>
+      <section class="grid">
+        <div class="field">
+          <div class="k">{{ t('موضوع / نوم') }}</div>
+          <div class="v strong clamp-2">{{ item.name || '—' }}</div>
+        </div>
 
-      <!-- MAIN TABLE (simple Word-like table) -->
-      <table class="info-table">
-        <thead>
-          <tr>
-            <th>شمېره</th>
-            <th>کود منبع</th>
-            <th>کود کارمند</th>
-            <th>د اطلاع نیټه</th>
-            <th>د اطلاع ساعت</th>
-            <th>د معلومات ډول</th>
-            <th>د جنایي معلومات ډول</th>
-            <th>ولایت مربوطه</th>
-            <th>نوم / موضوع</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- 1 data row under header -->
-          <tr>
-            <td>{{ item.id || '' }}</td>
-            <td>{{ item.resource_code_number || '' }}</td>
-            <td>{{ item.office_employee_code_number || '' }}</td>
-            <td>{{ formattedInformationDate }}</td>
-            <td>{{ item.information_saved_hour || '' }}</td>
-            <td>{{ item.syasi_info_type || '' }}</td>
-            <td>{{ item.jenayee_info_type || '' }}</td>
-            <td>{{ item.Province_addr || '' }}</td>
-            <td>{{ item.name || '' }}</td>
-          </tr>
+        <div class="field">
+          <div class="k">{{ t('ولایت') }}</div>
+          <div class="v">{{ item.Province_addr || '—' }}</div>
+        </div>
 
-          <!-- تفصیل (TALL ROW) -->
-          <tr class="tafseel-row">
-            <td colspan="9" class="big-cell">
-              <span class="cell-label">تفصیل:</span>
-              <div class="cell-content">
-                {{ item.tafseel || '' }}
-              </div>
-            </td>
-          </tr>
+        <div class="field">
+          <div class="k">{{ t('د معلومات ډول') }}</div>
+          <div class="v">{{ item.syasi_info_type || '—' }}</div>
+        </div>
 
-          <!-- اسناد / شواهد (HALF HEIGHT) -->
-          <tr class="docs-row">
-            <td colspan="9" class="big-cell">
-              <span class="cell-label">د اطلاع اړوند اسناد او شواهد:</span>
-              <div class="cell-content">
-                <template v-if="Array.isArray(item.documents) && item.documents.length">
-                  <ul class="docs-list">
-                    <li
-                      v-for="doc in item.documents"
-                      :key="doc.id || doc.file_name || doc.original_name"
-                    >
-                      {{ doc.original_name || doc.file_name || doc.name }}
-                    </li>
-                  </ul>
-                </template>
-              </div>
-            </td>
-          </tr>
+        <div class="field">
+          <div class="k">{{ t('د جنایي معلومات ډول') }}</div>
+          <div class="v">{{ item.jenayee_info_type || '—' }}</div>
+        </div>
+      </section>
 
-          <!-- مدیریت نظر (HALF HEIGHT) -->
-          <tr class="manager-row">
-            <td colspan="9" class="big-cell">
-              <span class="cell-label">د مدیریت نظر:</span>
-              <div class="cell-content">
-                {{ item.manager_comment || '' }}
-              </div>
-            </td>
-          </tr>
+      <main class="content">
+        <section class="section">
+          <div class="section-h">
+            <div class="section-title">{{ t('تفصیل معلومات') }}</div>
+            <div class="chip">{{ t('کلمات') }}: {{ wordCount(item.tafseel) }}</div>
+          </div>
+          <div class="box box-text">
+            <div class="pre clamp-lines">
+              {{ item.tafseel || '—' }}
+            </div>
+          </div>
+        </section>
 
-          <!-- هدایت (HALF HEIGHT) -->
-          <tr class="direction-row">
-            <td colspan="9" class="big-cell">
-              <span class="cell-label">هدایت:</span>
-              <div class="cell-content">
-                {{ item.lead_drirection || '' }}
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <!-- ✅ Two columns with fixed positions (like image) -->
+        <section class="two">
+          <!-- Right side (first in RTL) -->
+          <div class="section">
+            <div class="section-h">
+              <div class="section-title">{{ t('اسناد پیوست') }}</div>
+              <div class="chip">{{ docsCount }}</div>
+            </div>
 
-      <!-- FOOTER (signatures) -->
-      <div class="footer-row">
-        <span>امضاء / مهر مسئول</span>
-        <span>تاریخ / امضاء ثبت کوونکی</span>
-      </div>
+            <div class="box box-text">
+              <div class="pre clamp-10">{{ itemDocsNote }}</div>
+            </div>
+          </div>
+
+          <!-- Left side -->
+          <div class="section">
+            <div class="section-h">
+              <div class="section-title">{{ t('نظر مدیریت') }}</div>
+            </div>
+            <div class="box box-text">
+              <div class="pre clamp-10">{{ item.manager_comment || '—' }}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-h">
+            <div class="section-title">{{ t('هدایت و راهنمایی') }}</div>
+          </div>
+          <div class="box box-text">
+            <div class="pre clamp-8">{{ item.lead_drirection || '—' }}</div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="ftr">
+        <div class="signs">
+          <div class="sign">
+            <div class="sign-k">{{ t('مسئول ثبت کننده') }}</div>
+            <div class="line" />
+            <div class="sign-meta">
+              <span>{{ t('تاریخ') }}: ____</span>
+              <span>{{ t('مهر') }}: ____</span>
+            </div>
+          </div>
+
+          <div class="sign">
+            <div class="sign-k">{{ t('مسئول تایید کننده') }}</div>
+            <div class="line" />
+            <div class="sign-meta">
+              <span>{{ t('تاریخ') }}: ____</span>
+              <span>{{ t('مهر') }}: ____</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stamp">
+          <div class="stamp-row">
+            <span class="s-k">{{ t('شناسه سیستم') }}</span>
+            <span class="s-v">{{ systemId }}</span>
+          </div>
+          <div class="stamp-row">
+            <span class="s-k">{{ t('تاریخ چاپ') }}</span>
+            <span class="s-v">{{ printedAt }}</span>
+          </div>
+        </div>
+      </footer>
     </div>
   </div>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch } from 'vue';
+  import { ref, computed, onMounted } from 'vue';
   import { useRoute } from 'vue-router';
-  import { useDatabaseRepository } from '@/stores/DatabaseRepository';
-  import AppBar from '../../components/AppBar.vue';
   import { useI18n } from 'vue-i18n';
   import router from '../../router/router';
-  import { useCalendar } from '../../../composables/useCalendar'; // 🆕 calendar composable
+  import AppBar from '../../components/AppBar.vue';
+  import { useDatabaseRepository } from '@/stores/DatabaseRepository';
+  import { useCalendar } from '../../../composables/useCalendar';
 
   const route = useRoute();
   const repo = useDatabaseRepository();
-
   const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (newLocale) => {
-    isRtl.value = newLocale === 'fa';
-  });
 
-  /* go back */
   function goBack() {
     router.push('/app/informations');
   }
 
   const printArea = ref(null);
-  const logoSrc = `${window.location.origin}/view.png`; // file must be in /public
+  const logoSrc = `${window.location.origin}/logo.jpeg`;
 
   const id = computed(() => route.params.id);
 
@@ -169,23 +182,64 @@
     return raw || {};
   });
 
-  /* 🗓 calendar formatting (same source as AppBar) */
+  const docsCount = computed(() =>
+    Array.isArray(item.value?.documents) ? item.value.documents.length : 0
+  );
+
+  const itemDocsNote = computed(() => {
+    const v = item.value?.docs_note;
+    return v && String(v).trim() ? String(v) : '—';
+  });
+
+  const systemName = ref('سیستم مدیریت اطلاعات ');
+  const systemId = ref('');
+  const printedAt = ref('');
+
+  function nowStamp() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${y}/${m}/${day} ${hh}:${mm}`;
+  }
+
+  function randomHex(len = 4) {
+    const bytes = new Uint8Array(Math.ceil(len / 2));
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
+      .slice(0, len)
+      .toUpperCase();
+  }
+
+  function generateSystemId() {
+    return `NDS-${randomHex(4)}-${randomHex(4)}-${randomHex(4)}`;
+  }
+
+  function refreshPrintMeta() {
+    printedAt.value = nowStamp();
+    systemId.value = generateSystemId();
+  }
+
+  refreshPrintMeta();
+
   const { formatDisplay, toIso } = useCalendar();
 
-  const uiLocale = computed(() => locale.value || 'fa');
-
-  /**
-   * Use the global calendar mode (gregorian/jalali/hijri)
-   * to render the saved information date.
-   * Assumes backend date is stored as ISO (YYYY-MM-DD) or parseable by dayjs.
-   */
   const formattedInformationDate = computed(() => {
     const raw = item.value?.information_saved_date;
     if (!raw) return '';
-    // normalize to ISO and then format for UI using current calendar
-    const iso = toIso(raw); // safe wrapper -> YYYY-MM-DD
-    return formatDisplay(iso, uiLocale.value);
+    const iso = toIso(raw);
+    // ✅ still use your locale for date formatting, but layout is always RTL
+    return formatDisplay(iso, locale.value || 'fa');
   });
+
+  function wordCount(text) {
+    if (!text) return 0;
+    return String(text).trim().split(/\s+/).filter(Boolean).length;
+  }
 
   onMounted(async () => {
     if (id.value && typeof repo.FetchInformationData === 'function') {
@@ -194,383 +248,480 @@
   });
 
   function buildInnerHtml() {
-    return printArea.value ? printArea.value.innerHTML : '';
+    return printArea.value ? printArea.value.outerHTML : '';
   }
 
-  /**
-   * Build full HTML document for both PDF/Word.
-   * Uses only printArea → no AppBar, no top buttons.
-   */
+  // ✅ ALWAYS RTL print CSS (fixed positions like your image)
+  function buildPrintCss() {
+    return `
+    @page { size: A4 portrait; margin: 12mm; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      font-family: 'Vazirmatn','Scheherazade New','Amiri',sans-serif;
+      color: #111827;
+      font-size: 11pt;
+      line-height: 1.55;
+      direction: rtl !important;
+      text-align: right !important;
+      unicode-bidi: plaintext !important;
+    }
+
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+    .page-shell { padding: 0 !important; background: white !important; }
+
+    .paper {
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: none !important;
+      padding: 14px;
+      direction: rtl !important;
+      text-align: right !important;
+    }
+
+    /* ✅ Header: brand RIGHT, meta LEFT */
+    .hdr { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; }
+    .hdr-left { grid-column: 1; justify-self: end; }   /* brand on right */
+    .hdr-right { grid-column: 4; justify-self: start; }/* meta on left */
+
+    .brand { display: flex; gap: 10px; align-items: center; min-width: 0; }
+    .brand-logo { width: 44px; height: 44px; object-fit: contain; border-radius: 10px; border: 1px solid rgba(0,0,0,.08); background:#fff; }
+    .brand-title { font-weight: 900; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .brand-sub { font-size: 12px; color: rgba(0,0,0,.55); margin-top: 2px; }
+
+    /* ✅ pills order like screenshot */
+    .hdr-right { display: flex; gap: 8px; flex-wrap: wrap; flex-direction: row-reverse; justify-content: flex-start; }
+
+    .meta-pill { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 7px 10px; min-width: 120px; background: #fafafa; }
+    .meta-k { font-size: 11px; color: rgba(0,0,0,.55); }
+    .meta-v { font-size: 13px; font-weight: 900; margin-top: 2px; }
+
+    .rule { height: 1px; background: rgba(0,0,0,.08); margin: 10px 0 12px; }
+
+    .grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 10px; }
+    .field { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 9px 10px; background:#fff; min-width:0; }
+    .k { font-size: 11px; color: rgba(0,0,0,.55); margin-bottom: 4px; }
+    .v { font-size: 13px; font-weight: 650; }
+    .strong { font-weight: 900; }
+
+    .content { margin-top: 12px; }
+    .section { margin-top: 10px; }
+    .section-h { display:flex; align-items:center; justify-content: space-between; gap:10px; margin-bottom: 6px; }
+    .section-title { font-weight: 900; font-size: 13px; }
+    .chip { font-size: 11px; border: 1px solid rgba(0,0,0,.08); background:#f9fafb; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+
+    .box { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 10px; background:#fff; }
+    .box-text { background: #fcfcfd; }
+    .pre { white-space: pre-wrap; word-break: break-word; line-height: 1.7; }
+
+    /* ✅ Two columns fixed like page */
+    .two { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; align-items: stretch; }
+    .two > .section { display:flex; flex-direction: column; min-height:0; }
+    .two > .section .box { flex:1; }
+
+    .ftr { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,.08); display:grid; grid-template-columns: 1fr auto; gap:10px; align-items: end; }
+    .signs { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .sign { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 10px; background:#fff; }
+    .sign-k { font-size: 12px; color: rgba(0,0,0,.55); font-weight: 900; }
+    .line { height: 1px; background: rgba(0,0,0,.65); margin: 16px 0 8px; opacity: .35; }
+    .sign-meta { display:flex; justify-content: space-between; gap: 10px; font-size: 11px; color: rgba(0,0,0,.55); }
+
+    .stamp { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding:10px; background:#fafafa; min-width: 210px; }
+    .stamp-row { display:flex; justify-content: space-between; gap:10px; padding: 3px 0; }
+    .s-k { font-size: 11px; color: rgba(0,0,0,.55); }
+    .s-v { font-size: 11.5px; font-weight: 900; }
+
+    .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .clamp-lines { max-height: 240px; overflow: hidden; }
+    .clamp-10 { max-height: 130px; overflow: hidden; }
+    .clamp-8 { max-height: 110px; overflow: hidden; }
+
+    @media (max-width: 720px) {
+      .hdr { grid-template-columns: 1fr; }
+      .hdr-left, .hdr-right { grid-column: auto; justify-self: start; }
+      .grid { grid-template-columns: 1fr; }
+      .two { grid-template-columns: 1fr; }
+      .ftr { grid-template-columns: 1fr; }
+      .stamp { min-width: 0; }
+      .signs { grid-template-columns: 1fr; }
+    }
+
+    .no-print { display:none !important; }
+    `;
+  }
+
   function buildDocumentHtml() {
-    const bodyHtml = buildInnerHtml();
-    if (!bodyHtml) return '';
+    const paperHtml = buildInnerHtml();
+    if (!paperHtml) return '';
+
+    const css = buildPrintCss();
 
     return `
-  <html dir="rtl">
-    <head>
-      <meta charset="utf-8" />
-      <title>information_${item.value.id || ''}</title>
-      <style>
-        @page { size: A4 portrait; margin: 10mm; }
-
-        html, body {
-          margin: 0;
-          padding: 0;
-          background: #ffffff;
-          font-family: "Amiri", "Scheherazade New", Arial, sans-serif;
-          font-size: 12px;
-        }
-
-        .info-print-page {
-          background: #ffffff;
-          padding: 0;
-          margin: 0;
-        }
-
-        .page-body {
-          width: 100%;
-          margin: 0 auto;
-          padding: 10mm;
-          box-sizing: border-box;
-        }
-
-        table {
-          border-collapse: collapse;
-          width: 100%;
-        }
-
-        th, td {
-          border: 1px solid #000;
-          padding: 2px 4px;
-          font-size: 12px;
-          text-align: center;
-        }
-
-        /* header table (no borders) */
-        .header-table {
-          width: 100%;
-          border: none;
-          margin-bottom: 4px;
-        }
-
-        .header-table td {
-          border: none;
-          font-size: 14px;
-          padding: 0 4px;
-          vertical-align: middle;
-        }
-
-        .stack-cell {
-          font-weight: bold;
-          line-height: 1.4;
-        }
-
-        .logo-cell {
-          text-align: center;
-        }
-
-        .logo-cell img {
-          width: 70px;
-          height: 55px;
-          object-fit: contain;
-        }
-
-        .bismillah-cell {
-          text-align: center;
-          font-weight: bold;
-          margin: 4px 0 8px;
-        }
-
-        .info-table {
-          table-layout: fixed;
-        }
-
-        .info-table th {
-          background: #f5f5f5;
-          font-weight: bold;
-        }
-
-        .big-cell {
-          position: relative;
-          vertical-align: top;
-          text-align: right;
-        }
-
-        /* taller tafseel row */
-        .tafseel-row .big-cell {
-          height: 400px;
-        }
-
-        /* half height for others */
-        .docs-row .big-cell,
-        .manager-row .big-cell,
-        .direction-row .big-cell {
-          height: 100px;
-        }
-
-        .cell-label {
-          position: absolute;
-          right: 4px;
-          top: 2px;
-          font-weight: normal;
-        }
-
-        .cell-content {
-          margin-top: 18px;
-          white-space: pre-wrap;
-          text-align: right;
-        }
-
-        .docs-list {
-          margin: 0;
-          padding-left: 16px;
-        }
-
-        .footer-row {
-          margin-top: 16px;
-          display: flex;
-          justify-content: space-between;
-          font-size: 12px;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="info-print-page">
-        <div class="page-body">
-          ${bodyHtml}
-        </div>
-      </div>
-    </body>
-  </html>
-  `;
+      <html dir="rtl">
+        <head>
+          <meta charset="utf-8" />
+          <title>اطلاع_${item.value?.id || ''}_${Date.now()}</title>
+          <style>${css}</style>
+        </head>
+        <body dir="rtl">
+          ${paperHtml}
+        </body>
+      </html>
+    `;
   }
 
-  function downloadPdf() {
-    const html = buildDocumentHtml();
-    if (!html) return;
+  async function waitForPrintReady(w) {
+    try {
+      if (w?.document?.fonts?.ready) await w.document.fonts.ready;
+    } catch (e) {}
+    await new Promise((r) => setTimeout(r, 250));
+  }
 
-    const w = window.open('', '_blank', 'width=1024,height=768');
+  function openPrintWindowAndPrint(html) {
+    const w = window.open('', '_blank', 'width=1100,height=800');
     if (!w) return;
 
     w.document.open();
     w.document.write(html);
     w.document.close();
 
-    // ✅ Wait until all images (including logo) are loaded
-    w.addEventListener('load', () => {
+    w.addEventListener('load', async () => {
+      await waitForPrintReady(w);
       w.focus();
       w.print();
-      // optional: close after print
-      // w.close();
     });
   }
 
+  function downloadPdf() {
+    refreshPrintMeta();
+    const html = buildDocumentHtml();
+    if (!html) return;
+    openPrintWindowAndPrint(html);
+  }
+
   function downloadWord() {
+    refreshPrintMeta();
     const html = buildDocumentHtml();
     if (!html) return;
 
-    const blob = new Blob(['\ufeff', html], {
-      type: 'application/msword',
-    });
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `information_${item.value.id || ''}.doc`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `اطلاع_${item.value?.id || 'بدون_شماره'}_${Date.now()}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
     URL.revokeObjectURL(url);
   }
 </script>
 
 <style scoped>
-  /* ===== PAGE BASE ===== */
-  .info-print-page {
-    background: #ffffff !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    font-size: 12px;
+  .page-shell {
+    min-height: calc(100vh - 64px);
+    background: #f6f7fb;
+    padding: 14px;
   }
 
-  /* top buttons (not printed) */
-  .top-bar {
+  .top-actions {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-pdf { background: #e11d48; }
+  .dot-word { background: #2563eb; }
+
+  .paper {
+    max-width: 820px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
+    padding: 14px;
+  }
+
+  /* ✅ Header fixed like image: brand right, pills left */
+  .hdr {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .hdr-left {
+    justify-self: end; /* right side */
+  }
+
+  .hdr-right {
+    justify-self: start; /* left side */
     display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-direction: row-reverse; /* شمېره rightmost in pills group */
     justify-content: flex-start;
-    gap: 4px;
+  }
+
+  .brand {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .brand-logo {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #fff;
+  }
+
+  .brand-title {
+    font-weight: 900;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brand-sub {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.55);
+    margin-top: 2px;
+  }
+
+  .meta-pill {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 7px 10px;
+    min-width: 120px;
+    background: #fafafa;
+  }
+
+  .meta-k { font-size: 11px; color: rgba(0, 0, 0, 0.55); }
+  .meta-v { font-size: 13px; font-weight: 900; margin-top: 2px; }
+
+  .rule {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.08);
+    margin: 10px 0 12px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 10px;
+  }
+
+  .field {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 9px 10px;
+    background: #fff;
+    min-width: 0;
+  }
+
+  .k {
+    font-size: 11px;
+    color: rgba(0, 0, 0, 0.55);
     margin-bottom: 4px;
   }
 
-  .top-btn {
-    font-size: 12px;
-    padding: 2px 6px;
-    background: #ffffff;
-    border: 1px solid #000;
-    cursor: pointer;
+  .v {
+    font-size: 13px;
+    font-weight: 650;
   }
 
-  .page-body {
-    width: 100%;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px; /* Visible padding on screen */
-    box-sizing: border-box;
+  .strong { font-weight: 900; }
+
+  .content { margin-top: 12px; }
+  .section { margin-top: 10px; }
+
+  .section-h {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
   }
 
-  /* ===== HARD RESET FOR TABLES SO app.css DOESN'T LEAK IN ===== */
-  .info-print-page table,
-  .info-print-page th,
-  .info-print-page td,
-  .info-print-page tr {
-    margin: 0 !important;
-    padding: 0 !important;
-    border-collapse: collapse !important;
-    box-shadow: none !important;
-    background: #ffffff !important;
+  .section-title { font-weight: 900; font-size: 13px; }
+
+  .chip {
+    font-size: 11px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #f9fafb;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
   }
 
-  /* kill zebra & hover from global css */
-  .info-print-page table tr:nth-child(even),
-  .info-print-page table tr:nth-child(odd) {
-    background: #ffffff !important;
+  .box {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 10px;
+    background: #fff;
   }
 
-  .info-print-page table tr:hover {
-    background: #ffffff !important;
-  }
+  .box-text { background: #fcfcfd; }
 
-  /* ===== HEADER ===== */
-  .header-table {
-    width: 100%;
-    border: none;
-  }
-
-  .header-table td {
-    border: none !important;
-    font-size: 14px;
-    padding: 0 4px !important;
-  }
-
-  .title-cell {
-    text-align: right;
-    font-weight: bold;
-  }
-
-  .logo-cell {
-    text-align: center;
-  }
-
-  .logo-cell img {
-    width: 80px;
-    height: 60px;
-    object-fit: cover;
-  }
-
-  .bismillah-cell {
-    text-align: center;
-    font-weight: bold;
-    margin: 4px 0;
-  }
-
-  /* ===== MAIN TABLE ===== */
-  .info-table {
-    table-layout: fixed; /* equal widths */
-    width: 100%;
-  }
-
-  .info-table th,
-  .info-table td {
-    border: 1px solid #000 !important;
-    padding: 2px 4px !important;
-    font-size: 12px;
-    text-align: center;
-    height: 24px; /* same height for first data row */
-  }
-
-  /* big rows */
-  .big-cell {
-    position: relative;
-    vertical-align: top;
-    text-align: right;
-  }
-
-  /* taller tafseel row */
-  .tafseel-row .big-cell {
-    height: 400px;
-  }
-
-  /* half-height rows */
-  .docs-row .big-cell,
-  .manager-row .big-cell,
-  .direction-row .big-cell {
-    height: 100px;
-  }
-
-  .cell-label {
-    position: absolute;
-    right: 4px;
-    top: 2px;
-    font-weight: normal;
-  }
-
-  .cell-content {
-    margin-top: 18px;
+  .pre {
     white-space: pre-wrap;
-    text-align: right;
+    word-break: break-word;
+    line-height: 1.7;
   }
 
-  .docs-list {
-    margin: 0;
-    padding-left: 16px;
+  .clamp-lines { max-height: 240px; overflow: hidden; }
+  .clamp-10 { max-height: 130px; overflow: hidden; }
+  .clamp-8 { max-height: 110px; overflow: hidden; }
+
+  .two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+    align-items: stretch;
   }
 
-  /* ===== FOOTER ===== */
-  .footer-row {
-    margin-top: 16px;
+  .two > .section {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .two > .section .box { flex: 1; }
+
+  .ftr {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: end;
+  }
+
+  .signs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .sign {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 10px;
+    background: #fff;
+  }
+
+  .sign-k {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.55);
+    font-weight: 900;
+  }
+
+  .line {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.65);
+    margin: 16px 0 8px;
+    opacity: 0.35;
+  }
+
+  .sign-meta {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
+    gap: 10px;
+    font-size: 11px;
+    color: rgba(0, 0, 0, 0.55);
   }
 
-  .header-table {
-    width: 100%;
-    border: none;
-    table-layout: fixed;
+  .stamp {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 10px;
+    background: #fafafa;
+    min-width: 210px;
   }
 
-  .header-table td {
-    border: none !important;
-    font-size: 14px;
-    padding: 0 4px !important;
-    vertical-align: middle;
+  .stamp-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 3px 0;
   }
 
-  .stack-cell {
-    text-align: right;
-    width: 35%;
-    line-height: 1.4;
-    font-weight: bold;
+  .s-k { font-size: 11px; color: rgba(0, 0, 0, 0.55); }
+  .s-v { font-size: 11.5px; font-weight: 900; }
+
+  .clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
-  .logo-cell {
-    text-align: center;
-    width: 30%;
+  @media (max-width: 900px) {
+    .paper { max-width: 100%; }
   }
 
-  .logo-cell img {
-    width: 70px;
-    height: 55px;
-    object-fit: contain;
+  @media (max-width: 720px) {
+    .hdr { grid-template-columns: 1fr; }
+    .hdr-left, .hdr-right { justify-self: start; }
+    .grid { grid-template-columns: 1fr; }
+    .two { grid-template-columns: 1fr; }
+    .ftr { grid-template-columns: 1fr; }
+    .stamp { min-width: 0; }
+    .signs { grid-template-columns: 1fr; }
   }
 
-  /* ===== PRINT ===== */
   @media print {
-    .no-print {
-      display: none !important;
-    }
-    .page-body {
-      width: 100%;
-      max-width: none;
-      margin: 0;
+    .no-print { display: none !important; }
+    .page-shell { padding: 0 !important; background: white !important; }
+    .paper {
+      max-width: none !important;
+      margin: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
     }
   }
 </style>

@@ -315,7 +315,6 @@
         icon: 'mdi-cash-multiple',
         to: { path: '/app/outgoingincommings' },
         perm: 'outgoingincomming.view',
-
       },
       {
         key: 'khayratreports',
@@ -376,6 +375,12 @@
             title: t('آرشیف'),
             to: { path: '/app/alltimefoulreports' },
             perm: 'alltimefoulreports.view',
+          },
+          {
+            key: 'reportnote',
+            title: t('نوت'),
+            to: { path: '/app/reportnote' },
+            perm: 'reports.view',
           },
         ],
       },

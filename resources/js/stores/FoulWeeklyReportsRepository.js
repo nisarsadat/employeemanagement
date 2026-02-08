@@ -19,12 +19,19 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   // =========================
   // Helpers (same style as Daily/Monthly)
   // =========================
-  function todayIso() {
-    const d = new Date();
+  function pad2(n) {
+    return String(n).padStart(2, '0');
+  }
+
+  function isoDate(d) {
     const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
+    const m = pad2(d.getMonth() + 1);
+    const day = pad2(d.getDate());
     return `${y}-${m}-${day}`;
+  }
+
+  function todayIso() {
+    return isoDate(new Date());
   }
 
   function currentWeekIso() {
@@ -59,8 +66,8 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     monday.setUTCDate(mondayWeek1.getUTCDate() + (week - 1) * 7);
 
     const yyyy = monday.getUTCFullYear();
-    const mm = String(monday.getUTCMonth() + 1).padStart(2, '0');
-    const dd = String(monday.getUTCDate()).padStart(2, '0');
+    const mm = pad2(monday.getUTCMonth() + 1);
+    const dd = pad2(monday.getUTCDate());
     return `${yyyy}-${mm}-${dd}`;
   }
 
@@ -122,7 +129,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   }
 
   // =========================
-  // Dates (Miladi + Hijri Shamsi + Hijri Qamari) -> SAME as Daily/Monthly
+  // Dates (Miladi + Hijri Shamsi + Hijri Qamari)
   // =========================
   function formatMiladi(dateIso) {
     const d = String(dateIso || '').trim();
@@ -172,12 +179,101 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const pills = [];
 
     if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
-    if (shamsi)
-      pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
-    if (qamari)
-      pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
+    if (shamsi) pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
+    if (qamari) pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
 
     return pills.join('');
+  }
+
+  // =========================
+  // ✅ NOTES: weekly date range + fetch + html section
+  // =========================
+  function startOfWeekMonday(dateIso) {
+    const d = new Date(`${dateIso}T00:00:00`);
+    const day = d.getDay(); // 0 Sun..6 Sat
+    const diff = (day === 0 ? -6 : 1) - day; // Monday start
+    d.setDate(d.getDate() + diff);
+    return isoDate(d);
+  }
+
+  function endOfWeekSunday(dateIso) {
+    const d = new Date(`${dateIso}T00:00:00`);
+    const day = d.getDay();
+    const diff = (day === 0 ? -6 : 1) - day;
+    d.setDate(d.getDate() + diff); // monday
+    d.setDate(d.getDate() + 6); // sunday
+    return isoDate(d);
+  }
+
+  function rangeForWeeklyNotes(weekText) {
+    // Week label -> Monday iso
+    const mondayIso = weekToIsoDate(weekText);
+    const from = startOfWeekMonday(mondayIso);
+    const to = endOfWeekSunday(mondayIso);
+    return { from, to };
+  }
+
+  async function fetchNotesForExport({ type, from, to }) {
+    try {
+      const { data } = await axios.get('/report-notes', {
+        params: {
+          type,
+          from,
+          to,
+          perPage: 1000,
+          page: 1,
+        },
+      });
+
+      return Array.isArray(data?.data) ? data.data : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function buildNotesSectionHtml(notes = []) {
+    const notesTr = notes.length
+      ? notes
+          .map((n, idx) => {
+            const text = escapeHtml(n?.report_note ?? '');
+            const dt = escapeHtml(n?.created_at ?? '');
+            return `
+              <tr>
+                <td style="width:8%;">${idx + 1}</td>
+                <td style="width:72%;">${text || '-'}</td>
+              </tr>
+            `;
+          })
+          .join('')
+      : `<tr><td colspan="3" class="td-center">هیڅ یادداشت نشته</td></tr>`;
+
+    return `
+      <div class="section">
+        <div class="card">
+          <div class="header-strip bg-primary">
+            <div class="strip-left">
+              <div>
+                <div class="strip-title">یادداشتونه</div>
+                <div class="strip-sub">د راپور یادداشتونه</div>
+              </div>
+            </div>
+            <span class="chip chip-primary">${notes.length}</span>
+          </div>
+
+          <div style="padding:0;">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:8%;">#</th>
+                  <th style="width:72%;">یادداشت</th>
+                </tr>
+              </thead>
+              <tbody>${notesTr}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   // =========================
@@ -187,7 +283,6 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const n = String(name ?? '').trim();
     if (!n) return '';
 
-    // Add/extend mappings as needed (fallback keeps original)
     const map = {
       Resources: 'منابع',
       Informations: 'اطلاعات',
@@ -219,10 +314,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     return `
       @page { size: A4 portrait; margin: 14mm; }
 
-      :root{
-        --app-font: ${fontStack};
-      }
-
+      :root{ --app-font: ${fontStack}; }
       * { box-sizing: border-box; }
 
       html, body {
@@ -304,9 +396,6 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         background: rgba(255,255,255,.14);
         color:#fff;
       }
-      .pill-miladi{ }
-      .pill-shamsi{ }
-      .pill-qamari{ }
 
       .section { margin-top: 12px; }
 
@@ -344,6 +433,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         font-weight:900;
         line-height:1.1;
       }
+
       .badge{
         display:inline-flex;
         align-items:center;
@@ -459,11 +549,12 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         min-width: 150px;
       }
       .hero-logo img{
-        height:42px;
+        height:82px;
         width:auto;
         object-fit:contain;
         display:block;
       }
+
       .no-break { break-inside: avoid; page-break-inside: avoid; }
       .card { break-inside: avoid; page-break-inside: avoid; }
 
@@ -493,11 +584,11 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   }
 
   // =========================
-  // Weekly HTML (Pashto localized) + ✅ stacked tables layout
+  // Weekly HTML (Pashto localized) + ✅ notes appended
   // =========================
-  function buildWeeklyDashboardHtml(report, weekText) {
+  function buildWeeklyDashboardHtml(report, weekText, notes = []) {
     const weekVal = String(weekText || selectedWeek.value || currentWeekIso());
-    const headerIso = weekToIsoDate(weekVal); // Monday of week, for date pills
+    const headerIso = weekToIsoDate(weekVal); // Monday
     const heroDatePills = buildDatePillsSameDay(headerIso);
 
     const resourcesTotal = safeNum(report?.resources?.total);
@@ -508,8 +599,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const formatsActive = formats.length;
 
     function getLogoUrl() {
-      // ✅ logo must be inside /public so it works in print window
-      return `${window.location.origin}/logo.png`;
+      return `${window.location.origin}/logo.jpeg`;
     }
 
     const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
@@ -585,47 +675,30 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
             </div>
 
             <div class="stats-grid section no-break">
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">منابع</div>
-                    <div class="stat-number">${resourcesTotal}</div>
-                    <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">منابع</div>
+                <div class="stat-number">${resourcesTotal}</div>
+                <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">اطلاعات</div>
-                    <div class="stat-number">${informationsTotal}</div>
-                    <span class="badge b-info">شتون لري</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">اطلاعات</div>
+                <div class="stat-number">${informationsTotal}</div>
+                <span class="badge b-info">شتون لري</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">پېښې</div>
-                    <div class="stat-number">${eventsTotal}</div>
-                    <span class="badge b-warning">ثبت شوې</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">پېښې</div>
+                <div class="stat-number">${eventsTotal}</div>
+                <span class="badge b-warning">ثبت شوې</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
-                    <div class="stat-number">${formatsActive}</div>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
+                <div class="stat-number">${formatsActive}</div>
+              </div></div></div>
             </div>
 
-            <!-- ✅ Layout changed: tables stacked (one card per row) -->
             <div class="section">
               <div class="card no-break">
                 <div class="header-strip bg-primary">
@@ -704,6 +777,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
               </div>
             </div>
 
+            ${buildNotesSectionHtml(notes)}
           </div>
         </body>
       </html>
@@ -758,12 +832,9 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
       weekly.value = data;
       return data;
     } catch (e) {
-      console.error(e);
       weekly.value = null;
-
       error.value = normalizeError(e);
       toast.error(error.value);
-
       return null;
     } finally {
       loading.value = false;
@@ -780,23 +851,39 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   if (!selectedWeek.value) selectedWeek.value = currentWeekIso();
 
   // =========================
-  // EXPORT ACTIONS (new design)
+  // EXPORT ACTIONS (✅ with notes)
   // =========================
-  const DownloadWeeklyFoulPdf = () => {
+  const DownloadWeeklyFoulPdf = async () => {
     const report = weekly.value;
     if (!report) return;
 
     const weekText = selectedWeek.value || currentWeekIso();
-    const html = buildWeeklyDashboardHtml(report, weekText);
+    const r = rangeForWeeklyNotes(weekText);
+
+    const notes = await fetchNotesForExport({
+      type: 'weekly',
+      from: r.from,
+      to: r.to,
+    });
+
+    const html = buildWeeklyDashboardHtml(report, weekText, notes);
     openPrintWindow(html);
   };
 
-  const DownloadWeeklyFoulWord = () => {
+  const DownloadWeeklyFoulWord = async () => {
     const report = weekly.value;
     if (!report) return;
 
     const weekText = selectedWeek.value || currentWeekIso();
-    const html = buildWeeklyDashboardHtml(report, weekText);
+    const r = rangeForWeeklyNotes(weekText);
+
+    const notes = await fetchNotesForExport({
+      type: 'weekly',
+      from: r.from,
+      to: r.to,
+    });
+
+    const html = buildWeeklyDashboardHtml(report, weekText, notes);
     downloadWordFile(html, `weekly_dashboard_${weekText}.doc`);
   };
 

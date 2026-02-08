@@ -152,7 +152,9 @@ use App\Http\Controllers\OilSummaryController;
 use App\Http\Controllers\Api\OrganController;
 use App\Http\Controllers\Api\OutgoingIncomingController;
 use App\Http\Controllers\Api\ProvinceController;
+use App\Http\Controllers\Api\ReportNoteController;
 use App\Http\Controllers\Api\Reports\Foul\DailyFoulReportController;
+use App\Http\Controllers\Api\Reports\Foul\FoulReportNotesController;
 use App\Http\Controllers\Api\Reports\Foul\MonthlyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\QuarterlyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\WeeklyFoulReportController;
@@ -615,4 +617,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('jawasis/document/{id}', [JawasisController::class, 'deleteDocument']);
     Route::get('jawasis/{id}/download-zip', [JawasisController::class, 'downloadZip']);
 
+
+    
+    Route::prefix('report-notes')->group(function () {
+        Route::get('/', [ReportNoteController::class, 'index']);
+        Route::post('/', [ReportNoteController::class, 'store']);
+        Route::get('{reportNote}', [ReportNoteController::class, 'show']);
+        Route::put('{reportNote}', [ReportNoteController::class, 'update']);
+        Route::delete('{reportNote}', [ReportNoteController::class, 'destroy']);
+
+        Route::post('bulk-delete', [ReportNoteController::class, 'bulkDelete']);
+    });
 });

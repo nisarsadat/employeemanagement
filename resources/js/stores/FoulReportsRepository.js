@@ -19,20 +19,27 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   const selectedMonth = ref(''); // YYYY-MM
 
   // =========================
-  // Helpers
+  // Helpers (Dates, Safe, HTML)
   // =========================
-  function todayIso() {
-    const d = new Date();
+  function pad2(n) {
+    return String(n).padStart(2, '0');
+  }
+
+  function isoDate(d) {
     const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
+    const m = pad2(d.getMonth() + 1);
+    const day = pad2(d.getDate());
     return `${y}-${m}-${day}`;
+  }
+
+  function todayIso() {
+    return isoDate(new Date());
   }
 
   function currentMonthIso() {
     const d = new Date();
     const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const m = pad2(d.getMonth() + 1);
     return `${y}-${m}`;
   }
 
@@ -104,7 +111,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   // Dates (Miladi + Hijri Shamsi + Hijri Qamari)
   // =========================
   function formatMiladi(dateIso) {
-    // keep as YYYY-MM-DD (same day)
     const d = String(dateIso || '').trim();
     return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : '';
   }
@@ -150,7 +156,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const qamari = formatHijriQamari(dateIso);
 
     const pills = [];
-
     if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
     if (shamsi)
       pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
@@ -161,15 +166,115 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   }
 
   // =========================
+  // ✅ Notes date-range logic
+  // =========================
+  function startOfWeek(d) {
+    const x = new Date(d);
+    const day = x.getDay(); // 0 Sun .. 6 Sat
+    const diff = (day === 0 ? -6 : 1) - day; // Monday start
+    x.setDate(x.getDate() + diff);
+    return x;
+  }
+  function endOfWeek(d) {
+    const s = startOfWeek(d);
+    const e = new Date(s);
+    e.setDate(e.getDate() + 6);
+    return e;
+  }
+  function quarterOfMonth(m0) {
+    return Math.floor(m0 / 3) + 1;
+  }
+
+  function rangeForType(type, dateIso, monthText) {
+    const base = new Date(`${dateIso}T00:00:00`);
+
+    if (type === 'daily') {
+      const x = isoDate(base);
+      return { from: x, to: x };
+    }
+
+    if (type === 'weekly') {
+      const s = startOfWeek(base);
+      const e = endOfWeek(base);
+      return { from: isoDate(s), to: isoDate(e) };
+    }
+
+    if (type === 'monthly') {
+      const m = monthText || `${base.getFullYear()}-${pad2(base.getMonth() + 1)}`;
+      const [y, mm] = m.split('-').map(Number);
+      const s = new Date(y, mm - 1, 1);
+      const e = new Date(y, mm, 0);
+      return { from: isoDate(s), to: isoDate(e) };
+    }
+
+    if (type === 'quarter') {
+      const y = base.getFullYear();
+      const q = quarterOfMonth(base.getMonth());
+      const startMonth = (q - 1) * 3;
+      const s = new Date(y, startMonth, 1);
+      const e = new Date(y, startMonth + 3, 0);
+      return { from: isoDate(s), to: isoDate(e) };
+    }
+
+    if (type === 'yearly') {
+      const y = base.getFullYear();
+      return { from: `${y}-01-01`, to: `${y}-12-31` };
+    }
+
+    const x = isoDate(base);
+    return { from: x, to: x };
+  }
+
+  // =========================
+  // ✅ Notes fetch (robust)
+  // Tries multiple param naming styles so it matches your backend
+  // =========================
+  async function fetchNotesForExport({ type, from, to }) {
+    const endpoints = ['/report-notes', '/report_notes']; // keep both, backend may use either
+
+    const paramVariants = [
+      // Variant A (your current)
+      { type, from, to, perPage: 1000, page: 1 },
+
+      // Variant B (snake_case pagination)
+      { type, from, to, per_page: 1000, page: 1 },
+
+      // Variant C (different date keys)
+      { type, start: from, end: to, perPage: 1000, page: 1 },
+      { type, start: from, end: to, per_page: 1000, page: 1 },
+
+      // Variant D (type key name)
+      { report_type: type, from, to, perPage: 1000, page: 1 },
+      { report_type: type, start: from, end: to, perPage: 1000, page: 1 },
+    ];
+
+    for (const url of endpoints) {
+      for (const params of paramVariants) {
+        try {
+          const res = await axios.get(url, { params });
+
+          // Expected paginator: { data: [...] }
+          if (Array.isArray(res?.data?.data)) return res.data.data;
+
+          // Sometimes API returns array directly
+          if (Array.isArray(res?.data)) return res.data;
+        } catch {
+          // try next variant
+        }
+      }
+    }
+
+    return [];
+  }
+
+  // =========================
   // ✅ Format name localization (NOT English in PDF/Word)
   // =========================
   function formatNameLocal(name) {
     const n = String(name ?? '').trim();
     if (!n) return '';
 
-    // Add/extend mappings as needed (fallback keeps original)
     const map = {
-      // common examples (edit freely if your backend uses different names)
       Resources: 'منابع',
       Informations: 'اطلاعات',
       Information: 'اطلاعات',
@@ -178,7 +283,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       Finance: 'مالي',
       Finances: 'مالي',
 
-      // generic
       Daily: 'ورځنی',
       Monthly: 'میاشتنی',
       Report: 'راپور',
@@ -190,23 +294,18 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   }
 
   // =========================
-  // Export CSS (Portrait + correct font + proper page spacing/zoom)
+  // Export CSS
   // =========================
   function baseExportCss() {
-    // ✅ EXACT same as your app.css --app-font stack
     const fontStack =
       `'Amiri', 'Scheherazade New', ui-sans-serif, -apple-system, BlinkMacSystemFont,` +
       ` 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji',` +
       ` 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif`;
 
     return `
-      /* ✅ Portrait + proper page margins (space around page) */
       @page { size: A4 portrait; margin: 14mm; }
 
-      :root{
-        --app-font: ${fontStack};
-      }
-
+      :root{ --app-font: ${fontStack}; }
       * { box-sizing: border-box; }
 
       html, body {
@@ -220,14 +319,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         print-color-adjust: exact !important;
       }
 
-      /* ✅ inner spacing like "zoom" (content not touching paper edges) */
-      .page {
-        width: 100%;
-        padding: 8mm;       /* extra breathing space INSIDE page */
-        background: #f6f7fb;
-      }
+      .page { width: 100%; padding: 8mm; background: #f6f7fb; }
 
-      /* ====== HERO (beautified) ====== */
       .hero {
         border-radius: 16px;
         padding: 18px 18px 14px;
@@ -255,31 +348,10 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         position:relative;
         z-index:1;
       }
+      .hero-title{ color:#fff; font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; }
+      .hero-sub{ color: rgba(255,255,255,.92); margin:0; font-size:12px; line-height:1.55; font-weight:700; }
 
-      .hero-title{
-        color:#fff;
-        font-weight:900;
-        font-size:18px;
-        margin:0 0 4px;
-        letter-spacing:.2px;
-        line-height:1.25;
-      }
-      .hero-sub{
-        color: rgba(255,255,255,.92);
-        margin:0;
-        font-size:12px;
-        line-height:1.55;
-        font-weight:700;
-      }
-
-      .pills{
-        margin-top:10px;
-        display:flex;
-        gap:8px;
-        flex-wrap:wrap;
-        position:relative;
-        z-index:1;
-      }
+      .pills{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
       .pill{
         display:inline-block;
         padding:6px 10px;
@@ -290,13 +362,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         background: rgba(255,255,255,.14);
         color:#fff;
       }
-      .pill-miladi{ }
-      .pill-shamsi{ }
-      .pill-qamari{ }
 
       .section { margin-top: 12px; }
 
-      /* ====== Stats cards ====== */
       .stats-grid{
         display:grid;
         grid-template-columns: repeat(4, 1fr);
@@ -320,17 +388,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         justify-content:space-between;
         gap:10px;
       }
-      .stat-label{
-        font-size:11px;
-        color: rgba(17,24,39,.65);
-        font-weight:900;
-        margin-bottom:4px;
-      }
-      .stat-number{
-        font-size:22px;
-        font-weight:900;
-        line-height:1.1;
-      }
+      .stat-label{ font-size:11px; color: rgba(17,24,39,.65); font-weight:900; margin-bottom:4px; }
+      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; }
+
       .badge{
         display:inline-flex;
         align-items:center;
@@ -355,18 +415,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         justify-content:space-between;
         gap:10px;
       }
-      .strip-title{
-        font-weight:900;
-        font-size:12px;
-        margin:0;
-      }
-      .strip-sub{
-        margin:2px 0 0;
-        color: rgba(17,24,39,.55);
-        font-size:10px;
-        font-weight:800;
-      }
-      .strip-left{ display:flex; align-items:center; gap:10px; }
+      .strip-title{ font-weight:900; font-size:12px; margin:0; }
+      .strip-sub{ margin:2px 0 0; color: rgba(17,24,39,.55); font-size:10px; font-weight:800; }
 
       .chip{
         padding:5px 10px;
@@ -385,13 +435,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       .chip-success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
       .chip-warning{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
 
-      /* ====== Tables ====== */
-      table{
-        width:100%;
-        border-collapse:separate;
-        border-spacing: 0;
-        table-layout: fixed;
-      }
+      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; }
+
       thead th{
         background:#f8fafc;
         color: rgba(17,24,39,.72);
@@ -399,6 +444,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         font-size:11px;
         padding:9px 8px;
         border-bottom:1px solid #eef2f7;
+        text-align:center;
       }
       tbody td{
         padding:9px 8px;
@@ -406,6 +452,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         font-size:11px;
         vertical-align:middle;
         color: rgba(17,24,39,.90);
+        text-align:center;
       }
       tbody tr:nth-child(even) td{ background: #fcfdff; }
 
@@ -423,39 +470,12 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       .count-primary{ border-color:#c7d2fe; color:#1e40af; background:#eef2ff; }
       .count-success{ border-color:#a7f3d0; color:#065f46; background:#ecfdf5; }
 
-      .etype{
-        display:inline-block;
-        padding:4px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid #e5e7eb;
-        background:#f3f4f6;
-      }
-      .etype-red{ background:#fee2e2; border-color:#fecaca; color:#991b1b; }
-      .etype-amber{ background:#ffedd5; border-color:#fed7aa; color:#9a3412; }
-      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; color:#5b21b6; }
-      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; color:#1e40af; }
-      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; color:#374151; }
+      .hero-logo{ display:flex; align-items:center; justify-content:flex-end; padding:10px 12px; border-radius:12px; min-width: 150px; }
+      .hero-logo img{ height:82px; width:auto; object-fit:contain; display:block; }
 
-      .hero-logo{
-        display:flex;
-        align-items:center;
-        justify-content:flex-end;
-        padding:10px 12px;
-        border-radius:12px;
-        min-width: 150px;
-      }
-      .hero-logo img{
-        height:42px;
-        width:auto;
-        object-fit:contain;
-        display:block;
-      }
       .no-break { break-inside: avoid; page-break-inside: avoid; }
       .card { break-inside: avoid; page-break-inside: avoid; }
 
-      /* Portrait fallback */
       @media print{
         .stats-grid{ grid-template-columns: repeat(2, 1fr); }
       }
@@ -464,7 +484,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
   function eventTypeClass(type) {
     const t = String(type ?? '').trim();
-
     const map = {
       حادثه: 'etype-red',
       پېښه: 'etype-red',
@@ -477,14 +496,58 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       سیاسی: 'etype-purple',
       سياسي: 'etype-purple',
     };
-
     return map[t] || 'etype-gray';
   }
 
   // =========================
-  // Daily HTML (Pashto localized)
+  // ✅ Notes table HTML block
   // =========================
-  function buildDailyDashboardHtml(report, dateIso) {
+  function buildNotesSectionHtml(notes = []) {
+    if (!Array.isArray(notes) || notes.length === 0) return '';
+
+    const notesTr = notes
+      .map((n) => {
+        const text = escapeHtml(n?.report_note ?? n?.note ?? '');
+        return `
+          <tr>
+            <td style="width:72%;">${text || '-'}</td>
+          </tr>
+        `;
+      })
+      .join('');
+
+    return `
+      <div class="section">
+        <div class="card">
+          <div class="header-strip bg-primary">
+            <div class="strip-left">
+              <div>
+                <div class="strip-title">یادداشتونه</div>
+                <div class="strip-sub">د راپور یادداشتونه</div>
+              </div>
+            </div>
+            <span class="chip chip-primary">${notes.length}</span>
+          </div>
+
+          <div style="padding:0;">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:72%;">یادداشت</th>
+                </tr>
+              </thead>
+              <tbody>${notesTr}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // =========================
+  // Daily HTML (with notes)
+  // =========================
+  function buildDailyDashboardHtml(report, dateIso, notes = []) {
     const dateText = dateIso || todayIso();
 
     const resourcesTotal = safeNum(report?.resources?.total);
@@ -498,67 +561,130 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const eventRows = Array.isArray(report?.events?.rows) ? report.events.rows : [];
 
     function getLogoUrl() {
-      // ✅ logo must be inside /public so it works in print window
-      return `${window.location.origin}/logo.png`;
+      return `${window.location.origin}/logo.jpeg`;
     }
 
-    // ✅ three dates: miladi + shamsi + qamari (SAME day)
     const heroDatePills = buildDatePillsSameDay(dateText);
 
-    const infoTr = infoTypes.length
-      ? infoTypes
-          .map((x) => {
-            const label = escapeHtml(x?.label ?? '');
-            const count = safeNum(x?.count);
-            return `
-              <tr>
-                <td>${label}</td>
-                <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ معلومات نشته</td></tr>`;
+    const infoSection =
+      infoTypes.length > 0
+        ? `
+          <div class="section">
+            <div class="card no-break">
+              <div class="header-strip bg-primary">
+                <div><div class="strip-title">اطلاعات</div><div class="strip-sub">د ډول له مخې وېش</div></div>
+                <span class="chip chip-primary">${informationsTotal}</span>
+              </div>
+              <div style="padding:0;">
+                <table>
+                  <thead><tr><th style="width:70%;">ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
+                  <tbody>
+                    ${infoTypes
+                      .map((x) => {
+                        const label = escapeHtml(x?.label ?? '');
+                        const count = safeNum(x?.count);
+                        return `
+                          <tr>
+                            <td>${label}</td>
+                            <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+        : '';
 
-    const formatsTr = formats.length
-      ? formats
-          .map((f) => {
-            const name = escapeHtml(formatNameLocal(f?.name ?? ''));
-            const count = safeNum(f?.count);
-            return `
-              <tr>
-                <td>${name || '-'}</td>
-                <td class="td-end"><span class="count-pill count-success">${count}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ فورم کې معلومات نشته</td></tr>`;
+    const formatsSection =
+      formats.length > 0
+        ? `
+          <div class="section">
+            <div class="card no-break">
+              <div class="header-strip bg-success">
+                <div><div class="strip-title">لیټري دوسیه</div><div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div></div>
+                <span class="chip chip-success">${formatsActive}</span>
+              </div>
+              <div style="padding:0;">
+                <table>
+                  <thead><tr><th style="width:70%;">فورم</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
+                  <tbody>
+                    ${formats
+                      .map((f) => {
+                        const name = escapeHtml(formatNameLocal(f?.name ?? ''));
+                        const count = safeNum(f?.count);
+                        return `
+                          <tr>
+                            <td>${name || '-'}</td>
+                            <td class="td-end"><span class="count-pill count-success">${count}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+        : '';
 
-    const eventsTr = eventRows.length
-      ? eventRows
-          .map((r) => {
-            const province = escapeHtml(r?.province ?? '');
-            const hawza = escapeHtml(r?.hawza ?? '');
-            const etype = escapeHtml(r?.event_specific_type ?? r?.event_type ?? '');
-            const killed = safeNum(r?.killed);
-            const injured = safeNum(r?.injured);
-            const mali = formatMoney(r?.talafat_mali);
-            const cls = eventTypeClass(etype);
+    const eventsSection =
+      eventRows.length > 0
+        ? `
+          <div class="section">
+            <div class="card">
+              <div class="header-strip bg-warning">
+                <div><div class="strip-title">ثبت شوې پېښې</div><div class="strip-sub">د سیمې له مخې د پېښو جزیات</div></div>
+                <span class="chip chip-warning">${eventsTotal}</span>
+              </div>
+              <div style="padding:0;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:18%;">ولایت</th>
+                      <th style="width:18%;">حوزه</th>
+                      <th style="width:20%;">د پېښې ډول</th>
+                      <th class="td-center" style="width:11%;">وژلي</th>
+                      <th class="td-center" style="width:11%;">ټپیان</th>
+                      <th class="td-end" style="width:22%;">مالي زیان</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${eventRows
+                      .map((r) => {
+                        const province = escapeHtml(r?.province ?? '');
+                        const hawza = escapeHtml(r?.hawza ?? '');
+                        const etype = escapeHtml(r?.event_specific_type ?? r?.event_type ?? '');
+                        const killed = safeNum(r?.killed);
+                        const injured = safeNum(r?.injured);
+                        const mali = formatMoney(r?.talafat_mali);
+                        const cls = eventTypeClass(etype);
 
-            return `
-              <tr>
-                <td>${province}</td>
-                <td>${hawza}</td>
-                <td class="td-center"><span class="etype ${cls}">${etype || '-'}</span></td>
-                <td class="td-center">${killed}</td>
-                <td class="td-center">${injured}</td>
-                <td class="td-end">${mali}</td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="6" class="td-center">هیڅ پېښه نه ده ثبت شوې</td></tr>`;
+                        return `
+                          <tr>
+                            <td>${province}</td>
+                            <td>${hawza}</td>
+                            <td class="td-center"><span class="etype ${cls}">${
+                          etype || '-'
+                        }</span></td>
+                            <td class="td-center">${killed}</td>
+                            <td class="td-center">${injured}</td>
+                            <td class="td-end">${mali}</td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+        : '';
 
     return `
       <html dir="rtl">
@@ -579,134 +705,38 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
-
               <div class="pills">${heroDatePills || ''}</div>
             </div>
 
             <div class="stats-grid section no-break">
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">منابع</div>
-                    <div class="stat-number">${resourcesTotal}</div>
-                    <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">منابع</div>
+                <div class="stat-number">${resourcesTotal}</div>
+                <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">اطلاعات</div>
-                    <div class="stat-number">${informationsTotal}</div>
-                    <span class="badge b-info">شتون لري</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">اطلاعات</div>
+                <div class="stat-number">${informationsTotal}</div>
+                <span class="badge b-info">شتون لري</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">پېښې</div>
-                    <div class="stat-number">${eventsTotal}</div>
-                    <span class="badge b-warning">ثبت شوې</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">پېښې</div>
+                <div class="stat-number">${eventsTotal}</div>
+                <span class="badge b-warning">ثبت شوې</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
-                    <div class="stat-number">${formatsActive}</div>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
+                <div class="stat-number">${formatsActive}</div>
+              </div></div></div>
             </div>
 
-            <!-- ✅ Layout changed: tables stacked (one card per row) -->
-            <div class="section">
-              <div class="card no-break">
-                <div class="header-strip bg-primary">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">اطلاعات</div>
-                      <div class="strip-sub">د ډول له مخې وېش</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-primary">${informationsTotal}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">ډول</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
-                    <tbody>${infoTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="card no-break">
-                <div class="header-strip bg-success">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">لیټري دوسیه</div>
-                      <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-success">${formatsActive}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">فورم</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
-                    <tbody>${formatsTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="card">
-                <div class="header-strip bg-warning">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">ثبت شوې پېښې</div>
-                      <div class="strip-sub">د سیمې له مخې د پېښو جزیات</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-warning">${eventsTotal}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:18%;">ولایت</th>
-                        <th style="width:18%;">حوزه</th>
-                        <th style="width:20%;">د پېښې ډول</th>
-                        <th class="td-center" style="width:11%;">وژلي</th>
-                        <th class="td-center" style="width:11%;">ټپیان</th>
-                        <th class="td-end" style="width:22%;">مالي زیان</th>
-                      </tr>
-                    </thead>
-                    <tbody>${eventsTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
+            ${infoSection}
+            ${formatsSection}
+            ${eventsSection}
+            ${buildNotesSectionHtml(notes)}
           </div>
         </body>
       </html>
@@ -714,11 +744,11 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   }
 
   // =========================
-  // Monthly HTML (Pashto localized)
+  // Monthly HTML (with notes)
   // =========================
-  function buildMonthlyDashboardHtml(report, monthText) {
+  function buildMonthlyDashboardHtml(report, monthText, notes = []) {
     const monthVal = monthText || currentMonthIso();
-    const headerIso = monthToIsoDate(monthVal); // month start date
+    const headerIso = monthToIsoDate(monthVal);
 
     const resourcesTotal = safeNum(report?.resources?.total);
     const informationsTotal = safeNum(report?.informations?.total);
@@ -731,58 +761,110 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
 
     function getLogoUrl() {
-      // ✅ logo must be inside /public so it works in print window
       return `${window.location.origin}/logo.png`;
     }
 
-    // ✅ three dates for THAT day (month start day)
     const heroDatePills = buildDatePillsSameDay(headerIso);
 
-    const infoTr = infoTypes.length
-      ? infoTypes
-          .map((x) => {
-            const label = escapeHtml(x?.label ?? '');
-            const count = safeNum(x?.count);
-            return `
-              <tr>
-                <td>${label}</td>
-                <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ معلومات نشته</td></tr>`;
+    const infoSection =
+      infoTypes.length > 0
+        ? `
+          <div class="section">
+            <div class="card no-break">
+              <div class="header-strip bg-primary">
+                <div><div class="strip-title">د اطلاعات ډولونه</div><div class="strip-sub">د ډول له مخې وېش</div></div>
+                <span class="chip chip-primary">${informationsTotal}</span>
+              </div>
+              <div style="padding:0;">
+                <table>
+                  <thead><tr><th style="width:70%;">ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
+                  <tbody>
+                    ${infoTypes
+                      .map((x) => {
+                        const label = escapeHtml(x?.label ?? '');
+                        const count = safeNum(x?.count);
+                        return `
+                          <tr>
+                            <td>${label}</td>
+                            <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+        : '';
 
-    const formatsTr = formats.length
-      ? formats
-          .map((f) => {
-            const name = escapeHtml(formatNameLocal(f?.name ?? ''));
-            const count = safeNum(f?.count);
-            return `
-              <tr>
-                <td>${name || '-'}</td>
-                <td class="td-end"><span class="count-pill count-success">${count}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ فورم کې معلومات نشته</td></tr>`;
+    const formatsSection =
+      formats.length > 0
+        ? `
+          <div class="section">
+            <div class="card no-break">
+              <div class="header-strip bg-success">
+                <div><div class="strip-title">لیټري دوسیه</div><div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div></div>
+                <span class="chip chip-success">${formatsActive}</span>
+              </div>
+              <div style="padding:0;">
+                <table>
+                  <thead><tr><th style="width:70%;">فورم</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
+                  <tbody>
+                    ${formats
+                      .map((f) => {
+                        const name = escapeHtml(formatNameLocal(f?.name ?? ''));
+                        const count = safeNum(f?.count);
+                        return `
+                          <tr>
+                            <td>${name || '-'}</td>
+                            <td class="td-end"><span class="count-pill count-success">${count}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+        : '';
 
-    const eventsTr = eventTypes.length
-      ? eventTypes
-          .map((t) => {
-            const label = escapeHtml(t?.label ?? '');
-            const count = safeNum(t?.count);
-            const cls = eventTypeClass(label);
-            return `
-              <tr>
-                <td><span class="etype ${cls}">${label}</span></td>
-                <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ پېښه نه ده ثبت شوې</td></tr>`;
+    const eventsSection =
+      eventTypes.length > 0
+        ? `
+          <div class="section">
+            <div class="card">
+              <div class="header-strip bg-warning">
+                <div><div class="strip-title">پېښې (د ډول له مخې)</div><div class="strip-sub">د پېښو وېش</div></div>
+                <span class="chip chip-warning">${eventsTotal}</span>
+              </div>
+              <div style="padding:0;">
+                <table>
+                  <thead><tr><th style="width:70%;">د پېښې ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
+                  <tbody>
+                    ${eventTypes
+                      .map((t) => {
+                        const label = escapeHtml(t?.label ?? '');
+                        const count = safeNum(t?.count);
+                        const cls = eventTypeClass(label);
+                        return `
+                          <tr>
+                            <td><span class="etype ${cls}">${label}</span></td>
+                            <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+        : '';
 
     return `
       <html dir="rtl">
@@ -803,130 +885,38 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
-
               <div class="pills">${heroDatePills || ''}</div>
             </div>
 
             <div class="stats-grid section no-break">
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">منابع</div>
-                    <div class="stat-number">${resourcesTotal}</div>
-                    <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">منابع</div>
+                <div class="stat-number">${resourcesTotal}</div>
+                <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">اطلاعات</div>
-                    <div class="stat-number">${informationsTotal}</div>
-                    <span class="badge b-info">شتون لري</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">اطلاعات</div>
+                <div class="stat-number">${informationsTotal}</div>
+                <span class="badge b-info">شتون لري</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">پېښې</div>
-                    <div class="stat-number">${eventsTotal}</div>
-                    <span class="badge b-warning">ثبت شوې</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">پېښې</div>
+                <div class="stat-number">${eventsTotal}</div>
+                <span class="badge b-warning">ثبت شوې</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
-                    <div class="stat-number">${formatsActive}</div>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
+                <div class="stat-number">${formatsActive}</div>
+              </div></div></div>
             </div>
 
-            <!-- ✅ Layout changed: tables stacked (one card per row) -->
-            <div class="section">
-              <div class="card no-break">
-                <div class="header-strip bg-primary">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">د اطلاعات ډولونه</div>
-                      <div class="strip-sub">د ډول له مخې وېش</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-primary">${informationsTotal}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">ډول</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
-                    <tbody>${infoTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="card no-break">
-                <div class="header-strip bg-success">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">لیټري دوسیه</div>
-                      <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-success">${formatsActive}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">فورم</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
-                    <tbody>${formatsTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="card">
-                <div class="header-strip bg-warning">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">پېښې (د ډول له مخې)</div>
-                      <div class="strip-sub">د پېښو وېش</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-warning">${eventsTotal}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">د پېښې ډول</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
-                    <tbody>${eventsTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
+            ${infoSection}
+            ${formatsSection}
+            ${eventsSection}
+            ${buildNotesSectionHtml(notes)}
           </div>
         </body>
       </html>
@@ -981,12 +971,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       daily.value = data;
       return data;
     } catch (e) {
-      console.error(e);
       daily.value = null;
-
       error.value = normalizeError(e);
       toast.error(error.value);
-
       return null;
     } finally {
       loading.value = false;
@@ -1008,12 +995,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       monthly.value = data;
       return data;
     } catch (e) {
-      console.error(e);
       monthly.value = null;
-
       error.value = normalizeError(e);
       toast.error(error.value);
-
       return null;
     } finally {
       loading.value = false;
@@ -1037,41 +1021,75 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   if (!selectedMonth.value) selectedMonth.value = currentMonthIso();
 
   // =========================
-  // EXPORT ACTIONS
+  // EXPORT ACTIONS (with notes)
   // =========================
-  const DownloadDailyFoulPdf = () => {
+  const DownloadDailyFoulPdf = async () => {
     const report = daily.value;
     if (!report) return;
 
     const dateText = selectedDate.value || todayIso();
-    const html = buildDailyDashboardHtml(report, dateText);
+    const r = rangeForType('daily', dateText);
+
+    const notes = await fetchNotesForExport({
+      type: 'daily',
+      from: r.from,
+      to: r.to,
+    });
+
+    const html = buildDailyDashboardHtml(report, dateText, notes);
     openPrintWindow(html);
   };
 
-  const DownloadDailyFoulWord = () => {
+  const DownloadDailyFoulWord = async () => {
     const report = daily.value;
     if (!report) return;
 
     const dateText = selectedDate.value || todayIso();
-    const html = buildDailyDashboardHtml(report, dateText);
+    const r = rangeForType('daily', dateText);
+
+    const notes = await fetchNotesForExport({
+      type: 'daily',
+      from: r.from,
+      to: r.to,
+    });
+
+    const html = buildDailyDashboardHtml(report, dateText, notes);
     downloadWordFile(html, `daily_dashboard_${dateText}.doc`);
   };
 
-  const DownloadMonthlyFoulPdf = () => {
+  const DownloadMonthlyFoulPdf = async () => {
     const report = monthly.value;
     if (!report) return;
 
     const monthText = selectedMonth.value || currentMonthIso();
-    const html = buildMonthlyDashboardHtml(report, monthText);
+    const headerIso = monthToIsoDate(monthText);
+    const r = rangeForType('monthly', headerIso, monthText);
+
+    const notes = await fetchNotesForExport({
+      type: 'monthly',
+      from: r.from,
+      to: r.to,
+    });
+
+    const html = buildMonthlyDashboardHtml(report, monthText, notes);
     openPrintWindow(html);
   };
 
-  const DownloadMonthlyFoulWord = () => {
+  const DownloadMonthlyFoulWord = async () => {
     const report = monthly.value;
     if (!report) return;
 
     const monthText = selectedMonth.value || currentMonthIso();
-    const html = buildMonthlyDashboardHtml(report, monthText);
+    const headerIso = monthToIsoDate(monthText);
+    const r = rangeForType('monthly', headerIso, monthText);
+
+    const notes = await fetchNotesForExport({
+      type: 'monthly',
+      from: r.from,
+      to: r.to,
+    });
+
+    const html = buildMonthlyDashboardHtml(report, monthText, notes);
     downloadWordFile(html, `monthly_dashboard_${monthText}.doc`);
   };
 
@@ -1099,5 +1117,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     DownloadDailyFoulWord,
     DownloadMonthlyFoulPdf,
     DownloadMonthlyFoulWord,
+
+    // expose if needed
+    rangeForType,
   };
 });

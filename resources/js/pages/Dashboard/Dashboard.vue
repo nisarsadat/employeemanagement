@@ -421,6 +421,7 @@
         </v-col>
 
         <!-- Oil Balance Card -->
+        <!-- Oil Balance Card (make it same like Money card) -->
         <v-col cols="12" sm="6" md="4" lg="2">
           <v-card
             rounded="xl"
@@ -433,22 +434,6 @@
             <div class="stat-accent warning"></div>
 
             <v-card-text class="stat-card-body">
-              <div class="stat-top">
-                <div class="card-icon-wrapper warning">
-                  <v-icon color="warning" size="20">mdi-fuel</v-icon>
-                </div>
-
-                <v-chip
-                  size="x-small"
-                  variant="tonal"
-                  :color="oilBalance >= 0 ? 'warning' : 'error'"
-                  class="chip-compact"
-                >
-                  <v-icon start size="12">{{ oilBalance >= 0 ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
-                  {{ num(oilBalance) }}
-                </v-chip>
-              </div>
-
               <div class="stat-title">{{ t('بیلانس تیل') }}</div>
 
               <div class="stat-main">
@@ -459,10 +444,13 @@
                 <div class="split-meta">
                   <div class="meta-item">
                     <v-icon size="12" color="success">mdi-arrow-down</v-icon>
+                    <span class="text-caption">{{ t('ټول راغلي تیل:') }}</span>
                     <span class="text-caption font-weight-bold">{{ num(oilIncomeTotal) }}</span>
                   </div>
+
                   <div class="meta-item">
                     <v-icon size="12" color="error">mdi-arrow-up</v-icon>
+                    <span class="text-caption">{{ t('ټول مصرف شوي تیل:') }}</span>
                     <span class="text-caption font-weight-bold">{{ num(oilExpenseTotal) }}</span>
                   </div>
                 </div>
@@ -523,19 +511,87 @@
                       <v-icon size="20" color="primary">mdi-magnify</v-icon>
                     </template>
                   </v-text-field>
+                  <v-menu
+                    location="bottom"
+                    transition="scale-transition"
+                    :close-on-content-click="false"
+                  >
+                    <template #activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        variant="outlined"
+                        rounded="xl"
+                        class="sort-field"
+                        prepend-icon="mdi-sort"
+                      >
+                        {{ t('مرتب‌سازی') }}
+                        <v-chip class="ml-2" size="x-small" variant="tonal" color="primary">
+                          {{ sortKeys.length }}
+                        </v-chip>
+                        <v-icon end size="18">mdi-chevron-down</v-icon>
+                      </v-btn>
+                    </template>
 
-                  <v-select
-                    v-model="sortKey"
-                    density="compact"
-                    variant="outlined"
-                    rounded="xl"
-                    hide-details
-                    class="sort-field"
-                    :items="sortOptions"
-                    item-title="title"
-                    item-value="value"
-                    :label="t('مرتب‌سازی')"
-                  />
+                    <v-card rounded="xl" class="dash-filter-menu">
+                      <v-card-title class="py-3 d-flex align-center justify-space-between">
+                        <div class="d-flex align-center gap-2">
+                          <v-icon color="primary">mdi-sort</v-icon>
+                          <span class="text-subtitle-2 font-weight-bold">{{
+                            t('مرتب‌سازی چندگانه')
+                          }}</span>
+                        </div>
+
+                        <v-btn
+                          size="small"
+                          variant="text"
+                          color="error"
+                          @click="sortKeys = ['score_desc']"
+                        >
+                          {{ t('ریست') }}
+                        </v-btn>
+                      </v-card-title>
+
+                      <v-divider />
+
+                      <v-card-text class="py-2">
+                        <v-list-item
+                          v-for="opt in sortOptions"
+                          :key="opt.value"
+                          class="px-0"
+                          @click="toggleSort(opt.value)"
+                        >
+                          <template #prepend>
+                            <v-checkbox
+                              :model-value="sortKeys.includes(opt.value)"
+                              @click.stop
+                              @update:modelValue="toggleSort(opt.value)"
+                              density="compact"
+                              hide-details
+                            />
+                          </template>
+
+                          <v-list-item-title class="text-body-2">
+                            {{ opt.title }}
+                          </v-list-item-title>
+                        </v-list-item>
+
+                        <!-- show selected order -->
+                        <div class="mt-3 d-flex flex-wrap ga-2">
+                          <v-chip
+                            v-for="k in sortKeys"
+                            :key="k"
+                            size="x-small"
+                            variant="tonal"
+                            color="primary"
+                            closable
+                            @click:close="removeSort(k)"
+                          >
+                            {{ sortOptions.find((x) => x.value === k)?.title || k }}
+                          </v-chip>
+                        </div>
+                      </v-card-text>
+                    </v-card>
+                  </v-menu>
 
                   <v-btn
                     :loading="repo.loading"
@@ -784,7 +840,8 @@
   const search = ref('');
   const currentPage = ref(1);
   const itemsPerPage = 10;
-  const sortKey = ref('score_desc');
+  // ✅ multi-sort (checkboxes)
+  const sortKeys = ref(['score_desc']); // default
 
   // ✅ Two periods
   const period = ref('yearly'); // for everything except (oil/finance/employee table)
@@ -938,6 +995,26 @@
     { title: t('امتیاز'), key: 'score', width: 220, sortable: false, align: 'center' },
     { title: t('عملیات'), key: 'actions', width: 70, sortable: false, align: 'center' },
   ]);
+  function toggleSort(key) {
+    const arr = [...(sortKeys.value || [])];
+    const i = arr.indexOf(key);
+
+    if (i >= 0) arr.splice(i, 1);
+    else arr.push(key);
+
+    // ✅ ensure at least one sort
+    if (!arr.length) arr.push('score_desc');
+
+    sortKeys.value = arr;
+    currentPage.value = 1;
+  }
+
+  function removeSort(key) {
+    const arr = [...(sortKeys.value || [])].filter((x) => x !== key);
+    if (!arr.length) arr.push('score_desc');
+    sortKeys.value = arr;
+    currentPage.value = 1;
+  }
 
   /* ===========================
   Fetching
@@ -1105,6 +1182,30 @@
 
     return events + resources + informations + khayrat;
   }
+  function cmpByKey(a, b, key) {
+    if (key === 'score_desc') return employeeScoreNumber(b) - employeeScoreNumber(a);
+    if (key === 'score_asc') return employeeScoreNumber(a) - employeeScoreNumber(b);
+
+    if (key === 'events_desc')
+      return (Number(b?.events_count) || 0) - (Number(a?.events_count) || 0);
+
+    if (key === 'resources_desc')
+      return (Number(b?.resources_count) || 0) - (Number(a?.resources_count) || 0);
+
+    if (key === 'informations_desc')
+      return (Number(b?.informations_count) || 0) - (Number(a?.informations_count) || 0);
+
+    if (key === 'khayrat_desc')
+      return (Number(b?.khayrat_reports_count) || 0) - (Number(a?.khayrat_reports_count) || 0);
+
+    if (key === 'name_asc')
+      return String(a?.name || '').localeCompare(String(b?.name || ''), undefined, {
+        sensitivity: 'base',
+        numeric: true,
+      });
+
+    return 0;
+  }
 
   const filteredEmployees = computed(() => {
     const q = search.value?.trim()?.toLowerCase();
@@ -1118,24 +1219,14 @@
           return name.includes(q) || code.includes(q);
         });
 
+    const keys =
+      Array.isArray(sortKeys.value) && sortKeys.value.length ? sortKeys.value : ['score_desc'];
+
     const sorted = [...filtered].sort((a, b) => {
-      const ak = sortKey.value;
-
-      if (ak === 'score_desc') return employeeScoreNumber(b) - employeeScoreNumber(a);
-      if (ak === 'score_asc') return employeeScoreNumber(a) - employeeScoreNumber(b);
-
-      if (ak === 'events_desc')
-        return (Number(b?.events_count) || 0) - (Number(a?.events_count) || 0);
-      if (ak === 'resources_desc')
-        return (Number(b?.resources_count) || 0) - (Number(a?.resources_count) || 0);
-      if (ak === 'informations_desc')
-        return (Number(b?.informations_count) || 0) - (Number(a?.informations_count) || 0);
-
-      // if (tableMode.value === 'new' && ak === 'khayrat_desc') {
-      //   return (Number(b?.khayrat_reports_count) || 0) - (Number(a?.khayrat_reports_count) || 0);
-      // }
-
-      if (ak === 'name_asc') return String(a?.name || '').localeCompare(String(b?.name || ''));
+      for (const k of keys) {
+        const d = cmpByKey(a, b, k);
+        if (d !== 0) return d;
+      }
       return 0;
     });
 

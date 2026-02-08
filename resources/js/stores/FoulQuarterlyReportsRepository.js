@@ -157,12 +157,99 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       const pills = [];
 
       if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
-      if (shamsi)
-        pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
-      if (qamari)
-        pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
+      if (shamsi) pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
+      if (qamari) pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
 
       return pills.join('');
+    }
+
+    // =========================
+    // ✅ NOTES: quarterly range + fetch + html section
+    // =========================
+    function rangeForQuarterlyNotes(qLabel) {
+      const s = String(qLabel || selectedQuarter.value || currentQuarterLabel()).trim();
+      const m = s.match(/^(\d{4})-Q([1-3])$/i);
+      if (!m) {
+        const fallback = currentQuarterLabel();
+        const mm = fallback.match(/^(\d{4})-Q([1-3])$/i);
+        const y = mm ? mm[1] : String(new Date().getFullYear());
+        const q = mm ? Number(mm[2]) : 1;
+
+        if (q === 1) return { from: `${y}-01-01`, to: `${y}-04-30` };
+        if (q === 2) return { from: `${y}-05-01`, to: `${y}-08-31` };
+        return { from: `${y}-09-01`, to: `${y}-12-31` };
+      }
+
+      const year = m[1];
+      const q = Number(m[2]);
+
+      // 4-month quarters: Q1(1-4), Q2(5-8), Q3(9-12)
+      if (q === 1) return { from: `${year}-01-01`, to: `${year}-04-30` };
+      if (q === 2) return { from: `${year}-05-01`, to: `${year}-08-31` };
+      return { from: `${year}-09-01`, to: `${year}-12-31` };
+    }
+
+    async function fetchNotesForExport({ type, from, to }) {
+      try {
+        const { data } = await axios.get('/report-notes', {
+          params: {
+            type,
+            from,
+            to,
+            perPage: 1000,
+            page: 1,
+          },
+        });
+
+        return Array.isArray(data?.data) ? data.data : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function buildNotesSectionHtml(notes = []) {
+      const notesTr = notes.length
+        ? notes
+            .map((n, idx) => {
+              const text = escapeHtml(n?.report_note ?? '');
+              const dt = escapeHtml(n?.created_at ?? '');
+              return `
+                <tr>
+                  <td style="width:8%;">${idx + 1}</td>
+                  <td style="width:72%;">${text || '-'}</td>
+                </tr>
+              `;
+            })
+            .join('')
+        : `<tr><td colspan="3" class="td-center">هیڅ یادداشت نشته</td></tr>`;
+
+      return `
+        <div class="section">
+          <div class="card">
+            <div class="header-strip bg-primary">
+              <div class="strip-left">
+                <div>
+                  <div class="strip-title">یادداشتونه</div>
+                  <div class="strip-sub">د راپور یادداشتونه</div>
+                </div>
+              </div>
+              <span class="chip chip-primary">${notes.length}</span>
+            </div>
+
+            <div style="padding:0;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:8%;">#</th>
+                    <th style="width:72%;">یادداشت</th>
+                  </tr>
+                </thead>
+                <tbody>${notesTr}</tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     // =========================
@@ -204,10 +291,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       return `
       @page { size: A4 portrait; margin: 14mm; }
 
-      :root{
-        --app-font: ${fontStack};
-      }
-
+      :root{ --app-font: ${fontStack}; }
       * { box-sizing: border-box; }
 
       html, body {
@@ -221,11 +305,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         print-color-adjust: exact !important;
       }
 
-      .page {
-        width: 100%;
-        padding: 8mm;
-        background: #f6f7fb;
-      }
+      .page { width: 100%; padding: 8mm; background: #f6f7fb; }
 
       .hero {
         border-radius: 16px;
@@ -246,39 +326,12 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         pointer-events:none;
       }
 
-      .hero-top{
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap:12px;
-        position:relative;
-        z-index:1;
-      }
+      .hero-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; position:relative; z-index:1; }
 
-      .hero-title{
-        color:#fff;
-        font-weight:900;
-        font-size:18px;
-        margin:0 0 4px;
-        letter-spacing:.2px;
-        line-height:1.25;
-      }
-      .hero-sub{
-        color: rgba(255,255,255,.92);
-        margin:0;
-        font-size:12px;
-        line-height:1.55;
-        font-weight:700;
-      }
+      .hero-title{ color:#fff; font-weight:900; font-size:18px; margin:0 0 4px; letter-spacing:.2px; line-height:1.25; }
+      .hero-sub{ color: rgba(255,255,255,.92); margin:0; font-size:12px; line-height:1.55; font-weight:700; }
 
-      .pills{
-        margin-top:10px;
-        display:flex;
-        gap:8px;
-        flex-wrap:wrap;
-        position:relative;
-        z-index:1;
-      }
+      .pills{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
       .pill{
         display:inline-block;
         padding:6px 10px;
@@ -289,18 +342,10 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         background: rgba(255,255,255,.14);
         color:#fff;
       }
-      .pill-miladi{ }
-      .pill-shamsi{ }
-      .pill-qamari{ }
 
       .section { margin-top: 12px; }
 
-      .stats-grid{
-        display:grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap:10px;
-        margin-top:12px;
-      }
+      .stats-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:12px; }
 
       .card{
         background:#fff;
@@ -310,25 +355,10 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         box-shadow: 0 10px 22px rgba(17,24,39,.06);
       }
 
-      .stat-card{
-        padding:12px 12px;
-        min-height:90px;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:10px;
-      }
-      .stat-label{
-        font-size:11px;
-        color: rgba(17,24,39,.65);
-        font-weight:900;
-        margin-bottom:4px;
-      }
-      .stat-number{
-        font-size:22px;
-        font-weight:900;
-        line-height:1.1;
-      }
+      .stat-card{ padding:12px 12px; min-height:90px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+      .stat-label{ font-size:11px; color: rgba(17,24,39,.65); font-weight:900; margin-bottom:4px; }
+      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; }
+
       .badge{
         display:inline-flex;
         align-items:center;
@@ -353,17 +383,8 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         justify-content:space-between;
         gap:10px;
       }
-      .strip-title{
-        font-weight:900;
-        font-size:12px;
-        margin:0;
-      }
-      .strip-sub{
-        margin:2px 0 0;
-        color: rgba(17,24,39,.55);
-        font-size:10px;
-        font-weight:800;
-      }
+      .strip-title{ font-weight:900; font-size:12px; margin:0; }
+      .strip-sub{ margin:2px 0 0; color: rgba(17,24,39,.55); font-size:10px; font-weight:800; }
       .strip-left{ display:flex; align-items:center; gap:10px; }
 
       .chip{
@@ -383,12 +404,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       .chip-success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
       .chip-warning{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
 
-      table{
-        width:100%;
-        border-collapse:separate;
-        border-spacing: 0;
-        table-layout: fixed;
-      }
+      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; }
       thead th{
         background:#f8fafc;
         color: rgba(17,24,39,.72);
@@ -435,26 +451,13 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       .etype-blue{ background:#dbeafe; border-color:#bfdbfe; color:#1e40af; }
       .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; color:#374151; }
 
-      .hero-logo{
-        display:flex;
-        align-items:center;
-        justify-content:flex-end;
-        padding:10px 12px;
-        border-radius:12px;
-        min-width: 150px;
-      }
-      .hero-logo img{
-        height:42px;
-        width:auto;
-        object-fit:contain;
-        display:block;
-      }
+      .hero-logo{ display:flex; align-items:center; justify-content:flex-end; padding:10px 12px; border-radius:12px; min-width: 150px; }
+      .hero-logo img{ height:82px; width:auto; object-fit:contain; display:block; }
+
       .no-break { break-inside: avoid; page-break-inside: avoid; }
       .card { break-inside: avoid; page-break-inside: avoid; }
 
-      @media print{
-        .stats-grid{ grid-template-columns: repeat(2, 1fr); }
-      }
+      @media print{ .stats-grid{ grid-template-columns: repeat(2, 1fr); } }
     `;
     }
 
@@ -478,9 +481,9 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // Quarterly HTML (✅ stacked tables like Weekly)
+    // Quarterly HTML (✅ stacked tables like Weekly) + ✅ notes appended
     // =========================
-    function buildQuarterlyDashboardHtml(report, quarterLabel) {
+    function buildQuarterlyDashboardHtml(report, quarterLabel, notes = []) {
       const qLabel = String(quarterLabel || selectedQuarter.value || currentQuarterLabel());
       const headerIso = quarterToIsoDate(qLabel);
       const pills = buildDatePillsSameDay(headerIso);
@@ -496,8 +499,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
 
       function getLogoUrl() {
-        // ✅ logo must be inside /public so it works in print window
-        return `${window.location.origin}/logo.png`;
+        return `${window.location.origin}/logo.jpeg`;
       }
 
       const infoTr = infoTypes.length
@@ -570,53 +572,36 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             </div>
 
             <div class="stats-grid section no-break">
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">منابع</div>
-                    <div class="stat-number">${resourcesTotal}</div>
-                    <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">منابع</div>
+                <div class="stat-number">${resourcesTotal}</div>
+                <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">اطلاعات</div>
-                    <div class="stat-number">${informationsTotal}</div>
-                    <span class="badge b-info">شتون لري</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">اطلاعات</div>
+                <div class="stat-number">${informationsTotal}</div>
+                <span class="badge b-info">شتون لري</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">پېښې</div>
-                    <div class="stat-number">${eventsTotal}</div>
-                    <span class="badge b-warning">ثبت شوې</span>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">پېښې</div>
+                <div class="stat-number">${eventsTotal}</div>
+                <span class="badge b-warning">ثبت شوې</span>
+              </div></div></div>
 
-              <div class="card">
-                <div class="stat-card">
-                  <div>
-                    <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
-                    <div class="stat-number">${formatsActive}</div>
-                  </div>
-                </div>
-              </div>
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
+                <div class="stat-number">${formatsActive}</div>
+              </div></div></div>
             </div>
 
-            <!-- ✅ stacked tables (same as Weekly) -->
             <div class="section">
               <div class="card no-break">
                 <div class="header-strip bg-primary">
                   <div class="strip-left">
                     <div>
-                      <div class="strip-title">د معلوماتو ډولونه</div>
+                      <div class="strip-title">د اطلاعاتو ډولونه</div>
                       <div class="strip-sub">د ډول له مخې وېش (ربعه)</div>
                     </div>
                   </div>
@@ -689,6 +674,8 @@ export const useFoulQuarterlyReportsRepository = defineStore(
               </div>
             </div>
 
+            ${buildNotesSectionHtml(notes)}
+
           </div>
         </body>
       </html>
@@ -743,12 +730,9 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         quarterly.value = data;
         return data;
       } catch (e) {
-        console.error(e);
         quarterly.value = null;
-
         error.value = normalizeError(e);
         toast.error(error.value);
-
         return null;
       } finally {
         loading.value = false;
@@ -765,23 +749,39 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     if (!selectedQuarter.value) selectedQuarter.value = currentQuarterLabel();
 
     // =========================
-    // EXPORT ACTIONS (new dashboard design)
+    // EXPORT ACTIONS (✅ with notes)
     // =========================
-    const DownloadQuarterlyFoulPdf = () => {
+    const DownloadQuarterlyFoulPdf = async () => {
       const report = quarterly.value;
       if (!report) return;
 
       const qText = selectedQuarter.value || currentQuarterLabel();
-      const html = buildQuarterlyDashboardHtml(report, qText);
+      const r = rangeForQuarterlyNotes(qText);
+
+      const notes = await fetchNotesForExport({
+        type: 'quarterly',
+        from: r.from,
+        to: r.to,
+      });
+
+      const html = buildQuarterlyDashboardHtml(report, qText, notes);
       openPrintWindow(html);
     };
 
-    const DownloadQuarterlyFoulWord = () => {
+    const DownloadQuarterlyFoulWord = async () => {
       const report = quarterly.value;
       if (!report) return;
 
       const qText = selectedQuarter.value || currentQuarterLabel();
-      const html = buildQuarterlyDashboardHtml(report, qText);
+      const r = rangeForQuarterlyNotes(qText);
+
+      const notes = await fetchNotesForExport({
+        type: 'quarterly',
+        from: r.from,
+        to: r.to,
+      });
+
+      const html = buildQuarterlyDashboardHtml(report, qText, notes);
       downloadWordFile(html, `quarterly_dashboard_${qText}.doc`);
     };
 

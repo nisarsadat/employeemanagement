@@ -213,6 +213,7 @@
                 item-value="code_number"
                 :label="t('کود منبع')"
                 density="compact"
+                :rules="[rules.required]"
                 variant="outlined"
                 hide-details="auto"
                 clearable

@@ -5,11 +5,6 @@
       :title="isEdit ? t('اصلاح مکتوب') : t('ثبت مکتوب صادره/وارده')"
       :subtitle="isEdit ? t('ویرایش جزئیات') : t('ثبت یک مورد جدید در سیستم')"
     >
-      <template #actions>
-        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
     </AppBar>
 
     <!-- STEPPER -->
@@ -156,19 +151,8 @@
                 <DocsTypeAutocomplete v-model="form.docs_type" :label="t('نوع سند')" />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="12">
                 <MarjaAutocomplete v-model="form.marja" :label="t('مرجع')" />
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.who_sighn"
-                  :label="t('امضاء کننده')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('who_sighn')"
-                  :error-messages="getErrorMessages('who_sighn')"
-                />
               </v-col>
 
               <v-col cols="12" md="12">
@@ -336,7 +320,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="12`">
                 <v-text-field
                   v-model="form.answer_page"
                   :label="t('صفحه پاسخ')"
@@ -347,7 +331,27 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
+              
+            </v-row>
+          </v-sheet>
+
+          <!-- SECTION 4: Counts + Notes -->
+          <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
+            <div class="section-header docs-header">
+              <div class="d-flex align-center">
+                <v-icon class="ml-2 section-icon">mdi-note-text</v-icon>
+                <span class="text-subtitle-2 font-weight-medium section-title">
+                  {{ t('ضمیمه و ملاحظات') }}
+                </span>
+              </div>
+              <span class="section-subtitle text-caption">
+                {{ t('تعداد نقل، اوراق، ضمیمه و ملاحظات') }}
+              </span>
+            </div>
+            <v-divider />
+            <v-row class="pa-3">
+
+<v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.page"
                   :label="t('صفحه')"
@@ -369,7 +373,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="12">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.fihrist_page"
                   :label="t('صفحه فهرست')"
@@ -379,32 +383,13 @@
                   :error-messages="getErrorMessages('fihrist_page')"
                 />
               </v-col>
-            </v-row>
-          </v-sheet>
 
-          <!-- SECTION 4: Counts + Notes -->
-          <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
-            <div class="section-header docs-header">
-              <div class="d-flex align-center">
-                <v-icon class="ml-2 section-icon">mdi-note-text</v-icon>
-                <span class="text-subtitle-2 font-weight-medium section-title">
-                  {{ t('ضمیمه و ملاحظات') }}
-                </span>
-              </div>
-              <span class="section-subtitle text-caption">
-                {{ t('تعداد نقل، اوراق، ضمیمه و ملاحظات') }}
-              </span>
-            </div>
-            <v-divider />
-
-            <v-row class="pa-3">
               <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.naqal_count"
                   :label="t('تعداد نقل')"
                   density="compact"
                   variant="outlined"
-                  
                 />
               </v-col>
 
@@ -414,7 +399,6 @@
                   :label="t('اوراق')"
                   density="compact"
                   variant="outlined"
-                  
                 />
               </v-col>
 
@@ -424,7 +408,6 @@
                   :label="t('ضمیمه')"
                   density="compact"
                   variant="outlined"
-                  
                 />
               </v-col>
 

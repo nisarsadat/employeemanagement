@@ -291,6 +291,7 @@
                 v-model="form.resource_code"
                 :items="resources"
                 item-title="code_number"
+                :rules="[rules.required]"
                 item-value="code_number"
                 :label="t('کود منبع')"
                 variant="outlined"
