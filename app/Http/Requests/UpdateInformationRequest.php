@@ -45,6 +45,7 @@ class UpdateInformationRequest extends FormRequest
             'information_saved_hour' => ['sometimes','nullable','string'],
             'information_degree'     => ['sometimes','nullable','string'],
             'trust_percentage'     => ['sometimes','nullable','string'],
+            'resource_lasrasy'     => ['sometimes','nullable','string'],
 
             'tafseel'         => ['sometimes','nullable','string'],
             'manager_comment' => ['sometimes','nullable','string'],
@@ -58,7 +59,7 @@ class UpdateInformationRequest extends FormRequest
             'finance_status'   => ['sometimes','nullable','string'],
             'finance_paid_at'   => ['sometimes','nullable','string'],
             'Province_addr' => ['nullable','string'],
-
+            'account_id' => ['nullable', 'integer', 'exists:accounts,id'],  
             'documents'   => ['nullable','array'],
             'documents.*' => ['file'],
         ];

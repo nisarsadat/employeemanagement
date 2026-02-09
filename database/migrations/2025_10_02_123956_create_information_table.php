@@ -16,6 +16,9 @@ return new class extends Migration {
             $table->unsignedBigInteger('resource_id')->nullable();
             $table->unsignedBigInteger('office_employee_id')->nullable();       // کود کارمند مربوطه
             $table->unsignedBigInteger('office_employee_info_id')->nullable();  // کود کارمند اطلاع گیرنده
+            $table->foreignId('account_id')->nullable()
+                ->constrained('accounts')
+                ->nullOnDelete();
 
             // ===============================
             // Personal info
@@ -29,6 +32,7 @@ return new class extends Migration {
             $table->string('madani_halat')->nullable();
             $table->string('estijalyat_degree')->nullable();
             $table->string('information_category')->nullable();
+            $table->string('resource_lasrasy')->nullable();
             $table->string('message_to_finance')->nullable();
             $table->string('money_amount_words')->nullable();
             $table->string('finance_status')->default('pending');

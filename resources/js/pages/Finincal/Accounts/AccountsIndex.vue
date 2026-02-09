@@ -81,7 +81,7 @@
           <!-- Year / Month -->
           <v-col cols="12" md="3" lg="3">
             <div class="d-flex ga-2 flex-wrap">
-              <v-select
+              <!-- <v-select
                 v-model="selectedYear"
                 :items="yearItems"
                 item-title="title"
@@ -112,14 +112,14 @@
                 prepend-inner-icon="mdi-calendar-month"
                 :disabled="!selectedYear"
                 @update:modelValue="onYearMonthChanged"
-              />
+              /> -->
             </div>
           </v-col>
 
           <!-- Actions -->
           <v-col cols="12" md="4" lg="4" class="d-flex justify-end">
             <div class="d-flex ga-2 flex-wrap justify-end w-100">
-              <v-btn
+              <!-- <v-btn
                 variant="tonal"
                 color="grey-darken-1"
                 class="text-none"
@@ -127,7 +127,7 @@
                 @click="resetFilters"
               >
                 {{ t('common.resetFilters') }}
-              </v-btn>
+              </v-btn> -->
 
               <v-btn color="primary" class="text-none" prepend-icon="mdi-plus" @click="openCreate">
                 {{ t('accounts.actions.create') }}

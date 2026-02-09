@@ -39,6 +39,7 @@ class StoreEventRequest extends FormRequest
             'Province_addr'         => ['nullable','string'],
             'money_amount_words'         => ['nullable','string'],
             'message_to_finance'         => ['nullable','string'],
+            'account_id' => ['nullable', 'integer', 'exists:accounts,id'],
             'finance_status' => ['nullable','string'],
             'finance_paid_at' => ['nullable','string'],
             'documents.*'           => 'nullable|file',

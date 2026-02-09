@@ -41,6 +41,14 @@ class EventResource extends JsonResource
             'money_amount_words' => $this->money_amount_words,
             'finance_status' => $this->finance_status ?? 'pending',
             'finance_paid_at' => optional($this->finance_paid_at)?->toISOString(),
+            'account_id' => $this->account_id,
+            'account' => $this->whenLoaded('account', function () {
+                return [
+                    'id' => $this->account->id,
+                    'name' => $this->account->name,
+                    'price' => $this->account->price,
+                ];
+            }),
 
             'docs_note' => $this->docs_note,
             'Province_addr' => $this->Province_addr,

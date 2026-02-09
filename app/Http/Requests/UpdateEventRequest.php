@@ -41,7 +41,7 @@ class UpdateEventRequest extends FormRequest
             'finance_status'   => ['sometimes','nullable','string'],
             'finance_paid_at'   => ['sometimes','nullable','string'],
             'Province_addr'         => ['nullable','string'],
-
+            'account_id' => ['nullable', 'integer', 'exists:accounts,id'],
             'documents.*'           => 'sometimes|file',
         ];
     }

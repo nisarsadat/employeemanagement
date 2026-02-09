@@ -63,7 +63,7 @@
       <v-card-text class="pa-4">
         <v-row dense class="align-center">
           <!-- Search -->
-          <v-col cols="12" md="4" lg="4">
+          <v-col cols="12" md="8" lg="8">
             <v-text-field
               v-model="repo.incomesSearch"
               :label="t('common.search')"
@@ -80,7 +80,7 @@
           </v-col>
 
           <!-- Year/Month -->
-          <v-col cols="12" md="4" lg="4">
+          <!-- <v-col cols="12" md="4" lg="4">
             <div class="d-flex ga-2 flex-wrap">
               <v-select
                 v-model="selectedYear"
@@ -115,12 +115,12 @@
                 @update:modelValue="onYearMonthChanged"
               />
             </div>
-          </v-col>
+          </v-col> -->
 
           <!-- Actions -->
           <v-col cols="12" md="4" lg="4" class="d-flex justify-end">
             <div class="d-flex ga-2 flex-wrap w-100 justify-end">
-              <v-btn
+              <!-- <v-btn
                 variant="tonal"
                 color="primary"
                 class="text-none"
@@ -138,7 +138,7 @@
                 @click="resetFilters"
               >
                 {{ t('common.resetFilters') }}
-              </v-btn>
+              </v-btn> -->
 
               <v-btn color="success" class="text-none" prepend-icon="mdi-plus" @click="openCreate">
                 {{ t('incomes.actions.create') }}

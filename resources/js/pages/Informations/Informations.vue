@@ -238,7 +238,7 @@
       :showIndex="true"
       :rtl="true"
       :autoDetectDates="false"
-      :dateKeys="['information_saved_date']"
+      :dateKeys="['information_saved_date' , 'hamahangi_date']"
       class="mb-20 mx-2"
     >
       <!-- RESOURCE -->
@@ -680,6 +680,7 @@
     { title: t('ساعت اطلاع'), key: 'information_saved_hour' },
     { title: t('درجه موثقیت اطلاع'), key: 'information_degree' },
     { title: t('د اطلاع کتګوري'), key: 'information_category' },
+    { title: t('د منبع لاسرسی'), key: 'resource_lasrasy' },
 
     { title: t('تاریخ هم‌آهنگی'), key: 'hamahangi_date' },
     { title: t('شماره مکتوب'), key: 'maktop_number' },

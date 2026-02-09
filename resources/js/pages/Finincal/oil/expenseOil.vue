@@ -72,16 +72,20 @@
           density="compact"
           clearable
           @keyup.enter="applyFilters"
-          @click:clear="() => { repo.Search=''; applyFilters(); }"
+          @click:clear="
+            () => {
+              repo.Search = '';
+              applyFilters();
+            }
+          "
         />
       </v-col>
 
-      <!-- ✅ Year (label changes by calendar, value stays Gregorian year) -->
+      <!-- ✅ Year / Month (✅ same calendar-aware logic as Finances) -->
       <v-col cols="12" md="3">
         <v-select
-          :key="`year-${calKey}`"
-          v-model="repo.year"
-          :items="yearOptions"
+          v-model="selectedYear"
+          :items="yearItems"
           item-title="title"
           item-value="value"
           :label="t('کال')"
@@ -89,15 +93,13 @@
           density="compact"
           clearable
           :loading="repo.yearsLoading"
-          @update:modelValue="applyFilters"
+          @update:modelValue="onYearMonthChanged"
         />
       </v-col>
 
-      <!-- ✅ Month (label changes by calendar, value stays 1..12 Gregorian index) -->
       <v-col cols="12" md="3">
         <v-select
-          :key="`month-${calKey}`"
-          v-model="repo.month"
+          v-model="selectedMonth"
           :items="monthOptions"
           item-title="title"
           item-value="value"
@@ -105,7 +107,8 @@
           variant="outlined"
           density="compact"
           clearable
-          @update:modelValue="applyFilters"
+          :disabled="!selectedYear"
+          @update:modelValue="onYearMonthChanged"
         />
       </v-col>
 
@@ -128,6 +131,8 @@
           :totalItems="repo.totalItems"
           :page="repo.page"
           :perPage="repo.itemsPerPage"
+          :disableDateConvert="true"
+          @update:filters="(v) => (filters = v)"
           @update:page="onPage"
           @update:perPage="onItemsPerPage"
         >
@@ -188,8 +193,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import dayjs from 'dayjs'
+
 import { useOilRepository } from '@/stores/OilRepository'
 import ExpenseOilFormDialog from './ExpenseOilFormDialog.vue'
 import FilterableTable from '@/components/FilterableTable.vue'
@@ -199,85 +206,110 @@ import { useCalendar } from '../../../../composables/useCalendar'
 const repo = useOilRepository()
 const { t, locale } = useI18n()
 
-const cal = useCalendar()
-const formatDisplay = cal.formatDisplay
-const toIso = cal.toIso
-const calendar = cal.calendar
-
+/* ===== RTL ===== */
 const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
 
 function getRow(payload) {
   return payload?.raw ?? payload
 }
 
-const calKey = computed(() => String(calendar?.value || 'gregorian'))
+/* ===== Calendar (same as Finances) ===== */
+const { calendar, formatYearDisplay, toIso } = useCalendar()
+
+/* ===== Year/Month filters (values stay Gregorian) ===== */
+const selectedYear = ref(null)  // sent to backend (gregorian)
+const selectedMonth = ref(null) // sent to backend (gregorian 1..12)
+
+/* ===== ✅ Year items from backend, titles follow calendar mode ===== */
+const yearItems = ref([])
+const yearNumbers = ref([])
+
+function rebuildYearItems() {
+  if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return
+  yearItems.value = yearNumbers.value.map((y) => ({
+    value: y,
+    title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+  }))
+}
+
+async function fetchYearItemsFromRepo() {
+  const years = Array.isArray(repo.availableYears) ? repo.availableYears : []
+  yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n))
+  rebuildYearItems()
+}
+
+/* update year titles when calendar/locale changes (selected value stays same) */
+watch([calendar, locale], () => rebuildYearItems())
+
+/* ===== ✅ Month titles follow calendar mode, values stay gregorian 1..12 ===== */
+const JALALI_MONTHS_FA = ['حمل', 'ثور', 'جوزا', 'سرطان', 'اسد', 'سنبله', 'میزان', 'عقرب', 'قوس', 'جدی', 'دلو', 'حوت']
+
+const HIJRI_QAMARI_MONTHS_FA = [
+  'محرم',
+  'صفر',
+  'ربیع‌الاول',
+  'ربیع‌الثانی',
+  'جمادی‌الاول',
+  'جمادی‌الثانی',
+  'رجب',
+  'شعبان',
+  'رمضان',
+  'شوال',
+  'ذوالقعده',
+  'ذوالحجه',
+]
+
+function monthTitleFromGregorianMonth(gYear, gMonth) {
+  const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`
+
+  if (calendar.value === 'gregorian') {
+    try {
+      const dt = new Date(iso + 'T00:00:00')
+      return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt)
+    } catch {
+      return String(gMonth)
+    }
+  }
+
+  if (calendar.value === 'jalali') {
+    try {
+      const dt = new Date(iso + 'T00:00:00')
+      const fmt = new Intl.DateTimeFormat(locale.value, { calendar: 'persian', month: 'numeric' })
+      const parts = fmt.formatToParts(dt)
+      const m = Number(parts.find((p) => p.type === 'month')?.value)
+      if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1]
+    } catch {}
+    return JALALI_MONTHS_FA[(gMonth - 1) % 12]
+  }
+
+  if (calendar.value === 'hijri') {
+    try {
+      const dt = new Date(iso + 'T00:00:00')
+      const fmt = new Intl.DateTimeFormat('ar', { calendar: 'islamic-umalqura', month: 'numeric' })
+      const parts = fmt.formatToParts(dt)
+      const m = Number(parts.find((p) => p.type === 'month')?.value)
+      if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1]
+    } catch {}
+    return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12]
+  }
+
+  return String(gMonth)
+}
 
 const monthOptions = computed(() => {
-  const c = String(calendar?.value || 'gregorian')
-
-  if (c === 'jalali') {
-    return [
-      { title: t('حمل'), value: 1 },
-      { title: t('ثور'), value: 2 },
-      { title: t('جوزا'), value: 3 },
-      { title: t('سرطان'), value: 4 },
-      { title: t('اسد'), value: 5 },
-      { title: t('سنبله'), value: 6 },
-      { title: t('میزان'), value: 7 },
-      { title: t('عقرب'), value: 8 },
-      { title: t('قوس'), value: 9 },
-      { title: t('جدی'), value: 10 },
-      { title: t('دلو'), value: 11 },
-      { title: t('حوت'), value: 12 },
-    ]
-  }
-
-  if (c === 'hijri') {
-    return [
-      { title: t('محرم'), value: 1 },
-      { title: t('صفر'), value: 2 },
-      { title: t('ربیع الاول'), value: 3 },
-      { title: t('ربیع الثانی'), value: 4 },
-      { title: t('جمادی الاول'), value: 5 },
-      { title: t('جمادی الثانی'), value: 6 },
-      { title: t('رجب'), value: 7 },
-      { title: t('شعبان'), value: 8 },
-      { title: t('رمضان'), value: 9 },
-      { title: t('شوال'), value: 10 },
-      { title: t('ذوالقعده'), value: 11 },
-      { title: t('ذوالحجه'), value: 12 },
-    ]
-  }
-
-  return [
-    { title: t('جنوري'), value: 1 },
-    { title: t('فبروري'), value: 2 },
-    { title: t('مارچ'), value: 3 },
-    { title: t('اپریل'), value: 4 },
-    { title: t('می'), value: 5 },
-    { title: t('جون'), value: 6 },
-    { title: t('جولای'), value: 7 },
-    { title: t('اګست'), value: 8 },
-    { title: t('سپتمبر'), value: 9 },
-    { title: t('اکتوبر'), value: 10 },
-    { title: t('نومبر'), value: 11 },
-    { title: t('ډسمبر'), value: 12 },
-  ]
+  const y = selectedYear.value || dayjs().year()
+  return Array.from({ length: 12 }).map((_, i) => {
+    const m = i + 1
+    return { value: m, title: monthTitleFromGregorianMonth(y, m) }
+  })
 })
 
-const yearOptions = computed(() => {
-  const y = repo.availableYears
+function onYearMonthChanged() {
+  if (!selectedYear.value) selectedMonth.value = null
+  applyFilters()
+}
 
-  // unwrap common API shapes
-  const arr =
-    Array.isArray(y) ? y :
-    Array.isArray(y?.data) ? y.data :
-    Array.isArray(y?.years) ? y.years :
-    []
-
-  return cal.yearItemsFromGregorianYears(arr, locale.value)
-})
-
+/* ===== Summary / Table ===== */
 const summaryView = computed(() => {
   const s = repo.summary || {}
 
@@ -314,11 +346,11 @@ const headersFT = computed(() => [
 const litersRaw = (n) =>
   Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
 
-// ✅ FIX: add idOrTmp (stable) so FilterableTable doesn't fallback to row-index keys
+// ✅ IMPORTANT: keep date raw Gregorian (no formatDisplay)
 const rowsFT = computed(() => {
   return (repo.ExpenseOils || []).map((it, i) => ({
     ...it,
-    idOrTmp: it?.id ?? `tmp-${i}`, // ✅ IMPORTANT
+    idOrTmp: it?.id ?? `tmp-${i}`,
     index: i + 1,
     account: it?.account?.name ?? it?.account ?? '—',
     name: it?.name ?? '—',
@@ -326,14 +358,15 @@ const rowsFT = computed(() => {
     officeemployee: it?.employee?.code_number ?? it?.office_employee?.code_number ?? '—',
     payer: it?.payer ?? '—',
     liter_in_number: litersRaw(it?.liter_in_number ?? it?.oil_quantity ?? 0),
-    date: formatDisplay(it?.date, locale.value),
+    date: it?.date ?? '', // ✅ raw
     note: it?.note ?? '',
     tafseel: it?.tafseel ?? it?.destination ?? '',
     raw: it,
   }))
 })
 
-const filters = []
+// ✅ Finance-style filters object
+let filters = ref({})
 const topGroups = []
 
 const dialog = ref(false)
@@ -352,8 +385,15 @@ const draft = reactive({
   note: '',
 })
 
+/* ===== Fetch / filters ===== */
 const fetchAll = async () => {
-  await repo.FetchExpenseOils({ page: repo.page, itemsPerPage: repo.itemsPerPage })
+  await repo.FetchExpenseOils({
+    page: repo.page,
+    itemsPerPage: repo.itemsPerPage,
+    search: repo.Search,
+    year: selectedYear.value,
+    month: selectedMonth.value,
+  })
 }
 
 const applyFilters = async () => {
@@ -445,8 +485,10 @@ async function handleDeleteConfirmed(target) {
 const liters = (n) =>
   `${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} L`
 
+/* ===== Init ===== */
 onMounted(async () => {
-  await repo.FetchYears('expense-oils')
+  await repo.FetchYears('expense-oils') // fills repo.availableYears
+  await fetchYearItemsFromRepo()
   await fetchAll()
 })
 </script>

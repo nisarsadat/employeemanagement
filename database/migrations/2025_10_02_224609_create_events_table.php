@@ -15,7 +15,7 @@ return new class extends Migration {
                 $table->foreignId('resource_id')->nullable()->constrained('resources')->cascadeOnDelete();
                 $table->foreignId('office_employee_id')->nullable()->constrained('office_employees')->cascadeOnDelete();
                 $table->foreignId('office_employee_akhistonky_id')->nullable()->constrained('office_employees')->cascadeOnDelete();
-
+                $table->foreignId('account_id')->nullable()->constrained('accounts')->nullOnDelete();
                 // New input fields (renamed to your spec)
                 $table->string('event_type')->nullable();
                 $table->string('event_specific_type')->nullable();

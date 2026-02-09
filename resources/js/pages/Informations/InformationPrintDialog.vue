@@ -24,7 +24,7 @@
             <img :src="logoSrc" class="brand-logo" alt="Logo" />
             <div class="brand-text">
               <div class="brand-title">{{ systemName }}</div>
-              <div class="brand-sub">{{ t('سند رسمی / پرنټ') }}</div>
+              <div class="brand-sub">{{ t('اطلاع') }}</div>
             </div>
           </div>
         </div>
@@ -48,108 +48,86 @@
 
       <div class="rule" />
 
-      <section class="grid">
+      <!-- ✅ FIVE FIELDS IN ONE ROW -->
+      <section class="grid grid-5">
         <div class="field">
-          <div class="k">{{ t('موضوع / نوم') }}</div>
-          <div class="v strong clamp-2">{{ item.name || '—' }}</div>
+          <div class="k">{{ t('کود منبع') }}</div>
+          <div class="v strong clamp-2">{{ item.resource_code_number || '—' }}</div>
         </div>
 
         <div class="field">
-          <div class="k">{{ t('ولایت') }}</div>
-          <div class="v">{{ item.Province_addr || '—' }}</div>
+          <div class="k">{{ t('کود کارمند') }}</div>
+          <div class="v strong clamp-2">{{ item.office_employee_code_number || '—' }}</div>
         </div>
 
         <div class="field">
-          <div class="k">{{ t('د معلومات ډول') }}</div>
-          <div class="v">{{ item.syasi_info_type || '—' }}</div>
+          <div class="k">{{ t('فیصدی اعتماد') }}</div>
+          <div class="v strong">{{ item.trust_percentage ?? '—' }}</div>
         </div>
 
         <div class="field">
-          <div class="k">{{ t('د جنایي معلومات ډول') }}</div>
-          <div class="v">{{ item.jenayee_info_type || '—' }}</div>
+          <div class="k">{{ t('درجه معلومات') }}</div>
+          <div class="v strong">{{ item.information_degree || '—' }}</div>
+        </div>
+
+        <div class="field">
+          <div class="k">{{ t('د منبع لاسرسی') }}</div>
+          <div class="v strong clamp-2">{{ item.resource_lasrasy || '—' }}</div>
         </div>
       </section>
 
       <main class="content">
-        <section class="section">
-          <div class="section-h">
-            <div class="section-title">{{ t('تفصیل معلومات') }}</div>
-            <div class="chip">{{ t('کلمات') }}: {{ wordCount(item.tafseel) }}</div>
-          </div>
-          <div class="box box-text">
-            <div class="pre clamp-lines">
-              {{ item.tafseel || '—' }}
-            </div>
-          </div>
-        </section>
-
-        <!-- ✅ Two columns with fixed positions (like image) -->
-        <section class="two">
-          <!-- Right side (first in RTL) -->
+        <!-- ✅ TWO ROWS (STACKED), NOT TWO COLUMNS -->
+        <section class="two two-rows">
+          <!-- Row 1 -->
           <div class="section">
             <div class="section-h">
               <div class="section-title">{{ t('اسناد پیوست') }}</div>
               <div class="chip">{{ docsCount }}</div>
             </div>
 
-            <div class="box box-text">
+            <div class="box box-text grow-box">
               <div class="pre clamp-10">{{ itemDocsNote }}</div>
-            </div>
-          </div>
-
-          <!-- Left side -->
-          <div class="section">
-            <div class="section-h">
-              <div class="section-title">{{ t('نظر مدیریت') }}</div>
-            </div>
-            <div class="box box-text">
-              <div class="pre clamp-10">{{ item.manager_comment || '—' }}</div>
             </div>
           </div>
         </section>
 
-        <section class="section">
+        <!-- ✅ Tafseel should take MORE height (main filler) -->
+        <section class="section tafseel-section">
+          <div class="section-h">
+            <div class="section-title">{{ t('تفصیل معلومات') }}</div>
+            <div class="chip">{{ t('کلمات') }}: {{ wordCount(item.tafseel) }}</div>
+          </div>
+          <div class="box box-text grow-box">
+            <div class="pre tafseel-pre">
+              {{ item.tafseel || '—' }}
+            </div>
+          </div>
+        </section>
+
+        <!-- Row 2 -->
+        <section class="section manager-section">
+          <div class="section">
+            <div class="section-h">
+              <div class="section-title">{{ t('نظر مدیریت') }}</div>
+            </div>
+            <div class="box box-text grow-box">
+              <div class="pre">{{ item.manager_comment || '—' }}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section direction-section">
           <div class="section-h">
             <div class="section-title">{{ t('هدایت و راهنمایی') }}</div>
           </div>
-          <div class="box box-text">
+          <div class="box box-text grow-box">
             <div class="pre clamp-8">{{ item.lead_drirection || '—' }}</div>
           </div>
         </section>
       </main>
 
-      <footer class="ftr">
-        <div class="signs">
-          <div class="sign">
-            <div class="sign-k">{{ t('مسئول ثبت کننده') }}</div>
-            <div class="line" />
-            <div class="sign-meta">
-              <span>{{ t('تاریخ') }}: ____</span>
-              <span>{{ t('مهر') }}: ____</span>
-            </div>
-          </div>
-
-          <div class="sign">
-            <div class="sign-k">{{ t('مسئول تایید کننده') }}</div>
-            <div class="line" />
-            <div class="sign-meta">
-              <span>{{ t('تاریخ') }}: ____</span>
-              <span>{{ t('مهر') }}: ____</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="stamp">
-          <div class="stamp-row">
-            <span class="s-k">{{ t('شناسه سیستم') }}</span>
-            <span class="s-v">{{ systemId }}</span>
-          </div>
-          <div class="stamp-row">
-            <span class="s-k">{{ t('تاریخ چاپ') }}</span>
-            <span class="s-v">{{ printedAt }}</span>
-          </div>
-        </div>
-      </footer>
+      <!-- ✅ FOOTER REMOVED -->
     </div>
   </div>
 </template>
@@ -172,7 +150,7 @@
   }
 
   const printArea = ref(null);
-  const logoSrc = `${window.location.origin}/logo.jpeg`;
+  const logoSrc = '/logo.jpeg';
 
   const id = computed(() => route.params.id);
 
@@ -191,7 +169,7 @@
     return v && String(v).trim() ? String(v) : '—';
   });
 
-  const systemName = ref('سیستم مدیریت اطلاعات ');
+  const systemName = ref('333');
   const systemId = ref('');
   const printedAt = ref('');
 
@@ -252,12 +230,13 @@
   }
 
   // ✅ ALWAYS RTL print CSS (fixed positions like your image)
+  // ✅ UPDATED: make it FILL one A4 height + make Tafseel a bit smaller + make Manager bigger
   function buildPrintCss() {
     return `
     @page { size: A4 portrait; margin: 12mm; }
 
     html, body {
-      margin: 0;
+      margin: 12;
       padding: 0;
       background: #fff;
       font-family: 'Vazirmatn','Scheherazade New','Amiri',sans-serif;
@@ -267,12 +246,14 @@
       direction: rtl !important;
       text-align: right !important;
       unicode-bidi: plaintext !important;
+      height: 100%;
     }
 
     * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
     .page-shell { padding: 0 !important; background: white !important; }
 
+    /* ✅ make page fill A4 height (minus @page margins) */
     .paper {
       width: 100%;
       max-width: 820px;
@@ -284,15 +265,21 @@
       padding: 14px;
       direction: rtl !important;
       text-align: right !important;
+
+      display: flex;
+      flex-direction: column;
+
+      /* A4 height 297mm, margin top+bottom = 24mm, keep small buffer */
+      min-height: calc(297mm - 24mm);
     }
 
     /* ✅ Header: brand RIGHT, meta LEFT */
-    .hdr { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; }
-    .hdr-left { grid-column: 1; justify-self: end; }   /* brand on right */
-    .hdr-right { grid-column: 4; justify-self: start; }/* meta on left */
+    .hdr { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; padding-right: 12mm; }
+    .hdr-left { grid-column: 1; justify-self: end; }
+    .hdr-right { justify-self: end; }
 
     .brand { display: flex; gap: 10px; align-items: center; min-width: 0; }
-    .brand-logo { width: 44px; height: 44px; object-fit: contain; border-radius: 10px; border: 1px solid rgba(0,0,0,.08); background:#fff; }
+    .brand-logo { width: 44px; height: 44px; object-fit: contain; border-radius: 10px;  }
     .brand-title { font-weight: 900; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .brand-sub { font-size: 12px; color: rgba(0,0,0,.55); margin-top: 2px; }
 
@@ -305,55 +292,129 @@
 
     .rule { height: 1px; background: rgba(0,0,0,.08); margin: 10px 0 12px; }
 
-    .grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 10px; }
+    /* ✅ 5 fields in one row */
+    .grid.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+
     .field { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 9px 10px; background:#fff; min-width:0; }
     .k { font-size: 11px; color: rgba(0,0,0,.55); margin-bottom: 4px; }
     .v { font-size: 13px; font-weight: 650; }
     .strong { font-weight: 900; }
 
-    .content { margin-top: 12px; }
-    .section { margin-top: 10px; }
+    /* ✅ let content take remaining page height */
+    .content {
+      margin-top: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+    }
+    .manager-section > .section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .manager-section > .section .box {
+      flex: 1;
+      min-height: 0;
+    }
+
+    .section { margin-top: 0; }
     .section-h { display:flex; align-items:center; justify-content: space-between; gap:10px; margin-bottom: 6px; }
     .section-title { font-weight: 900; font-size: 13px; }
     .chip { font-size: 11px; border: 1px solid rgba(0,0,0,.08); background:#f9fafb; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
 
-    .box { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 10px; background:#fff; }
+    .box { border-radius: 10px; padding: 10px; }
     .box-text { background: #fcfcfd; }
     .pre { white-space: pre-wrap; word-break: break-word; line-height: 1.7; }
 
-    /* ✅ Two columns fixed like page */
-    .two { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; align-items: stretch; }
-    .two > .section { display:flex; flex-direction: column; min-height:0; }
-    .two > .section .box { flex:1; }
+    /* ✅ stacked rows */
+    .two.two-rows { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 0; }
+    .two.two-rows > .section { display:flex; flex-direction: column; min-height:0; }
 
-    .ftr { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,.08); display:grid; grid-template-columns: 1fr auto; gap:10px; align-items: end; }
-    .signs { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-    .sign { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 10px; background:#fff; }
-    .sign-k { font-size: 12px; color: rgba(0,0,0,.55); font-weight: 900; }
-    .line { height: 1px; background: rgba(0,0,0,.65); margin: 16px 0 8px; opacity: .35; }
-    .sign-meta { display:flex; justify-content: space-between; gap: 10px; font-size: 11px; color: rgba(0,0,0,.55); }
+    /* ✅ allow boxes to grow */
+/* default: docs should NOT stretch */
+.grow-box { flex: 0 0 auto; }
 
-    .stamp { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding:10px; background:#fafafa; min-width: 210px; }
-    .stamp-row { display:flex; justify-content: space-between; gap:10px; padding: 3px 0; }
-    .s-k { font-size: 11px; color: rgba(0,0,0,.55); }
-    .s-v { font-size: 11.5px; font-weight: 900; }
+/* ✅ but these sections MUST stretch to consume height */
+.tafseel-section .grow-box,
+.manager-section .grow-box,
+.direction-section .grow-box {
+  flex: 1 1 auto;
+  min-height: 0;
+}
 
+    /* ✅ Tafseel a bit smaller */
+    .tafseel-section { flex: 7; display: flex; flex-direction: column; min-height: 0; }
+    .tafseel-section .box { flex: 1; min-height: 0; }
+    .tafseel-pre { height: 100%; overflow: hidden; }
+
+    /* ✅ Manager bigger */
+    .manager-section { flex: 4; display: flex; flex-direction: column; min-height: 0; }
+    .manager-section .box { flex: 1; min-height: 0; }
+
+    /* ✅ Direction normal */
+    .direction-section { flex: 3; display: flex; flex-direction: column; min-height: 0; }
+    .direction-section .box { flex: 1; min-height: 0; }
+
+    /* ✅ keep small clamp for 2 lines only */
     .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .clamp-lines { max-height: 240px; overflow: hidden; }
-    .clamp-10 { max-height: 130px; overflow: hidden; }
-    .clamp-8 { max-height: 110px; overflow: hidden; }
+
+    /* ✅ give more height to these (they were too small) */
+    .clamp-10 { max-height: 170px; overflow: hidden; }
+    .clamp-8 { max-height: 160px; overflow: hidden; }
+
+    @media print {
+      .paper { padding: 0 !important; border: none !important; border-radius: 0 !important; min-height: calc(297mm - 24mm) !important; }
+      .page-shell { padding: 0 !important; background: #fff !important; }
+    }
+
+    @media (max-width: 900px) {
+      .grid.grid-5 { grid-template-columns: 1fr; }
+    }
 
     @media (max-width: 720px) {
       .hdr { grid-template-columns: 1fr; }
-      .hdr-left, .hdr-right { grid-column: auto; justify-self: start; }
-      .grid { grid-template-columns: 1fr; }
-      .two { grid-template-columns: 1fr; }
-      .ftr { grid-template-columns: 1fr; }
-      .stamp { min-width: 0; }
-      .signs { grid-template-columns: 1fr; }
+      .hdr-left, .hdr-right { justify-self: start; }
+      .grid.grid-5 { grid-template-columns: 1fr; }
+      .paper { min-height: auto; }
     }
 
     .no-print { display:none !important; }
+
+    /* ===============================
+       COLORFUL PRINT BLOCKS (PDF)
+       (no layout changes)
+    ================================ */
+
+    /* Header */
+    .hdr { background:#f1f5ff; border-radius:12px; padding:8px; }
+
+    /* Meta pills */
+    .hdr-right .meta-pill:nth-child(1) { background:#fff7ed; }
+    .hdr-right .meta-pill:nth-child(2) { background:#ecfeff; }
+    .hdr-right .meta-pill:nth-child(3) { background:#f0fdf4; }
+
+    /* Top grid fields — different colors */
+    .grid.grid-5 .field:nth-child(1) { background:#eef2ff; }
+    .grid.grid-5 .field:nth-child(2) { background:#fef3c7; }
+    .grid.grid-5 .field:nth-child(3) { background:#ecfccb; }
+    .grid.grid-5 .field:nth-child(4) { background:#fce7f3; }
+    .grid.grid-5 .field:nth-child(5) { background:#cffafe; }
+
+    /* Documents section */
+    .two .section:nth-child(1) .box { background:#f0f9ff; }
+
+    /* Tafseel (main large section) */
+    .tafseel-section .box { background:#fdf4ff; }
+
+    /* Manager comment */
+    .manager-section .box { background:#ecfdf5; }
+
+    /* Direction section */
+    .direction-section .box { background:#fff7ed; }
     `;
   }
 
@@ -464,8 +525,12 @@
     border-radius: 50%;
     display: inline-block;
   }
-  .dot-pdf { background: #e11d48; }
-  .dot-word { background: #2563eb; }
+  .dot-pdf {
+    background: #e11d48;
+  }
+  .dot-word {
+    background: #2563eb;
+  }
 
   .paper {
     max-width: 820px;
@@ -475,6 +540,11 @@
     border: 1px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
     padding: 14px;
+
+    /* ✅ screen layout also stretches nicely */
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 64px - 28px);
   }
 
   /* ✅ Header fixed like image: brand right, pills left */
@@ -486,15 +556,15 @@
   }
 
   .hdr-left {
-    justify-self: end; /* right side */
+    justify-self: end;
   }
 
   .hdr-right {
-    justify-self: start; /* left side */
+    justify-self: start;
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    flex-direction: row-reverse; /* شمېره rightmost in pills group */
+    flex-direction: row-reverse;
     justify-content: flex-start;
   }
 
@@ -536,8 +606,15 @@
     background: #fafafa;
   }
 
-  .meta-k { font-size: 11px; color: rgba(0, 0, 0, 0.55); }
-  .meta-v { font-size: 13px; font-weight: 900; margin-top: 2px; }
+  .meta-k {
+    font-size: 11px;
+    color: rgba(0, 0, 0, 0.55);
+  }
+  .meta-v {
+    font-size: 13px;
+    font-weight: 900;
+    margin-top: 2px;
+  }
 
   .rule {
     height: 1px;
@@ -545,9 +622,10 @@
     margin: 10px 0 12px;
   }
 
-  .grid {
+  /* ✅ 5-in-one-row grid */
+  .grid.grid-5 {
     display: grid;
-    grid-template-columns: 1.3fr 1fr;
+    grid-template-columns: repeat(5, 1fr);
     gap: 10px;
   }
 
@@ -570,10 +648,18 @@
     font-weight: 650;
   }
 
-  .strong { font-weight: 900; }
+  .strong {
+    font-weight: 900;
+  }
 
-  .content { margin-top: 12px; }
-  .section { margin-top: 10px; }
+  .content {
+    margin-top: 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+  }
 
   .section-h {
     display: flex;
@@ -583,7 +669,10 @@
     margin-bottom: 6px;
   }
 
-  .section-title { font-weight: 900; font-size: 13px; }
+  .section-title {
+    font-weight: 900;
+    font-size: 13px;
+  }
 
   .chip {
     font-size: 11px;
@@ -601,7 +690,9 @@
     background: #fff;
   }
 
-  .box-text { background: #fcfcfd; }
+  .box-text {
+    background: #fcfcfd;
+  }
 
   .pre {
     white-space: pre-wrap;
@@ -609,87 +700,39 @@
     line-height: 1.7;
   }
 
-  .clamp-lines { max-height: 240px; overflow: hidden; }
-  .clamp-10 { max-height: 130px; overflow: hidden; }
-  .clamp-8 { max-height: 110px; overflow: hidden; }
-
-  .two {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 10px;
-    align-items: stretch;
-  }
-
-  .two > .section {
+  /* ✅ Tafseel grows the most (screen only) */
+  .tafseel-section {
+    flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
   }
+  .tafseel-section .box {
+    flex: 1;
+    min-height: 0;
+  }
+  .tafseel-pre {
+    height: 100%;
+    overflow: hidden; /* keep clean on one A4 */
+  }
 
-  .two > .section .box { flex: 1; }
-
-  .ftr {
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  /* ✅ stacked sections */
+  .two.two-rows {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr;
     gap: 10px;
-    align-items: end;
+    margin-top: 0;
+    align-items: stretch;
   }
 
-  .signs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+  .clamp-10 {
+    max-height: 170px;
+    overflow: hidden;
   }
-
-  .sign {
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 10px;
-    padding: 10px;
-    background: #fff;
+  .clamp-8 {
+    max-height: 160px;
+    overflow: hidden;
   }
-
-  .sign-k {
-    font-size: 12px;
-    color: rgba(0, 0, 0, 0.55);
-    font-weight: 900;
-  }
-
-  .line {
-    height: 1px;
-    background: rgba(0, 0, 0, 0.65);
-    margin: 16px 0 8px;
-    opacity: 0.35;
-  }
-
-  .sign-meta {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    font-size: 11px;
-    color: rgba(0, 0, 0, 0.55);
-  }
-
-  .stamp {
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 10px;
-    padding: 10px;
-    background: #fafafa;
-    min-width: 210px;
-  }
-
-  .stamp-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 3px 0;
-  }
-
-  .s-k { font-size: 11px; color: rgba(0, 0, 0, 0.55); }
-  .s-v { font-size: 11.5px; font-weight: 900; }
 
   .clamp-2 {
     display: -webkit-box;
@@ -699,22 +742,39 @@
   }
 
   @media (max-width: 900px) {
-    .paper { max-width: 100%; }
+    .paper {
+      max-width: 100%;
+    }
+    .grid.grid-5 {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 720px) {
-    .hdr { grid-template-columns: 1fr; }
-    .hdr-left, .hdr-right { justify-self: start; }
-    .grid { grid-template-columns: 1fr; }
-    .two { grid-template-columns: 1fr; }
-    .ftr { grid-template-columns: 1fr; }
-    .stamp { min-width: 0; }
-    .signs { grid-template-columns: 1fr; }
+    .hdr {
+      grid-template-columns: 1fr;
+    }
+    .hdr-left,
+    .hdr-right {
+      justify-self: start;
+    }
+    .grid.grid-5 {
+      grid-template-columns: 1fr;
+    }
+    .paper {
+      min-height: auto;
+    }
   }
 
   @media print {
-    .no-print { display: none !important; }
-    .page-shell { padding: 0 !important; background: white !important; }
+    .no-print {
+      display: none !important;
+    }
+    .page-shell {
+      padding: 0 !important;
+      background: white !important;
+      min-height: auto !important;
+    }
     .paper {
       max-width: none !important;
       margin: 0 !important;
@@ -722,6 +782,59 @@
       box-shadow: none !important;
       border-radius: 0 !important;
       padding: 0 !important;
+
+      /* ✅ fill A4 height */
+      min-height: calc(297mm - 24mm) !important;
     }
+  }
+
+  /* ===============================
+     COLORFUL SCREEN BLOCKS
+     (no layout changes)
+  ================================ */
+
+  .hdr {
+    background: #f1f5ff;
+    border-radius: 12px;
+    padding: 8px;
+  }
+
+  .meta-pill:nth-child(1) {
+    background: #fff7ed;
+  }
+  .meta-pill:nth-child(2) {
+    background: #ecfeff;
+  }
+  .meta-pill:nth-child(3) {
+    background: #f0fdf4;
+  }
+
+  .grid.grid-5 .field:nth-child(1) {
+    background: #eef2ff;
+  }
+  .grid.grid-5 .field:nth-child(2) {
+    background: #fef3c7;
+  }
+  .grid.grid-5 .field:nth-child(3) {
+    background: #ecfccb;
+  }
+  .grid.grid-5 .field:nth-child(4) {
+    background: #fce7f3;
+  }
+  .grid.grid-5 .field:nth-child(5) {
+    background: #cffafe;
+  }
+
+  .two .section:nth-child(1) .box {
+    background: #f0f9ff;
+  }
+  .tafseel-section .box {
+    background: #fdf4ff;
+  }
+  .manager-section .box {
+    background: #ecfdf5;
+  }
+  .direction-section .box {
+    background: #fff7ed;
   }
 </style>

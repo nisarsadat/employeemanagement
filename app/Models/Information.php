@@ -45,6 +45,7 @@ class Information extends Model
         'information_degree',
         'information_category',
         'trust_percentage',
+        'resource_lasrasy',
 
         'tafseel',
         'manager_comment',
@@ -57,6 +58,7 @@ class Information extends Model
         'money_amount_words',
         'finance_status',
         'finance_paid_at',
+        'account_id',
     ];
 
     protected $casts = [
@@ -111,6 +113,11 @@ class Information extends Model
     {
         return $this->belongsTo(OfficeEmployee::class, 'office_employee_info_id', 'id');
     }
+    public function account()
+    {
+        return $this->belongsTo(Account::class, 'account_id');
+    }
+
 
 
 }

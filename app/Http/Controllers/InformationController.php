@@ -53,6 +53,7 @@ class InformationController extends Controller
             'officeEmployee',
             'officeEmployeeInfo',
             'documents',
+            'account:id,name,price',
             'finances',
         ]);
     }

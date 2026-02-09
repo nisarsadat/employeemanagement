@@ -70,6 +70,7 @@ class EventController extends Controller
             'officeEmployee:id,code_number',
             'akhistonkyEmployee:id,code_number',
             'documents',
+            'account:id,name,price',
             'finances',
         ]);
     }
@@ -201,6 +202,7 @@ class EventController extends Controller
                     'officeEmployee',
                     'akhistonkyEmployee',
                     'documents',
+                    'account',
                     'finances',
                 ]);
 
@@ -283,6 +285,7 @@ class EventController extends Controller
                     'officeEmployee',
                     'akhistonkyEmployee',
                     'documents',
+                    'account',
                     'finances',
                 ]);
 

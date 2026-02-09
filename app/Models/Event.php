@@ -37,6 +37,7 @@ class Event extends Model
         'money_amount_words',
         'finance_status',
         'finance_paid_at',
+        'account_id', 
     ];
 
     protected $casts = [
@@ -71,6 +72,10 @@ class Event extends Model
         return $this->hasMany(Finance::class, 'event_id');
     }
 
+    public function account()
+    {
+        return $this->belongsTo(Account::class, 'account_id');
+    }
     protected static function booted()
     {
         static::created(function ($row) {

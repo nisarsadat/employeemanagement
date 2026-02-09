@@ -17,7 +17,7 @@ class ExpenseOilResource extends JsonResource
 
             'name'           => $this->name,
             'father_name'    => $this->father_name,
-            'date'           => optional($this->date)->format('Y-m-d'),
+            'date'           => $this->date,
 
             'liter_in_number'=> $this->liter_in_number,
             'liter_in_words' => $this->liter_in_words,

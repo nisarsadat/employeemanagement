@@ -46,6 +46,7 @@ class StoreInformationRequest extends FormRequest
             'information_saved_hour' => ['nullable','string'],
             'information_degree' => ['nullable','string'],
             'trust_percentage' => ['nullable','string'],
+            'resource_lasrasy' => ['nullable','string'],
 
             'tafseel' => ['nullable','string'],
             'manager_comment' => ['nullable','string'],
@@ -59,6 +60,7 @@ class StoreInformationRequest extends FormRequest
             'money_amount_words'         => ['nullable','string'],
             'finance_status' => ['nullable','string'],
             'finance_paid_at' => ['nullable','string'],
+            'account_id' => ['nullable', 'integer', 'exists:accounts,id'],
 
             'documents' => ['nullable','array'],
             'documents.*' => ['file'],

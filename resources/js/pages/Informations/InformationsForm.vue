@@ -484,6 +484,16 @@
                   variant="outlined"
                 />
               </v-col>
+              <v-col cols="12" md="12">
+                <v-select
+                  v-model="form.resource_lasrasy"
+                  :items="['مستقیم', 'غیر مستقیم']"
+                  :label="t(' د منبع لاسرسی')"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
             </v-row>
           </v-sheet>
 
@@ -932,6 +942,7 @@
     information_saved_hour: '',
     information_degree: '',
     information_category: '',
+    resource_lasrasy: '',
 
     tafseel: '',
     manager_comment: '',
@@ -1062,6 +1073,7 @@
     base.information_saved_hour = x.information_saved_hour ?? '';
     base.information_degree = x.information_degree ?? '';
     base.information_category = x.information_category ?? '';
+    base.resource_lasrasy = x.resource_lasrasy ?? '';
 
     base.tafseel = x.tafseel ?? '';
     base.manager_comment = x.manager_comment ?? '';

@@ -27,7 +27,8 @@
               <div class="text-caption text-medium-emphasis">{{ t('ټول عاید') }}</div>
               <div class="text-h6 font-weight-bold mt-1">{{ money(repo.summary?.totalIncome) }}</div>
               <div class="text-caption mt-1">
-                {{ t('ریکارډونه') }}: <strong>{{ repo.summary?.incomeCount ?? repo.totalItems ?? 0 }}</strong>
+                {{ t('ریکارډونه') }}:
+                <strong>{{ repo.summary?.incomeCount ?? repo.totalItems ?? 0 }}</strong>
               </div>
             </div>
             <v-avatar size="44" class="elevation-1">
@@ -57,7 +58,7 @@
 
     <!-- ✅ Top Bar (Finance style: Search + Year + Month + Create) -->
     <v-row class="align-center mb-4" dense>
-      <v-col cols="12" md="10">
+      <v-col cols="12" md="10 ">
         <v-text-field
           v-model.trim="repo.Search"
           :label="t('د راتلونکو تېلو لټون')"
@@ -66,26 +67,34 @@
           density="compact"
           clearable
           @keyup.enter="applyFilters"
-          @click:clear="() => { repo.Search=''; applyFilters(); }"
+          @click:clear="
+            () => {
+              repo.Search = '';
+              applyFilters();
+            }
+          "
         />
       </v-col>
 
+      <!-- ✅ Year / Month (✅ same calendar-aware logic as Finances) -->
       <!-- <v-col cols="12" md="3">
         <v-select
-          v-model="repo.year"
-          :items="repo.availableYears"
+          v-model="selectedYear"
+          :items="yearItems"
+          item-title="title"
+          item-value="value"
           :label="t('کال')"
           variant="outlined"
           density="compact"
           clearable
           :loading="repo.yearsLoading"
-          @update:modelValue="applyFilters"
+          @update:modelValue="onYearMonthChanged"
         />
       </v-col>
 
       <v-col cols="12" md="3">
         <v-select
-          v-model="repo.month"
+          v-model="selectedMonth"
           :items="monthOptions"
           item-title="title"
           item-value="value"
@@ -93,7 +102,8 @@
           variant="outlined"
           density="compact"
           clearable
-          @update:modelValue="applyFilters"
+          :disabled="!selectedYear"
+          @update:modelValue="onYearMonthChanged"
         />
       </v-col> -->
 
@@ -175,8 +185,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import dayjs from 'dayjs'
+
 import { useOilRepository } from '@/stores/OilRepository'
 import IncomeOilFormDialog from './IncomeOilFormDialog.vue'
 import FilterableTable from '@/components/FilterableTable.vue'
@@ -185,49 +197,140 @@ import { useCalendar } from '../../../../composables/useCalendar'
 
 const repo = useOilRepository()
 const { t, locale } = useI18n()
-const { formatDisplay, toIso } = useCalendar()
-const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
 
-const monthOptions = computed(() => ([
-  { title: t('جنوري'), value: 1 },
-  { title: t('فبروري'), value: 2 },
-  { title: t('مارچ'), value: 3 },
-  { title: t('اپریل'), value: 4 },
-  { title: t('می'), value: 5 },
-  { title: t('جون'), value: 6 },
-  { title: t('جولای'), value: 7 },
-  { title: t('اګست'), value: 8 },
-  { title: t('سپتمبر'), value: 9 },
-  { title: t('اکتوبر'), value: 10 },
-  { title: t('نومبر'), value: 11 },
-  { title: t('ډسمبر'), value: 12 },
-]))
+/* ===== RTL ===== */
+const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
 
 function getRow(payload) {
   return payload?.raw ?? payload
 }
 
+/* ===== Calendar (same as Finances) ===== */
+const { calendar, formatYearDisplay, toIso } = useCalendar()
+
+/* ===== Year/Month filters (values stay Gregorian) ===== */
+const selectedYear = ref(null)  // sent to backend (gregorian)
+const selectedMonth = ref(null) // sent to backend (gregorian 1..12)
+
+/* ===== ✅ Year items from backend, titles follow calendar mode ===== */
+const yearItems = ref([])
+const yearNumbers = ref([])
+
+function rebuildYearItems() {
+  if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return
+  yearItems.value = yearNumbers.value.map((y) => ({
+    value: y,
+    title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+  }))
+}
+
+async function fetchYearItemsFromRepo() {
+  const years = Array.isArray(repo.availableYears) ? repo.availableYears : []
+  yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n))
+  rebuildYearItems()
+}
+
+/* update year titles when calendar/locale changes (selected value stays same) */
+watch([calendar, locale], () => rebuildYearItems())
+
+/* ===== ✅ Month titles follow calendar mode, values stay gregorian 1..12 ===== */
+const JALALI_MONTHS_FA = ['حمل', 'ثور', 'جوزا', 'سرطان', 'اسد', 'سنبله', 'میزان', 'عقرب', 'قوس', 'جدی', 'دلو', 'حوت']
+
+const HIJRI_QAMARI_MONTHS_FA = [
+  'محرم',
+  'صفر',
+  'ربیع‌الاول',
+  'ربیع‌الثانی',
+  'جمادی‌الاول',
+  'جمادی‌الثانی',
+  'رجب',
+  'شعبان',
+  'رمضان',
+  'شوال',
+  'ذوالقعده',
+  'ذوالحجه',
+]
+
+function monthTitleFromGregorianMonth(gYear, gMonth) {
+  const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`
+
+  if (calendar.value === 'gregorian') {
+    try {
+      const dt = new Date(iso + 'T00:00:00')
+      return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt)
+    } catch {
+      return String(gMonth)
+    }
+  }
+
+  if (calendar.value === 'jalali') {
+    try {
+      const dt = new Date(iso + 'T00:00:00')
+      const fmt = new Intl.DateTimeFormat(locale.value, { calendar: 'persian', month: 'numeric' })
+      const parts = fmt.formatToParts(dt)
+      const m = Number(parts.find((p) => p.type === 'month')?.value)
+      if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1]
+    } catch {}
+    return JALALI_MONTHS_FA[(gMonth - 1) % 12]
+  }
+
+  if (calendar.value === 'hijri') {
+    try {
+      const dt = new Date(iso + 'T00:00:00')
+      const fmt = new Intl.DateTimeFormat('ar', { calendar: 'islamic-umalqura', month: 'numeric' })
+      const parts = fmt.formatToParts(dt)
+      const m = Number(parts.find((p) => p.type === 'month')?.value)
+      if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1]
+    } catch {}
+    return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12]
+  }
+
+  return String(gMonth)
+}
+
+const monthOptions = computed(() => {
+  const y = selectedYear.value || dayjs().year()
+  return Array.from({ length: 12 }).map((_, i) => {
+    const m = i + 1
+    return { value: m, title: monthTitleFromGregorianMonth(y, m) }
+  })
+})
+
+function onYearMonthChanged() {
+  if (!selectedYear.value) selectedMonth.value = null
+  applyFilters()
+}
+
+/* ===== Headers / rows ===== */
 const headersFT = computed(() => [
   { title: t('حساب'), key: 'account', sortable: false },
   { title: t('مقدار (L)'), key: 'oil_quantity', sortable: false },
   { title: t('نیټه'), key: 'date', sortable: false },
   { title: t('یادونه'), key: 'note', sortable: false },
+  { title: t('عملیات'), key: 'actions', sortable: false },
 ])
 
+const qty = (n) =>
+  Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+
+// ✅ IMPORTANT: add idOrTmp + keep date RAW (let FilterableTable format it)
 const rowsFT = computed(() => {
   return (repo.IncomeOils || []).map((it, i) => ({
     ...it,
+    idOrTmp: it?.id ?? `tmp-${i}`,
     index: i + 1,
     oil_quantity: qty(it?.oil_quantity),
     account: it?.account?.name ?? '—',
-    date: formatDisplay(it?.date, locale.value),
+    date: it?.date ?? null, // ✅ raw
     note: it?.note ?? '',
+    raw: it,
   }))
 })
 
 const filters = []
 const topGroups = []
 
+/* ===== Dialog / CRUD ===== */
 const dialog = ref(false)
 const editMode = ref(false)
 
@@ -243,8 +346,15 @@ const draft = reactive({
   note: '',
 })
 
+/* ===== Fetch / filters (✅ now includes search + year + month) ===== */
 const fetchAll = async () => {
-  await repo.FetchIncomeOils({ page: repo.page, itemsPerPage: repo.itemsPerPage })
+  await repo.FetchIncomeOils({
+    page: repo.page,
+    itemsPerPage: repo.itemsPerPage,
+    search: repo.Search,
+    year: selectedYear.value,
+    month: selectedMonth.value,
+  })
   if (repo.FetchOilSummary) await repo.FetchOilSummary()
 }
 
@@ -266,7 +376,14 @@ const onItemsPerPage = async (pp) => {
 
 const openCreate = () => {
   editMode.value = false
-  Object.assign(draft, { id: null, oil_account_id: null, date: null, oil_quantity: 0, source: '', note: '' })
+  Object.assign(draft, {
+    id: null,
+    oil_account_id: null,
+    date: null,
+    oil_quantity: 0,
+    source: '',
+    note: '',
+  })
   dialog.value = true
 }
 
@@ -293,6 +410,7 @@ const startEdit = async (payload) => {
 
 const onSave = async (payload) => {
   if (payload?.date) payload.date = toIso(payload.date)
+
   if (editMode.value && payload.id) await repo.UpdateIncomeOil(payload.id, payload)
   else await repo.CreateIncomeOil(payload)
 
@@ -324,15 +442,15 @@ async function handleDeleteConfirmed(target) {
   }
 }
 
-const qty = (n) =>
-  Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
-
+/* ===== Formatters ===== */
 const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })
 const liters = (n) =>
   `${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} L`
 
+/* ===== Init ===== */
 onMounted(async () => {
-  if (repo.FetchYears) await repo.FetchYears('income-oils')
+  if (repo.FetchYears) await repo.FetchYears('income-oils') // fills repo.availableYears
+  await fetchYearItemsFromRepo()
   await fetchAll()
 })
 </script>

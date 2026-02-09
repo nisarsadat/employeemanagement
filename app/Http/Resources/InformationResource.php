@@ -66,10 +66,19 @@ class InformationResource extends JsonResource
             'age'               => $info ? $info->age : null,
             'estijalyat_degree' => $info ? $info->estijalyat_degree : null,
             'information_category' => $info ? $info->information_category : null,
+            'resource_lasrasy' => $info ? $info->resource_lasrasy : null,
 
             'main_province'  => $info ? $info->main_province : null,
             'main_districts' => $info ? $info->main_districts : null,
             'main_village'   => $info ? $info->main_village : null,
+            'account_id' => $this->account_id,
+            'account' => $this->whenLoaded('account', function () {
+                return [
+                    'id' => $this->account->id,
+                    'name' => $this->account->name,
+                    'price' => $this->account->price,
+                ];
+            }),
 
             'hamahangi_date' => $this->hamahangi_date,
             'maktop_number'  => $this->maktop_number,

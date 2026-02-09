@@ -82,7 +82,7 @@
             />
           </v-col>
 
-          <!-- Year / Month -->
+          <!-- Year / Month (✅ same calendar-aware logic as Resources) -->
           <v-col cols="12" md="3">
             <div class="d-flex ga-2 flex-wrap">
               <v-select
@@ -303,18 +303,25 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import dayjs from 'dayjs';
+
 import FilterableTable from '@/components/FilterableTable.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 import FinanceFormDialog from './FinancesFormDialog.vue';
 import { useFinanceRepository } from '@/stores/financeRepository';
 import { useCalendar } from '../../../../composables/useCalendar';
 
-const { t } = useI18n();
-
-const rtl = ref(true);
+const { t, locale } = useI18n();
 const repo = useFinanceRepository();
+
+/* ===== RTL (same pattern as Resources) ===== */
+const rtl = ref(locale.value === 'fa');
+watch(locale, (n) => (rtl.value = n === 'fa'));
+
+/* ===== Calendar (same logic as Resources) ===== */
+const { calendar, formatYearDisplay } = useCalendar();
 
 const dialog = ref(false);
 const editId = ref(null);
@@ -326,13 +333,14 @@ function getRow(payload) {
   return payload?.raw ?? payload;
 }
 
+/* ===== Headers ===== */
 const headersFT = computed(() => [
   { title: t('finances.table.employeeCode'), key: 'employee_code', sortable: true },
   { title: t('finances.table.employeeName'), key: 'employee_name', sortable: true },
   { title: t('finances.table.amountNumber'), key: 'money_amount_number', sortable: true },
   { title: t('finances.table.amountWords'), key: 'money_amount_words', sortable: false },
   { title: t('finances.table.sourceCode'), key: 'source_code', sortable: false, width: 160 },
-  { title: t('finances.table.sourceNickName'), key: 'resource.name', sortable: false, width: 160 },
+  { title: t('finances.table.sourceNickName'), key: 'resource_nick_name', sortable: false, width: 160 },
   { title: t('finances.table.paidDate'), key: 'date', sortable: true },
   { title: t('finances.table.employeePhone'), key: 'employee_phone', sortable: false },
   { title: t('finances.table.expenseReason'), key: 'expense_result', sortable: false, width: 200 },
@@ -366,6 +374,7 @@ const rowsFT = computed(() => {
 
       employee_name: it?.office_employee?.name ?? '',
       employee_code: it?.office_employee?.code_number ?? '',
+      resource_nick_name: it?.resource?.nick_name ?? '',
       payer: it?.payer ?? '',
 
       money_amount_number: amount,
@@ -390,6 +399,7 @@ const rowsFT = computed(() => {
 const filters = [];
 const topGroups = [];
 
+/* ===== Summary cards ===== */
 const summary = computed(() => repo.financesSummary || {});
 
 function fmtMoney(v) {
@@ -399,28 +409,87 @@ function fmtMoney(v) {
   return String(n).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
 }
 
-const selectedYear = ref(null);
-const selectedMonth = ref(null);
+const selectedYear = ref(null);  // sent to backend (gregorian)
+const selectedMonth = ref(null); // sent to backend (gregorian 1..12)
 
-const monthOptions = computed(() => [
-  { title: '1 - حمل', value: 1 },
-  { title: '2 - ثور', value: 2 },
-  { title: '3 - جوزا', value: 3 },
-  { title: '4 - سرطان', value: 4 },
-  { title: '5 - اسد', value: 5 },
-  { title: '6 - سنبله', value: 6 },   // ✅ around Sep
-  { title: '7 - میزان', value: 7 },
-  { title: '8 - عقرب', value: 8 },
-  { title: '9 - قوس', value: 9 },
-  { title: '10 - جدی', value: 10 },
-  { title: '11 - دلو', value: 11 },
-  { title: '12 - حوت', value: 12 },
-]);
+/* ===== ✅ Year items from backend, but titles follow calendar mode ===== */
+const yearItems = ref([]);
+const yearNumbers = ref([]);
 
-const { yearItemsFromGregorianYears } = useCalendar();
-const yearItems = computed(() => yearItemsFromGregorianYears(repo.availableYears, 'fa'));
+function rebuildYearItems() {
+  if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
+  yearItems.value = yearNumbers.value.map((y) => ({
+    value: y,
+    title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+  }));
+}
 
-// ✅ decide if we are in filtered mode (same logic as backend)
+async function fetchYearItemsFromRepo() {
+  // you already call repo.FetchYears('finances'); we use repo.availableYears after that
+  const years = Array.isArray(repo.availableYears) ? repo.availableYears : [];
+  yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
+  rebuildYearItems();
+}
+
+/* update year titles when calendar/locale changes (selected value stays same) */
+watch([calendar, locale], () => rebuildYearItems());
+
+/* ===== ✅ Month titles follow calendar mode, values stay gregorian 1..12 ===== */
+const JALALI_MONTHS_FA = [
+  'حمل','ثور','جوزا','سرطان','اسد','سنبله','میزان','عقرب','قوس','جدی','دلو','حوت',
+];
+
+const HIJRI_QAMARI_MONTHS_FA = [
+  'محرم','صفر','ربیع‌الاول','ربیع‌الثانی','جمادی‌الاول','جمادی‌الثانی',
+  'رجب','شعبان','رمضان','شوال','ذوالقعده','ذوالحجه',
+];
+
+function monthTitleFromGregorianMonth(gYear, gMonth) {
+  const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
+
+  if (calendar.value === 'gregorian') {
+    try {
+      const dt = new Date(iso + 'T00:00:00');
+      return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
+    } catch {
+      return String(gMonth);
+    }
+  }
+
+  if (calendar.value === 'jalali') {
+    try {
+      const dt = new Date(iso + 'T00:00:00');
+      const fmt = new Intl.DateTimeFormat(locale.value, { calendar: 'persian', month: 'numeric' });
+      const parts = fmt.formatToParts(dt);
+      const m = Number(parts.find((p) => p.type === 'month')?.value);
+      if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
+    } catch {}
+    return JALALI_MONTHS_FA[(gMonth - 1) % 12];
+  }
+
+  if (calendar.value === 'hijri') {
+    try {
+      const dt = new Date(iso + 'T00:00:00');
+      const fmt = new Intl.DateTimeFormat('ar', { calendar: 'islamic-umalqura', month: 'numeric' });
+      const parts = fmt.formatToParts(dt);
+      const m = Number(parts.find((p) => p.type === 'month')?.value);
+      if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
+    } catch {}
+    return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
+  }
+
+  return String(gMonth);
+}
+
+const monthOptions = computed(() => {
+  const y = selectedYear.value || dayjs().year();
+  return Array.from({ length: 12 }).map((_, i) => {
+    const m = i + 1;
+    return { value: m, title: monthTitleFromGregorianMonth(y, m) };
+  });
+});
+
+/* ===== decide if we are in filtered mode (same logic as backend) ===== */
 const hasAnyFilter = computed(() => {
   return !!(
     repo.financesSearch ||
@@ -432,7 +501,7 @@ const hasAnyFilter = computed(() => {
   );
 });
 
-// ✅ card values
+/* ===== card values ===== */
 const outcomeCardValue = computed(() =>
   hasAnyFilter.value ? summary.value?.filtered_outcome : summary.value?.total_outcome_all
 );
@@ -447,6 +516,7 @@ const balanceCardValue = computed(() => {
   return summary.value?.filtered_balance ?? summary.value?.total_balance_all_accounts;
 });
 
+/* ===== Fetch / filters ===== */
 function fetchAll() {
   repo.FetchFinancesData({
     search: repo.financesSearch,
@@ -508,6 +578,7 @@ function onSaved() {
   applyFilters();
 }
 
+/* ===== Delete ===== */
 function openDeleteDialog(payload) {
   const row = getRow(payload);
   if (!row?.id) return;
@@ -559,7 +630,7 @@ function onPerPage(pp) {
   fetchAll();
 }
 
-// export html (same as your code)
+/* ===== Export (unchanged) ===== */
 function buildExportHtml(rows, title) {
   const year = new Date().getFullYear();
 
@@ -680,9 +751,16 @@ function exportWordAll() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/* ===== Init ===== */
 onMounted(async () => {
   await ensureAccountsLoaded();
+
+  // keep your existing behavior
   await repo.FetchYears('finances');
+
+  // ✅ now convert the available gregorian years to calendar-aware titles
+  await fetchYearItemsFromRepo();
+
   applyFilters();
 });
 </script>

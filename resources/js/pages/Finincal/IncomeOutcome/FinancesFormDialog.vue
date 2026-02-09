@@ -56,6 +56,8 @@
                 persistent-hint
                 @update:model-value="onAccountChange"
                 class="field"
+                :disabled="accountLocked"
+                :readonly="accountLocked"
               />
 
               <!-- Date -->
@@ -240,7 +242,7 @@
             </div>
 
             <!-- tiny hint when locked -->
-            <div v-if="amountLocked || wordsLocked" class="mt-2 text-caption opacity-75">
+            <div v-if="accountLocked || amountLocked || wordsLocked" class="mt-2 text-caption opacity-75">
               {{ t('finances.hints.amountLockedFromMessage') }}
             </div>
           </div>
@@ -325,6 +327,7 @@
   const originalAmount = ref(0);
 
   // ✅ Lock flags (freeze/disabled)
+  const accountLocked = ref(false);
   const amountLocked = ref(false);
   const wordsLocked = ref(false);
 
@@ -384,8 +387,44 @@
     return String(n);
   }
 
+  // ✅ account resolve from linked row (event/info/resource/employee)
+  function resolveAccountIdFromLinkedRow(row) {
+    if (!row) return null;
+
+    const direct =
+      row.account_id ??
+      row.account?.id ??
+      row.finance_account_id ??
+      row.financeAccountId ??
+      null;
+    if (direct) return direct;
+
+    const fromRes =
+      row.resource?.account_id ??
+      row.resource?.account?.id ??
+      row.resource_account_id ??
+      null;
+    if (fromRes) return fromRes;
+
+    const fromEmp =
+      row.office_employee?.account_id ??
+      row.office_employee?.account?.id ??
+      row.office_employee_account_id ??
+      null;
+    if (fromEmp) return fromEmp;
+
+    return null;
+  }
+
   function applyLockedAmountsFromLinkedRow(row) {
     if (!row) return;
+
+    // ✅ account from linked row (freeze)
+    const accId = resolveAccountIdFromLinkedRow(row);
+    if (accId) {
+      draft.account_id = accId;
+      accountLocked.value = true;
+    }
 
     // ✅ amount number from message_to_finance
     const amountFromMsg = parseAmountFromMessage(row.message_to_finance);
@@ -597,6 +636,7 @@
     originalAmount.value = 0;
 
     // ✅ reset locks every open
+    accountLocked.value = false;
     amountLocked.value = false;
     wordsLocked.value = false;
   }
@@ -775,7 +815,7 @@
     }
   );
 
-  // ✅ When selecting event manually -> auto fill + freeze amount/words
+  // ✅ When selecting event manually -> auto fill + freeze account/amount/words
   // ✅ ALSO: event/info are OPTIONAL and mutually exclusive (event picked => clear info)
   watch(
     () => draft.event_id,
@@ -783,6 +823,7 @@
       if (!eid) {
         // unlock ONLY if no information selected too
         if (!draft.information_id) {
+          accountLocked.value = false;
           amountLocked.value = false;
           wordsLocked.value = false;
         }
@@ -809,13 +850,14 @@
     }
   );
 
-  // ✅ When selecting information manually -> auto fill + freeze amount/words
+  // ✅ When selecting information manually -> auto fill + freeze account/amount/words
   // ✅ ALSO: event/info are OPTIONAL and mutually exclusive (info picked => clear event)
   watch(
     () => draft.information_id,
     (iid) => {
       if (!iid) {
         if (!draft.event_id) {
+          accountLocked.value = false;
           amountLocked.value = false;
           wordsLocked.value = false;
         }
@@ -900,7 +942,7 @@
     return null;
   }
 
-  // ✅ on open: read prefill, set links, then auto fill & freeze amounts
+  // ✅ on open: read prefill, set links, then auto fill & freeze account/amount/words
   watch(
     () => model.value,
     async (open) => {
@@ -931,7 +973,7 @@
       if (pre?.resource_id) draft.resource_id = pre.resource_id;
       if (pre?.office_employee_id) setEmployeeAndPhone(pre.office_employee_id);
 
-      // ✅ IMPORTANT: amount/words autofill from linked row + freeze (from prefill)
+      // ✅ IMPORTANT: account/amount/words autofill from linked row + freeze (from prefill)
       if (pre?.event_id) {
         let ev =
           eventOptions.value.find((x) => sameId(x.id, pre.event_id)) ||
@@ -986,6 +1028,7 @@
           information_id: item?.information_id ?? null,
         });
 
+        accountLocked.value = false;
         amountLocked.value = false;
         wordsLocked.value = false;
       }

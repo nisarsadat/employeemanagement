@@ -925,12 +925,27 @@
 
   function normalizeToIso(val) {
     if (val == null) return '';
+
+    // normalize digits + separators
     let s = toAsciiDigits(String(val).trim()).replace(/\./g, '-').replace(/\//g, '-');
+
+    // ✅ NEW: accept ISO datetime like 2026-02-10T00:00:00.000000Z
+    // and return only date part
+    const isoDateTime = s.match(/^(\d{4})-(\d{2})-(\d{2})[T ]/);
+    if (isoDateTime) return `${isoDateTime[1]}-${isoDateTime[2]}-${isoDateTime[3]}`;
+
+    // already YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+    // allow YYYY-M-D
     let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
     if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+
+    // allow YYYY M D
     m = s.match(/^(\d{4})\s+(\d{1,2})\s+(\d{1,2})$/);
     if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+
+    // fallback (dayjs)
     const d = dayjs(s);
     return d.isValid() ? d.format('YYYY-MM-DD') : '';
   }
@@ -942,19 +957,25 @@
       k
     );
   }
-
   function looksLikeDateValue(val) {
     if (val == null) return false;
     if (typeof val === 'number') return false;
+
     const s = toAsciiDigits(String(val).trim());
+
+    // ✅ NEW: ISO datetime counts as date
+    if (/^\d{4}-\d{2}-\d{2}[T ]/.test(s)) return true;
+
     const m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
     if (!m) return false;
+
     const year = +m[1],
       month = +m[2],
       day = +m[3];
     if (month < 1 || month > 12) return false;
     if (day < 1 || day > 31) return false;
     if (year < 1000 || year > 2200) return false;
+
     return true;
   }
 
@@ -967,9 +988,17 @@
   function displayValueByKey(key, rawValue) {
     if (typeof rawValue === 'number') return rawValue;
     if (typeof rawValue === 'string' && /^[0-9]+$/.test(toAsciiDigits(rawValue))) return rawValue;
+
     if (!isDateCell(key, rawValue)) return rawValue;
-    const iso = normalizeToIso(rawValue);
-    return iso ? formatDisplay(iso) : rawValue;
+
+    const iso = normalizeToIso(rawValue); // ✅ now strips time too
+    if (!iso) return rawValue;
+
+    // ✅ If you want NO Jalali/Hijri conversion anywhere
+    if (props.disableDateConvert) return iso;
+
+    // otherwise use your calendar formatter
+    return formatDisplay(iso);
   }
 
   /* === Computeds / maps === */
