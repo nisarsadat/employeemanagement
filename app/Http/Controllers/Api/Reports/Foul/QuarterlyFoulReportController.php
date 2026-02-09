@@ -65,6 +65,7 @@ use App\Models\fifthyformatfour\Park;
 use App\Models\fifthyformatfour\Complex;
 use App\Models\fifthyformatfour\DeplomaticPlace;
 use App\Models\fifthyFormats\Jawasis;
+
 // Format Three
 use App\Models\fifthyformatsthree\Badmashano;
 use App\Models\fifthyformatsthree\EmaratOffice;
@@ -83,7 +84,7 @@ class QuarterlyFoulReportController extends Controller
      * Quarterly (ربعه) Foul System Report
      *
      * IMPORTANT: In your business definition:
-     * - A year has 3 "ربعه" (quarters)
+     * - Aglor has 3 quarters per year (ربعه)
      * - Each quarter = 4 months
      *
      * GET /api/reports/foul/quarterly?quarter=YYYY-Q{1..3}
@@ -108,7 +109,7 @@ class QuarterlyFoulReportController extends Controller
             ->whereDate('resource_saved_date', '<', $end)
             ->count();
 
-        // 2) Informations total + type counts (ONLY those that exist)
+        // 2) Informations total + type counts
         $infoBase = Information::query()
             ->whereDate('information_saved_date', '>=', $start)
             ->whereDate('information_saved_date', '<', $end);
@@ -131,7 +132,6 @@ class QuarterlyFoulReportController extends Controller
             ->get()
             ->map(fn ($r) => ['label' => $r->label, 'count' => (int) $r->count]);
 
-        // merge + if same label appears in both => SUM them
         $informationTypes = $syasiTypes
             ->concat($jenayeeTypes)
             ->groupBy('label')
@@ -146,7 +146,7 @@ class QuarterlyFoulReportController extends Controller
             ->sortByDesc('count')
             ->values();
 
-        // 3) Events total + event_type grouped (ONLY those that exist)
+        // 3) Events total + event_type grouped
         $eventBase = Event::query()
             ->whereDate('event_date', '>=', $start)
             ->whereDate('event_date', '<', $end);
@@ -162,15 +162,15 @@ class QuarterlyFoulReportController extends Controller
             ->get()
             ->map(fn ($r) => ['label' => $r->label, 'count' => (int) $r->count]);
 
-        // 4) 56-format totals (only those with data) - filter on created_at if exists
+        // 4) 56-format totals (filtered by created_at if exists)
         $formats = $this->formatCounts($start, $end);
 
         return response()->json([
             'meta' => [
-                'report' => 'quarterly', // ربعه
+                'report' => 'quarterly',
                 'year' => (int) $year,
-                'quarter' => (int) $quarterNo,   // 1..3
-                'label' => $label,               // YYYY-Q1..Q3
+                'quarter' => (int) $quarterNo,
+                'label' => $label,
                 'range' => [
                     'from' => $start->toDateString(),
                     'to_exclusive' => $end->toDateString(),
@@ -196,18 +196,7 @@ class QuarterlyFoulReportController extends Controller
     }
 
     /**
-     * Parse quarter input into [start, end(exclusive), label, quarterNo, year]
-     *
-     * Rules:
-     * - We have 3 quarters per year
-     * - Quarter 1 = months 1..4
-     * - Quarter 2 = months 5..8
-     * - Quarter 3 = months 9..12
-     *
-     * Accepts:
-     * - quarter=YYYY-Q1|Q2|Q3
-     * - or year=YYYY&q=1|2|3
-     * Defaults to current date -> determines quarter from month.
+     * Parse quarter into [start, end(exclusive), label, quarterNo, year]
      */
     private function parseQuarterRange(?string $quarterStr, ?string $yearStr, ?string $qStr): array
     {
@@ -216,10 +205,10 @@ class QuarterlyFoulReportController extends Controller
         $year = (int) $now->year;
         $quarterNo = $this->monthToQuarter((int) $now->month);
 
-        // 1) Prefer: quarter=YYYY-Qn
+        // Prefer quarter=YYYY-Qn
         if ($quarterStr) {
             try {
-                $qs = strtoupper(trim((string) $quarterStr)); // e.g. 2025-Q2
+                $qs = strtoupper(trim((string) $quarterStr));
                 if (preg_match('/^(\d{4})\s*-\s*Q([1-3])$/', $qs, $m)) {
                     $year = (int) $m[1];
                     $quarterNo = (int) $m[2];
@@ -228,7 +217,7 @@ class QuarterlyFoulReportController extends Controller
                 // fallback to defaults
             }
         } else {
-            // 2) Else: year=YYYY & q=1..3 (either can be missing)
+            // Else year=YYYY & q=1..3
             if ($yearStr && preg_match('/^\d{4}$/', trim((string) $yearStr))) {
                 $year = (int) trim((string) $yearStr);
             }
@@ -237,7 +226,6 @@ class QuarterlyFoulReportController extends Controller
             }
         }
 
-        // Quarter -> start month
         $startMonth = match ($quarterNo) {
             1 => 1,
             2 => 5,
@@ -246,7 +234,7 @@ class QuarterlyFoulReportController extends Controller
         };
 
         $start = Carbon::create($year, $startMonth, 1)->startOfDay();
-        $end = $start->copy()->addMonthsNoOverflow(4)->startOfDay(); // exclusive end (after 4 months)
+        $end = $start->copy()->addMonthsNoOverflow(4)->startOfDay(); // exclusive end
 
         $label = sprintf('%04d-Q%d', $year, $quarterNo);
 
@@ -257,7 +245,7 @@ class QuarterlyFoulReportController extends Controller
     {
         if ($month >= 1 && $month <= 4) return 1;
         if ($month >= 5 && $month <= 8) return 2;
-        return 3; // 9..12
+        return 3;
     }
 
     /**
@@ -266,105 +254,107 @@ class QuarterlyFoulReportController extends Controller
      * Returns only formats with count > 0:
      * [ {key, name, count}, ... ]
      */
-    private function formatCounts(Carbon $date): array
-{
-    $map = [
+    private function formatCounts(Carbon $start, Carbon $end): array
+    {
+        $map = [
+            // FifthyFormats
+            ['key' => 'fasads', 'name' => 'فسادونه', 'model' => Fasad::class],
+            ['key' => 'saeenFasads', 'name' => 'ساعین بالفساد ', 'model' => SaeenFasad::class],
+            ['key' => 'heists', 'name' => 'غلاوې', 'model' => Heist::class],
+            ['key' => 'captives', 'name' => 'اسیران', 'model' => Captive::class],
+            ['key' => 'mulkanos', 'name' => 'نمایندهگانو', 'model' => Mulkano::class],
+            ['key' => 'entryExits', 'name' => 'داخل او خارج', 'model' => EntryExit::class],
+            ['key' => 'sarafyanos', 'name' => 'صرافان', 'model' => Sarafyano::class],
+            ['key' => 'clubs', 'name' => 'کلبونه', 'model' => Clubs::class],
+            ['key' => 'mahajerats', 'name' => 'مهاجرین', 'model' => Mahajerat::class],
+            ['key' => 'soldiers', 'name' => 'سرتیري', 'model' => Soldier::class],
 
-        // FifthyFormats
-        ['key' => 'fasads', 'name' => 'فسادونه', 'model' => Fasad::class],
-        ['key' => 'saeenFasads', 'name' => 'ساعین بالفساد ', 'model' => SaeenFasad::class],
-        ['key' => 'heists', 'name' => 'غلاوې', 'model' => Heist::class],
-        ['key' => 'captives', 'name' => 'اسیران', 'model' => Captive::class],
-        ['key' => 'mulkanos', 'name' => 'نمایندهگانو', 'model' => Mulkano::class],
-        ['key' => 'entryExits', 'name' => 'داخل او خارج', 'model' => EntryExit::class],
-        ['key' => 'sarafyanos', 'name' => 'صرافان', 'model' => Sarafyano::class],
-        ['key' => 'clubs', 'name' => 'کلبونه', 'model' => Clubs::class],
-        ['key' => 'mahajerats', 'name' => 'مهاجرین', 'model' => Mahajerat::class],
-        ['key' => 'soldiers', 'name' => 'سرتیري', 'model' => Soldier::class],
+            // Format One
+            ['key' => 'mawads', 'name' => 'مواد', 'model' => Mawad::class],
+            ['key' => 'lostmujremeens', 'name' => 'ورک مجرمین', 'model' => LostMujremeen::class],
+            ['key' => 'oldSoldiersHomes', 'name' => 'د پخوانیو عسکرو کورونه', 'model' => OldSoldiersHomes::class],
+            ['key' => 'robbers', 'name' => 'غله', 'model' => Robbers::class],
+            ['key' => 'nonResponsablePeople', 'name' => 'بې مسؤله خلک', 'model' => NonResponsablePeople::class],
+            ['key' => 'mashkokHomes', 'name' => 'مشکوک کورونه', 'model' => MashkokHomes::class],
+            ['key' => 'damagePlaces', 'name' => 'زیانمن ځایونه', 'model' => DamagePlaces::class],
+            ['key' => 'damageRasanPlaces', 'name' => 'زیان رسونکي ځایونه', 'model' => DamageRasanPlaces::class],
+            ['key' => 'mashkokShops', 'name' => 'مشکوک دوکانونه', 'model' => MashkokShops::class],
+            ['key' => 'luchakano', 'name' => 'لوچکان', 'model' => Luchakano::class],
 
-        // Format One
-        ['key' => 'mawads', 'name' => 'مواد', 'model' => Mawad::class],
-        ['key' => 'lostmujremeens', 'name' => 'ورک مجرمین', 'model' => LostMujremeen::class],
-        ['key' => 'oldSoldiersHomes', 'name' => 'د پخوانیو عسکرو کورونه', 'model' => OldSoldiersHomes::class],
-        ['key' => 'robbers', 'name' => 'غله', 'model' => Robbers::class],
-        ['key' => 'nonResponsablePeople', 'name' => 'بې مسؤله خلک', 'model' => NonResponsablePeople::class],
-        ['key' => 'mashkokHomes', 'name' => 'مشکوک کورونه', 'model' => MashkokHomes::class],
-        ['key' => 'damagePlaces', 'name' => 'زیانمن ځایونه', 'model' => DamagePlaces::class],
-        ['key' => 'damageRasanPlaces', 'name' => 'زیان رسونکي ځایونه', 'model' => DamageRasanPlaces::class],
-        ['key' => 'mashkokShops', 'name' => 'مشکوک دوکانونه', 'model' => MashkokShops::class],
-        ['key' => 'luchakano', 'name' => 'لوچکان', 'model' => Luchakano::class],
+            // Format Two
+            ['key' => 'workshops', 'name' => 'ورکشاپونه', 'model' => WorkShop::class],
+            ['key' => 'hosppitals', 'name' => 'روغتونونه', 'model' => Hosppital::class],
+            ['key' => 'rahnomaMamlats', 'name' => 'راهنما معاملات', 'model' => RahnomaMamlat::class],
+            ['key' => 'apartments', 'name' => 'اپارتمانونه', 'model' => Apartment::class],
+            ['key' => 'banks', 'name' => 'بانکونه', 'model' => Bank::class],
+            ['key' => 'transportCompanies', 'name' => 'ترانسپورتي شرکتونه', 'model' => TransportCompany::class],
+            ['key' => 'hadoBusStops', 'name' => 'بس تمځایونه', 'model' => HadoBusStop::class],
+            ['key' => 'carSalesCompanies', 'name' => 'د موټر خرڅلاو شرکتونه', 'model' => CarSalesCompany::class],
+            ['key' => 'schools', 'name' => 'ښوونځي', 'model' => School::class],
+            ['key' => 'parkings', 'name' => 'پارکینګونه', 'model' => Parking::class],
 
-        // Format Two
-        ['key' => 'workshops', 'name' => 'ورکشاپونه', 'model' => WorkShop::class],
-        ['key' => 'hosppitals', 'name' => 'روغتونونه', 'model' => Hosppital::class],
-        ['key' => 'rahnomaMamlats', 'name' => 'راهنما معاملات', 'model' => RahnomaMamlat::class],
-        ['key' => 'apartments', 'name' => 'اپارتمانونه', 'model' => Apartment::class],
-        ['key' => 'banks', 'name' => 'بانکونه', 'model' => Bank::class],
-        ['key' => 'transportCompanies', 'name' => 'ترانسپورتي شرکتونه', 'model' => TransportCompany::class],
-        ['key' => 'hadoBusStops', 'name' => 'بس تمځایونه', 'model' => HadoBusStop::class],
-        ['key' => 'carSalesCompanies', 'name' => 'د موټر خرڅلاو شرکتونه', 'model' => CarSalesCompany::class],
-        ['key' => 'schools', 'name' => 'ښوونځي', 'model' => School::class],
-        ['key' => 'parkings', 'name' => 'پارکینګونه', 'model' => Parking::class],
+            // Format Four
+            ['key' => 'wakilanos', 'name' => 'وکیلان', 'model' => Wakilano::class],
+            ['key' => 'universities', 'name' => 'پوهنتونونه', 'model' => University::class],
+            ['key' => 'masjids', 'name' => 'جوماتونه', 'model' => Masjid::class],
+            ['key' => 'highways', 'name' => 'لویې لارې', 'model' => Highway::class],
+            ['key' => 'companies', 'name' => 'شرکتونه', 'model' => Company::class],
+            ['key' => 'donelostplaces', 'name' => 'ورک شوي ځایونه', 'model' => Donelostplace::class],
+            ['key' => 'econemyProjects', 'name' => 'اقتصادي پروژې', 'model' => EconemyProject::class],
+            ['key' => 'criminalCapturePlaces', 'name' => 'د مجرم نیولو ځایونه', 'model' => CriminalCapturePlace::class],
+            ['key' => 'pumps', 'name' => 'پمپونه', 'model' => Pump::class],
+            ['key' => 'shoras', 'name' => 'شوراګانې', 'model' => Shora::class],
+            ['key' => 'checkpoints', 'name' => 'چک پاینتونه', 'model' => Checkpoint::class],
+            ['key' => 'governmentplaces', 'name' => 'دولتې ځایونه', 'model' => GovernmentPlace::class],
+            ['key' => 'supermarkets', 'name' => 'سوپرمارکېټونه', 'model' => SuperMarket::class],
+            ['key' => 'parks', 'name' => 'پارکونه', 'model' => Park::class],
+            ['key' => 'complexes', 'name' => 'بنسټونو او موسسو ګانو', 'model' => Complex::class],
+            ['key' => 'deplomaticplaces', 'name' => 'دیپلوماتیک ځایونه', 'model' => DeplomaticPlace::class],
 
-        // Format Four
-        ['key' => 'wakilanos', 'name' => 'وکیلان', 'model' => Wakilano::class],
-        ['key' => 'universities', 'name' => 'پوهنتونونه', 'model' => University::class],
-        ['key' => 'masjids', 'name' => 'جوماتونه', 'model' => Masjid::class],
-        ['key' => 'highways', 'name' => 'لویې لارې', 'model' => Highway::class],
-        ['key' => 'companies', 'name' => 'شرکتونه', 'model' => Company::class],
-        ['key' => 'donelostplaces', 'name' => 'ورک شوي ځایونه', 'model' => Donelostplace::class],
-        ['key' => 'econemyProjects', 'name' => 'اقتصادي پروژې', 'model' => EconemyProject::class],
-        ['key' => 'criminalCapturePlaces', 'name' => 'د مجرم نیولو ځایونه', 'model' => CriminalCapturePlace::class],
-        ['key' => 'pumps', 'name' => 'پمپونه', 'model' => Pump::class],
-        ['key' => 'shoras', 'name' => 'شوراګانې', 'model' => Shora::class],
-        ['key' => 'checkpoints', 'name' => 'چک پاینتونه', 'model' => Checkpoint::class],
-        ['key' => 'governmentplaces', 'name' => 'دولتې ځایونه', 'model' => GovernmentPlace::class],
-        ['key' => 'supermarkets', 'name' => 'سوپرمارکېټونه', 'model' => SuperMarket::class],
-        ['key' => 'parks', 'name' => 'پارکونه', 'model' => Park::class],
-        ['key' => 'complexes', 'name' => 'بنسټونو او موسسو ګانو', 'model' => Complex::class],
-        ['key' => 'deplomaticplaces', 'name' => 'دیپلوماتیک ځایونه', 'model' => DeplomaticPlace::class],
+            // Format Three
+            ['key' => 'badmashanos', 'name' => 'بدماشانو', 'model' => Badmashano::class],
+            ['key' => 'emaratOffices', 'name' => 'امارت دفترونه', 'model' => EmaratOffice::class],
+            ['key' => 'hostels', 'name' => 'لیلي او کرایي اطاقونه', 'model' => Hostel::class],
+            ['key' => 'hotels', 'name' => 'هوټلونه', 'model' => Hotel::class],
+            ['key' => 'madrasas', 'name' => 'مدرسې', 'model' => Madrasa::class],
+            ['key' => 'mashkokPeople', 'name' => 'مشکوک خلک', 'model' => MashkokPeople::class],
+            ['key' => 'mujahedinos', 'name' => 'مجاهدین', 'model' => Mujahedino::class],
+            ['key' => 'oldJahadis', 'name' => 'پخواني جهادي قومندانان', 'model' => OldJahadi::class],
+            ['key' => 'sarayanos', 'name' => 'سرایان', 'model' => Sarayano::class],
+            ['key' => 'tujarans', 'name' => 'تجاران', 'model' => Tujaran::class],
 
-        // Format Three
-        ['key' => 'badmashanos', 'name' => 'بدماشانو', 'model' => Badmashano::class],
-        ['key' => 'emaratOffices', 'name' => 'امارت دفترونه', 'model' => EmaratOffice::class],
-        ['key' => 'hostels', 'name' => 'لیلي او کرایي اطاقونه', 'model' => Hostel::class],
-        ['key' => 'hotels', 'name' => 'هوټلونه', 'model' => Hotel::class],
-        ['key' => 'madrasas', 'name' => 'مدرسې', 'model' => Madrasa::class],
-        ['key' => 'mashkokPeople', 'name' => 'مشکوک خلک', 'model' => MashkokPeople::class],
-        ['key' => 'mujahedinos', 'name' => 'مجاهدین', 'model' => Mujahedino::class],
-        ['key' => 'oldJahadis', 'name' => 'پخواني جهادي قومندانان', 'model' => OldJahadi::class],
-        ['key' => 'sarayanos', 'name' => 'سرایان', 'model' => Sarayano::class],
-        ['key' => 'tujarans', 'name' => 'تجاران', 'model' => Tujaran::class],
-        ['key' => 'jawasis', 'name' => 'جواسیس', 'model' => Jawasis::class],
-    ];
+            // Jawasis
+            ['key' => 'jawasis', 'name' => 'جواسیس', 'model' => Jawasis::class],
+        ];
 
-    $out = [];
+        $out = [];
 
-    foreach ($map as $item) {
-        $modelClass = $item['model'];
-        $model = new $modelClass;
+        foreach ($map as $item) {
+            $modelClass = $item['model'];
+            $model = new $modelClass;
 
-        $q = $modelClass::query();
-        $table = $model->getTable();
+            $q = $modelClass::query();
+            $table = $model->getTable();
 
-        if (Schema::hasColumn($table, 'created_at')) {
-            $q->whereDate('created_at', $date);
+            if (Schema::hasColumn($table, 'created_at')) {
+                // ✅ IMPORTANT: filter by range, not a single day
+                $q->where('created_at', '>=', $start)
+                  ->where('created_at', '<', $end);
+            }
+
+            $count = (int) $q->count();
+
+            if ($count > 0) {
+                $out[] = [
+                    'key' => $item['key'],
+                    'name' => $item['name'],
+                    'count' => $count,
+                ];
+            }
         }
 
-        $count = (int) $q->count();
+        usort($out, fn ($a, $b) => $b['count'] <=> $a['count']);
 
-        if ($count > 0) {
-            $out[] = [
-                'key' => $item['key'],
-                'name' => $item['name'],
-                'count' => $count,
-            ];
-        }
+        return $out;
     }
-
-    usort($out, fn($a, $b) => $b['count'] <=> $a['count']);
-
-    return $out;
-}
-
 }

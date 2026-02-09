@@ -114,7 +114,6 @@
                     type="text"
                   />
                 </div>
-
                 <div class="flex gap-2 mt-2">
                   <button
                     type="button"
@@ -122,6 +121,14 @@
                     @click="showAllColumns"
                   >
                     {{ t('نمایش همه') }}
+                  </button>
+
+                  <button
+                    type="button"
+                    class="flex-1 text-xs px-3 py-2 rounded-lg border border-rose-300 hover:bg-rose-50 transition-colors duration-200 font-medium text-rose-700"
+                    @click="hideAllColumns"
+                  >
+                    {{ t('عدم نمایش همه') }}
                   </button>
                 </div>
               </div>
@@ -535,8 +542,15 @@
                                 @keydown.stop
                               />
                             </div>
-
                             <div class="flex gap-2">
+                              <button
+                                type="button"
+                                class="flex-1 text-xs px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200 font-medium text-gray-700"
+                                @click="selectAllInDropdown(openDropdown || '')"
+                              >
+                                {{ t('انتخاب همه') }}
+                              </button>
+
                               <button
                                 class="flex-1 text-xs px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200 font-medium text-gray-700"
                                 @click="clearAll(openDropdown || '')"
@@ -544,6 +558,7 @@
                               >
                                 {{ btnClear }}
                               </button>
+
                               <button
                                 type="button"
                                 class="text-xs px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 transition-all duration-200 font-medium"
@@ -982,12 +997,17 @@
   /* ✅ NEW: Visible columns (display) */
   const visibleCols = ref(new Set());
 
+  const visibleColsInitialized = ref(false);
+
   const visibleHeaders = computed(() => {
     const all = props.headers ?? [];
-    // initialize once if empty
-    if (visibleCols.value.size === 0 && all.length) {
+
+    // initialize ONLY ONCE (first load)
+    if (!visibleColsInitialized.value && all.length) {
       visibleCols.value = new Set(all.map((h) => colKey(h)));
+      visibleColsInitialized.value = true;
     }
+
     return all.filter((h) => visibleCols.value.has(colKey(h)));
   });
 
@@ -1010,6 +1030,10 @@
 
   function showAllColumns() {
     visibleCols.value = new Set((props.headers ?? []).map((h) => colKey(h)));
+  }
+  function hideAllColumns() {
+    // hide all columns
+    visibleCols.value = new Set();
   }
 
   function toggleColumnsPanel() {
@@ -1285,6 +1309,13 @@
   function clearAll(key) {
     if (!key) return;
     localFilters.value = { ...localFilters.value, [key]: [] };
+  }
+  function selectAllInDropdown(key) {
+    if (!key) return;
+
+    // Select all options currently visible in the popup (after search)
+    const opts = getFilteredOptions(key) || [];
+    localFilters.value = { ...localFilters.value, [key]: opts.slice() };
   }
 
   function countLabel(sel, tot) {

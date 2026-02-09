@@ -167,7 +167,15 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
   }
 
   // =========================
-  // Export CSS (same as quarterly/yearly dashboard design)
+  // ✅ EMPTY / USEFUL ROW HELPERS (omit tables/sections if empty)
+  // =========================
+  function hasUsefulRows(arr, countKey = 'count') {
+    if (!Array.isArray(arr) || arr.length === 0) return false;
+    return arr.some((x) => safeNum(x?.[countKey] ?? 0) > 0);
+  }
+
+  // =========================
+  // Export CSS (✅ header text START + table START)
   // =========================
   function baseExportCss() {
     const fontStack =
@@ -179,7 +187,6 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
       @page { size: A4 portrait; margin: 14mm; }
 
       :root{ --app-font: ${fontStack}; }
-
       * { box-sizing: border-box; }
 
       html, body {
@@ -227,6 +234,9 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
         z-index:1;
       }
 
+      /* ✅ header block must start (not center) */
+      .hero-top > div:first-child { text-align: start; }
+
       .hero-title{
         color:#fff;
         font-weight:900;
@@ -234,6 +244,7 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
         margin:0 0 4px;
         letter-spacing:.2px;
         line-height:1.25;
+        text-align:start; /* ✅ */
       }
       .hero-sub{
         color: rgba(255,255,255,.92);
@@ -241,6 +252,7 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
         font-size:12px;
         line-height:1.55;
         font-weight:700;
+        text-align:start; /* ✅ */
       }
 
       .pills{
@@ -250,6 +262,7 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
         flex-wrap:wrap;
         position:relative;
         z-index:1;
+        justify-content:flex-start; /* ✅ */
       }
       .pill{
         display:inline-block;
@@ -292,12 +305,15 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
         color: rgba(17,24,39,.65);
         font-weight:900;
         margin-bottom:4px;
+        text-align:start; /* ✅ */
       }
       .stat-number{
         font-size:22px;
         font-weight:900;
         line-height:1.1;
+        text-align:start; /* ✅ */
       }
+
       .badge{
         display:inline-flex;
         align-items:center;
@@ -315,6 +331,36 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
       .b-warning{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
       .b-success{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
 
+      /* ✅ section header text start */
+      .header-strip{
+        padding:10px 12px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+      }
+      .strip-left{ display:flex; align-items:flex-start; gap:10px; }
+      .strip-left > div { text-align:start; }
+      .strip-title{ font-weight:900; font-size:12px; margin:0; text-align:start; }
+      .strip-sub{ margin:2px 0 0; color: rgba(17,24,39,.55); font-size:10px; font-weight:800; text-align:start; }
+
+      .chip{
+        padding:5px 10px;
+        border-radius:999px;
+        font-weight:900;
+        font-size:10px;
+        border:1px solid;
+        white-space:nowrap;
+      }
+
+      .bg-primary{ background: linear-gradient(135deg,#eef2ff 0%, #dde5ff 100%); }
+      .bg-success{ background: linear-gradient(135deg,#e8fbf2 0%, #d2f7e5 100%); }
+      .bg-warning{ background: linear-gradient(135deg,#fff6df 0%, #ffeab6 100%); }
+
+      .chip-primary{ background:#eef2ff; border-color:#c7d2fe; color:#1e40af; }
+      .chip-success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
+      .chip-warning{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+
       table{
         width:100%;
         border-collapse:separate;
@@ -328,6 +374,7 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
         font-size:11px;
         padding:9px 8px;
         border-bottom:1px solid #eef2f7;
+        text-align:start; /* ✅ */
       }
       tbody td{
         padding:9px 8px;
@@ -335,6 +382,7 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
         font-size:11px;
         vertical-align:middle;
         color: rgba(17,24,39,.90);
+        text-align:start; /* ✅ */
       }
       tbody tr:nth-child(even) td{ background: #fcfdff; }
 
@@ -409,7 +457,7 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
   }
 
   // =========================
-  // ✅ stacked tables + localized formats (same as others)
+  // ✅ stacked tables + localized formats + ✅ omit empty sections
   // =========================
   function buildAllTimeDashboardHtml(report) {
     const headerIso = todayIso();
@@ -430,51 +478,141 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
       return `${window.location.origin}/logo.jpeg`;
     }
 
-    const infoTr = infoTypes.length
-      ? infoTypes
-          .map((x) => {
-            const label = escapeHtml(x?.label ?? '');
-            const count = safeNum(x?.count);
-            return `
-              <tr>
-                <td>${label}</td>
-                <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ معلومات نشته</td></tr>`;
+    const infoSection =
+      hasUsefulRows(infoTypes, 'count')
+        ? `
+          <div class="section">
+            <div class="card no-break">
+              <div class="header-strip bg-primary">
+                <div class="strip-left">
+                  <div>
+                    <div class="strip-title">اطلاعات</div>
+                    <div class="strip-sub">د ډول له مخې وېش (ټول وخت)</div>
+                  </div>
+                </div>
+                <span class="chip chip-primary">${informationsTotal}</span>
+              </div>
 
-    const formatsTr = formats.length
-      ? formats
-          .map((f) => {
-            const name = escapeHtml(formatNameLocal(f?.name ?? ''));
-            const count = safeNum(f?.count);
-            return `
-              <tr>
-                <td>${name || '-'}</td>
-                <td class="td-end"><span class="count-pill count-success">${count}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ فورم کې معلومات نشته</td></tr>`;
+              <div style="padding:0;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:70%;">ډول</th>
+                      <th class="td-end" style="width:30%;">شمېر</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${infoTypes
+                      .filter((x) => safeNum(x?.count) > 0)
+                      .map((x) => {
+                        const label = escapeHtml(x?.label ?? '');
+                        const count = safeNum(x?.count);
+                        return `
+                          <tr>
+                            <td>${label}</td>
+                            <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+        : '';
 
-    const eventsTr = eventTypes.length
-      ? eventTypes
-          .map((t) => {
-            const label = escapeHtml(t?.label ?? '');
-            const count = safeNum(t?.count);
-            const cls = eventTypeClass(label);
-            return `
-              <tr>
-                <td><span class="etype ${cls}">${label || '-'}</span></td>
-                <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ پېښه نه ده ثبت شوې</td></tr>`;
+    const formatsSection =
+      hasUsefulRows(formats, 'count')
+        ? `
+          <div class="section">
+            <div class="card no-break">
+              <div class="header-strip bg-success">
+                <div class="strip-left">
+                  <div>
+                    <div class="strip-title">لیټري دوسیه</div>
+                    <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
+                  </div>
+                </div>
+                <span class="chip chip-success">${formatsActive}</span>
+              </div>
+
+              <div style="padding:0;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:70%;">فورم</th>
+                      <th class="td-end" style="width:30%;">شمېر</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${formats
+                      .filter((f) => safeNum(f?.count) > 0)
+                      .map((f) => {
+                        const name = escapeHtml(formatNameLocal(f?.name ?? ''));
+                        const count = safeNum(f?.count);
+                        return `
+                          <tr>
+                            <td>${name || '-'}</td>
+                            <td class="td-end"><span class="count-pill count-success">${count}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+        : '';
+
+    const eventsSection =
+      hasUsefulRows(eventTypes, 'count')
+        ? `
+          <div class="section">
+            <div class="card">
+              <div class="header-strip bg-warning">
+                <div class="strip-left">
+                  <div>
+                    <div class="strip-title">ثبت شوې پېښې</div>
+                    <div class="strip-sub">د ډول له مخې د پېښو جزیات (ټول وخت)</div>
+                  </div>
+                </div>
+                <span class="chip chip-warning">${eventsTotal}</span>
+              </div>
+
+              <div style="padding:0;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:70%;">د پېښې ډول</th>
+                      <th class="td-end" style="width:30%;">شمېر</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${eventTypes
+                      .filter((t) => safeNum(t?.count) > 0)
+                      .map((t) => {
+                        const label = escapeHtml(t?.label ?? '');
+                        const count = safeNum(t?.count);
+                        const cls = eventTypeClass(label);
+                        return `
+                          <tr>
+                            <td><span class="etype ${cls}">${label || '-'}</span></td>
+                            <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+        : '';
 
     return `
       <html dir="rtl">
@@ -540,84 +678,9 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
               </div>
             </div>
 
-            <!-- ✅ stacked tables (same style as Yearly/Quarterly fix) -->
-            <div class="section">
-              <div class="card no-break">
-                <div class="header-strip bg-primary">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">اطلاعات</div>
-                      <div class="strip-sub">د ډول له مخې وېش (ټول وخت)</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-primary">${informationsTotal}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">ډول</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
-                    <tbody>${infoTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="card no-break">
-                <div class="header-strip bg-success">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">لیټري دوسیه</div>
-                      <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-success">${formatsActive}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">فورم</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
-                    <tbody>${formatsTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="card">
-                <div class="header-strip bg-warning">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">ثبت شوې پېښې</div>
-                      <div class="strip-sub">د ډول له مخې د پېښو جزیات (ټول وخت)</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-warning">${eventsTotal}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">د پېښې ډول</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
-                    <tbody>${eventsTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            ${infoSection}
+            ${formatsSection}
+            ${eventsSection}
 
           </div>
         </body>

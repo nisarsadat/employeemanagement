@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\Reports\Foul;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 
 use App\Models\Resource;
 use App\Models\Information;
@@ -64,6 +63,7 @@ use App\Models\fifthyformatfour\Park;
 use App\Models\fifthyformatfour\Complex;
 use App\Models\fifthyformatfour\DeplomaticPlace;
 use App\Models\fifthyFormats\Jawasis;
+
 // Format Three
 use App\Models\fifthyformatsthree\Badmashano;
 use App\Models\fifthyformatsthree\EmaratOffice;
@@ -87,7 +87,7 @@ class AllTimeFoulReportController extends Controller
         // 1) Resources total (ALL TIME)
         $resourcesTotal = Resource::query()->count();
 
-        // 2) Informations total + types (seyasi + jenayee) (ALL TIME)
+        // 2) Informations total + type counts (ONLY those that exist) (ALL TIME)
         $infoBase = Information::query();
 
         $informationsTotal = (clone $infoBase)->count();
@@ -97,17 +97,19 @@ class AllTimeFoulReportController extends Controller
             ->where('syasi_info_type', '!=', '')
             ->selectRaw("syasi_info_type as label, COUNT(*) as count")
             ->groupBy('syasi_info_type')
-            ->get();
+            ->get()
+            ->map(fn ($r) => ['label' => $r->label, 'count' => (int) $r->count]);
 
         $jenayeeTypes = (clone $infoBase)
             ->whereNotNull('jenayee_info_type')
             ->where('jenayee_info_type', '!=', '')
             ->selectRaw("jenayee_info_type as label, COUNT(*) as count")
             ->groupBy('jenayee_info_type')
-            ->get();
+            ->get()
+            ->map(fn ($r) => ['label' => $r->label, 'count' => (int) $r->count]);
 
-        // ✅ only records that exist (no empty options),
-        // ✅ if same label appears in both, sum them
+        // ✅ if same label appears in both => SUM them
+        // ✅ keep only count > 0
         $informationTypes = $syasiTypes
             ->concat($jenayeeTypes)
             ->groupBy('label')
@@ -117,11 +119,12 @@ class AllTimeFoulReportController extends Controller
                     'count' => (int) $items->sum('count'),
                 ];
             })
+            ->filter(fn ($x) => (int) $x['count'] > 0)
             ->values()
             ->sortByDesc('count')
             ->values();
 
-        // 3) Events total + group by event_type (only existing) (ALL TIME)
+        // 3) Events total + group by event_type (ONLY those that exist) (ALL TIME)
         $eventBase = Event::query();
 
         $eventsTotal = (clone $eventBase)->count();
@@ -169,96 +172,97 @@ class AllTimeFoulReportController extends Controller
      * [ {key, name, count}, ... ]
      */
     private function formatCountsAllTime(): array
-{
-    $map = [
+    {
+        $map = [
+            // FifthyFormats
+            ['key' => 'fasads', 'name' => 'فسادونه', 'model' => Fasad::class],
+            ['key' => 'saeenFasads', 'name' => 'سعین فسادونه', 'model' => SaeenFasad::class],
+            ['key' => 'heists', 'name' => 'غلاوې', 'model' => Heist::class],
+            ['key' => 'captives', 'name' => 'اسیران', 'model' => Captive::class],
+            ['key' => 'mulkanos', 'name' => 'ملکان', 'model' => Mulkano::class],
+            ['key' => 'entryExits', 'name' => 'داخل او خارج', 'model' => EntryExit::class],
+            ['key' => 'sarafyanos', 'name' => 'صرافان', 'model' => Sarafyano::class],
+            ['key' => 'clubs', 'name' => 'کلبونه', 'model' => Clubs::class],
+            ['key' => 'mahajerats', 'name' => 'مهاجرین', 'model' => Mahajerat::class],
+            ['key' => 'soldiers', 'name' => 'سرتیري', 'model' => Soldier::class],
 
-        // FifthyFormats
-        ['key' => 'fasads', 'name' => 'فسادونه', 'model' => Fasad::class],
-        ['key' => 'saeenFasads', 'name' => 'سعین فسادونه', 'model' => SaeenFasad::class],
-        ['key' => 'heists', 'name' => 'غلاوې', 'model' => Heist::class],
-        ['key' => 'captives', 'name' => 'اسیران', 'model' => Captive::class],
-        ['key' => 'mulkanos', 'name' => 'ملکان', 'model' => Mulkano::class],
-        ['key' => 'entryExits', 'name' => 'داخل او خارج', 'model' => EntryExit::class],
-        ['key' => 'sarafyanos', 'name' => 'صرافان', 'model' => Sarafyano::class],
-        ['key' => 'clubs', 'name' => 'کلبونه', 'model' => Clubs::class],
-        ['key' => 'mahajerats', 'name' => 'مهاجرین', 'model' => Mahajerat::class],
-        ['key' => 'soldiers', 'name' => 'سرتیري', 'model' => Soldier::class],
+            // Format One
+            ['key' => 'mawads', 'name' => 'مواد', 'model' => Mawad::class],
+            ['key' => 'lostmujremeens', 'name' => 'ورک مجرمین', 'model' => LostMujremeen::class],
+            ['key' => 'oldSoldiersHomes', 'name' => 'د پخوانیو عسکرو کورونه', 'model' => OldSoldiersHomes::class],
+            ['key' => 'robbers', 'name' => 'غله', 'model' => Robbers::class],
+            ['key' => 'nonResponsablePeople', 'name' => 'بې مسؤله خلک', 'model' => NonResponsablePeople::class],
+            ['key' => 'mashkokHomes', 'name' => 'مشکوک کورونه', 'model' => MashkokHomes::class],
+            ['key' => 'damagePlaces', 'name' => 'زیانمن ځایونه', 'model' => DamagePlaces::class],
+            ['key' => 'damageRasanPlaces', 'name' => 'زیان رسېدلي ځایونه', 'model' => DamageRasanPlaces::class],
+            ['key' => 'mashkokShops', 'name' => 'مشکوک دوکانونه', 'model' => MashkokShops::class],
+            ['key' => 'luchakano', 'name' => 'لوچکان', 'model' => Luchakano::class],
 
-        // Format One
-        ['key' => 'mawads', 'name' => 'مواد', 'model' => Mawad::class],
-        ['key' => 'lostmujremeens', 'name' => 'ورک مجرمین', 'model' => LostMujremeen::class],
-        ['key' => 'oldSoldiersHomes', 'name' => 'د پخوانیو عسکرو کورونه', 'model' => OldSoldiersHomes::class],
-        ['key' => 'robbers', 'name' => 'غله', 'model' => Robbers::class],
-        ['key' => 'nonResponsablePeople', 'name' => 'بې مسؤله خلک', 'model' => NonResponsablePeople::class],
-        ['key' => 'mashkokHomes', 'name' => 'مشکوک کورونه', 'model' => MashkokHomes::class],
-        ['key' => 'damagePlaces', 'name' => 'زیانمن ځایونه', 'model' => DamagePlaces::class],
-        ['key' => 'damageRasanPlaces', 'name' => 'زیان رسېدلي ځایونه', 'model' => DamageRasanPlaces::class],
-        ['key' => 'mashkokShops', 'name' => 'مشکوک دوکانونه', 'model' => MashkokShops::class],
-        ['key' => 'luchakano', 'name' => 'لوچکان', 'model' => Luchakano::class],
+            // Format Two
+            ['key' => 'workshops', 'name' => 'ورکشاپونه', 'model' => WorkShop::class],
+            ['key' => 'hosppitals', 'name' => 'روغتونونه', 'model' => Hosppital::class],
+            ['key' => 'rahnomaMamlats', 'name' => 'راهنما معاملات', 'model' => RahnomaMamlat::class],
+            ['key' => 'apartments', 'name' => 'اپارتمانونه', 'model' => Apartment::class],
+            ['key' => 'banks', 'name' => 'بانکونه', 'model' => Bank::class],
+            ['key' => 'transportCompanies', 'name' => 'ترانسپورتي شرکتونه', 'model' => TransportCompany::class],
+            ['key' => 'hadoBusStops', 'name' => 'بس تمځایونه', 'model' => HadoBusStop::class],
+            ['key' => 'carSalesCompanies', 'name' => 'د موټر خرڅلاو شرکتونه', 'model' => CarSalesCompany::class],
+            ['key' => 'schools', 'name' => 'ښوونځي', 'model' => School::class],
+            ['key' => 'parkings', 'name' => 'پارکینګونه', 'model' => Parking::class],
 
-        // Format Two
-        ['key' => 'workshops', 'name' => 'ورکشاپونه', 'model' => WorkShop::class],
-        ['key' => 'hosppitals', 'name' => 'روغتونونه', 'model' => Hosppital::class],
-        ['key' => 'rahnomaMamlats', 'name' => 'راهنما معاملات', 'model' => RahnomaMamlat::class],
-        ['key' => 'apartments', 'name' => 'اپارتمانونه', 'model' => Apartment::class],
-        ['key' => 'banks', 'name' => 'بانکونه', 'model' => Bank::class],
-        ['key' => 'transportCompanies', 'name' => 'ترانسپورتي شرکتونه', 'model' => TransportCompany::class],
-        ['key' => 'hadoBusStops', 'name' => 'بس تمځایونه', 'model' => HadoBusStop::class],
-        ['key' => 'carSalesCompanies', 'name' => 'د موټر خرڅلاو شرکتونه', 'model' => CarSalesCompany::class],
-        ['key' => 'schools', 'name' => 'ښوونځي', 'model' => School::class],
-        ['key' => 'parkings', 'name' => 'پارکینګونه', 'model' => Parking::class],
+            // Format Four
+            ['key' => 'wakilanos', 'name' => 'وکیلان', 'model' => Wakilano::class],
+            ['key' => 'universities', 'name' => 'پوهنتونونه', 'model' => University::class],
+            ['key' => 'masjids', 'name' => 'جوماتونه', 'model' => Masjid::class],
+            ['key' => 'highways', 'name' => 'لویې لارې', 'model' => Highway::class],
+            ['key' => 'companies', 'name' => 'شرکتونه', 'model' => Company::class],
+            ['key' => 'donelostplaces', 'name' => 'ورک شوي ځایونه', 'model' => Donelostplace::class],
+            ['key' => 'econemyProjects', 'name' => 'اقتصادي پروژې', 'model' => EconemyProject::class],
+            ['key' => 'criminalCapturePlaces', 'name' => 'د مجرم نیولو ځایونه', 'model' => CriminalCapturePlace::class],
+            ['key' => 'pumps', 'name' => 'پمپونه', 'model' => Pump::class],
+            ['key' => 'shoras', 'name' => 'شوراګانې', 'model' => Shora::class],
+            ['key' => 'checkpoints', 'name' => 'چک پاینتونه', 'model' => Checkpoint::class],
+            ['key' => 'governmentplaces', 'name' => 'دولتې ځایونه', 'model' => GovernmentPlace::class],
+            ['key' => 'supermarkets', 'name' => 'سوپرمارکېټونه', 'model' => SuperMarket::class],
+            ['key' => 'parks', 'name' => 'پارکونه', 'model' => Park::class],
+            ['key' => 'complexes', 'name' => 'کمپلکسونه', 'model' => Complex::class],
+            ['key' => 'deplomaticplaces', 'name' => 'دیپلوماتیک ځایونه', 'model' => DeplomaticPlace::class],
 
-        // Format Four
-        ['key' => 'wakilanos', 'name' => 'وکیلان', 'model' => Wakilano::class],
-        ['key' => 'universities', 'name' => 'پوهنتونونه', 'model' => University::class],
-        ['key' => 'masjids', 'name' => 'جوماتونه', 'model' => Masjid::class],
-        ['key' => 'highways', 'name' => 'لویې لارې', 'model' => Highway::class],
-        ['key' => 'companies', 'name' => 'شرکتونه', 'model' => Company::class],
-        ['key' => 'donelostplaces', 'name' => 'ورک شوي ځایونه', 'model' => Donelostplace::class],
-        ['key' => 'econemyProjects', 'name' => 'اقتصادي پروژې', 'model' => EconemyProject::class],
-        ['key' => 'criminalCapturePlaces', 'name' => 'د مجرم نیولو ځایونه', 'model' => CriminalCapturePlace::class],
-        ['key' => 'pumps', 'name' => 'پمپونه', 'model' => Pump::class],
-        ['key' => 'shoras', 'name' => 'شوراګانې', 'model' => Shora::class],
-        ['key' => 'checkpoints', 'name' => 'چک پاینتونه', 'model' => Checkpoint::class],
-        ['key' => 'governmentplaces', 'name' => 'دولتې ځایونه', 'model' => GovernmentPlace::class],
-        ['key' => 'supermarkets', 'name' => 'سوپرمارکېټونه', 'model' => SuperMarket::class],
-        ['key' => 'parks', 'name' => 'پارکونه', 'model' => Park::class],
-        ['key' => 'complexes', 'name' => 'کمپلکسونه', 'model' => Complex::class],
-        ['key' => 'deplomaticplaces', 'name' => 'دیپلوماتیک ځایونه', 'model' => DeplomaticPlace::class],
+            // Format Three
+            ['key' => 'badmashanos', 'name' => 'بدماشانو', 'model' => Badmashano::class],
+            ['key' => 'emaratOffices', 'name' => 'امارت دفترونه', 'model' => EmaratOffice::class],
+            ['key' => 'hostels', 'name' => 'هاستلونه', 'model' => Hostel::class],
+            ['key' => 'hotels', 'name' => 'هوټلونه', 'model' => Hotel::class],
+            ['key' => 'madrasas', 'name' => 'مدرسې', 'model' => Madrasa::class],
+            ['key' => 'mashkokPeople', 'name' => 'مشکوک خلک', 'model' => MashkokPeople::class],
+            ['key' => 'mujahedinos', 'name' => 'مجاهدین', 'model' => Mujahedino::class],
+            ['key' => 'oldJahadis', 'name' => 'پخواني جهاديان', 'model' => OldJahadi::class],
+            ['key' => 'sarayanos', 'name' => 'سرایان', 'model' => Sarayano::class],
+            ['key' => 'tujarans', 'name' => 'تجاران', 'model' => Tujaran::class],
 
-        // Format Three
-        ['key' => 'badmashanos', 'name' => 'بدماشانو', 'model' => Badmashano::class],
-        ['key' => 'emaratOffices', 'name' => 'امارت دفترونه', 'model' => EmaratOffice::class],
-        ['key' => 'hostels', 'name' => 'هاستلونه', 'model' => Hostel::class],
-        ['key' => 'hotels', 'name' => 'هوټلونه', 'model' => Hotel::class],
-        ['key' => 'madrasas', 'name' => 'مدرسې', 'model' => Madrasa::class],
-        ['key' => 'mashkokPeople', 'name' => 'مشکوک خلک', 'model' => MashkokPeople::class],
-        ['key' => 'mujahedinos', 'name' => 'مجاهدین', 'model' => Mujahedino::class],
-        ['key' => 'oldJahadis', 'name' => 'پخواني جهاديان', 'model' => OldJahadi::class],
-        ['key' => 'sarayanos', 'name' => 'سرایان', 'model' => Sarayano::class],
-        ['key' => 'tujarans', 'name' => 'تجاران', 'model' => Tujaran::class],
-        ['key' => 'jawasis', 'name' => 'جواسیس', 'model' => Jawasis::class],
-    ];
+            // Jawasis
+            ['key' => 'jawasis', 'name' => 'جواسیس', 'model' => Jawasis::class],
+        ];
 
-    $out = [];
+        $out = [];
 
-    foreach ($map as $item) {
-        $modelClass = $item['model'];
+        foreach ($map as $item) {
+            $modelClass = $item['model'];
 
-        $count = (int) $modelClass::query()->count();
+            // ✅ ALL TIME = no created_at filter, just count everything
+            $count = (int) $modelClass::query()->count();
 
-        if ($count > 0) {
-            $out[] = [
-                'key' => $item['key'],
-                'name' => $item['name'], // ✅ Pashto name
-                'count' => $count,
-            ];
+            if ($count > 0) {
+                $out[] = [
+                    'key' => $item['key'],
+                    'name' => $item['name'],
+                    'count' => $count,
+                ];
+            }
         }
+
+        usort($out, fn ($a, $b) => $b['count'] <=> $a['count']);
+
+        return $out;
     }
-
-    usort($out, fn ($a, $b) => $b['count'] <=> $a['count']);
-
-    return $out;
-}
-
 }

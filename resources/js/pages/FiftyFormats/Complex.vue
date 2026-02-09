@@ -51,84 +51,84 @@
 
       <!-- 📊 Filter Cards -->
       <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
-        <!-- All complexes -->
+        <!-- داخلي نارینه کارمندان -->
         <v-col cols="12" sm="6" md="3">
           <v-card
             class="stat-card"
-            :class="{ 'stat-card--active': cardFilter === 'all' }"
-            @click="cardFilter = 'all'"
+            :class="{ 'stat-card--active': cardFilter === 'enterMale' }"
+            @click="cardFilter = 'enterMale'"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
-                <v-icon>mdi-office-building</v-icon>
+                <v-icon>mdi-account-group</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام کمپلکس ها') }}</div>
+                <div class="stat-card-title">{{ t('داخلي نارینه کارمندان') }}</div>
                 <div class="stat-card-subtitle">
-                  {{ t('مجموع') }}: {{ stats.total }}
+                  {{ t('تعداد') }}: {{ stats.enterMale }}
                 </div>
               </div>
             </div>
           </v-card>
         </v-col>
 
-        <!-- With coordinates -->
+        <!-- داخلي ښځینه کارمندان -->
         <v-col cols="12" sm="6" md="3">
           <v-card
             class="stat-card"
-            :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
-            @click="cardFilter = 'withCoordinates'"
+            :class="{ 'stat-card--active': cardFilter === 'enterFemale' }"
+            @click="cardFilter = 'enterFemale'"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
-                <v-icon>mdi-map-marker-radius</v-icon>
+                <v-icon>mdi-account-group-outline</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
+                <div class="stat-card-title">{{ t('داخلي ښځینه کارمندان') }}</div>
                 <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
+                  {{ t('تعداد') }}: {{ stats.enterFemale }}
                 </div>
               </div>
             </div>
           </v-card>
         </v-col>
 
-        <!-- With responsible phone -->
+        <!-- خارجی نارینه کارمندان -->
         <v-col cols="12" sm="6" md="3">
           <v-card
             class="stat-card"
-            :class="{ 'stat-card--active': cardFilter === 'withPhone' }"
-            @click="cardFilter = 'withPhone'"
+            :class="{ 'stat-card--active': cardFilter === 'outerMale' }"
+            @click="cardFilter = 'outerMale'"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
-                <v-icon>mdi-phone</v-icon>
+                <v-icon>mdi-account-arrow-right</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('دارای شماره مسؤول') }}</div>
+                <div class="stat-card-title">{{ t('خارجی نارینه کارمندان') }}</div>
                 <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withPhone }}
+                  {{ t('تعداد') }}: {{ stats.outerMale }}
                 </div>
               </div>
             </div>
           </v-card>
         </v-col>
 
-        <!-- With guards -->
+        <!-- خارجی ښځینه کارمندان -->
         <v-col cols="12" sm="6" md="3">
           <v-card
             class="stat-card"
-            :class="{ 'stat-card--active': cardFilter === 'withemployeecount' }"
-            @click="cardFilter = 'withemployeecount'"
+            :class="{ 'stat-card--active': cardFilter === 'outerFemale' }"
+            @click="cardFilter = 'outerFemale'"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
-                <v-icon>mdi-shield-account</v-icon>
+                <v-icon>mdi-account-arrow-right-outline</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تعداد کارمندان') }}</div>
+                <div class="stat-card-title">{{ t('خارجی ښځینه کارمندان') }}</div>
                 <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withemployeecount }}
+                  {{ t('تعداد') }}: {{ stats.outerFemale }}
                 </div>
               </div>
             </div>
@@ -316,38 +316,67 @@ const rowsFT = computed(() => {
 });
 
 /* 🔢 Filter cards state */
-const cardFilter = ref('all');
+const cardFilter = ref('enterMale');
 
 const stats = computed(() => {
   const rows = rowsFT.value || [];
-  const total = rows.length;
-  const withCoordinates = rows.filter(
-    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
-  ).length;
-  const withPhone = rows.filter(
-    (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
-  ).length;
-  const withemployeecount = rows.filter(
-    (r) => r && r.enter_male_quantity && String(r.enter_male_quantity).trim() !== '' && Number(r.enter_male_quantity) > 0
-  ).length;
+  const enterMale = rows
+    .map((r) => Number(r?.enter_male_quantity || 0))
+    .filter((n) => !Number.isNaN(n))
+    .reduce((a, b) => a + b, 0);
 
-  return { total, withCoordinates, withPhone, withemployeecount };
+  const enterFemale = rows
+    .map((r) => Number(r?.enter_femal_quantity || 0))
+    .filter((n) => !Number.isNaN(n))
+    .reduce((a, b) => a + b, 0);
+
+  const outerMale = rows
+    .map((r) => Number(r?.outer_male_quantity || 0))
+    .filter((n) => !Number.isNaN(n))
+    .reduce((a, b) => a + b, 0);
+
+  const outerFemale = rows
+    .map((r) => Number(r?.outer_femal_quantity || 0))
+    .filter((n) => !Number.isNaN(n))
+    .reduce((a, b) => a + b, 0);
+
+  return { enterMale, enterFemale, outerMale, outerFemale };
 });
 
 const filteredRowsFT = computed(() => {
   const base = rowsFT.value || [];
   switch (cardFilter.value) {
-    case 'withCoordinates':
+    case 'enterMale':
       return base.filter(
-        (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+        (r) =>
+          r &&
+          r.enter_male_quantity &&
+          String(r.enter_male_quantity).trim() !== '' &&
+          Number(r.enter_male_quantity) > 0
       );
-    case 'withPhone':
+    case 'enterFemale':
       return base.filter(
-        (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
+        (r) =>
+          r &&
+          r.enter_femal_quantity &&
+          String(r.enter_femal_quantity).trim() !== '' &&
+          Number(r.enter_femal_quantity) > 0
       );
-    case 'withemployeecount':
+    case 'outerMale':
       return base.filter(
-        (r) => r && r.guard_quantity && String(r.guard_quantity).trim() !== '' && Number(r.guard_quantity) > 0
+        (r) =>
+          r &&
+          r.outer_male_quantity &&
+          String(r.outer_male_quantity).trim() !== '' &&
+          Number(r.outer_male_quantity) > 0
+      );
+    case 'outerFemale':
+      return base.filter(
+        (r) =>
+          r &&
+          r.outer_femal_quantity &&
+          String(r.outer_femal_quantity).trim() !== '' &&
+          Number(r.outer_femal_quantity) > 0
       );
     default:
       return base;

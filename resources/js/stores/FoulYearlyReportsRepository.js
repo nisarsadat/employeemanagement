@@ -144,12 +144,27 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     const qamari = formatHijriQamari(dateIso);
 
     const pills = [];
+    if (qamari)
+      pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
 
     if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
-    if (shamsi) pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
-    if (qamari) pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
+    if (shamsi)
+      pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
 
     return pills.join('');
+  }
+
+  // =========================
+  // ✅ EMPTY / USEFUL ROW HELPERS (omit tables/sections if empty)
+  // =========================
+  function hasUsefulRows(arr, countKey = 'count') {
+    if (!Array.isArray(arr) || arr.length === 0) return false;
+    return arr.some((x) => safeNum(x?.[countKey] ?? 0) > 0);
+  }
+
+  function hasUsefulNotes(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) return false;
+    return arr.some((n) => String(n?.report_note ?? n?.note ?? '').trim());
   }
 
   // =========================
@@ -164,39 +179,55 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     return { from: `${y}-01-01`, to: `${y}-12-31` };
   }
 
+  // ✅ robust notes fetch (same as quarterly)
   async function fetchNotesForExport({ type, from, to }) {
-    try {
-      const { data } = await axios.get('/report-notes', {
-        params: {
-          type,
-          from,
-          to,
-          perPage: 1000,
-          page: 1,
-        },
-      });
+    const endpoints = ['/report-notes', '/report_notes'];
 
-      return Array.isArray(data?.data) ? data.data : [];
-    } catch {
-      return [];
+    const paramVariants = [
+      { type, from, to, perPage: 1000, page: 1 },
+      { type, from, to, per_page: 1000, page: 1 },
+      { type, start: from, end: to, perPage: 1000, page: 1 },
+      { type, start: from, end: to, per_page: 1000, page: 1 },
+      { report_type: type, from, to, perPage: 1000, page: 1 },
+      { report_type: type, start: from, end: to, perPage: 1000, page: 1 },
+    ];
+
+    for (const url of endpoints) {
+      for (const params of paramVariants) {
+        try {
+          const res = await axios.get(url, { params });
+          if (Array.isArray(res?.data?.data)) return res.data.data;
+          if (Array.isArray(res?.data)) return res.data;
+        } catch {
+          // try next
+        }
+      }
     }
+
+    return [];
   }
 
   function buildNotesSectionHtml(notes = []) {
-    const notesTr = notes.length
-      ? notes
-          .map((n, idx) => {
-            const text = escapeHtml(n?.report_note ?? '');
-            const dt = escapeHtml(n?.created_at ?? '');
-            return `
-              <tr>
-                <td style="width:8%;">${idx + 1}</td>
-                <td style="width:72%;">${text || '-'}</td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="3" class="td-center">هیڅ یادداشت نشته</td></tr>`;
+    if (!hasUsefulNotes(notes)) return '';
+
+    const clean = notes
+      .map((n) => ({
+        text: String(n?.report_note ?? n?.note ?? '').trim(),
+      }))
+      .filter((x) => x.text);
+
+    if (clean.length === 0) return '';
+
+    const notesTr = clean
+      .map((n, idx) => {
+        const text = escapeHtml(n.text);
+        return `
+          <tr>
+            <td style="width:92%;">${text || '-'}</td>
+          </tr>
+        `;
+      })
+      .join('');
 
     return `
       <div class="section">
@@ -205,18 +236,16 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
             <div class="strip-left">
               <div>
                 <div class="strip-title">یادداشتونه</div>
-                <div class="strip-sub">د راپور یادداشتونه</div>
               </div>
             </div>
-            <span class="chip chip-primary">${notes.length}</span>
+            <span class="chip chip-primary">${clean.length}</span>
           </div>
 
           <div style="padding:0;">
             <table>
               <thead>
                 <tr>
-                  <th style="width:8%;">#</th>
-                  <th style="width:72%;">یادداشت</th>
+                  <th style="width:92%;">یادداشت</th>
                 </tr>
               </thead>
               <tbody>${notesTr}</tbody>
@@ -257,7 +286,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
   }
 
   // =========================
-  // Export CSS (same as Daily/Monthly/Weekly)
+  // Export CSS (✅ header text START + table START)
   // =========================
   function baseExportCss() {
     const fontStack =
@@ -303,12 +332,45 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         pointer-events:none;
       }
 
-      .hero-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; position:relative; z-index:1; }
+      .hero-top{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:12px;
+        position:relative;
+        z-index:1;
+      }
 
-      .hero-title{ color:#fff; font-weight:900; font-size:18px; margin:0 0 4px; letter-spacing:.2px; line-height:1.25; }
-      .hero-sub{ color: rgba(255,255,255,.92); margin:0; font-size:12px; line-height:1.55; font-weight:700; }
+      /* ✅ header text must start */
+      .hero-top > div:first-child { text-align: start; }
 
-      .pills{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
+      .hero-title{
+        color:#fff;
+        font-weight:900;
+        font-size:18px;
+        margin:0 0 4px;
+        letter-spacing:.2px;
+        line-height:1.25;
+        text-align:start; /* ✅ */
+      }
+      .hero-sub{
+        color: rgba(255,255,255,.92);
+        margin:0;
+        font-size:12px;
+        line-height:1.55;
+        font-weight:700;
+        text-align:start; /* ✅ */
+      }
+
+      .pills{
+        margin-top:10px;
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        position:relative;
+        z-index:1;
+        justify-content:flex-start; /* ✅ */
+      }
       .pill{
         display:inline-block;
         padding:6px 10px;
@@ -333,8 +395,8 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
       }
 
       .stat-card{ padding:12px 12px; min-height:90px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-      .stat-label{ font-size:11px; color: rgba(17,24,39,.65); font-weight:900; margin-bottom:4px; }
-      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; }
+      .stat-label{ font-size:11px; color: rgba(17,24,39,.65); font-weight:900; margin-bottom:4px; text-align:start; }
+      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; text-align:start; }
 
       .badge{
         display:inline-flex;
@@ -360,9 +422,13 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         justify-content:space-between;
         gap:10px;
       }
-      .strip-title{ font-weight:900; font-size:12px; margin:0; }
-      .strip-sub{ margin:2px 0 0; color: rgba(17,24,39,.55); font-size:10px; font-weight:800; }
-      .strip-left{ display:flex; align-items:center; gap:10px; }
+
+      /* ✅ section titles start */
+      .strip-left { display:flex; align-items:flex-start; gap:10px; }
+      .strip-left > div { text-align:start; }
+
+      .strip-title{ font-weight:900; font-size:12px; margin:0; text-align:start; }
+      .strip-sub{ margin:2px 0 0; color: rgba(17,24,39,.55); font-size:10px; font-weight:800; text-align:start; }
 
       .chip{
         padding:5px 10px;
@@ -389,6 +455,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         font-size:11px;
         padding:9px 8px;
         border-bottom:1px solid #eef2f7;
+        text-align:start; /* ✅ */
       }
       tbody td{
         padding:9px 8px;
@@ -396,6 +463,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         font-size:11px;
         vertical-align:middle;
         color: rgba(17,24,39,.90);
+        text-align:start; /* ✅ */
       }
       tbody tr:nth-child(even) td{ background: #fcfdff; }
 
@@ -458,10 +526,11 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
   }
 
   // =========================
-  // Yearly HTML (✅ stacked tables like Quarterly fix) + ✅ notes appended
+  // Yearly HTML (✅ stacked tables) + ✅ notes appended
+  // ✅ header + text start (NOT center) via CSS above
   // =========================
   function buildYearlyDashboardHtml(report, yearText, notes = []) {
-    const yearVal = String(yearText || selectedYear.value || currentYearIso());
+    const yearVal = String(yearText || selectedYear.value || currentYearIso()).trim();
     const headerIso = yearToIsoDate(yearVal); // 01-01 for pills
     const heroDatePills = buildDatePillsSameDay(headerIso);
 
@@ -479,51 +548,138 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
       return `${window.location.origin}/logo.jpeg`;
     }
 
-    const infoTr = infoTypes.length
-      ? infoTypes
-          .map((x) => {
-            const label = escapeHtml(x?.label ?? '');
-            const count = safeNum(x?.count);
-            return `
-              <tr>
-                <td>${label}</td>
-                <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ معلومات نشته</td></tr>`;
+    const infoSection = hasUsefulRows(infoTypes, 'count')
+      ? `
+          <div class="section">
+            <div class="card no-break">
+              <div class="header-strip bg-primary">
+                <div class="strip-left">
+                  <div>
+                    <div class="strip-title">اطلاعات</div>
+                    <div class="strip-sub">د ډول له مخې وېش (کال)</div>
+                  </div>
+                </div>
+                <span class="chip chip-primary">${informationsTotal}</span>
+              </div>
 
-    const formatsTr = formats.length
-      ? formats
-          .map((f) => {
-            const name = escapeHtml(formatNameLocal(f?.name ?? ''));
-            const count = safeNum(f?.count);
-            return `
-              <tr>
-                <td>${name || '-'}</td>
-                <td class="td-end"><span class="count-pill count-success">${count}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ فورم کې معلومات نشته</td></tr>`;
+              <div style="padding:0;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:70%;">ډول</th>
+                      <th class="td-end" style="width:30%;">شمېر</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${infoTypes
+                      .filter((x) => safeNum(x?.count) > 0)
+                      .map((x) => {
+                        const label = escapeHtml(x?.label ?? '');
+                        const count = safeNum(x?.count);
+                        return `
+                          <tr>
+                            <td>${label}</td>
+                            <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+      : '';
 
-    const eventsTr = eventTypes.length
-      ? eventTypes
-          .map((t) => {
-            const label = escapeHtml(t?.label ?? '');
-            const count = safeNum(t?.count);
-            const cls = eventTypeClass(label);
-            return `
-              <tr>
-                <td><span class="etype ${cls}">${label || '-'}</span></td>
-                <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : `<tr><td colspan="2" class="td-center">هیڅ پېښه نه ده ثبت شوې</td></tr>`;
+    const formatsSection = hasUsefulRows(formats, 'count')
+      ? `
+          <div class="section">
+            <div class="card no-break">
+              <div class="header-strip bg-success">
+                <div class="strip-left">
+                  <div>
+                    <div class="strip-title">لیټري دوسیه</div>
+                    <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
+                  </div>
+                </div>
+                <span class="chip chip-success">${formatsActive}</span>
+              </div>
+
+              <div style="padding:0;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:70%;">فورم</th>
+                      <th class="td-end" style="width:30%;">شمېر</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${formats
+                      .filter((f) => safeNum(f?.count) > 0)
+                      .map((f) => {
+                        const name = escapeHtml(formatNameLocal(f?.name ?? ''));
+                        const count = safeNum(f?.count);
+                        return `
+                          <tr>
+                            <td>${name || '-'}</td>
+                            <td class="td-end"><span class="count-pill count-success">${count}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+      : '';
+
+    const eventsSection = hasUsefulRows(eventTypes, 'count')
+      ? `
+          <div class="section">
+            <div class="card">
+              <div class="header-strip bg-warning">
+                <div class="strip-left">
+                  <div>
+                    <div class="strip-title">ثبت شوې پېښې</div>
+                    <div class="strip-sub">د ډول له مخې د پېښو جزیات (کال)</div>
+                  </div>
+                </div>
+                <span class="chip chip-warning">${eventsTotal}</span>
+              </div>
+
+              <div style="padding:0;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:70%;">د پېښې ډول</th>
+                      <th class="td-end" style="width:30%;">شمېر</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${eventTypes
+                      .filter((t) => safeNum(t?.count) > 0)
+                      .map((t) => {
+                        const label = escapeHtml(t?.label ?? '');
+                        const count = safeNum(t?.count);
+                        const cls = eventTypeClass(label);
+                        return `
+                          <tr>
+                            <td><span class="etype ${cls}">${label || '-'}</span></td>
+                            <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+      : '';
 
     return `
       <html dir="rtl">
@@ -573,84 +729,9 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
               </div></div></div>
             </div>
 
-            <div class="section">
-              <div class="card no-break">
-                <div class="header-strip bg-primary">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">اطلاعات</div>
-                      <div class="strip-sub">د ډول له مخې وېش (کال)</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-primary">${informationsTotal}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">ډول</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
-                    <tbody>${infoTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="card no-break">
-                <div class="header-strip bg-success">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">لیټري دوسیه</div>
-                      <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-success">${formatsActive}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">فورم</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
-                    <tbody>${formatsTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="card">
-                <div class="header-strip bg-warning">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">ثبت شوې پېښې</div>
-                      <div class="strip-sub">د ډول له مخې د پېښو جزیات (کال)</div>
-                    </div>
-                  </div>
-                  <span class="chip chip-warning">${eventsTotal}</span>
-                </div>
-
-                <div style="padding:0;">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">د پېښې ډول</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
-                    <tbody>${eventsTr}</tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
+            ${infoSection}
+            ${formatsSection}
+            ${eventsSection}
             ${buildNotesSectionHtml(notes)}
           </div>
         </body>

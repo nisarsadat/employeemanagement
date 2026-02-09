@@ -156,11 +156,11 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const qamari = formatHijriQamari(dateIso);
 
     const pills = [];
+    if (qamari)
+      pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
     if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
     if (shamsi)
       pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
-    if (qamari)
-      pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
 
     return pills.join('');
   }
@@ -444,7 +444,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         font-size:11px;
         padding:9px 8px;
         border-bottom:1px solid #eef2f7;
-        text-align:center;
+        text-align: start;
       }
       tbody td{
         padding:9px 8px;
@@ -452,7 +452,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         font-size:11px;
         vertical-align:middle;
         color: rgba(17,24,39,.90);
-        text-align:center;
+        text-align:start;
       }
       tbody tr:nth-child(even) td{ background: #fcfdff; }
 

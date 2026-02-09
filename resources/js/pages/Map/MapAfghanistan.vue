@@ -56,7 +56,15 @@
                 >
                   <template #prepend>
                     <!-- ✅ Vuetify mdi font icon -->
-                    <v-icon :color="it.type === 'resource' ? 'green-darken-2' : 'primary'">
+                    <v-icon
+                      :color="
+                        it.type === 'resource'
+                          ? it.is_active
+                            ? 'green-darken-2'
+                            : 'red-darken-2'
+                          : 'primary'
+                      "
+                    >
                       {{ safeMdiFor(it) }}
                     </v-icon>
                   </template>
@@ -520,6 +528,7 @@
             picture: pickPicture(row),
             _showUrl: src.show(row.id),
             _raw: row,
+            is_active: src.type === 'resource' ? isRowActive(row) : true,
           }))
           .filter((x) => parseCoordinates(x.coordinates));
       });
@@ -696,9 +705,9 @@
     i.style.lineHeight = '1';
 
     if (item.type === 'resource') {
-      i.style.color = '#16a34a'; // green dot
+      i.style.color = item.is_active ? '#16a34a' : '#dc2626'; // ✅ green / red
     } else {
-      i.style.color = '#1f2937'; // default dark
+      i.style.color = '#1f2937';
     }
 
     iconWrap.appendChild(i);
@@ -884,6 +893,34 @@
         },
       },
     });
+  }
+
+  // for inactive active resource
+  function isRowActive(row) {
+    // support multiple possible back-end fields
+    const v =
+      row?.is_active ??
+      row?.active ??
+      row?.status ??
+      row?.isActive ??
+      row?.isActiveResource ??
+      null;
+
+    // boolean
+    if (typeof v === 'boolean') return v;
+
+    // numeric
+    if (typeof v === 'number') return v === 1;
+
+    // string
+    const s = String(v || '')
+      .trim()
+      .toLowerCase();
+    if (['1', 'true', 'yes', 'active', 'فعال'].includes(s)) return true;
+    if (['0', 'false', 'no', 'inactive', 'غیر فعال', 'غير فعال'].includes(s)) return false;
+
+    // default (treat unknown as active OR inactive; choose what you prefer)
+    return true;
   }
 
   /* ---------- Initialize map (local assets served from same origin) ---------- */

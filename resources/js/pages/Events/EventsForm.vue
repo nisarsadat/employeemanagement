@@ -333,6 +333,62 @@
               </v-col>
             </v-row>
           </v-sheet>
+          <!-- FINANCE SECTION -->
+          <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
+            <div class="section-header">
+              <div class="d-flex align-center">
+                <v-icon class="ml-2 section-icon">mdi-cash-multiple</v-icon>
+                <span class="text-subtitle-2 font-weight-medium section-title">
+                  {{ t('معلومات مالی') }}
+                </span>
+              </div>
+              <span class="section-subtitle text-caption">
+                {{ t('حساب و جزئیات مالی مربوط به واقعه') }}
+              </span>
+            </div>
+
+            <v-divider />
+
+            <v-row class="pa-3">
+              <v-col cols="12" md="12">
+                <v-autocomplete
+                  v-model="form.account_id"
+                  :items="accountItems"
+                  item-title="display"
+                  item-value="id"
+                  :label="t('حساب')"
+                  density="compact"
+                  variant="outlined"
+                  clearable
+                  :error="hasError('account_id')"
+                  :error-messages="getErrorMessages('account_id')"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.message_to_finance"
+                  :label="t('مسج مالی بخش ته')"
+                  type="number"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('message_to_finance')"
+                  :error-messages="getErrorMessages('message_to_finance')"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.money_amount_words"
+                  :label="t('مقدار په حروف')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('money_amount_words')"
+                  :error-messages="getErrorMessages('money_amount_words')"
+                />
+              </v-col>
+            </v-row>
+          </v-sheet>
 
           <!-- SECTION 3: تلفات، اسناد، ملاحظات -->
           <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
@@ -399,22 +455,6 @@
                   variant="outlined"
                   :error="hasError('note')"
                   :error-messages="getErrorMessages('note')"
-                />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.message_to_finance"
-                  :label="t('مسج مالی بخش ته ')"
-                  type="number"
-                  density="compact"
-                  variant="outlined"
-                /> </v-col
-              ><v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.money_amount_words"
-                  :label="t('مقدار په حروف')"
-                  density="compact"
-                  variant="outlined"
                 />
               </v-col>
             </v-row>
@@ -567,7 +607,9 @@
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
   import ZoneHawzaSelect from '@/components/ZoneHawzaSelect.vue';
+  import { useFinanceRepository } from '@/stores/FinanceRepository';
 
+  const financeRepo = useFinanceRepository();
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
   const route = useRoute();
@@ -632,6 +674,13 @@
         r.code_number && r.name ? `${r.code_number} - ${r.name}` : r.code_number || r.name || '',
     }))
   );
+  const accountItems = computed(() =>
+    (financeRepo.accounts || []).map((a) => ({
+      ...a,
+      display: a.name ? `${a.name} (${a.price ?? '0'})` : `${a.id}`,
+    }))
+  );
+
   const officeEmployeesCodeItems = computed(() =>
     toArray(repo.officeemployeescode).map((o) => ({
       ...o,
@@ -650,6 +699,7 @@
     resource_id: null,
     office_employee_id: null,
     office_employee_akhistonky_id: null,
+    account_id: null,
 
     event_type: '',
     event_specific_type: '',
@@ -726,6 +776,7 @@
     f.resource_id = x.resource_id ?? x.resource?.id ?? null;
     f.office_employee_id = x.office_employee_id ?? x.office_employee?.id ?? null;
     f.office_employee_akhistonky_id = x.office_employee_akhistonky_id ?? null;
+    f.account_id = x.account_id ?? x.account?.id ?? null;
 
     f.event_type = x.event_type ?? '';
     f.event_specific_type = x.event_specific_type ?? '';
@@ -899,11 +950,15 @@
       repo.GetOfficeEmployee?.(),
       repo.GetResourceCode?.(),
       repo.GetOfficeEmployeeCode?.(),
+
+      financeRepo.FetchAccountsData(), // ✅ درست (accounts loads into financeRepo.accounts)
     ]);
+
     await Promise.allSettled([
       repo.GetJaniTalafatOptions?.() ?? Promise.resolve(),
       repo.GetMaliTalafatOptions?.() ?? Promise.resolve(),
     ]).catch(() => {});
+
     await loadForEdit();
   });
 

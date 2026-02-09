@@ -581,24 +581,65 @@
                   variant="outlined"
                 />
               </v-col>
+            </v-row>
+          </v-sheet>
+          <!-- FINANCE SECTION -->
+          <v-sheet class="section-card mb-6" rounded="lg" elevation="1">
+            <div class="section-header">
+              <div class="d-flex align-center">
+                <v-icon class="ml-2 section-icon">mdi-cash-multiple</v-icon>
+                <span class="text-subtitle-2 font-weight-medium section-title">
+                  {{ t('معلومات مالی') }}
+                </span>
+              </div>
+              <span class="section-subtitle text-caption">
+                {{ t('حساب و جزئیات مالی مربوط به اطلاع') }}
+              </span>
+            </div>
+
+            <v-divider />
+
+            <v-row class="pa-3">
               <v-col cols="12" md="6">
+                <v-autocomplete
+                  v-model="form.account_id"
+                  :items="accountItems"
+                  item-title="display"
+                  item-value="id"
+                  :label="t('حساب')"
+                  density="compact"
+                  variant="outlined"
+                  clearable
+                  :error="hasError('account_id')"
+                  :error-messages="getErrorMessages('account_id')"
+                />
+              </v-col>
+
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.message_to_finance"
-                  :label="t('مسج مالی بخش ته ')"
+                  :label="t('مسج مالی بخش ته')"
                   density="compact"
                   type="number"
                   variant="outlined"
-                /> </v-col
-              ><v-col cols="12" md="6">
+                  :error="hasError('message_to_finance')"
+                  :error-messages="getErrorMessages('message_to_finance')"
+                />
+              </v-col>
+
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.money_amount_words"
                   :label="t('مقدار په حروف')"
                   density="compact"
                   variant="outlined"
+                  :error="hasError('money_amount_words')"
+                  :error-messages="getErrorMessages('money_amount_words')"
                 />
               </v-col>
             </v-row>
           </v-sheet>
+
           <!-- HAMAHANGI SECTION -->
           <v-sheet class="section-card mb-6" rounded="lg" elevation="1">
             <div class="section-header">
@@ -799,6 +840,9 @@
   import OrganSelect from '@/components/OrganSelect.vue';
   import AppBar from '../../components/AppBar.vue';
   import DateInput from '../../components/DateInput.vue';
+  import { useFinanceRepository } from '@/stores/FinanceRepository';
+
+  const financeRepo = useFinanceRepository();
 
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
@@ -871,6 +915,7 @@
     age: '',
     job: '',
     madani_halat: '',
+    account_id: null,
 
     main_province: '',
     main_districts: '',
@@ -920,6 +965,12 @@
   const seyasiItems = computed(() => toArray(repo.seyasiOptions));
   const jenayeeItems = computed(() => toArray(repo.jenayeeOptions));
   const madaniHalatItems = computed(() => [t('مجرد'), t('متاحل')]);
+  const accountItems = computed(() =>
+    (financeRepo.accounts || []).map((a) => ({
+      ...a,
+      display: a.name ? `${a.name} (${a.price ?? '0'})` : `${a.id}`,
+    }))
+  );
 
   /* ===== RULES ===== */
   const rules = {
@@ -994,6 +1045,7 @@
     base.age = x.age ?? '';
     base.job = x.job ?? '';
     base.madani_halat = x.madani_halat ?? '';
+    base.account_id = x.account_id ?? x.account?.id ?? null;
 
     base.main_province = x.main_province ?? '';
     base.main_districts = x.main_districts ?? '';
@@ -1202,6 +1254,7 @@
         page: 1,
         itemsPerPage: 1,
       }),
+      financeRepo.FetchAccountsData(),
     ]);
 
     await loadForEdit();
