@@ -494,7 +494,7 @@
                   density="compact"
                   variant="outlined"
                 /> </v-col
-              ><v-col cols="6" md="12">
+              ><v-col cols="6" md="6">
                 <v-text-field
                   v-model="form.coordinates"
                   :label="t('کوردینات')"
@@ -647,7 +647,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.resedint_code"
-                  :label="t('رزیدنت مربوطه کود')"
+                  :label="t('رزیدنت مربوطه')"
                   density="compact"
                   variant="outlined"
                   :error="hasError('resedint_code')"

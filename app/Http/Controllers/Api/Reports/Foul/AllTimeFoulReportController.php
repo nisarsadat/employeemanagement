@@ -178,7 +178,7 @@ class AllTimeFoulReportController extends Controller
             ['key' => 'fasads', 'name' => 'فسادونه', 'model' => Fasad::class],
             ['key' => 'saeenFasads', 'name' => 'سعین فسادونه', 'model' => SaeenFasad::class],
             ['key' => 'heists', 'name' => 'غلاوې', 'model' => Heist::class],
-            ['key' => 'captives', 'name' => 'اسیران', 'model' => Captive::class],
+            ['key' => 'captives', 'name' => 'خوشې شوي بندیان', 'model' => Captive::class],
             ['key' => 'mulkanos', 'name' => 'ملکان', 'model' => Mulkano::class],
             ['key' => 'entryExits', 'name' => 'داخل او خارج', 'model' => EntryExit::class],
             ['key' => 'sarafyanos', 'name' => 'صرافان', 'model' => Sarafyano::class],

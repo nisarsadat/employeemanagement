@@ -16,6 +16,7 @@ class EntryExit extends Model
         'Province_addr',
         'where_went','where_come',
         'notes','resource_id',
+        'picture'
     ];
 
     public function resource()

@@ -230,7 +230,7 @@ class WeeklyFoulReportController extends Controller
             ['key' => 'fasads', 'name' => 'فسادونه', 'model' => Fasad::class],
             ['key' => 'saeenFasads', 'name' => 'ساعین بالفساد ', 'model' => SaeenFasad::class],
             ['key' => 'heists', 'name' => 'غلاوې', 'model' => Heist::class],
-            ['key' => 'captives', 'name' => 'اسیران', 'model' => Captive::class],
+            ['key' => 'captives', 'name' => 'خوشې شوي بندیان', 'model' => Captive::class],
             ['key' => 'mulkanos', 'name' => 'نمایندهگانو', 'model' => Mulkano::class],
             ['key' => 'entryExits', 'name' => 'داخل او خارج', 'model' => EntryExit::class],
             ['key' => 'sarafyanos', 'name' => 'صرافان', 'model' => Sarafyano::class],

@@ -25,7 +25,7 @@ class EntryExitController extends Controller
         $search = trim((string) $request->query('search', ''));
         $rid    = $request->query('resource_id');
 
-        // ❌ removed 'name' (column does not exist)
+        // ✅ columns that exist
         $sortable = ['id', 'created_at', 'updated_at'];
         $sortBy   = in_array($request->query('sort_by', 'created_at'), $sortable, true)
             ? $request->query('sort_by', 'created_at')
@@ -40,15 +40,14 @@ class EntryExitController extends Controller
             ->with(['resource:id,name,code_number,phone_number'])
             ->when($search !== '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
-                    // ❌ removed ->where('name', ...)
                     $x->where('entry_way', 'like', "%{$search}%")
-                      ->orWhere('way_type', 'like', "%{$search}%")
-                      ->orWhere('province', 'like', "%{$search}%")
-                      ->orWhere('district', 'like', "%{$search}%")
-                      ->orWhere('village', 'like', "%{$search}%")
-                      ->orWhere('specific_place', 'like', "%{$search}%")
-                      ->orWhere('where_went', 'like', "%{$search}%")
-                      ->orWhere('where_come', 'like', "%{$search}%");
+                        ->orWhere('way_type', 'like', "%{$search}%")
+                        ->orWhere('province', 'like', "%{$search}%")
+                        ->orWhere('district', 'like', "%{$search}%")
+                        ->orWhere('village', 'like', "%{$search}%")
+                        ->orWhere('specific_place', 'like', "%{$search}%")
+                        ->orWhere('where_went', 'like', "%{$search}%")
+                        ->orWhere('where_come', 'like', "%{$search}%");
                 });
             })
             ->when($rid, fn ($sub) => $sub->where('resource_id', $rid))
@@ -86,9 +85,8 @@ class EntryExitController extends Controller
                     module: 'داخل/خارج',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
-                    // ❌ removed name usage
                     message: 'لار: ' . ($entry_exit->entry_way ?? ''),
-                    routeName: 'entry-exits', // ⚠️ adjust to your real route name
+                    routeName: 'entry-exits', // ⚠️ adjust if your route name differs
                     routeParams: ['id' => $entry_exit->id],
                     level: 'success',
                     changes: null
@@ -144,7 +142,6 @@ class EntryExitController extends Controller
                     module: 'داخل/خارج',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
-                    // ❌ removed name usage
                     message: 'لار: ' . ($entry_exit->entry_way ?? ''),
                     routeName: 'entry-exits',
                     routeParams: ['id' => $entry_exit->id],
@@ -174,7 +171,6 @@ class EntryExitController extends Controller
 
         return DB::transaction(function () use ($entry_exit, $user) {
 
-            // ❌ removed name usage
             $way = $entry_exit->entry_way;
             $entry_exit->delete();
 
@@ -184,10 +180,9 @@ class EntryExitController extends Controller
                 module: 'داخل/خارج',
                 action: 'deleted',
                 title: 'ریکارډ حذف شو',
-                // ❌ removed name usage
                 message: 'لار: ' . ($way ?? ''),
                 routeName: null,
-                routeParams: ['entry-exits'],
+                routeParams: [],
                 level: 'warning',
                 changes: null
             );

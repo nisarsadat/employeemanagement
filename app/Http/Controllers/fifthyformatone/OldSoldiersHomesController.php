@@ -48,12 +48,12 @@ class OldSoldiersHomesController extends Controller
         if ($search) {
             $q->where(function ($w) use ($search) {
                 $w->where('name', 'like', "%{$search}%")
-                  ->orWhere('father_name', 'like', "%{$search}%")
-                  ->orWhere('province', 'like', "%{$search}%")
-                  ->orWhere('district', 'like', "%{$search}%")
-                  ->orWhere('village', 'like', "%{$search}%")
-                  ->orWhere('old_job', 'like', "%{$search}%")
-                  ->orWhere('now_activity', 'like', "%{$search}%");
+                    ->orWhere('father_name', 'like', "%{$search}%")
+                    ->orWhere('province', 'like', "%{$search}%")
+                    ->orWhere('district', 'like', "%{$search}%")
+                    ->orWhere('village', 'like', "%{$search}%")
+                    ->orWhere('old_job', 'like', "%{$search}%")
+                    ->orWhere('now_activity', 'like', "%{$search}%");
             });
         }
 

@@ -19,11 +19,11 @@
         <div class="column-scroll">
           <v-tabs v-model="tab" fixed-tabs>
             <v-tab color="primary" value="resource">
-              {{ t('اطلاعات') }}
+              {{ t('فورم اطلاعات') }}
             </v-tab>
-            <v-tab color="primary" value="event"> {{ t('واقعات') }} </v-tab
+            <v-tab color="primary" value="event"> {{ t('فورم واقعات') }} </v-tab
             ><v-tab color="primary" value="khayrat">
-              {{ t('راپور خیریت') }}
+              {{ t('فورم راپور خیریت') }}
             </v-tab>
           </v-tabs>
 

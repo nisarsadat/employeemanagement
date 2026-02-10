@@ -113,7 +113,7 @@
                   @click="goToResources"
                 >
                   <v-icon start size="default">mdi-identifier</v-icon>
-                  {{ t('کود نمبر') }}: {{ model.code_number || t('ندارد') }}
+                  {{ t('کود منبع') }}: {{ model.code_number || t('ندارد') }}
                 </v-chip>
               </div>
             </v-col>

@@ -535,7 +535,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.specific_job"
                   :label="t('وظیفه مشخص')"
@@ -546,7 +546,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.qisem"
                   :label="t('قسم')"
@@ -662,13 +662,11 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="12">
+              <v-col cols="12" md="4">
                 <MawqafJahadiSelect v-model="form.jahadi_mawaqaf" :label="t('موقف جهادی')" />
               </v-col>
-            </v-row>
-
-            <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="6">
+           
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.jahad_time_responsibility"
                   :label="t('مسئولیت در زمان جهاد')"
@@ -678,7 +676,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.jahad_place"
                   :label="t('محل جهاد')"

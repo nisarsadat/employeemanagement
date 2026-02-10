@@ -69,7 +69,7 @@
                 <v-icon color="primary">mdi-account</v-icon>
               </div>
               <div class="pc-body">
-                <div class="pc-title">{{ t('مشاهده ') }}</div>
+                <div class="pc-title">{{ t('د اړوند کارمند معلومات ') }}</div>
                 <div class="pc-sub">{{ t('جزئیات کامل کارمند') }}</div>
               </div>
               <v-icon class="pc-arrow" color="primary">mdi-chevron-left</v-icon>

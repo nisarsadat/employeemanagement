@@ -40,17 +40,17 @@ class MahajeratController extends Controller
             ->when($search !== '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('name', 'like', "%{$search}%")
-                      ->orWhere('father_name', 'like', "%{$search}%")
-                      ->orWhere('scientific_level', 'like', "%{$search}%")
-                      ->orWhere('main_province', 'like', "%{$search}%")
-                      ->orWhere('main_district', 'like', "%{$search}%")
-                      ->orWhere('main_village', 'like', "%{$search}%")
-                      ->orWhere('now_province', 'like', "%{$search}%")
-                      ->orWhere('now_zone', 'like', "%{$search}%")
-                      ->orWhere('now_district', 'like', "%{$search}%")
-                      ->orWhere('now_vinage', 'like', "%{$search}%")
-                      ->orWhere('specific_place', 'like', "%{$search}%")
-                      ->orWhere('country', 'like', "%{$search}%");
+                        ->orWhere('father_name', 'like', "%{$search}%")
+                        ->orWhere('scientific_level', 'like', "%{$search}%")
+                        ->orWhere('main_province', 'like', "%{$search}%")
+                        ->orWhere('main_district', 'like', "%{$search}%")
+                        ->orWhere('main_village', 'like', "%{$search}%")
+                        ->orWhere('now_province', 'like', "%{$search}%")
+                        ->orWhere('now_zone', 'like', "%{$search}%")
+                        ->orWhere('now_district', 'like', "%{$search}%")
+                        ->orWhere('now_vinage', 'like', "%{$search}%")
+                        ->orWhere('specific_place', 'like', "%{$search}%")
+                        ->orWhere('country', 'like', "%{$search}%");
                 });
             })
             ->when($rid, fn ($sub) => $sub->where('resource_id', $rid))
@@ -89,7 +89,7 @@ class MahajeratController extends Controller
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($item->name ?? ''),
-                    routeName: 'mahajerats', // ⚠️ adjust if your route is different
+                    routeName: 'mahajerats', // ⚠️ adjust if your route name differs
                     routeParams: ['id' => $item->id],
                     level: 'success',
                     changes: null
@@ -109,6 +109,7 @@ class MahajeratController extends Controller
                     ],
                 ], 422);
             }
+
             throw $e;
         }
     }
@@ -161,6 +162,7 @@ class MahajeratController extends Controller
                     ],
                 ], 422);
             }
+
             throw $e;
         }
     }
@@ -182,7 +184,7 @@ class MahajeratController extends Controller
                 title: 'ریکارډ حذف شو',
                 message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
-                routeParams: ['mahajerats'],
+                routeParams: [],
                 level: 'warning',
                 changes: null
             );

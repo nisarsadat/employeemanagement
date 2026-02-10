@@ -17,6 +17,8 @@ class EntryExitResource extends JsonResource
             'entry_way'       => $this->entry_way,
             'way_type'        => $this->way_type,
 
+            'picture' => $this->picture ? url($this->picture) : null,
+
             'province'        => $this->province,
             'zone'            => $this->zone,
             'district'        => $this->district,

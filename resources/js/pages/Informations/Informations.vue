@@ -88,7 +88,7 @@
             @click="goCreate"
             prepend-icon="mdi-plus"
           >
-            {{ t('جدید') }}
+            {{ t('اطلاع جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -654,8 +654,8 @@
   const headersFT = computed(() => [
     { title: t('آی ډی'), key: 'id' },
     { title: t('کود منبع'), key: 'resource_id' },
-    { title: t('کود کارمند مربوطه'), key: 'office_employee_code_number' },
-    { title: t('کود کارمند  اطلاع گیرنده'), key: 'office_employee_info_code_number' },
+    { title: t('کارمند مربوط'), key: 'office_employee_code_number' },
+    { title: t('کارمند اطلاع گیرنده'), key: 'office_employee_info_code_number' },
 
     { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },

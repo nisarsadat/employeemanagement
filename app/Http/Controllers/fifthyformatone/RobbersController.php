@@ -42,7 +42,9 @@ class RobbersController extends Controller
         $rid     = $request->get('resource_id');
 
         $sortBy  = $request->get('sort_by', 'created_at');
-        $sortDir = in_array($request->get('sort_dir'), ['asc', 'desc'], true) ? $request->get('sort_dir') : 'desc';
+        $sortDir = in_array($request->get('sort_dir'), ['asc', 'desc'], true)
+            ? $request->get('sort_dir')
+            : 'desc';
 
         $query = Robbers::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
@@ -51,9 +53,9 @@ class RobbersController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('nickname', 'like', "%{$search}%")
-                  ->orWhere('father_name', 'like', "%{$search}%")
-                  ->orWhere('phone_number', 'like', "%{$search}%");
+                    ->orWhere('nickname', 'like', "%{$search}%")
+                    ->orWhere('father_name', 'like', "%{$search}%")
+                    ->orWhere('phone_number', 'like', "%{$search}%");
             });
         }
 
@@ -85,7 +87,7 @@ class RobbersController extends Controller
                     action: 'created',
                     title: 'ریکارډ جدید ثبت شد',
                     message: 'نام: ' . ($robber->name ?? ''),
-                    routeName: 'robbers',               // ⚠️ set your real route name
+                    routeName: 'robbers', // ⚠️ set your real route name
                     routeParams: ['id' => $robber->id],
                     level: 'success',
                     changes: null
@@ -153,7 +155,7 @@ class RobbersController extends Controller
                     action: 'updated',
                     title: 'ریکارډ اصلاح شد',
                     message: 'نام: ' . ($robber->name ?? ''),
-                    routeName: 'robbers',               // ⚠️ set your real route name
+                    routeName: 'robbers', // ⚠️ set your real route name
                     routeParams: ['id' => $robber->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null

@@ -396,7 +396,7 @@
                 </v-chip>
               </div> -->
 
-              <div class="stat-title">{{ t('ټولې پاتې پیسې') }}</div>
+              <div class="stat-title">{{ t('ټولې پاتې شوې پیسې') }}</div>
 
               <div class="stat-main">
                 <div class="stat-number">{{ num(moneyBalance) }}</div>
@@ -406,12 +406,12 @@
                 <div class="split-meta">
                   <div class="meta-item">
                     <v-icon size="12" color="success">mdi-arrow-down</v-icon>
-                    <span class="text-caption">{{ t('ټول راغلي پیسې:') }}</span>
+                    <span class="text-caption">{{ t('ټولې راغلي پیسې:') }}</span>
                     <span class="text-caption font-weight-bold">{{ num(moneyIncomeTotal) }}</span>
                   </div>
                   <div class="meta-item">
                     <v-icon size="12" color="error">mdi-arrow-up</v-icon>
-                    <span class="text-caption">{{ t('ټول مصرف شوي پیسې:') }}</span>
+                    <span class="text-caption">{{ t('ټولې مصرف شوي پیسې:') }}</span>
                     <span class="text-caption font-weight-bold">{{ num(moneyExpenseTotal) }}</span>
                   </div>
                 </div>
@@ -434,7 +434,7 @@
             <div class="stat-accent warning"></div>
 
             <v-card-text class="stat-card-body">
-              <div class="stat-title">{{ t('بیلانس تیل') }}</div>
+              <div class="stat-title">{{ t('د تیلو  مجموعه') }}:</div>
 
               <div class="stat-main">
                 <div class="stat-number">{{ num(oilBalance) }}</div>
@@ -966,10 +966,10 @@
   const sortOptions = computed(() => [
     { title: t('امتیاز (زیاد → کم)'), value: 'score_desc' },
     { title: t('امتیاز (کم → زیاد)'), value: 'score_asc' },
-    { title: t('رویدادها (زیاد → کم)'), value: 'events_desc' },
+    { title: t('پیښې (زیاد → کم)'), value: 'events_desc' },
     { title: t('منابع (زیاد → کم)'), value: 'resources_desc' },
     { title: t('اطلاعات (زیاد → کم)'), value: 'informations_desc' },
-    { title: t('خیرات (زیاد → کم)'), value: 'khayrat_desc' },
+    { title: t('خیریت راپور (زیاد → کم)'), value: 'khayrat_desc' },
     { title: t('نام (A → Z)'), value: 'name_asc' },
   ]);
 
@@ -993,7 +993,7 @@
       align: 'center',
     },
     { title: t('امتیاز'), key: 'score', width: 220, sortable: false, align: 'center' },
-    { title: t('عملیات'), key: 'actions', width: 70, sortable: false, align: 'center' },
+    { title: t('د معلواتو لیدنه'), key: 'actions', width: 70, sortable: false, align: 'center' },
   ]);
   function toggleSort(key) {
     const arr = [...(sortKeys.value || [])];

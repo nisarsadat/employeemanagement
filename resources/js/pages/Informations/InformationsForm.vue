@@ -152,13 +152,13 @@
             <div class="section-header">
               <div class="d-flex align-center">
                 <v-icon class="ml-2 section-icon">mdi-barcode-scan</v-icon>
-                <span class="text-subtitle-2 font-weight-medium section-title">
+                <!-- <span class="text-subtitle-2 font-weight-medium section-title">
                   {{ t('کودها') }}
-                </span>
+                </span> -->
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('انتخاب کود منبع و کارمند اداری در صورت موجود بودن') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
             <v-row class="pa-3">
@@ -169,7 +169,7 @@
                   :items="resourceItems"
                   :item-title="formatResource"
                   item-value="id"
-                  :label="t('کود منبع *')"
+                  :label="t('کود منبع')"
                   density="compact"
                   variant="outlined"
                   clearable
@@ -185,7 +185,7 @@
                   :items="officeEmployeesItems"
                   item-title="code_number"
                   item-value="id"
-                  :label="t('کود کارمند مربوطه')"
+                  :label="t('کارمند مربوط')"
                   density="compact"
                   variant="outlined"
                   clearable
@@ -205,9 +205,9 @@
                   {{ t('معرفت (هویت شخص)') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('نام، نام پدر و سایر مشخصات هویتی را وارد کنید.') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
             <v-row class="pa-3">
@@ -278,6 +278,7 @@
                   v-model="form.madani_halat"
                   :items="madaniHalatItems"
                   variant="outlined"
+                  :label="t('حالت مدنی')"
                   density="compact"
                   clearable
                 />
@@ -294,9 +295,9 @@
                   {{ t('آدرس اصلی') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('آدرس اصلی شخص (زادگاه / محل اصلی)') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
             <v-row class="pa-3">
@@ -334,9 +335,9 @@
                   {{ t('آدرس فعلی') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('محل سکونت فعلی شخص در حال حاضر') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
             <v-row class="pa-3">
@@ -370,12 +371,12 @@
               <div class="d-flex align-center">
                 <v-icon class="ml-2 section-icon">mdi-map-legend</v-icon>
                 <span class="text-subtitle-2 font-weight-medium section-title">
-                  {{ t('ولایت مربوطه') }}
+                  {{ t('کود کارمند  اطلاع گیرنده') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('در صورتیکه اطلاع مربوط ولایت مشخصی باشد، آن را درج کنید.') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
             <v-row class="pa-3">
@@ -416,9 +417,9 @@
                   {{ t('نوع و زمان اطلاع') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('نوع اطلاع، سیاسی/جنایی بودن و زمان ثبت را مشخص کنید.') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
             <v-row class="pa-3">
@@ -506,9 +507,9 @@
                   {{ t('متن‌ها و توضیحات') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('تفصیل اطلاع، نظر مدیر، رهنمود و سایر توضیحات را درج نمایید.') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
             <v-row class="pa-3">
@@ -602,9 +603,9 @@
                   {{ t('معلومات مالی') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('حساب و جزئیات مالی مربوط به اطلاع') }}
-              </span>
+              </span> -->
             </div>
 
             <v-divider />
@@ -659,9 +660,9 @@
                   {{ t('هم‌آهنگی') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('تاریخ هم‌آهنگی، شماره مکتوب و ارگان را درج کنید.') }}
-              </span>
+              </span> -->
             </div>
 
             <v-divider />
@@ -697,9 +698,9 @@
                   {{ t('اسناد ضمیمه') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('می‌توانید چندین فایل را اضافه کنید. برای حذف روی ضربدر کلیک کنید.') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
 

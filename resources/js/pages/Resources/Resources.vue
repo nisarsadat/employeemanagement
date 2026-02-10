@@ -727,8 +727,8 @@
     { title: t('تصویر'), key: 'picture', sortable: false },
     { title: t('پول داده شده'), key: 'payed_money' },
     { title: t('تعداد واقعات'), key: 'events_count' },
-    { title: t(' تعداد اطلاعات'), key: 'informations_count' },
-    { title: t(' تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
+    { title: t('تعداد اطلاعات'), key: 'informations_count' },
+    { title: t('تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
     { title: t('کارمند مربوطه'), key: 'office_employee_id' },
     { title: t('رزیدنت مربوطه'), key: 'resedint_code' },
     { title: t('نام'), key: 'name' },
@@ -748,10 +748,10 @@
     { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
     { title: t('شماره سرک'), key: 'now_street_number' },
     { title: t('شماره خانه'), key: 'now_home_number' },
-    { title: t('د تدارک محل زون'), key: 'zone' },
-    { title: t('د تدارک محل حوزه'), key: 'hawza' },
-    { title: t('د تدارک محل مشخص ځای'), key: 'specefic_place' },
-    { title: t('مربوطه پروجکت'), key: 'project' },
+    { title: t('زون'), key: 'zone' },
+    { title: t('حوزه'), key: 'hawza' },
+    { title: t('محل مشخص'), key: 'specefic_place' },
+    { title: t('مربوطه پروژه'), key: 'project' },
 
     { title: t('وظیفه سابقه'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
@@ -764,6 +764,7 @@
     { title: t('رتبه علمی'), key: 'elmi_level' },
     { title: t('فاکولته/دیپارتمنت'), key: 'faculty' },
     { title: t('مهارت‌های خاص'), key: 'specific_skills' },
+    { title: t('گروپ خون'), key: 'blood_group' },
     { title: t('دوره/آموزش'), key: 'train' },
 
     { title: t('تاریخ ثبت منبع'), key: 'resource_saved_date' },
@@ -774,9 +775,9 @@
     { title: t('قوم'), key: 'nation' },
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('کوردینات'), key: 'coordinates' },
+    { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('نوت'), key: 'note' },
 
-    { title: t('نقشه'), key: 'map', sortable: false },
   ]);
 
   /* ===== Top filter groups ===== */

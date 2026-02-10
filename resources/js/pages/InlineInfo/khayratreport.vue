@@ -41,7 +41,7 @@
             <!-- Resource -->
             <v-col cols="12" md="6">
               <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('منبع') }}</v-card-subtitle>
+                <v-card-subtitle class="field-label">{{ t('کود منبع') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
                 <v-autocomplete
@@ -65,7 +65,7 @@
             <!-- Office Employee (auto-filled when resource selected) -->
             <v-col cols="12" md="6">
               <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('کارمند') }}</v-card-subtitle>
+                <v-card-subtitle class="field-label">{{ t('کود کارمند') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
                 <v-autocomplete

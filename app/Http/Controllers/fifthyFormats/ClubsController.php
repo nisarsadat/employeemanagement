@@ -40,15 +40,15 @@ class ClubsController extends Controller
             ->when($search !== '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('name', 'like', "%{$search}%")
-                      ->orWhere('club_name', 'like', "%{$search}%")
-                      ->orWhere('club_type', 'like', "%{$search}%")
-                      ->orWhere('father_name', 'like', "%{$search}%")
-                      ->orWhere('position', 'like', "%{$search}%")
-                      ->orWhere('phone_number', 'like', "%{$search}%")
-                      ->orWhere('province', 'like', "%{$search}%")
-                      ->orWhere('zone', 'like', "%{$search}%")
-                      ->orWhere('district', 'like', "%{$search}%")
-                      ->orWhere('specific_place', 'like', "%{$search}%");
+                        ->orWhere('club_name', 'like', "%{$search}%")
+                        ->orWhere('club_type', 'like', "%{$search}%")
+                        ->orWhere('father_name', 'like', "%{$search}%")
+                        ->orWhere('position', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%")
+                        ->orWhere('province', 'like', "%{$search}%")
+                        ->orWhere('zone', 'like', "%{$search}%")
+                        ->orWhere('district', 'like', "%{$search}%")
+                        ->orWhere('specific_place', 'like', "%{$search}%");
                 });
             })
             ->when($rid, fn ($sub) => $sub->where('resource_id', $rid))
@@ -87,7 +87,7 @@ class ClubsController extends Controller
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($club->name ?? ''),
-                    routeName: 'clubs', // ⚠️ adjust if your route is different
+                    routeName: 'clubs', // ⚠️ adjust if your route name differs
                     routeParams: ['id' => $club->id],
                     level: 'success',
                     changes: null
@@ -107,6 +107,7 @@ class ClubsController extends Controller
                     ],
                 ], 422);
             }
+
             throw $e;
         }
     }
@@ -159,6 +160,7 @@ class ClubsController extends Controller
                     ],
                 ], 422);
             }
+
             throw $e;
         }
     }
@@ -180,7 +182,7 @@ class ClubsController extends Controller
                 title: 'ریکارډ حذف شو',
                 message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
-                routeParams: ['clubs'],
+                routeParams: [],
                 level: 'warning',
                 changes: null
             );

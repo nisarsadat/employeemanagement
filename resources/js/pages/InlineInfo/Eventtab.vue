@@ -216,43 +216,20 @@
             <v-row class="tight-grid">
               <!-- talafat_mali -->
               <v-col cols="12" md="4">
-                <v-card-item>
-                  <v-card-subtitle class="field-label">{{ t('تلفات مالی') }}</v-card-subtitle>
-                </v-card-item>
-                <v-card-text>
-                  <v-text-field
-                    v-model="draft.talafat_mali"
-                    item-title="name"
-                    item-value="id"
-                    variant="outlined"
-                    density="compact"
-                    rounded="lg"
-                    clearable
-                    prepend-inner-icon="mdi-cash-multiple"
-                  />
-                </v-card-text>
+                <v-text-field
+                  v-model="draft.talafat_mali"
+                  item-title="name"
+                  item-value="id"
+                  :label="t('تلفات مالی')"
+                  variant="outlined"
+                  density="compact"
+                  rounded="lg"
+                  clearable
+                  prepend-inner-icon="mdi-cash-multiple"
+                />
               </v-col>
 
-              <!-- coordinates -->
-              <v-col cols="12" md="8">
-                <v-card-item>
-                  <v-card-subtitle class="field-label">{{ t('کوردینات') }}</v-card-subtitle>
-                </v-card-item>
-                <v-card-text>
-                  <v-text-field
-                    v-model="draft.coordinates"
-                    :label="t('کوردینات')"
-                    variant="outlined"
-                    density="compact"
-                    rounded="lg"
-                    class="cell"
-                    clearable
-                    prepend-inner-icon="mdi-crosshairs-gps"
-                  />
-                </v-card-text>
-              </v-col>
-
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="draft.killed"
                   :label="t('کشته شده')"
@@ -261,7 +238,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="draft.injured"
                   :label="t('زخمی شده')"
@@ -269,7 +246,19 @@
                   variant="outlined"
                 />
               </v-col>
-
+              <!-- coordinates -->
+              <v-col cols="12" md="12">
+                <v-text-field
+                  v-model="draft.coordinates"
+                  :label="t('کوردینات')"
+                  variant="outlined"
+                  density="compact"
+                  rounded="lg"
+                  class="cell"
+                  clearable
+                  prepend-inner-icon="mdi-crosshairs-gps"
+                />
+              </v-col>
               <!-- ghost to keep 3-up layout -->
               <v-col cols="12" md="4" class="ghost-col" />
             </v-row>
@@ -280,14 +269,14 @@
             <v-card-item class="sheet-title-row">
               <v-icon class="mr-2" size="small">mdi-text-long</v-icon>
               <v-card-subtitle class="sheet-title">{{
-                t(' اړوند اسناد او شواهد')
+                t(' اسناد او شواهد')
               }}</v-card-subtitle>
             </v-card-item>
             <!-- Documents -->
             <v-card variant="outlined" class="docs-field-row">
-              <v-card-item>
+              <!-- <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('اسناد / ضمایم') }}</v-card-subtitle>
-              </v-card-item>
+              </v-card-item> -->
               <v-card-text>
                 <input
                   ref="fileInput"

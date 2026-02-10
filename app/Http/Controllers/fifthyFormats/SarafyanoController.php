@@ -40,17 +40,17 @@ class SarafyanoController extends Controller
             ->when($search !== '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('name', 'like', "%{$search}%")
-                      ->orWhere('sarafi_name', 'like', "%{$search}%")
-                      ->orWhere('sarafi_type', 'like', "%{$search}%")
-                      ->orWhere('father_name', 'like', "%{$search}%")
-                      ->orWhere('position', 'like', "%{$search}%")
-                      ->orWhere('phone_number', 'like', "%{$search}%")
-                      ->orWhere('province', 'like', "%{$search}%")
-                      ->orWhere('zone', 'like', "%{$search}%")
-                      ->orWhere('district', 'like', "%{$search}%")
-                      ->orWhere('village', 'like', "%{$search}%")
-                      ->orWhere('market_name', 'like', "%{$search}%")
-                      ->orWhere('shop_number', 'like', "%{$search}%");
+                        ->orWhere('sarafi_name', 'like', "%{$search}%")
+                        ->orWhere('sarafi_type', 'like', "%{$search}%")
+                        ->orWhere('father_name', 'like', "%{$search}%")
+                        ->orWhere('position', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%")
+                        ->orWhere('province', 'like', "%{$search}%")
+                        ->orWhere('zone', 'like', "%{$search}%")
+                        ->orWhere('district', 'like', "%{$search}%")
+                        ->orWhere('village', 'like', "%{$search}%")
+                        ->orWhere('market_name', 'like', "%{$search}%")
+                        ->orWhere('shop_number', 'like', "%{$search}%");
                 });
             })
             ->when($rid, fn ($sub) => $sub->where('resource_id', $rid))
@@ -110,6 +110,7 @@ class SarafyanoController extends Controller
                     ],
                 ], 422);
             }
+
             throw $e;
         }
     }
@@ -162,6 +163,7 @@ class SarafyanoController extends Controller
                     ],
                 ], 422);
             }
+
             throw $e;
         }
     }
@@ -183,7 +185,7 @@ class SarafyanoController extends Controller
                 title: 'ریکارډ حذف شو',
                 message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
-                routeParams: ['sarafyanos'],
+                routeParams: [],
                 level: 'warning',
                 changes: null
             );

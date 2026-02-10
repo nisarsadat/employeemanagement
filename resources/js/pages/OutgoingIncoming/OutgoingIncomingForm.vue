@@ -186,7 +186,7 @@
             <v-divider />
 
             <v-row class="pa-3">
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <DateInput
                   v-model="form.docs_sign_date"
                   :label="t('تاریخ امضاء')"
@@ -197,7 +197,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <DateInput
                   v-model="form.outgoing_incoming_date"
                   :label="t('تاریخ صادره/وارده')"
@@ -207,8 +207,17 @@
                   :error-messages="getErrorMessages('outgoing_incoming_date')"
                 />
               </v-col>
-
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.answer_page"
+                  :label="t('صفحه پاسخ')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('answer_page')"
+                  :error-messages="getErrorMessages('answer_page')"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
                 <DateInput
                   v-model="form.answer_date"
                   :label="t('تاریخ پاسخ')"
@@ -218,67 +227,6 @@
                   :error-messages="getErrorMessages('answer_date')"
                 />
               </v-col>
-
-              <v-col cols="12" md="6">
-                <DateInput
-                  v-model="form.office_outgoing_date"
-                  :label="t('صادره (دفتر) تاریخ')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('office_outgoing_date')"
-                  :error-messages="getErrorMessages('office_outgoing_date')"
-                />
-              </v-col>
-              <v-col cols="12" md="6">
-                <DateInput
-                  v-model="form.office_incoming_date"
-                  :label="t('وارده (دفتر) تاریخ')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('office_incoming_date')"
-                  :error-messages="getErrorMessages('office_incoming_date')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <DateInput
-                  v-model="form.reyasat_outgoing_date"
-                  :label="t('صادره به ریاست تاریخ')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('reyasat_outgoing_date')"
-                  :error-messages="getErrorMessages('reyasat_outgoing_date')"
-                />
-              </v-col>
-              <v-col cols="12" md="6">
-                <DateInput
-                  v-model="form.loy_reyasat_outgoing_date"
-                  :label="t('صادره (لوی ریاست) تاریخ')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('loy_reyasat_outgoing_date')"
-                  :error-messages="getErrorMessages('loy_reyasat_outgoing_date')"
-                />
-              </v-col>
-            </v-row>
-          </v-sheet>
-
-          <!-- SECTION 3: Pages / Registry -->
-          <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
-            <div class="section-header">
-              <div class="d-flex align-center">
-                <v-icon class="ml-2 section-icon">mdi-file-document</v-icon>
-                <span class="text-subtitle-2 font-weight-medium section-title">
-                  {{ t('صفحات و فهرست') }}
-                </span>
-              </div>
-              <span class="section-subtitle text-caption">
-                {{ t('صفحات دفتر/ریاست‌ها، صفحه، دوسیه و فهرست') }}
-              </span>
-            </div>
-            <v-divider />
-
-            <v-row class="pa-3">
               <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.office_outgoing_page"
@@ -287,6 +235,16 @@
                   variant="outlined"
                   :error="hasError('office_outgoing_page')"
                   :error-messages="getErrorMessages('office_outgoing_page')"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <DateInput
+                  v-model="form.office_outgoing_date"
+                  :label="t('صادره (دفتر) تاریخ')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('office_outgoing_date')"
+                  :error-messages="getErrorMessages('office_outgoing_date')"
                 />
               </v-col>
               <v-col cols="12" md="3">
@@ -300,6 +258,16 @@
                 />
               </v-col>
               <v-col cols="12" md="3">
+                <DateInput
+                  v-model="form.office_incoming_date"
+                  :label="t('وارده (دفتر) تاریخ')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('office_incoming_date')"
+                  :error-messages="getErrorMessages('office_incoming_date')"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.reyasat_outgoing_page"
                   :label="t('صادره به ریاست صفحه')"
@@ -307,6 +275,16 @@
                   variant="outlined"
                   :error="hasError('reyasat_outgoing_page')"
                   :error-messages="getErrorMessages('reyasat_outgoing_page')"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <DateInput
+                  v-model="form.reyasat_outgoing_date"
+                  :label="t('صادره به ریاست تاریخ')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('reyasat_outgoing_date')"
+                  :error-messages="getErrorMessages('reyasat_outgoing_date')"
                 />
               </v-col>
               <v-col cols="12" md="3">
@@ -319,22 +297,18 @@
                   :error-messages="getErrorMessages('loy_reyasat_outgoing_page')"
                 />
               </v-col>
-
-              <v-col cols="12" md="12`">
-                <v-text-field
-                  v-model="form.answer_page"
-                  :label="t('صفحه پاسخ')"
+              <v-col cols="12" md="3">
+                <DateInput
+                  v-model="form.loy_reyasat_outgoing_date"
+                  :label="t('صادره (لوی ریاست) تاریخ')"
                   density="compact"
                   variant="outlined"
-                  :error="hasError('answer_page')"
-                  :error-messages="getErrorMessages('answer_page')"
+                  :error="hasError('loy_reyasat_outgoing_date')"
+                  :error-messages="getErrorMessages('loy_reyasat_outgoing_date')"
                 />
               </v-col>
-
-              
             </v-row>
           </v-sheet>
-
           <!-- SECTION 4: Counts + Notes -->
           <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
             <div class="section-header docs-header">
@@ -350,8 +324,7 @@
             </div>
             <v-divider />
             <v-row class="pa-3">
-
-<v-col cols="12" md="4">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.page"
                   :label="t('صفحه')"

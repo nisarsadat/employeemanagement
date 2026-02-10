@@ -10,6 +10,9 @@ return new class extends Migration {
         Schema::create('entry_exits', function (Blueprint $table) {
             $table->id();
 
+
+            $table->string('picture')->nullable();
+
             // from your picture (kept as-is)
             $table->string('entry_way');
             $table->string('way_type')->nullable();

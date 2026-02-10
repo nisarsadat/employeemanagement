@@ -31,6 +31,9 @@ class StoreEntryExitRequest extends FormRequest
             'notes' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
 
+            'picture' => ['nullable', 'image', 'max:5120'], // 5MB
+
+
         ];
     }
 }
