@@ -86,6 +86,7 @@ return [
         'formatzone',
         'docstypes',
         'marjas',
+        'letryformatindex',
         // ---- API Resources (exact controller/resource slugs) ----
         'users',
         'office_employees',

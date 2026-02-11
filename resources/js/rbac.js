@@ -111,6 +111,7 @@ const CORE = [
   { slug: 'mawqafjahadi', path: '/app/mawqafjahadi', perm: 'mawqafjahadi.view' },
   { slug: 'docstypesindex', path: '/app/docstypesindex', perm: 'docstypesindex.view' },
   { slug: 'marjas', path: '/app/marjas', perm: 'marjas.view' },
+  { slug: 'letryformatindex', path: '/app/letryformatindex', perm: 'letryformatindex.view' },
 ];
 
 // ----- 56 Formats candidates (generated) -----

@@ -751,6 +751,7 @@
     { title: t('زون'), key: 'zone' },
     { title: t('حوزه'), key: 'hawza' },
     { title: t('محل مشخص'), key: 'specefic_place' },
+    { title: t('۵۶ فارمټ'), key: 'letry_format_name' },
     { title: t('مربوطه پروژه'), key: 'project' },
 
     { title: t('وظیفه سابقه'), key: 'old_job' },

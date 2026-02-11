@@ -13,7 +13,7 @@
           <!-- Codes (+ Name moved here to make 3 columns) -->
           <v-row class="tight-grid">
             <!-- resource_id -->
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('کود منبع') }}</v-card-subtitle>
               </v-card-item>
@@ -35,7 +35,7 @@
             </v-col>
 
             <!-- office_employee_id -->
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('کود کارمند') }}</v-card-subtitle>
               </v-card-item>
@@ -56,7 +56,7 @@
             </v-col>
 
             <!-- ✅ trust_percentage (read-only) -->
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('فیصدی موثقیت') }}</v-card-subtitle>
               </v-card-item>
@@ -69,6 +69,21 @@
                   density="compact"
                   readonly
                   prepend-inner-icon="mdi-percent"
+                />
+              </v-card-text>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-card-item>
+                <v-card-subtitle class="field-label">{{ t('د منبع لاسرسی') }}</v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <v-select
+                  v-model="draft.resource_lasrasy"
+                  :items="['مستقیم', 'غیر مستقیم']"
+                  :label="t(' د منبع لاسرسی')"
+                  variant="outlined"
+                  density="compact"
+                  clearable
                 />
               </v-card-text>
             </v-col>
@@ -521,7 +536,11 @@
                 </v-card-item>
                 <v-card-text>
                   <div class="dateinput">
-                    <DateInput v-model="draft.hamahangi_date" :label="t('تاریخ هم‌آهنگی')" />
+                    <DateInput
+                      v-model="draft.hamahangi_date"
+                      :label="t('تاریخ هم‌آهنگی')"
+                      :disabled="submitting || isUrgent"
+                    />
                   </div>
                 </v-card-text>
               </v-col>
@@ -532,7 +551,11 @@
                   <v-card-subtitle class="field-label">{{ t('ارگان') }}</v-card-subtitle>
                 </v-card-item>
                 <v-card-text>
-                  <OrganSelect v-model="draft.organ" :label="t('ارگان')" :disabled="submitting" />
+                  <OrganSelect
+                    v-model="draft.organ"
+                    :label="t('ارگان')"
+                    :disabled="submitting || isUrgent"
+                  />
                 </v-card-text>
               </v-col>
             </v-card-item>
@@ -703,6 +726,7 @@
     maktop_number: '',
     organ: '',
     trust_percentage: '',
+    resource_lasrasy: '',
 
     // addresses
     main_province: '',
@@ -733,6 +757,7 @@
     _newDocs: [],
   });
   const draft = reactive(baseDraft());
+  const isUrgent = computed(() => String(draft.estijalyat_degree || '').trim() === t('عاجل'));
 
   /* Rules (unchanged) */
   const rules = {
@@ -869,6 +894,16 @@
     () => draft.jenayee_info_type,
     (val) => {
       if (val) draft.syasi_info_type = '';
+    }
+  );
+  watch(
+    () => draft.estijalyat_degree,
+    (val) => {
+      const v = String(val || '').trim();
+      if (v === t('عاجل')) {
+        draft.hamahangi_date = '';
+        draft.organ = '';
+      }
     }
   );
 

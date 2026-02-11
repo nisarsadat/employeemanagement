@@ -694,6 +694,10 @@
                 />
               </v-col>
               <v-col cols="12" md="6">
+                <LetryFormatSelect v-model="form.letry_format_name" label="۵۶ فارمټ" />
+              </v-col>
+
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.project"
                   :label="t('پروجکت مربوطه')"
@@ -813,7 +817,7 @@
   import { ref, computed, watch, onMounted, nextTick } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useI18n } from 'vue-i18n';
-
+  import LetryFormatSelect from '@/components/LetryFormatSelect.vue';
   import AppBar from '../../components/AppBar.vue';
   import DateInput from '../../components/DateInput.vue';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
@@ -904,6 +908,7 @@
     language: '',
     nation: '',
     specific_skills: '',
+    letry_format_name: '',
 
     // addresses
     main_province: '',
@@ -1026,6 +1031,7 @@
     b.language = x.language ?? '';
     b.nation = x.nation ?? '';
     b.specific_skills = x.specific_skills ?? '';
+    b.letry_format_name = x.letry_format_name ?? '';
 
     // addresses
     b.main_province = x.main_province ?? '';

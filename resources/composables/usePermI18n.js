@@ -1,6 +1,8 @@
 // src/utils/permissionsLabelsPashto.js
 // Keep English slugs for logic; show Pashto for UI.
 
+import LetryFormatsIndex from "../js/pages/Settings/LetryFormats/LetryFormatsIndex.vue";
+
 // ---- Actions (CRUD) ----
 export const ACTION_PASHTO = {
   view: 'لیدل',
@@ -160,6 +162,7 @@ export const MODULE_PASHTO = {
   econemyprojects: 'اقتصادي پروژې',
   criminalcaptureplaces: 'د مجرم نیولو ځایونه',
   pumps: 'پمپونه',
+  LetryFormatsIndex: '۶۵ فارمټ ډراپ ډوون',
   shoras: 'شوراګانې',
   checkpoints: 'چک پواینټونه',
   governmentplaces: 'دولتې ځایونه',

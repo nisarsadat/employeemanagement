@@ -116,6 +116,7 @@ class ResourceResource extends JsonResource
             'now_specific_place' => $this->now_specific_place,
             'now_street_number'  => $this->now_street_number,
             'now_home_number'    => $this->now_home_number,
+            'letry_format_name'    => $this->letry_format_name,
 
             // jobs
             'old_job'            => $this->old_job,

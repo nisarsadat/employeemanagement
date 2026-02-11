@@ -201,6 +201,7 @@ import MarjasIndex from '../pages/Settings/Marja/MarjasIndex.vue';
 import JawasisIndex from '../pages/FiftyFormats/JawasisIndex.vue';
 import JawasisForm from '../pages/FiftyFormats/JawasiForm.vue';
 import ReportNotesIndex from '../pages/reports/ReportNotesIndex.vue';
+import LetryFormatsIndex from '../pages/Settings/LetryFormats/LetryFormatsIndex.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -1553,7 +1554,11 @@ const router = createRouter({
           name: 'MawqafJahadi',
           component: MawqafJahadisIndex,
         },
-
+        {
+          path: '/app/letryformatindex',
+          name: 'letryformatindex',
+          component: LetryFormatsIndex,
+        },
         // khayrat report
         {
           path: '/app/khayratreports',

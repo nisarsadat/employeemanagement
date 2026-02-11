@@ -41,6 +41,7 @@ return new class extends Migration {
             $table->string('old_job')->nullable();
             $table->string('now_job')->nullable();
             $table->string('job_place')->nullable();
+            $table->string('letry_format_name')->nullable();
 
             // status & education
             $table->enum('activity', ['غیر فعال','فعال'])->nullable();

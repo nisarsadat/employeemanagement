@@ -32,16 +32,16 @@
         <!-- ✅ Meta pills must be on LEFT -->
         <div class="hdr-right">
           <div class="meta-pill">
-            <div class="meta-k">{{ t('شمېره') }}</div>
-            <div class="meta-v">{{ item.id || '—' }}</div>
-          </div>
-          <div class="meta-pill">
-            <div class="meta-k">{{ t('تاریخ') }}</div>
+            <div class="meta-k">{{ t('د اطلاع د ثبت نیټه') }}</div>
             <div class="meta-v">{{ formattedInformationDate || '—' }}</div>
           </div>
           <div class="meta-pill">
-            <div class="meta-k">{{ t('ساعت') }}</div>
-            <div class="meta-v">{{ item.information_saved_hour || '—' }}</div>
+            <div class="meta-k">{{ t('د اطلاع نوعیت') }}</div>
+            <div class="meta-v">{{ item.syasi_info_type || item.jenayee_info_type || '—' }}</div>
+          </div>
+          <div class="meta-pill">
+            <div class="meta-k">{{ t('مسلسل شمیره') }}</div>
+            <div class="meta-v">{{ item.id || '—' }}</div>
           </div>
         </div>
       </header>
@@ -61,13 +61,13 @@
         </div>
 
         <div class="field">
-          <div class="k">{{ t('فیصدی اعتماد') }}</div>
-          <div class="v strong">{{ item.trust_percentage ?? '—' }}</div>
+          <div class="k">{{ t('د موثقیت درجه') }}</div>
+          <div class="v strong">{{ item.information_degree ?? '—' }}</div>
         </div>
 
         <div class="field">
-          <div class="k">{{ t('درجه معلومات') }}</div>
-          <div class="v strong">{{ item.information_degree || '—' }}</div>
+          <div class="k">{{ t('د اعتماد میزان') }}</div>
+          <div class="v strong">{{ item.trust_percentage || '—' }}</div>
         </div>
 
         <div class="field">
@@ -82,7 +82,7 @@
           <!-- Row 1 -->
           <div class="section">
             <div class="section-h">
-              <div class="section-title">{{ t('اسناد پیوست') }}</div>
+              <div class="section-title">{{ t('اسناد او شواهد') }}</div>
               <div class="chip">{{ docsCount }}</div>
             </div>
 
@@ -95,7 +95,7 @@
         <!-- ✅ Tafseel should take MORE height (main filler) -->
         <section class="section tafseel-section">
           <div class="section-h">
-            <div class="section-title">{{ t('تفصیل معلومات') }}</div>
+            <div class="section-title">{{ t('تفصیل') }}</div>
             <div class="chip">{{ t('کلمات') }}: {{ wordCount(item.tafseel) }}</div>
           </div>
           <div class="box box-text grow-box">
@@ -109,7 +109,7 @@
         <section class="section manager-section">
           <div class="section">
             <div class="section-h">
-              <div class="section-title">{{ t('نظر مدیریت') }}</div>
+              <div class="section-title">{{ t('د مدیر نظر') }}</div>
             </div>
             <div class="box box-text grow-box">
               <div class="pre">{{ item.manager_comment || '—' }}</div>
@@ -119,7 +119,7 @@
 
         <section class="section direction-section">
           <div class="section-h">
-            <div class="section-title">{{ t('هدایت و راهنمایی') }}</div>
+            <div class="section-title">{{ t('هدایت') }}</div>
           </div>
           <div class="box box-text grow-box">
             <div class="pre clamp-8">{{ item.lead_drirection || '—' }}</div>
@@ -140,6 +140,7 @@
   import AppBar from '../../components/AppBar.vue';
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import { useCalendar } from '../../../composables/useCalendar';
+  import dayjs from 'dayjs';
 
   const route = useRoute();
   const repo = useDatabaseRepository();
@@ -209,8 +210,11 @@
   const formattedInformationDate = computed(() => {
     const raw = item.value?.information_saved_date;
     if (!raw) return '';
-    const iso = toIso(raw);
-    // ✅ still use your locale for date formatting, but layout is always RTL
+
+    // ✅ normalize slashes before sending to calendar
+    const normalized = String(raw).trim().replaceAll('/', '-');
+    const iso = dayjs(normalized).format('YYYY-MM-DD');
+
     return formatDisplay(iso, locale.value || 'fa');
   });
 
@@ -347,16 +351,16 @@
 }
 
     /* ✅ Tafseel a bit smaller */
-    .tafseel-section { flex: 7; display: flex; flex-direction: column; min-height: 0; }
+    .tafseel-section { flex: 5; display: flex; flex-direction: column; min-height: 0; }
     .tafseel-section .box { flex: 1; min-height: 0; }
     .tafseel-pre { height: 100%; overflow: hidden; }
 
     /* ✅ Manager bigger */
-    .manager-section { flex: 4; display: flex; flex-direction: column; min-height: 0; }
+    .manager-section { flex: 1; display: flex; flex-direction: column; min-height: 0; }
     .manager-section .box { flex: 1; min-height: 0; }
 
     /* ✅ Direction normal */
-    .direction-section { flex: 3; display: flex; flex-direction: column; min-height: 0; }
+    .direction-section { flex: 1; display: flex; flex-direction: column; min-height: 0; }
     .direction-section .box { flex: 1; min-height: 0; }
 
     /* ✅ keep small clamp for 2 lines only */
@@ -393,28 +397,28 @@
     .hdr { background:#f1f5ff; border-radius:12px; padding:8px; }
 
     /* Meta pills */
-    .hdr-right .meta-pill:nth-child(1) { background:#fff7ed; }
-    .hdr-right .meta-pill:nth-child(2) { background:#ecfeff; }
-    .hdr-right .meta-pill:nth-child(3) { background:#f0fdf4; }
+    .hdr-right .meta-pill:nth-child(1) { background:#D7DCDF; }
+    .hdr-right .meta-pill:nth-child(2) { background:#D7DCDF; }
+    .hdr-right .meta-pill:nth-child(3) { background:#D7DCDF; }
 
     /* Top grid fields — different colors */
-    .grid.grid-5 .field:nth-child(1) { background:#eef2ff; }
-    .grid.grid-5 .field:nth-child(2) { background:#fef3c7; }
-    .grid.grid-5 .field:nth-child(3) { background:#ecfccb; }
-    .grid.grid-5 .field:nth-child(4) { background:#fce7f3; }
-    .grid.grid-5 .field:nth-child(5) { background:#cffafe; }
+    .grid.grid-5 .field:nth-child(1) { background:#DBDCE4; }
+    .grid.grid-5 .field:nth-child(2) { background:#DBDCE4; }
+    .grid.grid-5 .field:nth-child(3) { background:#DBDCE4; }
+    .grid.grid-5 .field:nth-child(4) { background:#DBDCE4; }
+    .grid.grid-5 .field:nth-child(5) { background:#DBDCE4; }
 
     /* Documents section */
     .two .section:nth-child(1) .box { background:#f0f9ff; }
 
     /* Tafseel (main large section) */
-    .tafseel-section .box { background:#fdf4ff; }
+    .tafseel-section .box { background:#7CACB5; }
 
     /* Manager comment */
-    .manager-section .box { background:#ecfdf5; }
+    .manager-section .box { background:#859DBD; }
 
     /* Direction section */
-    .direction-section .box { background:#fff7ed; }
+    .direction-section .box { background:#7EA8B6; }
     `;
   }
 

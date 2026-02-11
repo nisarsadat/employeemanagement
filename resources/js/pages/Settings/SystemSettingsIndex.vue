@@ -194,6 +194,13 @@
       to: { path: '/app/marjas' },
       permission: 'marjas.view',
     },
+    {
+      key: 'letryformatindex',
+      title: t('۵۶ فارمټ ډراپ ډوون'),
+      icon: 'mdi-book',
+      to: { path: '/app/letryformatindex' },
+      // permission: 'letryformatindex.view',
+    },
   ]);
 
   // ✅ show only permitted items

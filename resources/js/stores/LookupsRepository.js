@@ -39,6 +39,8 @@ export const useLookupsRepository = defineStore('LookupsRepository', {
       FormatZones: reactive([]),
       DocsTypes: reactive([]),
       Marjas: reactive([]),
+      // ✅ new
+      LetryFormats: [],
       loading: false,
       isLoading: false,
       error: null,
@@ -282,6 +284,16 @@ export const useLookupsRepository = defineStore('LookupsRepository', {
       try {
         const { data } = await axios.get('/marjas?perPage=10000');
         this.Marjas = data?.data ?? [];
+      } finally {
+        this.loading = false;
+      }
+    },
+    // letry format
+    async GetLetryFormats() {
+      this.loading = true;
+      try {
+        const { data } = await axios.get(`/letry-formats?page=1&perPage=10000&search=`);
+        this.LetryFormats = data?.data || [];
       } finally {
         this.loading = false;
       }
