@@ -138,19 +138,8 @@
             <v-divider />
 
             <v-row class="pa-3">
-              <v-col cols="12" md="6">
-                <EventTypeSpecificSelect
-                  v-model:event_type="form.event_type"
-                  v-model:event_specific_type="form.event_specific_type"
-                  :cols-event-type="12"
-                  :md-event-type="6"
-                  :cols-specific-type="12"
-                  :md-specific-type="6"
-                />
-              </v-col>
-
               <!-- منبع -->
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="4">
                 <v-autocomplete
                   v-model="form.resource_id"
                   :items="resourceCodeItems"
@@ -166,7 +155,7 @@
               </v-col>
 
               <!-- کارمند دفتر -->
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="4">
                 <v-autocomplete
                   v-model="form.office_employee_id"
                   :items="officeEmployeesCodeItems"
@@ -180,21 +169,16 @@
                   :error-messages="getErrorMessages('office_employee_id')"
                 />
               </v-col>
-              <v-col cols="12" md="3">
-                <v-autocomplete
-                  v-model="form.office_employee_akhistonky_id"
-                  :items="officeEmployeesCodeItems"
-                  item-title="display"
-                  item-value="id"
-                  :label="t('کود کارمند واقعه گیرنده')"
-                  density="compact"
-                  variant="outlined"
-                  clearable
-                  :error="hasError('office_employee_akhistonky_id')"
-                  :error-messages="getErrorMessages('office_employee_akhistonky_id')"
+              <v-col cols="12" md="6">
+                <EventTypeSpecificSelect
+                  v-model:event_type="form.event_type"
+                  v-model:event_specific_type="form.event_specific_type"
+                  :cols-event-type="12"
+                  :md-event-type="6"
+                  :cols-specific-type="12"
+                  :md-specific-type="6"
                 />
               </v-col>
-
               <!-- هدف -->
               <v-col cols="12" md="3">
                 <v-text-field
@@ -218,28 +202,22 @@
                   :error-messages="getErrorMessages('criminal')"
                 />
               </v-col>
-            </v-row>
-
-            <!-- تفصیل / وضاحت -->
-            <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="12">
-                <v-text-field
-                  v-model="form.tafseel"
-                  :label="t('تفصیل')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('tafseel')"
-                  :error-messages="getErrorMessages('tafseel')"
-                />
+              <!-- تاریخ -->
+              <v-col cols="12" md="8">
+                <DateInput v-model="form.event_date" :label="t('تاریخ واقعه *')" />
               </v-col>
-              <v-col cols="12" md="12">
+
+              <!-- ساعت -->
+              <v-col cols="12" md="4">
                 <v-text-field
-                  v-model="form.talks"
-                  :label="t('هم‌آهنگی')"
+                  v-model="form.event_hour"
+                  type="time"
+                  step="60"
+                  :label="t('ساعت واقعه')"
                   density="compact"
                   variant="outlined"
-                  :error="hasError('talks')"
-                  :error-messages="getErrorMessages('talks')"
+                  :error="hasError('event_hour')"
+                  :error-messages="getErrorMessages('event_hour')"
                 />
               </v-col>
             </v-row>
@@ -261,25 +239,6 @@
             <v-divider />
 
             <v-row class="pa-3">
-              <!-- تاریخ -->
-              <v-col cols="12" md="8">
-                <DateInput v-model="form.event_date" :label="t('تاریخ واقعه *')" />
-              </v-col>
-
-              <!-- ساعت -->
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.event_hour"
-                  type="time"
-                  step="60"
-                  :label="t('ساعت واقعه')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('event_hour')"
-                  :error-messages="getErrorMessages('event_hour')"
-                />
-              </v-col>
-
               <!-- ولایت مربوطه -->
               <!-- <v-col cols="12" md="4">
                 <v-text-field
@@ -391,6 +350,38 @@
                   :error-messages="getErrorMessages('talafat_mali')"
                 />
               </v-col>
+              <v-row>
+                <v-col cols="12" md="3">
+                  <v-autocomplete
+                    v-model="form.office_employee_akhistonky_id"
+                    :items="officeEmployeesCodeItems"
+                    item-title="display"
+                    item-value="id"
+                    :label="t('کود کارمند واقعه گیرنده')"
+                    density="compact"
+                    variant="outlined"
+                    clearable
+                    :error="hasError('office_employee_akhistonky_id')"
+                    :error-messages="getErrorMessages('office_employee_akhistonky_id')"
+                  />
+                </v-col>
+              </v-row>
+              <!-- تفصیل / وضاحت -->
+              <v-row class="px-3 pb-3 pt-0">
+                <v-col cols="12" md="12">
+                  <v-text-field
+                    v-model="form.tafseel"
+                    :label="t('تفصیل')"
+                    density="compact"
+                    variant="outlined"
+                    :error="hasError('tafseel')"
+                    :error-messages="getErrorMessages('tafseel')"
+                  />
+                </v-col>
+                <v-col cols="12" md="12">
+                  <OrganSelect v-model="form.talks" :label="t('ارگان')" />
+                </v-col>
+              </v-row>
               <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.note"
@@ -608,6 +599,7 @@
   import { useLoginRepository } from '@/stores/LoginRepository';
   import ZoneHawzaSelect from '@/components/ZoneHawzaSelect.vue';
   import { useFinanceRepository } from '@/stores/FinanceRepository';
+  import OrganSelect from '@/components/OrganSelect.vue';
 
   const financeRepo = useFinanceRepository();
   const repo = useDatabaseRepository();

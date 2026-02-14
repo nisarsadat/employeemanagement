@@ -114,18 +114,6 @@
                     :error-messages="getErrorMessages('father_name')"
                   />
                 </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.phone_number"
-                    :label="t('شماره تماس')"
-                    variant="outlined"
-                    density="compact"
-                    :rules="[rules.phoneMinMax]"
-                    :error="hasError('phone_number')"
-                    :error-messages="getErrorMessages('phone_number')"
-                  />
-                </v-col>
               </v-row>
 
               <!-- Main address -->
@@ -225,6 +213,16 @@
                     :error-messages="getErrorMessages('now_home_number')"
                   />
                 </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.coordinates"
+                    :label="t('مختصات')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('coordinates')"
+                    :error-messages="getErrorMessages('coordinates')"
+                  />
+                </v-col>
               </v-row>
             </v-col>
           </v-row>
@@ -290,15 +288,15 @@
 
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
+                v-model="form.phone_number"
+                :label="t('شماره تماس')"
                 variant="outlined"
                 density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
+                :rules="[rules.phoneMinMax]"
+                :error="hasError('phone_number')"
+                :error-messages="getErrorMessages('phone_number')"
               />
             </v-col>
-
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
               <v-autocomplete
@@ -329,20 +327,20 @@
 
             <v-col cols="12" md="12">
               <v-text-field
+                v-model="form.tafseel"
+                :label="t('تفصیل')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
                 v-model="form.note"
                 :label="t('ملاحظات')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('note')"
                 :error-messages="getErrorMessages('note')"
-              />
-            </v-col>
-            <v-col cols="12" md="12">
-              <v-text-field
-                v-model="form.tafseel"
-                :label="t('تفصیل')"
-                variant="outlined"
-                density="compact"
               />
             </v-col>
           </v-row>

@@ -236,16 +236,6 @@
                 :error-messages="getErrorMessages('now_job')"
               />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.organ"
-                :label="t('اداره/ارگان')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('organ')"
-                :error-messages="getErrorMessages('organ')"
-              />
-            </v-col>
 
             <v-col cols="12" md="3">
               <v-text-field
@@ -277,7 +267,23 @@
                 density="compact"
               />
             </v-col>
-
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.organ"
+                :label="t('اداره/ارگان')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('organ')"
+                :error-messages="getErrorMessages('organ')"
+              /> </v-col
+            ><v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.jorm_history"
+                :label="t('سابقه جرم')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.tanzim"
@@ -546,6 +552,7 @@
     old_job: '',
     now_job: '',
     organ: '',
+    jorm_history: '',
     employee_quantity: '',
     supplier: '',
     phone_number: '',
@@ -602,6 +609,7 @@
     b.old_job = x.old_job ?? '';
     b.now_job = x.now_job ?? '';
     b.organ = x.organ ?? '';
+    b.jorm_history = x.jorm_history ?? '';
 
     b.employee_quantity = x.employee_quantity ?? '';
     b.supplier = x.supplier ?? '';
@@ -720,6 +728,7 @@
       { label: t('وظیفه قبلی'), value: v(form.value.old_job) },
       { label: t('وظیفه فعلی'), value: v(form.value.now_job) },
       { label: t('اداره/ارگان'), value: v(form.value.organ) },
+      { label: t('سابقه جرم'), value: v(form.value.jorm_history) },
       { label: t('تعداد کارمندان'), value: v(form.value.employee_quantity) },
       { label: t('تمویل کننده'), value: v(form.value.supplier) },
       { label: t('شماره تماس'), value: v(form.value.phone_number) },

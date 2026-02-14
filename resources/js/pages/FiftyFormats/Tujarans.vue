@@ -399,6 +399,7 @@
     { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
     { title: t('شماره سرک فعلی'), key: 'now_street_number' },
     { title: t('شماره خانه فعلی'), key: 'now_home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('وظیفه قبلی'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
@@ -409,7 +410,6 @@
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('قسمت افراد'), key: 'people_type' },
 
-    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },

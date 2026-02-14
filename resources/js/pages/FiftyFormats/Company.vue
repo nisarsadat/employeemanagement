@@ -405,7 +405,6 @@
     { title: t('ولسوالی'), key: 'com_district' },
     { title: t('قریه'), key: 'com_village' },
     { title: t('موقعیت مشخص'), key: 'com_specific_place' },
-
     { title: t('مختصات'), key: 'com_coordinates' },
 
     { title: t('داخلی مرد'), key: 'male_employee_quantity_inner' },

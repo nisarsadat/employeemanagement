@@ -86,7 +86,7 @@
           <v-row>
             <!-- ✅ Picture Picker (good design) -->
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.name"
                 :label="t('نام')"
@@ -98,19 +98,10 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.father_name"
                 :label="t('نام پدر')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.phone_number"
-                :label="t('شماره تماس')"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
@@ -210,7 +201,7 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.specific_place"
                 :label="t('موقعیت مشخص')"
@@ -235,6 +226,17 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+              />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.coordinates"
+                :label="t('مختصات')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                persistent-hint
+                :rules="[rules.coordinatesOptional]"
               />
             </v-col>
           </v-row>
@@ -280,26 +282,14 @@
             </v-col>
           </v-row>
 
-
           <v-row>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.phone_number"
                 :label="t('شماره تماس')"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                persistent-hint
-                :rules="[rules.coordinatesOptional]"
               />
             </v-col>
           </v-row>
@@ -338,15 +328,6 @@
                 hide-details="auto"
                 readonly
               />
-            </v-col>
-          </v-row>
-
-          <!-- ملاحظات -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('ملاحظات') }}
-              </h3>
             </v-col>
           </v-row>
 

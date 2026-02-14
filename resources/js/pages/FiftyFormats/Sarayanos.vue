@@ -368,7 +368,6 @@ const headersFT = computed(() => [
   { title: t('مختصات'), key: 'cordenates' },
 
   { title: t('تعداد کارگران'), key: 'employee_quantity' },
-  { title: t('یادداشت'), key: 'note' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },

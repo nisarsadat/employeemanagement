@@ -81,9 +81,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -102,9 +100,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای کارمندان') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withStaff }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withStaff }}</div>
               </div>
             </div>
           </v-card>
@@ -123,9 +119,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای محافظین') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withGuards }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withGuards }}</div>
               </div>
             </div>
           </v-card>
@@ -205,12 +199,7 @@
           <!-- View -->
           <v-tooltip :text="t('مشاهده شفاخانه')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -268,304 +257,300 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import FlyToMapButton from '@/components/FlyToMapButton.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-import { useSchoolRepository } from '@/stores/SchoolRepository';
+  import { useSchoolRepository } from '@/stores/SchoolRepository';
 
-const repo = useSchoolRepository();
-const router = useRouter();
+  const repo = useSchoolRepository();
+  const router = useRouter();
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-const drawer = ref(false);
+  const drawer = ref(false);
 
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showErrorMessage = (m) => {
-  errorMessage.value = m;
-  showError.value = true;
-};
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
+  };
 
-/* helper: get raw row */
-const getRow = (s) => (s && s.raw ? s.raw : s);
+  /* helper: get raw row */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
 
-/* Navigate to Resources by code */
-function goToResource(row) {
-  if (!row?.resource_code) return;
-  router.push(`/app/resources/${row.resource_code}`);
-}
-
-/* rows from store */
-const rowsFT = computed(() => {
-  const list = repo.Hosppitals || [];
-  if (Array.isArray(list)) return list;
-  if (Array.isArray(list.data)) return list.data;
-  return [];
-});
-
-/* Filter cards state + stats */
-const cardFilter = ref('all');
-
-const stats = computed(() => {
-  const rows = rowsFT.value || [];
-  const total = rows.length;
-
-  const withCoordinates = rows.filter(
-    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
-  ).length;
-
-  const withStaff = rows.filter((r) => {
-    const m = Number(r?.male_quantity || 0);
-    const f = Number(r?.female_quantity || 0);
-    return m + f > 0;
-  }).length;
-
-  const withGuards = rows.filter((r) => {
-    const g = Number(r?.guard_quantity || 0);
-    return g > 0;
-  }).length;
-
-  return { total, withCoordinates, withStaff, withGuards };
-});
-
-const filteredRowsFT = computed(() => {
-  const base = rowsFT.value || [];
-  switch (cardFilter.value) {
-    case 'withCoordinates':
-      return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
-    case 'withStaff':
-      return base.filter((r) => {
-        const m = Number(r?.male_quantity || 0);
-        const f = Number(r?.female_quantity || 0);
-        return m + f > 0;
-      });
-    case 'withGuards':
-      return base.filter((r) => {
-        const g = Number(r?.guard_quantity || 0);
-        return g > 0;
-      });
-    default:
-      return base;
+  /* Navigate to Resources by code */
+  function goToResource(row) {
+    if (!row?.resource_code) return;
+    router.push(`/app/resources/${row.resource_code}`);
   }
-});
 
-/* HEADERS for FilterableTable */
-const headersFT = computed(() => [
-  { title: t('نام'), key: 'name' },
-  { title: t('بخش مشخص'), key: 'specific_past' },
-  { title: t('نوع شفاخانه'), key: 'hospita_type' },
+  /* rows from store */
+  const rowsFT = computed(() => {
+    const list = repo.Hosppitals || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
+    return [];
+  });
 
-  { title: t('نام مسئول'), key: 'responsible_name' },
-  { title: t('وظیفه مسئول'), key: 'responsible_position' },
-  { title: t('شماره مسئول'), key: 'responsible_phone' },
-  { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
+  /* Filter cards state + stats */
+  const cardFilter = ref('all');
 
-  { title: t('ولایت'), key: 'province' },
-  { title: t('زون'), key: 'zone' },
-  { title: t('ولسوالی'), key: 'district' },
-  { title: t('قریه'), key: 'village' },
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
 
-  { title: t('موقعیت مشخص'), key: 'specific_place' },
-  { title: t('شماره سرک'), key: 'street_number' },
-  { title: t('مختصات'), key: 'coordinates' },
+    const withCoordinates = rows.filter(
+      (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
 
-  { title: t('کارمندان مرد'), key: 'male_quantity' },
-  { title: t('کارمندان زن'), key: 'female_quantity' },
-  { title: t('تعداد محافظین'), key: 'guard_quantity' },
+    const withStaff = rows.filter((r) => {
+      const m = Number(r?.male_quantity || 0);
+      const f = Number(r?.female_quantity || 0);
+      return m + f > 0;
+    }).length;
 
+    const withGuards = rows.filter((r) => {
+      const g = Number(r?.guard_quantity || 0);
+      return g > 0;
+    }).length;
 
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone' },
+    return { total, withCoordinates, withStaff, withGuards };
+  });
 
-  { title: t('نقشه'), key: 'map', sortable: false },
-  { title: t('یادداشت'), key: 'note' },
-
-]);
-
-/* TOP GROUPS */
-const topGroups = computed(() => [
-  { title: t('مشخصات'), keys: ['name', 'hospita_type', 'specific_past'] },
-  {
-    title: t('مسئول'),
-    keys: ['responsible_name', 'responsible_position', 'responsible_phone', 'responsible_f_name'],
-  },
-  { title: t('کارمندان/محافظین'), keys: ['male_quantity', 'female_quantity', 'guard_quantity'] },
-  { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
-  { title: t('موقعیت/مختصات'), keys: ['specific_place', 'street_number', 'coordinates'] },
-  { title: t('یادداشت'), keys: ['note', 'Province_addr'] },
-  { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
-]);
-
-const filters = ref({});
-
-/* Peek */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loadingOne.value = true;
-  try {
-    if (typeof repo.FetchHosppitalData === 'function') {
-      await repo.FetchHosppitalData(id);
-      const single = Array.isArray(repo.Hosppital) ? repo.Hosppital[0] : repo.Hosppital;
-      detail.value = single || {};
-    } else {
-      await fetchAll();
-      const list = rowsFT.value || [];
-      detail.value = list.find((r) => r.id === id) || {};
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+    switch (cardFilter.value) {
+      case 'withCoordinates':
+        return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+      case 'withStaff':
+        return base.filter((r) => {
+          const m = Number(r?.male_quantity || 0);
+          const f = Number(r?.female_quantity || 0);
+          return m + f > 0;
+        });
+      case 'withGuards':
+        return base.filter((r) => {
+          const g = Number(r?.guard_quantity || 0);
+          return g > 0;
+        });
+      default:
+        return base;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات شفاخانه'));
-  } finally {
-    loadingOne.value = false;
+  });
+
+  /* HEADERS for FilterableTable */
+  const headersFT = computed(() => [
+    { title: t('نام'), key: 'name' },
+    { title: t('بخش مشخص'), key: 'specific_past' },
+    { title: t('نوع شفاخانه'), key: 'hospita_type' },
+
+    { title: t('نام مسئول'), key: 'responsible_name' },
+    { title: t('وظیفه مسئول'), key: 'responsible_position' },
+    { title: t('شماره مسئول'), key: 'responsible_phone' },
+    { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
+{ title: t('کارمندان مرد'), key: 'male_quantity' },
+    { title: t('کارمندان زن'), key: 'female_quantity' },
+    { title: t('تعداد محافظین'), key: 'guard_quantity' },
+    { title: t('ولایت'), key: 'province' },
+    { title: t('زون'), key: 'zone' },
+    { title: t('ولسوالی'), key: 'district' },
+    { title: t('قریه'), key: 'village' },
+    
+    { title: t('موقعیت مشخص'), key: 'specific_place' },
+    { title: t('شماره سرک'), key: 'street_number' },
+    { title: t('مختصات'), key: 'coordinates' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
+
+    { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note' },
+  ]);
+
+  /* TOP GROUPS */
+  const topGroups = computed(() => [
+    { title: t('مشخصات'), keys: ['name', 'hospita_type', 'specific_past'] },
+    {
+      title: t('مسئول'),
+      keys: ['responsible_name', 'responsible_position', 'responsible_phone', 'responsible_f_name'],
+    },
+    { title: t('کارمندان/محافظین'), keys: ['male_quantity', 'female_quantity', 'guard_quantity'] },
+    { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
+    { title: t('موقعیت/مختصات'), keys: ['specific_place', 'street_number', 'coordinates'] },
+    { title: t('یادداشت'), keys: ['note', 'Province_addr'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+  ]);
+
+  const filters = ref({});
+
+  /* Peek */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      if (typeof repo.FetchHosppitalData === 'function') {
+        await repo.FetchHosppitalData(id);
+        const single = Array.isArray(repo.Hosppital) ? repo.Hosppital[0] : repo.Hosppital;
+        detail.value = single || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات شفاخانه'));
+    } finally {
+      loadingOne.value = false;
+    }
   }
-}
 
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
 
-/* navigation to form */
-function goCreate() {
-  router.push('/app/hospitalform');
-}
+  /* navigation to form */
+  function goCreate() {
+    router.push('/app/hospitalform');
+  }
 
-function goEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/hospitalform/${row.id}`);
-}
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/hospitalform/${row.id}`);
+  }
 
-/* delete dialog */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
+  /* delete dialog */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
 
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  deleteDialog.value = false;
-  if (!row?.id) return;
-  try {
-    await repo.DeleteHosppital?.(row.id);
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    deleteDialog.value = false;
+    if (!row?.id) return;
+    try {
+      await repo.DeleteHosppital?.(row.id);
+      await fetchAll();
+      showErrorMessage(t('حذف شد'));
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteTarget.value = null;
+    }
+  }
+
+  /* fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchHosppitalsData?.({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search || '',
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست شفاخانه‌ها'));
+    }
+  }
+
+  function clearSearch() {
+    repo.Search = '';
+    fetchAll();
+  }
+
+  /* init */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
     await fetchAll();
-    showErrorMessage(t('حذف شد'));
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در حذف'));
-  } finally {
-    deleteTarget.value = null;
-  }
-}
-
-/* fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchHosppitalsData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت فهرست شفاخانه‌ها'));
-  }
-}
-
-function clearSearch() {
-  repo.Search = '';
-  fetchAll();
-}
-
-/* init */
-onMounted(async () => {
-  await repo.GetResourceCode?.();
-  await fetchAll();
-});
+  });
 </script>
 
 <style scoped>
-.ga-2 {
-  gap: 8px;
-}
+  .ga-2 {
+    gap: 8px;
+  }
 
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-}
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+  }
 
-/* Stats cards */
-.stat-card {
-  cursor: pointer;
-  border-radius: 14px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
-    background-color 0.2s ease;
-}
+  /* Stats cards */
+  .stat-card {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
 
-.stat-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  border-color: rgba(33, 150, 243, 0.35);
-}
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
+  }
 
-.stat-card--active {
-  border-color: rgba(25, 118, 210, 0.9);
-  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
-}
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+  }
 
-.stat-card-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
 
-.stat-card-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e3f2fd;
-}
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
 
-.stat-card-text {
-  display: flex;
-  flex-direction: column;
-}
+  .stat-card-text {
+    display: flex;
+    flex-direction: column;
+  }
 
-.stat-card-title {
-  font-size: 13px;
-  font-weight: 700;
-}
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
 
-.stat-card-subtitle {
-  font-size: 11px;
-  color: #666;
-}
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
+  }
 </style>

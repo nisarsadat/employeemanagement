@@ -32,6 +32,8 @@ class Luchakano extends Model
         'gun_type',
         'phone_number',
         'history_jorm',
+        'supplier',
+        'takhlof_type',
         'note',
         'resource_id',
     ];

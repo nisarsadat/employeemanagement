@@ -151,6 +151,16 @@
                     :error-messages="getErrorMessages('specefic_place')"
                   />
                 </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.coordinates"
+                    :label="t('مختصات')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('coordinates')"
+                    :error-messages="getErrorMessages('coordinates')"
+                  />
+                </v-col>
               </v-row>
             </v-col>
           </v-row>
@@ -184,7 +194,16 @@
                 :error-messages="getErrorMessages('amnyatee_khala')"
               />
             </v-col>
-
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model.number="form.employee_quantity"
+                type="number"
+                :label="t('تعداد کارمندان')"
+                variant="outlined"
+                density="compact"
+                :rules="[rules.nonNegativeInt]"
+              />
+            </v-col>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model.number="form.guard_quantity"
@@ -197,16 +216,7 @@
                 :error-messages="getErrorMessages('guard_quantity')"
               />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model.number="form.employee_quantity"
-                type="number"
-                :label="t('تعداد کارمندان')"
-                variant="outlined"
-                density="compact"
-                :rules="[rules.nonNegativeInt]"
-              />
-            </v-col>
+
             <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
@@ -217,17 +227,6 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col> -->
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
 
             <!-- Resource mapping -->
             <v-col cols="12" md="4">

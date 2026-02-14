@@ -12,6 +12,7 @@ class Park extends Model
         'province','zone','village','specefic_place','coordinates',
         'Province_addr',
         'employee_quantity',
+        'guard_quantity',
         'resource_id','notes',
     ];
 

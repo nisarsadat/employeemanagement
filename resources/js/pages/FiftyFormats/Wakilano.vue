@@ -396,12 +396,12 @@
 
     { title: t('وظیفه قبلی'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
-    { title: t('تعداد خانه'), key: 'home_quantity' },
     { title: t('تعداد نماینده ها'), key: 'agent_quantity' },
-    { title: t('تنظیم/ وابستگی'), key: 'tanzim' },
+    { title: t('تعداد خانه'), key: 'home_quantity' },
 
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('سابقه جرم'), key: 'history_form' },
+    { title: t('تنظیم/ وابستگی'), key: 'tanzim' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },

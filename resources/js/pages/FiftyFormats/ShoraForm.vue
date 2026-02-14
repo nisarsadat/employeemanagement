@@ -50,17 +50,6 @@
                 :error-messages="getErrorMessages('shora_goal')"
               />
             </v-col>
-
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.shora_village"
-                :label="t('قریه شورا')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('shora_village')"
-                :error-messages="getErrorMessages('shora_village')"
-              />
-            </v-col> -->
           </v-row>
 
           <v-row>
@@ -223,13 +212,22 @@
               />
             </v-col>
             <v-col cols="12" md="3">
-               <FormatZoneAutocomplete
-                    v-model="form.shora_zone"
-                    :label="t('زون شورا')"
-                    :disabled="saving"
-                  />
+              <FormatZoneAutocomplete
+                v-model="form.shora_zone"
+                :label="t('زون شورا')"
+                :disabled="saving"
+              />
             </v-col>
-           
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.shora_village"
+                :label="t('قریه شورا')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('shora_village')"
+                :error-messages="getErrorMessages('shora_village')"
+              />
+            </v-col>
             <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"

@@ -343,7 +343,6 @@
   const headersFT = computed(() => [
     { title: t('نام شورا'), key: 'shora_name' },
     { title: t('هدف شورا'), key: 'shora_goal' },
-    { title: t('قریه شورا'), key: 'shora_village' },
 
     { title: t('تعداد افراد'), key: 'people_quantity' },
     { title: t('جلسات در هفته'), key: 'week_meeting_quantity' },
@@ -358,13 +357,12 @@
     { title: t('تمویل‌کننده'), key: 'supplier_name' },
     { title: t('وظیفه تمویل‌کننده'), key: 'supplier_job' },
     { title: t('شماره تمویل‌کننده'), key: 'supplier_phone' },
-
     { title: t('طرفداری امارت'), key: 'emarat_tarfdary' },
 
     { title: t('ولایت'), key: 'shora_province' },
     { title: t('زون'), key: 'shora_zone' },
     { title: t('ولسوالی'), key: 'shora_district' },
-
+    { title: t('قریه شورا'), key: 'shora_village' },
     { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },

@@ -359,22 +359,16 @@
     { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
     { title: t('وظیفه مسئول'), key: 'responsible_position' },
     { title: t('شماره مسئول'), key: 'responsible_phone' },
-
     { title: t('ولایت'), key: 'province' },
     { title: t('زون'), key: 'zone' },
     { title: t('ولسوالی'), key: 'district' },
     { title: t('قریه'), key: 'village' },
-
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('مختصات'), key: 'coordinates' },
-
-
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
-
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('یادداشت'), key: 'note'},
-
   ]);
 
   /* TOP GROUPS – مثل Heist */

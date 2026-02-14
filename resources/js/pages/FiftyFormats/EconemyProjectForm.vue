@@ -146,6 +146,16 @@
                 :error-messages="getErrorMessages('specefic_place')"
               />
             </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.coordinates"
+                :label="t('مختصات')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('coordinates')"
+                :error-messages="getErrorMessages('coordinates')"
+              />
+            </v-col>
           </v-row>
 
           <!-- Stats / security -->
@@ -204,16 +214,7 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col> -->
-            <v-col cols="12" md="12">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
+            
           </v-row>
 
           <!-- Resource mapping -->

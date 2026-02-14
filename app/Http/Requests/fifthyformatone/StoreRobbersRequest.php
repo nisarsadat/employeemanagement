@@ -34,6 +34,7 @@ class StoreRobbersRequest extends FormRequest
             'history_form'       => ['nullable','string'],
             'coordinates'       => ['nullable','string'],
             'Province_addr'             => ['nullable','string'],
+            'friends_quantity'             => ['nullable','string'],
 
             'note'               => ['nullable','string'],
             'resource_id'        => ['nullable','integer','exists:resources,id'],

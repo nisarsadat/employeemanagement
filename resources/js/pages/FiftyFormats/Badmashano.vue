@@ -82,9 +82,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -103,9 +101,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای شماره تماس') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withPhone }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withPhone }}</div>
               </div>
             </div>
           </v-card>
@@ -124,9 +120,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای وظیفه فعلی') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withJob }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withJob }}</div>
               </div>
             </div>
           </v-card>
@@ -142,7 +136,7 @@
         :item="detail"
         :loading="loadingOne"
         title-key="name"
-        image-key="picture"      
+        image-key="picture"
         :fields="headersFT"
         :cols="3"
         :dir="isRtl ? 'rtl' : 'ltr'"
@@ -204,14 +198,9 @@
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
           <!-- مشاهده -->
-          <v-tooltip :text="t('مشاهده بدماش') " location="top">
+          <v-tooltip :text="t('مشاهده بدماش')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -267,295 +256,296 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
 
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FlyToMapButton from '@/components/FlyToMapButton.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 
-const repo = useBadmashanoRepository();
-const router = useRouter();
+  const repo = useBadmashanoRepository();
+  const router = useRouter();
 
-/* i18n / RTL */
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
-const drawer = ref(false);
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const drawer = ref(false);
 
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showErrorMessage = (m) => {
-  errorMessage.value = m;
-  showError.value = true;
-};
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
+  };
 
-/* 🔗 go to Resources page for this resource_code */
-function goToResource(row) {
-  if (!row?.resource_code) return;
-  router.push(`/app/resources/${row.resource_code}`);
-}
-
-/* helper to unwrap v-data-table row */
-const getRow = (s) => (s && s.raw ? s.raw : s);
-
-/* rows from store */
-const rowsFT = computed(() => {
-  const list = repo.Badmashanos || [];
-  if (Array.isArray(list)) return list;
-  if (Array.isArray(list.data)) return list.data;
-  return [];
-});
-
-/* 🔢 Filter cards */
-const cardFilter = ref('all');
-
-const stats = computed(() => {
-  const rows = rowsFT.value || [];
-  const total = rows.length;
-  const withCoordinates = rows.filter(
-    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
-  ).length;
-  const withPhone = rows.filter(
-    (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
-  ).length;
-  const withJob = rows.filter((r) => r && r.job && String(r.job).trim() !== '').length;
-
-  return { total, withCoordinates, withPhone, withJob };
-});
-
-const filteredRowsFT = computed(() => {
-  const base = rowsFT.value || [];
-  switch (cardFilter.value) {
-    case 'withCoordinates':
-      return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
-    case 'withPhone':
-      return base.filter((r) => r && r.phone_number && String(r.phone_number).trim() !== '');
-    case 'withJob':
-      return base.filter((r) => r && r.job && String(r.job).trim() !== '');
-    default:
-      return base;
+  /* 🔗 go to Resources page for this resource_code */
+  function goToResource(row) {
+    if (!row?.resource_code) return;
+    router.push(`/app/resources/${row.resource_code}`);
   }
-});
 
-/* TABLE HEADERS – Badmashano fields + map */
-const headersFT = computed(() => [
-  { title: t('نام'), key: 'name' },
-  { title: t('نام پدر'), key: 'father_name' },
-  { title: t('تخلص'), key: 'nickname' },
+  /* helper to unwrap v-data-table row */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
 
-  { title: t('ولایت اصلی'), key: 'main_province' },
-  { title: t('ولسوالی اصلی'), key: 'main_district' },
-  { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+  /* rows from store */
+  const rowsFT = computed(() => {
+    const list = repo.Badmashanos || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
+    return [];
+  });
 
-  { title: t('ولایت فعلی'), key: 'now_province' },
-  { title: t('زون فعلی'), key: 'now_zone' },
-  { title: t('ولسوالی فعلی'), key: 'now_district' },
-  { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
+  /* 🔢 Filter cards */
+  const cardFilter = ref('all');
 
-  { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
-  { title: t('شماره سرک فعلی'), key: 'now_street_number' },
-  { title: t('شماره خانه فعلی'), key: 'now_home_number' },
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
+    const withCoordinates = rows.filter(
+      (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
+    const withPhone = rows.filter(
+      (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
+    ).length;
+    const withJob = rows.filter((r) => r && r.job && String(r.job).trim() !== '').length;
 
-  { title: t('وظیفه قبلی'), key: 'old_job' },
-  { title: t('وظیفه فعلی'), key: 'job' },
-  { title: t('تعداد دوستان'), key: 'friends_quantity' },
-  { title: t('تمویل کننده'), key: 'supplier' },
-  { title: t('شماره تماس'), key: 'phone_number' },
+    return { total, withCoordinates, withPhone, withJob };
+  });
 
-  { title: t('سابقه جرم'), key: 'history_jorm' },
-  { title: t('نوع تخلف'), key: 'jorm_type' },
-  { title: t('یادداشت'), key: 'note'},
-  { title: t('مختصات'), key: 'coordinates' },
-
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone' },
-
-  { title: t('نقشه'), key: 'map', sortable: false },
-  { title: t('یادداشت'), key: 'note'},
-
-]);
-
-/* TOP GROUPS – for FilterableTable filters */
-const topGroups = computed(() => [
-  { title: t('مشخصات'), keys: ['name', 'nickname', 'father_name'] },
-  { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-  { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
-  {
-    title: t('موقعیت'),
-    keys: ['now_specific_place', 'now_street_number', 'now_home_number', 'coordinates'],
-  },
-  { title: t('وظایف/تماس'), keys: ['old_job', 'job', 'friends_quantity', 'supplier', 'phone_number'] },
-  { title: t('جرم/دیگر'), keys: ['history_jorm', 'jorm_type', 'note', 'Province_addr'] },
-  { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
-]);
-
-const filters = ref({});
-
-/* Peek */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loadingOne.value = true;
-  try {
-    if (typeof repo.FetchBadmashanoData === 'function') {
-      await repo.FetchBadmashanoData(id);
-      const single = Array.isArray(repo.Badmashano) ? repo.Badmashano[0] : repo.Badmashano;
-      detail.value = single || {};
-    } else {
-      await fetchAll();
-      const list = rowsFT.value || [];
-      detail.value = list.find((r) => r.id === id) || {};
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+    switch (cardFilter.value) {
+      case 'withCoordinates':
+        return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+      case 'withPhone':
+        return base.filter((r) => r && r.phone_number && String(r.phone_number).trim() !== '');
+      case 'withJob':
+        return base.filter((r) => r && r.job && String(r.job).trim() !== '');
+      default:
+        return base;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات بدماش'));
-  } finally {
-    loadingOne.value = false;
+  });
+
+  /* TABLE HEADERS – Badmashano fields + map */
+  const headersFT = computed(() => [
+    { title: t('تخلص'), key: 'nickname' },
+    { title: t('نام'), key: 'name' },
+    { title: t('نام پدر'), key: 'father_name' },
+
+    { title: t('ولایت اصلی'), key: 'main_province' },
+    { title: t('ولسوالی اصلی'), key: 'main_district' },
+    { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+
+    { title: t('ولایت فعلی'), key: 'now_province' },
+    { title: t('زون فعلی'), key: 'now_zone' },
+    { title: t('ولسوالی فعلی'), key: 'now_district' },
+    { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
+
+    { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
+    { title: t('شماره سرک فعلی'), key: 'now_street_number' },
+    { title: t('شماره خانه فعلی'), key: 'now_home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
+
+    { title: t('وظیفه قبلی'), key: 'old_job' },
+    { title: t('وظیفه فعلی'), key: 'job' },
+    { title: t('تعداد دوستان'), key: 'friends_quantity' },
+    { title: t('تمویل کننده'), key: 'supplier' },
+    { title: t('شماره تماس'), key: 'phone_number' },
+
+    { title: t('سابقه جرم'), key: 'history_jorm' },
+    { title: t('نوع تخلف'), key: 'jorm_type' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
+
+    { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note' },
+  ]);
+
+  /* TOP GROUPS – for FilterableTable filters */
+  const topGroups = computed(() => [
+    { title: t('مشخصات'), keys: ['name', 'nickname', 'father_name'] },
+    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+    { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
+    {
+      title: t('موقعیت'),
+      keys: ['now_specific_place', 'now_street_number', 'now_home_number', 'coordinates'],
+    },
+    {
+      title: t('وظایف/تماس'),
+      keys: ['old_job', 'job', 'friends_quantity', 'supplier', 'phone_number'],
+    },
+    { title: t('جرم/دیگر'), keys: ['history_jorm', 'jorm_type', 'note', 'Province_addr'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+  ]);
+
+  const filters = ref({});
+
+  /* Peek */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      if (typeof repo.FetchBadmashanoData === 'function') {
+        await repo.FetchBadmashanoData(id);
+        const single = Array.isArray(repo.Badmashano) ? repo.Badmashano[0] : repo.Badmashano;
+        detail.value = single || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات بدماش'));
+    } finally {
+      loadingOne.value = false;
+    }
   }
-}
 
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
 
-/* navigation */
-function goCreate() {
-  router.push('/app/badmashanoform');
-}
+  /* navigation */
+  function goCreate() {
+    router.push('/app/badmashanoform');
+  }
 
-function goEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/badmashanoform/${row.id}`);
-}
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/badmashanoform/${row.id}`);
+  }
 
-/* delete with dialog */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
+  /* delete with dialog */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
 
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  deleteDialog.value = false;
-  if (!row?.id) return;
-  try {
-    await repo.DeleteBadmashano?.(row.id);
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    deleteDialog.value = false;
+    if (!row?.id) return;
+    try {
+      await repo.DeleteBadmashano?.(row.id);
+      await fetchAll();
+      showErrorMessage(t('حذف شد'));
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteTarget.value = null;
+    }
+  }
+
+  /* fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchBadmashanosData?.({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search || '',
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست بدماشانو'));
+    }
+  }
+
+  function clearSearch() {
+    repo.Search = '';
+    fetchAll();
+  }
+
+  /* init */
+  onMounted(async () => {
     await fetchAll();
-    showErrorMessage(t('حذف شد'));
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در حذف'));
-  } finally {
-    deleteTarget.value = null;
-  }
-}
-
-/* fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchBadmashanosData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت فهرست بدماشانو'));
-  }
-}
-
-function clearSearch() {
-  repo.Search = '';
-  fetchAll();
-}
-
-/* init */
-onMounted(async () => {
-  await fetchAll();
-});
+  });
 </script>
 
 <style scoped>
-.ga-2 {
-  gap: 8px;
-}
+  .ga-2 {
+    gap: 8px;
+  }
 
-/* Background similar to heist index pages */
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
+  /* Background similar to heist index pages */
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
+  }
 
-/* Stats cards */
-.stat-card {
-  cursor: pointer;
-  border-radius: 14px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
-    background-color 0.2s ease;
-}
+  /* Stats cards */
+  .stat-card {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
 
-.stat-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  border-color: rgba(33, 150, 243, 0.35);
-}
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
+  }
 
-.stat-card--active {
-  border-color: rgba(25, 118, 210, 0.9);
-  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
-}
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+  }
 
-.stat-card-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
 
-.stat-card-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e3f2fd;
-}
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
 
-.stat-card-text {
-  display: flex;
-  flex-direction: column;
-}
+  .stat-card-text {
+    display: flex;
+    flex-direction: column;
+  }
 
-.stat-card-title {
-  font-size: 13px;
-  font-weight: 700;
-}
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
 
-.stat-card-subtitle {
-  font-size: 11px;
-  color: #666;
-}
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
+  }
 </style>

@@ -378,7 +378,6 @@
 
   /* TABLE HEADERS – ALL INPUTS + map */
   const headersFT = computed(() => [
-    { title: t('تصویر'), key: 'picture', sortable: false },
     { title: t('ولایت'), key: 'province' },
     { title: t('زون'), key: 'zone' },
     { title: t('ولسوالی'), key: 'district' },

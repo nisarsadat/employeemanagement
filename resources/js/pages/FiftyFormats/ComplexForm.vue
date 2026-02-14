@@ -137,14 +137,7 @@
                     :error-messages="getErrorMessages('responsible_name')"
                   />
                 </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.responsible_job"
-                    :label="t('د مسؤول موقف')"
-                    variant="outlined"
-                    density="compact"
-                  />
-                </v-col>
+                
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.responsible_f_name"
@@ -153,6 +146,24 @@
                     density="compact"
                     :error="hasError('responsible_f_name')"
                     :error-messages="getErrorMessages('responsible_f_name')"
+                  />
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.responsible_job"
+                    :label="t('مسول موقف')"
+                    variant="outlined"
+                    density="compact"
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.responsible_country"
+                    :label="t('کشور مسؤول')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('responsible_country')"
+                    :error-messages="getErrorMessages('responsible_country')"
                   />
                 </v-col>
                 <v-col cols="12" md="3">
@@ -166,16 +177,7 @@
                     :error-messages="getErrorMessages('responsible_phone')"
                   />
                 </v-col>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.responsible_country"
-                    :label="t('کشور مسؤول')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('responsible_country')"
-                    :error-messages="getErrorMessages('responsible_country')"
-                  />
-                </v-col>
+                
               </v-row>
 
               <!-- Addresses -->

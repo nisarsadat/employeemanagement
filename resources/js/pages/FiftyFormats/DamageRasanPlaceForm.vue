@@ -160,15 +160,7 @@
                 readonly
               />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.resource_phone"
-                :label="t('شماره منبع')"
-                variant="outlined"
-                density="compact"
-                readonly
-              />
-            </v-col>
+           
 
             <!-- Note -->
             <v-col cols="12">

@@ -325,8 +325,8 @@
 
     { title: t('شخص گمشده/یافته'), key: 'lost_person_name' },
     { title: t('نام پدر شخص'), key: 'lost_person_f_name' },
-    { title: t('شماره تماس شخص'), key: 'lost_person_phone' },
     { title: t('وظیفه شخص'), key: 'lost_person_job' },
+    { title: t('شماره تماس شخص'), key: 'lost_person_phone' },
 
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_district' },

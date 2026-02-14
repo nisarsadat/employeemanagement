@@ -35,7 +35,8 @@ class UpdateLuchakanoRequest extends FormRequest
             'gun_type'           => ['nullable','string'],
             'phone_number'       => ['nullable','string'],
             'history_jorm'       => ['nullable','string'],
-            'note'               => ['nullable','string'],
+            'takhlof_type'               => ['nullable','string'],
+            'supplier'               => ['nullable','string'],
             'note'               => ['nullable','string'],
             'Province_addr'             => ['nullable','string'],
 

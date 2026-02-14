@@ -397,24 +397,24 @@
 
     { title: t('نام سوپرمارکیت'), key: 'supermarket_name' },
     { title: t('کدام فعایت'), key: 'market_activity_type' },
-    { title: t('مراجعین روزانه'), key: 'daily_clientele' },
     { title: t('تعداد دکان‌ها'), key: 'shops_quantity' },
+    { title: t('مراجعین روزانه'), key: 'daily_clientele' },
 
     { title: t('مسؤول'), key: 'responsible_name' },
     { title: t('نام پدر مسؤول'), key: 'responsible_f_name' },
-    { title: t('شماره تماس مسؤول'), key: 'responsible_phone' },
     { title: t(' موقف مسؤول'), key: 'responsible_job' },
+    { title: t('شماره تماس مسؤول'), key: 'responsible_phone' },
 
     { title: t('ولایت'), key: 'province' },
     { title: t('زون'), key: 'zone' },
     { title: t('ولسوالی'), key: 'district' },
     { title: t('قریه'), key: 'village' },
     { title: t('موقعیت مشخص'), key: 'specefic_place' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('تعداد کارمندان'), key: 'employee_quantity' },
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
 
-    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },

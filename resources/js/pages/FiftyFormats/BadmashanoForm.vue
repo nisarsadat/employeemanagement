@@ -30,6 +30,16 @@
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
+                v-model="form.nickname"
+                :label="t('تخلص')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('nickname')"
+                :error-messages="getErrorMessages('nickname')"
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
                 v-model="form.name"
                 :label="t('نام *')"
                 variant="outlined"
@@ -37,17 +47,6 @@
                 :rules="[rules.required]"
                 :error="hasError('name')"
                 :error-messages="getErrorMessages('name')"
-              />
-            </v-col>
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.nickname"
-                :label="t('تخلص')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('nickname')"
-                :error-messages="getErrorMessages('nickname')"
               />
             </v-col>
 
@@ -160,6 +159,16 @@
                 :error-messages="getErrorMessages('now_home_number')"
               />
             </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.coordinates"
+                :label="t('مختصات')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('coordinates')"
+                :error-messages="getErrorMessages('coordinates')"
+              />
+            </v-col>
           </v-row>
 
           <v-divider class="my-4" />
@@ -214,56 +223,6 @@
                 :error-messages="getErrorMessages('supplier')"
               />
             </v-col>
-
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
-
-            <v-col cols="12" md="4">
-              <v-autocomplete
-                v-model="form.resource_code"
-                :items="resources"
-                item-title="code_number"
-                item-value="code_number"
-                :label="t('کود منبع')"
-                variant="outlined"
-                :rules="[rules.required]"
-                density="compact"
-                clearable
-                @update:model-value="onResourceCodeChange"
-                :error="hasError('resource_code')"
-                :error-messages="getErrorMessages('resource_code')"
-              />
-            </v-col>
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.resource_phone"
-                :label="t('شماره منبع')"
-                variant="outlined"
-                density="compact"
-                readonly
-              />
-            </v-col>
-
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.phone_number"
@@ -295,6 +254,43 @@
                 density="compact"
                 :error="hasError('jorm_type')"
                 :error-messages="getErrorMessages('jorm_type')"
+              />
+            </v-col>
+            <!-- <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.Province_addr"
+                :label="t('ولایت مربوطه')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('Province_addr')"
+                :error-messages="getErrorMessages('Province_addr')"
+              />
+            </v-col> -->
+
+            <v-col cols="12" md="4">
+              <v-autocomplete
+                v-model="form.resource_code"
+                :items="resources"
+                item-title="code_number"
+                item-value="code_number"
+                :label="t('کود منبع')"
+                variant="outlined"
+                :rules="[rules.required]"
+                density="compact"
+                clearable
+                @update:model-value="onResourceCodeChange"
+                :error="hasError('resource_code')"
+                :error-messages="getErrorMessages('resource_code')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.resource_phone"
+                :label="t('شماره منبع')"
+                variant="outlined"
+                density="compact"
+                readonly
               />
             </v-col>
 

@@ -71,7 +71,6 @@
 
           <!-- Identity -->
           <v-row>
-           
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.name"
@@ -191,6 +190,16 @@
                 :error-messages="getErrorMessages('now_home_number')"
               />
             </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.coordinates"
+                :label="t('مختصات')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('coordinates')"
+                :error-messages="getErrorMessages('coordinates')"
+              />
+            </v-col>
           </v-row>
 
           <v-divider class="my-4" />
@@ -243,7 +252,14 @@
                 :error-messages="getErrorMessages('guard_guntity')"
               />
             </v-col>
-
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.tahdid_mutawaji"
+                :label="t('متوجه تهدید')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
             <!-- Phone (✅ exactly 10 digits) -->
             <v-col cols="12" md="3">
               <v-text-field
@@ -256,14 +272,7 @@
                 :error-messages="getErrorMessages('phone_number')"
               />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.tahdid_mutawaji"
-                :label="t('متوجه تهدید')"
-                variant="outlined"
-                density="compact"
-              />
-            </v-col>
+
             <v-col cols="12" md="3">
               <v-select
                 v-model="form.people_type"
@@ -283,17 +292,6 @@
             <span class="section-title">{{ t('سایر معلومات') }}</span>
           </div>
           <v-row>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
-
             <v-col cols="12" md="4">
               <v-autocomplete
                 v-model="form.resource_code"
@@ -602,7 +600,7 @@
 
     const r = x.resource || {};
     b.resource_code = x.resource_code ?? r.code_number ?? '';
-    b.resource_phone = x.resource_phone  ?? '';
+    b.resource_phone = x.resource_phone ?? '';
     b.resource_id = x.resource_id ?? r.id ?? null;
 
     b.note = x.note ?? '';

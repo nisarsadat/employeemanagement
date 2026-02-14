@@ -210,6 +210,16 @@
                 :error-messages="getErrorMessages('now_home_number')"
               />
             </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.coordinates"
+                :label="t('مختصات')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('coordinates')"
+                :error-messages="getErrorMessages('coordinates')"
+              />
+            </v-col>
           </v-row>
 
           <v-divider class="my-4" />
@@ -231,14 +241,7 @@
                 :error-messages="getErrorMessages('duty_type')"
               />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.friends_quantity"
-                :label="t('تعداد دوستان')"
-                variant="outlined"
-                density="compact"
-              />
-            </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_job"
@@ -260,7 +263,14 @@
                 :error-messages="getErrorMessages('organ')"
               />
             </v-col>
-
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.friends_quantity"
+                :label="t('تعداد دوستان')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
             <!-- Phone (✅ exactly 10 digits min/max) -->
             <v-col cols="12" md="6">
               <v-text-field
@@ -271,17 +281,6 @@
                 :rules="[rules.phoneDigits]"
                 :error="hasError('phone_number')"
                 :error-messages="getErrorMessages('phone_number')"
-              />
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
 
@@ -434,7 +433,12 @@
     successMessage.value = message;
     showSuccess.value = true;
   }
-  const dudtytypeofthemujahid = computed(() => [t('محافظ مشر'), t('ډلګی مشر'), t('سرګروپ'), t('فرد')]);
+  const dudtytypeofthemujahid = computed(() => [
+    t('محافظ مشر'),
+    t('ډلګی مشر'),
+    t('سرګروپ'),
+    t('فرد'),
+  ]);
 
   /* BACKEND ERRORS */
   const backendErrors = ref({});

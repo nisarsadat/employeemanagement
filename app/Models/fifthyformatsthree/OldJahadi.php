@@ -35,6 +35,7 @@ class OldJahadi extends Model
         'supplier',
         'phone_number',
         'tanzim',
+        'jorm_history',
         'note',
         'organ',
         'coordinates',

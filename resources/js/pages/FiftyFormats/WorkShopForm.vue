@@ -48,18 +48,6 @@
                 :error-messages="getErrorMessages('workshop_type')"
               />
             </v-col>
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.workers_quantity"
-                :label="t('تعداد کارگران')"
-                type="number"
-                variant="outlined"
-                density="compact"
-                :error="hasError('workers_quantity')"
-                :error-messages="getErrorMessages('workers_quantity')"
-              />
-            </v-col>
           </v-row>
 
           <v-divider class="my-4" />
@@ -171,7 +159,17 @@
                 :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
-
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.workers_quantity"
+                :label="t('تعداد کارگران')"
+                type="number"
+                variant="outlined"
+                density="compact"
+                :error="hasError('workers_quantity')"
+                :error-messages="getErrorMessages('workers_quantity')"
+              />
+            </v-col>
             <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"

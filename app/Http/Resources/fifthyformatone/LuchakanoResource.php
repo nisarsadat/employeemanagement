@@ -59,6 +59,8 @@ class LuchakanoResource extends JsonResource
             'phone_number'       => $this->phone_number,
             'history_jorm'       => $this->history_jorm,
             'note'               => $this->note,
+            'supplier'               => $this->supplier,
+            'takhlof_type'               => $this->takhlof_type,
             'coordinates'        => $this->coordinates,
 
             // FK

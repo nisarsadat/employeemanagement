@@ -87,7 +87,7 @@
           </v-row>
 
           <!-- Officer -->
-        
+
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -121,7 +121,18 @@
               />
             </v-col>
           </v-row>
-
+          <v-row>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.gun_type"
+                :label="t('نوع سلاح')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('gun_type')"
+                :error-messages="getErrorMessages('gun_type')"
+              />
+            </v-col>
+          </v-row>
           <!-- Address -->
           <div class="section-header mt-4">
             <span class="section-title">{{ t('آدرس چک‌پوینت') }}</span>
@@ -171,16 +182,7 @@
                 :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
-             <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.gun_type"
-                :label="t('نوع سلاح')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('gun_type')"
-                :error-messages="getErrorMessages('gun_type')"
-              />
-            </v-col>
+
             <!-- <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.Province_addr"
@@ -198,8 +200,6 @@
             <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
           <v-row>
-           
-
             <v-col cols="12" md="4">
               <v-autocomplete
                 v-model="form.resource_code"

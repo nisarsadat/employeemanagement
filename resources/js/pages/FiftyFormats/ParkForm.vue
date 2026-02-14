@@ -24,7 +24,6 @@
             <!-- Identity + addresses -->
             <v-col cols="12" md="12">
               <!-- Identity -->
-              
 
               <v-row>
                 <v-col cols="12" md="4">
@@ -93,6 +92,16 @@
 
                 <v-col cols="12" md="3">
                   <v-text-field
+                    v-model="form.responsible_possition"
+                    :label="t('وظیفه/موقف مسؤول')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('responsible_possition')"
+                    :error-messages="getErrorMessages('responsible_possition')"
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
                     v-model="form.responsible_phone"
                     :label="t('شماره تماس مسؤول')"
                     variant="outlined"
@@ -100,17 +109,6 @@
                     :rules="[rules.phoneDigits]"
                     :error="hasError('responsible_phone')"
                     :error-messages="getErrorMessages('responsible_phone')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.responsible_possition"
-                    :label="t('وظیفه/موقف مسؤول')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('responsible_possition')"
-                    :error-messages="getErrorMessages('responsible_possition')"
                   />
                 </v-col>
               </v-row>
@@ -178,7 +176,6 @@
           <v-divider class="my-4" />
 
           <!-- Extra fields -->
-          
 
           <v-row>
             <!-- Employees -->
@@ -186,14 +183,22 @@
               <v-text-field
                 v-model.number="form.employee_quantity"
                 type="number"
-                :label="t('تعداد محافظین')"
+                :label="t('تعداد کارگران')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('employee_quantity')"
                 :error-messages="getErrorMessages('employee_quantity')"
               />
             </v-col>
-
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model.number="form.guard_quantity"
+                type="number"
+                :label="t('تعداد محافظین')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
             <!-- Province addr -->
             <!-- <v-col cols="12" md="3">
               <v-text-field
@@ -390,6 +395,7 @@
     coordinates: '',
 
     employee_quantity: '',
+    guard_quantity: '',
     Province_addr: '',
 
     resource_code: '',
@@ -443,6 +449,7 @@
     b.coordinates = x.coordinates ?? '';
 
     b.employee_quantity = x.employee_quantity ?? '';
+    b.guard_quantity = x.guard_quantity ?? '';
     b.Province_addr = x.Province_addr ?? '';
 
     const r = x.resource || {};
@@ -544,7 +551,8 @@
       { label: t('موقعیت مشخص'), value: v(form.value.specefic_place) },
       { label: t('مختصات'), value: v(form.value.coordinates) },
 
-      { label: t('تعداد محافطین'), value: v(form.value.employee_quantity) },
+      { label: t('تعداد کارگران'), value: v(form.value.employee_quantity) },
+      { label: t('تعداد محافطین'), value: v(form.value.guard_quantity) },
       { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
 
       { label: t('کود منبع'), value: v(form.value.resource_code) },

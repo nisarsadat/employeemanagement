@@ -368,12 +368,12 @@
     { title: t('ولسوالی'), key: 'district' },
     { title: t('قریه'), key: 'village' },
     { title: t('موقعیت مشخص'), key: 'specefic_place' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('حالت امنیتی/خلا'), key: 'amnyatee_khala' },
     { title: t('تعداد کارمندان'), key: 'employee_quantity' },
     { title: t('تعداد محافظ'), key: 'gaurd_quantity' },
 
-    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },

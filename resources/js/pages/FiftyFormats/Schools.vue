@@ -355,7 +355,6 @@
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('شماره سرک'), key: 'street_number' },
     { title: t('مختصات'), key: 'coordinates' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },

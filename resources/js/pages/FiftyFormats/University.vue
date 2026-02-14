@@ -406,7 +406,6 @@
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('شماره سرک'), key: 'street_number' },
     { title: t('شماره خانه'), key: 'home_number' },
-
     { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },

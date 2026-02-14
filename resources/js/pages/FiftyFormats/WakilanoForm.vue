@@ -249,15 +249,17 @@
                 :error-messages="getErrorMessages('now_job')"
               />
             </v-col>
+            
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="form.tanzim"
-                :label="t('تنظیم/ وابستگی/ وابستگی')"
+                v-model.number="form.agent_quantity"
+                type="number"
+                :label="t('تعداد نماینده ها')"
                 variant="outlined"
                 density="compact"
               />
             </v-col>
-            <v-col cols="12" md="4">
+             <v-col cols="12" md="4">
               <v-text-field
                 v-model.number="form.home_quantity"
                 type="number"
@@ -266,15 +268,6 @@
                 density="compact"
                 :error="hasError('home_quantity')"
                 :error-messages="getErrorMessages('home_quantity')"
-              />
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model.number="form.agent_quantity"
-                type="number"
-                :label="t('تعداد نماینده ها')"
-                variant="outlined"
-                density="compact"
               />
             </v-col>
           </v-row>
@@ -304,6 +297,15 @@
                 :error-messages="getErrorMessages('history_form')"
               />
             </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.tanzim"
+                :label="t('تنظیم/ وابستگی/ وابستگی')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+           
           </v-row>
 
           <div class="section-header mt-4">

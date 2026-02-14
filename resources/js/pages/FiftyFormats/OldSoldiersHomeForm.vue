@@ -9,7 +9,6 @@
           : t('ثبت یک ریکارډ جدید منزل سرباز سابق در سیستم')
       "
     >
-     
     </AppBar>
 
     <!-- FORM -->
@@ -39,11 +38,7 @@
               />
             </v-col>
             <v-col cols="12" md="6">
-              <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون ')"
-                    :disabled="saving"
-                  />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون ')" :disabled="saving" />
             </v-col>
 
             <v-col cols="12" md="6">
@@ -215,20 +210,6 @@
             </v-col> -->
           </v-row>
 
-          <v-row>
-            <v-col cols="12">
-              <v-text-field
-                v-model="form.note"
-                :label="t('یادداشت')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                :error="hasError('note')"
-                :error-messages="getErrorMessages('note')"
-              />
-            </v-col>
-          </v-row>
-
           <v-divider class="my-4" />
 
           <!-- منبع -->
@@ -262,6 +243,19 @@
                 variant="outlined"
                 hide-details="auto"
                 readonly
+              />
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model="form.note"
+                :label="t('یادداشت')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                :error="hasError('note')"
+                :error-messages="getErrorMessages('note')"
               />
             </v-col>
           </v-row>

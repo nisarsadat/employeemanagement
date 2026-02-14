@@ -238,7 +238,7 @@
       :showIndex="true"
       :rtl="true"
       :autoDetectDates="false"
-      :dateKeys="['information_saved_date' , 'hamahangi_date']"
+      :dateKeys="['information_saved_date', 'hamahangi_date']"
       class="mb-20 mx-2"
     >
       <!-- RESOURCE -->
@@ -655,7 +655,7 @@
     { title: t('آی ډی'), key: 'id' },
     { title: t('کود منبع'), key: 'resource_id' },
     { title: t('کارمند مربوط'), key: 'office_employee_code_number' },
-    { title: t('کارمند اطلاع گیرنده'), key: 'office_employee_info_code_number' },
+    { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
 
     { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },
@@ -680,21 +680,20 @@
     { title: t('ساعت اطلاع'), key: 'information_saved_hour' },
     { title: t('درجه موثقیت اطلاع'), key: 'information_degree' },
     { title: t('د اطلاع کتګوري'), key: 'information_category' },
+    { title: t('کارمند اطلاع گیرنده'), key: 'office_employee_info_code_number' },
     { title: t('د منبع لاسرسی'), key: 'resource_lasrasy' },
 
     { title: t('تاریخ هم‌آهنگی'), key: 'hamahangi_date' },
     { title: t('شماره مکتوب'), key: 'maktop_number' },
     { title: t('ارگان'), key: 'organ' },
-
     { title: t('تفصیل'), key: 'tafseel' },
     { title: t('نظر مدیر'), key: 'manager_comment' },
     { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
     { title: t('نتیجه'), key: 'result' },
-    { title: t('ملاحظات'), key: 'note' },
-    { title: t('نوت راجع به اسناد'), key: 'docs_note', width: 140 },
-    { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
     { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
     { title: t('وجه مصرف'), key: 'expense_result' },
+    { title: t('نوت راجع به اسناد'), key: 'docs_note' },
+    { title: t('ملاحظات'), key: 'note' },
   ]);
 
   const topGroups = computed(() => [

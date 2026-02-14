@@ -415,7 +415,6 @@ const headersFT = computed(() => [
 
   { title: t('نام'), key: 'name' },
   { title: t('نام پدر'), key: 'father_name' },
-  { title: t('شماره تماس'), key: 'phone_number' },
 
   { title: t('ولایت اصلی'), key: 'main_province' },
   { title: t('ولسوالی اصلی'), key: 'main_district' },
@@ -429,13 +428,14 @@ const headersFT = computed(() => [
   { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
   { title: t('شماره سرک فعلی'), key: 'now_street_number' },
   { title: t('شماره خانه فعلی'), key: 'now_home_number' },
+  { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('وظیفه قبلی'), key: 'old_job' },
   { title: t('وظیفه فعلی'), key: 'now_job' },
   { title: t('نقاط مشکوکیت'), key: 'mushkokyat_points' },
   { title: t('نوعیت مشکوکیت'), key: 'mashkokyat_type' },
+  { title: t('شماره تماس'), key: 'phone_number' },
 
-  { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },

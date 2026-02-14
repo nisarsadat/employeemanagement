@@ -28,6 +28,7 @@ class UpdateOldJahadiRequest extends FormRequest
             'now_street_number' => ['nullable','string'],
             'now_home_number'   => ['nullable','string'],
 
+            'jorm_history' => ['nullable','string'],
             'old_job' => ['nullable','string'],
             'now_job' => ['nullable','string'],
             'employee_quantity' => ['nullable','string'],

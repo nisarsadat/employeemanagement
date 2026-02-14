@@ -379,9 +379,9 @@
   /* TABLE HEADERS – ALL INPUTS + map */
   const headersFT = computed(() => [
     { title: t('عکس'), key: 'picture', sortable: false },
+    { title: t('نام مستعار'), key: 'nick_name' },
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
-    { title: t('نام مستعار'), key: 'nick_name' },
 
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_district' },
@@ -395,6 +395,7 @@
     { title: t('موقعیت مشخص'), key: 'now_specific_place' },
     { title: t('شماره سرک'), key: 'now_street_number' },
     { title: t('شماره خانه'), key: 'now_home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('تعداد دوستان'), key: 'friends_quantity' },
     { title: t('تمویل‌کننده'), key: 'supplier' },
@@ -411,7 +412,6 @@
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
-    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('یادداشت'), key: 'note'},

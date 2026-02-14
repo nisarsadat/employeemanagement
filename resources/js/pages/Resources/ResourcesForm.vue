@@ -282,93 +282,6 @@
                       :error-messages="getErrorMessages('tazkira')"
                     />
                   </v-col>
-
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      v-model="form.age"
-                      :label="t('عمر')"
-                      type="number"
-                      density="compact"
-                      variant="outlined"
-                      :rules="[rules.ageRange]"
-                      :error="hasError('age')"
-                      :error-messages="getErrorMessages('age')"
-                    />
-                  </v-col>
-
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      v-model="form.phone_number"
-                      :label="t('شماره تماس')"
-                      density="compact"
-                      variant="outlined"
-                      :rules="[rules.phone10]"
-                      :error="hasError('phone_number')"
-                      :error-messages="getErrorMessages('phone_number')"
-                    />
-                  </v-col>
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      v-model="form.phone_number_1"
-                      :label="t('شماره تماس ۱')"
-                      density="compact"
-                      variant="outlined"
-                      :rules="[rules.phone10]"
-                      :error="hasError('phone_number_1')"
-                      :error-messages="getErrorMessages('phone_number_1')"
-                    />
-                  </v-col>
-
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      v-model="form.phone_number_2"
-                      :label="t('شماره تماس ۲')"
-                      density="compact"
-                      variant="outlined"
-                      :rules="[rules.phone10]"
-                      :error="hasError('phone_number_2')"
-                      :error-messages="getErrorMessages('phone_number_2')"
-                    />
-                  </v-col>
-
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      v-model="form.language"
-                      :label="t('زبان')"
-                      density="compact"
-                      variant="outlined"
-                    />
-                  </v-col>
-
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      v-model="form.nation"
-                      :label="t('قوم/ملیت')"
-                      density="compact"
-                      variant="outlined"
-                    />
-                  </v-col>
-
-                  <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model="form.specific_skills"
-                      :label="t('مهارت‌های خاص')"
-                      density="compact"
-                      variant="outlined"
-                    />
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-select
-                      v-model="form.blood_group"
-                      :items="bloodGroups"
-                      :label="t('گروپ خون')"
-                      density="compact"
-                      variant="outlined"
-                      clearable
-                      :error="hasError('blood_group')"
-                      :error-messages="getErrorMessages('blood_group')"
-                    />
-                  </v-col>
                 </v-row>
               </v-col>
             </v-row>
@@ -486,24 +399,6 @@
                   :error-messages="getErrorMessages('Province_addr')"
                 />
               </v-col> -->
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.tadarok_place"
-                  :label="t('د تدارک محل')"
-                  density="compact"
-                  variant="outlined"
-                /> </v-col
-              ><v-col cols="6" md="6">
-                <v-text-field
-                  v-model="form.coordinates"
-                  :label="t('کوردینات')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('coordinates')"
-                  :error-messages="getErrorMessages('coordinates')"
-                />
-              </v-col>
             </v-row>
           </v-sheet>
 
@@ -555,7 +450,34 @@
                   :error-messages="getErrorMessages('job_place')"
                 />
               </v-col>
-
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.zone"
+                  :label="t('زون تدارک')"
+                  density="compact"
+                  variant="outlined"
+                />
+                <v-text-field
+                  v-model="form.hawza"
+                  :label="t('حوزه تدارک')"
+                  density="compact"
+                  variant="outlined"
+                />
+                <v-text-field
+                  v-model="form.specefic_place"
+                  :label="t('محل مشخص تدارک')"
+                  density="compact"
+                  variant="outlined"
+                />
+                <v-text-field
+                  v-model="form.coordinates"
+                  :label="t('کوردینات تدارک')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('coordinates')"
+                  :error-messages="getErrorMessages('coordinates')"
+                />
+              </v-col>
               <!-- <v-col cols="12" md="3">
                 <v-autocomplete
                   v-model="form.activity"
@@ -581,19 +503,23 @@
                   :error-messages="getErrorMessages('halat_madani')"
                 />
               </v-col>
+
               <v-col cols="12" md="3">
                 <v-text-field
-                  v-model="form.elmi_level"
-                  :label="t(' سطح علمی')"
+                  v-model="form.age"
+                  :label="t('عمر')"
+                  type="number"
                   density="compact"
                   variant="outlined"
-                  hide-details="auto"
+                  :rules="[rules.ageRange]"
+                  :error="hasError('age')"
+                  :error-messages="getErrorMessages('age')"
                 />
               </v-col>
               <v-col cols="12" md="3">
                 <v-text-field
-                  v-model="form.train"
-                  :label="t('دوره آموزش ')"
+                  v-model="form.elmi_level"
+                  :label="t(' سطح علمی')"
                   density="compact"
                   variant="outlined"
                   hide-details="auto"
@@ -608,24 +534,27 @@
                   hide-details="auto"
                 />
               </v-col>
-
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.specific_skills"
+                  :label="t('مهارت‌های خاص')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <DateInput
+                  v-model="form.resource_saved_date"
+                  :label="t('تاریخ ثبت منبع *')"
+                  :rules="[rules.required]"
+                />
+              </v-col>
               <v-col cols="12" md="3">
                 <ResourceActivityTypeSelect
                   v-model="form.resource_activity_type"
                   :label="t('نوع فعالیت منبع')"
                   :error="hasError('resource_activity_type')"
                   :error-messages="getErrorMessages('resource_activity_type')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.resource_cover"
-                  :label="t('پوشش منبع')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('resource_cover')"
-                  :error-messages="getErrorMessages('resource_cover')"
                 />
               </v-col>
 
@@ -643,7 +572,6 @@
                   :error-messages="getErrorMessages('office_employee_id')"
                 />
               </v-col>
-
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.resedint_code"
@@ -652,6 +580,56 @@
                   variant="outlined"
                   :error="hasError('resedint_code')"
                   :error-messages="getErrorMessages('resedint_code')"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.resource_cover"
+                  :label="t('پوشش منبع')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('resource_cover')"
+                  :error-messages="getErrorMessages('resource_cover')"
+                />
+              </v-col>
+
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.language"
+                  :label="t('زبان')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.nation"
+                  :label="t('قوم/ملیت')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-select
+                  v-model="form.blood_group"
+                  :items="bloodGroups"
+                  :label="t('گروپ خون')"
+                  density="compact"
+                  variant="outlined"
+                  clearable
+                  :error="hasError('blood_group')"
+                  :error-messages="getErrorMessages('blood_group')"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.train"
+                  :label="t('دوره آموزش ')"
+                  density="compact"
+                  variant="outlined"
+                  hide-details="auto"
                 />
               </v-col>
             </v-row>
@@ -669,28 +647,38 @@
             <v-divider />
 
             <v-row class="pa-3">
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="3">
                 <v-text-field
-                  v-model="form.zone"
-                  :label="t('زون')"
+                  v-model="form.phone_number"
+                  :label="t('شماره تماس')"
                   density="compact"
                   variant="outlined"
+                  :rules="[rules.phone10]"
+                  :error="hasError('phone_number')"
+                  :error-messages="getErrorMessages('phone_number')"
                 />
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="3">
                 <v-text-field
-                  v-model="form.hawza"
-                  :label="t('حوزه')"
+                  v-model="form.phone_number_1"
+                  :label="t('شماره تماس ۱')"
                   density="compact"
                   variant="outlined"
+                  :rules="[rules.phone10]"
+                  :error="hasError('phone_number_1')"
+                  :error-messages="getErrorMessages('phone_number_1')"
                 />
               </v-col>
-              <v-col cols="12" md="6">
+
+              <v-col cols="12" md="3">
                 <v-text-field
-                  v-model="form.specefic_place"
-                  :label="t('محل مشخص')"
+                  v-model="form.phone_number_2"
+                  :label="t('شماره تماس ۲')"
                   density="compact"
                   variant="outlined"
+                  :rules="[rules.phone10]"
+                  :error="hasError('phone_number_2')"
+                  :error-messages="getErrorMessages('phone_number_2')"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -723,14 +711,6 @@
             <v-divider />
 
             <v-row class="pa-3">
-              <v-col cols="12" md="4">
-                <DateInput
-                  v-model="form.resource_saved_date"
-                  :label="t('تاریخ ثبت منبع *')"
-                  :rules="[rules.required]"
-                />
-              </v-col>
-
               <v-col cols="12" md="8">
                 <v-text-field
                   v-model="form.note"

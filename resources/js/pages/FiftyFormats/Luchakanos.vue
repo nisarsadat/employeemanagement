@@ -257,8 +257,8 @@
   /* TABLE HEADERS (same as before, plus map) */
   const headersFT = computed(() => [
     { title: t('عکس'), key: 'picture', sortable: false },
-    { title: t('نام'), key: 'name' },
     { title: t('تخلص'), key: 'nickname' },
+    { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
 
     { title: t('ولایت اصلی'), key: 'main_province' },
@@ -273,17 +273,19 @@
     { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
     { title: t('شماره سرک فعلی'), key: 'now_street_number' },
     { title: t('شماره خانه فعلی'), key: 'now_home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('وظیفه قبلی'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'job' },
     { title: t('نوع اسلحه'), key: 'gun_type' },
+    { title: t('تمویل کننده'), key: 'supplier' },
     { title: t('شماره تماس'), key: 'phone_number' },
 
     { title: t('سابقه جرم'), key: 'history_jorm' },
+    { title: t('نوع تخلف'), key: 'takhlof_type' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
-    { title: t('مختصات'), key: 'coordinates' },
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('یادداشت'), key: 'note' },
 

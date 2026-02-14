@@ -32,6 +32,7 @@ class Robbers extends Model
         'now_job',
         'supplier',
         'phone_number',
+        'freinds_quantity',
         'history_form',
         'coordinates',
 

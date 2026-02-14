@@ -31,6 +31,8 @@ class StoreLuchakanoRequest extends FormRequest
             'phone_number'       => ['nullable','string'],
             'history_jorm'       => ['nullable','string'],
             'note'               => ['nullable','string'],
+            'takhlof_type'               => ['nullable','string'],
+            'supplier'               => ['nullable','string'],
             'coordinates'               => ['nullable','string'],
             'Province_addr'             => ['nullable','string'],
             'resource_id'        => ['nullable','integer','exists:resources,id'],

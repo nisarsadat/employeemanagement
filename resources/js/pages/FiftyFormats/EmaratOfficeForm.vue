@@ -95,6 +95,16 @@
                     :error-messages="getErrorMessages('home_number')"
                   />
                 </v-col>
+                <v-col cols="12" md="8">
+                  <v-text-field
+                    v-model="form.coordenates"
+                    :label="t('مختصات (coordenates)')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('coordenates')"
+                    :error-messages="getErrorMessages('coordenates')"
+                  />
+                </v-col>
               </v-row>
 
               <!-- Office details -->
@@ -159,17 +169,6 @@
                     :error-messages="getErrorMessages('Province_addr')"
                   />
                 </v-col> -->
-
-                <v-col cols="12" md="8">
-                  <v-text-field
-                    v-model="form.coordenates"
-                    :label="t('مختصات (coordenates)')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('coordenates')"
-                    :error-messages="getErrorMessages('coordenates')"
-                  />
-                </v-col>
               </v-row>
             </v-col>
           </v-row>

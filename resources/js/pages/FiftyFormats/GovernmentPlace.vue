@@ -413,13 +413,12 @@ const headersFT = computed(() => [
   { title: t('ولسوالی'), key: 'district' },
   { title: t('قریه'), key: 'village' },
   { title: t('موقعیت مشخص'), key: 'specefic_place' },
+  { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('تفصیل کامره های امنیتی'), key: 'tafseel' },
   { title: t('خلای امنیتی'), key: 'amnyatee_khala' },
+  { title: t('تعداد کارگران'), key: 'employee_quantity' },
   { title: t('تعداد محافظ'), key: 'guard_quantity' },
-  { title: t('تعداد کامندان'), key: 'employee_quantity' },
-
-  { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },

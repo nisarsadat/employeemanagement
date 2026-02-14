@@ -8,7 +8,6 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ هوتل موجود') : t('ثبت یک ریکارډ هوتل جدید در سیستم')
       "
     >
-     
     </AppBar>
 
     <!-- FORM -->
@@ -49,18 +48,6 @@
                 density="compact"
                 :error="hasError('type')"
                 :error-messages="getErrorMessages('type')"
-              />
-            </v-col>
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.employee_quantity"
-                :label="t('تعداد کارگران')"
-                type="number"
-                variant="outlined"
-                density="compact"
-                :error="hasError('employee_quantity')"
-                :error-messages="getErrorMessages('employee_quantity')"
               />
             </v-col>
           </v-row>
@@ -135,11 +122,7 @@
             </v-col>
 
             <v-col cols="12" md="3">
-              <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون')"
-                    :disabled="saving"
-                  />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
             </v-col>
 
             <v-col cols="12" md="3">
@@ -174,7 +157,18 @@
                 :error-messages="getErrorMessages('cordenate')"
               />
             </v-col>
-<!-- 
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.employee_quantity"
+                :label="t('تعداد کارگران')"
+                type="number"
+                variant="outlined"
+                density="compact"
+                :error="hasError('employee_quantity')"
+                :error-messages="getErrorMessages('employee_quantity')"
+              />
+            </v-col>
+            <!-- 
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"

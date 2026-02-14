@@ -10,7 +10,6 @@
           : t('ثبت یک ریکارډ جدید DoneLostPlace در سیستم')
       "
     >
-      
     </AppBar>
 
     <v-container class="mt-4">
@@ -39,83 +38,6 @@
                 :error-messages="getErrorMessages('place_name')"
               />
             </v-col>
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                density="compact"
-                variant="outlined"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.lost_quantity"
-                :label="t('تعداد موارد')"
-                density="compact"
-                variant="outlined"
-                type="number"
-                :rules="[rules.nonNegativeInt]"
-                :error="hasError('lost_quantity')"
-                :error-messages="getErrorMessages('lost_quantity')"
-              />
-            </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="12" md="12">
-              <ProvinceDistrictNameSelect
-                v-model:province="form.province"
-                v-model:district="form.district"
-                :province-label="t('ولایت محل')"
-                :district-label="t('ولسوالی محل')"
-                :mdProvince="6"
-                :mdDistrict="6"
-              />
-            </v-col>
-            <v-col cols="12" md="12">
-              <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون محل')"
-                    :disabled="saving"
-                  />
-            </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.village"
-                :label="t('قریه محل')"
-                density="compact"
-                variant="outlined"
-                :error="hasError('village')"
-                :error-messages="getErrorMessages('village')"
-              />
-            </v-col>
-            <v-col cols="12" md="8">
-              <v-text-field
-                v-model="form.specific_place"
-                :label="t('موقعیت مشخص')"
-                density="compact"
-                variant="outlined"
-                :error="hasError('specific_place')"
-                :error-messages="getErrorMessages('specific_place')"
-              />
-            </v-col>
-          </v-row>
-
-          <v-divider class="my-4" />
-
-          <!-- Section: Person info -->
-          <div class="section-header">
-            <span class="section-title">{{ t('شخص گمشده/یافته') }}</span>
-          </div>
-
-          <v-row>
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.lost_person_name"
@@ -147,6 +69,11 @@
                 :error-messages="getErrorMessages('lost_person_phone')"
               />
             </v-col>
+          </v-row>
+
+          <v-divider class="my-4" />
+
+          <v-row>
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.lost_person_job"
@@ -215,7 +142,67 @@
               />
             </v-col>
           </v-row>
-
+          <v-row>
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.province"
+                v-model:district="form.district"
+                :province-label="t('ولایت محل')"
+                :district-label="t('ولسوالی محل')"
+                :mdProvince="6"
+                :mdDistrict="6"
+              />
+            </v-col>
+            <v-col cols="12" md="12">
+              <FormatZoneAutocomplete
+                v-model="form.zone"
+                :label="t('زون محل')"
+                :disabled="saving"
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.village"
+                :label="t('قریه محل')"
+                density="compact"
+                variant="outlined"
+                :error="hasError('village')"
+                :error-messages="getErrorMessages('village')"
+              />
+            </v-col>
+            <v-col cols="12" md="8">
+              <v-text-field
+                v-model="form.specific_place"
+                :label="t('موقعیت مشخص')"
+                density="compact"
+                variant="outlined"
+                :error="hasError('specific_place')"
+                :error-messages="getErrorMessages('specific_place')"
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.coordinates"
+                :label="t('مختصات')"
+                density="compact"
+                variant="outlined"
+                :error="hasError('coordinates')"
+                :error-messages="getErrorMessages('coordinates')"
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.lost_quantity"
+                :label="t('تعداد موارد')"
+                density="compact"
+                variant="outlined"
+                type="number"
+                :rules="[rules.nonNegativeInt]"
+                :error="hasError('lost_quantity')"
+                :error-messages="getErrorMessages('lost_quantity')"
+              />
+            </v-col>
+          </v-row>
           <v-divider class="my-4" />
 
           <!-- Section: Source & other -->

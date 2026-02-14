@@ -390,9 +390,9 @@
   const headersFT = computed(() => [
     { title: t('عکس'), key: 'picture', sortable: false },
 
+    { title: t('تخلص'), key: 'nickname' },
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
-    { title: t('تخلص'), key: 'nickname' },
 
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_district' },
@@ -406,15 +406,13 @@
     { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
     { title: t('شماره سرک فعلی'), key: 'now_street_number' },
     { title: t('شماره خانه فعلی'), key: 'now_home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('نوع خدمت'), key: 'duty_type' },
-    { title: t('تعداد دوستان'), key: 'friends_quantity' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
     { title: t('اداره/ارگان'), key: 'organ' },
-
+    { title: t('تعداد دوستان'), key: 'friends_quantity' },
     { title: t('شماره تماس'), key: 'phone_number' },
-
-    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },

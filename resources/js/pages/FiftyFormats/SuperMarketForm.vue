@@ -50,19 +50,6 @@
                     :error-messages="getErrorMessages('market_activity_type')"
                   />
                 </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model.number="form.daily_clientele"
-                    type="number"
-                    :label="t('مراجعین روزانه')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('daily_clientele')"
-                    :error-messages="getErrorMessages('daily_clientele')"
-                  />
-                </v-col>
-
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model.number="form.shops_quantity"
@@ -77,25 +64,13 @@
 
                 <v-col cols="12" md="3">
                   <v-text-field
-                    v-model.number="form.employee_quantity"
+                    v-model.number="form.daily_clientele"
                     type="number"
-                    :label="t('تعداد کارمندان')"
+                    :label="t('مراجعین روزانه')"
                     variant="outlined"
                     density="compact"
-                    :error="hasError('employee_quantity')"
-                    :error-messages="getErrorMessages('employee_quantity')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model.number="form.guard_quantity"
-                    type="number"
-                    :label="t('تعداد محافظ')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('guard_quantity')"
-                    :error-messages="getErrorMessages('guard_quantity')"
+                    :error="hasError('daily_clientele')"
+                    :error-messages="getErrorMessages('daily_clientele')"
                   />
                 </v-col>
               </v-row>
@@ -127,7 +102,15 @@
                     :error-messages="getErrorMessages('responsible_f_name')"
                   />
                 </v-col>
-
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.responsible_job"
+                    :label="t(' موقف مسؤول')"
+                    variant="outlined"
+                    density="compact"
+                    inputmode="numeric"
+                  />
+                </v-col>
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.responsible_phone"
@@ -138,15 +121,6 @@
                     :rules="[rules.phone10]"
                     :error="hasError('responsible_phone')"
                     :error-messages="getErrorMessages('responsible_phone')"
-                  />
-                </v-col>
-                <v-col cols="12" md="3">
-                  <v-text-field
-                    v-model="form.responsible_job"
-                    :label="t(' موقف مسؤول')"
-                    variant="outlined"
-                    density="compact"
-                    inputmode="numeric"
                   />
                 </v-col>
               </v-row>
@@ -210,7 +184,30 @@
               </v-row>
             </v-col>
           </v-row>
+          <v-row>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model.number="form.employee_quantity"
+                type="number"
+                :label="t('تعداد کارمندان')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('employee_quantity')"
+                :error-messages="getErrorMessages('employee_quantity')"
+              />
+            </v-col>
 
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model.number="form.guard_quantity"
+                type="number"
+                :label="t('تعداد محافظ')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('guard_quantity')"
+                :error-messages="getErrorMessages('guard_quantity')"
+              /> </v-col
+          ></v-row>
           <v-divider class="my-4" />
 
           <!-- Extra fields -->

@@ -153,7 +153,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="4">
+                <!-- <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.street_number"
                     :label="t('شماره سرک')"
@@ -162,7 +162,7 @@
                     :error="hasError('street_number')"
                     :error-messages="getErrorMessages('street_number')"
                   />
-                </v-col>
+                </v-col> -->
 
                 <v-col cols="12" md="8">
                   <v-text-field

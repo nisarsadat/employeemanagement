@@ -58,6 +58,7 @@ class OldJahadiResource extends JsonResource
 
             'note' => $this->note,
             'coordinates' => $this->coordinates,
+            'jorm_history' => $this->jorm_history,
 
             'resource_id' => $this->resource_id,
             'resource_code' => $resource?->code_number,

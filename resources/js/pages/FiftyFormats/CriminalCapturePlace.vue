@@ -343,14 +343,13 @@
 
     { title: t('نوع جرم'), key: 'jorm_type' },
     { title: t('تعداد مجرمین'), key: 'criminals_quantity' },
-    { title: t('اداره'), key: 'office' },
+    { title: t('کدام اداره ګرفته'), key: 'office' },
 
     { title: t('ولایت'), key: 'province' },
     { title: t('زون'), key: 'zone' },
     { title: t('ولسوالی'), key: 'district' },
     { title: t('قریه/ناحیه'), key: 'village' },
     { title: t('موقعیت مشخص'), key: 'specefic_place' },
-
     { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },

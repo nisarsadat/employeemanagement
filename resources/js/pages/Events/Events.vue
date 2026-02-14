@@ -629,7 +629,6 @@
     { title: t('آی ډی'), key: 'id' },
     { title: t('کود منبع'), key: 'resource_display' },
     { title: t('کود کارمند'), key: 'office_employee_display' },
-    { title: t('کود کارمند واقعه گیرنده'), key: 'office_employee_akhistonky_code' },
 
     { title: t('نوعیت واقعه'), key: 'event_type' },
     { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
@@ -648,17 +647,16 @@
     { title: t('تلفات مالی'), key: 'talafat_mali' },
     { title: t('زخمی شده'), key: 'injured' },
     { title: t('کشته شده'), key: 'killed' },
-
+    { title: t('کود کارمند واقعه گیرنده'), key: 'office_employee_akhistonky_code' },
     { title: t('تفصیل'), key: 'tafseel' },
-    { title: t('همغږی'), key: 'organ' },
-    { title: t('نوت راجع به اسناد'), key: 'docs_note' },
+    { title: t('همغږی'), key: 'talks' },
     { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
     { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
     { title: t('وجه مصرف'), key: 'money_amount_words' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('ملاحظات'), key: 'note' },
-
+    { title: t('نوت راجع به اسناد'), key: 'docs_note' },
   ]);
 
   const topGroups = computed(() => [

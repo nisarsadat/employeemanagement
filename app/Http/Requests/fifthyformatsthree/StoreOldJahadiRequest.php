@@ -35,6 +35,7 @@ class StoreOldJahadiRequest extends FormRequest
             'phone_number' => ['nullable','string'],
             'tanzim' => ['nullable','string'],
             'organ' => ['nullable','string'],
+            'jorm_history' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
 
             'note' => ['nullable','string'],

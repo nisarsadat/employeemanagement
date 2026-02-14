@@ -379,16 +379,14 @@ const headersFT = computed(() => [
 
   { title: t('موقعیت مشخص'), key: 'specific_place' },
   { title: t('مختصات'), key: 'coordinates' },
-
-  { title: t('تعداد محافظین'), key: 'guard_quantity' },
   { title: t('د کومو ادارو معاشات تادیه کوی'), key: 'which_offices_sallary' },
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
-  { title: t('یادداشت'), key: 'note', width: 300 },
+  { title: t('تعداد محافظین'), key: 'guard_quantity' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
   { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('یادداشت'), key: 'note'},
 ]);
 
 /* TOP GROUPS */

@@ -40,6 +40,8 @@ return new class extends Migration
             // History / Notes
             $table->longText('history_jorm')->nullable();
             $table->longText('note')->nullable();
+            $table->longText('supplier')->nullable();
+            $table->longText('takhlof_type')->nullable();
             $table->longText('coordinates')->nullable();
             $table->string('Province_addr')->nullable();
 

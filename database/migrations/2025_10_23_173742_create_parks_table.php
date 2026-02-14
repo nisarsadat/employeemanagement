@@ -26,6 +26,7 @@ return new class extends Migration {
             $table->string('coordinates')->nullable();
 
             $table->integer('employee_quantity')->nullable();
+            $table->integer('guard_quantity')->nullable();
             $table->string('Province_addr')->nullable();
 
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();

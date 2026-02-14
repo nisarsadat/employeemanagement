@@ -407,12 +407,8 @@ const headersFT = computed(() => [
   { title: t('موقعیت مشخص'), key: 'specefic_place' },
   { title: t('نمبر سرک'), key: 'street_number' },
   { title: t('نمبر خانه'), key: 'home_number' },
-
-  { title: t('تعداد محافظ'), key: 'guard_quantity' },
-
-
   { title: t('مختصات'), key: 'coordinates' },
-
+  { title: t('تعداد محافظ'), key: 'guard_quantity' },
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 

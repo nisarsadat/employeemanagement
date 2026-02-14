@@ -366,12 +366,10 @@ const headersFT = computed(() => [
   { title: t('زون'), key: 'zone' },
   { title: t('ولسوالی'), key: 'district' },
   { title: t('قریه'), key: 'village' },
-
   { title: t('موقعیت مشخص'), key: 'specific_place' },
   { title: t('مختصات'), key: 'coordinate' },
+
   { title: t('راه‌ها'), key: 'ways' },
-
-
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },

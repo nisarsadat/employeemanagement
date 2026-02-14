@@ -35,6 +35,7 @@ return new class extends Migration {
 
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
+            $table->string('friends_quantity')->nullable();
 
             $table->foreignId('resource_id')
                 ->nullable()

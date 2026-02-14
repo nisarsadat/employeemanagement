@@ -405,11 +405,10 @@
     { title: t('ولسوالی'), key: 'district' },
     { title: t('قریه'), key: 'village' },
     { title: t('موقعیت مشخص'), key: 'specefic_place' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('تعداد کارمندان'), key: 'employee_quantity' },
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
-
-    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },

@@ -37,6 +37,7 @@ class RobbersResource extends JsonResource
             'coordinates'        => $model->coordinates,
 
             'note'                => $model->note,
+            'friends_quantity'    => $model->friends_quantity,
 
             // FK (for saving)
             'resource_id'         => $model->resource_id,

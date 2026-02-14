@@ -145,16 +145,7 @@
                 :error-messages="getErrorMessages('responsible_f_name')"
               />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.responsible_country"
-                :label="t('کشور مسؤول')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('responsible_country')"
-                :error-messages="getErrorMessages('responsible_country')"
-              />
-            </v-col>
+          
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.responsible_possition"
@@ -163,6 +154,16 @@
                 density="compact"
                 :error="hasError('responsible_possition')"
                 :error-messages="getErrorMessages('responsible_possition')"
+              />
+            </v-col>
+              <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.responsible_country"
+                :label="t('کشور مسؤول')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('responsible_country')"
+                :error-messages="getErrorMessages('responsible_country')"
               />
             </v-col>
             <v-col cols="12" md="12">
@@ -238,6 +239,17 @@
                 :error-messages="getErrorMessages('home_number')"
               />
             </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.coordinates"
+                :label="t('مختصات')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('coordinates')"
+                :error-messages="getErrorMessages('coordinates')"
+              />
+            </v-col>
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model.number="form.guard_quantity"
@@ -250,17 +262,7 @@
                 :error-messages="getErrorMessages('guard_quantity')"
               />
             </v-col>
-            <v-col cols="12" md="12">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
-
+            
             <!-- <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.Province_addr"

@@ -419,15 +419,16 @@ const headersFT = computed(() => [
   { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
   { title: t('سرک # فعلی'), key: 'now_street_number' },
   { title: t('خانه # فعلی'), key: 'now_home_number' },
+  { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('وظیفه قبلی'), key: 'old_job' },
   { title: t('وظیفه فعلی'), key: 'now_job' },
+  { title: t('تعداد دوستان'), key: 'friends_quantity' },
   { title: t('تمویل‌کننده'), key: 'supplier' },
 
   { title: t('شماره تماس'), key: 'phone_number' },
   { title: t('تاریخچه/فورم'), key: 'history_form' },
 
-  { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },

@@ -426,8 +426,8 @@ const filteredRowsFT = computed(() => {
 /* TABLE HEADERS */
 const headersFT = computed(() => [
   { title: t('تصویر'), key: 'picture', sortable: false },
-  { title: t('نام'), key: 'name' },
   { title: t('نام مستعار'), key: 'nickname' },
+  { title: t('نام'), key: 'name' },
   { title: t('نام پدر'), key: 'father_name' },
 
   { title: t('ولایت اصلی'), key: 'main_province' },
@@ -440,10 +440,11 @@ const headersFT = computed(() => [
   { title: t('موقعیت فعلی مشخص'), key: 'now_specific_place' },
   { title: t('سرک فعلی'), key: 'now_street_number' },
   { title: t('خانه فعلی'), key: 'now_home_number' },
+  { title: t('مختصات'), key: 'coordinates' },
 
-  { title: t('ولایت'), key: 'province' },
-  { title: t('زون'), key: 'zone' },
-  { title: t('ولسوالی'), key: 'district' },
+  { title: t('ولایت احتمالی'), key: 'province' },
+  { title: t('زون احتمالی'), key: 'zone' },
+  { title: t('ولسوالی احتمالی'), key: 'district' },
 
   { title: t('وظیفه قبلی'), key: 'old_job' },
   { title: t('جرم'), key: 'jorm' },
@@ -455,7 +456,6 @@ const headersFT = computed(() => [
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
-  { title: t('مختصات'), key: 'coordinates' },
   { title: t('نقشه'), key: 'map', sortable: false },
   { title: t('یادداشت'), key: 'note' },
 

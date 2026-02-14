@@ -132,14 +132,8 @@
               />
             </v-col>
             <v-col cols="12" md="6">
-               <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون')"
-                    :disabled="saving"
-                  />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
             </v-col>
-
-          
 
             <v-col cols="12" md="6">
               <v-text-field
@@ -160,6 +154,16 @@
                 density="compact"
                 :error="hasError('specefic_place')"
                 :error-messages="getErrorMessages('specefic_place')"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.coordinates"
+                :label="t('مختصات')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('coordinates')"
+                :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
           </v-row>
@@ -208,17 +212,6 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col> -->
-
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
 
             <!-- Resource mapping -->
             <v-col cols="12" md="4">

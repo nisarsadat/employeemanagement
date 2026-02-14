@@ -369,15 +369,14 @@ const headersFT = computed(() => [
   { title: t('نوع دکان'), key: 'shop_type' },
   { title: t('نوع شک'), key: 'mashkok_type' },
 
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
-  { title: t('یادداشت'), key: 'note'},
   { title: t('تفصیل'), key: 'tafseel'},
 
   { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('یادداشت'), key: 'note'},
 ]);
 
 /* TOP GROUPS */

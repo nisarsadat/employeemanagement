@@ -92,6 +92,16 @@
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
+                    v-model="form.nickname"
+                    :label="t('نام مستعار')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('nickname')"
+                    :error-messages="getErrorMessages('nickname')"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
                     v-model="form.name"
                     :label="t('نام *')"
                     variant="outlined"
@@ -99,17 +109,6 @@
                     :rules="[rules.required]"
                     :error="hasError('name')"
                     :error-messages="getErrorMessages('name')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.nickname"
-                    :label="t('نام مستعار')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('nickname')"
-                    :error-messages="getErrorMessages('nickname')"
                   />
                 </v-col>
 
@@ -208,23 +207,29 @@
                     :error-messages="getErrorMessages('now_home_number')"
                   />
                 </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.coordinates"
+                    :label="t('مختصات')"
+                    variant="outlined"
+                    density="compact"
+                    :rules="[rules.coordinatesOptional]"
+                    :error="hasError('coordinates')"
+                    :error-messages="getErrorMessages('coordinates')"
+                  />
+                </v-col>
               </v-row>
             </v-col>
           </v-row>
 
           <v-divider class="my-4" />
 
-          <!-- Extra fields -->
-          <div class="section-header mb-2">
-            <span class="section-title">{{ t('جزئیات اضافی، موقعیت عمومی و منبع') }}</span>
-          </div>
-
           <v-row>
             <!-- General location -->
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.province"
-                :label="t('ولایت')"
+                :label="t('ولایت احتمالی')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('province')"
@@ -232,12 +237,16 @@
               />
             </v-col>
             <v-col cols="12" md="4">
-              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون ')" :disabled="saving" />
+              <FormatZoneAutocomplete
+                v-model="form.zone"
+                :label="t('زون احتمالی')"
+                :disabled="saving"
+              />
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.district"
-                :label="t('ولسوالی')"
+                :label="t('ولسوالی احتمالی')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('district')"
@@ -286,7 +295,18 @@
                 :error-messages="getErrorMessages('lost_reason')"
               />
             </v-col>
-
+            <!-- Phone + Note -->
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.phone_number"
+                :label="t('شماره تماس')"
+                variant="outlined"
+                density="compact"
+                :rules="[rules.phone]"
+                :error="hasError('phone_number')"
+                :error-messages="getErrorMessages('phone_number')"
+              />
+            </v-col>
             <!-- Province addr + coordinates -->
             <!-- <v-col cols="12" md="4">
               <v-text-field
@@ -298,17 +318,6 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col> -->
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :rules="[rules.coordinatesOptional]"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
 
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
@@ -334,19 +343,6 @@
                 variant="outlined"
                 density="compact"
                 readonly
-              />
-            </v-col>
-
-            <!-- Phone + Note -->
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.phone_number"
-                :label="t('شماره تماس')"
-                variant="outlined"
-                density="compact"
-                :rules="[rules.phone]"
-                :error="hasError('phone_number')"
-                :error-messages="getErrorMessages('phone_number')"
               />
             </v-col>
 

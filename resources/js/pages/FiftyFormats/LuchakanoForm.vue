@@ -76,8 +76,6 @@
                     {{ t('حذف عکس') }}
                   </v-btn>
                 </div>
-
-                
               </div>
             </v-col>
           </v-row>
@@ -85,6 +83,16 @@
           <v-divider class="my-4" />
 
           <v-row>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.nickname"
+                :label="t('تخلص')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('nickname')"
+                :error-messages="getErrorMessages('nickname')"
+              />
+            </v-col>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.name"
@@ -96,16 +104,7 @@
                 :error-messages="getErrorMessages('name')"
               />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.nickname"
-                :label="t('تخلص')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('nickname')"
-                :error-messages="getErrorMessages('nickname')"
-              />
-            </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.father_name"
@@ -263,6 +262,9 @@
                 :error-messages="getErrorMessages('gun_type')"
               />
             </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field v-model="form.supplier" :label="t('حمایه کننده')" variant="outlined" />
+            </v-col>
 
             <v-col cols="12" md="12">
               <v-text-field
@@ -274,13 +276,31 @@
                 :error-messages="getErrorMessages('phone_number')"
               />
             </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.history_jorm"
+                :label="t('سابقه جرم')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('history_jorm')"
+                :error-messages="getErrorMessages('history_jorm')"
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.takhlof_type"
+                :label="t('نوع تخلف')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
           </v-row>
 
           <v-divider class="my-4" />
 
           <!-- RESOURCE + HISTORY / NOTE -->
           <div class="section-header mb-2">
-            <span class="section-title">{{ t('منبع و سوابق') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
           <v-row>
             <v-col cols="12" md="4">
@@ -306,17 +326,6 @@
                 variant="outlined"
                 density="compact"
                 readonly
-              />
-            </v-col>
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.history_jorm"
-                :label="t('سابقه جرم')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('history_jorm')"
-                :error-messages="getErrorMessages('history_jorm')"
               />
             </v-col>
 
@@ -566,6 +575,8 @@
     phone_number: '',
 
     history_jorm: '',
+    takhlof_type: '',
+    supplier: '',
     note: '',
     Province_addr: '',
 
@@ -624,6 +635,8 @@
     b.phone_number = x.phone_number ?? '';
 
     b.history_jorm = x.history_jorm ?? '';
+    b.takhlof_type = x.takhlof_type ?? '';
+    b.supplier = x.supplier ?? '';
     b.note = x.note ?? '';
     b.Province_addr = x.Province_addr ?? '';
 
@@ -764,12 +777,14 @@
       { label: t('وظیفه قبلی'), value: v(form.value.old_job) },
       { label: t('وظیفه فعلی'), value: v(form.value.job) },
       { label: t('نوع اسلحه'), value: v(form.value.gun_type) },
+      { label: t('تمیا کننده'), value: v(form.value.supplier) },
       { label: t('شماره تماس'), value: v(form.value.phone_number) },
 
       { label: t('کود منبع'), value: v(form.value.resource_code) },
       { label: t('شماره منبع'), value: v(form.value.resource_phone) },
 
       { label: t('سابقه جرم'), value: v(form.value.history_jorm) },
+      { label: t('نوع تخلف'), value: v(form.value.takhlof_type) },
       { label: t('یادداشت'), value: v(form.value.note) },
     ];
   }

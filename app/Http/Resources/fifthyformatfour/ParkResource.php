@@ -29,6 +29,7 @@ class ParkResource extends JsonResource
             'coordinates'          => $model->coordinates,
 
             'employee_quantity'    => $model->employee_quantity,
+            'guard_quantity'    => $model->guard_quantity,
             // Flattened from relation (match Fasad style)
             'resource_code'     => optional($model->resource)->code_number,
             'resource_phone'    => optional($model->resource)->phone_number,

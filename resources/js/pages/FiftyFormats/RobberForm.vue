@@ -32,6 +32,16 @@
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
+                    v-model="form.nickname"
+                    :label="t('نام مستعار')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('nickname')"
+                    :error-messages="getErrorMessages('nickname')"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
                     v-model="form.name"
                     :label="t('نام *')"
                     variant="outlined"
@@ -39,17 +49,6 @@
                     :rules="[rules.required]"
                     :error="hasError('name')"
                     :error-messages="getErrorMessages('name')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.nickname"
-                    :label="t('نام مستعار')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('nickname')"
-                    :error-messages="getErrorMessages('nickname')"
                   />
                 </v-col>
 
@@ -162,6 +161,16 @@
                     :error-messages="getErrorMessages('now_home_number')"
                   />
                 </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.coordinates"
+                    :label="t('مختصات')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('coordinates')"
+                    :error-messages="getErrorMessages('coordinates')"
+                  />
+                </v-col>
               </v-row>
             </v-col>
           </v-row>
@@ -188,6 +197,15 @@
 
             <v-col cols="12" md="3">
               <v-text-field
+                v-model="form.friends_quantity"
+                :label="t('تعداد دوستان')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+
+            <v-col cols="12" md="3">
+              <v-text-field
                 v-model="form.now_job"
                 :label="t('وظیفه فعلی')"
                 variant="outlined"
@@ -207,7 +225,18 @@
                 :error-messages="getErrorMessages('supplier')"
               />
             </v-col>
-
+            <!-- Phone with 10-digit validation -->
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.phone_number"
+                :label="t('شماره تماس')"
+                variant="outlined"
+                density="compact"
+                :rules="[rules.phoneDigits]"
+                :error="hasError('phone_number')"
+                :error-messages="getErrorMessages('phone_number')"
+              />
+            </v-col>
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.history_form"
@@ -230,30 +259,6 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col> -->
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
-
-            <!-- Phone with 10-digit validation -->
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.phone_number"
-                :label="t('شماره تماس')"
-                variant="outlined"
-                density="compact"
-                :rules="[rules.phoneDigits]"
-                :error="hasError('phone_number')"
-                :error-messages="getErrorMessages('phone_number')"
-              />
-            </v-col>
 
             <!-- Resource mapping -->
             <v-col cols="12" md="4">

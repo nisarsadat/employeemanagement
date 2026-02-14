@@ -97,6 +97,16 @@
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
+                    v-model="form.nick_name"
+                    :label="t('نام مستعار')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('nick_name')"
+                    :error-messages="getErrorMessages('nick_name')"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
                     v-model="form.name"
                     :label="t('نام *')"
                     variant="outlined"
@@ -104,17 +114,6 @@
                     :rules="[rules.required]"
                     :error="hasError('name')"
                     :error-messages="getErrorMessages('name')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.nick_name"
-                    :label="t('نام مستعار')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('nick_name')"
-                    :error-messages="getErrorMessages('nick_name')"
                   />
                 </v-col>
 
@@ -217,7 +216,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="9">
+                <v-col cols="12" md="5">
                   <v-text-field
                     v-model="form.now_home_number"
                     :label="t('شماره خانه')"
@@ -225,6 +224,16 @@
                     density="compact"
                     :error="hasError('now_home_number')"
                     :error-messages="getErrorMessages('now_home_number')"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.coordinates"
+                    :label="t('مختصات')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('coordinates')"
+                    :error-messages="getErrorMessages('coordinates')"
                   />
                 </v-col>
               </v-row>
@@ -363,17 +372,6 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col> -->
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
 
             <!-- Resource mapping -->
             <v-col cols="12" md="4">

@@ -27,6 +27,7 @@ class UpdateParkRequest extends FormRequest
             'coordinates'           => ['sometimes','nullable','string'],
 
             'employee_quantity'     => ['sometimes','nullable','integer'],
+            'guard_quantity'     => ['sometimes','nullable','integer'],
 
             'resource_id'           => ['sometimes','nullable','integer','exists:resources,id'],
             'notes'                 => ['sometimes','nullable','string'],

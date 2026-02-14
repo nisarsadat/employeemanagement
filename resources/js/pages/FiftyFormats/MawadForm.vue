@@ -286,7 +286,7 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.history_form"
                 :label="t('تاریخچه/فورم')"
@@ -295,19 +295,10 @@
                 hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.supplier"
                 :label="t('تمویل‌کننده')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.note"
-                :label="t('یادداشت')"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
@@ -361,6 +352,15 @@
                 variant="outlined"
                 hide-details="auto"
                 readonly
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.note"
+                :label="t('یادداشت')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
               />
             </v-col>
           </v-row>

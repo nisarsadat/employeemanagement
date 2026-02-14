@@ -52,17 +52,6 @@
                     :error-messages="getErrorMessages('madrasa_type')"
                   />
                 </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.mazhab"
-                    :label="t('مذهب')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('mazhab')"
-                    :error-messages="getErrorMessages('mazhab')"
-                  />
-                </v-col>
               </v-row>
 
               <!-- Responsible -->
@@ -135,6 +124,16 @@
                     density="compact"
                     :error="hasError('tarafdari_type_responsible')"
                     :error-messages="getErrorMessages('tarafdari_type_responsible')"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.mazhab"
+                    :label="t('مذهب')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('mazhab')"
+                    :error-messages="getErrorMessages('mazhab')"
                   />
                 </v-col>
               </v-row>
