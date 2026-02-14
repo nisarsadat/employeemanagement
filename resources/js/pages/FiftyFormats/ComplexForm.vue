@@ -24,11 +24,6 @@
             <!-- Full-width form (no picture) -->
             <v-col cols="12" md="12">
               <!-- Identity / activity -->
-              <div class="section-header">
-                <span class="section-title">
-                  {{ isEdit ? t('ویرایش ریکارډ کمپلکس') : t('ایجاد ریکارډ کمپلکس') }}
-                </span>
-              </div>
 
               <v-row>
                 <v-col cols="12" md="3">
@@ -75,9 +70,7 @@
               </v-row>
 
               <!-- Flows -->
-              <div class="section-header mt-4">
-                <span class="section-title">{{ t('ورود/خروج') }}</span>
-              </div>
+
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -303,7 +296,7 @@
                     density="compact"
                     clearable
                     @update:model-value="onResourceCodeChange"
-                :rules="[rules.required]"
+                    :rules="[rules.required]"
                     :error="hasError('resource_code')"
                     :error-messages="getErrorMessages('resource_code')"
                   />
@@ -344,7 +337,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ کمپلکس') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

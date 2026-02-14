@@ -164,7 +164,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="12">
+            <v-col cols="12" md="8">
               <v-text-field
                 v-model="form.coordinates"
                 :label="t('مختصات')"
@@ -172,6 +172,18 @@
                 density="compact"
                 :error="hasError('coordinates')"
                 :error-messages="getErrorMessages('coordinates')"
+              />
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model.number="form.guard_quantity"
+                type="number"
+                :label="t('تعداد محافظین')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('guard_quantity')"
+                :error-messages="getErrorMessages('guard_quantity')"
               />
             </v-col>
           </v-row>
@@ -182,20 +194,8 @@
           <v-row>
             <v-col cols="12">
               <div class="section-header">
-                <span class="section-title">{{ t('محافظین، ولایت مربوطه و منبع') }}</span>
+                <span class="section-title">{{ t('معلومات منبع') }}</span>
               </div>
-            </v-col>
-
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model.number="form.guard_quantity"
-                type="number"
-                :label="t('تعداد محافظین')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('guard_quantity')"
-                :error-messages="getErrorMessages('guard_quantity')"
-              />
             </v-col>
 
             <!-- <v-col cols="12" md="3">
@@ -260,7 +260,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد بلاک اپارتمان') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

@@ -24,11 +24,7 @@
             <!-- Identity + addresses -->
             <v-col cols="12" md="12">
               <!-- Identity -->
-              <div class="section-header">
-                <span class="section-title">
-                  {{ isEdit ? t('ویرایش ریکارډ پارک') : t('ایجاد ریکارډ پارک') }}
-                </span>
-              </div>
+              
 
               <v-row>
                 <v-col cols="12" md="4">
@@ -182,9 +178,7 @@
           <v-divider class="my-4" />
 
           <!-- Extra fields -->
-          <div class="section-header mb-2">
-            <span class="section-title">{{ t('کارمندان، منبع و توضیحات') }}</span>
-          </div>
+          
 
           <v-row>
             <!-- Employees -->
@@ -192,7 +186,7 @@
               <v-text-field
                 v-model.number="form.employee_quantity"
                 type="number"
-                :label="t('تعداد محافطین')"
+                :label="t('تعداد محافظین')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('employee_quantity')"
@@ -264,7 +258,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ پارک') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

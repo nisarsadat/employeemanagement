@@ -21,11 +21,11 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- Identity + addresses -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">
               {{ isEdit ? t('ویرایش ریکارډ پمپ') : t('ایجاد ریکارډ پمپ') }}
             </span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="4">
@@ -43,7 +43,7 @@
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.pump_type"
-                :label="t('نوع پمپ')"
+                :label="t('مارتي/شخصي')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('pump_type')"
@@ -72,7 +72,7 @@
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.responsible_name"
-                :label="t('مسؤول')"
+                :label="t('نام مسؤول')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('responsible_name')"
@@ -272,7 +272,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ پمپ') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

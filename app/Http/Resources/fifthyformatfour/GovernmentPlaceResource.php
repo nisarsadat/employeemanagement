@@ -30,6 +30,7 @@ class GovernmentPlaceResource extends JsonResource
             'tafseel'                 => $model->tafseel,
             'amnyatee_khala'          => $model->amnyatee_khala,
             'guard_quantity'          => $model->guard_quantity,
+            'employee_quantity'          => $model->employee_quantity,
 
             // Flattened from relation (match Fasad style)
             'resource_code'     => optional($model->resource)->code_number,

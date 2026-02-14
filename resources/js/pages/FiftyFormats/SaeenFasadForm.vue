@@ -95,6 +95,16 @@
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
+                    v-model="form.nick_name"
+                    :label="t('نام مستعار')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('nick_name')"
+                    :error-messages="getErrorMessages('nick_name')"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
                     v-model="form.name"
                     :label="t('نام *')"
                     variant="outlined"
@@ -102,17 +112,6 @@
                     :rules="[rules.required]"
                     :error="hasError('name')"
                     :error-messages="getErrorMessages('name')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.nick_name"
-                    :label="t('نام مستعار')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('nick_name')"
-                    :error-messages="getErrorMessages('nick_name')"
                   />
                 </v-col>
 
@@ -215,7 +214,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="8">
+                <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.home_number"
                     :label="t('نمبر خانه')"
@@ -226,7 +225,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="12">
+                <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.coordinates"
                     :label="t('مختصات')"
@@ -283,7 +282,18 @@
                 :error-messages="getErrorMessages('friends_number')"
               />
             </v-col>
-
+            <!-- Contact -->
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.phone_number"
+                :label="t('شماره تماس')"
+                variant="outlined"
+                density="compact"
+                :rules="[rules.phone10]"
+                :error="hasError('phone_number')"
+                :error-messages="getErrorMessages('phone_number')"
+              />
+            </v-col>
             <!-- Band / band place -->
             <v-col cols="12" md="4">
               <v-text-field
@@ -330,19 +340,6 @@
               />
             </v-col>
 
-            <!-- Contact -->
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.phone_number"
-                :label="t('شماره تماس')"
-                variant="outlined"
-                density="compact"
-                :rules="[rules.phone10]"
-                :error="hasError('phone_number')"
-                :error-messages="getErrorMessages('phone_number')"
-              />
-            </v-col>
-
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
               <v-autocomplete
@@ -371,16 +368,6 @@
               />
             </v-col>
 
-            <v-col cols="12" md="12">
-              <v-text-field
-                v-model="form.note"
-                :label="t('ملاحظات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('note')"
-                :error-messages="getErrorMessages('note')"
-              />
-            </v-col>
             <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.tafseel"
@@ -481,6 +468,16 @@
                 </v-chip>
               </div>
             </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.note"
+                :label="t('ملاحظات')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('note')"
+                :error-messages="getErrorMessages('note')"
+              />
+            </v-col>
           </v-row>
 
           <!-- Actions (✅ added PDF + Word) -->
@@ -494,7 +491,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت ساعین  بالفساد') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت ساعین بالفساد') }}
               </v-btn>
 
               <v-btn

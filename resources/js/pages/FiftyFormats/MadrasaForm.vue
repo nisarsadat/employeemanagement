@@ -23,11 +23,11 @@
           <v-row>
             <v-col cols="12">
               <!-- School basic info -->
-              <div class="section-header">
+              <!-- <div class="section-header">
                 <span class="section-title">
                   {{ isEdit ? t('ویرایش ریکارډ مدرسه') : t('ایجاد ریکارډ مدرسه') }}
                 </span>
-              </div>
+              </div> -->
 
               <v-row>
                 <v-col cols="12" md="4">
@@ -269,7 +269,7 @@
 
           <!-- Extra + Resource -->
           <div class="section-header mb-2">
-            <span class="section-title">{{ t('یادداشت و منبع') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
 
           <v-row>
@@ -334,7 +334,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ مدرسه') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

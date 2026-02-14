@@ -77,7 +77,6 @@
                 :label="t('مختصات')"
                 variant="outlined"
                 density="compact"
-                hint="34.5553, 69.2075"
                 persistent-hint
                 :error="hasError('coordinates')"
                 :error-messages="getErrorMessages('coordinates')"
@@ -88,9 +87,9 @@
           <v-divider class="my-4" />
 
           <!-- Threat / Status -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">{{ t('تهدید و وضعیت') }}</span>
-          </div>
+          </div> -->
           <v-row>
             <v-col cols="12" md="3">
               <v-text-field
@@ -213,7 +212,7 @@
 
           <!-- Source & Note -->
           <div class="section-header">
-            <span class="section-title">{{ t('منبع و یادداشت') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
           <v-row>
             <!-- <v-col cols="12" md="4">
@@ -277,7 +276,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ نقطه آسیب') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

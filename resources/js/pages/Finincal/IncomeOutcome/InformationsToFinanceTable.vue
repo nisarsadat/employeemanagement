@@ -2,7 +2,7 @@
   <div class="pa-4">
     <v-card rounded="xl" class="pa-4">
       <div class="d-flex align-center justify-space-between mb-3">
-        <div class="text-h6 font-weight-bold">اطلاعات د مالی لپاره</div>
+        <div class="text-h6 font-weight-bold">د اطلاعاتو اړوند مالي حساب</div>
 
         <v-btn
           variant="outlined"
@@ -12,7 +12,7 @@
           :loading="dbRepo.loading"
           @click="fetch"
         >
-          Refresh
+          
         </v-btn>
       </div>
 
@@ -39,7 +39,7 @@
             variant="tonal"
             :color="isPaid(item) ? 'success' : 'warning'"
           >
-            {{ isPaid(item) ? 'پرداخت شده' : 'در انتظار' }}
+            {{ isPaid(item) ? 'پرداخت شوی' : 'د انتظار حالت' }}
           </v-chip>
         </template>
 
@@ -74,12 +74,12 @@ const dbRepo = useDatabaseRepository();
 const financeDialog = ref(false);
 
 const headers = [
-  { title: 'ID', key: 'id', sortable: true },
-  { title: ' منبع کوډ', key: 'resource_code_number', sortable: true },
-  { title: 'کارمندکوډ', key: 'office_employee_code_number', sortable: true },
-  { title: 'پیغام مالی', key: 'message_to_finance', sortable: false },
-  { title: 'حالت', key: 'status', sortable: false },
-  { title: 'عملیات', key: 'actions', sortable: false },
+  { title: 'ID', key: 'id', sortable: true  },
+  { title: ' د منبع کوډ', key: 'resource_code_number', sortable: true , align: 'center'},
+  { title: 'د کارمند کوډ', key: 'office_employee_code_number', sortable: true , align: 'center' },
+  { title: ' مالی پیغام', key: 'message_to_finance', sortable: false , align: 'center'},
+  { title: 'د پرداخت حالت', key: 'status', sortable: false , align: 'center'},
+  { title: 'کړنې', key: 'actions', sortable: false , align: 'center'},
 ];
 
 const informationsToFinance = computed(() => {

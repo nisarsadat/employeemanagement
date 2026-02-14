@@ -15,7 +15,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در مکتب ها...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -41,7 +41,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن مکتب جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -60,7 +60,7 @@
                 <v-icon>mdi-school</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام مکتب ها') }}</div>
+                <div class="stat-card-title">{{ t('مکتب ها') }}</div>
                 <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
@@ -357,11 +357,12 @@
     { title: t('مختصات'), key: 'coordinates' },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
-    { title: t('یادداشت'), key: 'note' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note' },
+
   ]);
 
   /* Top filter groups */

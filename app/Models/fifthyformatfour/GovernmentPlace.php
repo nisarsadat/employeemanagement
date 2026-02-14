@@ -13,6 +13,7 @@ class GovernmentPlace extends Model
         'province','zone','district','village','specefic_place','coordinates',
         'tafseel','amnyatee_khala','guard_quantity',
         'Province_addr',
+        'employee_quantity',
         'resource_id','note',
     ];
 

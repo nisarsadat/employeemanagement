@@ -740,12 +740,12 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('mashkokhomes') },
         },
         {
-          path: '/app/mashkok-home',
+          path: '/app/mashkok-home-form',
           name: 'MashkokHomeCreate',
           component: MashkokHomeForm,
         },
         {
-          path: '/app/mashkok-home/:id',
+          path: '/app/mashkok-home-form/:id',
           name: 'MashkokHomeEdit',
           props: true,
           component: MashkokHomeForm,

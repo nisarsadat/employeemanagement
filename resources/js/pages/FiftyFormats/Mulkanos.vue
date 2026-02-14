@@ -17,7 +17,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در مُلکانو...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -43,7 +43,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه ریکارډ جدید مُلکانو') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -378,9 +378,9 @@ const headersFT = computed(() => [
   { title: t('ناحیه'), key: 'nahya' },
   { title: t('کوڅه'), key: 'street' },
   { title: t('گذر'), key: 'guzar' },
-
+  { title: t('coordinates'), key: 'coordinates' },
   { title: t('تفسیر صحیح'), key: 'tafseel_sahi' },
-  { title: t('مقدار سرک'), key: 'street_amount' },
+  // { title: t('مقدار سرک'), key: 'street_amount' },
   { title: t('وظیفه قبلی'), key: 'old_job' },
   { title: t('وظیفه جدید'), key: 'new_job' },
 
@@ -390,10 +390,8 @@ const headersFT = computed(() => [
   { title: t('شماره تماس'), key: 'phone_number' },
 
   { title: t('سابقه جرم'), key: 'jorm_history' },
-  { title: t('تنظیم'), key: 'tanzim' },
+  { title: t('تنظیم/ وابستگی'), key: 'tanzim' },
 
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
-  { title: t('coordinates'), key: 'coordinates' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone_number' },

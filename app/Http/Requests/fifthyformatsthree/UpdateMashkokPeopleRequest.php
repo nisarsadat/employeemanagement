@@ -33,6 +33,7 @@ class UpdateMashkokPeopleRequest extends FormRequest
             'phone_number'      => ['nullable','string'],
             'mushkokyat_points' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
+            'mashkokyat_type' => ['nullable','string'],
 
             'note'        => ['nullable','string'],
             'tafseel'        => ['nullable','string'],

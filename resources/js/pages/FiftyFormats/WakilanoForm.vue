@@ -20,13 +20,6 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
-          <!-- Identity -->
-          <div class="section-header">
-            <span class="section-title">
-              {{ isEdit ? t('ویرایش معلومات وکیل') : t('ایجاد ریکارډ وکیل') }}
-            </span>
-          </div>
-
           <!-- ✅ PICTURE -->
           <v-row class="mt-2">
             <v-col cols="12">
@@ -75,9 +68,7 @@
                     </v-btn>
                   </div>
 
-                  <div class="text-caption text-medium-emphasis mt-1">
-                    {{ t('فرمت‌های قابل قبول: JPG/PNG/WebP') }}
-                  </div>
+                 
 
                   <input
                     ref="pictureInputRef"
@@ -236,11 +227,6 @@
             </v-col>
           </v-row>
 
-          <!-- Jobs & Home -->
-          <div class="section-header mt-4">
-            <span class="section-title">{{ t('وظایف و خانه‌ها') }}</span>
-          </div>
-
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -263,7 +249,14 @@
                 :error-messages="getErrorMessages('now_job')"
               />
             </v-col>
-
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.tanzim"
+                :label="t('تنظیم/ وابستگی/ وابستگی')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model.number="form.home_quantity"
@@ -275,13 +268,16 @@
                 :error-messages="getErrorMessages('home_quantity')"
               />
             </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model.number="form.agent_quantity"
+                type="number"
+                :label="t('تعداد نماینده ها')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
           </v-row>
-
-          <!-- Contact / History -->
-          <div class="section-header mt-4">
-            <span class="section-title">{{ t('تماس و سابقه') }}</span>
-          </div>
-
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -311,7 +307,7 @@
           </v-row>
 
           <div class="section-header mt-4">
-            <span class="section-title">{{ t('مختصات و ولایت مربوطه') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
 
           <v-row>
@@ -387,17 +383,6 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.resource_id"
-                :label="t('Resource ID')"
-                variant="outlined"
-                density="compact"
-                type="number"
-                :error="hasError('resource_id')"
-                :error-messages="getErrorMessages('resource_id')"
-              />
-            </v-col>
 
             <v-col cols="12">
               <v-text-field
@@ -422,7 +407,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn
@@ -595,6 +580,8 @@
     old_job: '',
     now_job: '',
     home_quantity: '',
+    tanzim: '',
+    agent_quantity: '',
 
     phone_number: '',
     history_form: '',
@@ -726,6 +713,8 @@
     b.old_job = x.old_job ?? '';
     b.now_job = x.now_job ?? '';
     b.home_quantity = x.home_quantity ?? '';
+    b.tanzim = x.tanzim ?? '';
+    b.agent_quantity = x.agent_quantity ?? '';
 
     b.phone_number = x.phone_number ?? '';
     b.history_form = x.history_form ?? '';
@@ -907,9 +896,11 @@
       [t('وظیفه قبلی'), form.value.old_job],
       [t('وظیفه فعلی'), form.value.now_job],
       [t('تعداد خانه'), form.value.home_quantity],
+      [t('تنظیم/ وابستگی'), form.value.tanzim],
+      [t('تعداد نماینده ها'), form.value.agent_quantity],
 
       [t('شماره تماس'), form.value.phone_number],
-      [t('سابقه/فرم'), form.value.history_form],
+      [t('سابقه جرم'), form.value.history_form],
 
       [t('مختصات'), form.value.coordinates],
       [t('ولایت مربوطه'), form.value.Province_addr],

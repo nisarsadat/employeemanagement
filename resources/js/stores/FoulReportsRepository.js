@@ -572,7 +572,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-primary">
-                <div><div class="strip-title">اطلاعات</div><div class="strip-sub">د ډول له مخې وېش</div></div>
+                <div><div class="strip-title">اطلاعات</div><div class="strip-sub"></div></div>
                 <span class="chip chip-primary">${informationsTotal}</span>
               </div>
               <div style="padding:0;">
@@ -605,7 +605,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-success">
-                <div><div class="strip-title">لیټري دوسیه</div><div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div></div>
+                <div><div class="strip-title">لیټري دوسیه</div><div class="strip-sub">د ښار دلیټري دوسیه فارمت فورمونو لنډیز</div></div>
                 <span class="chip chip-success">${formatsActive}</span>
               </div>
               <div style="padding:0;">

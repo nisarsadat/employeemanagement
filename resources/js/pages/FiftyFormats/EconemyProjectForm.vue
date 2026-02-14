@@ -24,17 +24,17 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- Identity / main info -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">
               {{ isEdit ? t('ویرایش ریکارډ پروژه اقتصادی') : t('ایجاد ریکارډ پروژه اقتصادی') }}
             </span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.name"
-                :label="t('نام پروژه *')"
+                :label="t('نام *')"
                 variant="outlined"
                 density="compact"
                 :rules="[rules.required]"
@@ -149,9 +149,9 @@
           </v-row>
 
           <!-- Stats / security -->
-          <div class="section-header mt-4">
+          <!-- <div class="section-header mt-4">
             <span class="section-title">{{ t('وضعیت امنیتی و آمار') }}</span>
-          </div>
+          </div> -->
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -190,9 +190,9 @@
           </v-row>
 
           <!-- Location / province addr / coordinates -->
-          <div class="section-header mt-4">
+          <!-- <div class="section-header mt-4">
             <span class="section-title">{{ t('موقعیت/ولایت مربوطه') }}</span>
-          </div>
+          </div> -->
           <v-row>
             <!-- <v-col cols="12" md="4">
               <v-text-field
@@ -218,7 +218,7 @@
 
           <!-- Resource mapping -->
           <div class="section-header mt-4">
-            <span class="section-title">{{ t('منبع پروژه') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
           <v-row>
             <v-col cols="12" md="4">
@@ -248,10 +248,6 @@
             </v-col>
           </v-row>
 
-          <!-- Note -->
-          <div class="section-header mt-4">
-            <span class="section-title">{{ t('یادداشت') }}</span>
-          </div>
           <v-row>
             <v-col cols="12">
               <v-text-field
@@ -276,7 +272,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ پروژه') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

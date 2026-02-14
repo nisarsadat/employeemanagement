@@ -40,7 +40,9 @@ class UpdateWakilanoRequest extends FormRequest
             'now_job'            => ['sometimes','nullable','string'],
 
             'home_quantity'      => ['sometimes','nullable','integer'],
+            'agent_quantity'      => ['sometimes','nullable','integer'],
             'phone_number'       => ['sometimes','nullable','string'],
+            'tanzim'       => ['sometimes','nullable','string'],
             'history_form'       => ['sometimes','nullable','string'],
 
             'resource_id'        => ['sometimes','nullable','integer','exists:resources,id'],

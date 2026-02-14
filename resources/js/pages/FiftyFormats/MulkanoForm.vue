@@ -22,11 +22,7 @@
       >
         <v-card class="pa-4" elevation="2">
           <!-- مشخصات اساسی -->
-          <v-row>
-            <v-col cols="12">
-              <h3 class="section-title">{{ t('مشخصات اساسی') }}</h3>
-            </v-col>
-          </v-row>
+          <v-row> </v-row>
 
           <v-row>
             <!-- picture -->
@@ -56,7 +52,9 @@
                 />
               </v-card>
             </v-col>
-
+            <v-col cols="12">
+              <h3 class="section-title">{{ t('مشخصات اساسی') }}</h3>
+            </v-col>
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.name"
@@ -100,18 +98,6 @@
                 hide-details="auto"
               />
             </v-col> -->
-
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.phone_number"
-                :label="t('شماره تماس')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.phoneOptional]"
-                inputmode="tel"
-              />
-            </v-col>
           </v-row>
 
           <!-- آدرس اصلی -->
@@ -224,7 +210,7 @@
           </v-row>
 
           <v-row class="mt-1">
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.hawza"
                 :label="t('حوزه')"
@@ -232,7 +218,7 @@
                 variant="outlined"
                 hide-details="auto"
               /> </v-col
-            ><v-col cols="12" md="4">
+            ><v-col cols="12" md="3">
               <v-text-field
                 v-model="form.nahya"
                 :label="t('ناحیه')"
@@ -240,7 +226,7 @@
                 variant="outlined"
                 hide-details="auto"
               /> </v-col
-            ><v-col cols="12" md="4">
+            ><v-col cols="12" md="3">
               <v-text-field
                 v-model="form.guzar"
                 :label="t('گذر')"
@@ -249,7 +235,7 @@
                 hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.street"
                 :label="t('کوڅه')"
@@ -258,8 +244,38 @@
                 hide-details="auto"
               />
             </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.coordinates"
+                :label="t('coordinates')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                persistent-hint
+                :rules="[rules.coordinatesOptional]"
+              />
+            </v-col>
           </v-row>
-
+          <v-row class="mt-1">
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.old_job"
+                :label="t('وظیفه قبلی')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.new_job"
+                :label="t('وظیفه جدید')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              />
+            </v-col>
+          </v-row>
           <!-- مقادیر و وظایف -->
           <v-row class="mt-2">
             <v-col cols="12">
@@ -268,7 +284,7 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="3">
+            <!-- <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.street_amount"
                 :label="t('مقدار سرک')"
@@ -278,7 +294,7 @@
                 :rules="[rules.numberOptional]"
                 inputmode="decimal"
               />
-            </v-col>
+            </v-col> -->
 
             <v-col cols="12" md="3">
               <v-text-field
@@ -303,25 +319,15 @@
                 inputmode="numeric"
               />
             </v-col>
-          </v-row>
-
-          <v-row class="mt-1">
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="3">
               <v-text-field
-                v-model="form.old_job"
-                :label="t('وظیفه قبلی')"
+                v-model="form.phone_number"
+                :label="t('شماره تماس')"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.new_job"
-                :label="t('وظیفه جدید')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+                :rules="[rules.phoneOptional]"
+                inputmode="tel"
               />
             </v-col>
           </v-row>
@@ -346,7 +352,7 @@
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.tanzim"
-                :label="t('تنظیم / وابستگی')"
+                :label="t('تنظیم/ وابستگی')"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
@@ -362,40 +368,6 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-              />
-            </v-col>
-          </v-row>
-
-          <v-row class="mt-1">
-            <v-col cols="12" md="12">
-              <v-text-field
-                v-model="form.notes"
-                :label="t('ملاحظات')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-          </v-row>
-
-          <!-- مختصات -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">{{ t('مختصات و نقشه') }}</h3>
-            </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('coordinates')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                hint="مثال: 34.1234, 69.1234"
-                persistent-hint
-                :rules="[rules.coordinatesOptional]"
               />
             </v-col>
           </v-row>
@@ -431,6 +403,17 @@
                 variant="outlined"
                 hide-details="auto"
                 readonly
+              />
+            </v-col>
+          </v-row>
+          <v-row class="mt-1">
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.notes"
+                :label="t('ملاحظات')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
               />
             </v-col>
           </v-row>
@@ -476,7 +459,7 @@
                 :loading="saving"
                 type="submit"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت مُلکانو جدید') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn color="secondary" variant="text" class="text-none" @click="resetForm">

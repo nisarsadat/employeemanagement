@@ -43,7 +43,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه ریکارډ جدید مهاجرت') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -363,16 +363,15 @@ const headersFT = computed(() => [
   { title: t('مختصات'), key: 'cordinates' },
 
   { title: t('کشور'), key: 'country' },
-  { title: t('مرد'), key: 'male_amount' },
-  { title: t('زن'), key: 'female_amount' },
+  { title: t('تعداد مرد'), key: 'male_amount' },
+  { title: t('تعداد زن'), key: 'female_amount' },
   { title: t('شماره تماس'), key: 'phone_number' },
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone_number' },
 
-  { title: t('ملاحظات'), key: 'note' },
   { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('ملاحظات'), key: 'note' },
 ]);
 
 /* TOP GROUPS */

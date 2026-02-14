@@ -30,6 +30,8 @@ class Wakilano extends Model
         'old_job',
         'now_job',
         'home_quantity',
+        'tanzim',
+        'agent_quantity',
         'phone_number',
         'history_form',
         'Province_addr',

@@ -72,7 +72,7 @@
                     </v-btn>
 
                     <div class="pic-hint">
-                      {{ t('JPG/PNG/WEBP تا 5MB') }}
+                      <!-- {{ t('JPG/PNG/WEBP تا 5MB') }} -->
                     </div>
                   </div>
                 </div>
@@ -81,7 +81,7 @@
 
             <v-col cols="12" md="9">
               <v-row>
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.mawad_type"
                     :label="t('نوع مواد')"
@@ -91,7 +91,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.nickname"
                     :label="t('نام مستعار')"
@@ -101,7 +101,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.name"
                     :label="t('نام')"
@@ -113,7 +113,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.father_name"
                     :label="t('نام پدر')"
@@ -261,7 +261,6 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-                hint="مثال: 34.1234, 69.1234"
                 persistent-hint
                 :rules="[rules.coordinatesOptional]"
               />
@@ -407,7 +406,7 @@
                 :loading="saving"
                 type="submit"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت مواد جدید') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn color="secondary" variant="text" class="text-none" @click="resetForm">

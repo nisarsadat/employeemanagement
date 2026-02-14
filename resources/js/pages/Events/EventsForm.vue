@@ -14,9 +14,9 @@
           <span class="text-caption text-medium-emphasis stepper-caption">
             {{ t('مراحل خانه پری فرم واقعه') }}
           </span>
-          <span class="text-caption text-primary font-weight-medium stepper-caption">
+          <!-- <span class="text-caption text-primary font-weight-medium stepper-caption">
             {{ t('۳ بخش اصلی') }}
-          </span>
+          </span> -->
         </div>
 
         <div class="stepper-track-wrapper">
@@ -131,9 +131,9 @@
                   {{ t('معلومات عمومی واقعه') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('نوعیت واقعه، منبع، کارمند دفتر، هدف و مجرم را مشخص کنید.') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
 
@@ -156,7 +156,7 @@
                   :items="resourceCodeItems"
                   item-title="display"
                   item-value="id"
-                  :label="t('منبع')"
+                  :label="t('کود منبع')"
                   density="compact"
                   variant="outlined"
                   clearable
@@ -172,7 +172,7 @@
                   :items="officeEmployeesCodeItems"
                   item-title="display"
                   item-value="id"
-                  :label="t('کارمند دفتر')"
+                  :label="t('کود کارمند')"
                   density="compact"
                   variant="outlined"
                   clearable
@@ -199,7 +199,7 @@
               <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.target_person"
-                  :label="t('هدف کی بود/مکان بود؟')"
+                  :label="t('هدف کی بود؟/مکان بود؟')"
                   density="compact"
                   variant="outlined"
                   :error="hasError('target_person')"
@@ -211,7 +211,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.criminal"
-                  :label="t('کی جرم را انجام داده؟')"
+                  :label="t('انجام دهنده جرم')"
                   density="compact"
                   variant="outlined"
                   :error="hasError('criminal')"
@@ -222,7 +222,7 @@
 
             <!-- تفصیل / وضاحت -->
             <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.tafseel"
                   :label="t('تفصیل')"
@@ -232,10 +232,10 @@
                   :error-messages="getErrorMessages('tafseel')"
                 />
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.talks"
-                  :label="t('وضاحت/تشریحات')"
+                  :label="t('هم‌آهنگی')"
                   density="compact"
                   variant="outlined"
                   :error="hasError('talks')"
@@ -254,9 +254,9 @@
                   {{ t('زمان و مکان واقعه') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('تاریخ، ساعت، زون، حوزه، محل مشخص و کوردینات را درج کنید.') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
 
@@ -333,62 +333,6 @@
               </v-col>
             </v-row>
           </v-sheet>
-          <!-- FINANCE SECTION -->
-          <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
-            <div class="section-header">
-              <div class="d-flex align-center">
-                <v-icon class="ml-2 section-icon">mdi-cash-multiple</v-icon>
-                <span class="text-subtitle-2 font-weight-medium section-title">
-                  {{ t('معلومات مالی') }}
-                </span>
-              </div>
-              <span class="section-subtitle text-caption">
-                {{ t('حساب و جزئیات مالی مربوط به واقعه') }}
-              </span>
-            </div>
-
-            <v-divider />
-
-            <v-row class="pa-3">
-              <v-col cols="12" md="12">
-                <v-autocomplete
-                  v-model="form.account_id"
-                  :items="accountItems"
-                  item-title="display"
-                  item-value="id"
-                  :label="t('حساب')"
-                  density="compact"
-                  variant="outlined"
-                  clearable
-                  :error="hasError('account_id')"
-                  :error-messages="getErrorMessages('account_id')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.message_to_finance"
-                  :label="t('مسج مالی بخش ته')"
-                  type="number"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('message_to_finance')"
-                  :error-messages="getErrorMessages('message_to_finance')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.money_amount_words"
-                  :label="t('مقدار په حروف')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('money_amount_words')"
-                  :error-messages="getErrorMessages('money_amount_words')"
-                />
-              </v-col>
-            </v-row>
-          </v-sheet>
 
           <!-- SECTION 3: تلفات، اسناد، ملاحظات -->
           <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
@@ -399,9 +343,9 @@
                   {{ t('تلفات، اسناد و ملاحظات') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('تلفات جانی و مالی، اسناد ضمیمه و ملاحظات را درج کنید.') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
 
@@ -544,6 +488,62 @@
                   :label="t('نوت راجع به اسناد')"
                   density="compact"
                   variant="outlined"
+                />
+              </v-col>
+            </v-row>
+          </v-sheet>
+          <!-- FINANCE SECTION -->
+          <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
+            <div class="section-header">
+              <div class="d-flex align-center">
+                <v-icon class="ml-2 section-icon">mdi-cash-multiple</v-icon>
+                <span class="text-subtitle-2 font-weight-medium section-title">
+                  {{ t('معلومات مالی') }}
+                </span>
+              </div>
+              <!-- <span class="section-subtitle text-caption">
+                {{ t('حساب و جزئیات مالی مربوط به واقعه') }}
+              </span> -->
+            </div>
+
+            <v-divider />
+
+            <v-row class="pa-3">
+              <v-col cols="12" md="12">
+                <v-autocomplete
+                  v-model="form.account_id"
+                  :items="accountItems"
+                  item-title="display"
+                  item-value="id"
+                  :label="t('حساب')"
+                  density="compact"
+                  variant="outlined"
+                  clearable
+                  :error="hasError('account_id')"
+                  :error-messages="getErrorMessages('account_id')"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.message_to_finance"
+                  :label="t('مسج مالی بخش ته')"
+                  type="number"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('message_to_finance')"
+                  :error-messages="getErrorMessages('message_to_finance')"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.money_amount_words"
+                  :label="t('مقدار په حروف')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('money_amount_words')"
+                  :error-messages="getErrorMessages('money_amount_words')"
                 />
               </v-col>
             </v-row>

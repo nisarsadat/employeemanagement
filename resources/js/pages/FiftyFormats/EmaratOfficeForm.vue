@@ -26,11 +26,11 @@
             <!-- Fields -->
             <v-col cols="12" md="12">
               <!-- Address -->
-              <div class="section-header">
+              <!-- <div class="section-header">
                 <span class="section-title">
                   {{ isEdit ? t('ویرایش ریکارډ امارت آفس') : t('ایجاد ریکارډ امارت آفس') }}
                 </span>
-              </div>
+              </div> -->
 
               <v-row>
                 <v-col cols="12" md="12">
@@ -98,9 +98,9 @@
               </v-row>
 
               <!-- Office details -->
-              <div class="section-header mt-4">
+              <!-- <div class="section-header mt-4">
                 <span class="section-title">{{ t('جزئیات امارت آفس') }}</span>
-              </div>
+              </div> -->
 
               <v-row>
                 <v-col cols="12" md="4">
@@ -178,7 +178,7 @@
 
           <!-- Resource + Note -->
           <div class="section-header mb-2">
-            <span class="section-title">{{ t('ملاحظات و منبع') }}</span>
+            <span class="section-title">{{ t('منبع معلومات') }}</span>
           </div>
 
           <v-row>
@@ -232,7 +232,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ امارت آفس') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
               <v-btn
                 color="secondary"

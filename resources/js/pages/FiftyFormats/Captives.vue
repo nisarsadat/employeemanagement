@@ -14,7 +14,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در اسیر/گرفتار...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -40,7 +40,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -394,8 +394,8 @@
   /* TABLE HEADERS – ALL INPUTS + map */
   const headersFT = computed(() => [
     { title: t('تصویر'), key: 'picture', sortable: false },
-    { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },
+    { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
 
     { title: t('ولایت اصلی'), key: 'main_province' },
@@ -410,6 +410,7 @@
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('سرک #'), key: 'street_number' },
     { title: t('خانه #'), key: 'home_number' },
+    { title: t('coordinates'), key: 'coordinates' },
 
     { title: t('فرم مشخص'), key: 'specific_form' },
     { title: t('فاصله بانډ'), key: 'band_distince' },
@@ -420,11 +421,10 @@
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
 
-    { title: t('ملاحظات'), key: 'note', width: 300 },
     { title: t('ولایت مربوطه'), key: 'Province_addr' },
-    { title: t('coordinates'), key: 'coordinates' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('ملاحظات'), key: 'note' },
   ]);
 
   /* TOP GROUPS – همه فیلدها گروپ شده */

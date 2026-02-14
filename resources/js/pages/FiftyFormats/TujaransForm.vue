@@ -71,14 +71,7 @@
 
           <!-- Identity -->
           <v-row>
-            <v-col cols="12">
-              <div class="section-header">
-                <span class="section-title">
-                  {{ isEdit ? t('ویرایش معلومات تاجر') : t('ایجاد معلومات تاجر جدید') }}
-                </span>
-              </div>
-            </v-col>
-
+           
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.name"
@@ -275,7 +268,7 @@
               <v-select
                 v-model="form.people_type"
                 :items="typetujaran"
-                :label="t('نوع افراد')"
+                :label="t('قسمت افراد')"
                 variant="outlined"
                 density="compact"
                 clearable
@@ -351,7 +344,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ تاجر') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn
@@ -450,7 +443,7 @@
     successMessage.value = message;
     showSuccess.value = true;
   }
-  const typetujaran = computed(() => [t('علما'), t('متنفذین'), t('عالي رتبه'), t('تجاران')]);
+  const typetujaran = computed(() => [t('علما'), t('متنفذین'), t('عالي رتبه'), 'تجاران']);
 
   /* BACKEND ERRORS */
   const backendErrors = ref({});

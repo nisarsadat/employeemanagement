@@ -1,10 +1,7 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
-    <AppBar
-      :title="t('دانشگاه')"
-      :subtitle="t('فهرست، جستجو و مدیریت دانشگاه‌ها')"
-    >
+    <AppBar :title="t('دانشگاه')" :subtitle="t('فهرست، جستجو و مدیریت دانشگاه‌ها')">
       <template #actions>
         <v-btn icon />
       </template>
@@ -17,7 +14,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در دانشگاه‌ها...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -43,7 +40,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن دانشگاه جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -62,10 +59,8 @@
                 <v-icon>mdi-school</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام دانشگاه‌ها') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('مجموع') }}: {{ stats.total }}
-                </div>
+                <div class="stat-card-title">{{ t('دانشگاه') }}</div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
           </v-card>
@@ -84,9 +79,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -105,9 +98,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای شماره تماس مسوول') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withPhone }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withPhone }}</div>
               </div>
             </div>
           </v-card>
@@ -126,9 +117,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای شاگردان ثبت‌شده') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withStudents }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withStudents }}</div>
               </div>
             </div>
           </v-card>
@@ -173,11 +162,7 @@
       <!-- تصویر -->
       <template #cell-picture="{ row }">
         <div v-if="row.picture" class="pic-wrap">
-          <v-avatar
-            size="32"
-            class="cursor-pointer"
-            @click.stop="openPreview(row.picture)"
-          >
+          <v-avatar size="32" class="cursor-pointer" @click.stop="openPreview(row.picture)">
             <v-img :src="normalizePicture(row.picture)" :alt="row.uni_name" cover />
           </v-avatar>
         </div>
@@ -226,12 +211,7 @@
           <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده دانشگاه')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -428,14 +408,12 @@
     { title: t('شماره خانه'), key: 'home_number' },
 
     { title: t('مختصات'), key: 'coordinates' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
-    { title: t('یادداشت'), key: 'note', width: 300 },
-
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note' },
   ]);
 
   /* TOP GROUPS – برای FilterableTable */

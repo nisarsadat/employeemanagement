@@ -23,16 +23,13 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <v-row>
+            <!-- 🖼 Picture -->
+            <div class="section-header mt-4">
+              <span class="section-title">{{ t('عکس') }}</span>
+            </div>
+
             <!-- Identity + addresses -->
             <v-col cols="12">
-              <!-- Identity -->
-              <div class="section-header">
-                <span class="section-title">
-                  {{
-                    isEdit ? t('ویرایش ریکارډ اشخاص غیرمسؤول') : t('ایجاد ریکارډ اشخاص غیرمسؤول')
-                  }}
-                </span>
-              </div>
               <v-row>
                 <v-col cols="12" md="6">
                   <v-file-input
@@ -49,7 +46,7 @@
                     @update:model-value="onPickPicture"
                   />
                   <div class="text-caption mt-1 opacity-70">
-                    {{ t('فرمت‌های مجاز: JPG/PNG. اندازه مناسب: تا 5MB') }}
+                    <!-- {{ t('فرمت‌های مجاز: JPG/PNG. اندازه مناسب: تا 5MB') }} -->
                   </div>
                 </v-col>
 
@@ -88,6 +85,15 @@
                   </div>
                 </v-col>
               </v-row>
+              <!-- Identity -->
+              <div class="section-header">
+                <span class="section-title">
+                  {{
+                    isEdit ? t('ویرایش ریکارډ اشخاص غیرمسؤول') : t('ایجاد ریکارډ اشخاص غیرمسؤول')
+                  }}
+                </span>
+              </div>
+
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -123,11 +129,6 @@
                   />
                 </v-col>
               </v-row>
-
-              <!-- 🖼 Picture -->
-              <div class="section-header mt-4">
-                <span class="section-title">{{ t('عکس') }}</span>
-              </div>
 
               <!-- Main address -->
               <div class="section-header mt-4">
@@ -426,7 +427,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ اشخاص غیرمسؤول') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

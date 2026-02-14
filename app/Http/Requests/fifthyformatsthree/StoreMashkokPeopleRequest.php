@@ -32,6 +32,7 @@ class StoreMashkokPeopleRequest extends FormRequest
             'now_job'           => ['nullable','string'],
             'phone_number'      => ['nullable','string'],
             'mushkokyat_points' => ['nullable','string'],
+            'mashkokyat_type' => ['nullable','string'],
             'Province_addr' => ['nullable','string'],
 
             'note'        => ['nullable','string'],

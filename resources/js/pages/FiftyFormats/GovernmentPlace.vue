@@ -19,7 +19,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در ادارات دولتی...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -45,7 +45,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن اداره جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -64,7 +64,7 @@
                 <v-icon>mdi-city-variant</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام ادارات') }}</div>
+                <div class="stat-card-title">{{ t('ادارات دولتی') }}</div>
                 <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
@@ -399,7 +399,6 @@ const filteredRowsFT = computed(() => {
 
 /* TABLE HEADERS – list */
 const headersFT = computed(() => [
-  { title: t('تصویر'), key: 'picture', sortable: false },
 
   { title: t('نام اداره دولتی'), key: 'government_place_name' },
   { title: t('مراجعین روزانه'), key: 'daily_clientele' },
@@ -415,19 +414,20 @@ const headersFT = computed(() => [
   { title: t('قریه'), key: 'village' },
   { title: t('موقعیت مشخص'), key: 'specefic_place' },
 
-  { title: t('تفصیل'), key: 'tafseel', width: 250 },
+  { title: t('تفصیل کامره های امنیتی'), key: 'tafseel' },
   { title: t('خلای امنیتی'), key: 'amnyatee_khala' },
   { title: t('تعداد محافظ'), key: 'guard_quantity' },
+  { title: t('تعداد کامندان'), key: 'employee_quantity' },
 
   { title: t('مختصات'), key: 'coordinates' },
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
-  { title: t('یادداشت'), key: 'note', width: 300 },
 
   { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('یادداشت'), key: 'note'},
+
 ]);
 
 /* TOP GROUPS */

@@ -23,11 +23,6 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- Identity -->
-          <div class="section-header">
-            <span class="section-title">
-              {{ isEdit ? t('ویرایش ریکارډ محل دیپلوماتیک') : t('ایجاد ریکارډ محل دیپلوماتیک') }}
-            </span>
-          </div>
 
           <v-row>
             <v-col cols="12" md="3">
@@ -213,7 +208,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.specefic_place"
                 :label="t('موقعیت مشخص')"
@@ -223,7 +218,7 @@
                 :error-messages="getErrorMessages('specefic_place')"
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.street_number"
                 :label="t('نمبر سرک')"
@@ -233,7 +228,7 @@
                 :error-messages="getErrorMessages('street_number')"
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.home_number"
                 :label="t('نمبر خانه')"
@@ -243,7 +238,18 @@
                 :error-messages="getErrorMessages('home_number')"
               />
             </v-col>
-
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model.number="form.guard_quantity"
+                type="number"
+                :label="t('تعداد محافظ')"
+                variant="outlined"
+                density="compact"
+                :rules="[rules.nonNegativeInt]"
+                :error="hasError('guard_quantity')"
+                :error-messages="getErrorMessages('guard_quantity')"
+              />
+            </v-col>
             <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.coordinates"
@@ -254,6 +260,7 @@
                 :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
+
             <!-- <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.Province_addr"
@@ -269,22 +276,9 @@
           <!-- Security / Resource / Note -->
           <v-divider class="my-4" />
           <div class="section-header mb-2">
-            <span class="section-title">{{ t('امنیت، منبع و یادداشت') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
           <v-row>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model.number="form.guard_quantity"
-                type="number"
-                :label="t('تعداد محافظ')"
-                variant="outlined"
-                density="compact"
-                :rules="[rules.nonNegativeInt]"
-                :error="hasError('guard_quantity')"
-                :error-messages="getErrorMessages('guard_quantity')"
-              />
-            </v-col>
-
             <v-col cols="12" md="3">
               <v-autocomplete
                 v-model="form.resource_code"
@@ -334,7 +328,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

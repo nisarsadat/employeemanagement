@@ -451,13 +451,13 @@
 
   /* navigation */
   function goCreate() {
-    router.push('/app/mashkok-home');
+    router.push('/app/mashkok-home-form');
   }
 
   function goEdit(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
-    router.push(`/app/mashkok-home/${row.id}`);
+    router.push(`/app/mashkok-home-form/${row.id}`);
   }
 
   /* delete with dialog */

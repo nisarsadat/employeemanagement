@@ -10,13 +10,7 @@
 
   <div class="fasad-page" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- TOP BAR (only for app view, hidden on print) -->
-    <div class="top-bar no-print">
-      <div>
-        <button type="button" class="top-btn" @click="downloadPdf">PDF</button>
-        <button type="button" class="top-btn" @click="downloadWord">Word</button>
-      </div>
-    </div>
-
+    
     <!-- FORM -->
     <v-container class="mt-4 form-container no-print" style="max-width: 1200px">
       <v-form
@@ -80,7 +74,7 @@
               </div>
 
               <div class="text-caption mt-2" style="color: #666">
-                {{ t('عکس در سیستم ذخیره می‌شود. (picture)') }}
+                <!-- {{ t('عکس در سیستم ذخیره می‌شود. (picture)') }} -->
               </div>
             </v-col>
 
@@ -152,7 +146,7 @@
               </div>
 
               <div class="text-caption mt-2" style="color: #666">
-                {{ t('اسناد به جدول جدا ذخیره می‌شوند. (documents[])') }}
+                <!-- {{ t('اسناد به جدول جدا ذخیره می‌شوند. (documents[])') }} -->
               </div>
             </v-col>
           </v-row>
@@ -345,7 +339,6 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-                hint="مثال: 34.1234, 69.1234"
                 persistent-hint
               />
             </v-col>
@@ -554,7 +547,7 @@
                     :loading="saving"
                     type="submit"
                   >
-                    {{ isEdit ? t('ذخیره تغییرات') : t('ثبت ریکارډ جدید') }}
+                    {{ isEdit ? t('ذخیره') : t('ثبت') }}
                   </v-btn>
 
                   <v-btn color="secondary" variant="outlined" class="text-none" @click="resetForm">

@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar :title="t('انواع اسناد')" :subtitle="t('مدیریت انواع اسناد')">
+    <AppBar :title="t('نوعیت اسناد')" :subtitle="t('مدیریت انواع اسناد')">
       <template #actions>
         <v-btn icon></v-btn>
       </template>
@@ -25,7 +25,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="search"
-            :label="t('جستجو در انواع اسناد...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -134,7 +134,7 @@ const search = ref('');
 const rows = ref([]);
 
 const headersFT = computed(() => [
-  { title: t('نام نوع سند'), key: 'name', align: 'center' },
+  { title: t('نوعیت اسناد'), key: 'name', align: 'center' },
 ]);
 
 const rowsFT = computed(() => rows.value || []);

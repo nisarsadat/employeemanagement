@@ -21,11 +21,11 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- ================= IDENTITY ================= -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">
               {{ isEdit ? t('ویرایش ریکارډ بدماش') : t('ایجاد ریکارډ بدماش') }}
             </span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="4">
@@ -290,7 +290,7 @@
             <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.jorm_type"
-                :label="t('نوع جرم')"
+                :label="t('نوع تخلف')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('jorm_type')"
@@ -321,7 +321,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ بدماش') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

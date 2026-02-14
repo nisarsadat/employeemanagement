@@ -62,7 +62,7 @@
     </v-row>
 
     <!-- ✅ Top Bar -->
-    <v-row class="align-center mb-4" dense>
+    <v-row class=" mb-4" dense>
       <v-col cols="12" md="4">
         <v-text-field
           v-model.trim="repo.Search"
@@ -97,7 +97,7 @@
         />
       </v-col>
 
-      <v-col cols="12" md="3">
+      <v-col cols="12" md="3" >
         <v-select
           v-model="selectedMonth"
           :items="monthOptions"
@@ -112,8 +112,8 @@
         />
       </v-col>
 
-      <v-col cols="12" md="2" class="text-md-right">
-        <v-btn color="primary" prepend-icon="mdi-plus" block @click="openCreate">
+      <v-col cols="12" md="2" class="text-md-right  mt-2">
+        <v-btn color="primary"  prepend-icon="mdi-plus" block @click="openCreate">
           {{ t('نوی د تيلو مصرف') }}
         </v-btn>
       </v-col>
@@ -193,228 +193,212 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
+  import { ref, reactive, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import dayjs from 'dayjs';
 
-import { useOilRepository } from '@/stores/OilRepository'
-import ExpenseOilFormDialog from './ExpenseOilFormDialog.vue'
-import FilterableTable from '@/components/FilterableTable.vue'
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
-import { useCalendar } from '../../../../composables/useCalendar'
+  import { useOilRepository } from '@/stores/OilRepository';
+  import ExpenseOilFormDialog from './ExpenseOilFormDialog.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import { useCalendar } from '../../../../composables/useCalendar';
 
-const repo = useOilRepository()
-const { t, locale } = useI18n()
+  const repo = useOilRepository();
+  const { t, locale } = useI18n();
 
-/* ===== RTL ===== */
-const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
+  /* ===== RTL ===== */
+  const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 
-function getRow(payload) {
-  return payload?.raw ?? payload
-}
+  function getRow(payload) {
+    return payload?.raw ?? payload;
+  }
 
-/* ===== Calendar (same as Finances) ===== */
-const { calendar, formatYearDisplay, toIso } = useCalendar()
+  /* ===== Calendar (same as Finances) ===== */
+  const { calendar, formatYearDisplay, toIso } = useCalendar();
 
-/* ===== Year/Month filters (values stay Gregorian) ===== */
-const selectedYear = ref(null)  // sent to backend (gregorian)
-const selectedMonth = ref(null) // sent to backend (gregorian 1..12)
+  /* ===== Year/Month filters (values stay Gregorian) ===== */
+  const selectedYear = ref(null); // sent to backend (gregorian)
+  const selectedMonth = ref(null); // sent to backend (gregorian 1..12)
 
-/* ===== ✅ Year items from backend, titles follow calendar mode ===== */
-const yearItems = ref([])
-const yearNumbers = ref([])
+  /* ===== ✅ Year items from backend, titles follow calendar mode ===== */
+  const yearItems = ref([]);
+  const yearNumbers = ref([]);
 
-function rebuildYearItems() {
-  if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return
-  yearItems.value = yearNumbers.value.map((y) => ({
-    value: y,
-    title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
-  }))
-}
+  function rebuildYearItems() {
+    if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
+    yearItems.value = yearNumbers.value.map((y) => ({
+      value: y,
+      title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+    }));
+  }
 
-async function fetchYearItemsFromRepo() {
-  const years = Array.isArray(repo.availableYears) ? repo.availableYears : []
-  yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n))
-  rebuildYearItems()
-}
+  async function fetchYearItemsFromRepo() {
+    const years = Array.isArray(repo.availableYears) ? repo.availableYears : [];
+    yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
+    rebuildYearItems();
+  }
 
-/* update year titles when calendar/locale changes (selected value stays same) */
-watch([calendar, locale], () => rebuildYearItems())
+  /* update year titles when calendar/locale changes (selected value stays same) */
+  watch([calendar, locale], () => rebuildYearItems());
 
-/* ===== ✅ Month titles follow calendar mode, values stay gregorian 1..12 ===== */
-const JALALI_MONTHS_FA = ['حمل', 'ثور', 'جوزا', 'سرطان', 'اسد', 'سنبله', 'میزان', 'عقرب', 'قوس', 'جدی', 'دلو', 'حوت']
+  /* ===== ✅ Month titles follow calendar mode, values stay gregorian 1..12 ===== */
+  const JALALI_MONTHS_FA = [
+    'حمل',
+    'ثور',
+    'جوزا',
+    'سرطان',
+    'اسد',
+    'سنبله',
+    'میزان',
+    'عقرب',
+    'قوس',
+    'جدی',
+    'دلو',
+    'حوت',
+  ];
 
-const HIJRI_QAMARI_MONTHS_FA = [
-  'محرم',
-  'صفر',
-  'ربیع‌الاول',
-  'ربیع‌الثانی',
-  'جمادی‌الاول',
-  'جمادی‌الثانی',
-  'رجب',
-  'شعبان',
-  'رمضان',
-  'شوال',
-  'ذوالقعده',
-  'ذوالحجه',
-]
+  const HIJRI_QAMARI_MONTHS_FA = [
+    'محرم',
+    'صفر',
+    'ربیع‌الاول',
+    'ربیع‌الثانی',
+    'جمادی‌الاول',
+    'جمادی‌الثانی',
+    'رجب',
+    'شعبان',
+    'رمضان',
+    'شوال',
+    'ذوالقعده',
+    'ذوالحجه',
+  ];
 
-function monthTitleFromGregorianMonth(gYear, gMonth) {
-  const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`
+  function monthTitleFromGregorianMonth(gYear, gMonth) {
+    const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
 
-  if (calendar.value === 'gregorian') {
-    try {
-      const dt = new Date(iso + 'T00:00:00')
-      return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt)
-    } catch {
-      return String(gMonth)
+    if (calendar.value === 'gregorian') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
+      } catch {
+        return String(gMonth);
+      }
     }
+
+    if (calendar.value === 'jalali') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat(locale.value, {
+          calendar: 'persian',
+          month: 'numeric',
+        });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
+      } catch {}
+      return JALALI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    if (calendar.value === 'hijri') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat('ar', {
+          calendar: 'islamic-umalqura',
+          month: 'numeric',
+        });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
+      } catch {}
+      return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    return String(gMonth);
   }
 
-  if (calendar.value === 'jalali') {
-    try {
-      const dt = new Date(iso + 'T00:00:00')
-      const fmt = new Intl.DateTimeFormat(locale.value, { calendar: 'persian', month: 'numeric' })
-      const parts = fmt.formatToParts(dt)
-      const m = Number(parts.find((p) => p.type === 'month')?.value)
-      if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1]
-    } catch {}
-    return JALALI_MONTHS_FA[(gMonth - 1) % 12]
+  const monthOptions = computed(() => {
+    const y = selectedYear.value || dayjs().year();
+    return Array.from({ length: 12 }).map((_, i) => {
+      const m = i + 1;
+      return { value: m, title: monthTitleFromGregorianMonth(y, m) };
+    });
+  });
+
+  function onYearMonthChanged() {
+    if (!selectedYear.value) selectedMonth.value = null;
+    applyFilters();
   }
 
-  if (calendar.value === 'hijri') {
-    try {
-      const dt = new Date(iso + 'T00:00:00')
-      const fmt = new Intl.DateTimeFormat('ar', { calendar: 'islamic-umalqura', month: 'numeric' })
-      const parts = fmt.formatToParts(dt)
-      const m = Number(parts.find((p) => p.type === 'month')?.value)
-      if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1]
-    } catch {}
-    return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12]
-  }
+  /* ===== Summary / Table ===== */
+  const summaryView = computed(() => {
+    const s = repo.summary || {};
 
-  return String(gMonth)
-}
+    const totalExpenseSnake = s.total_expense_quantity ?? s.filtered_expense_quantity;
+    const totalIncomeSnake = s.total_income_quantity;
+    const totalOilSnake = s.total_quantity_all_accounts;
 
-const monthOptions = computed(() => {
-  const y = selectedYear.value || dayjs().year()
-  return Array.from({ length: 12 }).map((_, i) => {
-    const m = i + 1
-    return { value: m, title: monthTitleFromGregorianMonth(y, m) }
-  })
-})
+    const totalExpenseCamel = s.totalExpense ?? s.filteredExpense;
+    const totalIncomeCamel = s.totalIncome;
+    const totalOilCamel = s.totalOilQuantity;
 
-function onYearMonthChanged() {
-  if (!selectedYear.value) selectedMonth.value = null
-  applyFilters()
-}
+    return {
+      totalExpense: Number(totalExpenseSnake ?? totalExpenseCamel ?? 0),
+      totalIncome: Number(totalIncomeSnake ?? totalIncomeCamel ?? 0),
+      totalOilQuantity: Number(totalOilSnake ?? totalOilCamel ?? 0),
+      incomeCount: Number(s.incomeCount ?? 0),
+      oilAccountsCount: Number(s.oilAccountsCount ?? 0),
+    };
+  });
 
-/* ===== Summary / Table ===== */
-const summaryView = computed(() => {
-  const s = repo.summary || {}
+  const headersFT = computed(() => [
+    { title: t('کود کارمند'), key: 'officeemployee', sortable: false },
+    { title: t('نام'), key: 'name', sortable: false },
+    { title: t('نام پدر'), key: 'father_name', sortable: false },
+    { title: t('نیټه'), key: 'date', sortable: false },
+    { title: t('لیټر په عدد'), key: 'liter_in_number', sortable: false },
+    { title: t('لیټر په حروف'), key: 'liter_in_word', sortable: false },
+    { title: t('نوعیت'), key: 'account', sortable: false },
+    { title: t('تفصیل'), key: 'tafseel', sortable: false },
+    { title: t('پرداخت کننده'), key: 'payer', sortable: false },
+    { title: t('اخیستونکی لاسلیک'), key: '', sortable: false },
+    { title: t('ملاحظات'), key: 'note', sortable: false },
+  ]);
 
-  const totalExpenseSnake = s.total_expense_quantity ?? s.filtered_expense_quantity
-  const totalIncomeSnake = s.total_income_quantity
-  const totalOilSnake = s.total_quantity_all_accounts
+  const litersRaw = (n) =>
+    Number(n ?? 0).toLocaleString(undefined, {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
+    });
 
-  const totalExpenseCamel = s.totalExpense ?? s.filteredExpense
-  const totalIncomeCamel = s.totalIncome
-  const totalOilCamel = s.totalOilQuantity
+  // ✅ IMPORTANT: keep date raw Gregorian (no formatDisplay)
+  const rowsFT = computed(() => {
+    return (repo.ExpenseOils || []).map((it, i) => ({
+      ...it,
+      idOrTmp: it?.id ?? `tmp-${i}`,
+      index: i + 1,
+      account: it?.account?.name ?? it?.account ?? '—',
+      name: it?.name ?? '—',
+      father_name: it?.father_name ?? '—',
+      officeemployee: it?.employee?.code_number ?? it?.office_employee?.code_number ?? '—',
+      payer: it?.payer ?? '—',
+      liter_in_number: litersRaw(it?.liter_in_number ?? it?.oil_quantity ?? 0),
+      date: it?.date ?? '', // ✅ raw
+      note: it?.note ?? '',
+      tafseel: it?.tafseel ?? it?.destination ?? '',
+      raw: it,
+    }));
+  });
 
-  return {
-    totalExpense: Number(totalExpenseSnake ?? totalExpenseCamel ?? 0),
-    totalIncome: Number(totalIncomeSnake ?? totalIncomeCamel ?? 0),
-    totalOilQuantity: Number(totalOilSnake ?? totalOilCamel ?? 0),
-    incomeCount: Number(s.incomeCount ?? 0),
-    oilAccountsCount: Number(s.oilAccountsCount ?? 0),
-  }
-})
+  // ✅ Finance-style filters object
+  let filters = ref({});
+  const topGroups = [];
 
-const headersFT = computed(() => [
-  { title: t('کود کارمند'), key: 'officeemployee', sortable: false },
-  { title: t('نام'), key: 'name', sortable: false },
-  { title: t('نام پدر'), key: 'father_name', sortable: false },
-  { title: t('نیټه'), key: 'date', sortable: false },
-  { title: t('لیټر په عدد'), key: 'liter_in_number', sortable: false },
-  { title: t('نوعیت'), key: 'account', sortable: false },
-  { title: t('تفصیل'), key: 'tafseel', sortable: false },
-  { title: t('پرداخت کننده'), key: 'payer', sortable: false },
-  { title: t('ملاحظات'), key: 'note', sortable: false },
-  { title: t('عملیات'), key: 'actions', sortable: false },
-])
+  const dialog = ref(false);
+  const editMode = ref(false);
 
-const litersRaw = (n) =>
-  Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-// ✅ IMPORTANT: keep date raw Gregorian (no formatDisplay)
-const rowsFT = computed(() => {
-  return (repo.ExpenseOils || []).map((it, i) => ({
-    ...it,
-    idOrTmp: it?.id ?? `tmp-${i}`,
-    index: i + 1,
-    account: it?.account?.name ?? it?.account ?? '—',
-    name: it?.name ?? '—',
-    father_name: it?.father_name ?? '—',
-    officeemployee: it?.employee?.code_number ?? it?.office_employee?.code_number ?? '—',
-    payer: it?.payer ?? '—',
-    liter_in_number: litersRaw(it?.liter_in_number ?? it?.oil_quantity ?? 0),
-    date: it?.date ?? '', // ✅ raw
-    note: it?.note ?? '',
-    tafseel: it?.tafseel ?? it?.destination ?? '',
-    raw: it,
-  }))
-})
-
-// ✅ Finance-style filters object
-let filters = ref({})
-const topGroups = []
-
-const dialog = ref(false)
-const editMode = ref(false)
-
-const deleteDialog = ref(false)
-const deleteTarget = ref(null)
-
-const draft = reactive({
-  id: null,
-  oil_account_id: null,
-  date: null,
-  name: '',
-  destination: '',
-  liter_in_number: 0,
-  note: '',
-})
-
-/* ===== Fetch / filters ===== */
-const fetchAll = async () => {
-  await repo.FetchExpenseOils({
-    page: repo.page,
-    itemsPerPage: repo.itemsPerPage,
-    search: repo.Search,
-    year: selectedYear.value,
-    month: selectedMonth.value,
-  })
-}
-
-const applyFilters = async () => {
-  repo.page = 1
-  await fetchAll()
-}
-
-const onPage = async (p) => {
-  repo.page = p || 1
-  await fetchAll()
-}
-
-const onItemsPerPage = async (pp) => {
-  repo.itemsPerPage = pp || 10
-  repo.page = 1
-  await fetchAll()
-}
-
-const openCreate = () => {
-  editMode.value = false
-  Object.assign(draft, {
+  const draft = reactive({
     id: null,
     oil_account_id: null,
     date: null,
@@ -422,79 +406,121 @@ const openCreate = () => {
     destination: '',
     liter_in_number: 0,
     note: '',
-  })
-  dialog.value = true
-}
+  });
 
-const startEdit = async (payload) => {
-  const row = getRow(payload)
-  const id = row?.id
-  if (!id) return
+  /* ===== Fetch / filters ===== */
+  const fetchAll = async () => {
+    await repo.FetchExpenseOils({
+      page: repo.page,
+      itemsPerPage: repo.itemsPerPage,
+      search: repo.Search,
+      year: selectedYear.value,
+      month: selectedMonth.value,
+    });
+  };
 
-  editMode.value = true
-  await repo.FetchExpenseOil(id)
+  const applyFilters = async () => {
+    repo.page = 1;
+    await fetchAll();
+  };
 
-  const d = repo.ExpenseOil || {}
-  Object.assign(draft, {
-    id: d.id ?? null,
-    oil_account_id: d.oil_account_id ?? d.account?.id ?? null,
-    date: d.date ?? null,
-    name: d.name ?? '',
-    destination: d.destination ?? '',
-    liter_in_number: d.liter_in_number ?? 0,
-    note: d.note ?? '',
-  })
+  const onPage = async (p) => {
+    repo.page = p || 1;
+    await fetchAll();
+  };
 
-  dialog.value = true
-}
+  const onItemsPerPage = async (pp) => {
+    repo.itemsPerPage = pp || 10;
+    repo.page = 1;
+    await fetchAll();
+  };
 
-const onSave = async (payload) => {
-  if (payload?.date) payload.date = toIso(payload.date)
+  const openCreate = () => {
+    editMode.value = false;
+    Object.assign(draft, {
+      id: null,
+      oil_account_id: null,
+      date: null,
+      name: '',
+      destination: '',
+      liter_in_number: 0,
+      note: '',
+    });
+    dialog.value = true;
+  };
 
-  if (editMode.value && payload.id) await repo.UpdateExpenseOil(payload.id, payload)
-  else await repo.CreateExpenseOil(payload)
+  const startEdit = async (payload) => {
+    const row = getRow(payload);
+    const id = row?.id;
+    if (!id) return;
 
-  dialog.value = false
-  await fetchAll()
-}
+    editMode.value = true;
+    await repo.FetchExpenseOil(id);
 
-function openDeleteDialog(payload) {
-  const row = getRow(payload)
-  if (!row?.id) return
-  deleteTarget.value = row
-  deleteDialog.value = true
-}
+    const d = repo.ExpenseOil || {};
+    Object.assign(draft, {
+      id: d.id ?? null,
+      oil_account_id: d.oil_account_id ?? d.account?.id ?? null,
+      date: d.date ?? null,
+      name: d.name ?? '',
+      destination: d.destination ?? '',
+      liter_in_number: d.liter_in_number ?? 0,
+      note: d.note ?? '',
+    });
 
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value
-  if (!row?.id) {
-    deleteDialog.value = false
-    deleteTarget.value = null
-    return
+    dialog.value = true;
+  };
+
+  const onSave = async (payload) => {
+    if (payload?.date) payload.date = toIso(payload.date);
+
+    if (editMode.value && payload.id) await repo.UpdateExpenseOil(payload.id, payload);
+    else await repo.CreateExpenseOil(payload);
+
+    dialog.value = false;
+    await fetchAll();
+  };
+
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
   }
 
-  try {
-    await repo.DeleteExpenseOil(row.id)
-    await fetchAll()
-  } finally {
-    deleteDialog.value = false
-    deleteTarget.value = null
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    if (!row?.id) {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
+    }
+
+    try {
+      await repo.DeleteExpenseOil(row.id);
+      await fetchAll();
+    } finally {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+    }
   }
-}
 
-const liters = (n) =>
-  `${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} L`
+  const liters = (n) =>
+    `${Number(n ?? 0).toLocaleString(undefined, {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
+    })} L`;
 
-/* ===== Init ===== */
-onMounted(async () => {
-  await repo.FetchYears('expense-oils') // fills repo.availableYears
-  await fetchYearItemsFromRepo()
-  await fetchAll()
-})
+  /* ===== Init ===== */
+  onMounted(async () => {
+    await repo.FetchYears('expense-oils'); // fills repo.availableYears
+    await fetchYearItemsFromRepo();
+    await fetchAll();
+  });
 </script>
 
 <style scoped>
-.icon-btn {
-  border-radius: 10px;
-}
+  .icon-btn {
+    border-radius: 10px;
+  }
 </style>

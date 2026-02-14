@@ -26,11 +26,6 @@
             <!-- Identity + address -->
             <v-col cols="12" md="12">
               <!-- Identity -->
-              <div class="section-header">
-                <span class="section-title">
-                  {{ isEdit ? t('ویرایش ریکارډ سوپرمارکیت') : t('ایجاد ریکارډ سوپرمارکیت') }}
-                </span>
-              </div>
 
               <v-row>
                 <v-col cols="12" md="6">
@@ -48,7 +43,7 @@
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model="form.market_activity_type"
-                    :label="t('نوع فعالیت')"
+                    :label="t('کدام فعالیت')"
                     variant="outlined"
                     density="compact"
                     :error="hasError('market_activity_type')"
@@ -202,6 +197,16 @@
                     :error-messages="getErrorMessages('specefic_place')"
                   />
                 </v-col>
+                <v-col cols="12" md="12">
+                  <v-text-field
+                    v-model="form.coordinates"
+                    :label="t('مختصات')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('coordinates')"
+                    :error-messages="getErrorMessages('coordinates')"
+                  />
+                </v-col>
               </v-row>
             </v-col>
           </v-row>
@@ -210,7 +215,7 @@
 
           <!-- Extra fields -->
           <div class="section-header mb-2">
-            <span class="section-title">{{ t('مختصات، منبع و سایر جزئیات') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
 
           <v-row>
@@ -224,17 +229,6 @@
                 :error-messages="getErrorMessages('Province_addr')"
               />
             </v-col> -->
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
 
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
@@ -288,7 +282,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ سوپرمارکیت') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
               <v-btn
                 color="secondary"

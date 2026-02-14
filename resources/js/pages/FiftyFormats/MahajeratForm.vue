@@ -49,7 +49,7 @@
                 hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.scientific_level"
                 :label="t('سطح علمی')"
@@ -141,13 +141,13 @@
           </v-row>
 
           <!-- موقعیت و مختصات -->
-          <v-row class="mt-2">
+          <!-- <v-row class="mt-2">
             <v-col cols="12">
               <h3 class="section-title">
                 {{ t('موقعیت و خانه/مختصات') }}
               </h3>
             </v-col>
-          </v-row>
+          </v-row> -->
 
           <v-row>
             <v-col cols="12" md="6">
@@ -187,7 +187,6 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-                hint="مثال: 34.1234, 69.1234"
                 persistent-hint
                 :rules="[rules.coordinatesOptional]"
               />
@@ -195,13 +194,13 @@
           </v-row>
 
           <!-- جزئیات مهاجرت / تعداد / تماس -->
-          <v-row class="mt-2">
+          <!-- <v-row class="mt-2">
             <v-col cols="12">
               <h3 class="section-title">
                 {{ t('مقصد مهاجرت، تعداد و تماس') }}
               </h3>
             </v-col>
-          </v-row>
+          </v-row> -->
 
           <v-row>
             <v-col cols="12" md="3">
@@ -284,13 +283,7 @@
           </v-row>
 
           <!-- ملاحظات -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('ملاحظات') }}
-              </h3>
-            </v-col>
-          </v-row>
+         
 
           <v-row>
             <v-col cols="12">
@@ -345,7 +338,7 @@
                 :loading="saving"
                 type="submit"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت مهاجرت جدید') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn color="secondary" variant="text" class="text-none" @click="resetForm">

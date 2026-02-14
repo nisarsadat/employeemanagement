@@ -21,9 +21,6 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- BASIC INFO -->
-          <div class="section-header mb-2">
-            <span class="section-title">{{ t('مشخصات اصلی') }}</span>
-          </div>
 
           <!-- ✅ PICTURE PART (added) -->
           <v-row class="mb-2">
@@ -80,9 +77,7 @@
                   </v-btn>
                 </div>
 
-                <div class="text-caption text-medium-emphasis">
-                  {{ t('فرمت‌های مجاز: JPG/PNG. عکس در زمان ذخیره آپلود می‌شود.') }}
-                </div>
+                
               </div>
             </v-col>
           </v-row>
@@ -348,7 +343,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ جدید') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

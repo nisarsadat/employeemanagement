@@ -22,13 +22,13 @@
       >
         <v-card class="pa-4" elevation="2">
           <!-- مشخصات اساسی -->
-          <v-row>
+          <!-- <v-row>
             <v-col cols="12">
               <h3 class="section-title">
                 {{ t('مشخصات اساسی') }}
               </h3>
             </v-col>
-          </v-row>
+          </v-row> -->
 
           <v-row>
             <!-- <v-col cols="12" md="4">
@@ -43,7 +43,7 @@
               />
             </v-col> -->
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.entry_way"
                 :label="t('طریق ورود/خروج')"
@@ -53,7 +53,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.way_type"
                 :label="t('نوعه طریق')"
@@ -100,7 +100,7 @@
           </v-row>
 
           <v-row>
-            <v-col cols="12" md="12">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.specific_place"
                 :label="t('موقعیت مشخص')"
@@ -109,7 +109,17 @@
                 hide-details="auto"
               />
             </v-col>
-
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.cordinate"
+                :label="t('مختصات')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                persistent-hint
+                :rules="[rules.coordinatesOptional]"
+              />
+            </v-col>
             <!-- <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.Province_addr"
@@ -183,30 +193,6 @@
             </v-col>
           </v-row>
 
-          <!-- مختصات -->
-          <v-row class="mt-2">
-            <v-col cols="12" md="12">
-              <h3 class="section-title">
-                {{ t('مختصات و نقشه') }}
-              </h3>
-            </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.cordinate"
-                :label="t('مختصات')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                hint="مثال: 34.1234, 69.1234"
-                persistent-hint
-                :rules="[rules.coordinatesOptional]"
-              />
-            </v-col>
-          </v-row>
-
           <!-- منبع -->
           <v-row class="mt-2">
             <v-col cols="12">
@@ -243,19 +229,8 @@
                 readonly
               />
             </v-col>
-          </v-row>
-
-          <!-- ملاحظات -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('ملاحظات') }}
-              </h3>
-            </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="12">
+         
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.notes"
                 :label="t('ملاحظات')"
@@ -307,7 +282,7 @@
                 :loading="saving"
                 type="submit"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت ریکارډ جدید ورود/خروج') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn color="secondary" variant="text" class="text-none" @click="resetForm">

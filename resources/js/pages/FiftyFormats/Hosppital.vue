@@ -16,7 +16,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در شفاخانه‌ها...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -42,7 +42,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن شفاخانه جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -61,7 +61,7 @@
                 <v-icon>mdi-hospital-building</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('همه شفاخانه‌ها') }}</div>
+                <div class="stat-card-title">{{ t('شفاخانه‌ها') }}</div>
                 <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
@@ -384,13 +384,13 @@ const headersFT = computed(() => [
   { title: t('کارمندان زن'), key: 'female_quantity' },
   { title: t('تعداد محافظین'), key: 'guard_quantity' },
 
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
-  { title: t('یادداشت'), key: 'note', width: 260 },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
   { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('یادداشت'), key: 'note' },
+
 ]);
 
 /* TOP GROUPS */

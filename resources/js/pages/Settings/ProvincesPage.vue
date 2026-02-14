@@ -77,7 +77,7 @@
     >
       <!-- Province name -->
       <template #cell-name="{ row }">
-        <div class="d-flex align-center">
+        <div class="">
           <v-icon size="16" class="me-1" color="primary">mdi-map</v-icon>
           <span class="text-caption">{{ row.name || '—' }}</span>
         </div>

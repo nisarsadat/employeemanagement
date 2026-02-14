@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar :title="t('ارگان‌ها')" :subtitle="t('مدیریت ارگان‌ها')">
+    <AppBar :title="t('ارگان برای گفتکو های انجام شده')" :subtitle="t('مدیریت ارگان‌ها')">
       <template #actions>
         <v-btn icon></v-btn>
       </template>

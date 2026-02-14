@@ -31,7 +31,7 @@
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.place_name"
-                :label="t('نام محل *')"
+                :label="t('ساحه که اختطاف صورت گرفته *')"
                 density="compact"
                 variant="outlined"
                 :rules="[rules.required]"
@@ -287,7 +287,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ محل') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

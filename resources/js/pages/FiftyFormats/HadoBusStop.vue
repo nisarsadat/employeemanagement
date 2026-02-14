@@ -2,10 +2,7 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
-    <AppBar
-      :title="t('ایستگاه‌های هدا')"
-      :subtitle="t('فهرست، جستجو و مدیریت ایستگاه‌های هدا')"
-    >
+    <AppBar :title="t('ایستگاه‌های هدا')" :subtitle="t('فهرست، جستجو و مدیریت ایستگاه‌های هدا')">
       <template #actions>
         <v-btn icon />
       </template>
@@ -18,7 +15,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در ایستگاه‌ها...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -44,7 +41,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن ایستگاه جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -123,9 +120,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای منبع') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withResource }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withResource }}</div>
               </div>
             </div>
           </v-card>
@@ -141,7 +136,7 @@
         :item="detail"
         :loading="loadingOne"
         title-key="name"
-        image-key="picture"        
+        image-key="picture"
         :fields="headersFT"
         :cols="3"
         :dir="isRtl ? 'rtl' : 'ltr'"
@@ -205,12 +200,7 @@
           <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده ایستگاه')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -266,292 +256,288 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FlyToMapButton from '@/components/FlyToMapButton.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-import { useSchoolRepository } from '@/stores/SchoolRepository';
+  import { useSchoolRepository } from '@/stores/SchoolRepository';
 
-const repo = useSchoolRepository();
-const router = useRouter();
+  const repo = useSchoolRepository();
+  const router = useRouter();
 
-/* i18n / RTL */
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showErrorMessage = (m) => {
-  errorMessage.value = m;
-  showError.value = true;
-};
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
+  };
 
-/* 🔗 go to Resources page for this resource_code */
-function goToResource(row) {
-  if (!row?.resource_code) return;
-  router.push(`/app/resources/${row.resource_code}`);
-}
-
-/* helper to normalize table row payload */
-const getRow = (s) => (s && s.raw ? s.raw : s);
-
-/* rows from store */
-const rowsFT = computed(() => {
-  const list = repo.HadoBusStops || [];
-  if (Array.isArray(list)) return list;
-  if (Array.isArray(list.data)) return list.data;
-  return [];
-});
-
-/* 🔢 Filter cards state */
-const cardFilter = ref('all');
-
-const stats = computed(() => {
-  const rows = rowsFT.value || [];
-  const total = rows.length;
-  const withCoordinates = rows.filter(
-    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
-  ).length;
-  const withResponsiblePhone = rows.filter(
-    (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
-  ).length;
-  const withResource = rows.filter(
-    (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
-  ).length;
-
-  return { total, withCoordinates, withResponsiblePhone, withResource };
-});
-
-const filteredRowsFT = computed(() => {
-  const base = rowsFT.value || [];
-  switch (cardFilter.value) {
-    case 'withCoordinates':
-      return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
-    case 'withResponsiblePhone':
-      return base.filter(
-        (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
-      );
-    case 'withResource':
-      return base.filter(
-        (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
-      );
-    default:
-      return base;
+  /* 🔗 go to Resources page for this resource_code */
+  function goToResource(row) {
+    if (!row?.resource_code) return;
+    router.push(`/app/resources/${row.resource_code}`);
   }
-});
 
-/* TABLE HEADERS – all fields + map + actions */
-const headersFT = computed(() => [
-  { title: t('نام ایستگاه'), key: 'name' },
-  { title: t('نوع هدا'), key: 'hada_type' },
+  /* helper to normalize table row payload */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
 
-  { title: t('نام مسئول'), key: 'responsible_name' },
-  { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
-  { title: t('وظیفه مسئول'), key: 'responsible_position' },
-  { title: t('شماره مسئول'), key: 'responsible_phone' },
+  /* rows from store */
+  const rowsFT = computed(() => {
+    const list = repo.HadoBusStops || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
+    return [];
+  });
 
-  { title: t('ولایت'), key: 'province' },
-  { title: t('زون'), key: 'zone' },
-  { title: t('ولسوالی'), key: 'district' },
-  { title: t('قریه'), key: 'village' },
+  /* 🔢 Filter cards state */
+  const cardFilter = ref('all');
 
-  { title: t('موقعیت مشخص'), key: 'specific_place' },
-  { title: t('شماره سرک'), key: 'street_number' },
-  { title: t('مختصات'), key: 'coordinates' },
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
+    const withCoordinates = rows.filter(
+      (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
+    const withResponsiblePhone = rows.filter(
+      (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
+    ).length;
+    const withResource = rows.filter(
+      (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
+    ).length;
 
-  { title: t('یادداشت'), key: 'note', width: 260 },
+    return { total, withCoordinates, withResponsiblePhone, withResource };
+  });
 
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone' },
-
-  { title: t('نقشه'), key: 'map', sortable: false },
-]);
-
-/* TOP GROUPS – for FilterableTable filters */
-const topGroups = computed(() => [
-  { title: t('مشخصات'), keys: ['name', 'hada_type'] },
-  {
-    title: t('مسئول'),
-    keys: ['responsible_name', 'responsible_f_name', 'responsible_position', 'responsible_phone'],
-  },
-  { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
-  {
-    title: t('موقعیت'),
-    keys: ['specific_place', 'street_number', 'coordinates', 'Province_addr'],
-  },
-  { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
-  { title: t('یادداشت'), keys: ['note'] },
-]);
-
-const filters = ref({});
-
-/* Peek (same logic as Heist) */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loadingOne.value = true;
-  try {
-    if (typeof repo.FetchHadoBusStopData === 'function') {
-      await repo.FetchHadoBusStopData(id);
-      const single = Array.isArray(repo.HadoBusStop) ? repo.HadoBusStop[0] : repo.HadoBusStop;
-      detail.value = single || {};
-    } else {
-      await fetchAll();
-      const list = rowsFT.value || [];
-      detail.value = list.find((r) => r.id === id) || {};
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+    switch (cardFilter.value) {
+      case 'withCoordinates':
+        return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+      case 'withResponsiblePhone':
+        return base.filter(
+          (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
+        );
+      case 'withResource':
+        return base.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '');
+      default:
+        return base;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات ایستگاه'));
-  } finally {
-    loadingOne.value = false;
+  });
+
+  /* TABLE HEADERS – all fields + map + actions */
+  const headersFT = computed(() => [
+    { title: t('نام ایستگاه'), key: 'name' },
+    { title: t('نوع هدا'), key: 'hada_type' },
+
+    { title: t('نام مسئول'), key: 'responsible_name' },
+    { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
+    { title: t('وظیفه مسئول'), key: 'responsible_position' },
+    { title: t('شماره مسئول'), key: 'responsible_phone' },
+
+    { title: t('ولایت'), key: 'province' },
+    { title: t('زون'), key: 'zone' },
+    { title: t('ولسوالی'), key: 'district' },
+    { title: t('قریه'), key: 'village' },
+
+    { title: t('موقعیت مشخص'), key: 'specific_place' },
+    { title: t('شماره سرک'), key: 'street_number' },
+    { title: t('مختصات'), key: 'coordinates' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
+
+    { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note' },
+  ]);
+
+  /* TOP GROUPS – for FilterableTable filters */
+  const topGroups = computed(() => [
+    { title: t('مشخصات'), keys: ['name', 'hada_type'] },
+    {
+      title: t('مسئول'),
+      keys: ['responsible_name', 'responsible_f_name', 'responsible_position', 'responsible_phone'],
+    },
+    { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
+    {
+      title: t('موقعیت'),
+      keys: ['specific_place', 'street_number', 'coordinates', 'Province_addr'],
+    },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+    { title: t('یادداشت'), keys: ['note'] },
+  ]);
+
+  const filters = ref({});
+
+  /* Peek (same logic as Heist) */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      if (typeof repo.FetchHadoBusStopData === 'function') {
+        await repo.FetchHadoBusStopData(id);
+        const single = Array.isArray(repo.HadoBusStop) ? repo.HadoBusStop[0] : repo.HadoBusStop;
+        detail.value = single || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات ایستگاه'));
+    } finally {
+      loadingOne.value = false;
+    }
   }
-}
 
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
 
-/* navigation – same style as Heist */
-function goCreate() {
-  router.push('/app/hadabusstopform');
-}
+  /* navigation – same style as Heist */
+  function goCreate() {
+    router.push('/app/hadabusstopform');
+  }
 
-function goEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/hadabusstopform/${row.id}`);
-}
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/hadabusstopform/${row.id}`);
+  }
 
-/* delete with dialog */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
+  /* delete with dialog */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
 
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  deleteDialog.value = false;
-  if (!row?.id) return;
-  try {
-    await repo.DeleteHadoBusStop?.(row.id);
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    deleteDialog.value = false;
+    if (!row?.id) return;
+    try {
+      await repo.DeleteHadoBusStop?.(row.id);
+      await fetchAll();
+      showErrorMessage(t('حذف شد'));
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteTarget.value = null;
+    }
+  }
+
+  /* fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchHadoBusStopsData?.({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search || '',
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست ایستگاه‌های هدا'));
+    }
+  }
+
+  function clearSearch() {
+    repo.Search = '';
+    fetchAll();
+  }
+
+  /* init */
+  onMounted(async () => {
     await fetchAll();
-    showErrorMessage(t('حذف شد'));
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در حذف'));
-  } finally {
-    deleteTarget.value = null;
-  }
-}
-
-/* fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchHadoBusStopsData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت فهرست ایستگاه‌های هدا'));
-  }
-}
-
-function clearSearch() {
-  repo.Search = '';
-  fetchAll();
-}
-
-/* init */
-onMounted(async () => {
-  await fetchAll();
-});
+  });
 </script>
 
 <style scoped>
-.ga-2 {
-  gap: 8px;
-}
+  .ga-2 {
+    gap: 8px;
+  }
 
-/* Background similar to other index pages */
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
+  /* Background similar to other index pages */
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
+  }
 
-/* Stats cards (copied from Heist) */
-.stat-card {
-  cursor: pointer;
-  border-radius: 14px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
-    background-color 0.2s ease;
-}
+  /* Stats cards (copied from Heist) */
+  .stat-card {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
 
-.stat-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  border-color: rgba(33, 150, 243, 0.35);
-}
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
+  }
 
-.stat-card--active {
-  border-color: rgba(25, 118, 210, 0.9);
-  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
-}
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+  }
 
-.stat-card-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
 
-.stat-card-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e3f2fd;
-}
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
 
-.stat-card-text {
-  display: flex;
-  flex-direction: column;
-}
+  .stat-card-text {
+    display: flex;
+    flex-direction: column;
+  }
 
-.stat-card-title {
-  font-size: 13px;
-  font-weight: 700;
-}
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
 
-.stat-card-subtitle {
-  font-size: 11px;
-  color: #666;
-}
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
+  }
 </style>

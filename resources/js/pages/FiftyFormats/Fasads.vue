@@ -13,7 +13,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در فسادها...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -54,7 +54,7 @@
             <div class="stat-card-body">
               <div class="stat-card-icon"><v-icon>mdi-account-group</v-icon></div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام فسادها') }}</div>
+                <div class="stat-card-title">{{ t('شر او فساد') }}</div>
                 <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
@@ -370,10 +370,9 @@
   /* headers */
   const headersFT = computed(() => [
     { title: t('عکس'), key: 'picture', sortable: false },
+    { title: t('تخلص'), key: 'nick_name' },
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
-    { title: t('تخلص'), key: 'nick_name' },
-    { title: t('شماره تماس'), key: 'phone_number' },
 
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_district' },
@@ -394,6 +393,7 @@
     { title: t('مسئولیت'), key: 'responsibility' },
     { title: t('ساحه فعالیت'), key: 'activity_zone' },
     { title: t('تعداد دوستان'), key: 'friends_number' },
+    { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('فاصله ارتباط'), key: 'bond_distance' },
     { title: t('دلیل آخرین بند'), key: 'last_band_reason' },
     { title: t('محل بند'), key: 'band_place' },
@@ -404,6 +404,7 @@
     { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('ملاحظات'), key: 'notes', sortable: false },
   ]);
 
   const topGroups = computed(() => [

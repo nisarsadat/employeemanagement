@@ -22,13 +22,13 @@
         <v-card class="simple-form-card" elevation="1">
           <!-- Identity -->
           <v-row>
-            <v-col cols="12">
+            <!-- <v-col cols="12">
               <div class="section-header">
                 <span class="section-title">
                   {{ isEdit ? t('ویرایش ریکارډ مجاهد') : t('ایجاد ریکارډ مجاهد') }}
                 </span>
               </div>
-            </v-col>
+            </v-col> -->
 
             <!-- ✅ Picture picker + preview -->
             <v-col cols="12" md="4">
@@ -40,7 +40,7 @@
 
                 <div class="d-flex flex-column">
                   <div class="text-caption text-medium-emphasis">
-                    {{ t('عکس مجاهد') }}
+                    {{ t('عکس') }}
                   </div>
 
                   <div class="d-flex ga-2 flex-wrap mt-1">
@@ -336,7 +336,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ مجاهد') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

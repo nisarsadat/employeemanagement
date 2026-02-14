@@ -259,7 +259,7 @@
               :loading="repo.loading"
               @click:row="(_, row) => goInfoType(row?.item?.label)"
               hide-default-footer
-              no-data-text="هیچ دیتا وجود ندارد"
+              :no-data-text="t('هیچ دیتا وجود ندارد')"
             >
               <template #item.count="{ item }">
                 <v-chip color="primary" variant="outlined" size="small" class="font-weight-bold">
@@ -307,7 +307,7 @@
               :loading="repo.loading"
               :dir="isRtl ? 'rtl' : 'ltr'"
               hide-default-footer
-              no-data-text="هیچ فورم دارای دیتا نیست"
+              :no-data-text="t('هیچ فورم دارای دیتا نیست')"
             >
               <template #item.count="{ item }">
                 <v-chip color="success" variant="outlined" size="small" class="font-weight-bold">
@@ -349,7 +349,7 @@
               class="elevation-0"
               :loading="repo.loading"
               hide-default-footer
-              no-data-text="هیچ رویدادی ثبت نشده"
+              :no-data-text="t('هیچ رویدادی ثبت نشده')"
             >
               <template #item.talafat_mali="{ item }">
                 <div class="d-flex align-center justify-end">

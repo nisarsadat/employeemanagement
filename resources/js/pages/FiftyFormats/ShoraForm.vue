@@ -21,11 +21,11 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- Identity + stats -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">
               {{ isEdit ? t('ویرایش ریکارډ شورا') : t('ایجاد ریکارډ شورا') }}
             </span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="4">
@@ -304,7 +304,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ شورا') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

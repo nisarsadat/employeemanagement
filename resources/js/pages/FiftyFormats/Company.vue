@@ -18,7 +18,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در شرکت‌ها...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -44,7 +44,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن شرکت جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -83,9 +83,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -104,9 +102,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای شماره مسوول') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withPhone }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withPhone }}</div>
               </div>
             </div>
           </v-card>
@@ -125,9 +121,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای محافظ') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withGuards }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withGuards }}</div>
               </div>
             </div>
           </v-card>
@@ -305,363 +299,360 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FlyToMapButton from '@/components/FlyToMapButton.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
-import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
-const repo = useWakilanoRepository();
-const router = useRouter();
+  const repo = useWakilanoRepository();
+  const router = useRouter();
 
-/* i18n / RTL */
-const { t, locale } = useI18n();
-const drawer = ref(false);
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const drawer = ref(false);
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showErrorMessage = (m) => {
-  errorMessage.value = m;
-  showError.value = true;
-};
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
+  };
 
-/* 🔗 go to Resources page for this resource_code */
-function goToResource(row) {
-  if (!row?.resource_code) return;
-  router.push(`/app/resources/${row.resource_code}`);
-}
-
-/* Helpers */
-const getRow = (s) => (s && s.raw ? s.raw : s);
-
-/* rows from store */
-const rowsFT = computed(() => {
-  const list = repo.Companies || [];
-  if (Array.isArray(list)) return list;
-  if (Array.isArray(list.data)) return list.data;
-  return [];
-});
-
-/* 🔢 Filter cards state */
-const cardFilter = ref('all');
-
-const stats = computed(() => {
-  const rows = rowsFT.value || [];
-  const total = rows.length;
-
-  const withCoordinates = rows.filter(
-    (r) => r && r.com_coordinates && String(r.com_coordinates).trim() !== ''
-  ).length;
-
-  const withPhone = rows.filter(
-    (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
-  ).length;
-
-  const withGuards = rows.filter(
-    (r) => r && r.guard_quantity && Number(r.guard_quantity) > 0
-  ).length;
-
-  return { total, withCoordinates, withPhone, withGuards };
-});
-
-const filteredRowsFT = computed(() => {
-  const base = rowsFT.value || [];
-  switch (cardFilter.value) {
-    case 'withCoordinates':
-      return base.filter(
-        (r) => r && r.com_coordinates && String(r.com_coordinates).trim() !== ''
-      );
-    case 'withPhone':
-      return base.filter(
-        (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
-      );
-    case 'withGuards':
-      return base.filter((r) => r && r.guard_quantity && Number(r.guard_quantity) > 0);
-    default:
-      return base;
+  /* 🔗 go to Resources page for this resource_code */
+  function goToResource(row) {
+    if (!row?.resource_code) return;
+    router.push(`/app/resources/${row.resource_code}`);
   }
-});
 
-/* TABLE HEADERS – includes picture + map + resource_code */
-const headersFT = computed(() => [
-  { title: t('تصویر'), key: 'picture', sortable: false },
+  /* Helpers */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
 
-  { title: t('نام شرکت'), key: 'com_name' },
-  { title: t('نوع شرکت'), key: 'com_type' },
-  { title: t('نوع محصول/خدمت'), key: 'product_type' },
-  { title: t('سطح شرکت'), key: 'com_level' },
-  { title: t('مالک اصلی'), key: 'main_owner' },
+  /* rows from store */
+  const rowsFT = computed(() => {
+    const list = repo.Companies || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
+    return [];
+  });
 
-  { title: t('مسوول'), key: 'responsible_name' },
-  { title: t('نام پدر مسوول'), key: 'responsible_f_name' },
-  { title: t('وظیفه/موقف'), key: 'responsible_position' },
-  { title: t('شماره تماس مسوول'), key: 'responsible_phone' },
+  /* 🔢 Filter cards state */
+  const cardFilter = ref('all');
 
-  { title: t('ولایت'), key: 'com_province' },
-  { title: t('زون'), key: 'com_zone' },
-  { title: t('ولسوالی'), key: 'com_district' },
-  { title: t('قریه'), key: 'com_village' },
-  { title: t('موقعیت مشخص'), key: 'com_specific_place' },
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
 
-  { title: t('مختصات'), key: 'com_coordinates' },
+    const withCoordinates = rows.filter(
+      (r) => r && r.com_coordinates && String(r.com_coordinates).trim() !== ''
+    ).length;
 
-  { title: t('داخلی مرد'), key: 'male_employee_quantity_inner' },
-  { title: t('داخلی زن'), key: 'female_employee_quantity_inner' },
-  { title: t('بیرونی مرد'), key: 'male_employee_quantity_out' },
-  { title: t('بیرونی زن'), key: 'female_employee_quantity_out' },
-  { title: t('تعداد محافظ'), key: 'guard_quantity' },
+    const withPhone = rows.filter(
+      (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
+    ).length;
 
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
+    const withGuards = rows.filter(
+      (r) => r && r.guard_quantity && Number(r.guard_quantity) > 0
+    ).length;
 
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone_number' },
+    return { total, withCoordinates, withPhone, withGuards };
+  });
 
-  { title: t('یادداشت'), key: 'note', width: 300 },
-
-  { title: t('نقشه'), key: 'map', sortable: false },
-]);
-
-/* TOP GROUPS */
-const topGroups = computed(() => [
-  {
-    title: t('شرکت'),
-    keys: ['com_name', 'com_type', 'product_type', 'com_level', 'main_owner'],
-  },
-  {
-    title: t('مسوول'),
-    keys: ['responsible_name', 'responsible_f_name', 'responsible_position', 'responsible_phone'],
-  },
-  {
-    title: t('آدرس'),
-    keys: [
-      'com_province',
-      'com_zone',
-      'com_district',
-      'com_village',
-      'com_specific_place',
-      'com_coordinates',
-    ],
-  },
-  {
-    title: t('کارمندان/محافظ'),
-    keys: [
-      'male_employee_quantity_inner',
-      'female_employee_quantity_inner',
-      'male_employee_quantity_out',
-      'female_employee_quantity_out',
-      'guard_quantity',
-    ],
-  },
-  {
-    title: t('منبع'),
-    keys: ['resource_code', 'resource_phone_number'],
-  },
-  { title: t('دیگر'), keys: ['note', 'Province_addr'] },
-]);
-
-const filters = ref({});
-
-/* Peek */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loadingOne.value = true;
-  try {
-    if (typeof repo.FetchCompanyData === 'function') {
-      await repo.FetchCompanyData(id);
-      const single = Array.isArray(repo.Company) ? repo.Company[0] : repo.Company;
-      detail.value = single || {};
-    } else {
-      await fetchAll();
-      const list = rowsFT.value || [];
-      detail.value = list.find((r) => r.id === id) || {};
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+    switch (cardFilter.value) {
+      case 'withCoordinates':
+        return base.filter(
+          (r) => r && r.com_coordinates && String(r.com_coordinates).trim() !== ''
+        );
+      case 'withPhone':
+        return base.filter(
+          (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
+        );
+      case 'withGuards':
+        return base.filter((r) => r && r.guard_quantity && Number(r.guard_quantity) > 0);
+      default:
+        return base;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات شرکت'));
-  } finally {
-    loadingOne.value = false;
+  });
+
+  /* TABLE HEADERS – includes picture + map + resource_code */
+  const headersFT = computed(() => [
+    { title: t('تصویر'), key: 'picture', sortable: false },
+
+    { title: t('نام شرکت'), key: 'com_name' },
+    { title: t('نوع شرکت'), key: 'com_type' },
+    { title: t('نوع محصول/خدمت'), key: 'product_type' },
+    { title: t('سطح شرکت'), key: 'com_level' },
+    { title: t('مالک اصلی'), key: 'main_owner' },
+
+    { title: t('مسوول'), key: 'responsible_name' },
+    { title: t('نام پدر مسوول'), key: 'responsible_f_name' },
+    { title: t('وظیفه/موقف'), key: 'responsible_position' },
+    { title: t('شماره تماس مسوول'), key: 'responsible_phone' },
+
+    { title: t('ولایت'), key: 'com_province' },
+    { title: t('زون'), key: 'com_zone' },
+    { title: t('ولسوالی'), key: 'com_district' },
+    { title: t('قریه'), key: 'com_village' },
+    { title: t('موقعیت مشخص'), key: 'com_specific_place' },
+
+    { title: t('مختصات'), key: 'com_coordinates' },
+
+    { title: t('داخلی مرد'), key: 'male_employee_quantity_inner' },
+    { title: t('داخلی زن'), key: 'female_employee_quantity_inner' },
+    { title: t('بیرونی مرد'), key: 'male_employee_quantity_out' },
+    { title: t('بیرونی زن'), key: 'female_employee_quantity_out' },
+    { title: t('تعداد محافظ'), key: 'guard_quantity' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone_number' },
+
+    { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note' },
+  ]);
+
+  /* TOP GROUPS */
+  const topGroups = computed(() => [
+    {
+      title: t('شرکت'),
+      keys: ['com_name', 'com_type', 'product_type', 'com_level', 'main_owner'],
+    },
+    {
+      title: t('مسوول'),
+      keys: ['responsible_name', 'responsible_f_name', 'responsible_position', 'responsible_phone'],
+    },
+    {
+      title: t('آدرس'),
+      keys: [
+        'com_province',
+        'com_zone',
+        'com_district',
+        'com_village',
+        'com_specific_place',
+        'com_coordinates',
+      ],
+    },
+    {
+      title: t('کارمندان/محافظ'),
+      keys: [
+        'male_employee_quantity_inner',
+        'female_employee_quantity_inner',
+        'male_employee_quantity_out',
+        'female_employee_quantity_out',
+        'guard_quantity',
+      ],
+    },
+    {
+      title: t('منبع'),
+      keys: ['resource_code', 'resource_phone_number'],
+    },
+    { title: t('دیگر'), keys: ['note', 'Province_addr'] },
+  ]);
+
+  const filters = ref({});
+
+  /* Peek */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      if (typeof repo.FetchCompanyData === 'function') {
+        await repo.FetchCompanyData(id);
+        const single = Array.isArray(repo.Company) ? repo.Company[0] : repo.Company;
+        detail.value = single || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات شرکت'));
+    } finally {
+      loadingOne.value = false;
+    }
   }
-}
 
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
 
-/* navigation */
-function goCreate() {
-  router.push('/app/companyform');
-}
-function goEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/companyform/${row.id}`);
-}
+  /* navigation */
+  function goCreate() {
+    router.push('/app/companyform');
+  }
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/companyform/${row.id}`);
+  }
 
-/* delete with dialog */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
+  /* delete with dialog */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
 
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  deleteDialog.value = false;
-  if (!row?.id) return;
-  try {
-    await repo.DeleteCompany?.(row.id);
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    deleteDialog.value = false;
+    if (!row?.id) return;
+    try {
+      await repo.DeleteCompany?.(row.id);
+      await fetchAll();
+      showErrorMessage(t('حذف شد'));
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteTarget.value = null;
+    }
+  }
+
+  /* fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchCompaniesData?.({
+        page: 1,
+        itemsPerPage: 100000,
+        search: repo.Search || '',
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست شرکت‌ها'));
+    }
+  }
+
+  function clearSearch() {
+    repo.Search = '';
+    fetchAll();
+  }
+
+  /* IMAGE PREVIEW helpers */
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
+
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
+
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+    clean = clean.replace(/\\\//g, '/');
+
+    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+    if (clean.startsWith('/')) return clean;
+
+    return '/' + clean.replace(/^\/+/, '');
+  }
+
+  function openPreview(src) {
+    const normalized = normalizePicture(src);
+    if (!normalized) return;
+    previewSrc.value = normalized;
+    previewOpen.value = true;
+  }
+
+  /* init */
+  onMounted(async () => {
     await fetchAll();
-    showErrorMessage(t('حذف شد'));
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در حذف'));
-  } finally {
-    deleteTarget.value = null;
-  }
-}
-
-/* fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchCompaniesData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت فهرست شرکت‌ها'));
-  }
-}
-
-function clearSearch() {
-  repo.Search = '';
-  fetchAll();
-}
-
-/* IMAGE PREVIEW helpers */
-const previewOpen = ref(false);
-const previewSrc = ref(null);
-
-function normalizePicture(src) {
-  if (!src) return null;
-  let clean = String(src).trim();
-
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
-
-  clean = clean.replace(/\\\//g, '/');
-
-  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-  if (clean.startsWith('/')) return clean;
-
-  return '/' + clean.replace(/^\/+/, '');
-}
-
-function openPreview(src) {
-  const normalized = normalizePicture(src);
-  if (!normalized) return;
-  previewSrc.value = normalized;
-  previewOpen.value = true;
-}
-
-/* init */
-onMounted(async () => {
-  await fetchAll();
-});
+  });
 </script>
 
 <style scoped>
-.ga-2 {
-  gap: 8px;
-}
+  .ga-2 {
+    gap: 8px;
+  }
 
-/* Background like other index pages */
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
+  /* Background like other index pages */
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
+  }
 
-/* Stats cards */
-.stat-card {
-  cursor: pointer;
-  border-radius: 14px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
-    background-color 0.2s ease;
-}
+  /* Stats cards */
+  .stat-card {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
 
-.stat-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  border-color: rgba(33, 150, 243, 0.35);
-}
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
+  }
 
-.stat-card--active {
-  border-color: rgba(25, 118, 210, 0.9);
-  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
-}
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+  }
 
-.stat-card-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
 
-.stat-card-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e3f2fd;
-}
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
 
-.stat-card-text {
-  display: flex;
-  flex-direction: column;
-}
+  .stat-card-text {
+    display: flex;
+    flex-direction: column;
+  }
 
-.stat-card-title {
-  font-size: 13px;
-  font-weight: 700;
-}
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
 
-.stat-card-subtitle {
-  font-size: 11px;
-  color: #666;
-}
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
+  }
 
-/* picture */
-.pic-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-.cursor-pointer {
-  cursor: pointer;
-}
+  /* picture */
+  .pic-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  .cursor-pointer {
+    cursor: pointer;
+  }
 </style>

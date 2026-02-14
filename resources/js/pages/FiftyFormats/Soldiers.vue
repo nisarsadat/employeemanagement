@@ -14,7 +14,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در سربازان...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -40,7 +40,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه ریکارډ جدید سرباز') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -59,7 +59,7 @@
                 <v-icon>mdi-account-group</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام سربازان') }}</div>
+                <div class="stat-card-title">{{ t('سربازان') }}</div>
                 <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
@@ -410,7 +410,6 @@ const headersFT = computed(() => [
   { title: t('تعداد محافظ'), key: 'guard_amount' },
   { title: t('شماره تماس'), key: 'phone_number' },
 
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
   { title: t('coordinates'), key: 'coordinates' },
 
   { title: t('کود منبع'), key: 'resource_code' },

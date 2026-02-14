@@ -403,7 +403,7 @@
                 @update:model-value="onNewDocsPicked"
               />
               <div class="text-caption text-medium-emphasis mt-2">
-                {{ t('نکته') }}: {{ t('اسناد جدید بعد از ذخیره ثبت می‌شوند') }}
+                <!-- {{ t('نکته') }}: {{ t('اسناد جدید بعد از ذخیره ثبت می‌شوند') }} -->
               </div>
             </v-col>
 
@@ -526,7 +526,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ مجرم گم شده') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

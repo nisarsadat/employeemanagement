@@ -22,11 +22,11 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- Identity -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">
               {{ isEdit ? t('ویرایش ریکارډ هوتل') : t('ایجاد ریکارډ هوتل') }}
             </span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="4">
@@ -55,7 +55,7 @@
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.employee_quantity"
-                :label="t('تعداد کارمندان')"
+                :label="t('تعداد کارگران')"
                 type="number"
                 variant="outlined"
                 density="compact"
@@ -189,7 +189,7 @@
 
           <!-- Resource + Note -->
           <div class="section-header mt-4 mb-2">
-            <span class="section-title">{{ t('منبع و یادداشت') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
 
           <v-row>
@@ -243,7 +243,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ هوتل') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

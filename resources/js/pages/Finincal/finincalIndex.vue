@@ -18,7 +18,7 @@
           color="primary"
         >
           <v-tab value="accounts">{{ t('حسابونه') }}</v-tab>
-          <v-tab value="messages">{{ t('مسجونه') }}</v-tab>
+          <v-tab value="messages">{{ t('پیغامونه') }}</v-tab>
           <v-tab value="cashflow">{{ t('عاید او مصرف') }}</v-tab>
           <v-tab value="oil">{{ t('تیل') }}</v-tab>
         </v-tabs>
@@ -55,8 +55,8 @@
                 color="primary"
                 density="comfortable"
               >
-                <v-tab value="events">{{ t('د پیښو مسجونه') }}</v-tab>
-                <v-tab value="informations">{{ t('د معلوماتو مسجونه') }}</v-tab>
+                <v-tab value="informations">{{ t('د اطلاعاتو پیغامونه') }}</v-tab>
+                <v-tab value="events">{{ t('د پیښو پیغامونه') }}</v-tab>
               </v-tabs>
 
               <v-window v-model="messagesTab" v-if="auth.can('finincalindex.view')">
@@ -81,8 +81,8 @@
                 color="primary"
                 density="comfortable"
               >
-                <v-tab value="income">{{ t('عایدات') }}</v-tab>
                 <v-tab value="expense">{{ t('مصارف') }}</v-tab>
+                <v-tab value="income">{{ t('عایدات') }}</v-tab>
               </v-tabs>
 
               <v-window v-model="cashflowTab" v-if="auth.can('finincalindex.view')">
@@ -131,65 +131,65 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+  import { ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-import AppBar from '../../components/AppBar.vue';
+  import AppBar from '../../components/AppBar.vue';
 
-// Accounts area
-import AccountsIndex from './Accounts/AccountsIndex.vue';
+  // Accounts area
+  import AccountsIndex from './Accounts/AccountsIndex.vue';
 
-// Messages area
-import EventsToFinanceTable from './IncomeOutcome/EventsToFinanceTable.vue';
-import InformationsToFinanceTable from './IncomeOutcome/InformationsToFinanceTable.vue';
+  // Messages area
+  import EventsToFinanceTable from './IncomeOutcome/EventsToFinanceTable.vue';
+  import InformationsToFinanceTable from './IncomeOutcome/InformationsToFinanceTable.vue';
 
-// Cashflow area
-import IncomesIndex from './IncomeOutcome/IncomesIndex.vue';
-import Finances from './IncomeOutcome/Finances.vue';
+  // Cashflow area
+  import IncomesIndex from './IncomeOutcome/IncomesIndex.vue';
+  import Finances from './IncomeOutcome/Finances.vue';
 
-// Oil area
-import OilIndex from './oil/oilindex.vue';
-import OilIncomeIndex from './oil/oilIncomeIndex.vue';
-import OilExpenseIndex from './oil/expenseOil.vue';
+  // Oil area
+  import OilIndex from './oil/oilindex.vue';
+  import OilIncomeIndex from './oil/oilIncomeIndex.vue';
+  import OilExpenseIndex from './oil/expenseOil.vue';
 
-import { useLoginRepository } from '../../stores/LoginRepository';
-const auth = useLoginRepository();
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
 
-const { t, locale } = useI18n();
-const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
+  const { t, locale } = useI18n();
+  const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 
-const drawer = ref(false);
+  const drawer = ref(false);
 
-// Main tabs: accounts | messages | cashflow | oil
-const mainTab = ref('accounts');
+  // Main tabs: accounts | messages | cashflow | oil
+  const mainTab = ref('accounts');
 
-// Sub-tabs
-const accountsTab = ref('list');
-const messagesTab = ref('events'); // ✅ events | informations
-const cashflowTab = ref('income');
-const oilTab = ref('income');
+  // Sub-tabs
+  const accountsTab = ref('list');
+  const messagesTab = ref('events'); // ✅ events | informations
+  const cashflowTab = ref('income');
+  const oilTab = ref('income');
 </script>
 
 <style scoped>
-:deep(.v-tabs) {
-  backdrop-filter: saturate(120%) blur(2px);
-}
+  :deep(.v-tabs) {
+    backdrop-filter: saturate(120%) blur(2px);
+  }
 
-:deep(.v-tab) {
-  font-weight: 600;
-  letter-spacing: 0.2px;
-}
+  :deep(.v-tab) {
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
 
-:deep(.v-card) {
-  border-radius: 16px;
-}
+  :deep(.v-card) {
+    border-radius: 16px;
+  }
 
-:deep(.v-window-item) {
-  padding: 8px;
-}
+  :deep(.v-window-item) {
+    padding: 8px;
+  }
 
-/* Better spacing for RTL/LTR */
-.v-container[dir='rtl'] :deep(.v-tab__slider) {
-  inset-inline-start: 0 !important;
-}
+  /* Better spacing for RTL/LTR */
+  .v-container[dir='rtl'] :deep(.v-tab__slider) {
+    inset-inline-start: 0 !important;
+  }
 </style>

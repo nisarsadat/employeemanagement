@@ -17,7 +17,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در محلات گمشده/یافته شده...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -43,7 +43,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن محل جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -51,7 +51,7 @@
       <!-- 📊 Stats cards -->
       <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
         <!-- All -->
-        <v-col cols="12" sm="6" md="3">
+        <v-col cols="12" sm="8" md="4">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'all' }"
@@ -62,7 +62,7 @@
                 <v-icon>mdi-map-marker-radius</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام محلات') }}</div>
+                <div class="stat-card-title">{{ t('محلات گمشده/یافته شده') }}</div>
                 <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
@@ -70,7 +70,7 @@
         </v-col>
 
         <!-- With coordinates -->
-        <v-col cols="12" sm="6" md="3">
+        <v-col cols="12" sm="8" md="4">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
@@ -89,7 +89,7 @@
         </v-col>
 
         <!-- With person -->
-        <v-col cols="12" sm="6" md="3">
+        <!-- <v-col cols="12" sm="8" md="4">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'withPerson' }"
@@ -105,10 +105,10 @@
               </div>
             </div>
           </v-card>
-        </v-col>
+        </v-col> -->
 
         <!-- With resource -->
-        <v-col cols="12" sm="6" md="3">
+        <v-col cols="12" sm="8" md="4">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'withResource' }"
@@ -321,7 +321,7 @@
 
   /* Headers (list view) */
   const headersFT = computed(() => [
-    { title: t('نام محل'), key: 'place_name' },
+    { title: t('ساحه که اختطاف صورت ګرفته'), key: 'place_name' },
 
     { title: t('شخص گمشده/یافته'), key: 'lost_person_name' },
     { title: t('نام پدر شخص'), key: 'lost_person_f_name' },
@@ -347,10 +347,10 @@
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
-    { title: t('یادداشت'), key: 'note' },
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note' },
+
   ]);
 
   const topGroups = computed(() => [

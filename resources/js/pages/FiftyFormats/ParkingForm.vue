@@ -25,11 +25,11 @@
           <v-row>
             <!-- MAIN INFO -->
             <v-col cols="12">
-              <div class="section-header">
+              <!-- <div class="section-header">
                 <span class="section-title">
                   {{ isEdit ? t('ویرایش ریکارډ پارکینگ') : t('ایجاد ریکارډ پارکینگ') }}
                 </span>
-              </div>
+              </div> -->
 
               <v-row>
                 <v-col cols="12" md="4">
@@ -52,6 +52,14 @@
                     density="compact"
                     :error="hasError('parking_type')"
                     :error-messages="getErrorMessages('parking_type')"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.parking_type_pe"
+                    :label="t('نوع پارکینگ (PE)')"
+                    variant="outlined"
+                    density="compact"
                   />
                 </v-col>
               </v-row>
@@ -172,9 +180,9 @@
           <v-divider class="my-4" />
 
           <!-- Extra / resource -->
-          <div class="section-header mb-2">
+          <!-- <div class="section-header mb-2">
             <span class="section-title">{{ t('ظرفیت، ملاحظات و منبع') }}</span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="4">
@@ -252,7 +260,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ پارکینگ') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

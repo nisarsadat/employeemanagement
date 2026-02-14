@@ -12,7 +12,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="search"
-            :label="t('جستجو در حوزه‌ها...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -77,7 +77,7 @@
       @edit="startEdit"
     >
       <template #cell-zone_name="{ row }">
-        <div class="d-flex align-center">
+        <div class="">
           <v-icon size="16" class="me-1" color="primary">mdi-map-marker</v-icon>
           <span class="text-caption">{{ row.zone_name || row.zone?.name || '—' }}</span>
         </div>

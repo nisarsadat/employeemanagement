@@ -10,12 +10,6 @@
 
   <div class="fasad-page" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- TOP BAR (only for app view, hidden on print) -->
-    <div class="top-bar no-print">
-      <div>
-        <button type="button" class="top-btn" @click="downloadPdf">PDF</button>
-        <button type="button" class="top-btn" @click="downloadWord">Word</button>
-      </div>
-    </div>
 
     <!-- FORM -->
     <v-container class="mt-4 form-container no-print" style="max-width: 1200px">
@@ -79,7 +73,7 @@
                 </div>
               </div>
               <div class="text-caption mt-2" style="color: #666">
-                {{ t('عکس در سیستم ذخیره می‌شود. (picture)') }}
+                <!-- {{ t('عکس در سیستم ذخیره می‌شود. (picture)') }} -->
               </div>
             </v-col>
 
@@ -151,7 +145,7 @@
               </div>
 
               <div class="text-caption mt-2" style="color: #666">
-                {{ t('اسناد به جدول جدا ذخیره می‌شوند. (documents[])') }}
+                <!-- {{ t('اسناد به جدول جدا ذخیره می‌شوند. (documents[])') }} -->
               </div>
             </v-col>
           </v-row>
@@ -172,6 +166,15 @@
           <v-row dense>
             <v-col cols="12" md="3">
               <v-text-field
+                v-model="form.nick_name"
+                :label="t('نام مستعار')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field
                 v-model="form.name"
                 :label="t('نام') + ' *'"
                 density="compact"
@@ -187,16 +190,6 @@
               <v-text-field
                 v-model="form.father_name"
                 :label="t('نام پدر')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.nick_name"
-                :label="t('نام مستعار')"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
@@ -276,19 +269,6 @@
                 hide-details="auto"
               />
             </v-col>
-          </v-row>
-
-          <!-- موقعیت / خانه -->
-          <v-row class="mt-4">
-            <v-col cols="12">
-              <h3 class="section-title">
-                <v-icon icon="mdi-home-analytics" size="small" class="ml-1"></v-icon>
-                {{ t('موقعیت و خانه') }}
-              </h3>
-            </v-col>
-          </v-row>
-
-          <v-row dense>
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.specific_place"
@@ -453,7 +433,6 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-                hint="مثال: 34.1234, 69.1234"
                 persistent-hint
               />
             </v-col>
@@ -564,6 +543,16 @@
                 </div>
               </div>
             </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.notes"
+                :label="t('ملاحظات')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                persistent-hint
+              />
+            </v-col>
           </v-row>
         </v-card>
       </v-form>
@@ -654,6 +643,7 @@
     Province_addr: '',
     coordinates: '',
     tafseel: '',
+    notes: '',
     resource_code: '',
     resource_phone: '',
     resource_id: null,
@@ -781,6 +771,7 @@
       Province_addr: '',
       coordinates: '',
       tafseel: '',
+      notes: '',
       resource_code: '',
       resource_phone: '',
       resource_id: null,
@@ -825,6 +816,7 @@
       Province_addr: x.Province_addr ?? '',
       coordinates: x.coordinates ?? '',
       tafseel: x.tafseel ?? '',
+      notes: x.notes ?? '',
       resource_code: x.resource_code ?? '',
       resource_phone: x.resource_phone ?? '',
       resource_id: x.resource_id ?? null,
@@ -932,6 +924,8 @@
 
       { label: 'کود منبع', value: form.value.resource_code },
       { label: 'شماره منبع', value: form.value.resource_phone },
+      { label: 'تفصیل', value: form.value.tafseel },
+      { label: 'ملاحظات', value: form.value.notes },
     ];
   }
 

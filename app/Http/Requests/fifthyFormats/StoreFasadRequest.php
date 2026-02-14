@@ -48,6 +48,7 @@ class StoreFasadRequest extends FormRequest
             'resource_id'      => ['nullable', 'integer', 'exists:resources,id'],
             'Province_addr' => ['nullable','string'],
             'coordinates' => ['nullable','string'],
+            'notes' => ['nullable','string'],
 
 
             // 'picture'        => ['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'], // enable if/when used

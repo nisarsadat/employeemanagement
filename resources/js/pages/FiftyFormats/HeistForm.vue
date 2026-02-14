@@ -7,7 +7,6 @@
         isEdit ? t('ویرایش جزئیات یک ریکارډ هېست موجود') : t('ثبت یک ریکارډ هېست جدید در سیستم')
       "
     >
-     
     </AppBar>
 
     <!-- FORM -->
@@ -112,17 +111,6 @@
                     :error-messages="getErrorMessages('father_name')"
                   />
                 </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.phone_number"
-                    :label="t('شماره تماس')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('phone_number')"
-                    :error-messages="getErrorMessages('phone_number')"
-                  />
-                </v-col>
               </v-row>
 
               <!-- Main address -->
@@ -222,6 +210,16 @@
                     :error-messages="getErrorMessages('home_number')"
                   />
                 </v-col>
+                <v-col cols="12" md="8">
+                  <v-text-field
+                    v-model="form.coordinates"
+                    :label="t('مختصات')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('coordinates')"
+                    :error-messages="getErrorMessages('coordinates')"
+                  />
+                </v-col>
               </v-row>
             </v-col>
           </v-row>
@@ -256,7 +254,16 @@
                 :error-messages="getErrorMessages('now_job')"
               />
             </v-col>
-
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.phone_number"
+                :label="t('شماره تماس')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('phone_number')"
+                :error-messages="getErrorMessages('phone_number')"
+              />
+            </v-col>
             <v-col cols="12" md="3">
               <v-text-field
                 v-model.number="form.done_roberies"
@@ -277,17 +284,6 @@
                 density="compact"
                 :error="hasError('gun_type')"
                 :error-messages="getErrorMessages('gun_type')"
-              />
-            </v-col>
-
-            <v-col cols="12" md="8">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
 
@@ -316,18 +312,6 @@
                 variant="outlined"
                 density="compact"
                 readonly
-              />
-            </v-col>
-
-            <!-- Note -->
-            <v-col cols="12" md="8">
-              <v-text-field
-                v-model="form.note"
-                :label="t('ملاحظات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('note')"
-                :error-messages="getErrorMessages('note')"
               />
             </v-col>
           </v-row>
@@ -408,6 +392,17 @@
                 </v-chip>
               </div>
             </v-col>
+            <!-- Note -->
+            <v-col cols="12" md="8">
+              <v-text-field
+                v-model="form.note"
+                :label="t('ملاحظات')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('note')"
+                :error-messages="getErrorMessages('note')"
+              />
+            </v-col>
           </v-row>
 
           <!-- Actions -->
@@ -421,7 +416,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ هېست') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

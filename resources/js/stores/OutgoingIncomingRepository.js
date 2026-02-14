@@ -17,6 +17,7 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
   const Search = ref('');
   const page = ref(1);
   const perPage = ref(100000);
+
   function getCurrentDate() {
     const d = new Date();
     const y = d.getFullYear();
@@ -105,19 +106,31 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
     }
   }
 
-  // UPDATE (FormData safe)
-  async function UpdateOutgoingIncoming(id, formData) {
+  // UPDATE (✅ supports Object OR FormData)
+  async function UpdateOutgoingIncoming(id, payload) {
     if (!id) throw new Error('UpdateOutgoingIncoming: id is required');
     loading.value = true;
     error.value = null;
-    try {
-      // IMPORTANT: avoid duplicate _method
-      formData.delete('_method');
-      formData.set('_method', 'PUT');
 
-      const resp = await axios.post(`/outgoing-incomings/${id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+    try {
+      // ✅ CASE 1: FormData (keep your old behavior)
+      if (payload instanceof FormData) {
+        // IMPORTANT: avoid duplicate _method
+        payload.delete('_method');
+        payload.set('_method', 'PUT');
+
+        const resp = await axios.post(`/outgoing-incomings/${id}`, payload, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        return resp?.data?.data ?? resp?.data ?? null;
+      }
+
+      // ✅ CASE 2: Plain Object (your current Vue update sends this)
+      const clean = { ...(payload || {}) };
+      delete clean.id; // ✅ just in case
+
+      const resp = await axios.put(`/outgoing-incomings/${id}`, clean);
       return resp?.data?.data ?? resp?.data ?? null;
     } catch (e) {
       error.value = e;
@@ -142,6 +155,7 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
       loading.value = false;
     }
   }
+
   // =========================
   // ZIP DOWNLOAD (DOCUMENTS)
   // =========================

@@ -18,7 +18,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در چک‌پوینت...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -44,7 +44,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه چک‌پوینت جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -369,14 +369,14 @@
     { title: t('موقعیت مشخص'), key: 'specefic_place' },
 
     { title: t('مختصات'), key: 'coordinates' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
-    { title: t('یادداشت'), key: 'note', width: 300 },
 
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note'},
+
   ]);
 
   /* TOP GROUPS – grouped like Heist */

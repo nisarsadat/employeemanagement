@@ -12,7 +12,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در جواسیس...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -37,7 +37,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه ریکارډ جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -53,7 +53,7 @@
             <div class="stat-card-body">
               <div class="stat-card-icon"><v-icon>mdi-account-group</v-icon></div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام ریکارډها') }}</div>
+                <div class="stat-card-title">{{ t('جواسیس') }}</div>
                 <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>

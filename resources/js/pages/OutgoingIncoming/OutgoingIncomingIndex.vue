@@ -53,7 +53,7 @@
             <div>
               <div class="text-h5 font-weight-bold text-primary fontfamily">{{ amirCount }}</div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('امیرالمومنین شیخ صاحب فرامین') }}
+                {{ t('د امیرالمومنین شیخ صاحب فرامین') }}
               </div>
             </div>
             <v-avatar color="primary" variant="tonal" size="48">
@@ -63,7 +63,7 @@
         </v-card>
       </v-col>
 
-      <!-- 2) د ۰۶۹ ریاست له لوري احکام شوی وړاندیزونه -->
+      <!-- 2) د ۰۶۹ ریاست له لوري احکام شوي وړاندیزونه -->
       <v-col cols="12" md="3" lg="3">
         <v-card
           class="stat-card"
@@ -76,7 +76,7 @@
                 {{ r069ApprovedCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('د ۰۶۹ ریاست له لوري احکام شوی وړاندیزونه ') }}
+                {{ t('د ۰۶۹ ریاست له لوري احکام شوي وړاندیزونه ') }}
               </div>
             </div>
             <v-avatar color="indigo" variant="tonal" size="48">
@@ -86,7 +86,7 @@
         </v-card>
       </v-col>
 
-      <!-- 3) د ۰۶۹ ریاست له لوري رد  شوی وړاندیزونه -->
+      <!-- 3) د ۰۶۹ ریاست له لوري رد  شوي وړاندیزونه -->
       <v-col cols="12" md="3" lg="3">
         <v-card
           class="stat-card"
@@ -99,7 +99,7 @@
                 {{ r069RejectedCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('د ۰۶۹ ریاست له لوري رد  شوی وړاندیزونه ') }}
+                {{ t('د ۰۶۹ ریاست له لوري رد  شوي وړاندیزونه ') }}
               </div>
             </div>
             <v-avatar color="green" variant="tonal" size="48">
@@ -109,7 +109,7 @@
         </v-card>
       </v-col>
 
-      <!-- 4) د لوي ریاست له لوري احکام شوی وړاندیزونه -->
+      <!-- 4) د لوي ریاست له لوري احکام شوي وړاندیزونه -->
       <v-col cols="12" md="3" lg="3">
         <v-card
           class="stat-card"
@@ -122,7 +122,7 @@
                 {{ loyApprovedCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('د لوي ریاست له لوري احکام شوی وړاندیزونه ') }}
+                {{ t('د لوي ریاست له لوري احکام شوي وړاندیزونه ') }}
               </div>
             </div>
             <v-avatar color="cyan" variant="tonal" size="48">
@@ -281,30 +281,31 @@
 
   /* Headers */
   const headersFT = computed(() => [
-    { title: t('نوع مکتوب'), key: 'docs_type' },
-
-    { title: t('تاریخ صادره/وارده'), key: 'outgoing_incoming_date' },
-    { title: t('تاریخ امضاء'), key: 'docs_sign_date' },
-
-    { title: t('صادره (دفتر) تاریخ'), key: 'office_outgoing_date' },
-    { title: t('صادره (دفتر) صفحه'), key: 'office_outgoing_page' },
-
-    { title: t('وارده (دفتر) تاریخ'), key: 'office_incoming_date' },
-    { title: t('وارده (دفتر) صفحه'), key: 'office_incoming_page' },
-
-    { title: t('صادره به ریاست تاریخ'), key: 'reyasat_outgoing_date' },
-    { title: t('صادره به ریاست صفحه'), key: 'reyasat_outgoing_page' },
-
-    { title: t('صادره (لوی ریاست) تاریخ'), key: 'loy_reyasat_outgoing_date' },
-    { title: t('صادره (لوی ریاست) صفحه'), key: 'loy_reyasat_outgoing_page' },
-
-    { title: t('پاسخ تاریخ'), key: 'answer_date' },
-    { title: t('پاسخ صفحه'), key: 'answer_page' },
-
+    // ✅ SECTION 1: Type + Text (as in your form)
+    { title: t('نوع سند'), key: 'docs_type' },
     { title: t('مرجع'), key: 'marja' },
-    { title: t('امضاء کننده'), key: 'who_sighn' },
-
     { title: t('تفصیل'), key: 'tafseel' },
+
+    // ✅ SECTION 2: Dates + Pages (as in your form)
+    { title: t('تاریخ امضاء'), key: 'docs_sign_date' },
+    { title: t('تاریخ صادره/وارده'), key: 'outgoing_incoming_date' },
+
+    { title: t('صفحه پاسخ'), key: 'answer_page' },
+    { title: t('پاسخ تاریخ'), key: 'answer_date' },
+
+    { title: t('صادره (دفتر) صفحه'), key: 'office_outgoing_page' },
+    { title: t('صادره (دفتر) تاریخ'), key: 'office_outgoing_date' },
+
+    { title: t('وارده (دفتر) صفحه'), key: 'office_incoming_page' },
+    { title: t('وارده (دفتر) تاریخ'), key: 'office_incoming_date' },
+
+    { title: t('صادره به ریاست صفحه'), key: 'reyasat_outgoing_page' },
+    { title: t('صادره به ریاست تاریخ'), key: 'reyasat_outgoing_date' },
+
+    { title: t('صادره (لوی ریاست) صفحه'), key: 'loy_reyasat_outgoing_page' },
+    { title: t('صادره (لوی ریاست) تاریخ'), key: 'loy_reyasat_outgoing_date' },
+
+    // ✅ SECTION 4: Attachments + Notes (as in your form)
     { title: t('صفحه'), key: 'page' },
     { title: t('دوسیه'), key: 'dusya' },
     { title: t('صفحه فهرست'), key: 'fihrist_page' },
@@ -324,9 +325,9 @@
   // exact labels
   const DOCS_TYPES = Object.freeze({
     AMIR: 'د امیر المومنین شیخ صاحب فرامین',
-    R069_APPROVED: 'د ۰۶۹ ریاست له لوري احکام شوی وړاندیزونه',
-    R069_REJECTED: 'د ۰۶۹ ریاست له لوري رد  شوی وړاندیزونه',
-    LOY_APPROVED: 'د لوي ریاست  له لوري احکام   شوی وړاندیزونه',
+    R069_APPROVED: 'د ۰۶۹ ریاست له لوري احکام شوي وړاندیزونه',
+    R069_REJECTED: 'د ۰۶۹ ریاست له لوري رد  شوي وړاندیزونه',
+    LOY_APPROVED: 'د لوي ریاست  له لوري احکام   شوي وړاندیزونه',
   });
 
   function normalizeText(v) {

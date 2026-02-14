@@ -32,6 +32,7 @@ class MashkokPeople extends Model
         'old_job',
         'now_job',
         'phone_number',
+        'mashkokyat_type',
         'mushkokyat_points', // kept spelling as requested
 
         'note',

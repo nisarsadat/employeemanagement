@@ -38,8 +38,10 @@ class StoreWakilanoRequest extends FormRequest
             'place_tafseel'      => ['nullable','string'],
             'old_job'            => ['nullable','string'],
             'now_job'            => ['nullable','string'],
+            'tanzim'            => ['nullable','string'],
 
             'home_quantity'      => ['nullable','integer'],
+            'agent_quantity'      => ['nullable','integer'],
             'phone_number'       => ['nullable','string'],
             'history_form'       => ['nullable','string'],
             'Province_addr'         => ['nullable','string'],

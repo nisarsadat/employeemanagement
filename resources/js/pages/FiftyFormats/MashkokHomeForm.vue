@@ -21,12 +21,7 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
-          <!-- Identity / location -->
-          <div class="section-header">
-            <span class="section-title">
-              {{ isEdit ? t('ویرایش ریکارډ خانه مشکوک') : t('ایجاد ریکارډ خانه مشکوک') }}
-            </span>
-          </div>
+         
           <!-- =========================
                ✅ PICTURE SECTION (NEW)
           ========================== -->
@@ -83,9 +78,7 @@
                   {{ t('حذف عکس') }}
                 </v-btn>
 
-                <div class="text-caption text-medium-emphasis">
-                  {{ t('نکته') }}: {{ t('عکس بعد از ذخیره ثبت می‌شود') }}
-                </div>
+                
               </div>
             </v-col>
           </v-row>
@@ -172,9 +165,7 @@
           <!-- Extra fields & source -->
           <v-divider class="my-4" />
 
-          <div class="section-header mb-2">
-            <span class="section-title">{{ t('جزئیات خانه و منبع') }}</span>
-          </div>
+         
 
           <v-row>
             <v-col cols="12" md="4">
@@ -281,12 +272,7 @@
           ========================== -->
           <v-divider class="my-4" />
           <div class="docs-head">
-            <div>
-              <div class="section-title">{{ t('اسناد') }}</div>
-              <div class="text-caption text-medium-emphasis mt-1">
-                {{ t('اسناد جدید بعد از ذخیره ثبت می‌شوند') }}
-              </div>
-            </div>
+            
 
             <div class="d-flex align-center ga-2">
               <v-tooltip :text="t('دانلود تمام اسناد (ZIP)')" location="top">
@@ -434,7 +420,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ خانه مشکوک') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

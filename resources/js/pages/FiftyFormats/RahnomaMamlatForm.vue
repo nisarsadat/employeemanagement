@@ -23,17 +23,17 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- Identity / Responsible -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">
               {{ isEdit ? t('ویرایش ریکارډ رهنما مملات') : t('ایجاد ریکارډ رهنما مملات') }}
             </span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.name"
-                :label="t('نام *')"
+                :label="t('* نام رهنما')"
                 variant="outlined"
                 density="compact"
                 :rules="[rules.required]"
@@ -210,7 +210,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ رهنما مملات') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

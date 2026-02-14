@@ -18,7 +18,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در شرکت‌های فروش موتر...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -44,7 +44,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه شرکت فروش موتر ') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -368,13 +368,13 @@
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('مختصات'), key: 'coordinates' },
 
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-    { title: t('یادداشت'), key: 'note', width: 300 },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note'},
+
   ]);
 
   /* TOP GROUPS – مثل Heist */

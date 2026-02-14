@@ -2,7 +2,7 @@
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
     <AppBar
-      :title="isEdit ? t('اصلاح کلب') : t('اضافه کردن یک ریکارډ جدید کلب')"
+      :title="isEdit ? t('اصلاح کلب') : t('اضافه ریکارډ جدید کلب')"
       :subtitle="
         isEdit ? t('ویرایش جزئیات یک ریکارډ موجود کلب') : t('ثبت یک ریکارډ جدید کلب در سیستم')
       "
@@ -20,36 +20,16 @@
       >
         <v-card class="pa-4" elevation="2">
           <!-- هدر بخش‌ها -->
-          <v-row>
+          <!-- <v-row>
             <v-col cols="12">
               <h3 class="section-title">
                 {{ t('مشخصات اساسی کلب') }}
               </h3>
             </v-col>
-          </v-row>
+          </v-row> -->
 
           <!-- Identity / basic -->
           <v-row>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.name"
-                :label="t('نام مسئول/شخص')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                required
-              />
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.father_name"
-                :label="t('نام پدر')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.club_name"
@@ -70,13 +50,31 @@
                 hide-details="auto"
               />
             </v-col>
-          </v-row>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.name"
+                :label="t('نام مسئول/شخص')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                :rules="[rules.required]"
+                required
+              />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="form.father_name"
+                :label="t('نام پدر')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              />
+            </v-col>
 
-          <v-row>
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.position"
-                :label="t('وظیفه/موقعیت مسئول')"
+                :label="t('وظیفه/موقعیت')"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
@@ -135,6 +133,17 @@
                 hide-details="auto"
               />
             </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.cordinate"
+                :label="t('مختصات')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                persistent-hint
+                :rules="[rules.coordinatesOptional]"
+              />
+            </v-col>
           </v-row>
 
           <!-- شاگردان -->
@@ -167,30 +176,6 @@
                 hide-details="auto"
                 type="number"
                 :rules="[rules.nonNegativeNumberOptional]"
-              />
-            </v-col>
-          </v-row>
-
-          <!-- مختصات -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('مختصات و نقشه') }}
-              </h3>
-            </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.cordinate"
-                :label="t('مختصات (cordinate)')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                hint="مثال: 34.1234, 69.1234"
-                persistent-hint
-                :rules="[rules.coordinatesOptional]"
               />
             </v-col>
           </v-row>
@@ -282,7 +267,7 @@
                 :loading="saving"
                 type="submit"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت کلب جدید') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('جدید') }}
               </v-btn>
 
               <v-btn color="secondary" variant="text" class="text-none" @click="resetForm">

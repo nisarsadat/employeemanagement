@@ -18,7 +18,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در شرکت‌های ترانسپورتی...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -44,7 +44,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t(' شرکت ترانسپورتی جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -63,7 +63,7 @@
                 <v-icon>mdi-office-building</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام شرکت‌ها') }}</div>
+                <div class="stat-card-title">{{ t('تمام شرکت های ترانسپورتی') }}</div>
                 <div class="stat-card-subtitle">
                   {{ t('مجموع') }}: {{ stats.total }}
                 </div>
@@ -371,14 +371,14 @@ const headersFT = computed(() => [
   { title: t('مختصات'), key: 'coordinate' },
   { title: t('راه‌ها'), key: 'ways' },
 
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
-  { title: t('یادداشت'), key: 'note', width: 300 },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
   { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('یادداشت'), key: 'note'},
+
 ]);
 
 /* TOP GROUPS */

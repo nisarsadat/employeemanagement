@@ -40,6 +40,7 @@ class Fasad extends Model
         'resource_phone',
         'resource_id',
         'coordinates',
+        'notes',
     ];
 
     public function resource()

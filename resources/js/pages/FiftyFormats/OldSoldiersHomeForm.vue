@@ -103,7 +103,6 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-                hint="مثال: 34.1234, 69.1234"
                 persistent-hint
                 :rules="[rules.coordinatesOptional]"
                 :error="hasError('coordinates')"
@@ -309,7 +308,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت منزل سرباز سابق') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

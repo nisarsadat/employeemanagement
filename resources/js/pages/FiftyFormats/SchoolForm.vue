@@ -21,9 +21,9 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- ================= SCHOOL INFO ================= -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">{{ t('مشخصات مکتب') }}</span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="6">
@@ -53,9 +53,9 @@
           <v-divider class="my-4" />
 
           <!-- ================= PRINCIPLE ================= -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">{{ t('مدیر مکتب') }}</span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="4">
@@ -95,9 +95,9 @@
           <v-divider class="my-4" />
 
           <!-- ================= TEACHERS / STUDENTS ================= -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">{{ t('معلمان و شاگردان') }}</span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="3">
@@ -152,9 +152,9 @@
           <v-divider class="my-4" />
 
           <!-- ================= ADDRESS ================= -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">{{ t('آدرس مکتب') }}</span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="12">
@@ -174,7 +174,7 @@
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.village"
-                :label="t('قریه/ناحیه کوچک')"
+                :label="t('قریه/ناحیه')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('village')"
@@ -231,7 +231,7 @@
 
           <!-- ================= RESOURCE + NOTE ================= -->
           <div class="section-header">
-            <span class="section-title">{{ t('منبع و یادداشت') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
 
           <v-row>
@@ -262,7 +262,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.note"
                 :label="t('یادداشت')"
@@ -285,7 +285,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد مکتب') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

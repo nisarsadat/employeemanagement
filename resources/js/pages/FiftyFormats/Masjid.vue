@@ -17,7 +17,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در مساجد...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -43,7 +43,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن مسجد جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -363,20 +363,20 @@ const headersFT = computed(() => [
   { title: t('نام مسجد'), key: 'masjid_name' },
   { title: t('نوع مسجد'), key: 'masjid_type' },
 
-  { title: t('مسوول'), key: 'responsible_name' },
-  { title: t('نام پدر مسوول'), key: 'responsible_f_name' },
-  { title: t('وظیفه/موقف مسوول'), key: 'responsible_position' },
-  { title: t('مذهب مسوول'), key: 'responsible_mazhab' },
-  { title: t('وظیفه قبلی مسوول'), key: 'responsible_old_job' },
-  { title: t('وظیفه فعلی مسوول'), key: 'responsible_now_job' },
+  { title: t('مسول/امام'), key: 'responsible_name' },
+  { title: t('نام پدر مسول/امام'), key: 'responsible_f_name' },
+  { title: t('موقف مسول/امام'), key: 'responsible_position' },
+  { title: t('مذهب مسول/امام'), key: 'responsible_mazhab' },
+  { title: t('وظیفه قبلی مسول/امام'), key: 'responsible_old_job' },
+  { title: t('وظیفه فعلی مسول/امام'), key: 'responsible_now_job' },
   { title: t('طرفداری/وابستگی'), key: 'responsible_tarfdary' },
 
-  { title: t('ولایت اصلی مسوول'), key: 'responsible_main_province' },
-  { title: t('ولسوالی اصلی مسوول'), key: 'responsible_main_district' },
-  { title: t('قریه اصلی مسوول'), key: 'responsible_main_village' },
-  { title: t('ولایت فعلی مسوول'), key: 'responsible_now_province' },
-  { title: t('ولسوالی فعلی مسوول'), key: 'responsible_now_district' },
-  { title: t('قریه فعلی مسوول'), key: 'responsible_now_village' },
+  { title: t('ولایت اصلی مسول/امام'), key: 'responsible_main_province' },
+  { title: t('ولسوالی اصلی مسول/امام'), key: 'responsible_main_district' },
+  { title: t('قریه اصلی مسول/امام'), key: 'responsible_main_village' },
+  { title: t('ولایت فعلی مسول/امام'), key: 'responsible_now_province' },
+  { title: t('ولسوالی فعلی مسول/امام'), key: 'responsible_now_district' },
+  { title: t('قریه فعلی مسول/امام'), key: 'responsible_now_village' },
 
   { title: t('مذهب مردم مسجد'), key: 'masjid_people_mazhab' },
   { title: t('تعداد خانه‌های مربوط مسجد'), key: 'masjid_homes_quantity' },
@@ -389,13 +389,12 @@ const headersFT = computed(() => [
   { title: t('شماره سرک مسجد'), key: 'masjid_street_number' },
 
   { title: t('مختصات مسجد'), key: 'masjid_coordinates' },
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
   { title: t('نقشه'), key: 'map', sortable: false },
-  { title: t('یادداشت'), key: 'note', width: 300 },
+  { title: t('یادداشت'), key: 'note'},
 ]);
 
 /* TOP GROUPS */

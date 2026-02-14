@@ -12,7 +12,7 @@ class UpdateGovernmentPlaceRequest extends FormRequest
     {
         return [
             'government_place_name' => ['sometimes','nullable','string'],
-            'daily_clientele'       => ['sometimes','nullable','integer'],
+            'daily_clientele'       => ['sometimes','nullable'],
 
             'responsible_name'      => ['sometimes','nullable','string'],
             'responsible_f_name'    => ['sometimes','nullable','string'],
@@ -28,9 +28,11 @@ class UpdateGovernmentPlaceRequest extends FormRequest
 
             'tafseel'               => ['sometimes','nullable','string'],
             'amnyatee_khala'        => ['sometimes','nullable','string'],
-            'guard_quantity'        => ['sometimes','nullable','integer'],
+            'guard_quantity'        => ['sometimes','nullable'],
 
-            'resource_id'           => ['sometimes','nullable','integer','exists:resources,id'],
+            'employee_quantity'        => ['nullable'],
+
+            'resource_id'           => ['sometimes','nullable','exists:resources,id'],
             'note'                  => ['sometimes','nullable','string'],
             'Province_addr'         => ['sometimes','nullable','string'],
 

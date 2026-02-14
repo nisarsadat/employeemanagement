@@ -19,17 +19,7 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="pa-4" elevation="2">
-          <!-- مشخصات اساسی -->
           <v-row>
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('مشخصات اساسی') }}
-              </h3>
-            </v-col>
-          </v-row>
-
-          <v-row>
-            <!-- ✅ Picture Picker (good design) -->
             <v-col cols="12" md="3">
               <div class="picture-wrap">
                 <div class="picture-label">{{ t('عکس') }}</div>
@@ -70,7 +60,7 @@
                   </div>
 
                   <div class="picture-hint">
-                    {{ t('jpg / png / webp - حداکثر 5MB') }}
+                    <!-- {{ t('jpg / png / webp - حداکثر 5MB') }} -->
                   </div>
 
                   <input
@@ -83,6 +73,18 @@
                 </div>
               </div>
             </v-col>
+          </v-row>
+          <!-- مشخصات اساسی -->
+          <v-row>
+            <v-col cols="12">
+              <h3 class="section-title">
+                {{ t('مشخصات اساسی') }}
+              </h3>
+            </v-col>
+          </v-row>
+
+          <v-row>
+            <!-- ✅ Picture Picker (good design) -->
 
             <v-col cols="12" md="3">
               <v-text-field
@@ -278,14 +280,6 @@
             </v-col>
           </v-row>
 
-          <!-- مختصات -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('مختصات و نقشه') }}
-              </h3>
-            </v-col>
-          </v-row>
 
           <v-row>
             <v-col cols="12" md="6">
@@ -304,7 +298,6 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-                hint="مثال: 34.1234, 69.1234"
                 persistent-hint
                 :rules="[rules.coordinatesOptional]"
               />
@@ -410,7 +403,7 @@
                 :loading="saving"
                 type="submit"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت سرباز جدید') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn color="secondary" variant="text" class="text-none" @click="resetForm">

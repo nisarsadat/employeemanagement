@@ -17,7 +17,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در نقاط آسیب...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -43,7 +43,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه نقطه آسیب جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -62,7 +62,7 @@
                 <v-icon>mdi-map-marker</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام نقاط آسیب') }}</div>
+                <div class="stat-card-title">{{ t('نقاط آسیب') }}</div>
                 <div class="stat-card-subtitle">
                   {{ t('مجموع') }}: {{ stats.total }}
                 </div>
@@ -379,14 +379,14 @@ const headersFT = computed(() => [
   { title: t('وظیفه مسوول'), key: 'masool_position' },
   { title: t('شماره مسوول'), key: 'masool_phone' },
 
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
-  { title: t('یادداشت'), key: 'note', width: 300 },
 
   { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('یادداشت'), key: 'note' },
+
 ]);
 
 /* TOP GROUPS */

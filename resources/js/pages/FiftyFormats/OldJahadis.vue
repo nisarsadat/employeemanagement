@@ -19,7 +19,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در جهادی‌های قدیم...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -45,7 +45,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن جهادی قدیم') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -406,17 +406,17 @@
     { title: t('وظیفه فعلی'), key: 'now_job' },
     { title: t('اداره/ارگان'), key: 'organ' },
 
-    { title: t('تعداد کارمندان'), key: 'employee_quantity' },
+    { title: t('تعداد افراد'), key: 'employee_quantity' },
     { title: t('تمویل کننده'), key: 'supplier' },
-    { title: t('تنظیم مربوطه'), key: 'tanzim' },
+    { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('تنظیم کدام'), key: 'tanzim' },
 
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
     { title: t('مختصات'), key: 'coordinates' },
 
-    { title: t('یادداشت'), key: 'note' },
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note' },
   ]);
 
   const topGroups = computed(() => [

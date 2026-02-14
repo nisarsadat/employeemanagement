@@ -9,11 +9,7 @@
           : t('ثبت یک زندانی تسلیم شده جدید در سیستم')
       "
     >
-      <template #actions>
-        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
+      
     </AppBar>
 
     <!-- STEPPER (sticky when scrolling) -->
@@ -169,13 +165,13 @@
                   {{ t('معرفت و معلومات تماس') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{
                   t(
                     'نام، نام پدر، نام پدر کلان، نام مستعار، تذکره، عمر، شماره تماس، زبان، سطح علمی و حالت مدنی'
                   )
                 }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
 
@@ -394,9 +390,9 @@
                   {{ t('آدرس اصلی و فعلی') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('آدرس اصلی (زادگاه) و آدرس فعلی زندانی را وارد کنید.') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
 
@@ -475,7 +471,7 @@
               <v-col cols="12" md="4">
                 <CombinedInfoTypeSelect
                   v-model="form.maznonyat_type"
-                  label="نوع مذنونیت"
+                  label="نوع مظنونیت"
                   :md="12"
                   :cols="12"
                 />
@@ -536,9 +532,9 @@
                   {{ t('جزئیات دستگیری') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('محل، مرجع، تاریخ و ساعت دستگیری را درج کنید.') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
 
@@ -602,11 +598,11 @@
                   {{ t('مظنونیت، شواهد، ملاحظات و اسناد') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{
                   t('نوعیت مظنونیت، حالت دستگیری، وسایل گرفته شده، ملاحظات و اسناد را درج کنید.')
                 }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
 

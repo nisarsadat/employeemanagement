@@ -23,11 +23,11 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- Identity + base info -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">
               {{ isEdit ? t('ویرایش ریکارډ چک‌پوینت') : t('ایجاد ریکارډ چک‌پوینت') }}
             </span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="4">
@@ -54,7 +54,7 @@
               <v-text-field
                 v-model.number="form.employee_quantity"
                 type="number"
-                :label="t('تعداد کارمندان')"
+                :label="t('تعداد مجاهدین')"
                 variant="outlined"
                 density="compact"
                 :rules="[rules.nonNegativeInt]"
@@ -87,9 +87,7 @@
           </v-row>
 
           <!-- Officer -->
-          <div class="section-header mt-4">
-            <span class="section-title">{{ t('مسؤول پوسته') }}</span>
-          </div>
+        
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -173,6 +171,16 @@
                 :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
+             <v-col cols="12" md="4">
+              <v-text-field
+                v-model="form.gun_type"
+                :label="t('نوع سلاح')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('gun_type')"
+                :error-messages="getErrorMessages('gun_type')"
+              />
+            </v-col>
             <!-- <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.Province_addr"
@@ -187,19 +195,10 @@
 
           <!-- Gun / resource / note -->
           <div class="section-header mt-4">
-            <span class="section-title">{{ t('سلاح، منبع و یادداشت') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
           <v-row>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.gun_type"
-                :label="t('نوع سلاح')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('gun_type')"
-                :error-messages="getErrorMessages('gun_type')"
-              />
-            </v-col>
+           
 
             <v-col cols="12" md="4">
               <v-autocomplete
@@ -250,7 +249,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ چک‌پوینت') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

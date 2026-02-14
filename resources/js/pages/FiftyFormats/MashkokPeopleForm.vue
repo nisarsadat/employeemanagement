@@ -85,11 +85,11 @@
             <!-- Identity + addresses -->
             <v-col cols="12" md="9">
               <!-- Identity -->
-              <div class="section-header">
+              <!-- <div class="section-header">
                 <span class="section-title">
                   {{ isEdit ? t('ویرایش ریکارډ فرد مشکوک') : t('ایجاد ریکارډ فرد مشکوک') }}
                 </span>
-              </div>
+              </div> -->
 
               <v-row>
                 <v-col cols="12" md="4">
@@ -269,7 +269,14 @@
                 :error-messages="getErrorMessages('mushkokyat_points')"
               />
             </v-col>
-
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.mashkokyat_type"
+                :label="t('نوعیت مشکوکیت')"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
             <!-- <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.Province_addr"
@@ -351,7 +358,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ فرد مشکوک') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn
@@ -517,6 +524,7 @@
     old_job: '',
     now_job: '',
     mushkokyat_points: '',
+    mashkokyat_type: '',
     Province_addr: '',
     coordinates: '',
 
@@ -634,6 +642,7 @@
     b.old_job = x.old_job ?? '';
     b.now_job = x.now_job ?? '';
     b.mushkokyat_points = x.mushkokyat_points ?? '';
+    b.mashkokyat_type = x.mashkokyat_type ?? '';
     b.Province_addr = x.Province_addr ?? '';
     b.coordinates = x.coordinates ?? '';
 
@@ -752,6 +761,7 @@
       { label: t('وظیفه قبلی'), value: v(form.value.old_job) },
       { label: t('وظیفه فعلی'), value: v(form.value.now_job) },
       { label: t('نقاط مشکوکیت'), value: v(form.value.mushkokyat_points) },
+      { label: t('نوعیت مشکوکیت'), value: v(form.value.mashkokyat_type) },
       { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
       { label: t('مختصات'), value: v(form.value.coordinates) },
 

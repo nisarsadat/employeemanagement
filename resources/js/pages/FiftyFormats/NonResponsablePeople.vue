@@ -41,7 +41,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه شخص غیرمسؤول ') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -408,14 +408,14 @@
     { title: t('تنظیم'), key: 'tanzim' },
     { title: t('نوع تخلف'), key: 'takhalof_type' },
 
-    { title: t('یادداشت'), key: 'note', width: 300 },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
     { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note'},
+
   ]);
 
   /* TOP GROUPS – like old component */

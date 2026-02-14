@@ -22,7 +22,7 @@
                 :items="accountItems"
                 item-title="title"
                 item-value="id"
-                :label="t('د تيلو حساب')"
+                :label="t('د تيلو نوعیت')"
                 variant="outlined"
                 density="compact"
                 :rules="[rules.required]"

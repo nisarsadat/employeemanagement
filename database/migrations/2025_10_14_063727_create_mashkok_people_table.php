@@ -28,6 +28,7 @@ return new class extends Migration {
             $table->string('now_street_number')->nullable();
             $table->string('now_home_number')->nullable();
             $table->string('coordinates')->nullable();
+            $table->string('mashkokyat_type')->nullable();
 
             // Work & contact
             $table->string('old_job')->nullable();

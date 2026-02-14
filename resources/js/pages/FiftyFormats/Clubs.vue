@@ -17,7 +17,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در کلب‌ها...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -43,7 +43,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه ریکارډ جدید کلب') }}
+            {{ t('کلب') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -62,7 +62,7 @@
                 <v-icon>mdi-account-group</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام کلب‌ها') }}</div>
+                <div class="stat-card-title">{{ t('کلب‌ها') }}</div>
                 <div class="stat-card-subtitle">
                   {{ t('مجموع') }}: {{ stats.total }}
                 </div>
@@ -363,13 +363,12 @@ const headersFT = computed(() => [
   { title: t('شاگردان صبح'), key: 'am_students' },
   { title: t('شاگردان عصر'), key: 'pm_students' },
 
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone_number' },
-  { title: t('ملاحظات'), key: 'notes' },
 
   { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('ملاحظات'), key: 'notes' },
+
 ]);
 
 /* TOP GROUPS (for FilterableTable) */

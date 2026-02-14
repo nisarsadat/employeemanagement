@@ -14,7 +14,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در ورود/خروج...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -40,7 +40,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه ریکارډ ورود/خروج') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -59,7 +59,7 @@
                 <v-icon>mdi-account-group</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام ریکارډها') }}</div>
+                <div class="stat-card-title">{{ t('ورود/خروج') }}</div>
                 <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
@@ -351,14 +351,11 @@
     { title: t('به کجا رفت'), key: 'where_went' },
     { title: t('از کجا آمد'), key: 'where_come' },
 
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
 
-    { title: t('ملاحظات'), key: 'notes' },
-
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('ملاحظات'), key: 'notes' },
   ]);
 
   /* TOP GROUPS */

@@ -61,11 +61,13 @@ class WakilanoResource extends JsonResource
             'old_job'            => $model->old_job,
             'now_job'            => $model->now_job,
             'home_quantity'      => $model->home_quantity,
+            'agent_quantity'      => $model->agent_quantity,
             'phone_number'       => $model->phone_number,
             'history_form'       => $model->history_form,
 
             'Province_addr'      => $model->Province_addr,
             'note'               => $model->note,
+            'tanzim'               => $model->tanzim,
 
             // ✅ resource fields (flattened)
             'resource_id'        => $model->resource_id,

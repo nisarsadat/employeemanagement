@@ -13,9 +13,9 @@
               <div class="text-h6 font-weight-bold mb-0">
                 {{ isEdit ? t('ویرایش نوع سند') : t('ثبت نوع سند جدید') }}
               </div>
-              <div class="text-caption opacity-90 text-truncate">
+              <!-- <div class="text-caption opacity-90 text-truncate">
                 {{ isEdit ? t('اطلاعات نوع سند را ویرایش کنید') : t('اطلاعات نوع سند جدید را وارد کنید') }}
-              </div>
+              </div> -->
             </div>
           </div>
 

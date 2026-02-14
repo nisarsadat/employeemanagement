@@ -77,7 +77,7 @@
       class="mb-20 mx-2"
     >
       <template #cell-province_name="{ row }">
-        <div class="d-flex align-center">
+        <div class="">
           <v-icon size="16" class="me-1" color="primary">mdi-map-marker</v-icon>
           <span class="text-caption">{{ row.province_name || '—' }}</span>
         </div>

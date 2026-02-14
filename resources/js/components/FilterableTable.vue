@@ -1155,7 +1155,7 @@
   const noResults = t('نتیجه‌ای پیدا نشد');
   const btnClear = t('پاک کردن');
   const btnDone = t('انجام شد');
-  const footerHint = t('برای بستن انجام شد را بزنید ');
+  const footerHint = t('برای بستن انجام شد را بزنید');
   const placeholderEmpty = t('(خالی)');
   /* === Slots & Actions column === */
   const slots = useSlots();

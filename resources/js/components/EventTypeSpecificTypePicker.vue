@@ -59,8 +59,8 @@ const props = defineProps({
   event_type: { type: String, default: "" },
   event_specific_type: { type: String, default: "" },
 
-  eventTypeLabel: { type: String, default: "نوع رویداد" },
-  eventSpecificTypeLabel: { type: String, default: "نوع مشخص رویداد" },
+  eventTypeLabel: { type: String, default: "د پیښې نوعیت" },
+  eventSpecificTypeLabel: { type: String, default: "د پیښې مشخص نوعیت" },
 
   disabled: { type: Boolean, default: false },
 

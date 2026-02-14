@@ -21,7 +21,7 @@
     <v-divider />
 
     <v-card-text class="pa-3">
-      <div class="d-flex flex-wrap ga-2 align-center justify-space-between">
+      <div class="d-flex flex-wrap ga-2  justify-space-between">
         <v-text-field
           v-model="search"
           :label="t('Search in notes')"
@@ -33,8 +33,8 @@
           @keyup.enter="fetchData(1)"
         />
 
-        <div class="d-flex ga-2">
-          <v-btn color="primary" variant="tonal" class="text-none" :loading="loading" @click="fetchData(1)">
+        <div class="d-flex alighn-center ga-2">
+          <v-btn color="primary" variant="tonal" class="text-none mt-2" :loading="loading" @click="fetchData(1)">
             <v-icon class="mr-2">mdi-refresh</v-icon>
             {{ t('Refresh') }}
           </v-btn>
@@ -118,9 +118,8 @@ const lastPage = ref(1)
 const search = ref('')
 
 const headers = computed(() => ([
-  { title: t('ID'), key: 'id', width: 80 },
   { title: t('Note'), key: 'report_note' },
-  { title: t('Created'), key: 'created_at', width: 190 },
+  { title: t('Created'), key: 'created_at' },
 ]))
 
 const title = computed(() => {
@@ -312,7 +311,7 @@ onMounted(() => fetchData(1))
 }
 
 .primary-header { background: linear-gradient(135deg, #eef2ff 0%, #dde5ff 100%); }
-.warning-header { background: linear-gradient(135deg, #fff6df 0%, #ffeab6 100%); }
+.warning-header { background: linear-gradient(135deg, #fff6df 0%, #b6d9ff 100%); }
 .success-header { background: linear-gradient(135deg, #e8fbf2 0%, #d2f7e5 100%); }
 .info-header    { background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); }
 .danger-header  { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); }

@@ -25,13 +25,6 @@
           <!-- Identity + responsible + counts + address -->
           <v-row>
             <!-- Identity -->
-            <v-col cols="12">
-              <div class="section-header">
-                <span class="section-title">
-                  {{ isEdit ? t('ویرایش ریکارډ دانشگاه') : t('ایجاد ریکارډ دانشگاه') }}
-                </span>
-              </div>
-            </v-col>
 
             <!-- Identity row -->
             <v-col cols="12" md="6">
@@ -187,11 +180,7 @@
               />
             </v-col>
             <v-col cols="12" md="3">
-              <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون')"
-                    :disabled="saving"
-                  />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
             </v-col>
 
             <v-col cols="12" md="3">
@@ -225,6 +214,18 @@
                 :error-messages="getErrorMessages('street_number')"
               />
             </v-col>
+            <!-- Coordinates -->
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.coordinates"
+                :label="t('مختصات')"
+                variant="outlined"
+                density="compact"
+                :error="hasError('coordinates')"
+                :error-messages="getErrorMessages('coordinates')"
+              />
+            </v-col>
+
             <!-- <v-col cols="12" md="9">
               <v-text-field
                 v-model="form.home_number"
@@ -241,21 +242,9 @@
 
           <!-- Extra + resource + note -->
           <div class="section-header mb-2">
-            <span class="section-title">{{ t('مختصات، منبع و یادداشت') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
           <v-row>
-            <!-- Coordinates -->
-            <v-col cols="12" md="12">
-              <v-text-field
-                v-model="form.coordinates"
-                :label="t('مختصات')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('coordinates')"
-                :error-messages="getErrorMessages('coordinates')"
-              />
-            </v-col>
-
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
               <v-autocomplete
@@ -307,7 +296,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ دانشگاه') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

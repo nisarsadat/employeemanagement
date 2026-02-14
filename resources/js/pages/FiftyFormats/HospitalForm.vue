@@ -19,11 +19,11 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- ================= BASIC INFO ================= -->
-          <div class="section-header">
+          <!-- <div class="section-header">
             <span class="section-title">
               {{ isEdit ? t('ویرایش معلومات شفاخانه') : t('معلومات اصلی شفاخانه') }}
             </span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="4">
@@ -232,7 +232,7 @@
 
           <!-- ================= Province_addr / Resource / Note ================= -->
           <div class="section-header">
-            <span class="section-title">{{ t('ولایت مربوطه، منبع و یادداشت') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
 
           <v-row>
@@ -297,7 +297,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد شفاخانه') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

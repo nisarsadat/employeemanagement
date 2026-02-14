@@ -22,11 +22,11 @@
       >
         <v-card class="simple-form-card" elevation="1">
           <!-- مسجد (نام + نوع) -->
-          <div class="section-header mb-1">
+          <!-- <div class="section-header mb-1">
             <span class="section-title">
               {{ isEdit ? t('ویرایش ریکارډ مسجد') : t('ایجاد ریکارډ مسجد') }}
             </span>
-          </div>
+          </div> -->
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
@@ -54,7 +54,7 @@
 
           <!-- مسوول مسجد -->
           <div class="section-header mt-4 mb-1">
-            <span class="section-title">{{ t('مسوول مسجد') }}</span>
+            <span class="section-title">{{ t('مسول/امام مسجد') }}</span>
           </div>
           <v-row>
             <v-col cols="12" md="4">
@@ -80,7 +80,7 @@
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.responsible_position"
-                :label="t('وظیفه/موقف مسوول')"
+                :label="t('موقف مسول/امام')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('responsible_position')"
@@ -91,7 +91,7 @@
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.responsible_mazhab"
-                :label="t('مذهب مسوول')"
+                :label="t('مذهب مسول/امام')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('responsible_mazhab')"
@@ -101,7 +101,7 @@
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.responsible_old_job"
-                :label="t('وظیفه قبلی مسوول')"
+                :label="t('وظیفه قبلی مسول/امام')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('responsible_old_job')"
@@ -111,7 +111,7 @@
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.responsible_now_job"
-                :label="t('وظیفه فعلی مسوول')"
+                :label="t('وظیفه فعلی مسول/امام')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('responsible_now_job')"
@@ -133,15 +133,15 @@
 
           <!-- آدرس مسوول -->
           <div class="section-header mt-4 mb-1">
-            <span class="section-title">{{ t('آدرس مسوول مسجد') }}</span>
+            <span class="section-title">{{ t('آدرس مسول/امام مسجد') }}</span>
           </div>
           <v-row>
             <v-col cols="12" md="12">
               <ProvinceDistrictNameSelect
                 v-model:province="form.responsible_main_province"
                 v-model:district="form.responsible_main_district"
-                :province-label="t('ولایت اصلی مسوول')"
-                :district-label="t('ولسوالی اصلی مسوول')"
+                :province-label="t('ولایت اصلی مسول/امام')"
+                :district-label="t('ولسوالی اصلی مسول/امام')"
                 :mdProvince="6"
                 :mdDistrict="6"
               />
@@ -149,7 +149,7 @@
             <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.responsible_main_village"
-                :label="t('قریه اصلی مسوول')"
+                :label="t('قریه اصلی مسول/امام')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('responsible_main_village')"
@@ -161,8 +161,8 @@
               <ProvinceDistrictNameSelect
                 v-model:province="form.responsible_now_province"
                 v-model:district="form.responsible_now_district"
-                :province-label="t('ولایت فعلی مسوول')"
-                :district-label="t('ولسوالی فعلی مسوول')"
+                :province-label="t('ولایت فعلی مسول/امام')"
+                :district-label="t('ولسوالی فعلی مسول/امام')"
                 :mdProvince="6"
                 :mdDistrict="6"
               />
@@ -170,7 +170,7 @@
             <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.responsible_now_village"
-                :label="t('قریه فعلی مسوول')"
+                :label="t('قریه فعلی مسول/امام')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('responsible_now_village')"
@@ -180,9 +180,9 @@
           </v-row>
 
           <!-- اجتماع مسجد -->
-          <div class="section-header mt-4 mb-1">
+          <!-- <div class="section-header mt-4 mb-1">
             <span class="section-title">{{ t('اجتماع مسجد') }}</span>
-          </div>
+          </div> -->
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
@@ -216,8 +216,8 @@
               <ProvinceDistrictNameSelect
                 v-model:province="form.masjid_province"
                 v-model:district="form.masjid_district"
-                :province-label="t('ولایت مسجد ')"
-                :district-label="t('ولسوالی مسجد ')"
+                :province-label="t('ولایت مسجد')"
+                :district-label="t('ولسوالی مسجد')"
                 :mdProvince="6"
                 :mdDistrict="6"
               />
@@ -346,7 +346,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ مسجد') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

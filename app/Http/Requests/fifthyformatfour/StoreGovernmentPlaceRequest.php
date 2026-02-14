@@ -29,6 +29,7 @@ class StoreGovernmentPlaceRequest extends FormRequest
             'tafseel'               => ['nullable','string'],
             'amnyatee_khala'        => ['nullable','string'],
             'guard_quantity'        => ['nullable','integer'],
+            'employee_quantity'        => ['nullable','integer'],
             'Province_addr'         => ['nullable','string'],
 
             'resource_id'           => ['nullable','integer','exists:resources,id'],

@@ -50,7 +50,7 @@
             @click="openCreate"
             prepend-icon="mdi-plus"
           >
-            {{ t('جدید') }}
+            {{ t('خیریت جدید') }}
           </v-btn>
         </v-col>
       </v-row>

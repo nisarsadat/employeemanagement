@@ -56,11 +56,11 @@
     </v-row>
 
     <!-- ✅ Top Bar (Finance style: Search + Year + Month + Create) -->
-    <v-row class="align-center mb-4" dense>
+    <v-row class=" mb-4" dense>
       <v-col cols="12" md="10">
         <v-text-field
           v-model.trim="repo.Search"
-          :label="t('حساب د تيلو لټون')"
+          :label="t('جستجو')"
           prepend-inner-icon="mdi-magnify"
           variant="outlined"
           density="compact"
@@ -97,8 +97,8 @@
         />
       </v-col> -->
 
-      <v-col cols="12" md="2" class="text-md-right">
-        <v-btn color="primary" prepend-icon="mdi-plus" block @click="openCreate">
+      <v-col cols="12" md="2" class="text-md-right align-center mt-2">
+        <v-btn color="primary" class="" prepend-icon="mdi-plus" block @click="openCreate">
           {{ t('نوی د تيلو حساب') }}
         </v-btn>
       </v-col>

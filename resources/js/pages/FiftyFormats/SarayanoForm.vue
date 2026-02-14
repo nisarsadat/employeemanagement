@@ -52,7 +52,7 @@
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.employee_quantity"
-                :label="t('تعداد کارمندان')"
+                :label="t('تعداد کارگران')"
                 type="number"
                 variant="outlined"
                 density="compact"
@@ -192,7 +192,7 @@
 
           <!-- ================= RESOURCE + NOTE ================= -->
           <div class="section-header">
-            <span class="section-title">{{ t('منبع و یادداشت') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
 
           <v-row>
@@ -246,7 +246,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ سرای') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

@@ -26,11 +26,6 @@
             <!-- Identity + address (FULL WIDTH now; picture removed) -->
             <v-col cols="12">
               <!-- Identity -->
-              <div class="section-header">
-                <span class="section-title">
-                  {{ isEdit ? t('ویرایش ریکارډ اداره دولتی') : t('ایجاد ریکارډ اداره دولتی') }}
-                </span>
-              </div>
 
               <v-row>
                 <v-col cols="12" md="6">
@@ -163,15 +158,15 @@
           <v-divider class="my-4" />
 
           <!-- Extra fields -->
-          <div class="section-header mb-2">
+          <!-- <div class="section-header mb-2">
             <span class="section-title">{{ t('امنیت، منبع و سایر جزئیات') }}</span>
-          </div>
+          </div> -->
 
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.tafseel"
-                :label="t('تفصیل')"
+                :label="t('تفصیل کامره های امنیتی')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('tafseel')"
@@ -202,7 +197,16 @@
                 :error-messages="getErrorMessages('guard_quantity')"
               />
             </v-col>
-
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model.number="form.employee_quantity"
+                type="number"
+                :label="t('تعداد کارمندان')"
+                variant="outlined"
+                density="compact"
+                :rules="[rules.nonNegativeInt]"
+              />
+            </v-col>
             <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"
@@ -276,7 +280,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ اداره دولتی') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn
@@ -414,6 +418,7 @@
     tafseel: '',
     amnyatee_khala: '',
     guard_quantity: '',
+    employee_quantity: '',
     Province_addr: '',
     coordinates: '',
 
@@ -470,6 +475,7 @@
     b.tafseel = x.tafseel ?? '';
     b.amnyatee_khala = x.amnyatee_khala ?? '';
     b.guard_quantity = x.guard_quantity ?? '';
+    b.employee_quantity = x.employee_quantity ?? '';
     b.Province_addr = x.Province_addr ?? '';
     b.coordinates = x.coordinates ?? '';
 
@@ -568,6 +574,7 @@
       { label: t('تفصیل'), value: v(form.value.tafseel) },
       { label: t('خلای امنیتی'), value: v(form.value.amnyatee_khala) },
       { label: t('تعداد محافظ'), value: v(form.value.guard_quantity) },
+      { label: t('تعداد کارمندان'), value: v(form.value.employee_quantity) },
 
       { label: t('ولایت مربوطه'), value: v(form.value.Province_addr) },
       { label: t('مختصات'), value: v(form.value.coordinates) },

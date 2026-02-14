@@ -57,7 +57,7 @@
     </v-row>
 
     <!-- ✅ Top Bar (Finance style: Search + Year + Month + Create) -->
-    <v-row class="align-center mb-4" dense>
+    <v-row class=" mb-4" dense>
       <v-col cols="12" md="10 ">
         <v-text-field
           v-model.trim="repo.Search"
@@ -107,8 +107,8 @@
         />
       </v-col> -->
 
-      <v-col cols="12" md="2" class="text-md-right">
-        <v-btn color="primary" prepend-icon="mdi-plus" block @click="openCreate">
+      <v-col cols="12" md="2" class="text-md-right align-center  ">
+        <v-btn color="primary" class="mt-2" prepend-icon="mdi-plus" block @click="openCreate">
           {{ t('نوی د تيلو داخلول') }}
         </v-btn>
       </v-col>
@@ -305,9 +305,8 @@ function onYearMonthChanged() {
 const headersFT = computed(() => [
   { title: t('حساب'), key: 'account', sortable: false },
   { title: t('مقدار (L)'), key: 'oil_quantity', sortable: false },
-  { title: t('نیټه'), key: 'date', sortable: false },
+  { title: t('د تیلو د عاید نیټه'), key: 'date', sortable: false },
   { title: t('یادونه'), key: 'note', sortable: false },
-  { title: t('عملیات'), key: 'actions', sortable: false },
 ])
 
 const qty = (n) =>

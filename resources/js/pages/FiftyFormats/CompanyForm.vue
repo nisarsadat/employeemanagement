@@ -24,11 +24,11 @@
             <!-- Identity + addresses -->
             <v-col cols="12" md="12">
               <!-- Identity -->
-              <div class="section-header">
+              <!-- <div class="section-header">
                 <span class="section-title">
                   {{ isEdit ? t('ویرایش ریکارډ شرکت') : t('ایجاد ریکارډ شرکت') }}
                 </span>
-              </div>
+              </div> -->
 
               <v-row>
                 <v-col cols="12" md="4">
@@ -200,9 +200,9 @@
           <v-divider class="my-4" />
 
           <!-- Extra fields -->
-          <div class="section-header mb-2">
+          <!-- <div class="section-header mb-2">
             <span class="section-title">{{ t('کارمندان، محافظین و منبع') }}</span>
-          </div>
+          </div> -->
           <v-row>
             <!-- Employees -->
             <v-col cols="12" md="3">
@@ -330,7 +330,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ شرکت') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

@@ -73,13 +73,13 @@
 
           <!-- Identity -->
           <v-row>
-            <v-col cols="12">
+            <!-- <v-col cols="12">
               <div class="section-header">
                 <span class="section-title">
                   {{ isEdit ? t('ویرایش ریکارډ جهادی قدیم') : t('ایجاد ریکارډ جدید جهادی قدیم') }}
                 </span>
               </div>
-            </v-col>
+            </v-col> -->
 
             <v-col cols="12" md="4">
               <v-text-field
@@ -251,7 +251,7 @@
               <v-text-field
                 v-model="form.employee_quantity"
                 type="number"
-                :label="t('تعداد کارمندان')"
+                :label="t('تعداد افراد')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('employee_quantity')"
@@ -281,23 +281,14 @@
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.tanzim"
-                :label="t('تنظیم مربوطه')"
+                :label="t('تنظیم کدام')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('tanzim')"
                 :error-messages="getErrorMessages('tanzim')"
               />
             </v-col>
-          </v-row>
-
-          <v-divider class="my-4" />
-
-          <!-- Contact / Province / Coordinates / Resource / Note -->
-          <div class="section-header mb-2">
-            <span class="section-title">{{ t('سایر معلومات') }}</span>
-          </div>
-          <v-row>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.coordinates"
                 :label="t('مختصات')"
@@ -307,7 +298,15 @@
                 :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
+          </v-row>
 
+          <v-divider class="my-4" />
+
+          <!-- Contact / Province / Coordinates / Resource / Note -->
+          <div class="section-header mb-2">
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
+          </div>
+          <v-row>
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
               <v-autocomplete

@@ -47,6 +47,7 @@ return new class extends Migration {
         $table->string('Province_addr')->nullable();
         $table->string('coordinates')->nullable();
         $table->string('tafseel')->nullable();
+        $table->string('notes')->nullable();
 
         // FK
         $table->foreignId('resource_id')

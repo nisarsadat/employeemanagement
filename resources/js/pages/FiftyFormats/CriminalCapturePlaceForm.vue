@@ -26,17 +26,17 @@
           <v-row>
             <v-col cols="12">
               <!-- Identity -->
-              <div class="section-header">
+              <!-- <div class="section-header">
                 <span class="section-title">
                   {{ isEdit ? t('ویرایش ریکارډ محل دستگیری') : t('ایجاد ریکارډ محل دستگیری') }}
                 </span>
-              </div>
+              </div> -->
 
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.name"
-                    :label="t('نام مجرم *')"
+                    :label="t('نام *')"
                     variant="outlined"
                     density="compact"
                     :rules="[rules.required]"
@@ -101,7 +101,7 @@
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.office"
-                    :label="t('اداره')"
+                    :label="t('کدام اداره ګرفته')"
                     variant="outlined"
                     density="compact"
                     :error="hasError('office')"
@@ -173,7 +173,7 @@
 
           <!-- Extra fields -->
           <div class="section-header mb-2">
-            <span class="section-title">{{ t('جزئیات اضافی و منبع') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
 
           <v-row>
@@ -240,7 +240,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ محل دستگیری') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

@@ -14,7 +14,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در ساعین فساد...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -40,7 +40,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه ریکارډ ساعین فساد') }}
+            {{ t('نوی') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -383,8 +383,8 @@
   /* TABLE HEADERS – list view */
   const headersFT = computed(() => [
     { title: t('تصویر'), key: 'picture', sortable: false },
-    { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },
+    { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
 
     { title: t('ولایت اصلی'), key: 'main_province' },
@@ -416,9 +416,9 @@
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
 
-    { title: t('ملاحظات'), key: 'note' },
     { title: t('تفصیل'), key: 'tafseel' },
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('ملاحظات'), key: 'note' },
   ]);
 
   /* TOP GROUPS */

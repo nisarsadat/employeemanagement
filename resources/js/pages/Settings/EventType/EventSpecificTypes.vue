@@ -45,7 +45,7 @@
         <v-col cols="12" md="6" lg="7">
           <v-text-field
             v-model.trim="search"
-            :label="t('جستجو در نوع مشخص رویداد...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -96,7 +96,7 @@
     >
       <!-- Event type -->
       <template #cell-event_type_name="{ row }">
-        <div class="d-flex align-center">
+        <div class="">
           <v-icon size="16" class="me-1" color="primary">mdi-shape-outline</v-icon>
           <span class="text-caption">{{ row.event_type_name || row.event_type?.name || '—' }}</span>
         </div>
@@ -104,7 +104,7 @@
 
       <!-- Name -->
       <template #cell-name="{ row }">
-        <div class="d-flex align-center">
+        <div class="">
           <v-icon size="16" class="me-1" color="primary">mdi-tag-outline</v-icon>
           <span class="text-caption">{{ row.name || '—' }}</span>
         </div>
@@ -112,7 +112,7 @@
 
       <!-- Actions -->
       <template #actions="{ item }">
-        <div class="d-flex align-center ga-2">
+        <div class=" ga-2">
           <v-tooltip :text="t('ویرایش نوع مشخص رویداد')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon

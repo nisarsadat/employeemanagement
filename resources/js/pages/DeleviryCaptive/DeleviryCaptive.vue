@@ -71,28 +71,8 @@
           </v-card>
         </v-col>
 
-        <!-- 2) جاسوسی -->
-        <v-col cols="12" sm="2" >
-          <v-card
-            class="stat-card"
-            :class="{ 'stat-card--active': cardFilter === 'spy' }"
-            :elevation="cardFilter === 'spy' ? 6 : 1"
-            @click="cardFilter = 'spy'"
-          >
-            <div class="stat-card-body">
-              <div class="stat-card-icon">
-                <v-icon>mdi-shield-search</v-icon>
-              </div>
-              <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('جاسوسی') }}</div>
-                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.spy }}</div>
-              </div>
-            </div>
-          </v-card>
-        </v-col>
-
         <!-- 3) ساعین بالفساد -->
-        <v-col cols="12" sm="2" >
+        <v-col cols="12" sm="2">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'saeen' }"
@@ -112,7 +92,7 @@
         </v-col>
 
         <!-- 4) شر او فساد -->
-        <v-col cols="12" sm="2" >
+        <v-col cols="12" sm="2">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'sharFasad' }"
@@ -130,9 +110,28 @@
             </div>
           </v-card>
         </v-col>
+        <!-- 2) جاسوسی -->
+        <v-col cols="12" sm="2">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'spy' }"
+            :elevation="cardFilter === 'spy' ? 6 : 1"
+            @click="cardFilter = 'spy'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon">
+                <v-icon>mdi-shield-search</v-icon>
+              </div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('جاسوسی') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.spy }}</div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
 
         <!-- 5) Today -->
-        <v-col cols="12" sm="2" >
+        <v-col cols="12" sm="2">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'today' }"
@@ -144,7 +143,7 @@
                 <v-icon>mdi-calendar-today</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('امروز') }}</div>
+                <div class="stat-card-title">{{ t('امروز اضافه شده') }}</div>
                 <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.today }}</div>
               </div>
             </div>
@@ -485,10 +484,11 @@
     { title: t('حالت دستگیری'), key: 'captive_halat' },
     { title: t('وسایل و شواهد گرفته شده'), key: 'suspect_tools' },
 
-    { title: t('ملاحظات'), key: 'notes' },
     // { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('ملاحظات'), key: 'notes' },
+
   ]);
 
   /* TOP GROUPS (ارتباطی group removed) */

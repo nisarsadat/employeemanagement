@@ -15,7 +15,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در وکیلالو...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -41,7 +41,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن وکیل جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -60,7 +60,7 @@
                 <v-icon>mdi-account-group</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام وکیلالو') }}</div>
+                <div class="stat-card-title">{{ t('وکیلالو') }}</div>
                 <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
@@ -397,16 +397,17 @@
     { title: t('وظیفه قبلی'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
     { title: t('تعداد خانه'), key: 'home_quantity' },
+    { title: t('تعداد نماینده ها'), key: 'agent_quantity' },
+    { title: t('تنظیم/ وابستگی'), key: 'tanzim' },
 
     { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('سابقه/فرم'), key: 'history_form' },
+    { title: t('سابقه جرم'), key: 'history_form' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
-    { title: t('یادداشت'), key: 'note' },
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note' },
   ]);
 
   /* TOP GROUPS */

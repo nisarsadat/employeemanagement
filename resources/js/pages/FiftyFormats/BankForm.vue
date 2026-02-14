@@ -23,11 +23,11 @@
           <v-row>
             <!-- MAIN INFO -->
             <v-col cols="12">
-              <div class="section-header">
+              <!-- <div class="section-header">
                 <span class="section-title">
                   {{ isEdit ? t('ویرایش ریکارډ بانک') : t('ایجاد ریکارډ بانک') }}
                 </span>
-              </div>
+              </div> -->
 
               <v-row>
                 <v-col cols="12" md="4">
@@ -173,6 +173,27 @@
                     :error-messages="getErrorMessages('coordinates')"
                   />
                 </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model.number="form.which_offices_sallary"
+                    type="number"
+                    :label="t('د کومو ادارو معاشات تادیه کوی')"
+                    variant="outlined"
+                    density="compact"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model.number="form.guard_quantity"
+                    type="number"
+                    :label="t('تعداد محافظین')"
+                    variant="outlined"
+                    density="compact"
+                    :error="hasError('guard_quantity')"
+                    :error-messages="getErrorMessages('guard_quantity')"
+                  />
+                </v-col>
               </v-row>
             </v-col>
           </v-row>
@@ -181,32 +202,10 @@
 
           <!-- Extra / resource -->
           <div class="section-header mb-2">
-            <span class="section-title">{{ t('محافظین، ملاحظات و منبع') }}</span>
+            <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
 
           <v-row>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model.number="form.which_offices_sallary"
-                type="number"
-                :label="t('د کومو ادارو معاشات تادیه کوی')"
-                variant="outlined"
-                density="compact"
-              />
-            </v-col>
-
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model.number="form.guard_quantity"
-                type="number"
-                :label="t('تعداد محافظین')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('guard_quantity')"
-                :error-messages="getErrorMessages('guard_quantity')"
-              />
-            </v-col>
-
             <!-- <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.Province_addr"

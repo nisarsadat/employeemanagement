@@ -49,6 +49,7 @@ class FasadResource extends JsonResource
             'resource_id' => $this->resource_id,
             'Province_addr' => $this->Province_addr,
             'coordinates' => $this->coordinates,
+            'notes' => $this->notes,
 
             /* ===== Picture ===== */
             'picture' => $this->picture

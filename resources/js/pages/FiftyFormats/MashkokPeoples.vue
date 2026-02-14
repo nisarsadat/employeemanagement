@@ -22,7 +22,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در افراد مشکوک...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -48,7 +48,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه فرد مشکوک جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -433,17 +433,18 @@ const headersFT = computed(() => [
   { title: t('وظیفه قبلی'), key: 'old_job' },
   { title: t('وظیفه فعلی'), key: 'now_job' },
   { title: t('نقاط مشکوکیت'), key: 'mushkokyat_points' },
+  { title: t('نوعیت مشکوکیت'), key: 'mashkokyat_type' },
 
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
   { title: t('مختصات'), key: 'coordinates' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
-  { title: t('یادداشت'), key: 'note', width: 300 },
-  { title: t('تفصیل'), key: 'tafseel', width: 300 },
+  { title: t('تفصیل'), key: 'tafseel'},
 
   { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('یادداشت'), key: 'note'},
+
 ]);
 
 /* TOP GROUPS – group everything nicely */

@@ -140,9 +140,9 @@
                   {{ t('نوع و متن') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('نوع مکتوب، تفصیل، مرجع و امضاء') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
 
@@ -176,17 +176,17 @@
               <div class="d-flex align-center">
                 <v-icon class="ml-2 section-icon">mdi-calendar</v-icon>
                 <span class="text-subtitle-2 font-weight-medium section-title">
-                  {{ t('تاریخ‌ها') }}
+                  {{ t('تاریخ ها و صفحات') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('تاریخ‌های دفتر، ریاست‌ها، پاسخ و امضاء') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
 
             <v-row class="pa-3">
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="6">
                 <DateInput
                   v-model="form.docs_sign_date"
                   :label="t('تاریخ امضاء')"
@@ -197,7 +197,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="3">
+              <!-- <v-col cols="12" md="3">
                 <DateInput
                   v-model="form.outgoing_incoming_date"
                   :label="t('تاریخ صادره/وارده')"
@@ -206,7 +206,7 @@
                   :error="hasError('outgoing_incoming_date')"
                   :error-messages="getErrorMessages('outgoing_incoming_date')"
                 />
-              </v-col>
+              </v-col> -->
               <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.answer_page"
@@ -220,7 +220,7 @@
               <v-col cols="12" md="3">
                 <DateInput
                   v-model="form.answer_date"
-                  :label="t('تاریخ پاسخ')"
+                  :label="t('پاسخ تاریخ')"
                   density="compact"
                   variant="outlined"
                   :error="hasError('answer_date')"
@@ -318,9 +318,9 @@
                   {{ t('ضمیمه و ملاحظات') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
+              <!-- <span class="section-subtitle text-caption">
                 {{ t('تعداد نقل، اوراق، ضمیمه و ملاحظات') }}
-              </span>
+              </span> -->
             </div>
             <v-divider />
             <v-row class="pa-3">
@@ -528,7 +528,7 @@
     answer_page: '',
 
     docs_sign_date: todayISO(),
-    outgoing_incoming_date: todayISO(),
+    // outgoing_incoming_date: todayISO(),
 
     who_sighn: '',
     marja: '',
@@ -576,7 +576,7 @@
     b.answer_page = x.answer_page ?? '';
 
     b.docs_sign_date = x.docs_sign_date ?? todayISO();
-    b.outgoing_incoming_date = x.outgoing_incoming_date ?? todayISO();
+    // b.outgoing_incoming_date = x.outgoing_incoming_date ?? todayISO();
 
     b.who_sighn = x.who_sighn ?? '';
     b.marja = x.marja ?? '';
@@ -611,23 +611,22 @@
   }
 
   /* Payload builder (no files ✅) */
-  function buildPayload() {
-    const p = { ...form.value };
+ function buildPayload() {
+  const { id, ...p } = form.value; // ✅ remove id
 
-    // normalize numbers (optional)
-    ['naqal_count', 'awraq', 'zamima'].forEach((k) => {
-      if (p[k] === '') return;
-      const n = Number(p[k]);
-      p[k] = Number.isFinite(n) ? n : p[k];
-    });
+  ['naqal_count', 'awraq', 'zamima'].forEach((k) => {
+    if (p[k] === '') return;
+    const n = Number(p[k]);
+    p[k] = Number.isFinite(n) ? n : p[k];
+  });
 
-    // trim strings
-    Object.keys(p).forEach((k) => {
-      if (typeof p[k] === 'string') p[k] = p[k].trim();
-    });
+  Object.keys(p).forEach((k) => {
+    if (typeof p[k] === 'string') p[k] = p[k].trim();
+  });
 
-    return p;
-  }
+  return p;
+}
+
 
   /* Submit */
   async function onSubmit() {
@@ -661,16 +660,36 @@
           showErrorMessage(t('ثبت ناکام شد'));
         }
       } else {
-        const updated = await repo.UpdateOutgoingIncoming(form.value.id, payload).catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
+        try {
+          const payload = buildPayload();
 
-        if (updated?.id) {
-          showSuccessMessage(t('تغییرات ذخیره شد'));
-          router.push({ path: '/app/outgoingincommings' }).catch(() => {});
-        } else {
-          showErrorMessage(t('ذخیره ناکام شد'));
+          // ✅ use route id (safer)
+          const res = await repo.UpdateOutgoingIncoming(idParam.value, payload);
+
+          // ✅ handle axios response shape
+          const updatedRow = res?.data?.data ?? res?.data ?? res;
+
+          if (updatedRow?.id) {
+            showSuccessMessage(t('تغییرات ذخیره شد'));
+            router.push({ path: '/app/outgoingincommings' }).catch(() => {});
+          } else {
+            showErrorMessage(t('ذخیره ناکام شد'));
+          }
+        } catch (e) {
+          console.error('UPDATE ERROR =>', e);
+
+          // ✅ show backend validation errors (Laravel)
+          if (e?.response?.data?.errors) {
+            setBackendErrors(e.response.data.errors);
+            showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+            await nextTick();
+            scrollToFirstInvalid();
+            return;
+          }
+
+          // ✅ show backend message if exists
+          const msg = e?.response?.data?.message || e?.message || t('خطا در ذخیره اطلاعات');
+          showErrorMessage(msg);
         }
       }
     } catch (e) {

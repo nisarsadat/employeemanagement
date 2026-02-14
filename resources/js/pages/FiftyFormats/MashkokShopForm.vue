@@ -86,7 +86,6 @@
                 :label="t('مختصات')"
                 variant="outlined"
                 density="compact"
-                hint="34.5553, 69.2075"
                 persistent-hint
                 :error="hasError('coordinates')"
                 :error-messages="getErrorMessages('coordinates')"
@@ -244,7 +243,7 @@
                 type="submit"
                 :prepend-icon="isEdit ? 'mdi-content-save-edit-outline' : 'mdi-plus-circle-outline'"
               >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ایجاد ریکارډ دکان مشکوک') }}
+                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
               <v-btn

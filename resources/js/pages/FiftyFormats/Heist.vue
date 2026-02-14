@@ -14,7 +14,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در سرقت...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -40,7 +40,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن سرقت جدید') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -404,23 +404,20 @@
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('سرک #'), key: 'street_number' },
     { title: t('خانه #'), key: 'home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('وظیفه قبلی'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
-
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('سرقت‌های انجام‌شده'), key: 'done_roberies' },
     { title: t('نوع سلاح'), key: 'gun_type' },
 
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-    { title: t('مختصات'), key: 'coordinates' },
-
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
-    { title: t('ملاحظات'), key: 'note', width: 300 },
 
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('ملاحظات'), key: 'note'},
   ]);
 
   /* TOP GROUPS – همه فیلدها گروپ شده */

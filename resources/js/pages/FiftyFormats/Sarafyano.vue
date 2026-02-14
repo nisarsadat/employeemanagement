@@ -17,7 +17,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="repo.Search"
-            :label="t('جستجو در صرافیانو...')"
+            :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -43,7 +43,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه ریکارډ صرافیانو') }}
+            {{ t('جدید') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -62,7 +62,7 @@
                 <v-icon>mdi-account-group</v-icon>
               </div>
               <div class="stat-card-text">
-                <div class="stat-card-title">{{ t('تمام ریکارډها') }}</div>
+                <div class="stat-card-title">{{ t('صرافیانو') }}</div>
                 <div class="stat-card-subtitle">
                   {{ t('مجموع') }}: {{ stats.total }}
                 </div>
@@ -351,9 +351,9 @@ const filteredRowsFT = computed(() => {
 
 /* TABLE HEADERS – list view */
 const headersFT = computed(() => [
-  { title: t('نام'), key: 'name' },
   { title: t('نام صرافی'), key: 'sarafi_name' },
   { title: t('نوع صرافی'), key: 'sarafi_type' },
+  { title: t('نام'), key: 'name' },
   { title: t('نام پدر'), key: 'father_name' },
   { title: t('وظیفه/موقعیت'), key: 'position' },
   { title: t('شماره تماس'), key: 'phone_number' },
@@ -371,14 +371,13 @@ const headersFT = computed(() => [
   { title: t('حواله به ولایات'), key: 'provinces_hawala' },
   { title: t('حواله به کشورها'), key: 'countries_hawala' },
   { title: t('تعداد کارمند'), key: 'employee_quantity' },
-  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone_number' },
 
-  { title: t('ملاحظات'), key: 'notes' },
 
   { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('ملاحظات'), key: 'notes' },
 ]);
 
 /* TOP GROUPS */
