@@ -53,7 +53,6 @@
               :label="t('accounts.form.price')"
               density="compact"
               variant="outlined"
-              type="number"
               prepend-inner-icon="mdi-currency-usd"
               :rules="[rules.requiredNumber]"
               :error="hasError('price')"

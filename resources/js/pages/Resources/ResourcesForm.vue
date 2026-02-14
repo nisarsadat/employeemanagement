@@ -217,7 +217,7 @@
               <!-- Identity + contact -->
               <v-col cols="12" md="9">
                 <v-row>
-                  <v-col cols="12" md="3">
+                  <v-col cols="12" md="4">
                     <v-text-field
                       v-model="form.name"
                       :label="t('نام *')"
@@ -229,7 +229,7 @@
                     />
                   </v-col>
 
-                  <v-col cols="12" md="3">
+                  <v-col cols="12" md="4">
                     <v-text-field
                       v-model="form.father_name"
                       :label="t('نام پدر')"
@@ -240,7 +240,7 @@
                     />
                   </v-col>
 
-                  <v-col cols="12" md="3">
+                  <v-col cols="12" md="4">
                     <v-text-field
                       v-model="form.grand_father_name"
                       :label="t('نام پدرکلان')"
@@ -251,7 +251,7 @@
                     />
                   </v-col>
 
-                  <v-col cols="12" md="3">
+                  <v-col cols="12" md="4">
                     <v-text-field
                       v-model="form.nick_name"
                       :label="t('نام مستعار')"
@@ -261,7 +261,7 @@
                       :error-messages="getErrorMessages('nick_name')"
                     />
                   </v-col>
-                  <v-col cols="12" md="3">
+                  <v-col cols="12" md="4">
                     <v-text-field
                       v-model="form.code_number"
                       :label="t('کود نمبر')"
@@ -272,7 +272,7 @@
                     />
                   </v-col>
 
-                  <v-col cols="12" md="3">
+                  <v-col cols="12" md="4">
                     <v-text-field
                       v-model="form.tazkira"
                       :label="t('تذکره نمبر')"
@@ -450,25 +450,33 @@
                   :error-messages="getErrorMessages('job_place')"
                 />
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.zone"
                   :label="t('زون تدارک')"
                   density="compact"
                   variant="outlined"
                 />
+              </v-col>
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.hawza"
                   :label="t('حوزه تدارک')"
                   density="compact"
                   variant="outlined"
                 />
+              </v-col>
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.specefic_place"
                   :label="t('محل مشخص تدارک')"
                   density="compact"
                   variant="outlined"
                 />
+              </v-col>
+
+              <v-col cols="12" md="3">
+
                 <v-text-field
                   v-model="form.coordinates"
                   :label="t('کوردینات تدارک')"
@@ -491,7 +499,7 @@
                 />
               </v-col> -->
 
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="3">
                 <v-autocomplete
                   v-model="form.halat_madani"
                   :items="repo.halatMadaniOptions || []"
@@ -534,7 +542,7 @@
                   hide-details="auto"
                 />
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.specific_skills"
                   :label="t('مهارت‌های خاص')"
@@ -542,7 +550,7 @@
                   variant="outlined"
                 />
               </v-col>
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <DateInput
                   v-model="form.resource_saved_date"
                   :label="t('تاریخ ثبت منبع *')"
@@ -558,7 +566,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="3">
                 <v-autocomplete
                   v-model="form.office_employee_id"
                   :items="repo.officeemployees || []"
@@ -572,7 +580,7 @@
                   :error-messages="getErrorMessages('office_employee_id')"
                 />
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.resedint_code"
                   :label="t('رزیدنت مربوطه')"
@@ -582,7 +590,7 @@
                   :error-messages="getErrorMessages('resedint_code')"
                 />
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.resource_cover"
                   :label="t('پوشش منبع')"
@@ -623,7 +631,7 @@
                   :error-messages="getErrorMessages('blood_group')"
                 />
               </v-col>
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.train"
                   :label="t('دوره آموزش ')"
@@ -636,14 +644,7 @@
           </v-sheet>
           <!-- SECTION 4: تاریخ و نوت -->
           <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
-            <div class="section-header docs-header">
-              <div class="d-flex align-center">
-                <v-icon class="ml-2 section-icon">mdi-calendar</v-icon>
-                <span class="text-subtitle-2 font-weight-medium section-title">
-                  {{ t('محل تدارک') }}
-                </span>
-              </div>
-            </div>
+           
             <v-divider />
 
             <v-row class="pa-3">
@@ -681,8 +682,8 @@
                   :error-messages="getErrorMessages('phone_number_2')"
                 />
               </v-col>
-              <v-col cols="12" md="6">
-                <LetryFormatSelect v-model="form.letry_format_name" label="۵۶ فارمټ" />
+              <v-col cols="12" md="3">
+                <LetryFormatSelect v-model="form.letry_format_name" :label="t('۵۶ فارمټ')" />
               </v-col>
 
               <v-col cols="12" md="12">
@@ -701,17 +702,14 @@
               <div class="d-flex align-center">
                 <v-icon class="ml-2 section-icon">mdi-calendar</v-icon>
                 <span class="text-subtitle-2 font-weight-medium section-title">
-                  {{ t('تاریخ ثبت و نوت منبع') }}
+                  {{ t('ملاحظات:') }}
                 </span>
               </div>
-              <span class="section-subtitle text-caption">
-                {{ t('تاریخ ثبت منبع و نوت‌های مهم را درج کنید.') }}
-              </span>
             </div>
             <v-divider />
 
             <v-row class="pa-3">
-              <v-col cols="12" md="8">
+              <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.note"
                   :label="t('نوت')"

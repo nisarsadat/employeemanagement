@@ -1,6 +1,65 @@
 // resources/js/axios.js
 import axios from "axios";
 
+/**
+ * ✅ GLOBAL DIGIT NORMALIZER
+ * Converts Persian/Arabic digits to English digits in any string.
+ * Works everywhere automatically via axios interceptor.
+ */
+function normalizeDigits(input) {
+  if (input === null || input === undefined) return input;
+
+  const s = String(input);
+  const fa = "۰۱۲۳۴۵۶۷۸۹";
+  const ar = "٠١٢٣٤٥٦٧٨٩";
+
+  let out = "";
+  for (const ch of s) {
+    const iFa = fa.indexOf(ch);
+    if (iFa !== -1) {
+      out += String(iFa);
+      continue;
+    }
+    const iAr = ar.indexOf(ch);
+    if (iAr !== -1) {
+      out += String(iAr);
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+function normalizeDeep(value) {
+  if (value === null || value === undefined) return value;
+
+  if (typeof value === "string") return normalizeDigits(value);
+
+  if (Array.isArray(value)) return value.map(normalizeDeep);
+
+  // Keep File/Blob untouched (uploads)
+  if (value instanceof File || value instanceof Blob) return value;
+
+  // Normalize plain objects
+  if (value && typeof value === "object") {
+    // FormData
+    if (value instanceof FormData) {
+      const fd = new FormData();
+      for (const [k, v] of value.entries()) {
+        if (typeof v === "string") fd.append(k, normalizeDigits(v));
+        else fd.append(k, v);
+      }
+      return fd;
+    }
+
+    const out = {};
+    for (const k of Object.keys(value)) out[k] = normalizeDeep(value[k]);
+    return out;
+  }
+
+  return value;
+}
+
 // ✅ Base URL (token mode doesn't need Sanctum cookies/CSRF)
 axios.defaults.baseURL = "http://127.0.0.1:8000/api";
 
@@ -21,6 +80,10 @@ if (saved) {
 axios.interceptors.request.use((config) => {
   const t = sessionStorage.getItem("token");
   if (t) config.headers.Authorization = `Bearer ${t}`;
+
+  // ✅ IMPORTANT: normalize digits globally for ANY payload
+  if (config.data) config.data = normalizeDeep(config.data);
+
   return config;
 });
 
@@ -32,8 +95,6 @@ axios.interceptors.response.use(
     if (status === 401 || status === 419) {
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
-      // If you have vue-router available here, you can import it and push.
-      // As a safe fallback:
       if (window.location.pathname !== "/") {
         window.location.href = "/";
       }

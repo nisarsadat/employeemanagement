@@ -3,11 +3,14 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Console\Scheduling\Schedule;   // ✅ add this line
+use Illuminate\Console\Scheduling\Schedule;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
+
+// ✅ ADD THIS
+use App\Http\Middleware\NormalizeDigits;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,23 +20,20 @@ return Application::configure(basePath: dirname(__DIR__))
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
-   ->withMiddleware(function (Middleware $middleware) {
+    ->withMiddleware(function (Middleware $middleware) {
+        // ✅ GLOBAL digit normalization for ALL requests (API + web)
+        $middleware->append(NormalizeDigits::class);
+
         $middleware->alias([
             'role'               => RoleMiddleware::class,
             'permission'         => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
     })
-
     ->withExceptions(function (Exceptions $exceptions): void {
         // optional global exception handling
     })
-
-    // ✅ add this block ↓↓↓
     ->withSchedule(function (Schedule $schedule) {
-        // Refresh each night at 01:30 for the current month
         $schedule->command('office-employees:refresh-activity --mode=month')->dailyAt('01:30');
     })
-    // ✅ end of new block ↑↑↑
-
     ->create();

@@ -48,7 +48,6 @@
               :label="t('incomes.form.amount')"
               density="compact"
               variant="outlined"
-              type="number"
               prepend-inner-icon="mdi-currency-usd"
               :rules="[rules.requiredNumber]"
               :error="hasError('amount')"

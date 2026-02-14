@@ -77,7 +77,6 @@
                 :label="t('finances.form.amountNumberRequired')"
                 density="compact"
                 variant="outlined"
-                type="number"
                 prepend-inner-icon="mdi-currency-usd"
                 :rules="[rules.requiredNumber, rules.positiveAmount, rules.maxAmount]"
                 :error="hasError('money_amount_number')"

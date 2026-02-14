@@ -371,7 +371,7 @@
               <div class="d-flex align-center">
                 <v-icon class="ml-2 section-icon">mdi-map-legend</v-icon>
                 <span class="text-subtitle-2 font-weight-medium section-title">
-                  {{ t('کود کارمند  اطلاع گیرنده') }}
+                  {{ t('کود کارمند اطلاع گیرنده') }}
                 </span>
               </div>
               <!-- <span class="section-subtitle text-caption">
@@ -397,7 +397,7 @@
                   :items="officeEmployeesItems"
                   item-title="code_number"
                   item-value="id"
-                  :label="t('کود کارمند  اطلاع گیرنده')"
+                  :label="t('کود کارمند اطلاع گیرنده')"
                   density="compact"
                   variant="outlined"
                   clearable
@@ -569,20 +569,7 @@
             </v-row>
 
             <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="6">
-                <v-textarea
-                  v-model="form.note"
-                  :label="t('ملاحظات')"
-                  rows="3"
-                  auto-grow
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('note')"
-                  :error-messages="getErrorMessages('note')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="12">
                 <v-textarea
                   v-model="form.result"
                   :label="t('نتیجه گیری')"
@@ -788,6 +775,18 @@
                   :label="t('نوت راجع به اسناد')"
                   density="compact"
                   variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="12">
+                <v-textarea
+                  v-model="form.note"
+                  :label="t('ملاحظات')"
+                  rows="3"
+                  auto-grow
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('note')"
+                  :error-messages="getErrorMessages('note')"
                 />
               </v-col>
             </v-row>

@@ -63,11 +63,14 @@
             <!-- dropdown -->
             <div
               v-show="showColumnsPanel"
-              class="absolute z-[9999] mt-2 w-[320px] max-w-[92vw] bg-white border border-gray-200 shadow-2xl rounded-lg overflow-hidden"
-              :class="rtl ? 'left-0' : 'right-0'"
+              class="fixed z-[9999] w-[320px] max-w-[92vw] bg-white border border-gray-200 shadow-2xl rounded-lg overflow-hidden"
+              :style="columnsPanelStyle"
               @click.stop
             >
-              <div class="p-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+              <div
+                class="p-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 cursor-move select-none"
+                @mousedown.prevent="startDragColumnsPanel"
+              >
                 <div class="flex items-center justify-between mb-2">
                   <div class="text-sm font-bold text-gray-900">
                     {{ t('نمایش/عدم نمایش ستون‌ها') }}
@@ -431,7 +434,7 @@
               </th>
 
               <!-- Actions -->
-              <th v-if="showActions" class="px-2 py-2 text-center align-top print:hidden">
+              <th v-if="showActions" class="px-2 py-2 text-center align-middle print:hidden">
                 <slot name="actions-header">
                   <span class="text-xs font-bold text-white">{{ t('عملیات') }}</span>
                 </slot>
@@ -492,7 +495,8 @@
                         aria-modal="true"
                       >
                         <div
-                          class="sticky top-0 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 shadow-sm"
+                          class="sticky top-0 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 shadow-sm cursor-move select-none"
+                          @mousedown.prevent="startDragFilterPanel"
                         >
                           <div class="p-4">
                             <div class="flex items-center justify-between mb-3">
@@ -743,8 +747,10 @@
                   </button>
                 </td>
 
-                <td v-if="showActions" class="px-2 py-3 text-center align-top print:hidden">
-                  <slot name="actions" :item="row" :printRow="() => printRowSimple(row, i)" />
+                <td v-if="showActions" class="px-2 py-3 text-center align-middle print:hidden">
+                  <div class="flex items-center justify-center gap-2 h-full min-h-[36px]">
+                    <slot name="actions" :item="row" :printRow="() => printRowSimple(row, i)" />
+                  </div>
                 </td>
 
                 <td
@@ -984,10 +990,41 @@
     if (!props.autoDetectDates) return false;
     return looksLikeDateKey(key) || looksLikeDateValue(value);
   }
+  function formatNumberValue(val) {
+    if (val == null) return val;
+
+    // If it's already a number
+    if (typeof val === 'number') {
+      if (Number.isInteger(val)) return val;
+      const fixed = val.toFixed(2);
+      if (fixed.endsWith('.00')) return parseInt(val, 10);
+      return val;
+    }
+
+    // If it's numeric string like "1234.00"
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+
+      if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+        const num = Number(trimmed);
+
+        if (Number.isInteger(num)) return num;
+
+        if (trimmed.endsWith('.00')) {
+          return parseInt(num, 10);
+        }
+
+        return trimmed;
+      }
+    }
+
+    return val;
+  }
 
   function displayValueByKey(key, rawValue) {
-    if (typeof rawValue === 'number') return rawValue;
-    if (typeof rawValue === 'string' && /^[0-9]+$/.test(toAsciiDigits(rawValue))) return rawValue;
+    // ✅ Format numeric values (remove .00 only)
+    const formattedNumber = formatNumberValue(rawValue);
+    if (formattedNumber !== rawValue) return formattedNumber;
 
     if (!isDateCell(key, rawValue)) return rawValue;
 
@@ -1065,13 +1102,179 @@
     visibleCols.value = new Set();
   }
 
-  function toggleColumnsPanel() {
-    showColumnsPanel.value = !showColumnsPanel.value;
+  // =========================
+  // Draggable Columns Panel
+  // =========================
+  const columnsPanelPos = ref({ left: 0, top: 0 });
+  const columnsPanelStyle = computed(() => ({
+    left: `${columnsPanelPos.value.left}px`,
+    top: `${columnsPanelPos.value.top}px`,
+  }));
+
+  const draggingCols = ref(false);
+  const dragColsOffset = ref({ x: 0, y: 0 });
+
+  // place it near the button when opened
+  function positionColumnsPanelNearButton() {
+    const wrap = colsBtnWrap.value;
+    const rect = wrap?.getBoundingClientRect?.();
+    if (!rect) {
+      columnsPanelPos.value = { left: 16, top: 80 };
+      return;
+    }
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // panel size guess (matches your width rules)
+    const panelW = Math.min(320, Math.floor(vw * 0.92));
+    const panelH = 420; // safe estimate; we clamp anyway
+
+    // default: below the button
+    let left = rtl.value ? rect.left : rect.right - panelW;
+    let top = rect.bottom + 8;
+
+    // clamp inside viewport
+    left = Math.max(8, Math.min(left, vw - panelW - 8));
+    top = Math.max(8, Math.min(top, vh - panelH - 8));
+
+    columnsPanelPos.value = { left, top };
   }
 
+  function toggleColumnsPanel() {
+    showColumnsPanel.value = !showColumnsPanel.value;
+    if (showColumnsPanel.value) nextTick(positionColumnsPanelNearButton);
+  }
+
+  function startDragColumnsPanel(e) {
+    if (!showColumnsPanel.value) return;
+
+    draggingCols.value = true;
+
+    // current mouse offset inside the panel
+    dragColsOffset.value = {
+      x: e.clientX - columnsPanelPos.value.left,
+      y: e.clientY - columnsPanelPos.value.top,
+    };
+
+    window.addEventListener('mousemove', onDragColumnsPanel);
+    window.addEventListener('mouseup', stopDragColumnsPanel);
+  }
+
+  function onDragColumnsPanel(e) {
+    if (!draggingCols.value) return;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const panelW = Math.min(320, Math.floor(vw * 0.92));
+    const panelH = 420; // safe estimate
+
+    let left = e.clientX - dragColsOffset.value.x;
+    let top = e.clientY - dragColsOffset.value.y;
+
+    // clamp
+    left = Math.max(8, Math.min(left, vw - panelW - 8));
+    top = Math.max(8, Math.min(top, vh - panelH - 8));
+
+    columnsPanelPos.value = { left, top };
+  }
+
+  function stopDragColumnsPanel() {
+    draggingCols.value = false;
+    window.removeEventListener('mousemove', onDragColumnsPanel);
+    window.removeEventListener('mouseup', stopDragColumnsPanel);
+  }
+
+  // close keeps your logic
   function closeColumnsPanel() {
     showColumnsPanel.value = false;
   }
+  function clampColumnsPanelIntoViewport() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const panelW = Math.min(320, Math.floor(vw * 0.92));
+    const panelH = 420;
+
+    columnsPanelPos.value = {
+      left: Math.max(8, Math.min(columnsPanelPos.value.left, vw - panelW - 8)),
+      top: Math.max(8, Math.min(columnsPanelPos.value.top, vh - panelH - 8)),
+    };
+  }
+
+  onMounted(() => {
+    window.addEventListener('resize', clampColumnsPanelIntoViewport);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('resize', clampColumnsPanelIntoViewport);
+  });
+  // =========================
+  // Draggable FILTER Panel
+  // =========================
+  const filterPanelPos = ref({ left: 0, top: 0 });
+  const draggingFilter = ref(false);
+  const dragFilterOffset = ref({ x: 0, y: 0 });
+
+  function positionFilterPanelCenter(panelW, panelH) {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    filterPanelPos.value = {
+      left: Math.max(8, (vw - panelW) / 2),
+      top: Math.max(8, (vh - panelH) / 2),
+    };
+  }
+
+  function startDragFilterPanel(e) {
+    if (!openDropdown.value) return;
+
+    draggingFilter.value = true;
+
+    dragFilterOffset.value = {
+      x: e.clientX - filterPanelPos.value.left,
+      y: e.clientY - filterPanelPos.value.top,
+    };
+
+    window.addEventListener('mousemove', onDragFilterPanel);
+    window.addEventListener('mouseup', stopDragFilterPanel);
+  }
+
+  function onDragFilterPanel(e) {
+    if (!draggingFilter.value) return;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const panelW = panelEl.value?.offsetWidth || 360;
+    const panelH = panelEl.value?.offsetHeight || 400;
+
+    let left = e.clientX - dragFilterOffset.value.x;
+    let top = e.clientY - dragFilterOffset.value.y;
+
+    // clamp inside viewport
+    left = Math.max(8, Math.min(left, vw - panelW - 8));
+    top = Math.max(8, Math.min(top, vh - panelH - 8));
+
+    filterPanelPos.value = { left, top };
+  }
+
+  function stopDragFilterPanel() {
+    draggingFilter.value = false;
+    window.removeEventListener('mousemove', onDragFilterPanel);
+    window.removeEventListener('mouseup', stopDragFilterPanel);
+  }
+  watch(filterPanelPos, (pos) => {
+    if (!openDropdown.value) return;
+
+    panelStyle.value = {
+      ...panelStyle.value,
+      left: `${pos.left}px`,
+      top: `${pos.top}px`,
+      transform: 'none', // important: remove translate(-50%)
+    };
+  });
 
   /* === Auto options (unchanged logic) === */
   const autoOptions = computed(() => {
@@ -1384,19 +1587,21 @@
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    // panel size (same width rules you already used)
     const trigger = triggerRefs.value[key];
     const rect = trigger?.getBoundingClientRect?.();
+
     const minW = Math.max(rect?.width || 0, 320);
-    const panelW = Math.min(minW, Math.floor(vw * 0.92)); // max 92vw
-    const panelH = Math.floor(vh * 0.7); // max height hint
+    const panelW = Math.min(minW, Math.floor(vw * 0.92));
+    const panelH = Math.floor(vh * 0.7);
+
+    // Center by default
+    positionFilterPanelCenter(panelW, panelH);
 
     panelStyle.value = {
       display: 'block',
       position: 'fixed',
-      left: '50%',
-      top: '50%',
-      transform: 'translate(-50%, -50%)',
+      left: `${filterPanelPos.value.left}px`,
+      top: `${filterPanelPos.value.top}px`,
       width: `${panelW}px`,
       maxWidth: '92vw',
       maxHeight: `${panelH}px`,
@@ -1514,14 +1719,29 @@
   function buildSimpleTableHtml(cols, rowsToUse, indexValues = null) {
     // ✅ Always use the REAL app direction (html dir)
     const appDir = (document?.documentElement?.getAttribute('dir') || '').toLowerCase();
-    const dir = appDir === 'rtl' ? 'rtl' : 'ltr';
-    const align = dir === 'rtl' ? 'right' : 'left';
+    const dir = props.rtl ? 'rtl' : 'ltr';
+    const align = 'center';
 
     const includeIndex = selectedCols.value.has(INDEX_KEY);
+    function colWidthCh(colKey, title) {
+      let maxLen = String(title ?? '').length;
+      rowsToUse.forEach((r) => {
+        const v = displayValueByKey(colKey, r?.[colKey]);
+        maxLen = Math.max(maxLen, String(v ?? '').length);
+      });
+
+      // clamp so it doesn't get crazy wide
+      const ch = Math.min(Math.max(maxLen + 2, 10), 45); // 10ch..45ch
+      return `${ch}ch`;
+    }
 
     const ths =
       (includeIndex ? `<th style="width:60px">${t('ردیف')}</th>` : '') +
-      cols.map((c) => `<th>${escapeHtml(c.title)}</th>`).join('');
+      cols
+        .map(
+          (c) => `<th style="min-width:${colWidthCh(c.key, c.title)}">${escapeHtml(c.title)}</th>`
+        )
+        .join('');
 
     const trs = rowsToUse
       .map((r, idx) => {
@@ -1581,7 +1801,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      table-layout: fixed;
+      table-layout: auto;
       direction: ${dir};
     }
 
@@ -1675,29 +1895,101 @@
   }
 
   function downloadPdf() {
+    // ✅ now it downloads .html (no library, no install)
     const cols = getColsForExport();
     const rowsToUse = getRowsForExport();
     const html = buildSimpleTableHtml(cols, rowsToUse);
-    openPrintWindow(html);
+
+    const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    const filename = `table-export-${ts}.html`;
+
+    const blob = new Blob(['\uFEFF' + html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
   }
 
   function downloadExcel() {
-    const rowsToUse = [];
-    if (selectedSet.value.size > 0) {
-      filteredRows.value.forEach((r, idx) => {
-        const id = getRowId(r, idx);
-        if (selectedSet.value.has(id)) rowsToUse.push(r);
-      });
-    } else {
-      rowsToUse.push(...filteredRows.value);
+    const cols = getColsForExport();
+    const rowsToUse = getRowsForExport();
+
+    const dir = props.rtl ? 'rtl' : 'ltr';
+    const align = dir === 'rtl' ? 'right' : 'left';
+
+    const includeIndex = selectedCols.value.has(INDEX_KEY);
+
+    const ths =
+      (includeIndex ? `<th>${t('ردیف')}</th>` : '') +
+      cols.map((c) => `<th>${escapeHtml(c.title)}</th>`).join('');
+
+    const trs = rowsToUse
+      .map((r, idx) => {
+        const tds =
+          (includeIndex ? `<td>${idx + 1}</td>` : '') +
+          cols
+            .map((c) => `<td>${escapeHtml(displayValueByKey(c.key, r?.[c.key]) ?? '')}</td>`)
+            .join('');
+        return `<tr>${tds}</tr>`;
+      })
+      .join('');
+
+    // ✅ Excel-friendly HTML (old-school .xls, but opens as real Excel without extension warning)
+    const excelHtml = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns="http://www.w3.org/TR/REC-html40" dir="${dir}">
+<head>
+  <meta charset="utf-8" />
+  <!--[if gte mso 9]>
+  <xml>
+    <x:ExcelWorkbook>
+      <x:ExcelWorksheets>
+        <x:ExcelWorksheet>
+          <x:Name>${escapeHtml(t('گزارش جدول'))}</x:Name>
+          <x:WorksheetOptions>
+            <x:DisplayGridlines/>
+            ${dir === 'rtl' ? '<x:DisplayRightToLeft/>' : ''}  <!-- ✅ THIS -->
+          </x:WorksheetOptions>
+        </x:ExcelWorksheet>
+      </x:ExcelWorksheets>
+    </x:ExcelWorkbook>
+  </xml>
+  <![endif]-->
+  <style>
+    body{direction:${dir};text-align:${align};font-family:Arial,'Amiri','Scheherazade New';}
+    table{border-collapse:collapse;width:100%;direction:${dir};}
+    th,td{
+      border:1px solid #d1d5db;padding:6px;font-size:12px;
+      text-align:${align};vertical-align:top;
+      ${dir === 'rtl' ? 'unicode-bidi: bidi-override;' : ''}
     }
-    const csv = makeCsv(rowsToUse);
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    th{background:#f3f4f6;font-weight:700}
+  </style>
+</head>
+<body dir="${dir}">
+  <table dir="${dir}">
+    <thead><tr>${ths}</tr></thead>
+    <tbody>${trs}</tbody>
+  </table>
+</body>
+</html>`;
+
+    // ✅ correct MIME + correct file extension
+    const blob = new Blob(['\uFEFF' + excelHtml], {
+      type: 'application/vnd.ms-excel;charset=utf-8;',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
     a.href = url;
-    a.download = `table-export-${ts}.csv`;
+    a.download = `table-export-${ts}.xls`; // ✅ Excel file, no mismatch warning
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

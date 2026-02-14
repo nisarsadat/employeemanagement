@@ -105,7 +105,6 @@
               <v-text-field
                 v-model.number="localDraft.liter_in_number"
                 :label="t('لیټر (عدد)')"
-                type="number"
                 variant="outlined"
                 density="compact"
                 :hint="selectedAccountHint"

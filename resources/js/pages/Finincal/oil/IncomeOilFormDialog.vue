@@ -41,7 +41,6 @@
               <v-text-field
                 v-model.number="localDraft.oil_quantity"
                 :label="t('مقدار (L)')"
-                type="number"
                 variant="outlined"
                 density="compact"
                 :rules="[rules.required, rules.positive]"

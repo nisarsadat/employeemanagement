@@ -99,7 +99,7 @@
                     <!-- Icon -->
                     <div class="icon-wrapper flex-shrink-0 fontfamilyis">
                       <v-icon :size="smAndUp ? 32 : 28" color="primary" class="module-icon">
-                        {{ getMaterialIcon(item.icon) }}
+                        {{ getIconMdi(item.iconKey) }}
                       </v-icon>
                     </div>
 
@@ -179,7 +179,7 @@
   import axios from 'axios';
   import { useLoginRepository } from '@/stores/LoginRepository';
   import AppBar from '@/components/AppBar.vue';
-
+import { ICON_MAP } from '../../constants/moduleIcons';
   const drawer = ref(false);
 
   const auth = useLoginRepository();
@@ -188,415 +188,382 @@
 
   const q = ref('');
   const loadingCounts = ref(true);
-  // 🔹 56 formats list (names taken from routes/api.php)
+
+
+
+  /**
+   * ✅ merged icon map
+   */
+
+  // 🔹 56 formats list
   const original = ref([
-    // ---------------------- Main Fifty Formats (10) ----------------------
+    // Main
     {
       slug: 'saeenfasad',
       labelFa: 'فورم‌های فساد ساعین',
       path: '/saeenfasad',
-      icon: '🧠',
+      iconKey: 'saeen_fasad',
       perm: 'saeen_fasads',
     },
-    {
-      slug: 'fasads',
-      labelFa: 'فورم‌های فساد',
-      path: '/fasads',
-      icon: '🧩',
-      perm: 'fasads',
-    },
-    {
-      slug: 'jawasis',
-      labelFa: ' جواسیس',
-      path: '/jawasis',
-      icon: '🐱‍👤',
-      perm: 'jawasis',
-    },
-    {
-      slug: 'heist',
-      labelFa: 'فورم‌های سرقت',
-      path: '/heist',
-      icon: '🐱‍👤',
-      perm: 'heists',
-    },
+    { slug: 'fasads', labelFa: 'فورم‌های فساد', path: '/fasads', iconKey: 'fasad', perm: 'fasads' },
+    { slug: 'jawasis', labelFa: ' جواسیس', path: '/jawasis', iconKey: 'jawasis', perm: 'jawasis' },
+    { slug: 'heist', labelFa: 'فورم‌های سرقت', path: '/heist', iconKey: 'heist', perm: 'heists' },
     {
       slug: 'captives',
       labelFa: 'فورم‌های بندی‌ها',
       path: '/captives',
-      icon: '🔒',
+      iconKey: 'captives',
       perm: 'captives',
     },
+
+    // NOTE: you had "mulkanos" but not in ICONS; keeping extra fallback icon
     {
       slug: 'mulkanos',
       labelFa: 'فورم‌های ملک‌ها',
       path: '/mulkanos',
-      icon: '🏠',
+      iconKey: 'mulkanos',
       perm: 'mulkanos',
     },
+
     {
       slug: 'entry-exits',
       labelFa: 'فورم‌های دخول/خروج',
       path: '/entry-exits',
-      icon: '➡️',
+      iconKey: 'entry_exits',
       perm: 'entry_exits',
     },
     {
       slug: 'sarafyanos',
       labelFa: 'فورم‌های صرافی‌ها',
       path: '/sarafyanos',
-      icon: '💱',
+      iconKey: 'sarafyanos',
       perm: 'sarafyanos',
     },
-    {
-      slug: 'clubs',
-      labelFa: 'فورم‌های کلب‌ها',
-      path: '/clubs',
-      icon: '🎯',
-      perm: 'clubs',
-    },
+    { slug: 'clubs', labelFa: 'فورم‌های کلب‌ها', path: '/clubs', iconKey: 'clubs', perm: 'clubs' },
     {
       slug: 'mahajerats',
       labelFa: 'فورم‌های مهاجرت',
       path: '/mahajerats',
-      icon: '🧳',
+      iconKey: 'mahajerats',
       perm: 'mahajerats',
     },
     {
       slug: 'soldiers',
       labelFa: 'فورم‌های سربازان',
       path: '/soldiers',
-      icon: '🪖',
+      iconKey: 'soldiers',
       perm: 'soldiers',
     },
 
-    // ---------------------- Fifthy Format One (10) ----------------------
+    // Format One
     {
       slug: 'mawads',
       labelFa: 'فورم‌های مواد مخدر',
       path: '/mawads',
-      icon: '💊',
+      iconKey: 'mawads',
       perm: 'mawads',
     },
     {
       slug: 'lost-mujremeens',
       labelFa: 'فورم‌های مجرمین گمشده',
       path: '/lostmujremeens',
-      icon: '🔍',
+      iconKey: 'lost_mujremeens',
       perm: 'lost_mujremeens',
     },
     {
       slug: 'old-soldiers-homes',
       labelFa: 'فورم‌های خانه‌های سربازان قدیمی',
       path: '/oldsoldiershomes',
-      icon: '🏚️',
+      iconKey: 'old_soldiers_homes',
       perm: 'old_soldiers_homes',
     },
     {
       slug: 'robbers',
       labelFa: 'فورم‌های دزدان',
       path: '/robbers',
-      icon: '💰',
+      iconKey: 'robbers',
       perm: 'robbers',
     },
     {
       slug: 'non-responsable-people',
       labelFa: 'فورم‌های افراد مسلح غیرمسؤول',
       path: '/nonresponsablepeople',
-      icon: '⚠️',
+      iconKey: 'non_responsable_people',
       perm: 'non_responsable_people',
     },
     {
       slug: 'mashkok-homes',
       labelFa: 'فورم‌های خانه‌های مشکوک',
       path: '/mashkokhomes',
-      icon: '🏘️',
+      iconKey: 'mashkok_homes',
       perm: 'mashkok_homes',
     },
     {
       slug: 'damage-places',
       labelFa: 'فورم‌های ساحات آسیب‌دیده',
       path: '/damageplaces',
-      icon: '🏚️',
+      iconKey: 'damage_places',
       perm: 'damage_places',
     },
     {
       slug: 'damage-rasan-places',
       labelFa: 'فورم‌های ساحات رسانندهٔ آسیب',
       path: '/damagerasanplaces',
-      icon: '💥',
+      iconKey: 'damage_rasan_places',
       perm: 'damage_rasan_places',
     },
     {
       slug: 'mashkok-shops',
       labelFa: 'فورم‌های دکان‌های مشکوک',
       path: '/mashkokshops',
-      icon: '🏪',
+      iconKey: 'mashkok_shops',
       perm: 'mashkok_shops',
     },
     {
       slug: 'luchakanos',
       labelFa: 'فورم‌های لوچک‌ها',
       path: '/luchakanos',
-      icon: '👤',
+      iconKey: 'luchakanos',
       perm: 'luchakanos',
     },
 
-    // ---------------------- Fifthy Format Two (10) ----------------------
+    // Format Two
     {
       slug: 'schools',
       labelFa: 'فورم‌های مکتب‌ها',
       path: '/schools',
-      icon: '🏫',
+      iconKey: 'schools',
       perm: 'schools',
     },
     {
       slug: 'hado-bus-stops',
       labelFa: 'فورم‌های ایستگاه‌های بس',
       path: '/hadobusstops',
-      icon: '🚏',
+      iconKey: 'hado_bus_stops',
       perm: 'hado_bus_stops',
     },
     {
       slug: 'transport-companies',
       labelFa: 'فورم‌های شرکت‌های ترانسپورتی',
       path: '/transportcompanies',
-      icon: '🚚',
+      iconKey: 'transport_companies',
       perm: 'transport_companies',
     },
     {
       slug: 'car-sales-companies',
       labelFa: 'فورم‌های کمپنی‌های فروش موتر',
       path: '/carsalescompanies',
-      icon: '🚗',
+      iconKey: 'car_sales_companies',
       perm: 'car_sales_companies',
     },
     {
       slug: 'parkings',
       labelFa: 'فورم‌های پارکینگ',
       path: '/parkings',
-      icon: '🅿️',
+      iconKey: 'parkings',
       perm: 'parkings',
     },
-    {
-      slug: 'banks',
-      labelFa: 'فورم‌های بانک‌ها',
-      path: '/banks',
-      icon: '🏦',
-      perm: 'banks',
-    },
+    { slug: 'banks', labelFa: 'فورم‌های بانک‌ها', path: '/banks', iconKey: 'banks', perm: 'banks' },
     {
       slug: 'apartments',
       labelFa: 'فورم‌های آپارتمان‌ها',
       path: '/apartments',
-      icon: '🏢',
+      iconKey: 'apartments',
       perm: 'apartments',
     },
     {
       slug: 'rahnoma-mamlats',
       labelFa: 'فورم‌های رهنمای معاملات',
       path: '/rahnomamamlats',
-      icon: '📋',
+      iconKey: 'rahnoma_mamlats',
       perm: 'rahnoma_mamlats',
     },
     {
       slug: 'hosppitals',
       labelFa: 'فورم‌های شفاخانه‌ها',
       path: '/hosppitals',
-      icon: '🏥',
+      iconKey: 'hosppitals',
       perm: 'hosppitals',
     },
     {
       slug: 'work-shops',
       labelFa: 'فورم‌های کارگاه‌ها',
       path: '/workshops',
-      icon: '🔧',
+      iconKey: 'work_shops',
       perm: 'work_shops',
     },
 
-    // ---------------------- Fifthy Format Three (10) ----------------------
+    // Format Three
     {
       slug: 'badmashanos',
       labelFa: 'فورم‌های بدماش‌ها',
       path: '/badmashanos',
-      icon: '✊',
+      iconKey: 'badmashanos',
       perm: 'badmashanos',
     },
     {
       slug: 'sarayanos',
       labelFa: 'فورم‌های سرای‌ها',
       path: '/sarayanos',
-      icon: '🏭',
+      iconKey: 'sarayanos',
       perm: 'sarayanos',
     },
     {
       slug: 'emarat-offices',
       labelFa: 'فورم‌های دفاتر امارت',
       path: '/emaratoffices',
-      icon: '🏛️',
+      iconKey: 'emarat_offices',
       perm: 'emarat_offices',
     },
     {
       slug: 'hostels',
       labelFa: 'فورم‌های لیله ها و اطاق های کرایی',
       path: '/hostels',
-      icon: '🛏️',
+      iconKey: 'hostels',
       perm: 'hostels',
     },
     {
       slug: 'hotels',
       labelFa: 'فورم‌های هوتل‌ها',
       path: '/hotels',
-      icon: '🏨',
+      iconKey: 'hotels',
       perm: 'hotels',
     },
     {
       slug: 'madrasas',
       labelFa: 'فورم‌های مدارس دینی',
       path: '/madrasas',
-      icon: '📖',
+      iconKey: 'madrasas',
       perm: 'madrasas',
     },
     {
       slug: 'mashkok-people',
       labelFa: 'فورم‌های افراد مشکوک',
       path: '/mashkokpeoples',
-      icon: '🕵️‍♂️',
+      iconKey: 'mashkok_people',
       perm: 'mashkok_people',
     },
     {
       slug: 'mujahedinos',
       labelFa: 'فورم‌های مجاهدین',
       path: '/mujahedinos',
-      icon: '🕌',
+      iconKey: 'mujahedinos',
       perm: 'mujahedinos',
     },
     {
       slug: 'old-jahadis',
       labelFa: 'فورم‌های قومندانان جهادی قدیمی',
       path: '/oldjahadis',
-      icon: '🎖️',
+      iconKey: 'old_jahadis',
       perm: 'old_jahadis',
     },
-
     {
       slug: 'tujarans',
       labelFa: 'فورم‌های تاجران',
       path: '/tujarans',
-      icon: '👔',
+      iconKey: 'tujarans',
       perm: 'tujarans',
     },
 
-    // ---------------------- Fifthy Format Four (16) ----------------------
+    // Format Four
     {
       slug: 'checkpoints',
       labelFa: 'فورم‌های چک‌پوینت‌ها',
       path: '/checkpoints',
-      icon: '🛂',
+      iconKey: 'checkpoints',
       perm: 'checkpoints',
     },
     {
       slug: 'masjids',
       labelFa: 'فورم‌های مسجدها',
       path: '/masjids',
-      icon: '🕌',
+      iconKey: 'masjids',
       perm: 'masjids',
     },
     {
       slug: 'highways',
       labelFa: 'فورم‌های شاهراه‌ها',
       path: '/highways',
-      icon: '🛣️',
+      iconKey: 'highways',
       perm: 'highways',
     },
     {
       slug: 'companies',
       labelFa: 'فورم‌های شرکت‌ها',
       path: '/companies',
-      icon: '🏢',
+      iconKey: 'companies',
       perm: 'companies',
     },
     {
       slug: 'done-lost-places',
       labelFa: 'فورم‌های ساحات دزدی شده',
       path: '/donelostplaces',
-      icon: '🏚️',
+      iconKey: 'done_lost_places',
       perm: 'donelostplaces',
     },
     {
       slug: 'econemy-projects',
       labelFa: 'فورم‌های پروژه‌های اقتصادی',
       path: '/econemyprojects',
-      icon: '📊',
+      iconKey: 'econemy_projects',
       perm: 'econemyprojects',
     },
     {
       slug: 'criminal-capture-places',
       labelFa: 'فورم‌های ساحات دستگیری مجرمین',
       path: '/criminalcaptureplaces',
-      icon: '🚔',
+      iconKey: 'criminal_capture_places',
       perm: 'criminalcaptureplaces',
     },
-    {
-      slug: 'pumps',
-      labelFa: 'فورم‌های پمپ‌ها',
-      path: '/pumps',
-      icon: '⛽',
-      perm: 'pumps',
-    },
+    { slug: 'pumps', labelFa: 'فورم‌های پمپ‌ها', path: '/pumps', iconKey: 'pumps', perm: 'pumps' },
     {
       slug: 'shoras',
       labelFa: 'فورم‌های شوراها',
       path: '/shoras',
-      icon: '👥',
+      iconKey: 'shoras',
       perm: 'shoras',
     },
     {
       slug: 'governmentplaces',
       labelFa: 'فورم‌های اماکن حکومتی',
       path: '/governmentplaces',
-      icon: '🏛️',
+      iconKey: 'governmentplaces',
       perm: 'governmentplaces',
     },
     {
       slug: 'supermarkets',
       labelFa: 'فورم‌های سوپرمارکت‌ها',
       path: '/supermarkets',
-      icon: '🛒',
+      iconKey: 'supermarkets',
       perm: 'supermarkets',
     },
-    {
-      slug: 'parks',
-      labelFa: 'فورم‌های پارک‌ها',
-      path: '/parks',
-      icon: '🌳',
-      perm: 'parks',
-    },
+    { slug: 'parks', labelFa: 'فورم‌های پارک‌ها', path: '/parks', iconKey: 'parks', perm: 'parks' },
     {
       slug: 'complexes',
       labelFa: 'فورم‌های موسسه ها و نهاد های داخلی',
       path: '/complexes',
-      icon: '🏬',
+      iconKey: 'complexes',
       perm: 'complexes',
     },
     {
       slug: 'deplomaticplaces',
       labelFa: 'فورم‌های اماکن دیپلوماتیک',
       path: '/deplomaticplaces',
-      icon: '🇺🇳',
+      iconKey: 'deplomaticplaces',
       perm: 'deplomaticplaces',
     },
     {
       slug: 'universities',
       labelFa: 'فورم‌های پوهنتون‌ها',
       path: '/universities',
-      icon: '🎓',
+      iconKey: 'universities',
       perm: 'universities',
     },
     {
       slug: 'wakilanos',
       labelFa: 'فورم‌های وکیلان',
       path: '/wakilanos',
-      icon: '⚖️',
+      iconKey: 'wakilanos',
       perm: 'wakilanos',
     },
   ]);
@@ -614,7 +581,6 @@
   }
 
   const items = ref([...original.value]);
-
   const visibleItems = computed(() => items.value.filter(canView));
 
   const filtered = computed(() => {
@@ -626,60 +592,8 @@
     );
   });
 
-  function getMaterialIcon(emojiIcon) {
-    const m = {
-      '🧩': 'mdi-puzzle',
-      '🧠': 'mdi-brain',
-      '🕵️': 'mdi-spy',
-      '🔒': 'mdi-lock',
-      '🏠': 'mdi-home',
-      '➡️': 'mdi-export',
-      '💱': 'mdi-currency-usd',
-      '🎯': 'mdi-target',
-      '🧳': 'mdi-briefcase',
-      '🪖': 'mdi-shield-account',
-      '💊': 'mdi-pill',
-      '🔍': 'mdi-magnify',
-      '🏚️': 'mdi-home',
-      '💰': 'mdi-cash',
-      '⚠️': 'mdi-alert',
-      '🏘️': 'mdi-home-group',
-      '💥': 'mdi-bomb',
-      '🏪': 'mdi-store',
-      '👤': 'mdi-account',
-      '🏫': 'mdi-school',
-      '🚏': 'mdi-bus-stop',
-      '🚚': 'mdi-truck',
-      '🚗': 'mdi-car',
-      '🅿️': 'mdi-parking',
-      '🏦': 'mdi-bank',
-      '📋': 'mdi-clipboard-text',
-      '🏥': 'mdi-hospital',
-      '🔧': 'mdi-wrench',
-      '✊': 'mdi-fist',
-      '🏭': 'mdi-warehouse',
-      '🏨': 'mdi-hotel',
-      '🛏️': 'mdi-bed',
-      '👔': 'mdi-tie',
-      '🕌': 'mdi-mosque',
-      '🏛️': 'mdi-government',
-      '🎖️': 'mdi-medal',
-      '🕵️‍♂️': 'mdi-account-question',
-      '📖': 'mdi-book-open-variant',
-      '⚖️': 'mdi-scale-balance',
-      '🎓': 'mdi-school',
-      '🛣️': 'mdi-highway',
-      '📊': 'mdi-chart-bar',
-      '🚔': 'mdi-police-badge',
-      '⛽': 'mdi-gas-station',
-      '👥': 'mdi-account-group',
-      '🛂': 'mdi-shield-check',
-      '🛒': 'mdi-cart',
-      '🌳': 'mdi-tree',
-      '🏬': 'mdi-domain',
-      '🇺🇳': 'mdi-diploma',
-    };
-    return m[emojiIcon] || 'mdi-cube';
+  function getIconMdi(iconKey) {
+    return ICON_MAP?.[iconKey]?.mdi || 'mdi-cube';
   }
 
   // Always returns a number (0 if missing)
@@ -688,10 +602,8 @@
   }
 
   async function fetchCounts() {
-    loadingCounts.value = true; // 🔹 start loading
-
+    loadingCounts.value = true;
     try {
-      // If axios.defaults.baseURL = '/api', this hits /api/fifty-formats/counts
       const { data } = await axios.get('/fifty-formats/counts');
       if (data && typeof data === 'object') {
         for (const [slug, value] of Object.entries(data)) {
@@ -703,7 +615,7 @@
     } catch (error) {
       console.error('Failed to load 56-format counts', error);
     } finally {
-      loadingCounts.value = false; // 🔹 done loading (success or error)
+      loadingCounts.value = false;
     }
   }
 

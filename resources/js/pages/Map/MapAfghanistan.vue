@@ -114,6 +114,7 @@
   import { PMTiles, Protocol } from 'pmtiles';
   import PmtilesSearchMap from './PmtilesSearchMap.vue';
   import MapDetailsDrawer from './MapDetailsDrawer.vue';
+  import { ICON_MAP } from '../../../constants/moduleIcons';
 
   import { useMapBusStore } from '../../stores/MapBusStore';
   import AppBar from '@/components/AppBar.vue';
@@ -845,92 +846,39 @@
 
   // ✅ mdi icon names (Vuetify font icons)
   // ✅ All formats + proper icons (Material Design Icons / mdi-*)
-  const ICONS = {
-    // ---------------- Core ----------------
-    office_employee: { label: 'کارمند', mdi: 'mdi-account' },
-    resource: { label: 'منبع', mdi: 'mdi-database' },
-    informations: { label: 'اطلاعات', mdi: 'mdi-card-text-outline' },
-    events: { label: 'پیښې', mdi: 'mdi-calendar-alert' },
-    captive_deliveries: { label: 'تسلیم بندیان', mdi: 'mdi-handshake-outline' },
+  // ✅ Keep resource icon behavior EXACTLY as you already have in map
+  const MAP_RESOURCE_ICON = 'mdi-database'; // ✅ do not change resource part icon behavior
 
-    // ---------------- Main Fifty Formats ----------------
-    fasads: { label: 'فساد', mdi: 'mdi-account-multiple-outline' },
-    saeen_fasads: { label: 'فساعین فساد', mdi: 'mdi-account-multiple-outline' },
-    heists: { label: 'غلا/چور', mdi: 'mdi-bag-personal-outline' },
-    captives: { label: 'اختطاف شوی', mdi: 'mdi-account-lock' },
-    mulkanos: { label: 'ملکان', mdi: 'mdi-account-tie-outline' },
-    entry_exits: { label: 'داخل/خارج', mdi: 'mdi-login-variant' },
-    sarafyanos: { label: 'صرافان', mdi: 'mdi-currency-usd' },
-    clubs: { label: 'کلبونه', mdi: 'mdi-account-group-outline' },
-    mahajerats: { label: 'مهاجرت', mdi: 'mdi-airplane' },
-    soldiers: { label: 'سرتیري', mdi: 'mdi-shield-account-outline' },
 
-    // ---------------- Fifthy Format One ----------------
-    mawads: { label: 'مواد', mdi: 'mdi-pill' },
-    lost_mujremeens: { label: 'ورک مجرمین', mdi: 'mdi-account-search-outline' },
-    old_soldiers_homes: { label: 'د مسولینو کورونه', mdi: 'mdi-home-plus-outline' },
-    robbers: { label: 'غله/لوټماران', mdi: 'mdi-account-cash-outline' },
-    non_responsable_people: { label: 'بې مسؤلیته خلک', mdi: 'mdi-account-off-outline' },
-    mashkok_homes: { label: 'مشکوک کورونه', mdi: 'mdi-home-alert-outline' },
-    damage_places: { label: 'زیانمن ځایونه', mdi: 'mdi-alert-octagon-outline' },
-    damage_rasan_places: { label: 'زیان رسوونکي ځایونه', mdi: 'mdi-alert-decagram-outline' },
-    mashkok_shops: { label: 'مشکوک دوکانونه', mdi: 'mdi-store-alert-outline' },
-    luchakanos: { label: 'لچکانو', mdi: 'mdi-account-multiple-remove-outline' },
 
-    // ---------------- Fifthy Format Two ----------------
-    schools: { label: 'ښوونځی او روزنیز مرکزونه', mdi: 'mdi-book-open-blank-variant-outline' },
-    hado_bus_stops: { label: 'د هډو په اړه', mdi: 'mdi-car-multiple' },
-    transport_companies: { label: 'ترانسپورتی شرکتونه', mdi: 'mdi-bus-multiple' },
-    car_sales_companies: { label: 'موټر پلورنځی', mdi: 'mdi-car-hatchback' },
-    parkings: { label: 'د پارکینونو په اړه', mdi: 'mdi-car-brake-parking' },
-    banks: { label: 'بانکونه او نماینده ګیانی', mdi: 'mdi-bank' },
-    apartments: { label: 'رهایشی بلاکونه', mdi: 'mdi-city' },
-    rahnoma_mamlats: { label: 'رهنماء معاملات', mdi: 'mdi-store-search-outline' },
-    hosppitals: { label: 'روغتونونه', mdi: 'mdi-hospital-box' },
-    work_shops: { label: 'مستری خانی', mdi: 'mdi-car-wrench' },
-
-    // ---------------- Fifthy Format Three ----------------
-    badmashanos: { label: 'بدماشانو', mdi: 'mdi-account-alert-outline' },
-    emarat_offices: { label: 'داخلی مؤسسه او بنسټونه', mdi: 'mdi-briefcase' },
-    hostels: { label: 'لیلی او کرایی اطاقونه', mdi: 'mdi-bed' },
-    hotels: { label: 'مسافر خانی او میلمستون', mdi: 'mdi-silverware-fork-knife' },
-    madrasas: { label: 'دینی مدرسی', mdi: 'mdi-town-hall' },
-    mashkok_people: { label: 'مشکوک افراد', mdi: 'mdi-account-question' },
-    mujahedinos: { label: 'مجاهدین', mdi: 'mdi-account-check' },
-    old_jahadis: { label: 'پخوانی جهادی قومندانان', mdi: 'mdi-account-star' },
-    sarayanos: { label: 'د کوڅو نماینده کان', mdi: 'mdi-account-details' },
-    tujarans: { label: 'علماء او متنفذین', mdi: 'mdi-account-multiple-plus' },
-
-    // ---------------- Fifthy Format Four ----------------
-    checkpoints: { label: 'پوستی او چیک پاینټونه', mdi: 'mdi-shield-lock' },
-    masjids: { label: 'مساجد، خانقاوی', mdi: 'mdi-mosque' },
-    highways: { label: 'لویې لارې', mdi: 'mdi-road-variant' },
-    companies: { label: 'شرکتونه', mdi: 'mdi-factory' },
-    done_lost_places: { label: 'ورک شوي/موندل شوي ځایونه', mdi: 'mdi-map-marker-check-outline' },
-    econemy_projects: { label: 'مهم تاسیسات', mdi: 'mdi-greenhouse' },
-    criminal_capture_places: { label: 'هغه ساحی چې مجرمین پکې نیول شوی', mdi: 'mdi-account-alert' },
-    pumps: { label: 'پمپونه', mdi: 'mdi-gas-station' },
-    shoras: { label: 'محلی شورا ګانی', mdi: 'mdi-account-switch' },
-    governmentplaces: { label: 'دولتی ځایونه', mdi: 'mdi-home-analytics' },
-    supermarkets: { label: 'سوپر مارکیټونه', mdi: 'mdi-cart' },
-    parks: { label: 'پارکونه', mdi: 'mdi-tree-outline' },
-    complexes: { label: 'مجتمع او موسسو', mdi: 'mdi-office-building-outline' },
-    deplomaticplaces: { label: 'دیپلوماتیک ځایونه', mdi: 'mdi-briefcase-variant' },
-    universities: { label: 'پوهنتونونه', mdi: 'mdi-school' },
-    wakilanos: { label: 'وکیلان او ملکان', mdi: 'mdi-account-edit' },
-
-    // ---------------- Extra (exists in routes too) ----------------
-    jawasis: { label: 'جواسیس', mdi: 'mdi-incognito' },
+  // 🔁 Fix singular/plural mismatches between MAP_SOURCES.type and ICON_MAP keys
+  const ICON_ALIASES = {
+    entry_exit: 'entry_exits',
+    sarafyano: 'sarafyanos',
+    mahajerat: 'mahajerats',
+    soldier: 'soldiers',
+    mawad: 'mawads',
+    lost_mujremeen: 'lost_mujremeens',
+    mulkano: 'mulkanos',
   };
 
+  function iconKeyOfType(type) {
+    return ICON_ALIASES[type] || type;
+  }
+
   function safeLabelFor(item) {
-    const m = ICONS[item?.type];
-    return m?.label || item?.typeLabel || item?.type || '';
+    const k = iconKeyOfType(item?.type);
+    return ICON_MAP?.[k]?.label || item?.typeLabel || k || '';
   }
 
   function safeMdiFor(item) {
-    const m = ICONS[item?.type];
-    return m?.mdi || 'mdi-map-marker';
+    const t = item?.type;
+
+    // ❗ DO NOT change resource logic
+    if (t === 'resource') return MAP_RESOURCE_ICON;
+
+    const k = iconKeyOfType(t);
+    return ICON_MAP?.[k]?.mdi || 'mdi-map-marker';
   }
 
   function createMarkerEl(item, showLabel) {

@@ -183,7 +183,6 @@
                     rounded="lg"
                     class="cell"
                     clearable
-                    type="number"
                     min="0"
                     prepend-inner-icon="mdi-numeric"
                   />
@@ -482,10 +481,25 @@
                     variant="outlined"
                     density="compact"
                     clearable
-                    type="number"
-                    min="0"
-                    max="100"
                     suffix="%"
+                    prepend-inner-icon="mdi-star"
+                    rounded="lg"
+                    class="cell"
+                  />
+                </v-card-text>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{
+                    t('کتگوری اطلاع')
+                  }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.information_category"
+                    variant="outlined"
+                    density="compact"
+                    clearable
                     prepend-inner-icon="mdi-star"
                     rounded="lg"
                     class="cell"
@@ -743,6 +757,7 @@
     information_saved_hour: '',
     information_degree: '',
     estijalyat_degree: '',
+    information_category: '',
 
     // texts
     tafseel: '',
