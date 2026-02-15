@@ -1,0 +1,39 @@
+{
+    "name": "pharaonic/php-hijri",
+    "description": "PHP - Hijri DateTime (Islamic).",
+    "keywords": [
+        "hijri",
+        "islamic",
+        "php hijri",
+        "php islamic"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Moamen Eltouny (Raggi)",
+            "email": "raggigroup@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "nesbot/carbon": ">=2.20.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^7.0"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "Pharaonic\\Hijri\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Pharaonic\\Hijri\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

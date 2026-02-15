@@ -389,14 +389,11 @@ Route::middleware('auth:sanctum')->group(function () {
     protectResource('oil-accounts', 'oil_accounts',  OilAccountController::class);
     protectResource('income-oils',  'income_oils',   IncomeOilController::class);
     protectResource('expense-oils', 'expense_oils',  ExpenseOilController::class);
-    
+
     Route::get('/oil/summary', [OilSummaryController::class, 'index']);
-    Route::get('/expense-oils', [ExpenseOilController::class, 'index']);
+
+    // ✅ add only custom route(s) not included in resource
     Route::get('/expense-oils/years', [ExpenseOilController::class, 'years']);
-    Route::get('/expense-oils/{expenseOil}', [ExpenseOilController::class, 'show']);
-    Route::post('/expense-oils', [ExpenseOilController::class, 'store']);
-    Route::put('/expense-oils/{expenseOil}', [ExpenseOilController::class, 'update']);
-    Route::delete('/expense-oils/{expenseOil}', [ExpenseOilController::class, 'destroy']);
 
     Route::get('oil-reports', [OilReportController::class, 'index']);
 
@@ -578,7 +575,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // dashboard 
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
-
     // Outgoing/Incoming CRUD
 
     Route::apiResource('outgoing-incomings', OutgoingIncomingController::class);

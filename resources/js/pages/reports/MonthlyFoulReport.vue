@@ -28,10 +28,22 @@
         <v-card-text class="pa-4">
           <div class="d-flex flex-wrap align-center justify-space-between ga-3">
             <div class="d-flex flex-wrap align-center ga-3">
+              <!-- ✅ From Day -->
               <div class="date-input-container">
                 <DateInput
-                  v-model="repo.selectedMonth"
-                  :label="t('انتخاب ماه')"
+                  v-model="repo.selectedMonthFrom"
+                  :label="t('از تاریخ')"
+                  calendar="gregorian"
+                  :rtl="isRtl"
+                  density="comfortable"
+                />
+              </div>
+
+              <!-- ✅ To Day -->
+              <div class="date-input-container">
+                <DateInput
+                  v-model="repo.selectedMonthTo"
+                  :label="t('تا تاریخ')"
                   calendar="gregorian"
                   :rtl="isRtl"
                   density="comfortable"
@@ -68,7 +80,7 @@
                 {{ t('این ماه') }}
               </v-btn>
 
-              <!-- ✅ NEW: PDF -->
+              <!-- ✅ PDF -->
               <v-btn
                 color="error"
                 variant="tonal"
@@ -84,7 +96,7 @@
                 PDF
               </v-btn>
 
-              <!-- ✅ NEW: Word -->
+              <!-- ✅ Word -->
               <v-btn
                 color="primary"
                 variant="tonal"
@@ -397,10 +409,11 @@
           </div>
         </v-card>
       </v-col>
+
       <v-col>
         <ReportNotesPeriodTable
           type="monthly"
-          :anchor-month="repo.selectedMonth"
+          :anchor-month="repo.selectedMonthFrom"
           :rtl="isRtl"
           :locale="locale"
           :per-page="50"
@@ -422,7 +435,6 @@
 
   const { t, locale } = useI18n();
 
-  // ✅ RTL/LTR exactly like your employee page
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
 
@@ -431,43 +443,72 @@
 
   const router = useRouter();
 
-  // main routes (NO routing changes)
   const goResources = () => router.push('/app/resources');
   const goEvents = () => router.push('/app/events');
   const goInformations = () => router.push('/app/informations');
   const goFiftyFormatsHub = () => router.push('/app/fifthyformatsroute');
 
-  // 56-format route from key (your API returns key like: "fasads", "robbers", "parks"...)
   function goFormatByKey(key) {
     if (!key) return;
     router.push(`/app/${key}`);
   }
 
-  // information types (we only route to informations list)
-  function goInfoType(label) {
+  function goInfoType() {
     router.push('/app/informations');
+  }
+
+  function pad2(n) {
+    return String(n).padStart(2, '0');
   }
 
   function currentMonthIso() {
     const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    return `${y}-${m}`;
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
   }
 
+  function normalizeDayOrder() {
+    const a = String(repo.selectedMonthFrom || '').trim(); // now YYYY-MM-DD
+    const b = String(repo.selectedMonthTo || '').trim();
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(a) || !/^\d{4}-\d{2}-\d{2}$/.test(b)) return;
+
+    if (a > b) {
+      const tmp = a;
+      repo.selectedMonthFrom = b;
+      repo.selectedMonthTo = tmp;
+    }
+  }
+
+  watch(
+    () => [repo.selectedMonthFrom, repo.selectedMonthTo],
+    () => normalizeDayOrder(),
+    { deep: false }
+  );
+
   const chipMonth = computed(() => {
-    const ym = repo.selectedMonth || report.value?.meta?.month || '';
-    if (!ym) return '';
+    const from = repo.selectedMonthFrom || report.value?.meta?.month || '';
+    const to = repo.selectedMonthTo || from;
+    if (!from) return '';
 
-    const [y, m] = ym.split('-').map(Number);
-    if (!y || !m) return ym;
+    const [y1, m1] = from.split('-').map(Number);
+    const [y2, m2] = to.split('-').map(Number);
+    if (!y1 || !m1) return from;
 
-    const dt = new Date(y, m - 1, 1);
-
-    return dt.toLocaleDateString(locale.value === 'fa' ? 'fa-IR' : 'en-US', {
+    const dt1 = new Date(y1, m1 - 1, 1);
+    const t1 = dt1.toLocaleDateString(locale.value === 'fa' ? 'fa-IR' : 'en-US', {
       year: 'numeric',
       month: 'long',
     });
+
+    if (!y2 || !m2 || from === to) return t1;
+
+    const dt2 = new Date(y2, m2 - 1, 1);
+    const t2 = dt2.toLocaleDateString(locale.value === 'fa' ? 'fa-IR' : 'en-US', {
+      year: 'numeric',
+      month: 'long',
+    });
+
+    return `${t1} - ${t2}`;
   });
 
   const eventRows = computed(() => {
@@ -523,22 +564,34 @@
   }
 
   async function fetch() {
-    await repo.FetchMonthlyFoulReport(repo.selectedMonth);
+    normalizeDayOrder();
+    await repo.FetchMonthlyFoulReport({
+      fromMonth: repo.selectedMonthFrom, // now YYYY-MM-DD
+      toMonth: repo.selectedMonthTo, // now YYYY-MM-DD
+    });
+  }
+
+  function todayIso() {
+    const d = new Date();
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
   }
 
   async function resetToThisMonth() {
-    repo.selectedMonth = currentMonthIso();
+    const cur = todayIso();
+    repo.selectedMonthFrom = cur;
+    repo.selectedMonthTo = cur;
     await fetch();
   }
 
   onMounted(() => {
-    if (!repo.selectedMonth) repo.selectedMonth = currentMonthIso();
+    const cur = todayIso();
+    if (!repo.selectedMonthFrom) repo.selectedMonthFrom = cur;
+    if (!repo.selectedMonthTo) repo.selectedMonthTo = cur;
     fetch();
   });
 </script>
 
 <style scoped>
-  /* ✅ enforce your app.css font everywhere */
   .fontfamily,
   .fontfamily * {
     font-family: var(--app-font) !important;
@@ -549,7 +602,6 @@
     min-height: 100vh;
   }
 
-  /* ===== Header: smaller + professional ===== */
   .header-container {
     background: linear-gradient(135deg, #5b6eea 0%, #6d42a6 100%);
     border-radius: 14px;
@@ -558,7 +610,6 @@
     overflow: hidden;
   }
 
-  /* offline-safe pattern (inline svg data URI) */
   .header-container::before {
     content: '';
     position: absolute;
@@ -596,7 +647,6 @@
     white-space: nowrap;
   }
 
-  /* ===== Filter card ===== */
   .filter-card {
     margin-top: 12px;
     border-radius: 12px;
@@ -621,7 +671,6 @@
     border-radius: 10px;
   }
 
-  /* ===== Stats: smaller cards ===== */
   .stat-card {
     border-radius: 12px;
     border: 1px solid #e9eef7;
@@ -629,10 +678,6 @@
     transition: all 0.2s ease;
     cursor: pointer;
     min-height: 92px;
-  }
-
-  .stat-card {
-    cursor: pointer;
   }
 
   :deep(.v-data-table tbody tr) {
@@ -657,7 +702,6 @@
     line-height: 1.1;
   }
 
-  /* ===== Data cards ===== */
   .data-card {
     border-radius: 12px;
     border: 1px solid #e9eef7;
@@ -706,7 +750,6 @@
     background: #f8fafc;
   }
 
-  /* ===== type indicator ===== */
   .type-indicator {
     width: 7px;
     height: 7px;
@@ -729,7 +772,6 @@
     background-color: #ef4444;
   }
 
-  /* ===== table look ===== */
   :deep(.v-data-table) {
     font-size: 13px;
   }

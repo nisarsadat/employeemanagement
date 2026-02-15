@@ -22,6 +22,7 @@ use App\Models\fifthyFormats\Sarafyano;
 use App\Models\fifthyFormats\Clubs;
 use App\Models\fifthyFormats\Mahajerat;
 use App\Models\fifthyFormats\Soldier;
+use App\Models\fifthyFormats\Jawasis;
 
 // Format One
 use App\Models\fifthyformatone\Mawad;
@@ -64,7 +65,6 @@ use App\Models\fifthyformatfour\SuperMarket;
 use App\Models\fifthyformatfour\Park;
 use App\Models\fifthyformatfour\Complex;
 use App\Models\fifthyformatfour\DeplomaticPlace;
-use App\Models\fifthyFormats\Jawasis;
 
 // Format Three
 use App\Models\fifthyformatsthree\Badmashano;
@@ -81,27 +81,29 @@ use App\Models\fifthyformatsthree\Tujaran;
 class WeeklyFoulReportController extends Controller
 {
     /**
-     * Weekly Foul System Report
-     * GET /api/reports/foul/weekly?week=YYYY-Www
+     * Weekly/Period Foul System Report
+     * GET /api/reports/foul/weekly?from=YYYY-MM-DD&to=YYYY-MM-DD
      *
-     * Examples:
-     * /api/reports/foul/weekly              (defaults to current week)
-     * /api/reports/foul/weekly?week=2025-W52
+     * Defaults to current ISO week (Mon..Sun).
+     * - from/to are inclusive dates (we use to_exclusive internally)
      */
     public function __invoke(Request $request)
     {
-        [$start, $end, $weekLabel] = $this->parseWeekRange($request->query('week'));
+        [$start, $endExclusive, $meta] = $this->parseFromToRange(
+            $request->query('from'),
+            $request->query('to')
+        );
 
         // 1) Resources total (by resource_saved_date)
         $resourcesTotal = Resource::query()
-            ->whereDate('resource_saved_date', '>=', $start)
-            ->whereDate('resource_saved_date', '<', $end)
+            ->whereDate('resource_saved_date', '>=', $start->toDateString())
+            ->whereDate('resource_saved_date', '<', $endExclusive->toDateString())
             ->count();
 
         // 2) Informations total + type counts (ONLY those that exist)
         $infoBase = Information::query()
-            ->whereDate('information_saved_date', '>=', $start)
-            ->whereDate('information_saved_date', '<', $end);
+            ->whereDate('information_saved_date', '>=', $start->toDateString())
+            ->whereDate('information_saved_date', '<', $endExclusive->toDateString());
 
         $informationsTotal = (clone $infoBase)->count();
 
@@ -137,8 +139,8 @@ class WeeklyFoulReportController extends Controller
 
         // 3) Events total + event_type grouped (ONLY those that exist)
         $eventBase = Event::query()
-            ->whereDate('event_date', '>=', $start)
-            ->whereDate('event_date', '<', $end);
+            ->whereDate('event_date', '>=', $start->toDateString())
+            ->whereDate('event_date', '<', $endExclusive->toDateString());
 
         $eventsTotal = (clone $eventBase)->count();
 
@@ -151,17 +153,18 @@ class WeeklyFoulReportController extends Controller
             ->get()
             ->map(fn ($r) => ['label' => $r->label, 'count' => (int) $r->count]);
 
-        // 4) 56-format totals (weekly filter on created_at if exists)
-        $formats = $this->formatCounts($start, $end);
+        // 4) 56-format totals (period filter on created_at if exists)
+        $formats = $this->formatCounts($start, $endExclusive);
 
         return response()->json([
             'meta' => [
                 'report' => 'weekly',
-                'week' => $weekLabel, // YYYY-Www
                 'range' => [
-                    'from' => $start->toDateString(),
-                    'to_exclusive' => $end->toDateString(),
+                    'from' => $meta['from'],                 // inclusive
+                    'to' => $meta['to'],                     // inclusive
+                    'to_exclusive' => $meta['to_exclusive'], // exclusive
                 ],
+                'week' => $meta['week'], // for display only (ISO label from start)
             ],
 
             'resources' => [
@@ -183,47 +186,61 @@ class WeeklyFoulReportController extends Controller
     }
 
     /**
-     * Parse week=YYYY-Www into [startOfWeek, startOfNextWeek, weekLabel]
-     * - Defaults to current week (ISO week, Monday start)
+     * Parse from/to (YYYY-MM-DD) into [startOfDay, endExclusiveStartOfDay, meta]
+     * - Defaults to current ISO week (Mon..Sun)
+     * - "to" is inclusive; we convert to exclusive by adding +1 day
      */
-    private function parseWeekRange(?string $weekStr): array
+    private function parseFromToRange(?string $from, ?string $to): array
     {
-        // default current ISO week
-        $base = Carbon::now()->startOfWeek(Carbon::MONDAY);
+        // default current ISO week (Mon..Sun)
+        $start = Carbon::now()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        $toInclusive = $start->copy()->addDays(6)->startOfDay();
 
-        if ($weekStr) {
-            try {
-                // Accept "YYYY-Www"
-                if (preg_match('/^(\d{4})-W(\d{1,2})$/', trim($weekStr), $m)) {
-                    $year = (int) $m[1];
-                    $week = (int) $m[2];
+        try {
+            $from = is_string($from) ? trim($from) : null;
+            $to = is_string($to) ? trim($to) : null;
 
-                    // Create a date within that ISO week (Monday)
-                    $base = Carbon::now()
-                        ->setISODate($year, $week)
-                        ->startOfWeek(Carbon::MONDAY);
-                } else {
-                    // If user passes a date like "2025-12-19", treat it as a date inside the week
-                    $base = Carbon::parse($weekStr)->startOfWeek(Carbon::MONDAY);
-                }
-            } catch (\Throwable $e) {
-                // fallback to current week
+            if ($from && preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) {
+                $start = Carbon::parse($from)->startOfDay();
             }
+
+            if ($to && preg_match('/^\d{4}-\d{2}-\d{2}$/', $to)) {
+                $toInclusive = Carbon::parse($to)->startOfDay();
+            } else {
+                // if to not provided, keep same 7-day range from start
+                $toInclusive = $start->copy()->addDays(6)->startOfDay();
+            }
+
+            // if reversed, swap
+            if ($toInclusive->lt($start)) {
+                [$start, $toInclusive] = [$toInclusive, $start];
+            }
+        } catch (\Throwable $e) {
+            // keep defaults
         }
 
-        $start = $base->copy()->startOfWeek(Carbon::MONDAY);
-        $end = $start->copy()->addWeek(); // exclusive
-        $label = sprintf('%04d-W%02d', (int) $start->isoWeekYear, (int) $start->isoWeek);
+        $endExclusive = $toInclusive->copy()->addDay()->startOfDay();
 
-        return [$start, $end, $label];
+        $weekLabel = sprintf('%04d-W%02d', (int) $start->isoWeekYear, (int) $start->isoWeek);
+
+        return [
+            $start,
+            $endExclusive,
+            [
+                'from' => $start->toDateString(),
+                'to' => $toInclusive->toDateString(),
+                'to_exclusive' => $endExclusive->toDateString(),
+                'week' => $weekLabel,
+            ],
+        ];
     }
 
     /**
-     * Count records for all “formats” (models), weekly-filtered if created_at exists.
+     * Count records for all “formats” (models), period-filtered if created_at exists.
      * Returns only formats with count > 0:
      * [ {key, name, count}, ... ]
      */
-    private function formatCounts(Carbon $start, Carbon $end): array
+    private function formatCounts(Carbon $start, Carbon $endExclusive): array
     {
         $map = [
             // FifthyFormats
@@ -292,7 +309,7 @@ class WeeklyFoulReportController extends Controller
             ['key' => 'sarayanos', 'name' => 'سرایان', 'model' => Sarayano::class],
             ['key' => 'tujarans', 'name' => 'تجاران', 'model' => Tujaran::class],
 
-            // Jawasis (you imported it above)
+            // Jawasis
             ['key' => 'jawasis', 'name' => 'جواسیس', 'model' => Jawasis::class],
         ];
 
@@ -305,10 +322,10 @@ class WeeklyFoulReportController extends Controller
             $q = $modelClass::query();
             $table = $model->getTable();
 
-            // ✅ weekly filter ONLY if created_at exists
+            // ✅ period filter ONLY if created_at exists
             if (Schema::hasColumn($table, 'created_at')) {
                 $q->where('created_at', '>=', $start)
-                  ->where('created_at', '<', $end);
+                  ->where('created_at', '<', $endExclusive);
             }
 
             $count = (int) $q->count();

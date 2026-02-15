@@ -8,9 +8,11 @@ use App\Models\Account;
 use App\Models\Event;
 use App\Models\Finance;
 use App\Models\Information;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Morilog\Jalali\Jalalian;
 
 class FinanceController extends Controller
 {
@@ -21,10 +23,10 @@ class FinanceController extends Controller
 
         $search  = trim((string) $request->get('search', ''));
 
-        $year    = $request->get('year');   // expected: 2026
-        $month   = $request->get('month');  // expected: 1..12
+        $year    = $request->get('year');   // expected: 2026 (gregorian)
+        $month   = $request->get('month');  // expected: 1..12 (gregorian)
 
-        // ✅ NEW: extra filters (frontend already sends these)
+        // ✅ extra filters
         $accountId        = $request->get('account_id');
         $officeEmployeeId = $request->get('office_employee_id');
 
@@ -65,10 +67,10 @@ class FinanceController extends Controller
         // ✅ detect if ANY filters are active (for card logic)
         $hasAnyFilter =
             ($search !== '') ||
-            (is_numeric($year) && (int)$year > 0) ||
-            (is_numeric($month) && (int)$month >= 1 && (int)$month <= 12) ||
-            (is_numeric($accountId) && (int)$accountId > 0) ||
-            (is_numeric($officeEmployeeId) && (int)$officeEmployeeId > 0);
+            (is_numeric($year) && (int) $year > 0) ||
+            (is_numeric($month) && (int) $month >= 1 && (int) $month <= 12) ||
+            (is_numeric($accountId) && (int) $accountId > 0) ||
+            (is_numeric($officeEmployeeId) && (int) $officeEmployeeId > 0);
 
         // ✅ FILTERED outcome (based on $q)
         $filteredOutcome = (clone $q)->sum('money_amount_number');
@@ -152,9 +154,13 @@ class FinanceController extends Controller
     {
         $data = $this->validatePayload($request);
 
+        // ✅ normalize + force date (always save Gregorian)
+        $data['date'] = $this->normalizeToGregorianDate($data['date'] ?? null) ?: now()->toDateString();
+
         $finance = DB::transaction(function () use ($data) {
             $finance = Finance::create($data);
 
+            // expense => subtract from account balance
             $this->applyAccountDelta(
                 (int) $data['account_id'],
                 -1 * (float) $data['money_amount_number']
@@ -180,6 +186,10 @@ class FinanceController extends Controller
     {
         $data = $this->validatePayload($request);
 
+        // ✅ normalize date; if missing keep old, else set today
+        $data['date'] = $this->normalizeToGregorianDate($data['date'] ?? null)
+            ?: ($finance->date?->toDateString() ?? now()->toDateString());
+
         DB::transaction(function () use ($finance, $data) {
             $oldAccountId = (int) $finance->account_id;
             $oldAmount    = (float) $finance->money_amount_number;
@@ -190,11 +200,13 @@ class FinanceController extends Controller
             $newAmount    = (float) $finance->money_amount_number;
 
             if ($oldAccountId === $newAccountId) {
+                // if amount changed, adjust by delta
                 $delta = $oldAmount - $newAmount;
                 if ($delta != 0.0) {
                     $this->applyAccountDelta($newAccountId, $delta);
                 }
             } else {
+                // account changed => revert old, apply new
                 $this->applyAccountDelta($oldAccountId, +1 * $oldAmount);
                 $this->applyAccountDelta($newAccountId, -1 * $newAmount);
             }
@@ -216,6 +228,7 @@ class FinanceController extends Controller
     public function destroy(Finance $finance)
     {
         DB::transaction(function () use ($finance) {
+            // delete expense => add back to account balance
             $this->applyAccountDelta(
                 (int) $finance->account_id,
                 +1 * (float) $finance->money_amount_number
@@ -239,12 +252,16 @@ class FinanceController extends Controller
             'account_id'         => ['required', 'integer', 'exists:accounts,id'],
 
             'event_id'           => ['nullable', 'integer', 'exists:events,id'],
-            'information_id'     => ['nullable', 'integer', 'exists:information,id'],
+
+            // ✅ FIX: correct table name
+            'information_id'     => ['nullable', 'integer', 'exists:informations,id'],
 
             'money_amount_number' => ['required', 'numeric', 'gt:0'],
             'money_amount_words'  => ['nullable', 'string', 'max:500'],
 
-            'date'            => ['nullable', 'date'],
+            // ✅ IMPORTANT: accept jalali OR gregorian string (we normalize ourselves)
+            'date'            => ['nullable', 'string', 'max:20'],
+
             'employee_phone'  => ['nullable', 'string', 'max:50'],
             'expense_result'  => ['nullable', 'string', 'max:255'],
 
@@ -255,6 +272,30 @@ class FinanceController extends Controller
             'account_type' => ['nullable', 'string', 'max:120'],
             'notes'        => ['nullable', 'string'],
         ]);
+    }
+
+    /**
+     * ✅ Convert input date to Gregorian Y-m-d
+     * - If input year looks Jalali (1300..1600), convert using Jalalian
+     * - Else parse as Gregorian
+     */
+    private function normalizeToGregorianDate(?string $date): ?string
+    {
+        if (!$date) return null;
+
+        $date = trim($date);
+        if ($date === '') return null;
+
+        $parts = explode('-', $date);
+        $y = isset($parts[0]) ? (int) $parts[0] : 0;
+
+        // Jalali range
+        if ($y >= 1300 && $y <= 1600) {
+            return Jalalian::fromFormat('Y-m-d', $date)->toCarbon()->toDateString();
+        }
+
+        // Gregorian
+        return Carbon::parse($date)->toDateString();
     }
 
     private function applyAccountDelta(int $accountId, float $delta): void

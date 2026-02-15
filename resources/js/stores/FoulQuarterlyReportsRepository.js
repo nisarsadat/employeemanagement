@@ -15,20 +15,13 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     // Quarterly report payload from backend
     const quarterly = ref(null);
 
-    // Filters
-    const selectedQuarter = ref(''); // YYYY-Q1..Q3
+    // ✅ NEW FILTERS (From/To)
+    const fromDate = ref(''); // YYYY-MM-DD
+    const toDate = ref(''); // YYYY-MM-DD
 
     // =========================
     // Helpers
     // =========================
-    function currentQuarterLabel() {
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = now.getMonth() + 1; // 1..12
-      const q = m <= 4 ? 1 : m <= 8 ? 2 : 3;
-      return `${y}-Q${q}`;
-    }
-
     function todayIso() {
       const d = new Date();
       const y = d.getFullYear();
@@ -37,25 +30,9 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       return `${y}-${m}-${day}`;
     }
 
-    function quarterToIsoDate(quarterLabel) {
-      // "YYYY-Qn" -> representative date within quarter (YYYY-01-01 / YYYY-05-01 / YYYY-09-01)
-      const s = String(quarterLabel ?? '').trim();
-      const m = s.match(/^(\d{4})-Q([1-3])$/i);
-      if (!m) return todayIso();
-
-      const year = m[1];
-      const q = Number(m[2]);
-      const month = q === 1 ? '01' : q === 2 ? '05' : '09'; // Q1..Q3 (4-month quarters)
-      return `${year}-${month}-01`;
-    }
-
     function safeNum(val) {
       const n = Number(val ?? 0);
       return Number.isFinite(n) ? n : 0;
-    }
-
-    function formatMoney(val) {
-      return safeNum(val).toLocaleString();
     }
 
     function escapeHtml(s) {
@@ -107,64 +84,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // Dates (Miladi + Hijri Shamsi + Hijri Qamari)
-    // =========================
-    function formatMiladi(dateIso) {
-      const d = String(dateIso || '').trim();
-      return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : '';
-    }
-
-    function formatHijriShamsi(dateIso) {
-      try {
-        const d = new Date(`${dateIso}T00:00:00`);
-        return new Intl.DateTimeFormat('fa-AF-u-ca-persian', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        }).format(d);
-      } catch {
-        return '';
-      }
-    }
-
-    function formatHijriQamari(dateIso) {
-      try {
-        const d = new Date(`${dateIso}T00:00:00`);
-        return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        }).format(d);
-      } catch {
-        try {
-          const d = new Date(`${dateIso}T00:00:00`);
-          return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-          }).format(d);
-        } catch {
-          return '';
-        }
-      }
-    }
-
-    function buildDatePillsSameDay(dateIso) {
-      const miladi = formatMiladi(dateIso);
-      const shamsi = formatHijriShamsi(dateIso);
-      const qamari = formatHijriQamari(dateIso);
-
-      const pills = [];
-
-      if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
-      if (shamsi) pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
-      if (qamari) pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
-
-      return pills.join('');
-    }
-
-    // =========================
-    // ✅ EMPTY / USEFUL ROW HELPERS (omit tables/sections if empty)
+    // ✅ EMPTY / USEFUL ROW HELPERS
     // =========================
     function hasUsefulRows(arr, countKey = 'count') {
       if (!Array.isArray(arr) || arr.length === 0) return false;
@@ -177,32 +97,8 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // ✅ NOTES: quarterly range + fetch + html section
+    // ✅ NOTES fetch (from/to)
     // =========================
-    function rangeForQuarterlyNotes(qLabel) {
-      const s = String(qLabel || selectedQuarter.value || currentQuarterLabel()).trim();
-      const m = s.match(/^(\d{4})-Q([1-3])$/i);
-      if (!m) {
-        const fallback = currentQuarterLabel();
-        const mm = fallback.match(/^(\d{4})-Q([1-3])$/i);
-        const y = mm ? mm[1] : String(new Date().getFullYear());
-        const q = mm ? Number(mm[2]) : 1;
-
-        if (q === 1) return { from: `${y}-01-01`, to: `${y}-04-30` };
-        if (q === 2) return { from: `${y}-05-01`, to: `${y}-08-31` };
-        return { from: `${y}-09-01`, to: `${y}-12-31` };
-      }
-
-      const year = m[1];
-      const q = Number(m[2]);
-
-      // 4-month quarters: Q1(1-4), Q2(5-8), Q3(9-12)
-      if (q === 1) return { from: `${year}-01-01`, to: `${year}-04-30` };
-      if (q === 2) return { from: `${year}-05-01`, to: `${year}-08-31` };
-      return { from: `${year}-09-01`, to: `${year}-12-31` };
-    }
-
-    // ✅ robust notes fetch (same idea as weekly version)
     async function fetchNotesForExport({ type, from, to }) {
       const endpoints = ['/report-notes', '/report_notes'];
 
@@ -283,34 +179,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // ✅ Format name localization (NOT English in PDF/Word)
-    // =========================
-    function formatNameLocal(name) {
-      const n = String(name ?? '').trim();
-      if (!n) return '';
-
-      const map = {
-        Resources: 'منابع',
-        Informations: 'اطلاعات',
-        Information: 'اطلاعات',
-        Events: 'پېښې',
-        Event: 'پېښه',
-        Finance: 'مالي',
-        Finances: 'مالي',
-        Daily: 'ورځنی',
-        Monthly: 'میاشتنی',
-        Weekly: 'اوونیز',
-        Quarterly: 'ربعه',
-        Report: 'راپور',
-        Form: 'فورم',
-        Forms: 'فورمونه',
-      };
-
-      return map[n] || n;
-    }
-
-    // =========================
-    // Export CSS (✅ header text start + table start)
+    // Export CSS (unchanged)
     // =========================
     function baseExportCss() {
       const fontStack =
@@ -365,7 +234,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         z-index:1;
       }
 
-      /* ✅ IMPORTANT: header text should start (NOT center) */
       .hero-top > div:first-child { text-align: start; }
 
       .hero-title{
@@ -375,7 +243,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         margin:0 0 4px;
         letter-spacing:.2px;
         line-height:1.25;
-        text-align:start; /* ✅ */
+        text-align:start;
       }
 
       .hero-sub{
@@ -384,7 +252,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         font-size:12px;
         line-height:1.55;
         font-weight:700;
-        text-align:start; /* ✅ */
+        text-align:start;
       }
 
       .pills{
@@ -394,7 +262,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         flex-wrap:wrap;
         position:relative;
         z-index:1;
-        justify-content:flex-start; /* ✅ start */
+        justify-content:flex-start;
       }
 
       .pill{
@@ -449,7 +317,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         gap:10px;
       }
 
-      /* ✅ IMPORTANT: section header titles start (NOT center) */
       .strip-left { display:flex; align-items:flex-start; gap:10px; }
       .strip-left > div { text-align:start; }
 
@@ -481,7 +348,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         font-size:11px;
         padding:9px 8px;
         border-bottom:1px solid #eef2f7;
-        text-align:start; /* ✅ */
+        text-align:start;
       }
       tbody td{
         padding:9px 8px;
@@ -489,12 +356,11 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         font-size:11px;
         vertical-align:middle;
         color: rgba(17,24,39,.90);
-        text-align:start; /* ✅ */
+        text-align:start;
       }
       tbody tr:nth-child(even) td{ background: #fcfdff; }
 
       .td-end{ text-align:end; }
-      .td-center{ text-align:center; }
 
       .count-pill{
         display:inline-block;
@@ -506,21 +372,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       }
       .count-primary{ border-color:#c7d2fe; color:#1e40af; background:#eef2ff; }
       .count-success{ border-color:#a7f3d0; color:#065f46; background:#ecfdf5; }
-
-      .etype{
-        display:inline-block;
-        padding:4px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid #e5e7eb;
-        background:#f3f4f6;
-      }
-      .etype-red{ background:#fee2e2; border-color:#fecaca; color:#991b1b; }
-      .etype-amber{ background:#ffedd5; border-color:#fed7aa; color:#9a3412; }
-      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; color:#5b21b6; }
-      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; color:#1e40af; }
-      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; color:#374151; }
 
       .hero-logo{
         display:flex;
@@ -539,32 +390,13 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     `;
     }
 
-    function eventTypeClass(type) {
-      const t = String(type ?? '').trim();
-
-      const map = {
-        حادثه: 'etype-red',
-        پېښه: 'etype-red',
-        تخریب: 'etype-amber',
-        ويجاړۍ: 'etype-amber',
-        درگیری: 'etype-amber',
-        نښته: 'etype-amber',
-        طبیعی: 'etype-blue',
-        طبيعي: 'etype-blue',
-        سیاسی: 'etype-purple',
-        سياسي: 'etype-purple',
-      };
-
-      return map[t] || 'etype-gray';
-    }
-
     // =========================
-    // Quarterly HTML
+    // Quarterly HTML (only uses from/to label)
     // =========================
-    function buildQuarterlyDashboardHtml(report, quarterLabel, notes = []) {
-      const qLabel = String(quarterLabel || selectedQuarter.value || currentQuarterLabel()).trim();
-      const headerIso = quarterToIsoDate(qLabel);
-      const pills = buildDatePillsSameDay(headerIso);
+    function buildQuarterlyDashboardHtml(report, from, to, notes = []) {
+      const fromText = String(from || fromDate.value || '').trim();
+      const toText = String(to || toDate.value || '').trim();
+      const rangeLabel = fromText && toText ? `${fromText} تا ${toText}` : '';
 
       const resourcesTotal = safeNum(report?.resources?.total);
       const informationsTotal = safeNum(report?.informations?.total);
@@ -580,6 +412,10 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         return `${window.location.origin}/logo.jpeg`;
       }
 
+      const pills = rangeLabel
+        ? `<span class="pill">د راپور موده: ${escapeHtml(rangeLabel)}</span>`
+        : '';
+
       const infoSection =
         hasUsefulRows(infoTypes, 'count')
           ? `
@@ -589,7 +425,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
                   <div class="strip-left">
                     <div>
                       <div class="strip-title">د اطلاعاتو ډولونه</div>
-                      <div class="strip-sub">د ډول له مخې وېش (ربعه)</div>
+                      <div class="strip-sub">د ډول له مخې وېش</div>
                     </div>
                   </div>
                   <span class="chip chip-primary">${informationsTotal}</span>
@@ -652,7 +488,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
                       ${formats
                         .filter((f) => safeNum(f?.count) > 0)
                         .map((f) => {
-                          const name = escapeHtml(formatNameLocal(f?.name ?? ''));
+                          const name = escapeHtml(String(f?.name ?? ''));
                           const count = safeNum(f?.count);
                           return `
                             <tr>
@@ -679,7 +515,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
                   <div class="strip-left">
                     <div>
                       <div class="strip-title">پېښې (د ډول له مخې)</div>
-                      <div class="strip-sub">د ربعه د پېښو وېش</div>
+                      <div class="strip-sub">د پېښو وېش</div>
                     </div>
                   </div>
                   <span class="chip chip-warning">${eventsTotal}</span>
@@ -699,10 +535,9 @@ export const useFoulQuarterlyReportsRepository = defineStore(
                         .map((t) => {
                           const label = escapeHtml(t?.label ?? '');
                           const count = safeNum(t?.count);
-                          const cls = eventTypeClass(label);
                           return `
                             <tr>
-                              <td><span class="etype ${cls}">${label || '-'}</span></td>
+                              <td>${label || '-'}</td>
                               <td class="td-end"><span class="count-pill count-primary">${count}</span></td>
                             </tr>
                           `;
@@ -720,7 +555,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       <html dir="rtl">
         <head>
           <meta charset="utf-8" />
-          <title>quarterly_dashboard_${qLabel}</title>
+          <title>quarterly_dashboard_${escapeHtml(rangeLabel || 'range')}</title>
           <style>${baseExportCss()}</style>
         </head>
         <body>
@@ -729,14 +564,14 @@ export const useFoulQuarterlyReportsRepository = defineStore(
               <div class="hero-top">
                 <div>
                   <h1 class="hero-title">د 333 ربعه راپور</h1>
-                  <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو د ربعه عمومي کتنه</p>
+                  <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو عمومي کتنه</p>
                 </div>
                 <div class="hero-logo">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
 
-              <div class="pills">${pills || ''}</div>
+              <div class="pills">${pills}</div>
             </div>
 
             <div class="stats-grid section no-break">
@@ -768,7 +603,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             ${formatsSection}
             ${eventsSection}
             ${buildNotesSectionHtml(notes)}
-
           </div>
         </body>
       </html>
@@ -806,18 +640,21 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // API
+    // API (✅ from/to)
     // =========================
-    const FetchQuarterlyFoulReport = async (quarter) => {
+    const FetchQuarterlyFoulReport = async ({ from, to } = {}) => {
       try {
         loading.value = true;
         error.value = '';
 
-        const finalQuarter = quarter || selectedQuarter.value || currentQuarterLabel();
-        selectedQuarter.value = String(finalQuarter);
+        const f = String(from ?? fromDate.value ?? '').trim();
+        const t = String(to ?? toDate.value ?? '').trim();
+
+        fromDate.value = f;
+        toDate.value = t;
 
         const { data } = await axios.get('/reports/foul/quarterly', {
-          params: { quarter: selectedQuarter.value }, // backend expects "YYYY-Qn"
+          params: { from: fromDate.value, to: toDate.value },
         });
 
         quarterly.value = data;
@@ -835,29 +672,27 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     const ResetQuarterly = () => {
       quarterly.value = null;
       error.value = '';
-      selectedQuarter.value = currentQuarterLabel();
+      fromDate.value = todayIso();
+      toDate.value = todayIso();
     };
 
-    // Init defaults
-    if (!selectedQuarter.value) selectedQuarter.value = currentQuarterLabel();
-
     // =========================
-    // EXPORT ACTIONS (✅ with notes)
+    // EXPORT ACTIONS (✅ with notes using from/to)
     // =========================
     const DownloadQuarterlyFoulPdf = async () => {
       const report = quarterly.value;
       if (!report) return;
 
-      const qText = selectedQuarter.value || currentQuarterLabel();
-      const r = rangeForQuarterlyNotes(qText);
+      const f = String(fromDate.value || '').trim();
+      const t = String(toDate.value || '').trim();
 
       const notes = await fetchNotesForExport({
         type: 'quarterly',
-        from: r.from,
-        to: r.to,
+        from: f,
+        to: t,
       });
 
-      const html = buildQuarterlyDashboardHtml(report, qText, notes);
+      const html = buildQuarterlyDashboardHtml(report, f, t, notes);
       openPrintWindow(html);
     };
 
@@ -865,17 +700,18 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       const report = quarterly.value;
       if (!report) return;
 
-      const qText = selectedQuarter.value || currentQuarterLabel();
-      const r = rangeForQuarterlyNotes(qText);
+      const f = String(fromDate.value || '').trim();
+      const t = String(toDate.value || '').trim();
 
       const notes = await fetchNotesForExport({
         type: 'quarterly',
-        from: r.from,
-        to: r.to,
+        from: f,
+        to: t,
       });
 
-      const html = buildQuarterlyDashboardHtml(report, qText, notes);
-      downloadWordFile(html, `quarterly_dashboard_${qText}.doc`);
+      const html = buildQuarterlyDashboardHtml(report, f, t, notes);
+      const safeName = `${f || 'from'}_${t || 'to'}`.replaceAll(':', '-');
+      downloadWordFile(html, `quarterly_dashboard_${safeName}.doc`);
     };
 
     return {
@@ -886,8 +722,9 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       // payload
       quarterly,
 
-      // filter
-      selectedQuarter,
+      // filters
+      fromDate,
+      toDate,
 
       // actions
       FetchQuarterlyFoulReport,

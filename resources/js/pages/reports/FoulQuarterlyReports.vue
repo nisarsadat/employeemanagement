@@ -20,7 +20,7 @@
 
         <div class="date-display d-flex align-center fontfamily">
           <v-icon icon="mdi-calendar-month-outline" class="mr-2" />
-          <span class="font-weight-medium">{{ chipQuarter }}</span>
+          <span class="font-weight-medium">{{ chipRange }}</span>
         </div>
       </div>
 
@@ -28,29 +28,23 @@
         <v-card-text class="pa-4">
           <div class="d-flex flex-wrap align-center justify-space-between ga-3">
             <div class="d-flex flex-wrap align-center ga-3">
-              <!-- ✅ NEW: calendar selector (gregorian / hijri shamsi / hijri qamari) -->
-              <v-select
-                v-model="calendarType"
-                :items="calendarOptions"
-                item-title="title"
-                item-value="value"
-                :label="t('نوع تقویم')"
-                variant="outlined"
-                density="comfortable"
-                rounded="lg"
-                hide-details="auto"
-                class="bg-white"
-                style="min-width: 200px"
-              />
-
-              <!-- ✅ NEW: DateInput (we use YEAR+MONTH from it -> ربعه) -->
+              <!-- ✅ FROM -->
               <div class="date-input-container">
                 <DateInput
-                  v-model="pickedDate"
-                  :label="t('انتخاب تاریخ (برای ربعه)')"
+                  v-model="fromDate"
+                  :label="t('از تاریخ')"
                   :rtl="isRtl"
                   density="comfortable"
-                  :calendar="calendarType"
+                />
+              </div>
+
+              <!-- ✅ TO -->
+              <div class="date-input-container">
+                <DateInput
+                  v-model="toDate"
+                  :label="t('تا تاریخ')"
+                  :rtl="isRtl"
+                  density="comfortable"
                 />
               </div>
 
@@ -150,7 +144,7 @@
     >
       <div class="d-flex align-center">
         <v-icon icon="mdi-information-outline" class="mr-3" />
-        <span>{{ t('برای ربعه انتخاب‌شده هیچ دیتا موجود نیست.') }}</span>
+        <span>{{ t('برای تاریخ انتخاب‌شده هیچ دیتا موجود نیست.') }}</span>
       </div>
     </v-alert>
 
@@ -176,12 +170,7 @@
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card
-          class="stat-card"
-          elevation="0"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          @click="goInformations"
-        >
+        <v-card class="stat-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'" @click="goInformations">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="stat-label fontfamily">{{ t('اطلاعات') }}</div>
@@ -219,12 +208,7 @@
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card
-          class="stat-card"
-          elevation="0"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          @click="goFiftyFormatsHub"
-        >
+        <v-card class="stat-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'" @click="goFiftyFormatsHub">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="stat-label fontfamily">{{ t('فورم‌های ۵۰ فارمت') }}</div>
@@ -371,12 +355,7 @@
               :no-data-text="t('هیچ رویدادی ثبت نشده')"
             >
               <template #item.count="{ item }">
-                <v-chip
-                  color="warning"
-                  variant="outlined"
-                  size="small"
-                  class="font-weight-bold fontfamily"
-                >
+                <v-chip color="warning" variant="outlined" size="small" class="font-weight-bold fontfamily">
                   {{ item.count }}
                 </v-chip>
               </template>
@@ -413,10 +392,11 @@
           </div>
         </v-card>
       </v-col>
+
       <v-col>
         <ReportNotesPeriodTable
           type="quarter"
-          :anchor-date="repo.selectedDate"
+          :anchor-date="repo.fromDate"
           :rtl="isRtl"
           :locale="locale"
           :per-page="50"
@@ -438,7 +418,6 @@
 
   const { t, locale } = useI18n();
 
-  // ✅ RTL/LTR exactly like your employee page
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
 
@@ -446,99 +425,29 @@
   const report = computed(() => repo.quarterly);
 
   const router = useRouter();
-
-  // main routes
   const goResources = () => router.push('/app/resources');
   const goEvents = () => router.push('/app/events');
   const goInformations = () => router.push('/app/informations');
   const goFiftyFormatsHub = () => router.push('/app/fifthyformatsroute');
 
-  // 56-format route from key (your API returns key like: "fasads", "robbers", "parks"...)
   function goFormatByKey(key) {
     if (!key) return;
     router.push(`/app/${key}`);
   }
 
-  // information types (we only route to informations list)
-  function goInfoType(label) {
+  function goInfoType() {
     router.push('/app/informations');
   }
 
-  // ✅ calendar type + pickedDate (we use YEAR+MONTH -> quarter label)
-  const calendarType = ref('gregorian'); // 'gregorian' | 'jalali' | 'hijri'
-  const pickedDate = ref(''); // YYYY-MM-DD
+  // ✅ NEW: two inputs
+  const fromDate = ref('');
+  const toDate = ref('');
 
-  const calendarOptions = computed(() => [
-    { title: t('میلادی'), value: 'gregorian' },
-    { title: t('هجری شمسی'), value: 'jalali' },
-    { title: t('هجری قمری'), value: 'hijri' },
-  ]);
-
-  function toLatinDigits(s) {
-    const str = String(s ?? '');
-    const fa = '۰۱۲۳۴۵۶۷۸۹';
-    const ar = '٠١٢٣٤٥٦٧٨٩';
-    return str
-      .split('')
-      .map((ch) => {
-        const i1 = fa.indexOf(ch);
-        if (i1 >= 0) return String(i1);
-        const i2 = ar.indexOf(ch);
-        if (i2 >= 0) return String(i2);
-        return ch;
-      })
-      .join('');
-  }
-
-  function extractYearMonthFromPickedDate(iso, cal) {
-    if (!iso) return { year: '', month: '' };
-
-    const [y, m, d] = iso.split('-').map(Number);
-    if (!y || !m || !d) return { year: '', month: '' };
-
-    const dt = new Date(y, m - 1, d);
-
-    const fmtLocale =
-      cal === 'jalali' ? 'fa-IR-u-ca-persian' : cal === 'hijri' ? 'ar-SA-u-ca-islamic' : 'en-US';
-
-    const yearText = new Intl.DateTimeFormat(fmtLocale, { year: 'numeric' }).format(dt);
-    const monthText = new Intl.DateTimeFormat(fmtLocale, { month: 'numeric' }).format(dt);
-
-    return {
-      year: toLatinDigits(yearText),
-      month: toLatinDigits(monthText),
-    };
-  }
-
-  function monthToQuarter(monthNum) {
-    const m = Number(monthNum || 0);
-    if (m >= 1 && m <= 4) return 1;
-    if (m >= 5 && m <= 8) return 2;
-    return 3; // 9..12
-  }
-
-  function buildQuarterLabelFromPickedDate(iso, cal) {
-    const { year, month } = extractYearMonthFromPickedDate(iso, cal);
-    const y = String(year || '').trim();
-    const m = Number(month || 0);
-
-    if (y && m) {
-      const q = monthToQuarter(m);
-      return `${y}-Q${q}`; // backend expects this
-    }
-
-    // fallback current
-    const now = new Date();
-    const q = monthToQuarter(now.getMonth() + 1);
-    return `${now.getFullYear()}-Q${q}`;
-  }
-
-  const selectedQuarterComputed = computed(() => {
-    return buildQuarterLabelFromPickedDate(pickedDate.value, calendarType.value);
-  });
-
-  const chipQuarter = computed(() => {
-    return String(selectedQuarterComputed.value || report.value?.meta?.label || '').trim();
+  const chipRange = computed(() => {
+    const f = String(fromDate.value || '').trim();
+    const t2 = String(toDate.value || '').trim();
+    if (f && t2) return `${f} تا ${t2}`;
+    return report.value?.meta?.label || '';
   });
 
   const eventTypes = computed(() => {
@@ -593,29 +502,49 @@
     return colors[type] || 'grey';
   }
 
+  function isoToday() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function currentQuarterRangeIso() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth() + 1;
+    const q = m <= 4 ? 1 : m <= 8 ? 2 : 3;
+
+    const from = q === 1 ? `${y}-01-01` : q === 2 ? `${y}-05-01` : `${y}-09-01`;
+    const to = q === 1 ? `${y}-04-30` : q === 2 ? `${y}-08-31` : `${y}-12-31`;
+
+    return { from, to };
+  }
+
   async function fetch() {
-    // keep repo.selectedQuarter in sync for exports + API
-    repo.selectedQuarter = selectedQuarterComputed.value;
-    await repo.FetchQuarterlyFoulReport(repo.selectedQuarter);
+    repo.fromDate = fromDate.value;
+    repo.toDate = toDate.value;
+    await repo.FetchQuarterlyFoulReport({ from: repo.fromDate, to: repo.toDate });
   }
 
   async function resetToCurrentQuarter() {
-    calendarType.value = 'gregorian';
-    pickedDate.value = new Date().toISOString().slice(0, 10);
+    const r = currentQuarterRangeIso();
+    fromDate.value = r.from;
+    toDate.value = r.to;
     await fetch();
   }
 
   onMounted(() => {
-    // default to today
-    pickedDate.value = new Date().toISOString().slice(0, 10);
-    // keep selectedQuarter default too (for export filenames etc.)
-    repo.selectedQuarter = selectedQuarterComputed.value;
+    // default: current quarter
+    const r = currentQuarterRangeIso();
+    fromDate.value = r.from;
+    toDate.value = r.to;
+
+    repo.fromDate = fromDate.value;
+    repo.toDate = toDate.value;
+
     fetch();
   });
 </script>
 
 <style scoped>
-  /* ✅ enforce your app.css font everywhere */
   .fontfamily,
   .fontfamily * {
     font-family: var(--app-font) !important;
@@ -626,7 +555,6 @@
     min-height: 100vh;
   }
 
-  /* ===== Header: smaller + professional ===== */
   .header-container {
     background: linear-gradient(135deg, #5b6eea 0%, #6d42a6 100%);
     border-radius: 14px;
@@ -635,7 +563,6 @@
     overflow: hidden;
   }
 
-  /* offline-safe pattern (inline svg data URI) */
   .header-container::before {
     content: '';
     position: absolute;
@@ -673,7 +600,6 @@
     white-space: nowrap;
   }
 
-  /* ===== Filter card ===== */
   .filter-card {
     margin-top: 12px;
     border-radius: 12px;
@@ -698,7 +624,6 @@
     border-radius: 10px;
   }
 
-  /* ===== Stats: smaller cards ===== */
   .stat-card {
     border-radius: 12px;
     border: 1px solid #e9eef7;
@@ -730,7 +655,6 @@
     line-height: 1.1;
   }
 
-  /* ===== Data cards ===== */
   .data-card {
     border-radius: 12px;
     border: 1px solid #e9eef7;
@@ -779,7 +703,6 @@
     background: #f8fafc;
   }
 
-  /* ===== type indicator ===== */
   .type-indicator {
     width: 7px;
     height: 7px;
@@ -802,7 +725,6 @@
     background-color: #ef4444;
   }
 
-  /* ===== table look ===== */
   :deep(.v-data-table) {
     font-size: 13px;
   }

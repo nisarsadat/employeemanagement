@@ -19,23 +19,22 @@ class ExpenseOilController extends Controller
             'perPage' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'search'  => ['nullable', 'string', 'max:255'],
 
-            // ✅ year/month filter (ALWAYS Gregorian values)
+            // ✅ year/month filter (Gregorian)
             'year'    => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'month'   => ['nullable', 'integer', 'min:1', 'max:12'],
 
-            // optional filters (if you use them)
-            'oil_account_id'     => ['nullable', 'integer', 'exists:oil_accounts,id'],
-            'office_employee_id' => ['nullable', 'integer', 'exists:office_employees,id'],
+            'oil_account_id' => ['nullable', 'integer', 'exists:oil_accounts,id'],
+            'employee_id'    => ['nullable', 'integer', 'exists:office_employees,id'],
         ]);
 
         $perPage = (int) $request->get('perPage', 25);
-        $search  = trim((string)$request->get('search', ''));
+        $search  = trim((string) $request->get('search', ''));
 
         $year  = $request->integer('year');
         $month = $request->integer('month');
 
         $accountId  = $request->integer('oil_account_id');
-        $employeeId = $request->integer('office_employee_id');
+        $employeeId = $request->integer('employee_id');
 
         $query = ExpenseOil::query()
             ->with([
@@ -46,14 +45,13 @@ class ExpenseOilController extends Controller
             ->latest('id');
 
         if ($accountId)  $query->where('oil_account_id', $accountId);
-        if ($employeeId) $query->where('office_employee_id', $employeeId);
+        if ($employeeId) $query->where('employee_id', $employeeId);
 
-        // ✅ filter by year/month on expense_oils.date
         if ($year)  $query->whereYear('date', $year);
         if ($month) $query->whereMonth('date', $month);
 
         // =========================
-        // ✅ SUMMARY (cards) - also follow year/month
+        // ✅ SUMMARY (cards)
         // =========================
         $totalQuantityAllAccounts = (string) OilAccount::query()->sum('quantity');
 
@@ -69,7 +67,7 @@ class ExpenseOilController extends Controller
 
         $filteredExpenseQuery = ExpenseOil::query()->search($search);
         if ($accountId)  $filteredExpenseQuery->where('oil_account_id', $accountId);
-        if ($employeeId) $filteredExpenseQuery->where('office_employee_id', $employeeId);
+        if ($employeeId) $filteredExpenseQuery->where('employee_id', $employeeId);
         if ($year)  $filteredExpenseQuery->whereYear('date', $year);
         if ($month) $filteredExpenseQuery->whereMonth('date', $month);
 
@@ -85,14 +83,15 @@ class ExpenseOilController extends Controller
         ]);
     }
 
-    public function show(ExpenseOil $expenseOil)
+    // ✅ show by id (gives clean 404 if id invalid)
+    public function show($id)
     {
-        return new ExpenseOilResource(
-            $expenseOil->load([
-                'account:id,name,quantity',
-                'employee:id,name,code_number,phone_number',
-            ])
-        );
+        $expenseOil = ExpenseOil::with([
+            'account:id,name,quantity',
+            'employee:id,name,code_number,phone_number',
+        ])->findOrFail($id);
+
+        return new ExpenseOilResource($expenseOil);
     }
 
     public function store(StoreExpenseOilRequest $request)
@@ -106,7 +105,7 @@ class ExpenseOilController extends Controller
             $row = ExpenseOil::create($payload);
 
             $qty = (string) ($payload['liter_in_number'] ?? '0');
-            $account->quantity = bcsub((string)$account->quantity, $qty, 3);
+            $account->quantity = bcsub((string) $account->quantity, $qty, 3);
             $account->save();
 
             return $row;
@@ -125,24 +124,33 @@ class ExpenseOilController extends Controller
         $payload = $request->validated();
 
         $expenseOil = DB::transaction(function () use ($payload, $expenseOil) {
-            $oldAccount = OilAccount::lockForUpdate()->findOrFail($expenseOil->oil_account_id);
 
-            $newAccount = ((int)$expenseOil->oil_account_id === (int)$payload['oil_account_id'])
+            // ✅ must exist (if old row has broken data, it will show clearly)
+        $oldAccount = OilAccount::lockForUpdate()->find($expenseOil->oil_account_id);
+
+        if (!$oldAccount) {
+            abort(422, 'This expense is linked to a missing oil account. Please fix the record.');
+        }
+
+            // ✅ required by request rules
+            $newAccountId = (int) $payload['oil_account_id'];
+
+            $newAccount = ((int) $expenseOil->oil_account_id === $newAccountId)
                 ? $oldAccount
-                : OilAccount::lockForUpdate()->findOrFail($payload['oil_account_id']);
+                : OilAccount::lockForUpdate()->findOrFail($newAccountId);
 
             $oldQty = (string) ($expenseOil->liter_in_number ?? '0');
             $newQty = (string) ($payload['liter_in_number'] ?? '0');
 
-            // revert old
-            $oldAccount->quantity = bcadd((string)$oldAccount->quantity, $oldQty, 3);
+            // ✅ revert old quantity
+            $oldAccount->quantity = bcadd((string) $oldAccount->quantity, $oldQty, 3);
             $oldAccount->save();
 
-            // update row
+            // ✅ update row
             $expenseOil->update($payload);
 
-            // apply new
-            $newAccount->quantity = bcsub((string)$newAccount->quantity, $newQty, 3);
+            // ✅ subtract from new account
+            $newAccount->quantity = bcsub((string) $newAccount->quantity, $newQty, 3);
             $newAccount->save();
 
             return $expenseOil;
@@ -159,11 +167,14 @@ class ExpenseOilController extends Controller
     public function destroy(ExpenseOil $expenseOil)
     {
         DB::transaction(function () use ($expenseOil) {
-            /** @var OilAccount $account */
-            $account = OilAccount::lockForUpdate()->findOrFail($expenseOil->oil_account_id);
+        $account = OilAccount::lockForUpdate()->find($expenseOil->oil_account_id);
+
+        if (!$account) {
+            abort(422, 'This expense is linked to a missing oil account. Please fix the record.');
+        }
 
             $oldQty = (string) ($expenseOil->liter_in_number ?? '0');
-            $account->quantity = bcadd((string)$account->quantity, $oldQty, 3);
+            $account->quantity = bcadd((string) $account->quantity, $oldQty, 3);
             $account->save();
 
             $expenseOil->delete();
@@ -172,7 +183,6 @@ class ExpenseOilController extends Controller
         return response()->json(['message' => 'Deleted successfully.']);
     }
 
-    // ✅ years endpoint for dropdown (Gregorian values)
     public function years()
     {
         return ExpenseOil::query()

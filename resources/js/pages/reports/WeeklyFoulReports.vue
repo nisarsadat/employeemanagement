@@ -1,10 +1,7 @@
 <template>
   <v-container fluid class="page-bg pt-6 fontfamily" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
-    <AppBar
-      :title="t('گزارش هفته‌وار سیستم ')"
-      :subtitle="t('نمای کلی هفته‌وار منابع، اطلاعات، رویدادها و فورم‌ها')"
-    />
+    <AppBar :title="t('گزارش هفته‌وار سیستم ')" :subtitle="t('نمای کلی هفته‌وار منابع، اطلاعات، رویدادها و فورم‌ها')" />
 
     <!-- HEADER / FILTER -->
     <div class="header-container mb-6 fontfamily" :dir="isRtl ? 'rtl' : 'ltr'">
@@ -20,7 +17,7 @@
 
         <div class="date-display d-flex align-center fontfamily">
           <v-icon icon="mdi-calendar-month-outline" class="mr-2" />
-          <span class="font-weight-medium">{{ chipWeek }}</span>
+          <span class="font-weight-medium">{{ chipRange }}</span>
         </div>
       </div>
 
@@ -43,11 +40,22 @@
                 style="min-width: 200px"
               />
 
-              <!-- ✅ DateInput (we use DATE to compute ISO week) -->
+              <!-- ✅ FROM -->
               <div class="date-input-container">
                 <DateInput
-                  v-model="pickedDate"
-                  :label="t('انتخاب تاریخ (برای هفته)')"
+                  v-model="fromDate"
+                  :label="t('از تاریخ')"
+                  :rtl="isRtl"
+                  density="comfortable"
+                  :calendar="calendarType"
+                />
+              </div>
+
+              <!-- ✅ TO -->
+              <div class="date-input-container">
+                <DateInput
+                  v-model="toDate"
+                  :label="t('تا تاریخ')"
                   :rtl="isRtl"
                   density="comfortable"
                   :calendar="calendarType"
@@ -150,7 +158,7 @@
     >
       <div class="d-flex align-center">
         <v-icon icon="mdi-information-outline" class="mr-3" />
-        <span>{{ t('برای هفته انتخاب‌شده هیچ دیتا موجود نیست.') }}</span>
+        <span>{{ t('برای مدت انتخاب‌شده هیچ دیتا موجود نیست.') }}</span>
       </div>
     </v-alert>
 
@@ -176,12 +184,7 @@
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card
-          class="stat-card"
-          elevation="0"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          @click="goInformations"
-        >
+        <v-card class="stat-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'" @click="goInformations">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="stat-label fontfamily">{{ t('اطلاعات') }}</div>
@@ -219,12 +222,7 @@
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card
-          class="stat-card"
-          elevation="0"
-          :dir="isRtl ? 'rtl' : 'ltr'"
-          @click="goFiftyFormatsHub"
-        >
+        <v-card class="stat-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'" @click="goFiftyFormatsHub">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="stat-label fontfamily">{{ t('فورم‌های ۵۰ فارمت') }}</div>
@@ -346,9 +344,7 @@
               </v-avatar>
               <div>
                 <div class="card-title fontfamily">{{ t('رویدادهای ثبت‌شده') }}</div>
-                <div class="card-subtitle fontfamily">
-                  {{ t('خلاصه رویدادها بر اساس نوعیت') }}
-                </div>
+                <div class="card-subtitle fontfamily">{{ t('خلاصه رویدادها بر اساس نوعیت') }}</div>
               </div>
             </div>
             <v-chip color="warning" variant="tonal" size="small" class="fontfamily">
@@ -371,12 +367,7 @@
               :no-data-text="t('هیچ رویدادی ثبت نشده')"
             >
               <template #item.count="{ item }">
-                <v-chip
-                  color="warning"
-                  variant="outlined"
-                  size="small"
-                  class="font-weight-bold fontfamily"
-                >
+                <v-chip color="warning" variant="outlined" size="small" class="font-weight-bold fontfamily">
                   {{ item.count }}
                 </v-chip>
               </template>
@@ -413,10 +404,11 @@
           </div>
         </v-card>
       </v-col>
+
       <v-col>
         <ReportNotesPeriodTable
           type="weekly"
-          :anchor-date="repo.selectedDate"
+          :anchor-date="fromDate"
           :rtl="isRtl"
           :locale="locale"
           :per-page="50"
@@ -438,7 +430,6 @@
 
   const { t, locale } = useI18n();
 
-  // ✅ RTL/LTR exactly like your employee page
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
 
@@ -447,82 +438,59 @@
 
   const router = useRouter();
 
-  // main routes
   const goResources = () => router.push('/app/resources');
   const goEvents = () => router.push('/app/events');
   const goInformations = () => router.push('/app/informations');
   const goFiftyFormatsHub = () => router.push('/app/fifthyformatsroute');
 
-  // 56-format route from key (your API returns key like: "fasads", "robbers", "parks"...)
   function goFormatByKey(key) {
     if (!key) return;
     router.push(`/app/${key}`);
   }
 
-  // information types (we only route to informations list)
-  function goInfoType(label) {
+  function goInfoType() {
     router.push('/app/informations');
   }
 
-  // ✅ calendar type + pickedDate (we compute ISO week from picked date)
-  const calendarType = ref('gregorian'); // 'gregorian' | 'jalali' | 'hijri'
-  const pickedDate = ref(''); // YYYY-MM-DD (from DateInput)
-
+  // ✅ calendar selector
+  const calendarType = ref('gregorian');
   const calendarOptions = computed(() => [
     { title: t('میلادی'), value: 'gregorian' },
     { title: t('هجری شمسی'), value: 'jalali' },
     { title: t('هجری قمری'), value: 'hijri' },
   ]);
 
-  function toLatinDigits(s) {
-    const str = String(s ?? '');
-    const fa = '۰۱۲۳۴۵۶۷۸۹';
-    const ar = '٠١٢٣٤٥٦٧٨٩';
-    return str
-      .split('')
-      .map((ch) => {
-        const i1 = fa.indexOf(ch);
-        if (i1 >= 0) return String(i1);
-        const i2 = ar.indexOf(ch);
-        if (i2 >= 0) return String(i2);
-        return ch;
-      })
-      .join('');
+  // ✅ from/to inputs (YYYY-MM-DD)
+  const fromDate = ref('');
+  const toDate = ref('');
+
+  function pad2(n) {
+    return String(n).padStart(2, '0');
+  }
+  function isoDate(d) {
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
   }
 
-  // ISO week label from Date object: "YYYY-Www"
-  function isoWeekLabelFromDate(dt) {
-    if (!(dt instanceof Date) || Number.isNaN(dt.getTime())) return '';
+  // current ISO week (Mon..Sun)
+  function currentIsoWeekRange() {
+    const d = new Date();
+    const day = d.getDay(); // 0..6
+    const diffToMonday = (day === 0 ? -6 : 1) - day;
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + diffToMonday);
 
-    // Convert to UTC (safe)
-    const date = new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()));
-    const dayNum = date.getUTCDay() || 7; // Mon=1..Sun=7
-    date.setUTCDate(date.getUTCDate() + 4 - dayNum); // nearest Thu => ISO year
-    const isoYear = date.getUTCFullYear();
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
 
-    const yearStart = new Date(Date.UTC(isoYear, 0, 1));
-    const weekNo = Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
-
-    return `${isoYear}-W${String(weekNo).padStart(2, '0')}`;
+    return { from: isoDate(monday), to: isoDate(sunday) };
   }
 
-  // We show chipWeek in the same “date-display”
-  const selectedWeekComputed = computed(() => {
-    if (!pickedDate.value) return repo.selectedWeek || '';
-
-    const [y, m, d] = String(pickedDate.value).split('-').map(Number);
-    if (!y || !m || !d) return repo.selectedWeek || '';
-
-    const dt = new Date(y, m - 1, d);
-    const label = isoWeekLabelFromDate(dt);
-
-    // normalize digits if DateInput produced non-latin (extra safety)
-    return toLatinDigits(label);
-  });
-
-  const chipWeek = computed(() => {
-    // prefer computed, else backend meta.week
-    return String(selectedWeekComputed.value || report.value?.meta?.week || '').trim();
+  const chipRange = computed(() => {
+    const f = String(fromDate.value || repo.selectedFrom || '').trim();
+    const to = String(toDate.value || repo.selectedTo || '').trim();
+    if (!f && !to) return '';
+    if (f && to) return `${f} — ${to}`;
+    return f || to;
   });
 
   const eventTypes = computed(() => {
@@ -578,21 +546,34 @@
   }
 
   async function fetch() {
-    // keep repo.selectedWeek in sync for exports + API
-    repo.selectedWeek = selectedWeekComputed.value || repo.selectedWeek;
-    await repo.FetchWeeklyFoulReport(repo.selectedWeek, calendarType.value);
+    // keep repo filters in sync
+    repo.selectedFrom = fromDate.value || repo.selectedFrom;
+    repo.selectedTo = toDate.value || repo.selectedTo;
+    repo.calendarType = calendarType.value;
+
+    await repo.FetchWeeklyFoulReport(repo.selectedFrom, repo.selectedTo);
   }
 
   async function resetToCurrentWeek() {
     calendarType.value = 'gregorian';
-    pickedDate.value = new Date().toISOString().slice(0, 10);
+    const r = currentIsoWeekRange();
+    fromDate.value = r.from;
+    toDate.value = r.to;
+
+    repo.selectedFrom = r.from;
+    repo.selectedTo = r.to;
+
     await fetch();
   }
 
   onMounted(() => {
-    // default to today
-    pickedDate.value = new Date().toISOString().slice(0, 10);
-    repo.selectedWeek = selectedWeekComputed.value || repo.selectedWeek;
+    const r = currentIsoWeekRange();
+    fromDate.value = r.from;
+    toDate.value = r.to;
+
+    repo.selectedFrom = r.from;
+    repo.selectedTo = r.to;
+
     fetch();
   });
 </script>
@@ -609,7 +590,6 @@
     min-height: 100vh;
   }
 
-  /* ===== Header: smaller + professional ===== */
   .header-container {
     background: linear-gradient(135deg, #5b6eea 0%, #6d42a6 100%);
     border-radius: 14px;
@@ -618,7 +598,6 @@
     overflow: hidden;
   }
 
-  /* offline-safe pattern (inline svg data URI) */
   .header-container::before {
     content: '';
     position: absolute;
@@ -656,7 +635,6 @@
     white-space: nowrap;
   }
 
-  /* ===== Filter card ===== */
   .filter-card {
     margin-top: 12px;
     border-radius: 12px;
@@ -681,7 +659,6 @@
     border-radius: 10px;
   }
 
-  /* ===== Stats: smaller cards ===== */
   .stat-card {
     border-radius: 12px;
     border: 1px solid #e9eef7;
@@ -713,7 +690,6 @@
     line-height: 1.1;
   }
 
-  /* ===== Data cards ===== */
   .data-card {
     border-radius: 12px;
     border: 1px solid #e9eef7;
@@ -762,7 +738,6 @@
     background: #f8fafc;
   }
 
-  /* ===== type indicator ===== */
   .type-indicator {
     width: 7px;
     height: 7px;
@@ -785,7 +760,6 @@
     background-color: #ef4444;
   }
 
-  /* ===== table look ===== */
   :deep(.v-data-table) {
     font-size: 13px;
   }

@@ -300,7 +300,7 @@
     repo.toggleDrawerVisible?.();
   };
   onMounted(() => {
-    const lang = localStorage.getItem('apartment-lang') || locale.value || 'fa';
+    const lang = localStorage.getItem('apartment-lang') || locale.value || 'ps';
     applyGlobalDir(lang);
   });
 </script>

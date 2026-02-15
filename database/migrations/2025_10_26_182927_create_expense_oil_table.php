@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('expense_oils', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('oil_account_id')->constrained('oil_accounts')->cascadeOnDelete();
+            $table->foreignId('oil_account_id')->constrained('oil_accounts')->restrictOnDelete();
             $table->foreignId('employee_id')->nullable()->constrained('office_employees')->nullOnDelete();
 
             $table->string('name')->nullable();

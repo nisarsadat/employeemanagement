@@ -62,7 +62,7 @@
     </v-row>
 
     <!-- ✅ Top Bar -->
-    <v-row class=" mb-4" dense>
+    <v-row class="mb-4" dense>
       <v-col cols="12" md="4">
         <v-text-field
           v-model.trim="repo.Search"
@@ -97,7 +97,7 @@
         />
       </v-col>
 
-      <v-col cols="12" md="3" >
+      <v-col cols="12" md="3">
         <v-select
           v-model="selectedMonth"
           :items="monthOptions"
@@ -112,8 +112,8 @@
         />
       </v-col>
 
-      <v-col cols="12" md="2" class="text-md-right  mt-2">
-        <v-btn color="primary"  prepend-icon="mdi-plus" block @click="openCreate">
+      <v-col cols="12" md="2" class="text-md-right mt-2">
+        <v-btn color="primary" prepend-icon="mdi-plus" block @click="openCreate">
           {{ t('نوی د تيلو مصرف') }}
         </v-btn>
       </v-col>
@@ -355,7 +355,7 @@
     { title: t('نام پدر'), key: 'father_name', sortable: false },
     { title: t('نیټه'), key: 'date', sortable: false },
     { title: t('لیټر په عدد'), key: 'liter_in_number', sortable: false },
-    { title: t('لیټر په حروف'), key: 'liter_in_word', sortable: false },
+    { title: t('لیټر په حروف'), key: 'liter_in_words', sortable: false },
     { title: t('نوعیت'), key: 'account', sortable: false },
     { title: t('تفصیل'), key: 'tafseel', sortable: false },
     { title: t('پرداخت کننده'), key: 'payer', sortable: false },
@@ -401,10 +401,17 @@
   const draft = reactive({
     id: null,
     oil_account_id: null,
-    date: null,
+    employee_id: null,
+
     name: '',
-    destination: '',
+    father_name: '',
+    payer: '',
+    date: null,
+
     liter_in_number: 0,
+    liter_in_words: '',
+
+    tafseel: '',
     note: '',
   });
 
@@ -440,36 +447,51 @@
     Object.assign(draft, {
       id: null,
       oil_account_id: null,
-      date: null,
+      employee_id: null,
+
       name: '',
-      destination: '',
+      father_name: '',
+      payer: '',
+      date: null,
+
       liter_in_number: 0,
+      liter_in_words: '',
+
+      tafseel: '',
       note: '',
     });
     dialog.value = true;
   };
-
   const startEdit = async (payload) => {
-    const row = getRow(payload);
-    const id = row?.id;
-    if (!id) return;
+  const row = getRow(payload);
+  const id = row?.id;
+  if (!id) return;
 
-    editMode.value = true;
-    await repo.FetchExpenseOil(id);
+  editMode.value = true;
 
-    const d = repo.ExpenseOil || {};
-    Object.assign(draft, {
-      id: d.id ?? null,
-      oil_account_id: d.oil_account_id ?? d.account?.id ?? null,
-      date: d.date ?? null,
-      name: d.name ?? '',
-      destination: d.destination ?? '',
-      liter_in_number: d.liter_in_number ?? 0,
-      note: d.note ?? '',
-    });
+  await repo.FetchExpenseOil(id);
 
-    dialog.value = true;
-  };
+  const d = repo.ExpenseOil || {};
+  Object.assign(draft, {
+    id: d.id ?? null,
+    oil_account_id: d.oil_account_id ?? d.account?.id ?? null,
+    employee_id: d.employee_id ?? d.employee?.id ?? d.office_employee?.id ?? null,
+
+    name: d.name ?? '',
+    father_name: d.father_name ?? '',
+    payer: d.payer ?? '',
+    date: d.date ?? null,
+
+    liter_in_number: d.liter_in_number ?? d.oil_quantity ?? 0,
+    liter_in_words: d.liter_in_words ?? d.liter_in_word ?? '',
+
+    tafseel: d.tafseel ?? d.destination ?? '',
+    note: d.note ?? '',
+  });
+
+  dialog.value = true;
+};
+
 
   const onSave = async (payload) => {
     if (payload?.date) payload.date = toIso(payload.date);

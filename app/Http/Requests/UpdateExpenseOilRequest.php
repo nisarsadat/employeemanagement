@@ -14,20 +14,22 @@ class UpdateExpenseOilRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'oil_account_id'   => ['sometimes', 'required', 'integer', 'exists:oil_accounts,id'],
-            'employee_id'      => ['sometimes', 'nullable', 'integer', 'exists:office_employees,id'],
+            // ✅ REQUIRED relations (important!)
+            'oil_account_id'  => ['required', 'integer', 'exists:oil_accounts,id'],
+            'employee_id'     => ['nullable', 'integer', 'exists:office_employees,id'],
 
-            'name'             => ['sometimes', 'nullable', 'string', 'max:255'],
-            'father_name'      => ['sometimes', 'nullable', 'string', 'max:255'],
-            'date'             => ['sometimes', 'nullable', 'date'],
+            // ✅ REQUIRED core fields
+            'name'            => ['required', 'string'],
+            'liter_in_number' => ['required', 'numeric', 'min:0.001'],
 
-            'liter_in_number'  => ['sometimes', 'nullable', 'numeric', 'min:0'],
-            'liter_in_words'   => ['sometimes', 'nullable', 'string', 'max:255'],
+            // ✅ optional fields
+            'father_name'     => ['nullable', 'string'],
+            'payer'           => ['nullable', 'string'],
+            'date'            => ['nullable', 'date'],
 
-            'account_name'     => ['sometimes', 'nullable', 'string', 'max:255'],
-            'tafseel'          => ['sometimes', 'nullable', 'string'],
-            'payer'            => ['sometimes', 'nullable', 'string', 'max:255'],
-            'note'             => ['sometimes', 'nullable', 'string'],
+            'liter_in_words'  => ['nullable', 'string'],
+            'tafseel'         => ['nullable', 'string'],
+            'note'            => ['nullable', 'string'],
         ];
     }
 }

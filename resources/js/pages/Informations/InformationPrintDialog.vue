@@ -205,7 +205,7 @@
 
   refreshPrintMeta();
 
-  const { formatDisplay, toIso } = useCalendar();
+  const { formatDisplay } = useCalendar();
 
   const formattedInformationDate = computed(() => {
     const raw = item.value?.information_saved_date;
@@ -233,86 +233,125 @@
     return printArea.value ? printArea.value.outerHTML : '';
   }
 
-  // ✅ ALWAYS RTL print CSS (fixed positions like your image)
-  // ✅ UPDATED: make it FILL one A4 height + make Tafseel a bit smaller + make Manager bigger
+  // ✅ UPDATED: force ONE PAGE by controlling heights + hiding overflow in print
+  // (no layout changes for screen)
   function buildPrintCss() {
     return `
     @page { size: A4 portrait; margin: 12mm; }
 
     html, body {
-      margin: 12;
+      margin: 0;
       padding: 0;
-      background: #fff;
+      margin-left: 8px;
+      margin-right: 8px;
+      margin-top: 8px;
       font-family: 'Vazirmatn','Scheherazade New','Amiri',sans-serif;
       color: #111827;
-      font-size: 11pt;
-      line-height: 1.55;
+      font-size: 10.5pt;          /* ✅ slightly smaller to help fit */
+      line-height: 1.45;          /* ✅ slightly tighter to help fit */
       direction: rtl !important;
       text-align: right !important;
       unicode-bidi: plaintext !important;
-      height: 100%;
+      height: 95%;
+      overflow: hidden !important; /* ✅ prevent extra page */
     }
 
     * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
-    .page-shell { padding: 0 !important; background: white !important; }
+    .page-shell { padding: 0 !important; background: #fff !important; }
 
-    /* ✅ make page fill A4 height (minus @page margins) */
+    /* ✅ SINGLE PAGE CANVAS (A4 - margins) */
     .paper {
       width: 100%;
       max-width: 820px;
       margin: 0 auto;
-      background: white;
+      background: #fff;
       border-radius: 14px;
       border: 1px solid rgba(0, 0, 0, 0.08);
       box-shadow: none !important;
-      padding: 14px;
+      padding: 12px;              /* ✅ slightly smaller padding */
       direction: rtl !important;
       text-align: right !important;
 
       display: flex;
       flex-direction: column;
 
-      /* A4 height 297mm, margin top+bottom = 24mm, keep small buffer */
-      min-height: calc(297mm - 24mm);
+      height: calc(297mm - 24mm); /* ✅ force exactly one page height */
+      max-height: calc(297mm - 24mm);
+      overflow: hidden !important; /* ✅ never spill to page 2 */
     }
 
-    /* ✅ Header: brand RIGHT, meta LEFT */
-    .hdr { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; padding-right: 12mm; }
+    /* ✅ Header */
+    .hdr { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding-right: 12mm; }
     .hdr-left { grid-column: 1; justify-self: end; }
     .hdr-right { justify-self: end; }
 
     .brand { display: flex; gap: 10px; align-items: center; min-width: 0; }
-    .brand-logo { width: 44px; height: 44px; object-fit: contain; border-radius: 10px;  }
+    .brand-logo { width: 44px; height: 44px; object-fit: contain; border-radius: 10px; }
     .brand-title { font-weight: 900; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .brand-sub { font-size: 12px; color: rgba(0,0,0,.55); margin-top: 2px; }
 
-    /* ✅ pills order like screenshot */
     .hdr-right { display: flex; gap: 8px; flex-wrap: wrap; flex-direction: row-reverse; justify-content: flex-start; }
 
-    .meta-pill { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 7px 10px; min-width: 120px; background: #fafafa; }
+    .meta-pill { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 6px 9px; min-width: 120px; background: #fafafa; }
     .meta-k { font-size: 11px; color: rgba(0,0,0,.55); }
     .meta-v { font-size: 13px; font-weight: 900; margin-top: 2px; }
 
-    .rule { height: 1px; background: rgba(0,0,0,.08); margin: 10px 0 12px; }
+    .rule { height: 1px; background: rgba(0,0,0,.08); margin: 8px 0 10px; }
 
     /* ✅ 5 fields in one row */
-    .grid.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-
-    .field { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 9px 10px; background:#fff; min-width:0; }
+    .grid.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .field { border: 1px solid rgba(0,0,0,.08); border-radius: 10px; padding: 8px 9px; background:#fff; min-width:0; }
     .k { font-size: 11px; color: rgba(0,0,0,.55); margin-bottom: 4px; }
     .v { font-size: 13px; font-weight: 650; }
     .strong { font-weight: 900; }
 
-    /* ✅ let content take remaining page height */
+    /* ✅ content consumes remaining height */
     .content {
-      margin-top: 12px;
+      margin-top: 10px;
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
+      min-height: 0;
+      overflow: hidden !important;  /* ✅ stay inside one page */
+    }
+
+    .section { margin-top: 0; min-height: 0; }
+    .section-h { display:flex; align-items:center; justify-content: space-between; gap:10px; margin-bottom: 6px; }
+    .section-title { font-weight: 900; font-size: 13px; }
+    .chip { font-size: 11px; border: 1px solid rgba(0,0,0,.08); background:#f9fafb; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+
+    .box { border-radius: 10px; padding: 9px; overflow: hidden !important; }
+    .box-text { background: #fcfcfd; }
+    .pre { white-space: pre-wrap; word-break: break-word; line-height: 1.6; }
+
+    .two.two-rows { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 0; }
+    .two.two-rows > .section { display:flex; flex-direction: column; min-height:0; }
+
+    /* ✅ Growth rules */
+    .grow-box { flex: 0 0 auto; }
+
+    .tafseel-section .grow-box,
+    .manager-section .grow-box,
+    .direction-section .grow-box {
+      flex: 1 1 auto;
       min-height: 0;
     }
+
+    .tafseel-section { flex: 4; display: flex; flex-direction: column; min-height: 0; overflow: hidden !important; }
+    .tafseel-section .box { flex: 1; min-height: 0; overflow: hidden !important; }
+    .tafseel-pre { height: 100%; overflow: hidden !important; }
+
+    /* ✅ Manager must stretch same as Direction (manager has extra inner .section wrapper) */
+    .manager-section {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden !important;
+    }
+
     .manager-section > .section {
       flex: 1;
       display: flex;
@@ -320,105 +359,47 @@
       min-height: 0;
     }
 
-    .manager-section > .section .box {
+    .manager-section > .section > .box {
       flex: 1;
       min-height: 0;
+      overflow: hidden !important;
     }
 
-    .section { margin-top: 0; }
-    .section-h { display:flex; align-items:center; justify-content: space-between; gap:10px; margin-bottom: 6px; }
-    .section-title { font-weight: 900; font-size: 13px; }
-    .chip { font-size: 11px; border: 1px solid rgba(0,0,0,.08); background:#f9fafb; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+    .direction-section { flex: 2; display: flex; flex-direction: column; min-height: 0; overflow: hidden !important; }
+    .direction-section .box { flex: 1; min-height: 0; overflow: hidden !important; }
 
-    .box { border-radius: 10px; padding: 10px; }
-    .box-text { background: #fcfcfd; }
-    .pre { white-space: pre-wrap; word-break: break-word; line-height: 1.7; }
-
-    /* ✅ stacked rows */
-    .two.two-rows { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 0; }
-    .two.two-rows > .section { display:flex; flex-direction: column; min-height:0; }
-
-    /* ✅ allow boxes to grow */
-/* default: docs should NOT stretch */
-.grow-box { flex: 0 0 auto; }
-
-/* ✅ but these sections MUST stretch to consume height */
-.tafseel-section .grow-box,
-.manager-section .grow-box,
-.direction-section .grow-box {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-    /* ✅ Tafseel a bit smaller */
-    .tafseel-section { flex: 5; display: flex; flex-direction: column; min-height: 0; }
-    .tafseel-section .box { flex: 1; min-height: 0; }
-    .tafseel-pre { height: 100%; overflow: hidden; }
-
-    /* ✅ Manager bigger */
-    .manager-section { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-    .manager-section .box { flex: 1; min-height: 0; }
-
-    /* ✅ Direction normal */
-    .direction-section { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-    .direction-section .box { flex: 1; min-height: 0; }
-
-    /* ✅ keep small clamp for 2 lines only */
     .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-    /* ✅ give more height to these (they were too small) */
-    .clamp-10 { max-height: 170px; overflow: hidden; }
-    .clamp-8 { max-height: 160px; overflow: hidden; }
+    /* ✅ tighter clamps so it never spills to page 2 */
+    .clamp-10 { max-height: 120px; overflow: hidden; }
+    .clamp-8 { max-height: 110px; overflow: hidden; }
 
     @media print {
-      .paper { padding: 0 !important; border: none !important; border-radius: 0 !important; min-height: calc(297mm - 24mm) !important; }
+      .paper {
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        height: calc(297mm - 24mm) !important;
+        max-height: calc(297mm - 24mm) !important;
+        overflow: hidden !important;
+      }
       .page-shell { padding: 0 !important; background: #fff !important; }
-    }
-
-    @media (max-width: 900px) {
-      .grid.grid-5 { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 720px) {
-      .hdr { grid-template-columns: 1fr; }
-      .hdr-left, .hdr-right { justify-self: start; }
-      .grid.grid-5 { grid-template-columns: 1fr; }
-      .paper { min-height: auto; }
     }
 
     .no-print { display:none !important; }
 
     /* ===============================
-       COLORFUL PRINT BLOCKS (PDF)
-       (no layout changes)
+       COLORS (PDF/WORD) — ONLY THESE
     ================================ */
 
-    /* Header */
-    .hdr { background:#f1f5ff; border-radius:12px; padding:8px; }
+    body { background: #F8F6F4 !important; }
+    .page-shell { background: #F8F6F4 !important; }
+    .paper { background: #F8F6F4 !important; }
 
-    /* Meta pills */
-    .hdr-right .meta-pill:nth-child(1) { background:#D7DCDF; }
-    .hdr-right .meta-pill:nth-child(2) { background:#D7DCDF; }
-    .hdr-right .meta-pill:nth-child(3) { background:#D7DCDF; }
-
-    /* Top grid fields — different colors */
-    .grid.grid-5 .field:nth-child(1) { background:#DBDCE4; }
-    .grid.grid-5 .field:nth-child(2) { background:#DBDCE4; }
-    .grid.grid-5 .field:nth-child(3) { background:#DBDCE4; }
-    .grid.grid-5 .field:nth-child(4) { background:#DBDCE4; }
-    .grid.grid-5 .field:nth-child(5) { background:#DBDCE4; }
-
-    /* Documents section */
-    .two .section:nth-child(1) .box { background:#f0f9ff; }
-
-    /* Tafseel (main large section) */
-    .tafseel-section .box { background:#7CACB5; }
-
-    /* Manager comment */
-    .manager-section .box { background:#859DBD; }
-
-    /* Direction section */
-    .direction-section .box { background:#7EA8B6; }
+    .hdr { background: #C4DFDF !important; border-radius: 12px; padding: 8px; }
+    .meta-pill { background: #D2E9E9 !important; }
+    .field { background: #E3F4F4 !important; }
+    .box { background: #E3F4F4 !important; }
     `;
   }
 
@@ -491,9 +472,12 @@
 </script>
 
 <style scoped>
+  /* ===============================
+     COLORS (SCREEN) — ONLY THESE
+  ================================ */
   .page-shell {
     min-height: calc(100vh - 64px);
-    background: #f6f7fb;
+    background: #f8f6f4; /* F8F6F4 */
     padding: 14px;
   }
 
@@ -539,24 +523,26 @@
   .paper {
     max-width: 820px;
     margin: 0 auto;
-    background: white;
+    background: #f8f6f4; /* F8F6F4 */
     border-radius: 14px;
     border: 1px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
     padding: 14px;
 
-    /* ✅ screen layout also stretches nicely */
     display: flex;
     flex-direction: column;
     min-height: calc(100vh - 64px - 28px);
   }
 
-  /* ✅ Header fixed like image: brand right, pills left */
   .hdr {
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 12px;
     align-items: start;
+
+    background: #c4dfdf; /* C4DFDF */
+    border-radius: 12px;
+    padding: 8px;
   }
 
   .hdr-left {
@@ -607,7 +593,7 @@
     border-radius: 10px;
     padding: 7px 10px;
     min-width: 120px;
-    background: #fafafa;
+    background: #d2e9e9; /* D2E9E9 */
   }
 
   .meta-k {
@@ -626,7 +612,6 @@
     margin: 10px 0 12px;
   }
 
-  /* ✅ 5-in-one-row grid */
   .grid.grid-5 {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -637,7 +622,7 @@
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 10px;
     padding: 9px 10px;
-    background: #fff;
+    background: #e3f4f4; /* E3F4F4 */
     min-width: 0;
   }
 
@@ -691,11 +676,11 @@
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 10px;
     padding: 10px;
-    background: #fff;
+    background: #e3f4f4; /* E3F4F4 */
   }
 
   .box-text {
-    background: #fcfcfd;
+    background: #e3f4f4; /* E3F4F4 */
   }
 
   .pre {
@@ -704,7 +689,6 @@
     line-height: 1.7;
   }
 
-  /* ✅ Tafseel grows the most (screen only) */
   .tafseel-section {
     flex: 1;
     display: flex;
@@ -717,10 +701,9 @@
   }
   .tafseel-pre {
     height: 100%;
-    overflow: hidden; /* keep clean on one A4 */
+    overflow: hidden;
   }
 
-  /* ✅ stacked sections */
   .two.two-rows {
     display: grid;
     grid-template-columns: 1fr;
@@ -776,7 +759,7 @@
     }
     .page-shell {
       padding: 0 !important;
-      background: white !important;
+      background: #f8f6f4 !important;
       min-height: auto !important;
     }
     .paper {
@@ -786,59 +769,8 @@
       box-shadow: none !important;
       border-radius: 0 !important;
       padding: 0 !important;
-
-      /* ✅ fill A4 height */
       min-height: calc(297mm - 24mm) !important;
+      background: #f8f6f4 !important;
     }
-  }
-
-  /* ===============================
-     COLORFUL SCREEN BLOCKS
-     (no layout changes)
-  ================================ */
-
-  .hdr {
-    background: #f1f5ff;
-    border-radius: 12px;
-    padding: 8px;
-  }
-
-  .meta-pill:nth-child(1) {
-    background: #fff7ed;
-  }
-  .meta-pill:nth-child(2) {
-    background: #ecfeff;
-  }
-  .meta-pill:nth-child(3) {
-    background: #f0fdf4;
-  }
-
-  .grid.grid-5 .field:nth-child(1) {
-    background: #eef2ff;
-  }
-  .grid.grid-5 .field:nth-child(2) {
-    background: #fef3c7;
-  }
-  .grid.grid-5 .field:nth-child(3) {
-    background: #ecfccb;
-  }
-  .grid.grid-5 .field:nth-child(4) {
-    background: #fce7f3;
-  }
-  .grid.grid-5 .field:nth-child(5) {
-    background: #cffafe;
-  }
-
-  .two .section:nth-child(1) .box {
-    background: #f0f9ff;
-  }
-  .tafseel-section .box {
-    background: #fdf4ff;
-  }
-  .manager-section .box {
-    background: #ecfdf5;
-  }
-  .direction-section .box {
-    background: #fff7ed;
   }
 </style>

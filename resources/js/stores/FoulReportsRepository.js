@@ -16,6 +16,12 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
   // filters
   const selectedDate = ref(''); // YYYY-MM-DD
+
+  // ✅ monthly range (two inputs)
+  const selectedMonthFrom = ref(''); // YYYY-MM
+  const selectedMonthTo = ref(''); // YYYY-MM
+
+  // (keep old for compatibility if any other page uses it)
   const selectedMonth = ref(''); // YYYY-MM
 
   // =========================
@@ -225,25 +231,45 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     return { from: x, to: x };
   }
 
+  // ✅ NEW: monthly range => fromMonth..toMonth to exact dates
+  function rangeForMonthlyBetween(fromVal, toVal) {
+    const a = String(fromVal || '').trim();
+    const b = String(toVal || '').trim();
+
+    const isDay = (x) => /^\d{4}-\d{2}-\d{2}$/.test(x);
+    const isMonth = (x) => /^\d{4}-\d{2}$/.test(x);
+
+    // ✅ NEW: if user gives day->day, use directly
+    if (isDay(a) || isDay(b)) {
+      const from = isDay(a) ? a : todayIso();
+      const to = isDay(b) ? b : from;
+      return { from, to };
+    }
+
+    // ✅ OLD: month->month fallback
+    const fromFinal = isMonth(a) ? a : currentMonthIso();
+    const toFinal = isMonth(b) ? b : fromFinal;
+
+    const [y1, m1] = fromFinal.split('-').map(Number);
+    const [y2, m2] = toFinal.split('-').map(Number);
+
+    const start = new Date(y1, m1 - 1, 1);
+    const end = new Date(y2, m2, 0);
+
+    return { from: isoDate(start), to: isoDate(end) };
+  }
+
   // =========================
   // ✅ Notes fetch (robust)
-  // Tries multiple param naming styles so it matches your backend
   // =========================
   async function fetchNotesForExport({ type, from, to }) {
-    const endpoints = ['/report-notes', '/report_notes']; // keep both, backend may use either
+    const endpoints = ['/report-notes', '/report_notes'];
 
     const paramVariants = [
-      // Variant A (your current)
       { type, from, to, perPage: 1000, page: 1 },
-
-      // Variant B (snake_case pagination)
       { type, from, to, per_page: 1000, page: 1 },
-
-      // Variant C (different date keys)
       { type, start: from, end: to, perPage: 1000, page: 1 },
       { type, start: from, end: to, per_page: 1000, page: 1 },
-
-      // Variant D (type key name)
       { report_type: type, from, to, perPage: 1000, page: 1 },
       { report_type: type, start: from, end: to, perPage: 1000, page: 1 },
     ];
@@ -252,14 +278,10 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       for (const params of paramVariants) {
         try {
           const res = await axios.get(url, { params });
-
-          // Expected paginator: { data: [...] }
           if (Array.isArray(res?.data?.data)) return res.data.data;
-
-          // Sometimes API returns array directly
           if (Array.isArray(res?.data)) return res.data;
         } catch {
-          // try next variant
+          // try next
         }
       }
     }
@@ -268,7 +290,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   }
 
   // =========================
-  // ✅ Format name localization (NOT English in PDF/Word)
+  // ✅ Format name localization
   // =========================
   function formatNameLocal(name) {
     const n = String(name ?? '').trim();
@@ -980,16 +1002,25 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     }
   };
 
-  const FetchMonthlyFoulReport = async (month) => {
+  const FetchMonthlyFoulReport = async ({ fromMonth, toMonth } = {}) => {
     try {
       loading.value = true;
       error.value = '';
 
-      const finalMonth = month || selectedMonth.value || currentMonthIso();
-      selectedMonth.value = finalMonth;
+      const fromFinal =
+        fromMonth || selectedMonthFrom.value || selectedMonth.value || currentMonthIso();
+      const toFinal = toMonth || selectedMonthTo.value || fromFinal;
+
+      // persist (kept for compatibility)
+      selectedMonthFrom.value = fromFinal;
+      selectedMonthTo.value = toFinal;
+      selectedMonth.value = fromFinal;
+
+      // ✅ NOW supports YYYY-MM-DD or YYYY-MM
+      const rr = rangeForMonthlyBetween(fromFinal, toFinal);
 
       const { data } = await axios.get('/reports/foul/monthly', {
-        params: { month: finalMonth },
+        params: { from: rr.from, to: rr.to }, // ✅ day-to-day filtering
       });
 
       monthly.value = data;
@@ -1013,12 +1044,17 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   const ResetMonthly = () => {
     monthly.value = null;
     error.value = '';
-    selectedMonth.value = currentMonthIso();
+    const cur = currentMonthIso();
+    selectedMonthFrom.value = cur;
+    selectedMonthTo.value = cur;
+    selectedMonth.value = cur;
   };
 
   // Init defaults
   if (!selectedDate.value) selectedDate.value = todayIso();
-  if (!selectedMonth.value) selectedMonth.value = currentMonthIso();
+  if (!selectedMonthFrom.value) selectedMonthFrom.value = currentMonthIso();
+  if (!selectedMonthTo.value) selectedMonthTo.value = selectedMonthFrom.value;
+  if (!selectedMonth.value) selectedMonth.value = selectedMonthFrom.value;
 
   // =========================
   // EXPORT ACTIONS (with notes)
@@ -1061,17 +1097,20 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const report = monthly.value;
     if (!report) return;
 
-    const monthText = selectedMonth.value || currentMonthIso();
-    const headerIso = monthToIsoDate(monthText);
-    const r = rangeForType('monthly', headerIso, monthText);
+    const fromMonth = selectedMonthFrom.value || currentMonthIso();
+    const toMonth = selectedMonthTo.value || fromMonth;
+
+    // ✅ notes are fetched for the selected monthly range
+    const rr = rangeForMonthlyBetween(fromMonth, toMonth);
 
     const notes = await fetchNotesForExport({
       type: 'monthly',
-      from: r.from,
-      to: r.to,
+      from: rr.from,
+      to: rr.to,
     });
 
-    const html = buildMonthlyDashboardHtml(report, monthText, notes);
+    // report HTML still based on FROM month (same as backend monthly report)
+    const html = buildMonthlyDashboardHtml(report, fromMonth, notes);
     openPrintWindow(html);
   };
 
@@ -1079,18 +1118,19 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const report = monthly.value;
     if (!report) return;
 
-    const monthText = selectedMonth.value || currentMonthIso();
-    const headerIso = monthToIsoDate(monthText);
-    const r = rangeForType('monthly', headerIso, monthText);
+    const fromMonth = selectedMonthFrom.value || currentMonthIso();
+    const toMonth = selectedMonthTo.value || fromMonth;
+
+    const rr = rangeForMonthlyBetween(fromMonth, toMonth);
 
     const notes = await fetchNotesForExport({
       type: 'monthly',
-      from: r.from,
-      to: r.to,
+      from: rr.from,
+      to: rr.to,
     });
 
-    const html = buildMonthlyDashboardHtml(report, monthText, notes);
-    downloadWordFile(html, `monthly_dashboard_${monthText}.doc`);
+    const html = buildMonthlyDashboardHtml(report, fromMonth, notes);
+    downloadWordFile(html, `monthly_dashboard_${fromMonth}_to_${toMonth}.doc`);
   };
 
   return {
@@ -1104,6 +1144,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
     // filters
     selectedDate,
+    selectedMonthFrom,
+    selectedMonthTo,
     selectedMonth,
 
     // actions

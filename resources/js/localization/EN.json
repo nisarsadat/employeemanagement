@@ -1974,5 +1974,33 @@
   "برگشت": "Back",
   "نقشه": "Map",
   "ولایت مربوطه": "Related province",
-  "دیگر": "Other"
+  "دیگر": "Other",
+  "login": {
+    "title": "Login to your account"
+  },
+  "login_button": "Login",
+  "username": "Username",
+  "password": "Password",
+  "language": "Language",
+  "english": "English",
+  "dari": "Dari",
+  "pashto": "Pashto",
+  "charts": {
+    "empty": "No data to display",
+    "refresh": "Refresh",
+    "download": "Download",
+    "total": "Total",
+    "avg": "Average",
+    "max": "Max",
+    "trend": "Trend",
+    "cumulative": "Cumulative"
+  },
+  "dashboard": {
+    "resourcesMonthly": {
+      "title": "Monthly Resources",
+      "subtitleDefault": "Overview of monthly resources",
+      "subtitleWithYear": "Overview of monthly resources ({year})",
+      "seriesName": "Resources"
+    }
+  }
 }

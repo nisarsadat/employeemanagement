@@ -14,20 +14,22 @@ class StoreExpenseOilRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'oil_account_id'   => ['required', 'integer', 'exists:oil_accounts,id'],
-            'employee_id'      => ['nullable', 'integer', 'exists:office_employees,id'],
+            // ✅ REQUIRED relations
+            'oil_account_id'  => ['required', 'integer', 'exists:oil_accounts,id'],
+            'employee_id'     => ['nullable', 'integer', 'exists:office_employees,id'],
 
-            'name'             => ['nullable', 'string', 'max:255'],
-            'father_name'      => ['nullable', 'string', 'max:255'],
-            'date'             => ['nullable', 'date'],
+            // ✅ REQUIRED core fields
+            'name'            => ['required', 'string'],
+            'liter_in_number' => ['required', 'numeric', 'min:0.001'],
 
-            'liter_in_number'  => ['nullable', 'numeric', 'min:0'],
-            'liter_in_words'   => ['nullable', 'string', 'max:255'],
+            // ✅ optional fields
+            'father_name'     => ['nullable', 'string'],
+            'payer'           => ['nullable', 'string'],
+            'date'            => ['nullable', 'date'],
 
-            'account_name'     => ['nullable', 'string', 'max:255'],
-            'tafseel'          => ['nullable', 'string'],
-            'payer'            => ['nullable', 'string', 'max:255'],
-            'note'             => ['nullable', 'string'],
+            'liter_in_words'  => ['nullable', 'string'],
+            'tafseel'         => ['nullable', 'string'],
+            'note'            => ['nullable', 'string'],
         ];
     }
 }

@@ -21,30 +21,37 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
+use Morilog\Jalali\Jalalian;
+
 class DashboardController extends Controller
 {
     /**
-     * GET /api/dashboard?period=daily|weekly|monthly|yearly|all&finance_period=daily|weekly|monthly|yearly|all
+     * GET /api/dashboard
      *
-     * ✅ period: cards + formats + khayrat + general dashboard data
-     * ✅ finance_period: money + oil + office employee tables (old/new)
+     * Query:
+     *  - period=daily|weekly|monthly|yearly|all (default: yearly)
+     *  - finance_period=daily|weekly|monthly|yearly|all (default: monthly)
+     *
+     * ✅ IMPORTANT:
+     * - Everything is FORCED to Hijri Shamsi (Jalali)
+     * - calendar param is ignored even if sent from frontend
      */
     public function index(Request $request): JsonResponse
     {
-        /* -------------------------------------------------
-         | ✅ TWO PERIOD FILTERS
-         |-------------------------------------------------*/
+        // ✅ FORCE Hijri Shamsi only
+        $calendar = 'shamsi';
+
         $period        = strtolower((string) $request->query('period', 'yearly'));
         $financePeriod = strtolower((string) $request->query('finance_period', 'monthly'));
 
-        // Main filter (cards + formats + khayrat + etc.)
-        [$from, $to] = $this->resolvePeriodRange($period);
+        // Main filter (cards + formats + khayrat + etc.) => Shamsi-based
+        [$from, $to] = $this->resolvePeriodRangeShamsi($period);
 
-        // Finance filter (money + oil + office employee tables)
-        [$financeFrom, $financeTo] = $this->resolvePeriodRange($financePeriod);
+        // Finance filter (money + oil + employee tables) => Shamsi-based
+        [$financeFrom, $financeTo] = $this->resolvePeriodRangeShamsi($financePeriod);
 
         /* -------------------------------------------------
-        | ✅ EMPLOYEES SUMMARY (filtered by MAIN period)
+        | ✅ EMPLOYEES SUMMARY (MAIN period)
         |-------------------------------------------------*/
         $employeesTotal = OfficeEmployee::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
@@ -62,7 +69,6 @@ class DashboardController extends Controller
 
         /* -------------------------------------------------
         | ✅ EMPLOYEES BY JOB TYPE (chips) - MAIN period
-        |    ✅ returns job_type value + count (ALL types)
         |-------------------------------------------------*/
         $employeesByJobType = OfficeEmployee::query()
             ->select('job_type', DB::raw('COUNT(*) as total'))
@@ -73,15 +79,12 @@ class DashboardController extends Controller
                 $type = trim((string) $row->job_type);
                 if ($type === '') $type = 'نامعلوم';
 
-                // Normalize (Arabic -> Persian)
                 $type = str_replace(['ي', 'ى'], 'ی', $type);
                 $type = str_replace('ك', 'ک', $type);
 
-                // normalize spaces
                 $type = preg_replace('/\s+/', ' ', $type);
                 $type = trim($type);
 
-                // unify common variants
                 $noSpace = str_replace(' ', '', $type);
                 if (in_array($noSpace, ['اوپراتیفی', 'اوپراتیفي'])) $type = 'اوپراتیفی';
                 if (in_array($noSpace, ['اداري', 'اداری'])) $type = 'اداري';
@@ -101,7 +104,7 @@ class DashboardController extends Controller
             ->values();
 
         /* -------------------------------------------------
-        | ✅ EMPLOYEES TABLE (OLD) - FINANCE period
+        | ✅ EMPLOYEES TABLE (OLD) - FINANCE period (Shamsi-based range)
         |-------------------------------------------------*/
         $employeesOld = OfficeEmployee::query()
             ->select('id', 'name', 'code_number')
@@ -136,13 +139,7 @@ class DashboardController extends Controller
             ];
         });
 
-        $employeesSortedOld = $employeesScoredOld
-            ->sortByDesc('events_count')
-            ->sortByDesc('resources_count')
-            ->sortByDesc('informations_count')
-            ->sortByDesc('total')
-            ->values();
-
+        $employeesSortedOld = $employeesScoredOld->sortByDesc('total')->values();
         $maxTotalOld = (int) ($employeesSortedOld->max('total') ?? 0);
 
         $gradeOf = function (int $total, int $maxTotal) {
@@ -164,7 +161,6 @@ class DashboardController extends Controller
 
         /* -------------------------------------------------
         | ✅ EMPLOYEES TABLE (NEW) - includes KHAYRAT - FINANCE period
-        |    Khayrat uses saved_date
         |-------------------------------------------------*/
         $employeesNew = OfficeEmployee::query()
             ->select('id', 'name', 'code_number')
@@ -210,14 +206,7 @@ class DashboardController extends Controller
             ];
         });
 
-        $employeesSortedNew = $employeesScoredNew
-            ->sortByDesc('events_count')
-            ->sortByDesc('resources_count')
-            ->sortByDesc('informations_count')
-            ->sortByDesc('khayrat_reports_count')
-            ->sortByDesc('total')
-            ->values();
-
+        $employeesSortedNew = $employeesScoredNew->sortByDesc('total')->values();
         $maxTotalNew = (int) ($employeesSortedNew->max('total') ?? 0);
 
         $employeesRankedNew = $employeesSortedNew->map(function ($row, $idx) use ($gradeOf, $maxTotalNew) {
@@ -227,8 +216,8 @@ class DashboardController extends Controller
         })->values();
 
         /* -------------------------------------------------
-         | RESOURCES (MAIN period)
-         |-------------------------------------------------*/
+        | RESOURCES (MAIN period)
+        |-------------------------------------------------*/
         $resourcesTotal = Resource::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
@@ -244,8 +233,8 @@ class DashboardController extends Controller
             ->count();
 
         /* -------------------------------------------------
-         | INFORMATIONS (MAIN period)
-         |-------------------------------------------------*/
+        | INFORMATIONS (MAIN period)
+        |-------------------------------------------------*/
         $informationsTotal = Information::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
@@ -281,8 +270,8 @@ class DashboardController extends Controller
             ->values();
 
         /* -------------------------------------------------
-         | EVENTS (MAIN period) + types chips
-         |-------------------------------------------------*/
+        | EVENTS (MAIN period) + types chips
+        |-------------------------------------------------*/
         $eventsTotal = Event::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
@@ -320,16 +309,23 @@ class DashboardController extends Controller
         /* -------------------------------------------------
         | MONEY TOTALS (FINANCE period)
         |-------------------------------------------------*/
-        $incomeDateCol  = $this->detectModelDateColumn(new Income(),  ['debut', 'date', 'income_date', 'paid_at', 'created_at']);
-        $financeDateCol = $this->detectModelDateColumn(new Finance(), ['debut', 'date', 'finance_date', 'created_at']);
+        $incomeDateCol = Schema::hasColumn('incomes', 'date')
+            ? 'date'
+            : $this->detectModelDateColumn(new Income(), ['date', 'created_at']);
+        $financeDateCol = Schema::hasColumn('finances', 'date')
+            ? 'date'
+            : $this->detectModelDateColumn(new Finance(), ['date', 'created_at']);
 
         $moneyIncomeTotal = (float) Income::query()
             ->when($financeFrom && $financeTo, fn ($q) => $this->applyDateRange($q, $incomeDateCol, $financeFrom, $financeTo))
             ->sum('amount');
 
         $moneyExpensedTotal = (float) Finance::query()
-            ->when($financeFrom && $financeTo, fn ($q) => $this->applyDateRange($q, $financeDateCol, $financeFrom, $financeTo))
+            ->when($financeFrom && $financeTo, function ($q) use ($financeFrom, $financeTo) {
+                $q->whereBetween(DB::raw('COALESCE(`date`, `created_at`)'), [$financeFrom, $financeTo]);
+            })
             ->sum('money_amount_number');
+
 
         $accountsTotalBalance = (float) Account::query()->sum('price');
 
@@ -337,7 +333,9 @@ class DashboardController extends Controller
         | OIL TOTALS (FINANCE period)
         |-------------------------------------------------*/
         $incomeOilDateCol  = $this->detectModelDateColumn(new IncomeOil(),  ['debut', 'date', 'oil_date', 'created_at']);
-        $expenseOilDateCol = $this->detectModelDateColumn(new ExpenseOil(), ['debut', 'date', 'oil_date', 'created_at']);
+        $expenseOilDateCol = Schema::hasColumn('expense_oils', 'date')
+            ? 'date'
+            : $this->detectModelDateColumn(new ExpenseOil(), ['date', 'created_at']);
 
         $oilIncomeTotal = (float) IncomeOil::query()
             ->when($financeFrom && $financeTo, fn ($q) => $this->applyDateRange($q, $incomeOilDateCol, $financeFrom, $financeTo))
@@ -350,14 +348,14 @@ class DashboardController extends Controller
         $oilBalance = $oilIncomeTotal - $oilExpensedTotal;
 
         /* -------------------------------------------------
-         | ✅ 56 FORMATS BY MAIN DISTRICT (MAIN period)
-         |-------------------------------------------------*/
+        | ✅ 56 FORMATS BY MAIN DISTRICT (MAIN period)
+        |-------------------------------------------------*/
         $formatTables  = $this->formatsTables();
         $formatsByZone = $this->countFormatsByMainDistrictSafely($formatTables, $from, $to);
 
         /* -------------------------------------------------
-         | ✅ KHAYRAT REPORTS (MAIN period)
-         |-------------------------------------------------*/
+        | ✅ KHAYRAT REPORTS (MAIN period)
+        |-------------------------------------------------*/
         $khayratReportsTotal = KhayratReport::query()
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'saved_date', $from, $to))
             ->count();
@@ -393,9 +391,29 @@ class DashboardController extends Controller
             ->values();
 
         /* -------------------------------------------------
-         | RESPONSE
-         |-------------------------------------------------*/
+        | ✅ MONTHLY BUCKETS (FORCED SHAMSI YEAR)
+        |-------------------------------------------------*/
+        $now = Carbon::now();
+        $monthlyBuckets = $this->buildShamsiYearMonthBuckets($now);
+
+        $resourcesMonthlyCounts     = $this->monthlyCount(Resource::query(), 'created_at', $monthlyBuckets);
+        $eventsMonthlyCounts        = $this->monthlyCount(Event::query(), 'created_at', $monthlyBuckets);
+        $informationsMonthlyCounts  = $this->monthlyCount(Information::query(), 'created_at', $monthlyBuckets);
+        $khayratMonthlyCounts       = $this->monthlyCount(KhayratReport::query(), 'saved_date', $monthlyBuckets);
+
+        $moneyIncomeMonthly  = $this->monthlySum(Income::query(), $incomeDateCol, 'amount', $monthlyBuckets);
+        $moneyExpenseMonthly = $this->monthlySum(Finance::query(), $financeDateCol, 'money_amount_number', $monthlyBuckets);
+
+        $oilIncomeMonthly    = $this->monthlySum(IncomeOil::query(), $incomeOilDateCol, 'oil_quantity', $monthlyBuckets);
+        $oilExpenseMonthly   = $this->monthlySum(ExpenseOil::query(), $expenseOilDateCol, 'liter_in_number', $monthlyBuckets);
+
+        // ✅ calendar meta always shamsi
+        $calendarMeta = $this->shamsiCalendarMeta($now);
+
         return response()->json([
+            'calendar' => 'shamsi',
+            'calendar_meta' => $calendarMeta,
+
             'period' => [
                 'key'  => $period,
                 'from' => $from?->toDateTimeString(),
@@ -407,20 +425,16 @@ class DashboardController extends Controller
                 'to'   => $financeTo?->toDateTimeString(),
             ],
 
-            // ✅ cards + chips
             'employees' => [
                 'total'        => $employeesTotal,
                 'active'       => $employeesActive,
                 'inactive'     => $employeesInactive,
                 'job_types'    => $employeesByJobType,
-
-                // ✅ old employee table (finance_period)
                 'max_total'    => $maxTotalOld,
                 'flat_sorted'  => $employeesRankedOld->values(),
                 'ranked_total' => $employeesForDashboardOld->count(),
             ],
 
-            // ✅ new employee table (finance_period)
             'employees_new' => [
                 'flat_sorted' => $employeesRankedNew->values(),
                 'max_total'   => $maxTotalNew,
@@ -432,63 +446,214 @@ class DashboardController extends Controller
                 'inactive' => $resourcesInactive,
             ],
 
+            'resources_monthly_counts' => $resourcesMonthlyCounts,
+
             'informations' => [
                 'total' => $informationsTotal,
                 'jenayee_types' => $informationsByJenayeeType,
                 'syasi_types'   => $informationsBySyasiType,
             ],
+            'informations_monthly_counts' => $informationsMonthlyCounts,
 
             'events' => [
                 'total' => $eventsTotal,
                 'types' => $eventsByTypeFinal,
             ],
+            'events_monthly_counts' => $eventsMonthlyCounts,
 
             'captive_deliveries' => [
                 'total' => $captiveDeliveriesTotal,
             ],
 
-            // ✅ finance_period applies here
             'money' => [
                 'income_total'   => $moneyIncomeTotal,
                 'expensed_total' => $moneyExpensedTotal,
                 'balance'        => $accountsTotalBalance,
             ],
+            'money_monthly' => [
+                'income'  => $moneyIncomeMonthly,
+                'expense' => $moneyExpenseMonthly,
+            ],
 
-            // ✅ finance_period applies here
             'oil' => [
                 'income_total'   => $oilIncomeTotal,
                 'expensed_total' => $oilExpensedTotal,
                 'balance'        => $oilBalance,
             ],
+            'oil_monthly' => [
+                'income'  => $oilIncomeMonthly,
+                'expense' => $oilExpenseMonthly,
+            ],
 
-            // ✅ 56 formats (MAIN period)
             'formats_by_zone' => $formatsByZone,
 
-            // ✅ khayrat (MAIN period)
             'khayrat' => [
                 'total'   => $khayratReportsTotal,
                 'by_zone' => $khayratByZone,
                 'by_hawza'=> $khayratByHawza,
             ],
+            'khayrat_monthly_counts' => $khayratMonthlyCounts,
+
+            'monthly_buckets' => collect($monthlyBuckets)->map(function ($b) {
+                return [
+                    'key'   => $b['key'],     // e.g. 1404-11
+                    'month' => $b['month'],   // 1..12
+                    'label' => $b['label'],   // e.g. دلو
+                    'from'  => $b['from']->toDateTimeString(),
+                    'to'    => $b['to']->toDateTimeString(),
+                ];
+            })->values(),
         ]);
     }
 
     /* =====================================================
-     | HELPERS
+     | ✅ SHAMSI PERIOD RANGE (daily/weekly/monthly/yearly/all)
      |=====================================================*/
-    private function resolvePeriodRange(string $period): array
+    private function resolvePeriodRangeShamsi(string $period): array
     {
         $now = Carbon::now();
+        $jNow = Jalalian::fromCarbon($now);
+
+        $jy = (int) $jNow->getYear();
+        $jm = (int) $jNow->getMonth();
+        $jd = (int) $jNow->getDay();
 
         return match ($period) {
-            'all'     => [null, null],
-            'daily'   => [$now->copy()->subDay()->startOfDay(),     $now->copy()->endOfDay()],
-            'weekly'  => [$now->copy()->subDays(7)->startOfDay(),   $now->copy()->endOfDay()],
-            'monthly' => [$now->copy()->subDays(30)->startOfDay(),  $now->copy()->endOfDay()],
-            default   => [$now->copy()->subDays(365)->startOfDay(), $now->copy()->endOfDay()],
+            'all' => [null, null],
+
+            // ✅ today (shamsi) -> gregorian Carbon range
+            'daily' => [
+                (new Jalalian($jy, $jm, $jd))->toCarbon()->startOfDay(),
+                (new Jalalian($jy, $jm, $jd))->toCarbon()->endOfDay(),
+            ],
+
+            // ✅ last 7 shamsi days (today included)
+            'weekly' => [
+                (new Jalalian($jy, $jm, $jd))->subDays(6)->toCarbon()->startOfDay(),
+                (new Jalalian($jy, $jm, $jd))->toCarbon()->endOfDay(),
+            ],
+
+            // ✅ last 30 shamsi days (today included)
+            'monthly' => [
+                (new Jalalian($jy, $jm, $jd))->subDays(29)->toCarbon()->startOfDay(),
+                (new Jalalian($jy, $jm, $jd))->toCarbon()->endOfDay(),
+            ],
+
+            // ✅ full current shamsi year
+            'yearly' => $this->shamsiYearRange($now),
+
+            default => $this->shamsiYearRange($now),
         };
     }
 
+
+    private function shamsiYearRange(Carbon $now): array
+    {
+        $j = Jalalian::fromCarbon($now);
+        $jy = (int) $j->getYear();
+
+        $start = (new Jalalian($jy, 1, 1))->toCarbon()->startOfDay();
+        $nextStart = (new Jalalian($jy + 1, 1, 1))->toCarbon()->startOfDay();
+        $end = $nextStart->copy()->subSecond();
+
+        return [$start, $end];
+    }
+
+    /* =====================================================
+     | ✅ MONTH BUCKETS FOR CURRENT SHAMSI YEAR (12 months)
+     |=====================================================*/
+    private function buildShamsiYearMonthBuckets(Carbon $now): array
+    {
+        $j = Jalalian::fromCarbon($now);
+        $jy = (int) $j->getYear();
+
+        $buckets = [];
+
+        for ($m = 1; $m <= 12; $m++) {
+            $mStart = (new Jalalian($jy, $m, 1))->toCarbon()->startOfDay();
+
+            $ny = $jy;
+            $nm = $m + 1;
+            if ($nm === 13) { $nm = 1; $ny = $jy + 1; }
+
+            $nextStart = (new Jalalian($ny, $nm, 1))->toCarbon()->startOfDay();
+            $mEnd = $nextStart->copy()->subSecond();
+
+            $buckets[] = [
+                'from'  => $mStart,
+                'to'    => $mEnd,
+                'key'   => sprintf('%04d-%02d', $jy, $m),
+                'month' => (int) $m,
+                'label' => $this->shamsiMonthName($m),
+            ];
+        }
+
+        return $buckets;
+    }
+
+    private function shamsiMonthName(int $month): string
+    {
+        $shamsi = ['حمل','ثور','جوزا','سرطان','اسد','سنبله','میزان','عقرب','قوس','جدی','دلو','حوت'];
+        $idx = $month - 1;
+        return ($idx >= 0 && $idx <= 11) ? $shamsi[$idx] : (string) $month;
+    }
+
+    private function shamsiCalendarMeta(Carbon $now): array
+    {
+        $j = Jalalian::fromCarbon($now);
+        $y = (int) $j->getYear();
+        $m = (int) $j->getMonth();
+        $d = (int) $j->getDay();
+
+        return [
+            'year' => $y,
+            'month' => $m,
+            'day' => $d,
+            'today_key' => sprintf('%04d-%02d-%02d', $y, $m, $d),
+            'month_start_key' => sprintf('%04d-%02d-01', $y, $m),
+            'month_key' => sprintf('%04d-%02d', $y, $m),
+            'month_name' => $this->shamsiMonthName($m),
+        ];
+    }
+
+    /* =====================================================
+     | MONTH HELPERS
+     |=====================================================*/
+    private function monthlyCount($query, string $dateCol, array $buckets): array
+    {
+        return collect($buckets)->map(function ($b) use ($query, $dateCol) {
+            $count = (int) (clone $query)
+                ->whereBetween($dateCol, [$b['from'], $b['to']])
+                ->count();
+
+            return [
+                'key'   => $b['key'],
+                'month' => $b['month'],
+                'label' => $b['label'],
+                'value' => $count,
+            ];
+        })->values()->all();
+    }
+
+    private function monthlySum($query, string $dateCol, string $sumCol, array $buckets): array
+    {
+        return collect($buckets)->map(function ($b) use ($query, $dateCol, $sumCol) {
+            $sum = (float) (clone $query)
+                ->whereBetween($dateCol, [$b['from'], $b['to']])
+                ->sum($sumCol);
+
+            return [
+                'key'   => $b['key'],
+                'month' => $b['month'],
+                'label' => $b['label'],
+                'value' => $sum,
+            ];
+        })->values()->all();
+    }
+
+    /* =====================================================
+     | EXISTING HELPERS (unchanged)
+     |=====================================================*/
     private function applyDateRange($query, string $col, ?Carbon $from, ?Carbon $to)
     {
         if (!$from || !$to) return $query;
@@ -529,13 +694,11 @@ class DashboardController extends Controller
 
     private function formatDateOverrides(): array
     {
-        // Put custom overrides if any table does not use created_at/debut/date.
-        // example: return ['khayrat_reports' => 'saved_date'];
         return [];
     }
 
     /* =====================================================
-     | 56 FORMAT TABLES
+     | 56 FORMAT TABLES (unchanged)
      |=====================================================*/
     private function formatsTables(): array
     {
@@ -624,14 +787,7 @@ class DashboardController extends Controller
         $labels = $this->formatLabels();
 
         $dateCandidates = [
-            'created_at',
-            'debut',
-            'date',
-            'event_date',
-            'occurred_at',
-            'registered_at',
-            'reported_at',
-            'paid_at',
+            'created_at','debut','date','event_date','occurred_at','registered_at','reported_at','paid_at',
         ];
 
         $overrides = $this->formatDateOverrides();
@@ -664,14 +820,14 @@ class DashboardController extends Controller
 
             $usedTables[] = $table;
 
-            $q = DB::table($table)->select($districtCol);
+            $rows = DB::table($table)
+                ->select($districtCol, DB::raw('COUNT(*) as total'))
+                ->when($dateCol && $from && $to, fn ($qq) => $qq->whereBetween($dateCol, [$from, $to]))
+                ->groupBy($districtCol)
+                ->get();
 
-            if ($dateCol && $from && $to) {
-                $q->whereBetween($dateCol, [$from, $to]);
-            }
-
-            $q->cursor()->each(function ($row) use (&$districtMap, $table, $districtCol) {
-                $district = is_string($row->{$districtCol}) ? trim($row->{$districtCol}) : '';
+            foreach ($rows as $r) {
+                $district = is_string($r->{$districtCol}) ? trim($r->{$districtCol}) : '';
                 if ($district === '') $district = 'نامعلوم';
 
                 if (!isset($districtMap[$district])) {
@@ -682,13 +838,14 @@ class DashboardController extends Controller
                     ];
                 }
 
-                $districtMap[$district]['total']++;
+                $count = (int) $r->total;
+                $districtMap[$district]['total'] += $count;
 
                 if (!isset($districtMap[$district]['breakdown'][$table])) {
                     $districtMap[$district]['breakdown'][$table] = 0;
                 }
-                $districtMap[$district]['breakdown'][$table]++;
-            });
+                $districtMap[$district]['breakdown'][$table] += $count;
+            }
         }
 
         $zones = array_values($districtMap);
@@ -715,7 +872,7 @@ class DashboardController extends Controller
                 'missing_tables' => $missingTables,
                 'tables_without_zone' => $noDistrictColumn,
                 'tables_without_date_col' => $noDateColumn,
-                'strategy' => 'php_counting_no_group_by',
+                'strategy' => 'sql_group_by_count',
                 'grouped_by' => 'main_district',
             ],
         ];
@@ -724,13 +881,7 @@ class DashboardController extends Controller
     private function detectMainDistrictColumn(string $table): ?string
     {
         $candidates = [
-            'main_district',
-            'district',
-            'district_name',
-            'now_district',
-            'activity_district',
-            'current_district',
-            'districts',
+            'main_district','district','district_name','now_district','activity_district','current_district','districts',
         ];
 
         foreach ($candidates as $col) {

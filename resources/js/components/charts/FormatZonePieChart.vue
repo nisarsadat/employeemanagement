@@ -641,7 +641,7 @@
             formatter: function (name) {
               const item = enhancedData.value.find((d) => d.name === name);
               if (!item) return name;
-              const s = `${name} - ${Number(item.value).toLocaleString()} (${item.percentage}%)`;
+              const s = `${name} - ${Number(item.value).toLocaleString()}`;
               return numUi(s);
             },
 
@@ -717,9 +717,7 @@
         <div style="color: #666">${t('تعداد فرم')}:</div>
         <div style="font-weight: 600; color: #2196F3">${fmtNum(params.value || 0)}</div>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px">
-        <div style="font-weight: 600; color: #4CAF50">${item?.percentage || '0'}%</div>
-      </div>
+     
     </div>
   `;
   }
@@ -736,9 +734,7 @@
         <div style="color: #666">${t('تعداد')}:</div>
         <div style="font-weight: 600; color: #2196F3">${fmtNum(data?.value || 0)}</div>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px">
-        <div style="font-weight: 600; color: #4CAF50">${numUi(perc + '%')}</div>
-      </div>
+      
     </div>
   `;
   }

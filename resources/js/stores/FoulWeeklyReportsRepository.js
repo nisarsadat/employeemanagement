@@ -13,11 +13,13 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   // Weekly report payload from backend
   const weekly = ref(null);
 
-  // Filters
-  const selectedWeek = ref(''); // YYYY-Www
+  // Filters (✅ from/to)
+  const selectedFrom = ref(''); // YYYY-MM-DD (inclusive)
+  const selectedTo = ref(''); // YYYY-MM-DD (inclusive)
+  const calendarType = ref('gregorian');
 
   // =========================
-  // Helpers (same style as Daily/Monthly)
+  // Helpers
   // =========================
   function pad2(n) {
     return String(n).padStart(2, '0');
@@ -34,50 +36,23 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     return isoDate(new Date());
   }
 
-  function currentWeekIso() {
-    // ISO week label like "2025-W52"
+  // current ISO week (Mon..Sun) -> {from,to}
+  function currentIsoWeekRange() {
     const d = new Date();
-    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    const dayNum = date.getUTCDay() || 7; // 1..7 (Mon..Sun)
-    date.setUTCDate(date.getUTCDate() + 4 - dayNum); // nearest Thu
-    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
-    const yyyy = date.getUTCFullYear();
-    const ww = String(weekNo).padStart(2, '0');
-    return `${yyyy}-W${ww}`;
-  }
+    const day = d.getDay(); // 0..6 (Sun..Sat)
+    const diffToMonday = (day === 0 ? -6 : 1) - day;
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + diffToMonday);
 
-  // YYYY-Www -> Monday date ISO (YYYY-MM-DD) for header pills
-  function weekToIsoDate(weekText) {
-    const w = String(weekText || '').trim();
-    const m = w.match(/^(\d{4})-W(\d{2})$/);
-    if (!m) return todayIso();
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
 
-    const year = Number(m[1]);
-    const week = Number(m[2]);
-
-    // ISO week: Monday of week 1 is the Monday of the week with Jan 4th
-    const jan4 = new Date(Date.UTC(year, 0, 4));
-    const jan4Day = jan4.getUTCDay() || 7; // 1..7
-    const mondayWeek1 = new Date(jan4);
-    mondayWeek1.setUTCDate(jan4.getUTCDate() - (jan4Day - 1));
-
-    const monday = new Date(mondayWeek1);
-    monday.setUTCDate(mondayWeek1.getUTCDate() + (week - 1) * 7);
-
-    const yyyy = monday.getUTCFullYear();
-    const mm = pad2(monday.getUTCMonth() + 1);
-    const dd = pad2(monday.getUTCDate());
-    return `${yyyy}-${mm}-${dd}`;
+    return { from: isoDate(monday), to: isoDate(sunday) };
   }
 
   function safeNum(val) {
     const n = Number(val ?? 0);
     return Number.isFinite(n) ? n : 0;
-  }
-
-  function formatMoney(val) {
-    return safeNum(val).toLocaleString();
   }
 
   function escapeHtml(s) {
@@ -92,7 +67,6 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
 
   function normalizeError(e) {
     const data = e?.response?.data;
-
     let msg = 'د اوونیز راپور ترلاسه کولو کې ستونزه رامنځته شوه.';
 
     if (typeof data === 'string') return data;
@@ -171,22 +145,36 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     }
   }
 
-  function buildDatePillsSameDay(dateIso) {
-    const miladi = formatMiladi(dateIso);
-    const shamsi = formatHijriShamsi(dateIso);
-    const qamari = formatHijriQamari(dateIso);
+  function buildDatePillsRange(fromIso, toIso) {
+    const fMil = formatMiladi(fromIso);
+    const tMil = formatMiladi(toIso);
+
+    const fSh = formatHijriShamsi(fromIso);
+    const tSh = formatHijriShamsi(toIso);
+
+    const fQ = formatHijriQamari(fromIso);
+    const tQ = formatHijriQamari(toIso);
 
     const pills = [];
 
-    if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
-    if (shamsi) pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
-    if (qamari) pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
+    if (fMil && tMil)
+      pills.push(
+        `<span class="pill pill-miladi">میلادي: ${escapeHtml(fMil)} — ${escapeHtml(tMil)}</span>`
+      );
+    if (fSh && tSh)
+      pills.push(
+        `<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(fSh)} — ${escapeHtml(tSh)}</span>`
+      );
+    if (fQ && tQ)
+      pills.push(
+        `<span class="pill pill-qamari">هجري قمري: ${escapeHtml(fQ)} — ${escapeHtml(tQ)}</span>`
+      );
 
     return pills.join('');
   }
 
   // =========================
-  // ✅ EMPTY / USEFUL ROW HELPERS (no table if no values)
+  // ✅ EMPTY / USEFUL ROW HELPERS
   // =========================
   function hasUsefulRows(arr, countKey = 'count') {
     if (!Array.isArray(arr) || arr.length === 0) return false;
@@ -199,34 +187,8 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   }
 
   // =========================
-  // ✅ NOTES: weekly date range + fetch + html section
+  // ✅ NOTES: fetch + html section
   // =========================
-  function startOfWeekMonday(dateIso) {
-    const d = new Date(`${dateIso}T00:00:00`);
-    const day = d.getDay(); // 0 Sun..6 Sat
-    const diff = (day === 0 ? -6 : 1) - day; // Monday start
-    d.setDate(d.getDate() + diff);
-    return isoDate(d);
-  }
-
-  function endOfWeekSunday(dateIso) {
-    const d = new Date(`${dateIso}T00:00:00`);
-    const day = d.getDay();
-    const diff = (day === 0 ? -6 : 1) - day;
-    d.setDate(d.getDate() + diff); // monday
-    d.setDate(d.getDate() + 6); // sunday
-    return isoDate(d);
-  }
-
-  function rangeForWeeklyNotes(weekText) {
-    // Week label -> Monday iso
-    const mondayIso = weekToIsoDate(weekText);
-    const from = startOfWeekMonday(mondayIso);
-    const to = endOfWeekSunday(mondayIso);
-    return { from, to };
-  }
-
-  // ✅ robust notes fetch (same idea as your daily/monthly)
   async function fetchNotesForExport({ type, from, to }) {
     const endpoints = ['/report-notes', '/report_notes'];
 
@@ -360,11 +322,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         print-color-adjust: exact !important;
       }
 
-      .page {
-        width: 100%;
-        padding: 8mm;
-        background: #f6f7fb;
-      }
+      .page { width: 100%; padding: 8mm; background: #f6f7fb; }
 
       .hero {
         border-radius: 16px;
@@ -490,17 +448,8 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         justify-content:space-between;
         gap:10px;
       }
-      .strip-title{
-        font-weight:900;
-        font-size:12px;
-        margin:0;
-      }
-      .strip-sub{
-        margin:2px 0 0;
-        color: rgba(17,24,39,.55);
-        font-size:10px;
-        font-weight:800;
-      }
+      .strip-title{ font-weight:900; font-size:12px; margin:0; }
+      .strip-sub{ margin:2px 0 0; color: rgba(17,24,39,.55); font-size:10px; font-weight:800; }
       .strip-left{ display:flex; align-items:center; gap:10px; }
 
       .chip{
@@ -520,12 +469,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
       .chip-success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
       .chip-warning{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
 
-      table{
-        width:100%;
-        border-collapse:separate;
-        border-spacing: 0;
-        table-layout: fixed;
-      }
+      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; }
       thead th{
         background:#f8fafc;
         color: rgba(17,24,39,.72);
@@ -533,9 +477,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         font-size:11px;
         padding:9px 8px;
         border-bottom:1px solid #eef2f7;
-
-        /* ✅ start align */
-        text-align:start;
+        text-align:start; /* ✅ start align */
       }
       tbody td{
         padding:9px 8px;
@@ -543,9 +485,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         font-size:11px;
         vertical-align:middle;
         color: rgba(17,24,39,.90);
-
-        /* ✅ start align */
-        text-align:start;
+        text-align:start; /* ✅ start align */
       }
       tbody tr:nth-child(even) td{ background: #fcfdff; }
 
@@ -586,12 +526,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         border-radius:12px;
         min-width: 150px;
       }
-      .hero-logo img{
-        height:82px;
-        width:auto;
-        object-fit:contain;
-        display:block;
-      }
+      .hero-logo img{ height:82px; width:auto; object-fit:contain; display:block; }
 
       .no-break { break-inside: avoid; page-break-inside: avoid; }
       .card { break-inside: avoid; page-break-inside: avoid; }
@@ -604,7 +539,6 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
 
   function eventTypeClass(type) {
     const t = String(type ?? '').trim();
-
     const map = {
       حادثه: 'etype-red',
       پېښه: 'etype-red',
@@ -617,19 +551,14 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
       سیاسی: 'etype-purple',
       سياسي: 'etype-purple',
     };
-
     return map[t] || 'etype-gray';
   }
 
   // =========================
-  // Weekly HTML (Pashto localized) + ✅ notes appended
-  // ✅ show logic: any table with no useful rows is OMITTED
+  // Weekly HTML + ✅ notes appended
+  // ✅ omit tables if no useful rows
   // =========================
-  function buildWeeklyDashboardHtml(report, weekText, notes = []) {
-    const weekVal = String(weekText || selectedWeek.value || currentWeekIso());
-    const headerIso = weekToIsoDate(weekVal); // Monday
-    const heroDatePills = buildDatePillsSameDay(headerIso);
-
+  function buildWeeklyDashboardHtml(report, fromIso, toIso, notes = []) {
     const resourcesTotal = safeNum(report?.resources?.total);
     const informationsTotal = safeNum(report?.informations?.total);
     const eventsTotal = safeNum(report?.events?.total);
@@ -637,12 +566,14 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const formats = Array.isArray(report?.formats) ? report.formats : [];
     const formatsActive = formats.length;
 
+    const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
+    const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
+
     function getLogoUrl() {
       return `${window.location.origin}/logo.jpeg`;
     }
 
-    const infoTypes = Array.isArray(report?.informations?.types) ? report.informations.types : [];
-    const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
+    const heroDatePills = buildDatePillsRange(fromIso, toIso);
 
     const infoSection =
       hasUsefulRows(infoTypes, 'count')
@@ -653,7 +584,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
                 <div class="strip-left">
                   <div>
                     <div class="strip-title">د اطلاعات ډولونه</div>
-                    <div class="strip-sub">د ډول له مخې وېش (اوونۍ)</div>
+                    <div class="strip-sub">د ډول له مخې وېش (موده)</div>
                   </div>
                 </div>
                 <span class="chip chip-primary">${informationsTotal}</span>
@@ -743,7 +674,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
                 <div class="strip-left">
                   <div>
                     <div class="strip-title">پېښې (د ډول له مخې)</div>
-                    <div class="strip-sub">د اوونۍ د پېښو وېش</div>
+                    <div class="strip-sub">د مودې د پېښو وېش</div>
                   </div>
                 </div>
                 <span class="chip chip-warning">${eventsTotal}</span>
@@ -784,7 +715,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
       <html dir="rtl">
         <head>
           <meta charset="utf-8" />
-          <title>weekly_dashboard_${weekVal}</title>
+          <title>weekly_dashboard_${fromIso}_${toIso}</title>
           <style>${baseExportCss()}</style>
         </head>
         <body>
@@ -793,7 +724,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
               <div class="hero-top">
                 <div>
                   <h1 class="hero-title">د 333 اوونیز راپور</h1>
-                  <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو اوونیز عمومي کتنه</p>
+                  <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو عمومي کتنه (له نېټې تر نېټې)</p>
                 </div>
                 <div class="hero-logo">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
@@ -807,7 +738,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
               <div class="card"><div class="stat-card"><div>
                 <div class="stat-label">منابع</div>
                 <div class="stat-number">${resourcesTotal}</div>
-                <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
+                <span class="badge b-primary">ثبت شوي</span>
               </div></div></div>
 
               <div class="card"><div class="stat-card"><div>
@@ -869,18 +800,21 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   }
 
   // =========================
-  // API
+  // API (✅ from/to)
   // =========================
-  const FetchWeeklyFoulReport = async (week) => {
+  const FetchWeeklyFoulReport = async (from, to) => {
     try {
       loading.value = true;
       error.value = '';
 
-      const finalWeek = week || selectedWeek.value || currentWeekIso();
-      selectedWeek.value = String(finalWeek);
+      const finalFrom = String(from || selectedFrom.value || currentIsoWeekRange().from);
+      const finalTo = String(to || selectedTo.value || currentIsoWeekRange().to);
+
+      selectedFrom.value = finalFrom;
+      selectedTo.value = finalTo;
 
       const { data } = await axios.get('/reports/foul/weekly', {
-        params: { week: selectedWeek.value },
+        params: { from: selectedFrom.value, to: selectedTo.value },
       });
 
       weekly.value = data;
@@ -898,11 +832,17 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   const ResetWeekly = () => {
     weekly.value = null;
     error.value = '';
-    selectedWeek.value = currentWeekIso();
+    const r = currentIsoWeekRange();
+    selectedFrom.value = r.from;
+    selectedTo.value = r.to;
   };
 
   // Init defaults
-  if (!selectedWeek.value) selectedWeek.value = currentWeekIso();
+  if (!selectedFrom.value || !selectedTo.value) {
+    const r = currentIsoWeekRange();
+    selectedFrom.value = r.from;
+    selectedTo.value = r.to;
+  }
 
   // =========================
   // EXPORT ACTIONS (✅ with notes)
@@ -911,16 +851,16 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const report = weekly.value;
     if (!report) return;
 
-    const weekText = selectedWeek.value || currentWeekIso();
-    const r = rangeForWeeklyNotes(weekText);
+    const fromIso = selectedFrom.value || currentIsoWeekRange().from;
+    const toIso = selectedTo.value || currentIsoWeekRange().to;
 
     const notes = await fetchNotesForExport({
       type: 'weekly',
-      from: r.from,
-      to: r.to,
+      from: fromIso,
+      to: toIso,
     });
 
-    const html = buildWeeklyDashboardHtml(report, weekText, notes);
+    const html = buildWeeklyDashboardHtml(report, fromIso, toIso, notes);
     openPrintWindow(html);
   };
 
@@ -928,17 +868,17 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const report = weekly.value;
     if (!report) return;
 
-    const weekText = selectedWeek.value || currentWeekIso();
-    const r = rangeForWeeklyNotes(weekText);
+    const fromIso = selectedFrom.value || currentIsoWeekRange().from;
+    const toIso = selectedTo.value || currentIsoWeekRange().to;
 
     const notes = await fetchNotesForExport({
       type: 'weekly',
-      from: r.from,
-      to: r.to,
+      from: fromIso,
+      to: toIso,
     });
 
-    const html = buildWeeklyDashboardHtml(report, weekText, notes);
-    downloadWordFile(html, `weekly_dashboard_${weekText}.doc`);
+    const html = buildWeeklyDashboardHtml(report, fromIso, toIso, notes);
+    downloadWordFile(html, `weekly_dashboard_${fromIso}_${toIso}.doc`);
   };
 
   return {
@@ -949,8 +889,10 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     // payload
     weekly,
 
-    // filter
-    selectedWeek,
+    // filters
+    selectedFrom,
+    selectedTo,
+    calendarType,
 
     // actions
     FetchWeeklyFoulReport,

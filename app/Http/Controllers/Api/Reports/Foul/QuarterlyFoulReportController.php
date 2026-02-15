@@ -83,21 +83,19 @@ class QuarterlyFoulReportController extends Controller
     /**
      * Quarterly (ربعه) Foul System Report
      *
-     * IMPORTANT: In your business definition:
-     * - Aglor has 3 quarters per year (ربعه)
-     * - Each quarter = 4 months
+     * NEW:
+     * ✅ Support date range filtering:
+     * GET /api/reports/foul/quarterly?from=YYYY-MM-DD&to=YYYY-MM-DD
      *
+     * Old still works (fallback):
      * GET /api/reports/foul/quarterly?quarter=YYYY-Q{1..3}
      * or  /api/reports/foul/quarterly?year=YYYY&q=1..3
-     *
-     * Examples:
-     *  /api/reports/foul/quarterly?quarter=2025-Q1  (Jan-Apr)
-     *  /api/reports/foul/quarterly?year=2025&q=2    (May-Aug)
-     *  /api/reports/foul/quarterly?year=2025&q=3    (Sep-Dec)
      */
     public function __invoke(Request $request)
     {
-        [$start, $end, $label, $quarterNo, $year] = $this->parseQuarterRange(
+        [$start, $end, $label, $quarterNo, $year] = $this->resolveRange(
+            $request->query('from'),
+            $request->query('to'),
             $request->query('quarter'),
             $request->query('year'),
             $request->query('q')
@@ -193,6 +191,51 @@ class QuarterlyFoulReportController extends Controller
 
             'formats' => $formats,
         ]);
+    }
+
+    /**
+     * ✅ NEW: resolve range:
+     * - If from/to exist -> use them (to is inclusive; we make end exclusive by +1 day)
+     * - Else fallback to quarter parsing.
+     */
+    private function resolveRange(
+        ?string $fromStr,
+        ?string $toStr,
+        ?string $quarterStr,
+        ?string $yearStr,
+        ?string $qStr
+    ): array {
+        $fromStr = trim((string) ($fromStr ?? ''));
+        $toStr = trim((string) ($toStr ?? ''));
+
+        // ✅ If user provided from/to -> use them
+        if ($fromStr && $toStr) {
+            try {
+                $start = Carbon::parse($fromStr)->startOfDay();
+                $to = Carbon::parse($toStr)->startOfDay();
+
+                // ensure start <= to
+                if ($to->lt($start)) {
+                    [$start, $to] = [$to, $start];
+                }
+
+                // end is exclusive (to inclusive -> +1 day)
+                $end = $to->copy()->addDay()->startOfDay();
+
+                $label = $start->toDateString() . ' تا ' . $to->toDateString();
+
+                // quarterNo/year are still returned (for meta), but not used for filtering here
+                $year = (int) $start->year;
+                $quarterNo = $this->monthToQuarter((int) $start->month);
+
+                return [$start, $end, $label, $quarterNo, $year];
+            } catch (\Throwable $e) {
+                // fallback to quarter parsing if invalid date
+            }
+        }
+
+        // fallback: old quarter logic
+        return $this->parseQuarterRange($quarterStr, $yearStr, $qStr);
     }
 
     /**
@@ -337,7 +380,6 @@ class QuarterlyFoulReportController extends Controller
             $table = $model->getTable();
 
             if (Schema::hasColumn($table, 'created_at')) {
-                // ✅ IMPORTANT: filter by range, not a single day
                 $q->where('created_at', '>=', $start)
                   ->where('created_at', '<', $end);
             }

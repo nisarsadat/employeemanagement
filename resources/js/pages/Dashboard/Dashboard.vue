@@ -1,13 +1,12 @@
 <!-- src/pages/Dashboard.vue -->
 <template>
-  <!-- Employee Details Popup -->
   <EmployeeDetailsDialog
     v-model="employeeDialog"
     :employee="selectedEmployee"
     :loading="employeeDialogLoading"
     @close="closeEmployeeDialog"
   />
-  <!-- Zone Details Popup -->
+
   <ZoneFormatsDialog
     v-model="zoneDialog"
     :zone="selectedZone"
@@ -17,10 +16,14 @@
 
   <div class="dashboard-container" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- App Bar -->
-    <AppBar :title="t('داشبورد')" :subtitle="t('خلاصه عملکرد سیستم')">
+    <AppBar
+      :title="t('داشبورد')"
+      :subtitle="t('خلاصه عملکرد سیستم')"
+      @calendar-change="onCalendarChange"
+    >
       <template #actions>
         <div class="d-flex align-center gap-2 flex-wrap">
-          <!-- ✅ Button 1: Finance menu -->
+          <!-- Finance menu -->
           <v-menu location="bottom" transition="scale-transition" :close-on-content-click="false">
             <template #activator="{ props }">
               <v-tooltip :text="t('فیلتر دوره مالی (تیل + مالی + جدول کارمندان)')">
@@ -76,7 +79,7 @@
             </v-card>
           </v-menu>
 
-          <!-- ✅ Button 2: General menu -->
+          <!-- General menu -->
           <v-menu location="bottom" transition="scale-transition" :close-on-content-click="false">
             <template #activator="{ props }">
               <v-tooltip :text="t('فیلتر عمومی (کارت‌ها + فرم‌ها)')">
@@ -795,10 +798,19 @@
             @zone-click="onZoneClick"
           />
         </v-col>
+        <v-col cols="12" lg="12">
+          <MonthlyAmountBarChart
+            :loading="repo.loading"
+            :height="320"
+            :calendar="repo.calendar"
+            :year="repo.calendar_meta?.year"
+            :data="repo.resources_monthly_counts"
+            @refresh="refreshData"
+          />
+        </v-col>
       </v-row>
     </div>
 
-    <!-- Refresh FAB (filter removed: now filters are in AppBar as requested) -->
     <div class="fab-stack" :class="{ rtl: isRtl }" :style="{ bottom: mobile ? '80px' : '24px' }">
       <v-tooltip location="top">
         <template #activator="{ props }">
@@ -829,6 +841,7 @@
   import { useDashboardRepository } from '@/stores/DashboardRepository';
   import EmployeeDetailsDialog from './EmployeeDetailsDialog.vue';
   import ZoneFormatsDialog from './ZoneFormatsDialog.vue';
+  import MonthlyAmountBarChart from '@/components/charts/MonthlyAmountBarChart.vue';
 
   const { t, locale } = useI18n();
   const { mobile } = useDisplay();
@@ -840,20 +853,20 @@
   const search = ref('');
   const currentPage = ref(1);
   const itemsPerPage = 10;
-  // ✅ multi-sort (checkboxes)
-  const sortKeys = ref(['score_desc']); // default
+  const sortKeys = ref(['score_desc']);
 
-  // ✅ Two periods
-  const period = ref('yearly'); // for everything except (oil/finance/employee table)
-  const financePeriod = ref('monthly'); // for oil + finance + employee table
+  const period = ref('yearly'); // main filter
+  const financePeriod = ref('monthly'); // affects money + oil + employee table
 
-  const employeeDialog = ref(false);
-  const selectedEmployee = ref(null);
-  const employeeDialogLoading = ref(false);
+  // ✅ calendar comes from AppBar (fallback to repo or localStorage)
+  const calendar = ref(localStorage.getItem('calendar') || repo.calendar || 'miladi');
 
-  const zoneDialog = ref(false);
-  const selectedZone = ref(null);
-  const zoneDialogLoading = ref(false);
+  function onCalendarChange(newCal) {
+    const c = String(newCal || '').toLowerCase();
+    calendar.value = c || 'miladi';
+    localStorage.setItem('calendar', calendar.value);
+    refreshData();
+  }
 
   function go(path, query = {}) {
     router.push({ path, query });
@@ -863,8 +876,7 @@
     go('/app/officeemployee');
   }
   function goResources(status = null) {
-    const query = status ? { status } : {};
-    go('/app/resources', query);
+    go('/app/resources', status ? { status } : {});
   }
   function goActiveResources() {
     go('/app/activeresource');
@@ -885,17 +897,45 @@
     go('/app/finincalindex', { tab: 'oil' });
   }
 
-  // Event type colors
   function getEventTypeColor(type) {
     const colors = {
       سیاسي: 'blue',
       جنایي: 'red',
       الهی: 'green',
       ترافیکي: 'orange',
-      ترافیکی: 'orange', // tolerate spelling
-      الهي: 'green', // tolerate spelling
+      ترافیکی: 'orange',
+      الهي: 'green',
     };
     return colors[type] || 'grey';
+  }
+
+  onMounted(async () => {
+    await repo.fetchDashboard({
+      calendar: calendar.value,
+      period: period.value,
+      finance_period: financePeriod.value,
+    });
+  });
+
+  async function refreshData() {
+    await repo.fetchDashboard({
+      calendar: calendar.value,
+      period: period.value,
+      finance_period: financePeriod.value,
+    });
+    currentPage.value = 1;
+  }
+
+  async function onPeriodChanged() {
+    currentPage.value = 1;
+    search.value = '';
+    await refreshData();
+  }
+
+  async function onFinancePeriodChanged() {
+    currentPage.value = 1;
+    search.value = '';
+    await refreshData();
   }
 
   /* ===========================
@@ -904,6 +944,12 @@
   const employeesTotal = computed(() => repo.employees?.total ?? repo.employeesFlat?.length ?? 0);
   const employeesActive = computed(() => Number(repo.employees?.active ?? 0));
   const employeesInactive = computed(() => Number(repo.employees?.inactive ?? 0));
+  const moneyMonthlyChartData = computed(() => {
+    const labels = repo.money_monthly?.labels || [];
+    const values = repo.money_monthly?.net || []; // net = income - expense
+    // ECharts component supports {labels, values}
+    return { labels, values };
+  });
 
   // ✅ job types (اداري / اوپراتیفي) from backend repo.employees.job_types
   const employeesJobTypes = computed(() => {
@@ -1016,38 +1062,9 @@
     currentPage.value = 1;
   }
 
-  /* ===========================
-  Fetching
-  =========================== */
-  onMounted(async () => {
-    if (!repo.dashboard) {
-      await repo.fetchDashboard({
-        period: period.value,
-        finance_period: financePeriod.value,
-      });
-    }
-  });
 
-  async function refreshData() {
-    await repo.fetchDashboard({
-      period: period.value,
-      finance_period: financePeriod.value,
-    });
-    currentPage.value = 1;
-  }
 
-  async function onPeriodChanged() {
-    currentPage.value = 1;
-    search.value = '';
-    await refreshData();
-  }
 
-  async function onFinancePeriodChanged() {
-    // ✅ This affects: oil + finance + employee table (backend should apply finance_period there)
-    currentPage.value = 1;
-    search.value = '';
-    await refreshData();
-  }
 
   /* ===========================
   Error

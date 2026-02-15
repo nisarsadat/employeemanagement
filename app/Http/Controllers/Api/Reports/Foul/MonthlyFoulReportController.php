@@ -81,26 +81,28 @@ use App\Models\fifthyformatsthree\Tujaran;
 class MonthlyFoulReportController extends Controller
 {
     /**
-     * Monthly Foul System Report
-     * GET /api/reports/foul/monthly?month=YYYY-MM
+     * Monthly Foul System Report (range-based)
      *
-     * Example:
-     * /api/reports/foul/monthly?month=2025-12
+     * ✅ NEW:
+     * GET /api/reports/foul/monthly?from=YYYY-MM-DD&to=YYYY-MM-DD
+     *
+     * ✅ Backward compatible:
+     * GET /api/reports/foul/monthly?month=YYYY-MM
      */
     public function __invoke(Request $request)
     {
-        [$start, $end, $monthLabel] = $this->parseMonthRange($request->query('month'));
+        [$start, $endExclusive, $meta] = $this->parseRange($request);
 
         // 1) Resources total (by resource_saved_date)
         $resourcesTotal = Resource::query()
-            ->whereDate('resource_saved_date', '>=', $start)
-            ->whereDate('resource_saved_date', '<', $end)
+            ->whereDate('resource_saved_date', '>=', $start->toDateString())
+            ->whereDate('resource_saved_date', '<', $endExclusive->toDateString())
             ->count();
 
-        // 2) Informations total + type counts (ONLY those that exist)
+        // 2) Informations total + type counts
         $infoBase = Information::query()
-            ->whereDate('information_saved_date', '>=', $start)
-            ->whereDate('information_saved_date', '<', $end);
+            ->whereDate('information_saved_date', '>=', $start->toDateString())
+            ->whereDate('information_saved_date', '<', $endExclusive->toDateString());
 
         $informationsTotal = (clone $infoBase)->count();
 
@@ -134,10 +136,10 @@ class MonthlyFoulReportController extends Controller
             ->sortByDesc('count')
             ->values();
 
-        // 3) Events total + event_type grouped (ONLY those that exist)
+        // 3) Events total + event_type grouped
         $eventBase = Event::query()
-            ->whereDate('event_date', '>=', $start)
-            ->whereDate('event_date', '<', $end);
+            ->whereDate('event_date', '>=', $start->toDateString())
+            ->whereDate('event_date', '<', $endExclusive->toDateString());
 
         $eventsTotal = (clone $eventBase)->count();
 
@@ -150,17 +152,19 @@ class MonthlyFoulReportController extends Controller
             ->get()
             ->map(fn ($r) => ['label' => $r->label, 'count' => (int) $r->count]);
 
-        // 4) 56-format totals (monthly filter on created_at if exists)
-        $formats = $this->formatCounts($start, $end);
+        // 4) Formats totals (filter created_at if exists)
+        $formats = $this->formatCounts($start, $endExclusive);
 
         return response()->json([
             'meta' => [
                 'report' => 'monthly',
-                'month' => $monthLabel, // YYYY-MM
+                'mode' => $meta['mode'], // range|month
+                'month' => $meta['month'], // YYYY-MM if available else null
                 'range' => [
                     'from' => $start->toDateString(),
-                    'to_exclusive' => $end->toDateString(),
+                    'to_exclusive' => $endExclusive->toDateString(),
                 ],
+                'query' => $meta['query'], // echo what was used
             ],
 
             'resources' => [
@@ -182,35 +186,88 @@ class MonthlyFoulReportController extends Controller
     }
 
     /**
-     * Parse month=YYYY-MM into [startOfMonth, startOfNextMonth, monthLabel]
+     * ✅ NEW: Parse range from request:
+     * - Prefer from/to (YYYY-MM-DD)
+     * - Fallback to month=YYYY-MM
+     * - Default current month
+     *
+     * Returns:
+     * [start(Carbon startOfDay), endExclusive(Carbon startOfNextDay), meta(array)]
      */
-    private function parseMonthRange(?string $monthStr): array
+    private function parseRange(Request $request): array
     {
-        // default current month
-        $base = Carbon::now()->startOfMonth();
+        $from = trim((string) $request->query('from', ''));
+        $to   = trim((string) $request->query('to', ''));
+        $month = trim((string) $request->query('month', ''));
 
-        if ($monthStr) {
+        // Default: current month
+        $start = Carbon::now()->startOfMonth()->startOfDay();
+        $endExclusive = $start->copy()->addMonthNoOverflow()->startOfDay();
+
+        $meta = [
+            'mode' => 'range',
+            'month' => null,
+            'query' => [],
+        ];
+
+        // ✅ If from/to provided => use them
+        if ($from !== '' || $to !== '') {
             try {
-                // Accept "YYYY-MM" (or any parseable date) -> force first day of that month
-                $base = Carbon::parse(trim($monthStr) . '-01')->startOfMonth();
+                $startParsed = $from !== '' ? Carbon::parse($from)->startOfDay() : $start->copy();
+                $toParsed = $to !== '' ? Carbon::parse($to)->startOfDay() : $startParsed->copy();
+
+                // ensure order
+                if ($startParsed->gt($toParsed)) {
+                    [$startParsed, $toParsed] = [$toParsed, $startParsed];
+                }
+
+                $start = $startParsed;
+                $endExclusive = $toParsed->copy()->addDay()->startOfDay(); // ✅ inclusive "to"
+
+                $meta['mode'] = 'range';
+                $meta['month'] = ($start->format('Y-m') === $toParsed->format('Y-m')) ? $start->format('Y-m') : null;
+                $meta['query'] = ['from' => $startParsed->toDateString(), 'to' => $toParsed->toDateString()];
+
+                return [$start, $endExclusive, $meta];
+            } catch (\Throwable $e) {
+                // fallback to month/current below
+            }
+        }
+
+        // ✅ Backward compatibility: month=YYYY-MM
+        if ($month !== '') {
+            try {
+                $base = Carbon::parse($month . '-01')->startOfMonth()->startOfDay();
+                $start = $base;
+                $endExclusive = $start->copy()->addMonthNoOverflow()->startOfDay();
+
+                $meta['mode'] = 'month';
+                $meta['month'] = $start->format('Y-m');
+                $meta['query'] = ['month' => $meta['month']];
+
+                return [$start, $endExclusive, $meta];
             } catch (\Throwable $e) {
                 // fallback to current month
             }
         }
 
-        $start = $base->copy()->startOfMonth();
-        $end = $start->copy()->addMonthNoOverflow(); // exclusive
-        $label = $start->format('Y-m');
+        // current month fallback
+        $meta['mode'] = 'month';
+        $meta['month'] = $start->format('Y-m');
+        $meta['query'] = ['month' => $meta['month']];
 
-        return [$start, $end, $label];
+        return [$start, $endExclusive, $meta];
     }
 
     /**
-     * Count records for all “formats” (models), monthly-filtered if created_at exists.
-     * Returns only formats with count > 0:
-     * [ {key, name, count}, ... ]
+     * Count records for all “formats”.
+     * ✅ Filters by created_at only if the column exists.
+     *
+     * NOTE:
+     * We use datetime range:
+     * created_at >= $start AND created_at < $endExclusive
      */
-    private function formatCounts(Carbon $start, Carbon $end): array
+    private function formatCounts(Carbon $start, Carbon $endExclusive): array
     {
         $map = [
             // FifthyFormats
@@ -292,10 +349,9 @@ class MonthlyFoulReportController extends Controller
             $q = $modelClass::query();
             $table = $model->getTable();
 
-            // ✅ monthly range filter ONLY if created_at exists
             if (Schema::hasColumn($table, 'created_at')) {
                 $q->where('created_at', '>=', $start)
-                  ->where('created_at', '<', $end);
+                  ->where('created_at', '<', $endExclusive);
             }
 
             $count = (int) $q->count();
