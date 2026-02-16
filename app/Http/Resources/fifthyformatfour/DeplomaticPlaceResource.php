@@ -17,6 +17,7 @@ class DeplomaticPlaceResource extends JsonResource
             'activity_type'              => $model->activity_type,
             'supplier_country'             => $model->supplier_country,
             'activity_place'             => $model->activity_place,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'enter_male_quantity'        => $model->enter_male_quantity,
             'outer_male_quantity'        => $model->outer_male_quantity,

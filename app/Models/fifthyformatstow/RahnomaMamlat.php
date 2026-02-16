@@ -3,12 +3,14 @@
 namespace App\Models\fifthyformatstow;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class RahnomaMamlat extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'name',
@@ -22,6 +24,7 @@ class RahnomaMamlat extends Model
         'zone',
         'Province_addr',
         'district',
+        'picture',
         'village',
         'specific_place',
         'coordinates',

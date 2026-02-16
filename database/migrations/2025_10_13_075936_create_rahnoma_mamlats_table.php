@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
 
             $table->string('name');
+            $table->string('picture')->nullable();
 
             $table->string('responsible_name')->nullable();
             $table->string('responsible_f_name')->nullable();

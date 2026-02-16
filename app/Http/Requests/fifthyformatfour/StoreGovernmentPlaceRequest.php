@@ -13,6 +13,7 @@ class StoreGovernmentPlaceRequest extends FormRequest
         return [
             'government_place_name' => ['nullable','string'],
             'daily_clientele'       => ['nullable','integer'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'      => ['nullable','string'],
             'responsible_f_name'    => ['nullable','string'],

@@ -15,6 +15,7 @@ class UpdateDeplomaticPlaceRequest extends FormRequest
             'activity_type'         => ['sometimes','nullable','string'],
             'supplier_country'        => ['sometimes','nullable','string'],
             'activity_place'        => ['sometimes','nullable','string'],
+            'picture' => ['nullable','image'],
 
             'enter_male_quantity'   => ['sometimes','nullable','integer'],
             'outer_male_quantity'   => ['sometimes','nullable','integer'],

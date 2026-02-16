@@ -17,6 +17,7 @@ class StoreDamageRasanPlacesRequest extends FormRequest
             'village'         => ['nullable','string','max:255'],
             'specific_place'  => ['nullable','string','max:255'],
             'specific_dot'    => ['nullable','string','max:255'],
+            'picture' => ['nullable','image'],
             'coordinates'     => ['nullable','string','max:255'],
             'tahdid_type'     => ['nullable','string','max:255'],
             'percentage'      => ['nullable','string','max:255'],

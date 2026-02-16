@@ -160,7 +160,14 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    >
+    ><template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -264,6 +271,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import PictureCell from '@/components/table/PictureCell.vue';
 
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
@@ -335,6 +343,8 @@
 
   /* TABLE HEADERS – highways fields + map */
   const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
+
     { title: t('نام شاهراه'), key: 'high_way_name' },
 
     { title: t('ولایت'), key: 'province' },

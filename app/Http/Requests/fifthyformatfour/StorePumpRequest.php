@@ -14,6 +14,7 @@ class StorePumpRequest extends FormRequest
             'pump_name'            => ['nullable','string'],
             'pump_type'            => ['nullable','string'],
             'main_owner'           => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'     => ['nullable','string'],
             'responsible_f_name'   => ['nullable','string'],

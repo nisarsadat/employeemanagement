@@ -55,6 +55,10 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     return Number.isFinite(n) ? n : 0;
   }
 
+  function formatMoney(val) {
+    return safeNum(val).toLocaleString();
+  }
+
   function escapeHtml(s) {
     const str = String(s ?? '');
     return str
@@ -157,17 +161,17 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
 
     const pills = [];
 
-    if (fMil && tMil)
+    if (fQ && tQ)
       pills.push(
-        `<span class="pill pill-miladi">میلادي: ${escapeHtml(fMil)} — ${escapeHtml(tMil)}</span>`
+        `<span class="pill pill-qamari">هجري قمري: ${escapeHtml(fQ)} — ${escapeHtml(tQ)}</span>`
       );
     if (fSh && tSh)
       pills.push(
         `<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(fSh)} — ${escapeHtml(tSh)}</span>`
       );
-    if (fQ && tQ)
+    if (fMil && tMil)
       pills.push(
-        `<span class="pill pill-qamari">هجري قمري: ${escapeHtml(fQ)} — ${escapeHtml(tQ)}</span>`
+        `<span class="pill pill-miladi">میلادي: ${escapeHtml(fMil)} — ${escapeHtml(tMil)}</span>`
       );
 
     return pills.join('');
@@ -228,12 +232,11 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     if (clean.length === 0) return '';
 
     const notesTr = clean
-      .map((n, idx) => {
+      .map((n) => {
         const text = escapeHtml(n.text);
         return `
           <tr>
-            <td style="width:8%;">${idx + 1}</td>
-            <td style="width:92%;">${text || '-'}</td>
+            <td style="width:72%;">${text || '-'}</td>
           </tr>
         `;
       })
@@ -245,8 +248,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
           <div class="header-strip bg-primary">
             <div class="strip-left">
               <div>
-                <div class="strip-title">یادونه</div>
-                <div class="strip-sub">د راپور یادونه</div>
+                <div class="strip-title">یادؤنه</div>
               </div>
             </div>
             <span class="chip chip-primary">${clean.length}</span>
@@ -254,12 +256,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
 
           <div style="padding:0;">
             <table>
-              <thead>
-                <tr>
-                  <th style="width:8%;">#</th>
-                  <th style="width:92%;">یادونه</th>
-                </tr>
-              </thead>
+              <thead><tr></tr></thead>
               <tbody>${notesTr}</tbody>
             </table>
           </div>
@@ -269,7 +266,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   }
 
   // =========================
-  // ✅ Format name localization (NOT English in PDF/Word)
+  // ✅ Format name localization
   // =========================
   function formatNameLocal(name) {
     const n = String(name ?? '').trim();
@@ -283,9 +280,11 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
       Event: 'پېښه',
       Finance: 'مالي',
       Finances: 'مالي',
+
       Daily: 'ورځنی',
       Monthly: 'میاشتنی',
       Weekly: 'اوونیز',
+
       Report: 'راپور',
       Form: 'فورم',
       Forms: 'فورمونه',
@@ -295,39 +294,77 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   }
 
   // =========================
-  // Export CSS (✅ same design rules)
-  // - table headers + cells align START (not center)
-  // - keep td-end and td-center for numeric columns
+  // ✅ App font stack (same as your daily/monthly repo)
+  // =========================
+  function appFontStack() {
+    return (
+      `'Amiri','Scheherazade New','Noto Naskh Arabic','Noto Sans Arabic','Tahoma',` +
+      `ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif`
+    );
+  }
+
+  // =========================
+  // ✅ System Name (same logic)
+  // =========================
+  function getSystemName() {
+    try {
+      const a = window?.systemName;
+      if (typeof a === 'string' && a.trim()) return a.trim();
+    } catch {}
+    try {
+      // eslint-disable-next-line no-undef
+      const b = import.meta?.env?.VITE_SYSTEM_NAME;
+      if (typeof b === 'string' && b.trim()) return b.trim();
+    } catch {}
+    return 'د ۳۳۳ مدیریت';
+  }
+
+  const BISMILLAH = 'بسم الله الرحمن الرحیم';
+
+  // =========================
+  // ✅ Export CSS (MATCH daily/monthly EXACT vibe)
+  // - RTL + white page background + same hero bg (#547ca3)
+  // - table align start
   // =========================
   function baseExportCss() {
-    const fontStack =
-      `'Amiri', 'Scheherazade New', ui-sans-serif, -apple-system, BlinkMacSystemFont,` +
-      ` 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji',` +
-      ` 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif`;
+    const fontStack = appFontStack();
 
     return `
+      /* ✅ ensure Arabic/Persian fonts also exist in the print window */
+      @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
+
       @page { size: A4 portrait; margin: 14mm; }
 
-      :root{ --app-font: ${fontStack}; }
-      * { box-sizing: border-box; }
+      :root{
+        --app-font: ${fontStack};
+        --v-font-family: var(--app-font);
+      }
+
+      * {
+        box-sizing: border-box;
+        font-family: var(--app-font) !important;
+        color: #000 !important;
+      }
 
       html, body {
         margin: 0;
         padding: 0;
-        background: #f6f7fb;
-        color: #111827;
+        background: #fff !important;
+        color: #000 !important;
         font-family: var(--app-font) !important;
         font-size: 12px;
+        direction: rtl !important;
+        text-align: right !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
 
-      .page { width: 100%; padding: 8mm; background: #f6f7fb; }
+      .page { width: 100%; padding: 8mm; background: #fff !important; }
 
       .hero {
         border-radius: 16px;
         padding: 18px 18px 14px;
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        background: #547ca3;
         position: relative;
         overflow: hidden;
         box-shadow: 0 18px 40px rgba(79,70,229,.18);
@@ -350,32 +387,35 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         gap:12px;
         position:relative;
         z-index:1;
+        direction: rtl !important;
       }
 
-      .hero-title{
-        color:#fff;
-        font-weight:900;
-        font-size:18px;
-        margin:0 0 4px;
-        letter-spacing:.2px;
-        line-height:1.25;
-      }
-      .hero-sub{
-        color: rgba(255,255,255,.92);
-        margin:0;
-        font-size:12px;
-        line-height:1.55;
-        font-weight:700;
+      .hero, .hero * { color: #fff !important; }
+
+      .hero-system{
+        font-weight: 900;
+        font-size: 12px;
+        margin: 0 0 6px;
+        line-height: 1.4;
       }
 
-      .pills{
-        margin-top:10px;
-        display:flex;
-        gap:8px;
-        flex-wrap:wrap;
-        position:relative;
-        z-index:1;
+      /* ✅ Bismillah BETWEEN logo and other text (NOT at the top) */
+      .hero-bismillah-mid{
+        font-weight: 900;
+        font-size: 13px;
+        margin: 8px 0 10px;
+        line-height: 1.4;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,.28);
+        background: rgba(255,255,255,.14);
+        padding: 6px 10px;
+        border-radius: 999px;
       }
+
+      .hero-title{ font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; }
+      .hero-sub{ margin:0; font-size:12px; line-height:1.55; font-weight:700; }
+
+      .pills{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
       .pill{
         display:inline-block;
         padding:6px 10px;
@@ -384,7 +424,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         font-size:11px;
         border:1px solid rgba(255,255,255,.28);
         background: rgba(255,255,255,.14);
-        color:#fff;
+        color:#fff !important;
       }
 
       .section { margin-top: 12px; }
@@ -412,17 +452,8 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         justify-content:space-between;
         gap:10px;
       }
-      .stat-label{
-        font-size:11px;
-        color: rgba(17,24,39,.65);
-        font-weight:900;
-        margin-bottom:4px;
-      }
-      .stat-number{
-        font-size:22px;
-        font-weight:900;
-        line-height:1.1;
-      }
+      .stat-label{ font-size:11px; font-weight:900; margin-bottom:4px; color:#000 !important; }
+      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; color:#000 !important; }
 
       .badge{
         display:inline-flex;
@@ -435,11 +466,12 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         margin-top:6px;
         border:1px solid;
         white-space:nowrap;
+        color: inherit !important;
       }
-      .b-primary{ background:#eef2ff; color:#1e40af; border-color:#c7d2fe; }
-      .b-info{ background:#e0f2fe; color:#075985; border-color:#bae6fd; }
-      .b-warning{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
-      .b-success{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+      .b-primary{ background:#eef2ff; border-color:#c7d2fe; }
+      .b-info{ background:#e0f2fe; border-color:#bae6fd; }
+      .b-warning{ background:#fff7ed; border-color:#fed7aa; }
+      .b-success{ background:#ecfdf5; border-color:#a7f3d0; }
 
       .header-strip{
         padding:10px 12px;
@@ -447,10 +479,10 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         align-items:center;
         justify-content:space-between;
         gap:10px;
+        direction: rtl !important;
       }
-      .strip-title{ font-weight:900; font-size:12px; margin:0; }
-      .strip-sub{ margin:2px 0 0; color: rgba(17,24,39,.55); font-size:10px; font-weight:800; }
-      .strip-left{ display:flex; align-items:center; gap:10px; }
+      .strip-title{ font-weight:900; font-size:12px; margin:0; color:#000 !important; }
+      .strip-sub{ margin:2px 0 0; font-size:10px; font-weight:800; color:#000 !important; }
 
       .chip{
         padding:5px 10px;
@@ -459,33 +491,35 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         font-size:10px;
         border:1px solid;
         white-space:nowrap;
+        color: inherit !important;
       }
 
       .bg-primary{ background: linear-gradient(135deg,#eef2ff 0%, #dde5ff 100%); }
       .bg-success{ background: linear-gradient(135deg,#e8fbf2 0%, #d2f7e5 100%); }
       .bg-warning{ background: linear-gradient(135deg,#fff6df 0%, #ffeab6 100%); }
 
-      .chip-primary{ background:#eef2ff; border-color:#c7d2fe; color:#1e40af; }
-      .chip-success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
-      .chip-warning{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+      .chip-primary{ background:#eef2ff; border-color:#c7d2fe; }
+      .chip-success{ background:#ecfdf5; border-color:#a7f3d0; }
+      .chip-warning{ background:#fff7ed; border-color:#fed7aa; }
 
-      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; }
+      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; direction: rtl !important; }
+
       thead th{
         background:#f8fafc;
-        color: rgba(17,24,39,.72);
         font-weight:900;
         font-size:11px;
         padding:9px 8px;
         border-bottom:1px solid #eef2f7;
-        text-align:start; /* ✅ start align */
+        text-align: start;
+        color:#000 !important;
       }
       tbody td{
         padding:9px 8px;
         border-bottom:1px solid #f0f4fa;
         font-size:11px;
         vertical-align:middle;
-        color: rgba(17,24,39,.90);
-        text-align:start; /* ✅ start align */
+        text-align:start;
+        color:#000 !important;
       }
       tbody tr:nth-child(even) td{ background: #fcfdff; }
 
@@ -499,29 +533,15 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         font-weight:900;
         font-size:10px;
         border:1px solid;
+        color: inherit !important;
       }
-      .count-primary{ border-color:#c7d2fe; color:#1e40af; background:#eef2ff; }
-      .count-success{ border-color:#a7f3d0; color:#065f46; background:#ecfdf5; }
-
-      .etype{
-        display:inline-block;
-        padding:4px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid #e5e7eb;
-        background:#f3f4f6;
-      }
-      .etype-red{ background:#fee2e2; border-color:#fecaca; color:#991b1b; }
-      .etype-amber{ background:#ffedd5; border-color:#fed7aa; color:#9a3412; }
-      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; color:#5b21b6; }
-      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; color:#1e40af; }
-      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; color:#374151; }
+      .count-primary{ border-color:#c7d2fe; background:#eef2ff; }
+      .count-success{ border-color:#a7f3d0; background:#ecfdf5; }
 
       .hero-logo{
         display:flex;
         align-items:center;
-        justify-content:flex-end;
+        justify-content:flex-start;
         padding:10px 12px;
         border-radius:12px;
         min-width: 150px;
@@ -530,6 +550,21 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
 
       .no-break { break-inside: avoid; page-break-inside: avoid; }
       .card { break-inside: avoid; page-break-inside: avoid; }
+
+      .etype{
+        display:inline-block;
+        padding:3px 10px;
+        border-radius:999px;
+        font-weight:900;
+        font-size:10px;
+        border:1px solid rgba(17,24,39,.12);
+        color:#000 !important;
+      }
+      .etype-red{ background:#fee2e2; border-color:#fecaca; }
+      .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
+      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
+      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; }
+      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; }
 
       @media print{
         .stats-grid{ grid-template-columns: repeat(2, 1fr); }
@@ -555,10 +590,12 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   }
 
   // =========================
-  // Weekly HTML + ✅ notes appended
+  // ✅ Weekly HTML (MATCH daily/monthly + BISMILLAH in the middle)
   // ✅ omit tables if no useful rows
   // =========================
   function buildWeeklyDashboardHtml(report, fromIso, toIso, notes = []) {
+    const systemName = getSystemName();
+
     const resourcesTotal = safeNum(report?.resources?.total);
     const informationsTotal = safeNum(report?.informations?.total);
     const eventsTotal = safeNum(report?.events?.total);
@@ -581,23 +618,12 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-primary">
-                <div class="strip-left">
-                  <div>
-                    <div class="strip-title">د اطلاعات ډولونه</div>
-                    <div class="strip-sub">د ډول له مخې وېش (موده)</div>
-                  </div>
-                </div>
+                <div><div class="strip-title">اطلاعات</div><div class="strip-sub"></div></div>
                 <span class="chip chip-primary">${informationsTotal}</span>
               </div>
-
               <div style="padding:0;">
                 <table>
-                  <thead>
-                    <tr>
-                      <th style="width:70%;">ډول</th>
-                      <th class="td-end" style="width:30%;">شمېر</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th style="width:70%;">ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                   <tbody>
                     ${infoTypes
                       .filter((x) => safeNum(x?.count) > 0)
@@ -626,23 +652,12 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-success">
-                <div class="strip-left">
-                  <div>
-                    <div class="strip-title">لیټري دوسیه</div>
-                    <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
-                  </div>
-                </div>
+                <div><div class="strip-title">پنځوس فارمټ</div></div>
                 <span class="chip chip-success">${formatsActive}</span>
               </div>
-
               <div style="padding:0;">
                 <table>
-                  <thead>
-                    <tr>
-                      <th style="width:70%;">فورم</th>
-                      <th class="td-end" style="width:30%;">شمېر</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th style="width:70%;">فورم</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                   <tbody>
                     ${formats
                       .filter((f) => safeNum(f?.count) > 0)
@@ -671,23 +686,12 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
           <div class="section">
             <div class="card">
               <div class="header-strip bg-warning">
-                <div class="strip-left">
-                  <div>
-                    <div class="strip-title">پېښې (د ډول له مخې)</div>
-                    <div class="strip-sub">د مودې د پېښو وېش</div>
-                  </div>
-                </div>
+                <div><div class="strip-title">پېښې (د ډول له مخې)</div><div class="strip-sub">د مودې د پېښو وېش</div></div>
                 <span class="chip chip-warning">${eventsTotal}</span>
               </div>
-
               <div style="padding:0;">
                 <table>
-                  <thead>
-                    <tr>
-                      <th style="width:70%;">د پېښې ډول</th>
-                      <th class="td-end" style="width:30%;">شمېر</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th style="width:70%;">د پېښې ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                   <tbody>
                     ${eventTypes
                       .filter((t) => safeNum(t?.count) > 0)
@@ -722,14 +726,21 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
           <div class="page">
             <div class="hero no-break">
               <div class="hero-top">
+                <!-- ✅ left block (texts) -->
                 <div>
-                  <h1 class="hero-title">د 333 اوونیز راپور</h1>
-                  <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو عمومي کتنه (له نېټې تر نېټې)</p>
+                  <div class="hero-system">${escapeHtml(systemName)}</div>
+                  <h1 class="hero-title">اوونیز راپور</h1>
+                  <p class="hero-sub">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ اوونیزه عمومي کتنه</p>
                 </div>
+
+                <!-- ✅ logo on the other side -->
                 <div class="hero-logo">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
+
+              <!-- ✅ Bismillah BETWEEN logo and other text (middle row) -->
+              <div class="hero-bismillah-mid">${escapeHtml(BISMILLAH)}</div>
 
               <div class="pills">${heroDatePills || ''}</div>
             </div>
@@ -738,7 +749,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
               <div class="card"><div class="stat-card"><div>
                 <div class="stat-label">منابع</div>
                 <div class="stat-number">${resourcesTotal}</div>
-                <span class="badge b-primary">ثبت شوي</span>
+                <span class="badge b-primary">استخدام ، روزنه او ارزونه ترسره شوه</span>
               </div></div></div>
 
               <div class="card"><div class="stat-card"><div>
@@ -754,7 +765,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
               </div></div></div>
 
               <div class="card"><div class="stat-card"><div>
-                <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
+                <div class="stat-label">پنځوس فارمټ</div>
                 <div class="stat-number">${formatsActive}</div>
               </div></div></div>
             </div>
@@ -769,18 +780,88 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     `;
   }
 
-  function openPrintWindow(html) {
-    const w = window.open('', '_blank', 'width=1100,height=800');
-    if (!w) return false;
+  // =========================
+  // ✅ Print helper (FIX BLANK PDF) — same as daily/monthly
+  // =========================
+  function printHtmlViaIframe(html) {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
+    iframe.setAttribute('aria-hidden', 'true');
 
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
+    document.body.appendChild(iframe);
 
-    w.addEventListener('load', () => {
-      w.focus();
-      w.print();
-    });
+    const w = iframe.contentWindow;
+    const doc = iframe.contentDocument || w.document;
+
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    const waitImages = () =>
+      new Promise((resolve) => {
+        try {
+          const imgs = Array.from(doc.images || []);
+          if (!imgs.length) return resolve();
+
+          let done = 0;
+          const tick = () => {
+            done += 1;
+            if (done >= imgs.length) resolve();
+          };
+
+          imgs.forEach((img) => {
+            if (img.complete) tick();
+            else {
+              img.addEventListener('load', tick, { once: true });
+              img.addEventListener('error', tick, { once: true });
+            }
+          });
+
+          setTimeout(resolve, 2000); // fallback
+        } catch {
+          resolve();
+        }
+      });
+
+    const waitFonts = () =>
+      new Promise((resolve) => {
+        try {
+          const fonts = doc.fonts;
+          if (fonts && typeof fonts.ready?.then === 'function') {
+            fonts.ready.then(resolve).catch(resolve);
+          } else resolve();
+        } catch {
+          resolve();
+        }
+      });
+
+    const doPrint = async () => {
+      try {
+        // allow render
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        await waitFonts();
+        await waitImages();
+
+        w.focus();
+        w.print();
+      } finally {
+        setTimeout(() => {
+          try {
+            document.body.removeChild(iframe);
+          } catch {}
+        }, 1200);
+      }
+    };
+
+    iframe.onload = () => setTimeout(doPrint, 150);
+    setTimeout(doPrint, 600);
 
     return true;
   }
@@ -807,8 +888,9 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
       loading.value = true;
       error.value = '';
 
-      const finalFrom = String(from || selectedFrom.value || currentIsoWeekRange().from);
-      const finalTo = String(to || selectedTo.value || currentIsoWeekRange().to);
+      const r = currentIsoWeekRange();
+      const finalFrom = String(from || selectedFrom.value || r.from);
+      const finalTo = String(to || selectedTo.value || r.to);
 
       selectedFrom.value = finalFrom;
       selectedTo.value = finalTo;
@@ -845,7 +927,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   }
 
   // =========================
-  // EXPORT ACTIONS (✅ with notes)
+  // EXPORT ACTIONS (✅ with notes) — same flow as daily/monthly
   // =========================
   const DownloadWeeklyFoulPdf = async () => {
     const report = weekly.value;
@@ -861,7 +943,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     });
 
     const html = buildWeeklyDashboardHtml(report, fromIso, toIso, notes);
-    openPrintWindow(html);
+    printHtmlViaIframe(html); // ✅ FIX: no more blank PDF + same as daily/monthly
   };
 
   const DownloadWeeklyFoulWord = async () => {

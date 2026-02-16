@@ -17,6 +17,7 @@ class StoreDonelostplaceRequest extends FormRequest
             'lost_person_f_name'   => ['nullable','string'],
             'lost_person_phone'    => ['nullable','string'],
             'lost_person_job'      => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'main_province'        => ['nullable','string'],
             'main_district'        => ['nullable','string'],

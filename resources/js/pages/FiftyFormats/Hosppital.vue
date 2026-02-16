@@ -159,7 +159,14 @@
       :autoDetectDates="false"
       @edit="goEdit"
       @peek="openPeek"
-    >
+    ><template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
       <!-- 🗺 MAP CELL -->
       <template #cell-map="{ row }">
         <FlyToMapButton
@@ -266,6 +273,7 @@
   import FilterableTable from '@/components/FilterableTable.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import PictureCell from '@/components/table/PictureCell.vue';
 
   import { useSchoolRepository } from '@/stores/SchoolRepository';
 
@@ -351,6 +359,8 @@
 
   /* HEADERS for FilterableTable */
   const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
+
     { title: t('نام'), key: 'name' },
     { title: t('بخش مشخص'), key: 'specific_past' },
     { title: t('نوع شفاخانه'), key: 'hospita_type' },

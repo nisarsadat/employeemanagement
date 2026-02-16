@@ -12,6 +12,7 @@ return new class extends Migration {
 
             $table->string('name');
             $table->string('hada_type')->nullable();
+            $table->string('picture')->nullable();
 
             $table->string('responsible_name')->nullable();
             $table->string('responsible_f_name')->nullable();

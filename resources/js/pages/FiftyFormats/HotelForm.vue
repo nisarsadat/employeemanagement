@@ -20,6 +20,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (SAME as your other forms) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- Identity -->
           <!-- <div class="section-header">
             <span class="section-title">
@@ -308,6 +325,9 @@
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ Picture (same as your other forms)
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useBadmashanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -318,6 +338,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (same as your other forms) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -356,6 +380,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API
+    picture_url: null,
 
     hotel_name: '',
     type: '',
@@ -413,6 +440,9 @@
 
     b.id = x.id ?? null;
 
+    // ✅ picture
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.hotel_name = x.hotel_name ?? '';
     b.type = x.type ?? '';
     b.employee_quantity = x.employee_quantity ?? '';
@@ -445,6 +475,11 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+
+      // ✅ reset picker state
+      pictureFile.value = null;
+      pictureChanged.value = false;
+
       return;
     }
 
@@ -452,6 +487,10 @@
       await repo.FetchHotelData?.(id);
       const single = Array.isArray(repo.Hotel) ? repo.Hotel[0] : repo.Hotel || {};
       form.value = { ...mapFromApi(single || {}) };
+
+      // ✅ reset picker state after load
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات هوتل'));
@@ -645,6 +684,10 @@
     try {
       if (!isEdit.value) {
         const fd = buildCreateFormData();
+
+        // ✅ attach picture file (same logic as your other forms)
+        if (pictureFile.value) fd.append('picture', pictureFile.value);
+
         const created = await repo.CreateHotel?.(fd).catch((e) => {
           if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
           return null;
@@ -658,6 +701,10 @@
         }
       } else {
         const fd = buildUpdateFormData();
+
+        // ✅ attach picture file (same logic as your other forms)
+        if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
         const updated = await repo.UpdateHotel?.(form.value.id, fd).catch((e) => {
           if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
           return null;
@@ -680,6 +727,10 @@
 
   /* RESET & NAVIGATION */
   function resetForm() {
+    // ✅ reset picture picker state too
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     if (isEdit.value) {
       loadRecord();
     } else {

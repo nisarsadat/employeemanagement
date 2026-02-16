@@ -24,12 +24,14 @@ class ClubsResource extends JsonResource
 
             'province'         => $this->province,
             'zone'             => $this->zone,
+            'notes'             => $this->notes,
             'district'         => $this->district,
             'specific_place'   => $this->specific_place,
             'cordinate'        => $this->cordinate,
 
             'am_students'      => $this->am_students,
             'pm_students'      => $this->pm_students,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             // relation id
             'resource_id'      => $this->resource_id,

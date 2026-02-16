@@ -18,6 +18,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (ONLY addition in template) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- ================= BASIC INFO ================= -->
           <!-- <div class="section-header">
             <span class="section-title">
@@ -367,6 +384,9 @@
   import { useSchoolRepository } from '@/stores/SchoolRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  /* ✅ Picture (ONLY addition in script imports) */
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useSchoolRepository();
   const route = useRoute();
   const router = useRouter();
@@ -377,6 +397,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (ONLY addition) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -415,6 +439,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    /* ✅ picture url from API (ONLY addition) */
+    picture_url: null,
 
     name: '',
     specific_past: '',
@@ -480,6 +507,9 @@
 
     b.id = x.id ?? null;
 
+    /* ✅ picture mapping (ONLY addition) */
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.name = x.name ?? '';
     b.specific_past = x.specific_past ?? '';
     b.hospita_type = x.hospita_type ?? '';
@@ -508,6 +538,10 @@
     b.resource_id = x.resource_id ?? r.id ?? null;
     b.resource_code = x.resource_code ?? r.code_number ?? '';
     b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
+
+    /* ✅ reset picker state after load (ONLY addition) */
+    pictureFile.value = null;
+    pictureChanged.value = false;
 
     return b;
   }
@@ -539,12 +573,21 @@
     return fd;
   }
 
+  /* ✅ attach picture (ONLY changes here) */
   function buildCreateFormData() {
-    return toFormData({ ...form.value });
+    const fd = toFormData({ ...form.value });
+
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   function buildUpdateFormData() {
-    return toFormData({ ...form.value });
+    const fd = toFormData({ ...form.value });
+
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -804,6 +847,10 @@
 
   /* RESET & NAVIGATION */
   function resetForm() {
+    /* ✅ reset picture picker state too (ONLY addition) */
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     if (isEdit.value) {
       loadRecord();
     } else {

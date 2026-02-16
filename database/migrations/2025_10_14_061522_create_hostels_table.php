@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('hostel_type')->nullable();
             $table->string('people_quantity')->nullable();
             $table->string('people_type')->nullable();
+            $table->string('picture')->nullable();
 
             // Responsible
             $table->string('responsible_name')->nullable();

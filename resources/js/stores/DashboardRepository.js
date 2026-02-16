@@ -24,6 +24,9 @@ export const useDashboardRepository = defineStore('DashboardRepository', {
     formats_by_zone: null,
     khayrat: null,
 
+    // ✅ resources per hawza (separate handy piece)
+    resources_by_hawza: [],
+
     // finance/oil cards
     money: null,
     oil: null,
@@ -107,6 +110,8 @@ export const useDashboardRepository = defineStore('DashboardRepository', {
       this.formats_by_zone = null;
       this.khayrat = null;
 
+      this.resources_by_hawza = [];
+
       this.money = null;
       this.oil = null;
 
@@ -161,6 +166,11 @@ export const useDashboardRepository = defineStore('DashboardRepository', {
         this.informations = data?.informations || null;
         this.events = data?.events || null;
         this.captive_deliveries = data?.captive_deliveries || null;
+
+        // ✅ resources per hawza is nested in backend response: data.resources.resources_by_hawza
+        this.resources_by_hawza = Array.isArray(data?.resources?.resources_by_hawza)
+          ? data.resources.resources_by_hawza
+          : [];
 
         this.money = data?.money || null;
         this.oil = data?.oil || null;

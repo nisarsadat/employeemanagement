@@ -18,6 +18,7 @@ class MahajeratResource extends JsonResource
             'name'              => $this->name,
             'father_name'       => $this->father_name,
             'scientific_level'  => $this->scientific_level,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'main_province'     => $this->main_province,
             'main_district'     => $this->main_district,

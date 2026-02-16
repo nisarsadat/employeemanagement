@@ -17,6 +17,7 @@ class StoreFasadRequest extends FormRequest
             'name'             => ['required', 'string',],
             'nick_name'        => ['nullable', 'string', ],
             'father_name'      => ['nullable', 'string', ],
+            'picture' => ['nullable','image'],
 
             'main_province'    => ['nullable', 'string', ],
             'main_district'    => ['nullable', 'string', ],

@@ -39,6 +39,7 @@ class UpdateSuperMarketRequest extends FormRequest
         'resource_id'          => ['nullable','integer','exists:resources,id'],
         'note'                 => ['nullable','string'],
             'Province_addr'         => ['sometimes','nullable','string'],
+            'picture' => ['nullable','image'],
 
     ];
 

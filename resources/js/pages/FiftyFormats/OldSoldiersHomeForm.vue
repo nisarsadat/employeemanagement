@@ -21,6 +21,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (SAME as your other form) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- موقعیت -->
           <div class="section-header">
             <span class="section-title">{{ t('موقعیت منزل') }}</span>
@@ -197,17 +214,6 @@
                 :error-messages="getErrorMessages('now_activity')"
               />
             </v-col>
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
           </v-row>
 
           <v-divider class="my-4" />
@@ -352,6 +358,9 @@
   import { useMawadRepository } from '@/stores/MawadRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ Picture (same as your other form)
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (l) => (isRtl.value = l === 'fa'));
@@ -361,6 +370,10 @@
   const repo = useMawadRepository();
 
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (same as your other form) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM */
   const formRef = ref(null);
@@ -385,6 +398,9 @@
   /* MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API
+    picture_url: null,
 
     province: '',
     zone: '',
@@ -460,6 +476,9 @@
 
     b.id = x.id ?? null;
 
+    // ✅ picture
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.province = x.province ?? '';
     b.zone = x.zone ?? '';
     b.district = x.district ?? '';
@@ -492,6 +511,9 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+      // ✅ reset picker state
+      pictureFile.value = null;
+      pictureChanged.value = false;
       return;
     }
     try {
@@ -500,6 +522,10 @@
         ? repo.OldSoldiersHome[0]
         : repo.OldSoldiersHome || {};
       form.value = { ...mapFromApi(single) };
+
+      // ✅ reset picker state after load
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات منزل سرباز سابق'));
@@ -551,6 +577,13 @@
     try {
       const fd = toFormData({ ...form.value });
 
+      // ✅ attach picture file (same logic as your other form)
+      if (!isEdit.value) {
+        if (pictureFile.value) fd.append('picture', pictureFile.value);
+      } else {
+        if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+      }
+
       if (isEdit.value && form.value.id) {
         const updated = await repo.UpdateOldSoldiersHome?.(form.value.id, fd).catch((e) => {
           if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
@@ -586,6 +619,10 @@
 
   /* RESET & NAV */
   function resetForm() {
+    // ✅ reset picture picker state too
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     if (isEdit.value) {
       loadRecord();
     } else {

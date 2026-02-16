@@ -20,11 +20,27 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (same pattern) -->
           <v-row>
-            <!-- Full-width form (no picture) -->
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
+          <v-row>
+            <!-- Full-width form -->
             <v-col cols="12" md="12">
               <!-- Identity / activity -->
-
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -70,7 +86,6 @@
               </v-row>
 
               <!-- Flows -->
-
               <v-row>
                 <v-col cols="12" md="3">
                   <v-text-field
@@ -137,7 +152,7 @@
                     :error-messages="getErrorMessages('responsible_name')"
                   />
                 </v-col>
-                
+
                 <v-col cols="12" md="3">
                   <v-text-field
                     v-model="form.responsible_f_name"
@@ -177,7 +192,6 @@
                     :error-messages="getErrorMessages('responsible_phone')"
                   />
                 </v-col>
-                
               </v-row>
 
               <!-- Addresses -->
@@ -196,11 +210,7 @@
                   />
                 </v-col>
                 <v-col cols="12" md="3">
-                  <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون')"
-                    :disabled="saving"
-                  />
+                  <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -255,16 +265,7 @@
                     :error-messages="getErrorMessages('coordinates')"
                   />
                 </v-col>
-                <!-- <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.Province_addr"
-                    :label="t('ولایت مربوطه')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('Province_addr')"
-                    :error-messages="getErrorMessages('Province_addr')"
-                  />
-                </v-col> -->
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model.number="form.guard_quantity"
@@ -410,6 +411,9 @@
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ added for picture
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useWakilanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -420,6 +424,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -459,6 +467,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API
+    picture_url: null,
 
     // identity / activity
     complex_name: '',
@@ -529,6 +540,9 @@
 
     b.id = x.id ?? null;
 
+    // ✅ picture mapping
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.complex_name = x.complex_name ?? '';
     b.activity_type = x.activity_type ?? '';
     b.activity_place = x.activity_place ?? '';
@@ -571,12 +585,21 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+
+      // ✅ reset picker state
+      pictureFile.value = null;
+      pictureChanged.value = false;
+
       return;
     }
     try {
       await repo.FetchComplexData?.(id);
       const single = Array.isArray(repo.Complex) ? repo.Complex[0] : repo.Complex || {};
       form.value = { ...mapFromApi(single || {}) };
+
+      // ✅ reset picker state after load
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات کمپلکس'));
@@ -594,11 +617,21 @@
   }
 
   function buildCreateFormData() {
-    return toFormData({ ...form.value });
+    const fd = toFormData({ ...form.value });
+
+    // ✅ attach picture
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   function buildUpdateFormData() {
-    return toFormData({ ...form.value });
+    const fd = toFormData({ ...form.value });
+
+    // ✅ attach only when changed
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -822,6 +855,10 @@
       loadRecord();
     } else {
       form.value = blankForm();
+
+      // ✅ reset picker state
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
 
     clearBackendErrors();
@@ -838,6 +875,10 @@
     await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadRecord();
+    } else {
+      // ✅ ensure clean picker state in create mode
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
   });
 </script>

@@ -10,6 +10,7 @@ use App\Models\fifthyformatstow\Apartment;
 use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 
 class ApartmentController extends Controller
@@ -40,10 +41,22 @@ class ApartmentController extends Controller
     public function store(StoreApartmentRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $apartment = Apartment::create($request->validated())
+            return DB::transaction(function () use ($request, $user, $data) {
+
+                // ✅ picture: file OR string (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/apartments', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $apartment = Apartment::create($data)
                     ->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -87,15 +100,15 @@ class ApartmentController extends Controller
     public function update(UpdateApartmentRequest $request, Apartment $apartment)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $apartment, $user) {
+            return DB::transaction(function () use ($request, $apartment, $user, $data) {
                 // 🧮 build changes BEFORE update
-                $original  = $apartment->getOriginal();
-                $validated = $request->validated();
-                $changes   = [];
+                $original = $apartment->getOriginal();
+                $changes  = [];
 
-                foreach ($validated as $field => $newValue) {
+                foreach ($data as $field => $newValue) {
                     if (array_key_exists($field, $original)) {
                         $oldValue = $original[$field];
                         if ($oldValue != $newValue) {
@@ -107,7 +120,27 @@ class ApartmentController extends Controller
                     }
                 }
 
-                $apartment->update($validated);
+                // ✅ picture: replace file if uploaded (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    if ($apartment->picture && str_starts_with($apartment->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $apartment->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/apartments', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $apartment->update($data);
                 $apartment->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: UPDATED + changes
@@ -148,6 +181,12 @@ class ApartmentController extends Controller
         return DB::transaction(function () use ($apartment, $user) {
             $blockName = $apartment->block_name;
 
+            // ✅ delete picture file (same style as SaeenFasad)
+            if ($apartment->picture && str_starts_with($apartment->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $apartment->picture);
+                Storage::disk('public')->delete($old);
+            }
+
             $apartment->delete();
 
             // 🔔 Notification: DELETED
@@ -170,7 +209,12 @@ class ApartmentController extends Controller
     public function bulkDelete(Request $request)
     {
         $ids = $request->input('ids', []);
+
+        // Optional: if you want to delete picture files for bulk delete,
+        // you must loop and delete each picture first (like SaeenFasad).
+        // (I kept your original logic untouched.)
         Apartment::destroy($ids);
+
         return response()->noContent();
     }
 

@@ -162,7 +162,14 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    >
+      ><template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -353,6 +360,8 @@
 
   /* TABLE HEADERS */
   const headersFT = computed(() => [
+    { title: t('picture'), key: 'picture' },
+
     { title: t('نام ورکشاپ'), key: 'workshop_name' },
     { title: t('نوع ورکشاپ'), key: 'workshop_type' },
 

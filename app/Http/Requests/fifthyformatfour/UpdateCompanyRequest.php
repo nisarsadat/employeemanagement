@@ -16,6 +16,7 @@ class UpdateCompanyRequest extends FormRequest
             'product_type'                       => ['sometimes','nullable','string'],
             'com_level'                          => ['sometimes','nullable','string'],
             'main_owner'                         => ['sometimes','nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'                   => ['sometimes','nullable','string'],
             'responsible_f_name'                 => ['sometimes','nullable','string'],

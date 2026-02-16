@@ -169,20 +169,14 @@
       @edit="goEdit"
       @peek="openPeek"
     >
-      <!-- 🖼 PICTURE CELL -->
-      <template #cell-picture="{ row }">
-        <div v-if="row.picture" class="pic-wrap" @click.stop="openPreview(row.picture)">
-          <v-avatar size="32">
-            <v-img :src="normalizePicture(row.picture)" :alt="row.name" cover />
-          </v-avatar>
-        </div>
-        <div v-else class="pic-wrap">
-          <v-avatar size="32">
-            <v-icon size="20">mdi-account</v-icon>
-          </v-avatar>
-        </div>
+     <template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
       </template>
-
       <!-- 🔗 RESOURCE CODE CLICKABLE -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -317,6 +311,7 @@ import FlyToMapButton from '@/components/FlyToMapButton.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
 import { useMawadRepository } from '@/stores/MawadRepository';
+import PictureCell from '@/components/table/PictureCell.vue';
 
 const repo = useMawadRepository();
 const router = useRouter();

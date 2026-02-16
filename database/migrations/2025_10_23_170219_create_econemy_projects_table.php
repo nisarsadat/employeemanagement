@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('name')->nullable();
             $table->string('type')->nullable();
 
+            $table->string('picture')->nullable();
             // Responsible person (mirror spellings)
             $table->string('responsiable_name')->nullable();
             $table->string('responsiable_f_name')->nullable();

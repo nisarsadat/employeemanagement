@@ -20,6 +20,7 @@ class PumpResource extends JsonResource
             'responsible_f_name'  => $model->responsible_f_name,
             'responsible_possition'=> $model->responsible_possition,
             'responsible_phone'   => $model->responsible_phone,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'province'            => $model->province,
             'zone'                => $model->zone,

@@ -24,6 +24,7 @@ class MujahedinoResource extends JsonResource
             'main_province' => $model->main_province,
             'main_district' => $model->main_district,
             'main_village'  => $model->main_village,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'now_province' => $model->now_province,
             'now_zone' => $model->now_zone,

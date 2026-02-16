@@ -21,6 +21,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture (ONLY ADDITION) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- Location -->
           <div class="section-header">
             <span class="section-title">{{ t('موقعیت') }}</span>
@@ -87,9 +104,6 @@
           <v-divider class="my-4" />
 
           <!-- Threat / Status -->
-          <!-- <div class="section-header">
-            <span class="section-title">{{ t('تهدید و وضعیت') }}</span>
-          </div> -->
           <v-row>
             <v-col cols="12" md="3">
               <v-text-field
@@ -215,17 +229,6 @@
             <span class="section-title">{{ t('معلومات منبع') }}</span>
           </div>
           <v-row>
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
-
             <!-- Resource mapping (code autocomplete -> id + phone) -->
             <v-col cols="12" md="4">
               <v-autocomplete
@@ -265,7 +268,7 @@
             </v-col>
           </v-row>
 
-          <!-- Actions (✅ add PDF/Word; no other logic change) -->
+          <!-- Actions -->
           <v-row class="mt-4">
             <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
@@ -346,6 +349,9 @@
   import { useMawadRepository } from '@/stores/MawadRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ Picture (ONLY ADDITION)
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useMawadRepository();
   const route = useRoute();
   const router = useRouter();
@@ -356,6 +362,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (ONLY ADDITION) */
+  const pictureFile = ref(null); // File|null
+  const pictureChanged = ref(false);
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -394,6 +404,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ Picture URL from backend (ONLY ADDITION)
+    picture_url: null,
 
     province: '',
     zone: '',
@@ -447,6 +460,9 @@
 
     b.id = x.id ?? null;
 
+    // ✅ Picture mapping (ONLY ADDITION)
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.province = x.province ?? '';
     b.zone = x.zone ?? '';
     b.district = x.district ?? '';
@@ -483,6 +499,11 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+
+      // ✅ reset picture state (ONLY ADDITION)
+      pictureFile.value = null;
+      pictureChanged.value = false;
+
       return;
     }
     try {
@@ -492,6 +513,10 @@
 
       const mapped = mapFromApi(single);
       form.value = { ...mapped };
+
+      // ✅ reset picker after load (ONLY ADDITION)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات نقطه آسیب'));
@@ -510,12 +535,22 @@
 
   function buildCreateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    // ✅ attach picture (ONLY ADDITION)
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    // ✅ attach only if changed (ONLY ADDITION)
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -777,6 +812,10 @@
       loadRecord();
     } else {
       form.value = blankForm();
+
+      // ✅ reset picture state (ONLY ADDITION)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
 
     clearBackendErrors();
@@ -793,6 +832,10 @@
     await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadRecord();
+    } else {
+      // ✅ ensure clean picker state (ONLY ADDITION)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
   });
 </script>

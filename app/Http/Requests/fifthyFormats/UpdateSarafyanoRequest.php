@@ -16,6 +16,7 @@ class UpdateSarafyanoRequest extends FormRequest
         return [
             'name' => ['sometimes','required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
+            'picture' => ['nullable','image'],
 
             'sarafi_name' => ['nullable','string'],
             'sarafi_type' => ['nullable','string'],

@@ -20,6 +20,7 @@ class Robbers extends Model
         'main_village',
 
         'now_province',
+        'picture',
         'now_zone',
         'now_district',
         'now_village',

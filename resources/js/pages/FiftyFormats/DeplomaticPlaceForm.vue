@@ -22,8 +22,24 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
-          <!-- Identity -->
+          <!-- ✅ Picture (ONLY ADDITION) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
 
+          <!-- Identity -->
           <v-row>
             <v-col cols="12" md="3">
               <v-text-field
@@ -54,8 +70,9 @@
                 density="compact"
                 :error="hasError('activity_place')"
                 :error-messages="getErrorMessages('activity_place')"
-              /> </v-col
-            ><v-col cols="12" md="3">
+              />
+            </v-col>
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.supplier_country"
                 :label="t('کشوره حمایه  کننده')"
@@ -145,7 +162,7 @@
                 :error-messages="getErrorMessages('responsible_f_name')"
               />
             </v-col>
-          
+
             <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.responsible_possition"
@@ -156,7 +173,7 @@
                 :error-messages="getErrorMessages('responsible_possition')"
               />
             </v-col>
-              <v-col cols="12" md="3">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.responsible_country"
                 :label="t('کشور مسؤول')"
@@ -166,6 +183,7 @@
                 :error-messages="getErrorMessages('responsible_country')"
               />
             </v-col>
+
             <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.responsible_phone"
@@ -262,17 +280,6 @@
                 :error-messages="getErrorMessages('guard_quantity')"
               />
             </v-col>
-            
-            <!-- <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
           </v-row>
 
           <!-- Security / Resource / Note -->
@@ -343,7 +350,6 @@
                 {{ t('پاک کردن فرم') }}
               </v-btn>
 
-              <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
               <v-btn
                 color="red"
                 variant="tonal"
@@ -397,6 +403,9 @@
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ Picture (ONLY ADDITION)
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useWakilanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -407,6 +416,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (ONLY ADDITION) */
+  const pictureFile = ref(null); // File|null
+  const pictureChanged = ref(false);
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -445,6 +458,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ Picture url from backend (ONLY ADDITION)
+    picture_url: null,
 
     deplomatic_place_name: '',
     activity_type: '',
@@ -486,8 +502,7 @@
   /* RULES */
   const rules = {
     required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
-    nonNegativeInt: (v) =>
-      v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
+    nonNegativeInt: (v) => v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
     phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
   };
 
@@ -507,6 +522,9 @@
     const b = blankForm();
 
     b.id = x.id ?? null;
+
+    // ✅ picture mapping (ONLY ADDITION)
+    b.picture_url = x.picture ?? x.picture_url ?? null;
 
     b.deplomatic_place_name = x.deplomatic_place_name ?? '';
     b.activity_type = x.activity_type ?? '';
@@ -550,6 +568,11 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+
+      // ✅ reset picture picker state (ONLY ADDITION)
+      pictureFile.value = null;
+      pictureChanged.value = false;
+
       return;
     }
     try {
@@ -557,7 +580,12 @@
       const single = Array.isArray(repo.DeplomaticPlace)
         ? repo.DeplomaticPlace[0]
         : repo.DeplomaticPlace || {};
+
       form.value = { ...mapFromApi(single || {}) };
+
+      // ✅ reset picker after load (ONLY ADDITION)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات محل دیپلوماتیک'));
@@ -573,11 +601,23 @@
     });
     return fd;
   }
+
   function buildCreateFormData() {
-    return toFormData({ ...form.value });
+    const fd = toFormData({ ...form.value });
+
+    // ✅ attach picture (ONLY ADDITION)
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
+
   function buildUpdateFormData() {
-    return toFormData({ ...form.value });
+    const fd = toFormData({ ...form.value });
+
+    // ✅ attach only if changed (ONLY ADDITION)
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -601,15 +641,18 @@
       return map[m];
     });
   }
+
   function safeFileName(s) {
     return String(s ?? '')
       .replace(/[\\/:*?"<>|]/g, '-')
       .replace(/\s+/g, ' ')
       .trim();
   }
+
   function v(x) {
     return x && String(x).trim() ? x : '—';
   }
+
   function exportRows() {
     return [
       { label: t('نام محل دیپلوماتیک'), value: v(form.value.deplomatic_place_name) },
@@ -645,6 +688,7 @@
       { label: t('یادداشت'), value: v(form.value.note) },
     ];
   }
+
   function buildSimpleTableHtml() {
     const rows = exportRows()
       .map(
@@ -670,6 +714,7 @@
     </div>
   `;
   }
+
   function buildDocumentHtml() {
     const bodyHtml = buildSimpleTableHtml();
     const safeId = esc(form.value.id || '');
@@ -727,9 +772,7 @@
 
     const link = document.createElement('a');
     link.href = url;
-    link.download = `دیپلوماتیک_${safeFileName(
-      form.value.deplomatic_place_name || 'جدید'
-    )}_${Date.now()}.doc`;
+    link.download = `دیپلوماتیک_${safeFileName(form.value.deplomatic_place_name || 'جدید')}_${Date.now()}.doc`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -802,6 +845,10 @@
       loadRecord();
     } else {
       form.value = blankForm();
+
+      // ✅ reset picture state (ONLY ADDITION)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
 
     clearBackendErrors();
@@ -818,6 +865,10 @@
     await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadRecord();
+    } else {
+      // ✅ ensure clean picker state (ONLY ADDITION)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
   });
 </script>

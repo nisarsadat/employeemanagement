@@ -13,6 +13,7 @@ return new class extends Migration {
             // Masjid details
             $table->string('masjid_name')->nullable();
             $table->string('masjid_type')->nullable();
+            $table->string('picture')->nullable();
 
             // Responsible person
             $table->string('responsible_name')->nullable();

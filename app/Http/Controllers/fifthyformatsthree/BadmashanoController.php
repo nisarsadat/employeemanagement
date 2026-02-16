@@ -10,6 +10,7 @@ use App\Http\Requests\fifthyformatsthree\UpdateBadmashanoRequest;
 use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class BadmashanoController extends Controller
 {
@@ -54,9 +55,20 @@ class BadmashanoController extends Controller
     public function store(StoreBadmashanoRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            $item = Badmashano::create($request->validated())
+            // ✅ picture: file OR string (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                $path = $request->file('picture')->store('uploads/badmashanos', 'public');
+                $data['picture'] = "storage/{$path}";
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $item = Badmashano::create($data)
                 ->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: CREATED
@@ -90,14 +102,14 @@ class BadmashanoController extends Controller
     public function update(UpdateBadmashanoRequest $request, Badmashano $badmashano)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
             // 🧮 build changes BEFORE update
-            $original  = $badmashano->getOriginal();
-            $validated = $request->validated();
-            $changes   = [];
+            $original = $badmashano->getOriginal();
+            $changes  = [];
 
-            foreach ($validated as $field => $newValue) {
+            foreach ($data as $field => $newValue) {
                 if (array_key_exists($field, $original)) {
                     $oldValue = $original[$field];
                     if ($oldValue != $newValue) {
@@ -109,7 +121,27 @@ class BadmashanoController extends Controller
                 }
             }
 
-            $badmashano->update($validated);
+            // ✅ picture: replace file if uploaded (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                if ($badmashano->picture && str_starts_with($badmashano->picture, 'storage/')) {
+                    $old = str_replace('storage/', '', $badmashano->picture);
+                    Storage::disk('public')->delete($old);
+                }
+
+                $path = $request->file('picture')->store('uploads/badmashanos', 'public');
+                $data['picture'] = "storage/{$path}";
+
+                $changes['picture'] = [
+                    'old' => $original['picture'] ?? null,
+                    'new' => $data['picture'],
+                ];
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $badmashano->update($data);
             $badmashano->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: UPDATED
@@ -137,8 +169,13 @@ class BadmashanoController extends Controller
     public function destroy(Request $request, Badmashano $badmashano)
     {
         $user = $request->user(); // 🔔
-
         $name = $badmashano->name;
+
+        // ✅ delete picture file (same style as SaeenFasad)
+        if ($badmashano->picture && str_starts_with($badmashano->picture, 'storage/')) {
+            $old = str_replace('storage/', '', $badmashano->picture);
+            Storage::disk('public')->delete($old);
+        }
 
         $badmashano->delete();
 
@@ -161,8 +198,9 @@ class BadmashanoController extends Controller
     public function bulkDelete(Request $request)
     {
         $user = $request->user(); // 🔔
-
         $ids = (array) $request->input('ids', []);
+
+        // (kept your original logic — if you want file cleanup here too, tell me)
         Badmashano::destroy($ids);
 
         // 🔔 Notification: BULK DELETED

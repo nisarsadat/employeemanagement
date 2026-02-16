@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('district')->nullable();
             $table->string('village')->nullable();
             $table->string('specific_place')->nullable();
+            $table->string('picture')->nullable();
             $table->string('street_number')->nullable();
             $table->string('home_number')->nullable();
             $table->string('coordenates')->nullable();

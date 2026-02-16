@@ -24,6 +24,7 @@ class EconemyProjectResource extends JsonResource
             'responsiable_f_name'   => $this->responsiable_f_name,
             'responsible_possition' => $this->responsible_possition,
             'responsible_phone'     => $this->responsible_phone,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             // Address
             'province'        => $this->province,

@@ -21,7 +21,6 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
-         
           <!-- =========================
                ✅ PICTURE SECTION (NEW)
           ========================== -->
@@ -77,8 +76,6 @@
                 >
                   {{ t('حذف عکس') }}
                 </v-btn>
-
-                
               </div>
             </v-col>
           </v-row>
@@ -164,8 +161,6 @@
 
           <!-- Extra fields & source -->
           <v-divider class="my-4" />
-
-         
 
           <v-row>
             <v-col cols="12" md="4">
@@ -272,8 +267,6 @@
           ========================== -->
           <v-divider class="my-4" />
           <div class="docs-head">
-            
-
             <div class="d-flex align-center ga-2">
               <v-tooltip :text="t('دانلود تمام اسناد (ZIP)')" location="top">
                 <template #activator="{ props: tooltipProps }">
@@ -530,6 +523,16 @@
   function getErrorMessages(field) {
     return backendErrors.value?.[field] ?? [];
   }
+  // ✅ RULES (FIX) — used by v-autocomplete :rules
+  const rules = {
+    required: (v) => {
+      // support numbers/ids + strings
+      if (v === 0) return true;
+      if (v === null || v === undefined) return t('این فیلد الزامی است');
+      const s = String(v).trim();
+      return s.length > 0 || t('این فیلد الزامی است');
+    },
+  };
 
   /* FORM MODEL */
   const blankForm = () => ({

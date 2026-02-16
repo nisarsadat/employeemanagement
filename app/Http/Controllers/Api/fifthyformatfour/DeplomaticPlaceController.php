@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DeplomaticPlaceController extends Controller
 {
@@ -66,10 +67,22 @@ class DeplomaticPlaceController extends Controller
     public function store(StoreDeplomaticPlaceRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $row = DeplomaticPlace::create($request->validated());
+            return DB::transaction(function () use ($request, $user, $data) {
+
+                // ✅ picture: file OR string
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/deplomaticplaces', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $row = DeplomaticPlace::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -107,6 +120,7 @@ class DeplomaticPlaceController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $deplomaticplace, $user) {
+
                 $original  = $deplomaticplace->getOriginal();
                 $validated = $request->validated();
                 $changes   = [];
@@ -120,6 +134,29 @@ class DeplomaticPlaceController extends Controller
                                 'new' => $newValue,
                             ];
                         }
+                    }
+                }
+
+                // ✅ picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+
+                    // delete old
+                    if ($deplomaticplace->picture && str_starts_with($deplomaticplace->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $deplomaticplace->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    // store new
+                    $path = $request->file('picture')->store('uploads/deplomaticplaces', 'public');
+                    $validated['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $validated) && !is_string($validated['picture'])) {
+                        unset($validated['picture']);
                     }
                 }
 
@@ -155,6 +192,12 @@ class DeplomaticPlaceController extends Controller
 
         return DB::transaction(function () use ($deplomaticplace, $user) {
             $name = $deplomaticplace->deplomatic_place_name;
+
+            // ✅ delete picture file
+            if ($deplomaticplace->picture && str_starts_with($deplomaticplace->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $deplomaticplace->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $deplomaticplace->delete();
 

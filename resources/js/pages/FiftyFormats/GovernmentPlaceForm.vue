@@ -22,11 +22,27 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row -->
           <v-row>
-            <!-- Identity + address (FULL WIDTH now; picture removed) -->
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
+          <v-row>
+            <!-- Identity + address -->
             <v-col cols="12">
               <!-- Identity -->
-
               <v-row>
                 <v-col cols="12" md="6">
                   <v-text-field
@@ -123,11 +139,7 @@
                   />
                 </v-col>
                 <v-col cols="12" md="3">
-                  <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون')"
-                    :disabled="saving"
-                  />
+                  <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
                 </v-col>
 
                 <v-col cols="12" md="3">
@@ -151,6 +163,7 @@
                     :error-messages="getErrorMessages('specefic_place')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.coordinates"
@@ -166,11 +179,6 @@
           </v-row>
 
           <v-divider class="my-4" />
-
-          <!-- Extra fields -->
-          <!-- <div class="section-header mb-2">
-            <span class="section-title">{{ t('امنیت، منبع و سایر جزئیات') }}</span>
-          </div> -->
 
           <v-row>
             <v-col cols="12" md="4">
@@ -194,6 +202,7 @@
                 :error-messages="getErrorMessages('amnyatee_khala')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model.number="form.employee_quantity"
@@ -204,6 +213,7 @@
                 :rules="[rules.nonNegativeInt]"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model.number="form.guard_quantity"
@@ -216,17 +226,6 @@
                 :error-messages="getErrorMessages('guard_quantity')"
               />
             </v-col>
-
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
 
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
@@ -346,6 +345,9 @@
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ picture picker
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useWakilanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -356,6 +358,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -395,6 +401,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API
+    picture_url: null,
 
     // identity
     government_place_name: '',
@@ -450,12 +459,15 @@
     form.value.resource_id = found?.id ?? null;
   }
 
-  /* MAP FROM API (picture removed) */
+  /* MAP FROM API (✅ include picture) */
   function mapFromApi(payload = {}) {
     const x = payload.data ?? payload;
     const b = blankForm();
 
     b.id = x.id ?? null;
+
+    // ✅ picture
+    b.picture_url = x.picture ?? x.picture_url ?? null;
 
     b.government_place_name = x.government_place_name ?? '';
     b.daily_clientele = x.daily_clientele ?? '';
@@ -492,6 +504,10 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+
+      // ✅ reset picker state
+      pictureFile.value = null;
+      pictureChanged.value = false;
       return;
     }
     try {
@@ -500,6 +516,10 @@
         ? repo.GovernmentPlace[0]
         : repo.GovernmentPlace || {};
       form.value = { ...mapFromApi(single || {}) };
+
+      // ✅ reset picker state after load
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات اداره دولتی'));
@@ -517,11 +537,21 @@
   }
 
   function buildCreateFormData() {
-    return toFormData({ ...form.value });
+    const fd = toFormData({ ...form.value });
+
+    // ✅ attach picture file on create
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   function buildUpdateFormData() {
-    return toFormData({ ...form.value });
+    const fd = toFormData({ ...form.value });
+
+    // ✅ attach picture file on update ONLY if changed
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -741,6 +771,10 @@
       loadRecord();
     } else {
       form.value = blankForm();
+
+      // ✅ reset picker state
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
 
     clearBackendErrors();

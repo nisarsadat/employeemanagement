@@ -22,6 +22,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (added) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- Identity + responsible + counts + address -->
           <v-row>
             <!-- Identity -->
@@ -362,6 +379,9 @@
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ Picture (added)
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useWakilanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -372,6 +392,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (added) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -410,6 +434,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API (added)
+    picture_url: null,
 
     uni_name: '',
     uni_type: '',
@@ -582,6 +609,9 @@
 
     b.id = x.id ?? null;
 
+    // ✅ picture (added)
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.uni_name = x.uni_name ?? '';
     b.uni_type = x.uni_type ?? '';
     b.Province_addr = x.Province_addr ?? '';
@@ -618,6 +648,11 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+
+      // ✅ reset picker (added)
+      pictureFile.value = null;
+      pictureChanged.value = false;
+
       return;
     }
 
@@ -630,6 +665,10 @@
       form.value = { ...mapped };
 
       if (form.value.resource_code) onResourceCodeChange(form.value.resource_code);
+
+      // ✅ reset picker after load (added)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات دانشگاه'));
@@ -691,6 +730,10 @@
     try {
       if (!isEdit.value) {
         const fd = buildCreateFormData();
+
+        // ✅ attach picture on create (added)
+        if (pictureFile.value) fd.append('picture', pictureFile.value);
+
         const created = await repo.CreateUniversity?.(fd).catch((e) => {
           if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
           return null;
@@ -704,6 +747,10 @@
         }
       } else {
         const fd = buildUpdateFormData();
+
+        // ✅ attach picture on update ONLY if changed (added)
+        if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
         const updated = await repo.UpdateUniversity?.(form.value.id, fd).catch((e) => {
           if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
           return null;
@@ -730,6 +777,11 @@
       loadRecord();
     } else {
       form.value = blankForm();
+
+      // ✅ reset picker on blank (added)
+      pictureFile.value = null;
+      pictureChanged.value = false;
+      form.value.picture_url = null;
     }
 
     clearBackendErrors();

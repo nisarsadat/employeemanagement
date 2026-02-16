@@ -20,6 +20,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (ONLY added part) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <v-row>
             <!-- Identity + addresses -->
             <v-col cols="12" md="12">
@@ -267,18 +284,6 @@
               />
             </v-col>
 
-            <!-- Province addr + resource -->
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
-
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
               <v-autocomplete
@@ -396,6 +401,9 @@
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ Picture (ONLY added import)
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useWakilanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -406,6 +414,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (ONLY added state) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -444,6 +456,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API (ONLY added field)
+    picture_url: null,
 
     // identity
     com_name: '',
@@ -510,6 +525,9 @@
 
     b.id = x.id ?? null;
 
+    // ✅ picture mapping (ONLY added mapping)
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.com_name = x.com_name ?? '';
     b.com_type = x.com_type ?? '';
     b.product_type = x.product_type ?? '';
@@ -559,6 +577,10 @@
 
       const mapped = mapFromApi(single);
       form.value = { ...mapped };
+
+      // ✅ reset picker state after load (ONLY added)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات شرکت'));
@@ -578,12 +600,20 @@
   function buildCreateFormData() {
     const payload = { ...form.value };
     const fd = toFormData(payload);
+
+    // ✅ attach picture file (ONLY added behavior)
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+
     return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
     const fd = toFormData(payload);
+
+    // ✅ attach picture file ONLY when changed (ONLY added behavior)
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
     return fd;
   }
 
@@ -846,6 +876,10 @@
 
   /* RESET & NAVIGATION */
   function resetForm() {
+    // ✅ reset picture picker state too (ONLY added)
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     if (isEdit.value) {
       loadRecord();
     } else {
@@ -866,6 +900,10 @@
     await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadRecord();
+    } else {
+      // ✅ ensure picker default state (ONLY added)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
   });
 </script>

@@ -28,6 +28,7 @@ class SuperMarketResource extends JsonResource
             'coordinates'          => $model->coordinates,
             'employee_quantity'    => $model->employee_quantity,
             'guard_quantity'       => $model->guard_quantity,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             // Flattened from relation (match Fasad style)
             'resource_code'     => optional($model->resource)->code_number,

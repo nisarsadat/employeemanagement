@@ -14,6 +14,7 @@ class UpdateCheckpointRequest extends FormRequest
             'check_point_place'   => ['sometimes','nullable','string'],
             'checkpoint_name'   => ['sometimes','nullable','string'],
             'employee_quantity' => ['sometimes','nullable','integer'],
+            'picture' => ['nullable','image'],
 
             'organ'             => ['sometimes','nullable','string'],
             'create_reason'     => ['sometimes','nullable','string'],

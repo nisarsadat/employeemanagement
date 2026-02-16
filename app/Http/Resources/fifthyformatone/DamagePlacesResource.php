@@ -32,6 +32,7 @@ class DamagePlacesResource extends JsonResource
             'masool_phone'     => $this->masool_phone,
             'Province_addr'               => $this->Province_addr,
             'note'             => $this->note,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             // FK
             'resource_id'      => $this->resource_id,

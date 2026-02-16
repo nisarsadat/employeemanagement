@@ -3,12 +3,14 @@
 namespace App\Models\fifthyformatone;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DamageRasanPlaces extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'province',
@@ -17,6 +19,7 @@ class DamageRasanPlaces extends Model
         'village',
         'specific_place',
         'specific_dot',
+        'picture',
         'coordinates',
         'tahdid_type',
         'percentage',

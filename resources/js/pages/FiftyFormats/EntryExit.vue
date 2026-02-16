@@ -158,6 +158,19 @@
       @edit="goEdit"
       @peek="openPeek"
     >
+      <!-- 👤 picture cell with preview -->
+      <template #cell-picture="{ row }">
+        <div v-if="row.picture" class="pic-wrap">
+          <v-avatar size="32" class="cursor-pointer" @click.stop="openPreview(row.picture)">
+            <v-img :src="normalizePicture(row.picture)" :alt="row.name" cover />
+          </v-avatar>
+        </div>
+        <div v-else class="pic-wrap">
+          <v-avatar size="32">
+            <v-icon size="20">mdi-account</v-icon>
+          </v-avatar>
+        </div>
+      </template>
       <!-- 📡 RESOURCE CODE CLICKABLE -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -233,7 +246,32 @@
         </div>
       </template>
     </FilterableTable>
-
+    <!-- 🖼 IMAGE PREVIEW DIALOG -->
+    <v-dialog v-model="previewOpen" max-width="520">
+      <v-card>
+        <v-toolbar
+          density="compact"
+          color="primary"
+          :title="t('پیش نمایش تصویر')"
+          class="text-white"
+        />
+        <v-card-text class="d-flex justify-center">
+          <v-img
+            v-if="previewSrc"
+            :src="previewSrc"
+            :alt="t('پیش نمایش')"
+            max-width="480"
+            max-height="420"
+            cover
+          />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn color="primary" variant="flat" @click="previewOpen = false">
+            {{ t('بستن') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -317,6 +355,31 @@
     return { total, withCoordinates, withPost, withResource };
   });
 
+  // the picture part
+  /* IMAGE PREVIEW */
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
+
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
+
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+    clean = clean.replace(/\\\//g, '/');
+
+    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+    if (clean.startsWith('/')) return clean;
+
+    return '/' + clean.replace(/^\/+/, '');
+  }
+
+  function openPreview(src) {
+    const normalized = normalizePicture(src);
+    if (!normalized) return;
+    previewSrc.value = normalized;
+    previewOpen.value = true;
+  }
   const filteredRowsFT = computed(() => {
     const base = rowsFT.value || [];
     switch (cardFilter.value) {
@@ -334,6 +397,7 @@
   /* TABLE HEADERS – list view */
   const headersFT = computed(() => [
     // { title: t('نام'), key: 'name' },
+    { title: t('تصویر'), key: 'picture', sortable: false },
     { title: t('طریق ورود/خروج'), key: 'entry_way' },
     { title: t('نوعه طریق'), key: 'way_type' },
 

@@ -18,6 +18,7 @@ class StoreUniversityRequest extends FormRequest
             'responsible_f_name'         => ['nullable','string'],
             'responsible_position'       => ['nullable','string'],
             'responsible_phone'          => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'male_teachers_quantity'     => ['nullable','integer'],
             'female_teachers_quantity'   => ['nullable','integer'],

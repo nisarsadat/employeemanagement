@@ -24,6 +24,7 @@ class MasjidResource extends JsonResource
             'responsible_old_job'           => $model->responsible_old_job,
             'responsible_now_job'           => $model->responsible_now_job,
             'responsible_tarfdary'          => $model->responsible_tarfdary,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'responsible_main_province'     => $model->responsible_main_province,
             'responsible_main_district'     => $model->responsible_main_district,

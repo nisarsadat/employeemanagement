@@ -15,19 +15,26 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     // Quarterly report payload from backend
     const quarterly = ref(null);
 
-    // ✅ NEW FILTERS (From/To)
+    // ✅ FILTERS (From/To)
     const fromDate = ref(''); // YYYY-MM-DD
     const toDate = ref(''); // YYYY-MM-DD
 
     // =========================
     // Helpers
     // =========================
-    function todayIso() {
-      const d = new Date();
+    function pad2(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function isoDate(d) {
       const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
+      const m = pad2(d.getMonth() + 1);
+      const day = pad2(d.getDate());
       return `${y}-${m}-${day}`;
+    }
+
+    function todayIso() {
+      return isoDate(new Date());
     }
 
     function safeNum(val) {
@@ -47,7 +54,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
 
     function normalizeError(e) {
       const data = e?.response?.data;
-
       let msg = 'د ربعه راپور ترلاسه کولو کې ستونزه رامنځته شوه.';
 
       if (typeof data === 'string') return data;
@@ -84,67 +90,74 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // ✅ DATE DISPLAY (Shamsi + Qamari)  ✅ ONLY CHANGE YOU ASKED
+    // ✅ DATE DISPLAY (Miladi + Shamsi + Qamari)
     // =========================
-    function isoToDate(iso) {
+    function formatMiladi(iso) {
       const s = String(iso || '').trim();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
-      // parse as UTC midnight to avoid timezone shifting
-      const d = new Date(`${s}T00:00:00.000Z`);
-      if (Number.isNaN(d.getTime())) return null;
-      return d;
+      return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
     }
 
-    function formatCalendarDate(iso, calendar) {
-      const d = isoToDate(iso);
-      if (!d) return '';
-
-      // Use Intl calendar formatting.
-      // - Shamsi: 'persian'
-      // - Qamari: 'islamic-umalqura' (widely supported). If not supported, fallback gracefully.
+    function formatHijriShamsi(iso) {
       try {
-        const fmt = new Intl.DateTimeFormat('fa-AF-u-ca-' + calendar, {
+        const d = new Date(`${iso}T00:00:00`);
+        return new Intl.DateTimeFormat('fa-AF-u-ca-persian', {
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
-        });
-        return fmt.format(d);
+        }).format(d);
       } catch {
-        // fallback to default locale (still will show something)
+        return '';
+      }
+    }
+
+    function formatHijriQamari(iso) {
+      try {
+        const d = new Date(`${iso}T00:00:00`);
+        return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(d);
+      } catch {
         try {
-          const fmt2 = new Intl.DateTimeFormat('fa-AF', {
+          const d = new Date(`${iso}T00:00:00`);
+          return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
-          });
-          return fmt2.format(d);
+          }).format(d);
         } catch {
-          return String(iso || '');
+          return '';
         }
       }
     }
 
-    function buildRangeLabel(from, to) {
-      const f = String(from || '').trim();
-      const t = String(to || '').trim();
-      if (!f || !t) return '';
+    function buildDatePillsRange(fromIso, toIso) {
+      const fMil = formatMiladi(fromIso);
+      const tMil = formatMiladi(toIso);
 
-      // Shamsi (Hijri Shamsi / Jalali)
-      const shFrom = formatCalendarDate(f, 'persian');
-      const shTo = formatCalendarDate(t, 'persian');
+      const fSh = formatHijriShamsi(fromIso);
+      const tSh = formatHijriShamsi(toIso);
 
-      // Qamari (Hijri Qamari)
-      const qaFrom = formatCalendarDate(f, 'islamic-umalqura');
-      const qaTo = formatCalendarDate(t, 'islamic-umalqura');
+      const fQ = formatHijriQamari(fromIso);
+      const tQ = formatHijriQamari(toIso);
 
-      // Build combined label (ONLY for header)
-      const shRange = shFrom && shTo ? `${shFrom} تر ${shTo}` : '';
-      const qaRange = qaFrom && qaTo ? `${qaFrom} تر ${qaTo}` : '';
+      const pills = [];
 
-      if (shRange && qaRange) return `هجري شمسي: ${shRange} | هجري قمري: ${qaRange}`;
-      if (shRange) return `هجري شمسي: ${shRange}`;
-      if (qaRange) return `هجري قمري: ${qaRange}`;
-      return `${f} تر ${t}`;
+      if (fQ && tQ)
+        pills.push(
+          `<span class="pill pill-qamari">هجري قمري: ${escapeHtml(fQ)} — ${escapeHtml(tQ)}</span>`
+        );
+      if (fSh && tSh)
+        pills.push(
+          `<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(fSh)} — ${escapeHtml(tSh)}</span>`
+        );
+      if (fMil && tMil)
+        pills.push(
+          `<span class="pill pill-miladi">میلادي: ${escapeHtml(fMil)} — ${escapeHtml(tMil)}</span>`
+        );
+
+      return pills.join('');
     }
 
     // =========================
@@ -186,7 +199,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
           }
         }
       }
-
       return [];
     }
 
@@ -194,9 +206,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       if (!hasUsefulNotes(notes)) return '';
 
       const clean = notes
-        .map((n) => ({
-          text: String(n?.report_note ?? n?.note ?? '').trim(),
-        }))
+        .map((n) => ({ text: String(n?.report_note ?? n?.note ?? '').trim() }))
         .filter((x) => x.text);
 
       if (clean.length === 0) return '';
@@ -219,8 +229,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             <div class="header-strip bg-primary">
               <div class="strip-left">
                 <div>
-                  <div class="strip-title">یادوونه</div>
-                  <div class="strip-sub">د راپور یادوونه</div>
+                  <div class="strip-title">یادؤنه</div>
                 </div>
               </div>
               <span class="chip chip-primary">${clean.length}</span>
@@ -243,226 +252,311 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // Export CSS (unchanged)
+    // ✅ Format name localization (same as your weekly)
+    // =========================
+    function formatNameLocal(name) {
+      const n = String(name ?? '').trim();
+      if (!n) return '';
+
+      const map = {
+        Resources: 'منابع',
+        Informations: 'اطلاعات',
+        Information: 'اطلاعات',
+        Events: 'پېښې',
+        Event: 'پېښه',
+        Finance: 'مالي',
+        Finances: 'مالي',
+
+        Daily: 'ورځنی',
+        Monthly: 'میاشتنی',
+        Weekly: 'اوونیز',
+        Quarterly: 'ربعه',
+
+        Report: 'راپور',
+        Form: 'فورم',
+        Forms: 'فورمونه',
+      };
+
+      return map[n] || n;
+    }
+
+    function appFontStack() {
+      return (
+        `'Amiri','Scheherazade New','Noto Naskh Arabic','Noto Sans Arabic','Tahoma',` +
+        `ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif`
+      );
+    }
+
+    function getSystemName() {
+      try {
+        const a = window?.systemName;
+        if (typeof a === 'string' && a.trim()) return a.trim();
+      } catch {}
+      try {
+        // eslint-disable-next-line no-undef
+        const b = import.meta?.env?.VITE_SYSTEM_NAME;
+        if (typeof b === 'string' && b.trim()) return b.trim();
+      } catch {}
+      return 'د ۳۳۳ مدیریت';
+    }
+
+    const BISMILLAH = 'بسم الله الرحمن الرحیم';
+
+    // =========================
+    // ✅ Export CSS (SAME STYLE AS DAILY/MONTHLY/WEEKLY you approved)
+    // - WHITE background
+    // - RTL
+    // - HERO background #547ca3
+    // - tables aligned start
     // =========================
     function baseExportCss() {
-      const fontStack =
-        `'Amiri', 'Scheherazade New', ui-sans-serif, -apple-system, BlinkMacSystemFont,` +
-        ` 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji',` +
-        ` 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif`;
+      const fontStack = appFontStack();
 
       return `
-      @page { size: A4 portrait; margin: 14mm; }
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
 
-      :root{ --app-font: ${fontStack}; }
-      * { box-sizing: border-box; }
+        @page { size: A4 portrait; margin: 14mm; }
 
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: #f6f7fb;
-        color: #111827;
-        font-family: var(--app-font) !important;
-        font-size: 12px;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
+        :root{
+          --app-font: ${fontStack};
+          --v-font-family: var(--app-font);
+        }
 
-      .page { width: 100%; padding: 8mm; background: #f6f7fb; }
+        * {
+          box-sizing: border-box;
+          font-family: var(--app-font) !important;
+          color: #000 !important;
+        }
 
-      .hero {
-        border-radius: 16px;
-        padding: 18px 18px 14px;
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 18px 40px rgba(79,70,229,.18);
-      }
-      .hero::before{
-        content:"";
-        position:absolute;
-        inset:0;
-        opacity:.42;
-        background:
-          radial-gradient(circle at 16% 26%, rgba(255,255,255,.20) 0 2px, transparent 3px) 0 0/26px 26px,
-          radial-gradient(circle at 70% 40%, rgba(255,255,255,.14) 0 2px, transparent 3px) 0 0/34px 34px;
-        pointer-events:none;
-      }
+        html, body {
+          margin: 0;
+          padding: 0;
+          background: #fff !important;
+          color: #000 !important;
+          font-family: var(--app-font) !important;
+          font-size: 12px;
+          direction: rtl !important;
+          text-align: right !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
 
-      .hero-top{
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap:12px;
-        position:relative;
-        z-index:1;
-      }
+        .page { width: 100%; padding: 8mm; background: #fff !important; }
 
-      .hero-top > div:first-child { text-align: start; }
+        .hero {
+          border-radius: 16px;
+          padding: 18px 18px 14px;
+          background: #547ca3;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 18px 40px rgba(79,70,229,.18);
+        }
+        .hero::before{
+          content:"";
+          position:absolute;
+          inset:0;
+          opacity:.42;
+          background:
+            radial-gradient(circle at 16% 26%, rgba(255,255,255,.20) 0 2px, transparent 3px) 0 0/26px 26px,
+            radial-gradient(circle at 70% 40%, rgba(255,255,255,.14) 0 2px, transparent 3px) 0 0/34px 34px;
+          pointer-events:none;
+        }
 
-      .hero-title{
-        color:#fff;
-        font-weight:900;
-        font-size:18px;
-        margin:0 0 4px;
-        letter-spacing:.2px;
-        line-height:1.25;
-        text-align:start;
-      }
+        .hero-top{
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:12px;
+          position:relative;
+          z-index:1;
+          direction: rtl !important;
+        }
 
-      .hero-sub{
-        color: rgba(255,255,255,.92);
-        margin:0;
-        font-size:12px;
-        line-height:1.55;
-        font-weight:700;
-        text-align:start;
-      }
+        .hero, .hero * { color: #fff !important; }
 
-      .pills{
-        margin-top:10px;
-        display:flex;
-        gap:8px;
-        flex-wrap:wrap;
-        position:relative;
-        z-index:1;
-        justify-content:flex-start;
-      }
+        .hero-text{ flex: 1.2; min-width: 0; }
+        .hero-mid{ flex: 1; display:flex; justify-content:center; }
+        .hero-logo{ flex: 0.6; display:flex; justify-content:flex-start; align-items:flex-start; margin-right:44px;}
 
-      .pill{
-        display:inline-block;
-        padding:6px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:11px;
-        border:1px solid rgba(255,255,255,.28);
-        background: rgba(255,255,255,.14);
-        color:#fff;
-      }
+        .hero-system{
+          font-weight: 900;
+          font-size: 12px;
+          margin: 0 0 6px;
+          line-height: 1.4;
+        }
 
-      .section { margin-top: 12px; }
+        /* ✅ Bismillah BETWEEN logo and other text (middle column) */
+        .hero-bismillah-mid{
+          font-weight: 900;
+          font-size: 13px;
+          margin: 0;
+          margin-top: 24px;
+          line-height: 1.4;
+          text-align: center;
+          border: 1px solid rgba(255,255,255,.28);
+          background: rgba(255,255,255,.14);
+          padding: 6px 10px;
+          border-radius: 999px;
+          align-self: flex-start;
+        }
 
-      .stats-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:12px; }
+        .hero-title{ font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; }
+        .hero-sub{ margin:0; font-size:12px; line-height:1.55; font-weight:700; }
 
-      .card{
-        background:#fff;
-        border:1px solid #e9eef7;
-        border-radius:14px;
-        overflow:hidden;
-        box-shadow: 0 10px 22px rgba(17,24,39,.06);
-      }
+        .pills{
+          margin-top:10px;
+          display:flex;
+          gap:8px;
+          flex-wrap:wrap;
+          position:relative;
+          z-index:1;
+        }
+        .pill{
+          display:inline-block;
+          padding:6px 10px;
+          border-radius:999px;
+          font-weight:900;
+          font-size:11px;
+          border:1px solid rgba(255,255,255,.28);
+          background: rgba(255,255,255,.14);
+          color:#fff !important;
+        }
 
-      .stat-card{ padding:12px 12px; min-height:90px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-      .stat-label{ font-size:11px; color: rgba(17,24,39,.65); font-weight:900; margin-bottom:4px; text-align:start; }
-      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; text-align:start; }
+        .section { margin-top: 12px; }
 
-      .badge{
-        display:inline-flex;
-        align-items:center;
-        gap:6px;
-        padding:4px 10px;
-        border-radius:999px;
-        font-size:10px;
-        font-weight:900;
-        margin-top:6px;
-        border:1px solid;
-        white-space:nowrap;
-      }
-      .b-primary{ background:#eef2ff; color:#1e40af; border-color:#c7d2fe; }
-      .b-info{ background:#e0f2fe; color:#075985; border-color:#bae6fd; }
-      .b-warning{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
-      .b-success{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+        .stats-grid{
+          display:grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap:10px;
+          margin-top:12px;
+        }
 
-      .header-strip{
-        padding:10px 12px;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:10px;
-      }
+        .card{
+          background:#fff;
+          border:1px solid #e9eef7;
+          border-radius:14px;
+          overflow:hidden;
+          box-shadow: 0 10px 22px rgba(17,24,39,.06);
+        }
 
-      .strip-left { display:flex; align-items:flex-start; gap:10px; }
-      .strip-left > div { text-align:start; }
+        .stat-card{
+          padding:12px 12px;
+          min-height:90px;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:10px;
+        }
+        .stat-label{ font-size:11px; font-weight:900; margin-bottom:4px; color:#000 !important; }
+        .stat-number{ font-size:22px; font-weight:900; line-height:1.1; color:#000 !important; }
 
-      .strip-title{ font-weight:900; font-size:12px; margin:0; text-align:start; }
-      .strip-sub{ margin:2px 0 0; color: rgba(17,24,39,.55); font-size:10px; font-weight:800; text-align:start; }
+        .badge{
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+          padding:4px 10px;
+          border-radius:999px;
+          font-size:10px;
+          font-weight:900;
+          margin-top:6px;
+          border:1px solid;
+          white-space:nowrap;
+          color: inherit !important;
+        }
+        .b-primary{ background:#eef2ff; border-color:#c7d2fe; }
+        .b-info{ background:#e0f2fe; border-color:#bae6fd; }
+        .b-warning{ background:#fff7ed; border-color:#fed7aa; }
+        .b-success{ background:#ecfdf5; border-color:#a7f3d0; }
 
-      .chip{
-        padding:5px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid;
-        white-space:nowrap;
-      }
+        .header-strip{
+          padding:10px 12px;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:10px;
+          direction: rtl !important;
+        }
+        .strip-title{ font-weight:900; font-size:12px; margin:0; color:#000 !important; }
+        .strip-sub{ margin:2px 0 0; font-size:10px; font-weight:800; color:#000 !important; }
 
-      .bg-primary{ background: linear-gradient(135deg,#eef2ff 0%, #dde5ff 100%); }
-      .bg-success{ background: linear-gradient(135deg,#e8fbf2 0%, #d2f7e5 100%); }
-      .bg-warning{ background: linear-gradient(135deg,#fff6df 0%, #ffeab6 100%); }
+        .chip{
+          padding:5px 10px;
+          border-radius:999px;
+          font-weight:900;
+          font-size:10px;
+          border:1px solid;
+          white-space:nowrap;
+          color: inherit !important;
+        }
 
-      .chip-primary{ background:#eef2ff; border-color:#c7d2fe; color:#1e40af; }
-      .chip-success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
-      .chip-warning{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+        .bg-primary{ background: linear-gradient(135deg,#eef2ff 0%, #dde5ff 100%); }
+        .bg-success{ background: linear-gradient(135deg,#e8fbf2 0%, #d2f7e5 100%); }
+        .bg-warning{ background: linear-gradient(135deg,#fff6df 0%, #ffeab6 100%); }
 
-      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; }
-      thead th{
-        background:#f8fafc;
-        color: rgba(17,24,39,.72);
-        font-weight:900;
-        font-size:11px;
-        padding:9px 8px;
-        border-bottom:1px solid #eef2f7;
-        text-align:start;
-      }
-      tbody td{
-        padding:9px 8px;
-        border-bottom:1px solid #f0f4fa;
-        font-size:11px;
-        vertical-align:middle;
-        color: rgba(17,24,39,.90);
-        text-align:start;
-      }
-      tbody tr:nth-child(even) td{ background: #fcfdff; }
+        .chip-primary{ background:#eef2ff; border-color:#c7d2fe; }
+        .chip-success{ background:#ecfdf5; border-color:#a7f3d0; }
+        .chip-warning{ background:#fff7ed; border-color:#fed7aa; }
 
-      .td-end{ text-align:end; }
+        table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; direction: rtl !important; }
 
-      .count-pill{
-        display:inline-block;
-        padding:4px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid;
-      }
-      .count-primary{ border-color:#c7d2fe; color:#1e40af; background:#eef2ff; }
-      .count-success{ border-color:#a7f3d0; color:#065f46; background:#ecfdf5; }
+        thead th{
+          background:#f8fafc;
+          font-weight:900;
+          font-size:11px;
+          padding:9px 8px;
+          border-bottom:1px solid #eef2f7;
+          text-align: start;
+          color:#000 !important;
+        }
+        tbody td{
+          padding:9px 8px;
+          border-bottom:1px solid #f0f4fa;
+          font-size:11px;
+          vertical-align:middle;
+          text-align:start;
+          color:#000 !important;
+        }
+        tbody tr:nth-child(even) td{ background: #fcfdff; }
 
-      .hero-logo{
-        display:flex;
-        align-items:center;
-        justify-content:flex-end;
-        padding:10px 12px;
-        border-radius:12px;
-        min-width: 150px;
-      }
-      .hero-logo img{ height:82px; width:auto; object-fit:contain; display:block; }
+        .td-end{ text-align:end; }
 
-      .no-break { break-inside: avoid; page-break-inside: avoid; }
-      .card { break-inside: avoid; page-break-inside: avoid; }
+        .count-pill{
+          display:inline-block;
+          padding:4px 10px;
+          border-radius:999px;
+          font-weight:900;
+          font-size:10px;
+          border:1px solid;
+          color: inherit !important;
+        }
+        .count-primary{ border-color:#c7d2fe; background:#eef2ff; }
+        .count-success{ border-color:#a7f3d0; background:#ecfdf5; }
 
-      @media print{ .stats-grid{ grid-template-columns: repeat(2, 1fr); } }
-    `;
+        .hero-logo{
+          display:flex;
+          align-items:center;
+          justify-content:flex-start;
+          padding:10px 12px;
+          border-radius:12px;
+          min-width: 150px;
+        }
+        .hero-logo img{ height:82px; width:auto; object-fit:contain; display:block; }
+
+        .no-break { break-inside: avoid; page-break-inside: avoid; }
+        .card { break-inside: avoid; page-break-inside: avoid; }
+
+        @media print{
+          .stats-grid{ grid-template-columns: repeat(2, 1fr); }
+        }
+      `;
     }
 
     // =========================
-    // Quarterly HTML (now shows Hijri Shamsi + Hijri Qamari in header)
+    // Quarterly HTML (✅ same style + bismillah middle + date pills)
+    // ✅ omit tables if no useful rows
     // =========================
-    function buildQuarterlyDashboardHtml(report, from, to, notes = []) {
-      const fromText = String(from || fromDate.value || '').trim();
-      const toText = String(to || toDate.value || '').trim();
-
-      // ✅ CHANGE: rangeLabel is now Shamsi + Qamari (not miladi)
-      const rangeLabel = buildRangeLabel(fromText, toText);
+    function buildQuarterlyDashboardHtml(report, fromIso, toIso, notes = []) {
+      const systemName = getSystemName();
 
       const resourcesTotal = safeNum(report?.resources?.total);
       const informationsTotal = safeNum(report?.informations?.total);
@@ -478,9 +572,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         return `${window.location.origin}/logo.jpeg`;
       }
 
-      const pills = rangeLabel
-        ? `<span class="pill">د راپور موده: ${escapeHtml(rangeLabel)}</span>`
-        : '';
+      const datePills = buildDatePillsRange(fromIso, toIso);
 
       const infoSection =
         hasUsefulRows(infoTypes, 'count')
@@ -488,15 +580,12 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             <div class="section">
               <div class="card no-break">
                 <div class="header-strip bg-primary">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">د اطلاعاتو ډولونه</div>
-                      <div class="strip-sub">د ډول له مخې وېش</div>
-                    </div>
+                  <div>
+                    <div class="strip-title">اطلاعات</div>
+                    <div class="strip-sub"></div>
                   </div>
                   <span class="chip chip-primary">${informationsTotal}</span>
                 </div>
-
                 <div style="padding:0;">
                   <table>
                     <thead>
@@ -533,15 +622,12 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             <div class="section">
               <div class="card no-break">
                 <div class="header-strip bg-success">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">پنځوس فارمټ</div>
-                      <div class="strip-sub">د پنځوس فارمټ لنډیز</div>
-                    </div>
+                  <div>
+                    <div class="strip-title">پنځوس فارمټ</div>
+                    <div class="strip-sub">د پنځوس فارمټ لنډیز</div>
                   </div>
                   <span class="chip chip-success">${formatsActive}</span>
                 </div>
-
                 <div style="padding:0;">
                   <table>
                     <thead>
@@ -554,7 +640,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
                       ${formats
                         .filter((f) => safeNum(f?.count) > 0)
                         .map((f) => {
-                          const name = escapeHtml(String(f?.name ?? ''));
+                          const name = escapeHtml(formatNameLocal(f?.name ?? ''));
                           const count = safeNum(f?.count);
                           return `
                             <tr>
@@ -578,15 +664,12 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             <div class="section">
               <div class="card">
                 <div class="header-strip bg-warning">
-                  <div class="strip-left">
-                    <div>
-                      <div class="strip-title">پېښې (د ډول له مخې)</div>
-                      <div class="strip-sub">د پېښو وېش</div>
-                    </div>
+                  <div>
+                    <div class="strip-title">پېښې (د ډول له مخې)</div>
+                    <div class="strip-sub">د مودې د پېښو وېش</div>
                   </div>
                   <span class="chip chip-warning">${eventsTotal}</span>
                 </div>
-
                 <div style="padding:0;">
                   <table>
                     <thead>
@@ -618,75 +701,151 @@ export const useFoulQuarterlyReportsRepository = defineStore(
           : '';
 
       return `
-      <html dir="rtl">
-        <head>
-          <meta charset="utf-8" />
-          <title>quarterly_dashboard_${escapeHtml(rangeLabel || 'range')}</title>
-          <style>${baseExportCss()}</style>
-        </head>
-        <body>
-          <div class="page">
-            <div class="hero no-break">
-              <div class="hero-top">
-                <div>
-                  <h1 class="hero-title">د 333 ربعه راپور</h1>
-                  <p class="hero-sub">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ عمومي کتنه</p>
+        <html dir="rtl">
+          <head>
+            <meta charset="utf-8" />
+            <title>quarterly_dashboard_${escapeHtml(fromIso || 'from')}_${escapeHtml(toIso || 'to')}</title>
+            <style>${baseExportCss()}</style>
+          </head>
+          <body>
+            <div class="page">
+              <div class="hero no-break">
+                <div class="hero-top">
+                  <div class="hero-text">
+                    <div class="hero-system">${escapeHtml(systemName)}</div>
+                    <h1 class="hero-title">ربعه راپور</h1>
+                    <p class="hero-sub">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ عمومي کتنه</p>
+                  </div>
+
+                  <!-- ✅ Bismillah in the middle column -->
+                  <div class="hero-mid">
+                    <div class="hero-bismillah-mid">${escapeHtml(BISMILLAH)}</div>
+                  </div>
+
+                  <div class="hero-logo">
+                    <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
+                  </div>
                 </div>
-                <div class="hero-logo">
-                  <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
-                </div>
+
+                <div class="pills">${datePills || ''}</div>
               </div>
 
-              <div class="pills">${pills}</div>
+              <div class="stats-grid section no-break">
+                <div class="card"><div class="stat-card"><div>
+                  <div class="stat-label">منابع</div>
+                  <div class="stat-number">${resourcesTotal}</div>
+                  <span class="badge b-primary">استخدام ، روزنه او ارزونه ترسره شوه</span>
+                </div></div></div>
+
+                <div class="card"><div class="stat-card"><div>
+                  <div class="stat-label">اطلاعات</div>
+                  <div class="stat-number">${informationsTotal}</div>
+                  <span class="badge b-info">شتون لري</span>
+                </div></div></div>
+
+                <div class="card"><div class="stat-card"><div>
+                  <div class="stat-label">پېښې</div>
+                  <div class="stat-number">${eventsTotal}</div>
+                  <span class="badge b-warning">ثبت شوې</span>
+                </div></div></div>
+
+                <div class="card"><div class="stat-card"><div>
+                  <div class="stat-label">پنځوس فارمټ</div>
+                  <div class="stat-number">${formatsActive}</div>
+                </div></div></div>
+              </div>
+
+              ${infoSection}
+              ${formatsSection}
+              ${eventsSection}
+              ${buildNotesSectionHtml(notes)}
             </div>
-
-            <div class="stats-grid section no-break">
-              <div class="card"><div class="stat-card"><div>
-                <div class="stat-label">منابع</div>
-                <div class="stat-number">${resourcesTotal}</div>
-                <span class="badge b-primary">استخدام روزنه او ارزونه ترسره شوه</span>
-              </div></div></div>
-
-              <div class="card"><div class="stat-card"><div>
-                <div class="stat-label">اطلاعات</div>
-                <div class="stat-number">${informationsTotal}</div>
-                <span class="badge b-info">شتون لري</span>
-              </div></div></div>
-
-              <div class="card"><div class="stat-card"><div>
-                <div class="stat-label">پېښې</div>
-                <div class="stat-number">${eventsTotal}</div>
-                <span class="badge b-warning">ثبت شوې</span>
-              </div></div></div>
-
-              <div class="card"><div class="stat-card"><div>
-                <div class="stat-label">پنځوس فارمټ</div>
-                <div class="stat-number">${formatsActive}</div>
-              </div></div></div>
-            </div>
-
-            ${infoSection}
-            ${formatsSection}
-            ${eventsSection}
-            ${buildNotesSectionHtml(notes)}
-          </div>
-        </body>
-      </html>
-    `;
+          </body>
+        </html>
+      `;
     }
 
-    function openPrintWindow(html) {
-      const w = window.open('', '_blank', 'width=1100,height=800');
-      if (!w) return false;
+    // =========================
+    // ✅ Print helper (FIX BLANK PDF) — SAME as your working daily/monthly/weekly
+    // =========================
+    function printHtmlViaIframe(html) {
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      iframe.style.opacity = '0';
+      iframe.style.pointerEvents = 'none';
+      iframe.setAttribute('aria-hidden', 'true');
 
-      w.document.open();
-      w.document.write(html);
-      w.document.close();
+      document.body.appendChild(iframe);
 
-      w.addEventListener('load', () => {
-        w.focus();
-        w.print();
-      });
+      const w = iframe.contentWindow;
+      const doc = iframe.contentDocument || w.document;
+
+      doc.open();
+      doc.write(html);
+      doc.close();
+
+      const waitImages = () =>
+        new Promise((resolve) => {
+          try {
+            const imgs = Array.from(doc.images || []);
+            if (!imgs.length) return resolve();
+
+            let done = 0;
+            const tick = () => {
+              done += 1;
+              if (done >= imgs.length) resolve();
+            };
+
+            imgs.forEach((img) => {
+              if (img.complete) tick();
+              else {
+                img.addEventListener('load', tick, { once: true });
+                img.addEventListener('error', tick, { once: true });
+              }
+            });
+
+            setTimeout(resolve, 2000);
+          } catch {
+            resolve();
+          }
+        });
+
+      const waitFonts = () =>
+        new Promise((resolve) => {
+          try {
+            const fonts = doc.fonts;
+            if (fonts && typeof fonts.ready?.then === 'function') {
+              fonts.ready.then(resolve).catch(resolve);
+            } else resolve();
+          } catch {
+            resolve();
+          }
+        });
+
+      const doPrint = async () => {
+        try {
+          await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+          await waitFonts();
+          await waitImages();
+
+          w.focus();
+          w.print();
+        } finally {
+          setTimeout(() => {
+            try {
+              document.body.removeChild(iframe);
+            } catch {}
+          }, 1200);
+        }
+      };
+
+      iframe.onload = () => setTimeout(doPrint, 150);
+      setTimeout(doPrint, 600);
 
       return true;
     }
@@ -706,7 +865,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // API (✅ from/to)
+    // API (from/to)
     // =========================
     const FetchQuarterlyFoulReport = async ({ from, to } = {}) => {
       try {
@@ -742,8 +901,12 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       toDate.value = todayIso();
     };
 
+    // init defaults
+    if (!fromDate.value) fromDate.value = todayIso();
+    if (!toDate.value) toDate.value = todayIso();
+
     // =========================
-    // EXPORT ACTIONS (✅ with notes using from/to)
+    // EXPORT ACTIONS (✅ with notes, ✅ fixed blank PDF)
     // =========================
     const DownloadQuarterlyFoulPdf = async () => {
       const report = quarterly.value;
@@ -759,7 +922,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       });
 
       const html = buildQuarterlyDashboardHtml(report, f, t, notes);
-      openPrintWindow(html);
+      printHtmlViaIframe(html); // ✅ FIX: no blank PDF
     };
 
     const DownloadQuarterlyFoulWord = async () => {

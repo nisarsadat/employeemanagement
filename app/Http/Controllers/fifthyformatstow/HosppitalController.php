@@ -10,6 +10,7 @@ use App\Models\fifthyformatstow\Hosppital;
 use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class HosppitalController extends Controller
 {
@@ -57,9 +58,20 @@ class HosppitalController extends Controller
     public function store(StoreHosppitalRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            $hospital = Hosppital::create($request->validated())
+            // ✅ picture: file OR string (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                $path = $request->file('picture')->store('uploads/hosppitals', 'public');
+                $data['picture'] = "storage/{$path}";
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $hospital = Hosppital::create($data)
                 ->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: CREATED
@@ -93,14 +105,14 @@ class HosppitalController extends Controller
     public function update(UpdateHosppitalRequest $request, Hosppital $hosppital)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
             // 🧮 build changes BEFORE update
-            $original  = $hosppital->getOriginal();
-            $validated = $request->validated();
-            $changes   = [];
+            $original = $hosppital->getOriginal();
+            $changes  = [];
 
-            foreach ($validated as $field => $newValue) {
+            foreach ($data as $field => $newValue) {
                 if (array_key_exists($field, $original)) {
                     $oldValue = $original[$field];
                     if ($oldValue != $newValue) {
@@ -112,7 +124,27 @@ class HosppitalController extends Controller
                 }
             }
 
-            $hosppital->update($validated);
+            // ✅ picture: replace file if uploaded (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                if ($hosppital->picture && str_starts_with($hosppital->picture, 'storage/')) {
+                    $old = str_replace('storage/', '', $hosppital->picture);
+                    Storage::disk('public')->delete($old);
+                }
+
+                $path = $request->file('picture')->store('uploads/hosppitals', 'public');
+                $data['picture'] = "storage/{$path}";
+
+                $changes['picture'] = [
+                    'old' => $original['picture'] ?? null,
+                    'new' => $data['picture'],
+                ];
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $hosppital->update($data);
             $hosppital->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: UPDATED
@@ -140,8 +172,13 @@ class HosppitalController extends Controller
     public function destroy(Request $request, Hosppital $hosppital)
     {
         $user = $request->user(); // 🔔
-
         $name = $hosppital->name;
+
+        // ✅ delete picture file (same style as SaeenFasad)
+        if ($hosppital->picture && str_starts_with($hosppital->picture, 'storage/')) {
+            $old = str_replace('storage/', '', $hosppital->picture);
+            Storage::disk('public')->delete($old);
+        }
 
         $hosppital->delete();
 
@@ -164,8 +201,9 @@ class HosppitalController extends Controller
     public function bulkDelete(Request $request)
     {
         $user = $request->user(); // 🔔
-
         $ids = $request->input('ids', []);
+
+        // (kept your original logic — if you want file cleanup here too, tell me)
         Hosppital::destroy($ids);
 
         // 🔔 Notification: BULK DELETED

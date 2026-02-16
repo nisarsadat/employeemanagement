@@ -16,6 +16,7 @@ class UpdateHadoBusStopRequest extends FormRequest
         return [
             'name'       => ['sometimes','required','string'],
             'hada_type'  => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'     => ['nullable','string'],
             'responsible_f_name'   => ['nullable','string'],

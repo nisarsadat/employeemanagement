@@ -21,6 +21,7 @@ class SarafyanoResource extends JsonResource
             'father_name'        => $this->father_name,
             'position'           => $this->position,
             'phone_number'       => $this->phone_number,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'province'           => $this->province,
             'zone'               => $this->zone,

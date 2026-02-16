@@ -16,6 +16,7 @@ class StoreSarafyanoRequest extends FormRequest
         return [
             'name' => ['required','string','max:255'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
+            'picture' => ['nullable','image'],
 
             'sarafi_name' => ['nullable','string','max:255'],
             'sarafi_type' => ['nullable','string','max:255'],

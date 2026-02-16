@@ -14,6 +14,7 @@ class UpdateEconemyProjectRequest extends FormRequest
             'coordinates'           => ['sometimes','nullable','string'],
             'name'                  => ['sometimes','nullable','string'],
             'type'                  => ['sometimes','nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsiable_name'     => ['sometimes','nullable','string'],
             'responsiable_f_name'   => ['sometimes','nullable','string'],

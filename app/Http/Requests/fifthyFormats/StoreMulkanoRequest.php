@@ -16,6 +16,7 @@ class StoreMulkanoRequest extends FormRequest
         return [
             'name' => ['required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
+            'picture' => ['nullable','image'],
 
             'picture' => ['nullable','image'],
             'father_name' => ['nullable','string'],

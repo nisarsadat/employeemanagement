@@ -11,6 +11,7 @@ use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DamagePlacesController extends Controller
 {
@@ -31,6 +32,19 @@ class DamagePlacesController extends Controller
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
+    // ✅ SaeenFasad-style picture delete helper (handles "storage/..." too)
+    private function deletePictureIfStored(?string $picture): void
+    {
+        if (!$picture) return;
+
+        $path = $picture;
+        if (str_starts_with($path, 'storage/')) {
+            $path = str_replace('storage/', '', $path);
+        }
+
+        Storage::disk('public')->delete($path);
+    }
+
     /** GET /damage-places */
     public function index(Request $request)
     {
@@ -39,7 +53,9 @@ class DamagePlacesController extends Controller
         $rid     = $request->input('resource_id');
 
         $sortBy  = $request->input('sort_by', 'created_at');
-        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true) ? $request->input('sort_dir') : 'desc';
+        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
+            ? $request->input('sort_dir')
+            : 'desc';
 
         $q = DamagePlaces::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
@@ -63,14 +79,29 @@ class DamagePlacesController extends Controller
         return DamagePlacesResource::collection($q->paginate($perPage));
     }
 
-    /** POST /damage-places */
+    /** POST /damage-places
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreDamagePlacesRequest $request)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $record = DamagePlaces::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: file OR string (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/damage-places', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $record = DamagePlaces::create($data);
 
                 $record->load([
                     'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
@@ -82,7 +113,7 @@ class DamagePlacesController extends Controller
                     action: 'created',
                     title: 'محل جدید ثبت شد',
                     message: 'تهدید: ' . ($record->tahdid_type ?? '') . ' | ولایت: ' . ($record->province ?? ''),
-                    routeName: 'damage-places',            // ⚠️ set your real route name
+                    routeName: 'damage-places', // ⚠️ set your real route name
                     routeParams: ['id' => $record->id],
                     level: 'success',
                     changes: null
@@ -111,14 +142,17 @@ class DamagePlacesController extends Controller
         return DamagePlacesResource::make($damage_place);
     }
 
-    /** PUT /damage-places/{damage_place} */
+    /** PUT /damage-places/{damage_place}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateDamagePlacesRequest $request, DamagePlaces $damage_place)
     {
         $user = $request->user(); // 🔔
+        $validated = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $damage_place, $user) {
-                $validated = $request->validated();
+            return DB::transaction(function () use ($request, $validated, $damage_place, $user) {
 
                 // 🧮 changes BEFORE update
                 $original = $damage_place->getOriginal();
@@ -130,6 +164,23 @@ class DamagePlacesController extends Controller
                             'old' => $original[$field],
                             'new' => $newValue,
                         ];
+                    }
+                }
+
+                // ✅ picture: replace file if uploaded (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $this->deletePictureIfStored($damage_place->picture);
+
+                    $path = $request->file('picture')->store('uploads/damage-places', 'public');
+                    $validated['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $validated) && !is_string($validated['picture'])) {
+                        unset($validated['picture']);
                     }
                 }
 
@@ -145,7 +196,7 @@ class DamagePlacesController extends Controller
                     action: 'updated',
                     title: 'محل اصلاح شد',
                     message: 'تهدید: ' . ($damage_place->tahdid_type ?? '') . ' | ولایت: ' . ($damage_place->province ?? ''),
-                    routeName: 'damage-places',            // ⚠️ set your real route name
+                    routeName: 'damage-places', // ⚠️ set your real route name
                     routeParams: ['id' => $damage_place->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null
@@ -168,6 +219,9 @@ class DamagePlacesController extends Controller
 
         return DB::transaction(function () use ($damage_place, $user) {
             $tahdid = $damage_place->tahdid_type;
+
+            // ✅ delete picture file (same style as SaeenFasad destroy)
+            $this->deletePictureIfStored($damage_place->picture);
 
             $damage_place->delete();
 
@@ -198,6 +252,12 @@ class DamagePlacesController extends Controller
         return DB::transaction(function () use ($ids, $user) {
             if (empty($ids)) {
                 return response()->noContent();
+            }
+
+            // ✅ delete pictures first (so files don't remain)
+            $rows = DamagePlaces::whereIn('id', $ids)->get(['id', 'picture']);
+            foreach ($rows as $row) {
+                $this->deletePictureIfStored($row->picture);
             }
 
             DamagePlaces::whereIn('id', $ids)->delete();

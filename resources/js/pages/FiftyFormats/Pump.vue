@@ -164,18 +164,13 @@
       @edit="goEdit"
       @peek="openPeek"
     >
-      <!-- تصویر -->
-      <template #cell-picture="{ row }">
-        <div v-if="row.picture" class="pic-wrap">
-          <v-avatar size="32" class="cursor-pointer" @click.stop="openPreview(row.picture)">
-            <v-img :src="normalizePicture(row.picture)" :alt="row.pump_name" cover />
-          </v-avatar>
-        </div>
-        <div v-else class="pic-wrap">
-          <v-avatar size="32">
-            <v-icon size="20">mdi-gas-station</v-icon>
-          </v-avatar>
-        </div>
+     <template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
       </template>
 
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
@@ -310,6 +305,7 @@
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useWakilanoRepository();
   const router = useRouter();
@@ -390,6 +386,7 @@
 
   /* TABLE HEADERS – ALL INPUTS + map */
   const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
 
     { title: t('نام پمپ'), key: 'pump_name' },
     { title: t('نوع پمپ'), key: 'pump_type' },

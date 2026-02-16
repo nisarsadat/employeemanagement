@@ -161,20 +161,14 @@
       @edit="goEdit"
       @peek="openPeek"
     >
-      <!-- تصویر -->
-      <template #cell-picture="{ row }">
-        <div v-if="row.picture" class="pic-wrap">
-          <v-avatar size="32" class="cursor-pointer" @click.stop="openPreview(row.picture)">
-            <v-img :src="normalizePicture(row.picture)" :alt="row.province" cover />
-          </v-avatar>
-        </div>
-        <div v-else class="pic-wrap">
-          <v-avatar size="32">
-            <v-icon size="20">mdi-office-building</v-icon>
-          </v-avatar>
-        </div>
+     <template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
       </template>
-
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -307,6 +301,7 @@
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository'; // or your Emarat repo
+import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useBadmashanoRepository();
   const router = useRouter();
@@ -378,6 +373,8 @@
 
   /* TABLE HEADERS – ALL INPUTS + map */
   const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
+
     { title: t('ولایت'), key: 'province' },
     { title: t('زون'), key: 'zone' },
     { title: t('ولسوالی'), key: 'district' },

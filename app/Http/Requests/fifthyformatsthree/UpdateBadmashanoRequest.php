@@ -13,6 +13,7 @@ class UpdateBadmashanoRequest extends FormRequest
         return [
             'name' => ['sometimes','required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
+            'picture' => ['nullable','image'],
 
             'nickname' => ['nullable','string'],
             'father_name' => ['nullable','string'],

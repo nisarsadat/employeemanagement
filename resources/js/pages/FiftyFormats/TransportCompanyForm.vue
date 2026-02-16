@@ -22,13 +22,24 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
-          <!-- Company + responsible -->
-          <!-- <div class="section-header">
-            <span class="section-title">
-              {{ isEdit ? t('ویرایش ریکارډ شرکت ترانسپورتی') : t('ایجاد ریکارډ شرکت ترانسپورتی') }}
-            </span>
-          </div> -->
+          <!-- ✅ Picture row (ONLY addition in template) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
 
+          <!-- Company + responsible -->
           <v-row>
             <v-col cols="12" md="5">
               <v-text-field
@@ -168,17 +179,6 @@
                 :error-messages="getErrorMessages('ways')"
               />
             </v-col>
-
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
           </v-row>
 
           <!-- Resource + note -->
@@ -226,7 +226,7 @@
             </v-col>
           </v-row>
 
-          <!-- Actions (✅ PDF + Word works even for blank) -->
+          <!-- Actions -->
           <v-row class="mt-4">
             <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <v-btn
@@ -307,6 +307,9 @@
   import { useSchoolRepository } from '@/stores/SchoolRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  /* ✅ Picture (ONLY addition) */
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useSchoolRepository();
   const route = useRoute();
   const router = useRouter();
@@ -317,6 +320,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (ONLY addition) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -355,6 +362,10 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    /* ✅ picture url from API (ONLY addition) */
+    picture_url: null,
+
     transport_company_name: '',
     type: '',
 
@@ -398,6 +409,9 @@
     const found = resources.value.find((r) => r.code_number === code);
     form.value.resource_phone = found?.phone_number ?? '';
     form.value.resource_id = found?.id ?? null;
+
+    /* keep same behavior but ensure resource_code stays in sync */
+    form.value.resource_code = code || '';
   }
 
   /* MAP FROM API */
@@ -406,6 +420,9 @@
     const b = blankForm();
 
     b.id = x.id ?? null;
+
+    /* ✅ picture mapping (ONLY addition) */
+    b.picture_url = x.picture ?? x.picture_url ?? null;
 
     b.transport_company_name = x.transport_company_name ?? '';
     b.type = x.type ?? '';
@@ -429,6 +446,10 @@
     b.resource_id = x.resource_id ?? x.resource?.id ?? null;
 
     b.note = x.note ?? '';
+
+    /* ✅ reset picker state after load (ONLY addition) */
+    pictureFile.value = null;
+    pictureChanged.value = false;
 
     return b;
   }
@@ -466,14 +487,18 @@
     return fd;
   }
 
-  /* FORM DATA */
+  /* ✅ picture append (ONLY changes here) */
   function buildCreateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+    return fd;
   }
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -728,6 +753,10 @@
 
   /* RESET & NAVIGATION */
   function resetForm() {
+    /* ✅ reset picture picker state too (ONLY addition) */
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     if (isEdit.value) {
       loadRecord();
     } else {

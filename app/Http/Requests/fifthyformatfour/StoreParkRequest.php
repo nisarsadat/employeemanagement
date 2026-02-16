@@ -14,6 +14,7 @@ class StoreParkRequest extends FormRequest
             'park_name'             => ['nullable','string'],
             'park_type'             => ['nullable','string'],
             'dayly_clientele'       => ['nullable','integer'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'      => ['nullable','string'],
             'responsible_f_name'    => ['nullable','string'],

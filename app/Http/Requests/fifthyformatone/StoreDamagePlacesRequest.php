@@ -22,6 +22,7 @@ class StoreDamagePlacesRequest extends FormRequest
             'percentage'       => ['nullable','string','max:255'],
             'tahdid_place'     => ['nullable','string','max:255'],
             'amnyat_khala'     => ['nullable','string','max:255'],
+            'picture' => ['nullable','image'],
             'cameesa_tafseel'  => ['nullable','string'],
             'guard_quantity'   => ['nullable','string','max:255'],
             'masool_name'      => ['nullable','string','max:255'],

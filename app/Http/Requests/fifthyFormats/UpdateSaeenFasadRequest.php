@@ -16,6 +16,7 @@ class UpdateSaeenFasadRequest extends FormRequest
         return [
             'name' => ['sometimes','required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
+            'picture' => ['nullable','image'],
 
             'picture' => ['nullable','image'],
             'nick_name' => ['nullable','string'],

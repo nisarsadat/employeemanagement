@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->string('bank_name');
             $table->string('bank_type')->nullable();
             $table->string('bank_owner')->nullable();
+            $table->string('picture')->nullable();
 
             $table->string('responsible_name')->nullable();
             $table->string('responsible_f_name')->nullable();

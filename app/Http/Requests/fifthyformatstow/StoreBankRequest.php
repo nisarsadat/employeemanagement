@@ -17,6 +17,7 @@ class StoreBankRequest extends FormRequest
             'bank_name'  => ['required','string'],
             'bank_type'  => ['nullable','string'],
             'bank_owner' => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'     => ['nullable','string'],
             'responsible_f_name'   => ['nullable','string'],

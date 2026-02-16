@@ -10,6 +10,7 @@ class CriminalCapturePlace extends Model
         'name','father_name','job',
         'jorm_type','criminals_quantity','office',
         'province','zone','district','village','specefic_place',
+        'picture',
         'coordinates',
         'Province_addr',
         'resource_id','note',

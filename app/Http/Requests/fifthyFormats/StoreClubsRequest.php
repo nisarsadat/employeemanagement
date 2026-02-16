@@ -16,6 +16,7 @@ class StoreClubsRequest extends FormRequest
         return [
             'name' => ['required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
+            'picture' => ['nullable','image'],
 
             'club_name' => ['nullable','string'],
             'club_type' => ['nullable','string'],
@@ -25,6 +26,7 @@ class StoreClubsRequest extends FormRequest
 
             'province' => ['nullable','string'],
             'zone' => ['nullable','string'],
+            'notes' => ['nullable','string'],
             'district' => ['nullable','string'],
             'specific_place' => ['nullable','string'],
             'cordinate' => ['nullable','string'],

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CheckpointController extends Controller
 {
@@ -40,17 +41,17 @@ class CheckpointController extends Controller
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
                 $q->where('checkpoint_name', 'like', "%$s%")
-                  ->orWhere('organ', 'like', "%$s%")
-                  ->orWhere('province', 'like', "%$s%")
-                  ->orWhere('village', 'like', "%$s%");
+                    ->orWhere('organ', 'like', "%$s%")
+                    ->orWhere('province', 'like', "%$s%")
+                    ->orWhere('village', 'like', "%$s%");
             });
         }
 
         $perPage = $request->query('perPage');
         $page    = $request->query('page');
 
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         // Fallback → return ALL when missing/invalid
         if ($perPageInt === false || $pageInt === false) {
@@ -64,10 +65,22 @@ class CheckpointController extends Controller
     public function store(StoreCheckpointRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $row = Checkpoint::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: FILE OR STRING (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/checkpoints', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $row = Checkpoint::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -83,7 +96,10 @@ class CheckpointController extends Controller
                     changes: null
                 );
 
-                return new CheckpointResource($row);
+                return (new CheckpointResource($row))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
             });
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
@@ -100,15 +116,15 @@ class CheckpointController extends Controller
     public function update(UpdateCheckpointRequest $request, Checkpoint $checkpoint)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $checkpoint, $user) {
+            return DB::transaction(function () use ($request, $checkpoint, $data, $user) {
                 // 🧮 build changes BEFORE update
-                $original  = $checkpoint->getOriginal();
-                $validated = $request->validated();
-                $changes   = [];
+                $original = $checkpoint->getOriginal();
+                $changes  = [];
 
-                foreach ($validated as $field => $newValue) {
+                foreach ($data as $field => $newValue) {
                     if (array_key_exists($field, $original)) {
                         $oldValue = $original[$field];
                         if ($oldValue != $newValue) {
@@ -120,7 +136,27 @@ class CheckpointController extends Controller
                     }
                 }
 
-                $checkpoint->update($validated);
+                // ✅ picture: replace file if uploaded (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    if ($checkpoint->picture && str_starts_with($checkpoint->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $checkpoint->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/checkpoints', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $checkpoint->update($data);
                 $checkpoint->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: UPDATED + changes
@@ -150,6 +186,12 @@ class CheckpointController extends Controller
 
         return DB::transaction(function () use ($checkpoint, $user) {
             $name = $checkpoint->checkpoint_name;
+
+            // ✅ delete picture file (same style as SaeenFasadController)
+            if ($checkpoint->picture && str_starts_with($checkpoint->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $checkpoint->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $checkpoint->delete();
 

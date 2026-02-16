@@ -17,6 +17,7 @@ return new class extends Migration {
 
             $table->integer('enter_male_quantity')->nullable();
             $table->integer('outer_male_quantity')->nullable();
+            $table->string('picture')->nullable();
             $table->integer('enter_female_quantity')->nullable();
             $table->integer('outer_female_quantity')->nullable();
 

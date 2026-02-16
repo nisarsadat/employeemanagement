@@ -26,6 +26,7 @@ class UniversityResource extends JsonResource
             'female_teachers_quantity'   => $model->female_teachers_quantity,
             'male_students_quantity'     => $model->male_students_quantity,
             'female_students_quantity'   => $model->female_students_quantity,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'province'                   => $model->province,
             'zone'                       => $model->zone,

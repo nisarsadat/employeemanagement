@@ -25,6 +25,7 @@ class RahnomaMamlatResource extends JsonResource
             'village'              => $this->village,
             'specific_place'       => $this->specific_place,
             'coordinates'          => $this->coordinates,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'note'                 => $this->note,
             'Province_addr'               => $this->Province_addr,

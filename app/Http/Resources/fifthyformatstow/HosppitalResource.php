@@ -21,6 +21,7 @@ class HosppitalResource extends JsonResource
             'responsible_position'  => $this->responsible_position,
             'responsible_phone'     => $this->responsible_phone,
             'responsible_f_name'    => $this->responsible_f_name,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'male_quantity'         => $this->male_quantity,
             'female_quantity'       => $this->female_quantity,

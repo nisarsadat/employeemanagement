@@ -24,6 +24,7 @@ class OldSoldiersHomesResource extends JsonResource
             'home_number'     => $this->home_number,
             'coordinates'     => $this->coordinates,
             'Province_addr'               => $this->Province_addr,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'name'            => $this->name,
             'father_name'     => $this->father_name,

@@ -22,6 +22,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- Location -->
           <div class="section-header">
             <span class="section-title">{{ t('موقعیت') }}</span>
@@ -313,6 +330,9 @@
   import { useMawadRepository } from '@/stores/MawadRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ picture picker
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useMawadRepository();
   const route = useRoute();
   const router = useRouter();
@@ -323,6 +343,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -362,6 +386,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API
+    picture_url: null,
 
     province: '',
     zone: '',
@@ -412,6 +439,9 @@
 
     b.id = x.id ?? null;
 
+    // ✅ picture
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.province = x.province ?? '';
     b.zone = x.zone ?? '';
     b.district = x.district ?? '';
@@ -446,6 +476,9 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+      // ✅ reset picker state
+      pictureFile.value = null;
+      pictureChanged.value = false;
       return;
     }
     try {
@@ -455,6 +488,10 @@
 
       const mapped = mapFromApi(single);
       form.value = { ...mapped };
+
+      // ✅ reset picker state after load
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات دکان مشکوک'));
@@ -473,12 +510,22 @@
 
   function buildCreateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    // ✅ attach picture file on create
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    // ✅ attach picture file on update ONLY if changed
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -733,6 +780,10 @@
       loadRecord();
     } else {
       form.value = blankForm();
+
+      // ✅ reset picker state
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
 
     clearBackendErrors();

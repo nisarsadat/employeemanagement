@@ -20,6 +20,7 @@ class UpdateMadrasaRequest extends FormRequest
             'responsible_phone' => ['nullable','string'],
             'responsible_main_province' => ['nullable','string'],
             'tarafdari_type_responsible' => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'mazhab' => ['nullable','string'],
             'male_teacher_quantity' => ['nullable','string'],

@@ -17,6 +17,7 @@ class CriminalCapturePlaceResource extends JsonResource
             'name'               => $this->name,
             'father_name'        => $this->father_name,
             'job'                => $this->job,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'jorm_type'          => $this->jorm_type,
             'criminals_quantity' => $this->criminals_quantity,

@@ -14,6 +14,7 @@ class UpdatePumpRequest extends FormRequest
             'pump_name'            => ['sometimes','nullable','string'],
             'pump_type'            => ['sometimes','nullable','string'],
             'main_owner'           => ['sometimes','nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'     => ['sometimes','nullable','string'],
             'responsible_f_name'   => ['sometimes','nullable','string'],

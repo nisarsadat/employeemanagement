@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class SuperMarketController extends Controller
 {
@@ -38,16 +39,16 @@ class SuperMarketController extends Controller
 
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
-                $q->where('supermarket_name','like',"%$s%")
-                  ->orWhere('province','like',"%$s%")
-                  ->orWhere('village','like',"%$s%");
+                $q->where('supermarket_name', 'like', "%$s%")
+                    ->orWhere('province', 'like', "%$s%")
+                    ->orWhere('village', 'like', "%$s%");
             });
         }
 
         $perPage = $request->query('perPage');
         $page    = $request->query('page');
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         if ($perPageInt === false || $pageInt === false) {
             return SuperMarketResource::collection($query->orderByDesc('id')->get());
@@ -57,13 +58,30 @@ class SuperMarketController extends Controller
         return SuperMarketResource::collection($rows);
     }
 
+    /**
+     * POST /super-markets
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreSuperMarketRequest $request)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $row = SuperMarket::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: FILE OR STRING (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/super-markets', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $row = SuperMarket::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -79,7 +97,10 @@ class SuperMarketController extends Controller
                     changes: null
                 );
 
-                return new SuperMarketResource($row);
+                return (new SuperMarketResource($row))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
             });
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
@@ -89,22 +110,27 @@ class SuperMarketController extends Controller
 
     public function show(SuperMarket $supermarket)
     {
-        $supermarket->load('resource');
+        $supermarket->load(['resource:id,name,code_number,phone_number']);
         return new SuperMarketResource($supermarket);
     }
 
+    /**
+     * PUT /super-markets/{supermarket}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateSuperMarketRequest $request, SuperMarket $supermarket)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $supermarket, $user) {
+            return DB::transaction(function () use ($request, $supermarket, $data, $user) {
                 // 🧮 changes BEFORE update
-                $original  = $supermarket->getOriginal();
-                $validated = $request->validated();
-                $changes   = [];
+                $original = $supermarket->getOriginal();
+                $changes  = [];
 
-                foreach ($validated as $field => $newValue) {
+                foreach ($data as $field => $newValue) {
                     if (array_key_exists($field, $original)) {
                         $oldValue = $original[$field];
                         if ($oldValue != $newValue) {
@@ -116,7 +142,27 @@ class SuperMarketController extends Controller
                     }
                 }
 
-                $supermarket->update($validated);
+                // ✅ picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+                    if ($supermarket->picture && str_starts_with($supermarket->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $supermarket->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/super-markets', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $supermarket->update($data);
                 $supermarket->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: UPDATED
@@ -146,6 +192,12 @@ class SuperMarketController extends Controller
 
         return DB::transaction(function () use ($supermarket, $user) {
             $name = $supermarket->supermarket_name;
+
+            // ✅ delete picture file
+            if ($supermarket->picture && str_starts_with($supermarket->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $supermarket->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $supermarket->delete();
 

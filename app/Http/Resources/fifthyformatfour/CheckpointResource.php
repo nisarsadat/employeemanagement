@@ -16,6 +16,7 @@ class CheckpointResource extends JsonResource
             'check_point_place'    => $model->check_point_place,
             'checkpoint_name'    => $model->checkpoint_name,
             'employee_quantity'  => $model->employee_quantity,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'organ'              => $model->organ,
             'create_reason'      => $model->create_reason,

@@ -22,6 +22,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ PICTURE (ONLY ADDITION) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.previewUrl"
+                :label="t('تصویر')"
+                :alt="t('عکس سوپرمارکیت')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <v-row>
             <!-- Identity + address -->
             <v-col cols="12" md="12">
@@ -206,8 +223,10 @@
                 density="compact"
                 :error="hasError('guard_quantity')"
                 :error-messages="getErrorMessages('guard_quantity')"
-              /> </v-col
-          ></v-row>
+              />
+            </v-col>
+          </v-row>
+
           <v-divider class="my-4" />
 
           <!-- Extra fields -->
@@ -216,17 +235,6 @@
           </div>
 
           <v-row>
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
-
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
               <v-autocomplete
@@ -364,6 +372,9 @@
   import AppBar from '@/components/AppBar.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
+
+  // ✅ PICTURE (ONLY ADDITION)
+  import PicturePicker from '@/components/form/PicturePicker.vue';
 
   const repo = useWakilanoRepository();
   const route = useRoute();
@@ -572,7 +583,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  /* PICTURE (kept for consistency; no UI field in template right now) */
+  /* ✅ PICTURE STATE (kept as-is, now used by PicturePicker) */
   const pictureInput = ref(null);
   const pictureFile = ref(null);
   const pictureChanged = ref(false);

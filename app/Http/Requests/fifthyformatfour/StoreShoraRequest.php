@@ -13,6 +13,7 @@ class StoreShoraRequest extends FormRequest
         return [
             'shora_village'         => ['nullable','string'],
             'note'                  => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'shora_name'            => ['nullable','string'],
             'shora_goal'            => ['nullable','string'],

@@ -13,6 +13,7 @@ class UpdateHotelRequest extends FormRequest
         return [
             'hotel_name' => ['sometimes','required','string'],
             'type' => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'     => ['nullable','string'],
             'responsible_f_name'   => ['nullable','string'],

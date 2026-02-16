@@ -3,12 +3,14 @@
 namespace App\Models\fifthyformatsthree;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Hotel extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'hotel_name',

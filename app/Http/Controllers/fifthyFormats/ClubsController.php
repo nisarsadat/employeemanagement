@@ -9,6 +9,7 @@ use App\Http\Resources\fifthyFormats\ClubsResource;
 use App\Models\fifthyFormats\Clubs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use App\Services\NotificationService; // 🔔 notifications
 
@@ -69,13 +70,28 @@ class ClubsController extends Controller
         return new ClubsResource($club);
     }
 
+    /**
+     * POST /clubs
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreClubsRequest $request)
     {
         $user = $request->user(); // 🔔
         $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($data, $user) {
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: file OR string (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/clubs', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
 
                 $club = Clubs::create($data);
                 $club->load(['resource:id,name,code_number,phone_number']);
@@ -112,13 +128,18 @@ class ClubsController extends Controller
         }
     }
 
+    /**
+     * PUT /clubs/{club}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateClubsRequest $request, Clubs $club)
     {
         $user = $request->user(); // 🔔
         $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($data, $club, $user) {
+            return DB::transaction(function () use ($request, $data, $club, $user) {
 
                 // 🧮 changes BEFORE update
                 $original = $club->getOriginal();
@@ -130,6 +151,26 @@ class ClubsController extends Controller
                             'old' => $original[$field],
                             'new' => $newValue,
                         ];
+                    }
+                }
+
+                // ✅ picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+                    if ($club->picture && str_starts_with($club->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $club->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/clubs', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
                     }
                 }
 
@@ -172,6 +213,13 @@ class ClubsController extends Controller
         return DB::transaction(function () use ($club, $user) {
 
             $name = $club->name;
+
+            // ✅ delete picture file (same style as SaeenFasad destroy)
+            if ($club->picture && str_starts_with($club->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $club->picture);
+                Storage::disk('public')->delete($old);
+            }
+
             $club->delete();
 
             // 🔔 Notification: DELETED

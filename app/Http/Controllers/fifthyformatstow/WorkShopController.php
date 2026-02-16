@@ -10,6 +10,7 @@ use App\Models\fifthyformatstow\WorkShop;
 use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class WorkShopController extends Controller
 {
@@ -57,9 +58,20 @@ class WorkShopController extends Controller
     public function store(StoreWorkShopRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            $workshop = WorkShop::create($request->validated())
+            // ✅ picture: file OR string (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                $path = $request->file('picture')->store('uploads/work-shops', 'public');
+                $data['picture'] = "storage/{$path}";
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $workshop = WorkShop::create($data)
                 ->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: CREATED
@@ -93,14 +105,14 @@ class WorkShopController extends Controller
     public function update(UpdateWorkShopRequest $request, WorkShop $workShop)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
             // 🧮 build changes BEFORE update
-            $original  = $workShop->getOriginal();
-            $validated = $request->validated();
-            $changes   = [];
+            $original = $workShop->getOriginal();
+            $changes  = [];
 
-            foreach ($validated as $field => $newValue) {
+            foreach ($data as $field => $newValue) {
                 if (array_key_exists($field, $original)) {
                     $oldValue = $original[$field];
                     if ($oldValue != $newValue) {
@@ -112,7 +124,27 @@ class WorkShopController extends Controller
                 }
             }
 
-            $workShop->update($validated);
+            // ✅ picture: replace file if uploaded (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                if ($workShop->picture && str_starts_with($workShop->picture, 'storage/')) {
+                    $old = str_replace('storage/', '', $workShop->picture);
+                    Storage::disk('public')->delete($old);
+                }
+
+                $path = $request->file('picture')->store('uploads/work-shops', 'public');
+                $data['picture'] = "storage/{$path}";
+
+                $changes['picture'] = [
+                    'old' => $original['picture'] ?? null,
+                    'new' => $data['picture'],
+                ];
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $workShop->update($data);
             $workShop->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: UPDATED
@@ -140,8 +172,13 @@ class WorkShopController extends Controller
     public function destroy(Request $request, WorkShop $workShop)
     {
         $user = $request->user(); // 🔔
-
         $name = $workShop->workshop_name;
+
+        // ✅ delete picture file (same style as SaeenFasad)
+        if ($workShop->picture && str_starts_with($workShop->picture, 'storage/')) {
+            $old = str_replace('storage/', '', $workShop->picture);
+            Storage::disk('public')->delete($old);
+        }
 
         $workShop->delete();
 
@@ -164,8 +201,9 @@ class WorkShopController extends Controller
     public function bulkDelete(Request $request)
     {
         $user = $request->user(); // 🔔
-
         $ids = $request->input('ids', []);
+
+        // (kept your original logic — if you want file cleanup here too, tell me)
         WorkShop::destroy($ids);
 
         // 🔔 Notification: BULK DELETED

@@ -17,6 +17,7 @@ class UpdateFasadRequest extends FormRequest
             'name'             => ['sometimes', 'required', 'string'],
             'nick_name'        => ['sometimes', 'nullable', 'string'],
             'father_name'      => ['sometimes', 'nullable', 'string'],
+            'picture' => ['nullable','image'],
 
             'main_province'    => ['sometimes', 'nullable', 'string'],
             'main_district'    => ['sometimes', 'nullable', 'string'],

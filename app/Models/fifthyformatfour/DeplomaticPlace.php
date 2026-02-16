@@ -12,6 +12,7 @@ class DeplomaticPlace extends Model
         'responsible_name','responsible_f_name','responsible_possition','responsible_country','responsible_phone',
         'province','zone','district','village','specefic_place','street_number','home_number',
         'supplier_country',
+        'picture',
         'Province_addr',
         'guard_quantity','coordinates','resource_id','note',
     ];

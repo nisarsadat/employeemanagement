@@ -11,6 +11,7 @@ use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MashkokShopsController extends Controller
 {
@@ -31,6 +32,19 @@ class MashkokShopsController extends Controller
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
+    // ✅ SaeenFasad-style picture delete helper (handles "storage/..." too)
+    private function deletePictureIfStored(?string $picture): void
+    {
+        if (!$picture) return;
+
+        $path = $picture;
+        if (str_starts_with($path, 'storage/')) {
+            $path = str_replace('storage/', '', $path);
+        }
+
+        Storage::disk('public')->delete($path);
+    }
+
     /** GET /mashkok-shops */
     public function index(Request $request)
     {
@@ -39,7 +53,9 @@ class MashkokShopsController extends Controller
         $rid     = $request->input('resource_id');
 
         $sortBy  = $request->input('sort_by', 'created_at');
-        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true) ? $request->input('sort_dir') : 'desc';
+        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
+            ? $request->input('sort_dir')
+            : 'desc';
 
         $q = MashkokShops::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
@@ -64,14 +80,29 @@ class MashkokShopsController extends Controller
         return MashkokShopsResource::collection($q->paginate($perPage));
     }
 
-    /** POST /mashkok-shops */
+    /** POST /mashkok-shops
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreMashkokShopsRequest $request)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $record = MashkokShops::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: file OR string (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/mashkok-shops', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $record = MashkokShops::create($data);
 
                 $record->load([
                     'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
@@ -83,7 +114,7 @@ class MashkokShopsController extends Controller
                     action: 'created',
                     title: 'دوکان مشکوک جدید ثبت شد',
                     message: 'نام: ' . ($record->name ?? '') . ' | بازار: ' . ($record->market_name ?? ''),
-                    routeName: 'mashkok-shops',          // ⚠️ set your real route name
+                    routeName: 'mashkok-shops', // ⚠️ set your real route name
                     routeParams: ['id' => $record->id],
                     level: 'success',
                     changes: null
@@ -112,14 +143,17 @@ class MashkokShopsController extends Controller
         return MashkokShopsResource::make($mashkok_shop);
     }
 
-    /** PUT /mashkok-shops/{mashkok_shop} */
+    /** PUT /mashkok-shops/{mashkok_shop}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateMashkokShopsRequest $request, MashkokShops $mashkok_shop)
     {
         $user = $request->user(); // 🔔
+        $validated = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $mashkok_shop, $user) {
-                $validated = $request->validated();
+            return DB::transaction(function () use ($request, $validated, $mashkok_shop, $user) {
 
                 // 🧮 changes BEFORE update
                 $original = $mashkok_shop->getOriginal();
@@ -131,6 +165,23 @@ class MashkokShopsController extends Controller
                             'old' => $original[$field],
                             'new' => $newValue,
                         ];
+                    }
+                }
+
+                // ✅ picture replace (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $this->deletePictureIfStored($mashkok_shop->picture);
+
+                    $path = $request->file('picture')->store('uploads/mashkok-shops', 'public');
+                    $validated['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $validated) && !is_string($validated['picture'])) {
+                        unset($validated['picture']);
                     }
                 }
 
@@ -146,7 +197,7 @@ class MashkokShopsController extends Controller
                     action: 'updated',
                     title: 'دوکان مشکوک اصلاح شد',
                     message: 'نام: ' . ($mashkok_shop->name ?? '') . ' | بازار: ' . ($mashkok_shop->market_name ?? ''),
-                    routeName: 'mashkok-shops',          // ⚠️ set your real route name
+                    routeName: 'mashkok-shops', // ⚠️ set your real route name
                     routeParams: ['id' => $mashkok_shop->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null
@@ -169,6 +220,9 @@ class MashkokShopsController extends Controller
 
         return DB::transaction(function () use ($mashkok_shop, $user) {
             $name = $mashkok_shop->name;
+
+            // ✅ delete picture file (same style as SaeenFasad destroy)
+            $this->deletePictureIfStored($mashkok_shop->picture);
 
             $mashkok_shop->delete();
 
@@ -199,6 +253,12 @@ class MashkokShopsController extends Controller
         return DB::transaction(function () use ($ids, $user) {
             if (empty($ids)) {
                 return response()->noContent();
+            }
+
+            // ✅ delete pictures first (so files don't remain)
+            $rows = MashkokShops::whereIn('id', $ids)->get(['id', 'picture']);
+            foreach ($rows as $row) {
+                $this->deletePictureIfStored($row->picture);
             }
 
             MashkokShops::whereIn('id', $ids)->delete();

@@ -12,6 +12,7 @@ class GovernmentPlace extends Model
         'responsible_name','responsible_f_name','responsible_possition','responsible_phone',
         'province','zone','district','village','specefic_place','coordinates',
         'tafseel','amnyatee_khala','guard_quantity',
+        'picture',
         'Province_addr',
         'employee_quantity',
         'resource_id','note',

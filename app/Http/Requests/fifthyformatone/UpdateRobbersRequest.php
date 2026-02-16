@@ -14,6 +14,7 @@ class UpdateRobbersRequest extends FormRequest
             'name'               => ['sometimes','required','string','max:255'],
             'nickname'           => ['nullable','string','max:255'],
             'father_name'        => ['nullable','string','max:255'],
+            'picture' => ['nullable','image'],
 
             'main_province'      => ['nullable','string','max:255'],
             'main_district'      => ['nullable','string','max:255'],

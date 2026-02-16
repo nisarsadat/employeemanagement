@@ -3,12 +3,14 @@
 namespace App\Models\fifthyFormats;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class EntryExit extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'entry_way','way_type','province','zone','district','village',

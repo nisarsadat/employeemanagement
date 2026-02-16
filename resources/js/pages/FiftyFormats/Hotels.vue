@@ -166,7 +166,14 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    >
+    ><template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -278,6 +285,7 @@ import FlyToMapButton from '@/components/FlyToMapButton.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
 import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+import PictureCell from '@/components/table/PictureCell.vue';
 
 const repo = useBadmashanoRepository();
 const router = useRouter();
@@ -359,6 +367,8 @@ const filteredRowsFT = computed(() => {
 
 /* TABLE HEADERS */
 const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
+
   { title: t('نام هوتل'), key: 'hotel_name' },
   { title: t('نوع هوتل'), key: 'type' },
 

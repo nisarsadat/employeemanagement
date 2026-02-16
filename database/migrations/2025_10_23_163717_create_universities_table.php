@@ -12,6 +12,7 @@ return new class extends Migration {
 
             // Basic info
             $table->string('uni_name')->nullable();
+            $table->string('picture')->nullable();
             $table->string('uni_type')->nullable();
 
             // Responsible person

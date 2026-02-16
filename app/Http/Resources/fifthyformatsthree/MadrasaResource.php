@@ -27,6 +27,7 @@ class MadrasaResource extends JsonResource
             'female_teacher_quantity' => $this->female_teacher_quantity,
             'male_students_quantity' => $this->male_students_quantity,
             'female_students_quantity' => $this->female_students_quantity,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'province' => $this->province,
             'zone' => $this->zone,

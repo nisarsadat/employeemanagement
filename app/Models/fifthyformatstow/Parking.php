@@ -3,12 +3,14 @@
 namespace App\Models\fifthyformatstow;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Parking extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'parking_name',
@@ -21,6 +23,7 @@ class Parking extends Model
         'responsible_phone',
 
         'province',
+        'picture',
         'zone',
         'district',
         'Province_addr',

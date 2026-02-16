@@ -20,11 +20,24 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
-          <!-- ================= SCHOOL INFO ================= -->
-          <!-- <div class="section-header">
-            <span class="section-title">{{ t('مشخصات مکتب') }}</span>
-          </div> -->
+          <!-- ✅ Picture (ONLY NEW/CHANGED PART) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
 
+          <!-- ================= SCHOOL INFO ================= -->
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
@@ -53,10 +66,6 @@
           <v-divider class="my-4" />
 
           <!-- ================= PRINCIPLE ================= -->
-          <!-- <div class="section-header">
-            <span class="section-title">{{ t('مدیر مکتب') }}</span>
-          </div> -->
-
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -95,10 +104,6 @@
           <v-divider class="my-4" />
 
           <!-- ================= TEACHERS / STUDENTS ================= -->
-          <!-- <div class="section-header">
-            <span class="section-title">{{ t('معلمان و شاگردان') }}</span>
-          </div> -->
-
           <v-row>
             <v-col cols="12" md="3">
               <v-text-field
@@ -152,10 +157,6 @@
           <v-divider class="my-4" />
 
           <!-- ================= ADDRESS ================= -->
-          <!-- <div class="section-header">
-            <span class="section-title">{{ t('آدرس مکتب') }}</span>
-          </div> -->
-
           <v-row>
             <v-col cols="12" md="12">
               <ProvinceDistrictNameSelect
@@ -214,17 +215,6 @@
                 :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
-
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
           </v-row>
 
           <v-divider class="my-4" />
@@ -355,6 +345,9 @@
   import { useSchoolRepository } from '@/stores/SchoolRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  /* ✅ PicturePicker (ONLY NEW IMPORT) */
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useSchoolRepository();
   const route = useRoute();
   const router = useRouter();
@@ -400,9 +393,16 @@
     return backendErrors.value?.[field] ?? [];
   }
 
+  /* ✅ PICTURE STATE (ONLY NEW PART) */
+  const pictureFile = ref(null);
+  const pictureChanged = ref(false);
+
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API
+    picture_url: null,
 
     school_name: '',
     school_type: '',
@@ -456,6 +456,9 @@
 
     b.id = x.id ?? null;
 
+    // ✅ picture url
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.school_name = x.school_name ?? '';
     b.school_type = x.school_type ?? '';
 
@@ -491,6 +494,8 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+      pictureFile.value = null;
+      pictureChanged.value = false;
       return;
     }
 
@@ -500,6 +505,10 @@
       if (!single) return;
 
       form.value = { ...mapFromApi(single) };
+
+      // ✅ reset picker state
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات مکتب'));
@@ -518,12 +527,24 @@
 
   function buildCreateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    // ✅ picture upload
+    if (pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+    return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    // ✅ picture upload only if changed
+    if (pictureChanged.value && pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -785,6 +806,8 @@
       loadRecord();
     } else {
       form.value = blankForm();
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
 
     clearBackendErrors();

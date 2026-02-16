@@ -808,6 +808,13 @@
             @refresh="refreshData"
           />
         </v-col>
+        <v-col cols="12" lg="12">
+        <ResourcesByHawzaBarChart
+  :loading="repo.loading"
+  :data="repo.dashboard?.resources?.resources_by_hawza || []"
+/>
+
+        </v-col>
       </v-row>
     </div>
 
@@ -835,6 +842,7 @@
   import { useI18n } from 'vue-i18n';
   import { useDisplay } from 'vuetify';
   import { useRouter } from 'vue-router';
+  import ResourcesByHawzaBarChart from '@/components/charts/ResourcesByHawzaBarChart.vue';
 
   import AppBar from '@/components/AppBar.vue';
   import FormatsPieChart from '@/components/charts/FormatZonePieChart.vue';
@@ -1061,10 +1069,6 @@
     sortKeys.value = arr;
     currentPage.value = 1;
   }
-
-
-
-
 
   /* ===========================
   Error

@@ -23,6 +23,7 @@ class HostelResource extends JsonResource
             'responsible_f_name'   => $this->responsible_f_name,
             'responsible_position' => $this->responsible_position,
             'responsible_phone'    => $this->responsible_phone,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'province'           => $this->province,
             'zone'               => $this->zone,

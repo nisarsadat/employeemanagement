@@ -18,6 +18,7 @@ class StoreComplexRequest extends FormRequest
             'specefic_place'         => ['nullable','string'],
             'street_number'          => ['nullable','string'],
             'home_number'            => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'complex_name'           => ['nullable','string'],
             'activity_type'          => ['nullable','string'],

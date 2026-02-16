@@ -27,6 +27,7 @@ class UpdateOldSoldiersHomesRequest extends FormRequest
             'note'            => ['nullable','string'],
             'resource_id'     => ['nullable','integer','exists:resources,id'],
             'Province_addr'             => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
         ];
     }

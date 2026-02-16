@@ -21,6 +21,7 @@ class HighwayResource extends JsonResource
             'village'        => $model->village,
             'specific_place' => $model->specific_place,
             'coordinates'    => $model->coordinates,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             // ✅ Flattened Resource fields (Fasad/Mawad style)
             'resource_code'  => optional($model->resource)->code_number,

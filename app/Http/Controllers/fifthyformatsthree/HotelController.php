@@ -10,6 +10,7 @@ use App\Http\Requests\fifthyformatsthree\UpdateHotelRequest;
 use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class HotelController extends Controller
 {
@@ -54,9 +55,20 @@ class HotelController extends Controller
     public function store(StoreHotelRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            $hotel = Hotel::create($request->validated())
+            // ✅ picture: file OR string (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                $path = $request->file('picture')->store('uploads/hotels', 'public');
+                $data['picture'] = "storage/{$path}";
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $hotel = Hotel::create($data)
                 ->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: CREATED
@@ -90,14 +102,14 @@ class HotelController extends Controller
     public function update(UpdateHotelRequest $request, Hotel $hotel)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
             // 🧮 build changes BEFORE update
-            $original  = $hotel->getOriginal();
-            $validated = $request->validated();
-            $changes   = [];
+            $original = $hotel->getOriginal();
+            $changes  = [];
 
-            foreach ($validated as $field => $newValue) {
+            foreach ($data as $field => $newValue) {
                 if (array_key_exists($field, $original)) {
                     $oldValue = $original[$field];
                     if ($oldValue != $newValue) {
@@ -109,7 +121,27 @@ class HotelController extends Controller
                 }
             }
 
-            $hotel->update($validated);
+            // ✅ picture: replace file if uploaded (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                if ($hotel->picture && str_starts_with($hotel->picture, 'storage/')) {
+                    $old = str_replace('storage/', '', $hotel->picture);
+                    Storage::disk('public')->delete($old);
+                }
+
+                $path = $request->file('picture')->store('uploads/hotels', 'public');
+                $data['picture'] = "storage/{$path}";
+
+                $changes['picture'] = [
+                    'old' => $original['picture'] ?? null,
+                    'new' => $data['picture'],
+                ];
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $hotel->update($data);
             $hotel->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: UPDATED
@@ -137,8 +169,13 @@ class HotelController extends Controller
     public function destroy(Request $request, Hotel $hotel)
     {
         $user = $request->user(); // 🔔
-
         $name = $hotel->hotel_name;
+
+        // ✅ delete picture file (same style as SaeenFasad)
+        if ($hotel->picture && str_starts_with($hotel->picture, 'storage/')) {
+            $old = str_replace('storage/', '', $hotel->picture);
+            Storage::disk('public')->delete($old);
+        }
 
         $hotel->delete();
 
@@ -161,8 +198,9 @@ class HotelController extends Controller
     public function bulkDelete(Request $request)
     {
         $user = $request->user(); // 🔔
-
         $ids = (array) $request->input('ids', []);
+
+        // (kept your original logic — if you want file cleanup here too, tell me)
         Hotel::destroy($ids);
 
         // 🔔 Notification: BULK DELETED

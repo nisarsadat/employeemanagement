@@ -33,13 +33,16 @@ class MashkokHomesController extends Controller
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
+    // ✅ SAME STYLE AS SaeenFasad (storage/ prefix handling)
     private function deletePictureIfStored(?string $picture): void
     {
         if (!$picture) return;
 
         $path = $picture;
+
+        // if saved as "storage/xxxx" convert to "xxxx"
         if (str_starts_with($path, 'storage/')) {
-            $path = substr($path, strlen('storage/'));
+            $path = str_replace('storage/', '', $path);
         }
 
         Storage::disk('public')->delete($path);
@@ -87,12 +90,23 @@ class MashkokHomesController extends Controller
             return DB::transaction(function () use ($request, $user) {
                 $data = $request->validated();
 
+                /**
+                 * ✅ picture: file OR string (SAME AS SaeenFasad)
+                 * - if file: store in public disk and save as "storage/..."
+                 * - else: if picture exists but not string => unset
+                 */
                 if ($request->hasFile('picture')) {
-                    $data['picture'] = $request->file('picture')->store('mashkok_homes/pictures', 'public');
+                    $path = $request->file('picture')->store('uploads/mashkok-homes', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
                 }
 
                 $record = MashkokHomes::create($data);
 
+                // ✅ documents (keep your existing behavior)
                 if ($request->hasFile('_newDocs')) {
                     foreach ((array) $request->file('_newDocs') as $file) {
                         if (!$file) continue;
@@ -152,13 +166,23 @@ class MashkokHomesController extends Controller
             return DB::transaction(function () use ($request, $mashkok_home, $user) {
                 $data = $request->validated();
 
+                /**
+                 * ✅ picture: replace file if uploaded (SAME AS SaeenFasad)
+                 */
                 if ($request->hasFile('picture')) {
                     $this->deletePictureIfStored($mashkok_home->picture);
-                    $data['picture'] = $request->file('picture')->store('mashkok_homes/pictures', 'public');
+
+                    $path = $request->file('picture')->store('uploads/mashkok-homes', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
                 }
 
                 $mashkok_home->update($data);
 
+                // ✅ remove documents by ids (keep your existing behavior)
                 $removed = $request->input('removed_document_ids', []);
                 $removed = is_array($removed) ? array_values(array_filter($removed)) : [];
                 if (!empty($removed)) {
@@ -171,6 +195,7 @@ class MashkokHomesController extends Controller
                     }
                 }
 
+                // ✅ add new documents (keep your existing behavior)
                 if ($request->hasFile('_newDocs')) {
                     foreach ((array) $request->file('_newDocs') as $file) {
                         if (!$file) continue;
@@ -216,6 +241,7 @@ class MashkokHomesController extends Controller
         return DB::transaction(function () use ($mashkok_home, $user) {
             $mashkok_home->load('documents');
 
+            // ✅ delete picture file (SaeenFasad style)
             $this->deletePictureIfStored($mashkok_home->picture);
 
             foreach ($mashkok_home->documents as $doc) {
@@ -244,87 +270,86 @@ class MashkokHomesController extends Controller
 
     // ✅ FIXED: more reliable ZIP download for Windows
     public function documentsZip(MashkokHomes $mashkok_home)
-{
-    try {
-        if (!class_exists(\ZipArchive::class)) {
-            return response()->json(['message' => 'PHP ZipArchive extension is not enabled'], 500);
-        }
-
-        $mashkok_home->load('documents');
-
-        if ($mashkok_home->documents->isEmpty()) {
-            return response()->json(['message' => 'هیچ سندی برای این خانه موجود نیست'], 404);
-        }
-
-        $tmpDir = storage_path('app/tmp');
-        if (!is_dir($tmpDir)) {
-            mkdir($tmpDir, 0755, true);
-        }
-
-        $zipFileName = "mashkok_home_{$mashkok_home->id}_documents.zip";
-        $zipPath = $tmpDir . '/' . uniqid('zip_', true) . '_' . $zipFileName;
-
-        $zip = new \ZipArchive();
-        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-            return response()->json(['message' => 'ZIP ایجاد نشد'], 500);
-        }
-
-        $usedNames = [];
-        $added = 0;
-
-        foreach ($mashkok_home->documents as $i => $doc) {
-            if (!$doc->file_path) continue;
-            if (!Storage::disk('public')->exists($doc->file_path)) continue;
-
-            $abs = Storage::disk('public')->path($doc->file_path);
-            if (!is_file($abs)) continue;
-
-            $orig = basename($doc->original_name ?: $abs);
-            $ext  = pathinfo($orig, PATHINFO_EXTENSION);
-            $name = preg_replace('/[^A-Za-z0-9 _-]/', '', pathinfo($orig, PATHINFO_FILENAME));
-            $name = trim($name) ?: 'document_' . ($i + 1);
-
-            $final = $name . ($ext ? '.' . $ext : '');
-            $c = 1;
-            while (isset($usedNames[$final])) {
-                $final = $name . '_' . $c++ . ($ext ? '.' . $ext : '');
+    {
+        try {
+            if (!class_exists(\ZipArchive::class)) {
+                return response()->json(['message' => 'PHP ZipArchive extension is not enabled'], 500);
             }
 
-            $usedNames[$final] = true;
-            if ($zip->addFile($abs, $final)) {
-                $added++;
+            $mashkok_home->load('documents');
+
+            if ($mashkok_home->documents->isEmpty()) {
+                return response()->json(['message' => 'هیچ سندی برای این خانه موجود نیست'], 404);
             }
+
+            $tmpDir = storage_path('app/tmp');
+            if (!is_dir($tmpDir)) {
+                mkdir($tmpDir, 0755, true);
+            }
+
+            $zipFileName = "mashkok_home_{$mashkok_home->id}_documents.zip";
+            $zipPath = $tmpDir . '/' . uniqid('zip_', true) . '_' . $zipFileName;
+
+            $zip = new \ZipArchive();
+            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                return response()->json(['message' => 'ZIP ایجاد نشد'], 500);
+            }
+
+            $usedNames = [];
+            $added = 0;
+
+            foreach ($mashkok_home->documents as $i => $doc) {
+                if (!$doc->file_path) continue;
+                if (!Storage::disk('public')->exists($doc->file_path)) continue;
+
+                $abs = Storage::disk('public')->path($doc->file_path);
+                if (!is_file($abs)) continue;
+
+                $orig = basename($doc->original_name ?: $abs);
+                $ext  = pathinfo($orig, PATHINFO_EXTENSION);
+                $name = preg_replace('/[^A-Za-z0-9 _-]/', '', pathinfo($orig, PATHINFO_FILENAME));
+                $name = trim($name) ?: 'document_' . ($i + 1);
+
+                $final = $name . ($ext ? '.' . $ext : '');
+                $c = 1;
+                while (isset($usedNames[$final])) {
+                    $final = $name . '_' . $c++ . ($ext ? '.' . $ext : '');
+                }
+
+                $usedNames[$final] = true;
+                if ($zip->addFile($abs, $final)) {
+                    $added++;
+                }
+            }
+
+            $zip->close();
+
+            if ($added === 0) {
+                @unlink($zipPath);
+                return response()->json(['message' => 'هیچ فایل معتبری برای ZIP پیدا نشد'], 404);
+            }
+
+            // ✅ CRITICAL: remove BOM / output
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+
+            return response()
+                ->download($zipPath, $zipFileName, [
+                    'Content-Type' => 'application/zip',
+                ])
+                ->deleteFileAfterSend(true);
+
+        } catch (\Throwable $e) {
+            \Log::error('MashkokHomes ZIP error', [
+                'id' => $mashkok_home->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'خطا در ساخت ZIP',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        $zip->close();
-
-        if ($added === 0) {
-            @unlink($zipPath);
-            return response()->json(['message' => 'هیچ فایل معتبری برای ZIP پیدا نشد'], 404);
-        }
-
-        // ✅ CRITICAL: remove BOM / output
-        while (ob_get_level() > 0) {
-            ob_end_clean();
-        }
-
-        return response()
-            ->download($zipPath, $zipFileName, [
-                'Content-Type' => 'application/zip',
-            ])
-            ->deleteFileAfterSend(true);
-
-    } catch (\Throwable $e) {
-        \Log::error('MashkokHomes ZIP error', [
-            'id' => $mashkok_home->id,
-            'error' => $e->getMessage(),
-        ]);
-
-        return response()->json([
-            'message' => 'خطا در ساخت ZIP',
-            'error' => $e->getMessage(),
-        ], 500);
     }
-}
-   
 }

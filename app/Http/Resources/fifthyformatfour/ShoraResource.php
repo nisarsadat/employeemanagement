@@ -22,6 +22,7 @@ class ShoraResource extends JsonResource
             'week_meeting_quantity'  => $model->week_meeting_quantity,
             'regester'               => $model->regester,
             'shora_meeting_place'    => $model->shora_meeting_place,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'responsible_name'       => $model->responsible_name,
             'responsible_f_name'     => $model->responsible_f_name,

@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->string('name');
 
             // from your picture (kept spellings)
+            $table->string('picture')->nullable();
             $table->string('club_name')->nullable();
             $table->string('club_type')->nullable();
             $table->string('father_name')->nullable();
@@ -22,6 +23,7 @@ return new class extends Migration {
 
             $table->string('province')->nullable();
             $table->string('zone')->nullable();
+            $table->string('notes')->nullable();
             $table->string('district')->nullable();
             $table->string('specific_place')->nullable();
             $table->string('cordinate')->nullable();

@@ -10,7 +10,6 @@
           : t('ثبت یک ریکارډ خواب گاه جدید در سیستم')
       "
     >
-      
     </AppBar>
 
     <!-- FORM -->
@@ -23,6 +22,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture (ONLY NEW/CHANGED PART) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- ================= HOSTEL INFO ================= -->
           <!-- <div class="section-header">
             <span class="section-title">{{ t('مشخصات خواب گاه') }}</span>
@@ -150,11 +166,7 @@
             </v-col>
 
             <v-col cols="12" md="3">
-               <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون')"
-                    :disabled="saving"
-                  />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
             </v-col>
 
             <v-col cols="12" md="3">
@@ -199,17 +211,6 @@
           </div>
 
           <v-row>
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
-
             <v-col cols="12" md="4">
               <v-autocomplete
                 v-model="form.resource_code"
@@ -297,27 +298,6 @@
         </v-card>
       </v-form>
 
-      <!-- IMAGE PREVIEW DIALOG (kept as-is) -->
-      <v-dialog v-model="previewOpen" max-width="520">
-        <v-card>
-          <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
-          <v-card-text class="d-flex justify-center">
-            <v-img
-              :src="normalizePicture(previewSrc)"
-              :alt="t('پیش نمایش')"
-              max-width="480"
-              max-height="420"
-              cover
-            />
-          </v-card-text>
-          <v-card-actions class="justify-end">
-            <v-btn color="primary" variant="flat" @click="previewOpen = false">
-              {{ t('بستن') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
       <!-- Error Snackbar -->
       <v-snackbar v-model="showError" color="error" timeout="5000">
         {{ errorMessage }}
@@ -351,6 +331,9 @@
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  /* ✅ PicturePicker (ONLY NEW IMPORT) */
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useBadmashanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -371,10 +354,6 @@
   const errorMessage = ref('');
   const showSuccess = ref(false);
   const successMessage = ref('');
-
-  /* NOT USED here but kept */
-  const previewOpen = ref(false);
-  const previewSrc = ref(null);
 
   function showErrorMessage(message) {
     errorMessage.value = message;
@@ -400,13 +379,16 @@
     return backendErrors.value?.[field] ?? [];
   }
 
+  /* ✅ PICTURE STATE (ONLY KEEP THESE 2 REFS) */
+  const pictureFile = ref(null);
+  const pictureChanged = ref(false);
+
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
 
-    // media
-    picture: null,
-    previewUrl: null,
+    // ✅ picture url from API
+    picture_url: null,
 
     hostel_name: '',
     hostel_type: '',
@@ -448,24 +430,6 @@
     },
   };
 
-  /* PICTURE (kept as-is from your code) */
-  const pictureInput = ref(null);
-  const pictureFile = ref(null);
-  const pictureChanged = ref(false);
-
-  function normalizePicture(src) {
-    if (!src) return null;
-    let clean = String(src).trim();
-
-    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
-
-    clean = clean.replace(/\\\//g, '/');
-
-    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-    if (clean.startsWith('/')) return clean;
-    return '/' + clean.replace(/^\/+/, '');
-  }
-
   /* RESOURCES DROPDOWN */
   const resources = computed(() => repo.resourcecode || []);
   function onResourceCodeChange(code) {
@@ -482,9 +446,8 @@
 
     b.id = x.id ?? null;
 
-    const fullUrl = x.picture ?? null;
-    b.picture = fullUrl;
-    b.previewUrl = fullUrl;
+    // ✅ picture url
+    b.picture_url = x.picture ?? x.picture_url ?? null;
 
     b.hostel_name = x.hostel_name ?? '';
     b.hostel_type = x.hostel_type ?? '';
@@ -527,6 +490,8 @@
       await repo.FetchHostelData?.(id);
       const single = Array.isArray(repo.Hostel) ? repo.Hostel[0] : repo.Hostel || {};
       form.value = { ...mapFromApi(single || {}) };
+
+      // ✅ reset picker state
       pictureFile.value = null;
       pictureChanged.value = false;
     } catch (e) {
@@ -547,8 +512,7 @@
 
   function buildCreateFormData() {
     const payload = { ...form.value };
-    delete payload.previewUrl;
-
+    // ✅ do NOT send picture_url as field (optional; keep if your backend ignores it)
     const fd = toFormData(payload);
 
     if (pictureFile.value) {
@@ -559,9 +523,6 @@
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    delete payload.previewUrl;
-    delete payload.picture;
-
     const fd = toFormData(payload);
 
     if (pictureChanged.value && pictureFile.value) {
@@ -781,10 +742,6 @@
 
   /* RESET & NAVIGATION */
   function resetForm() {
-    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(form.value.previewUrl);
-    }
-
     if (isEdit.value) {
       loadRecord();
     } else {

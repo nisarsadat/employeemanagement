@@ -12,6 +12,7 @@ return new class extends Migration {
 
             // Saray info
             $table->string('saray_name');
+            $table->string('picture')->nullable();
             $table->string('saray_type')->nullable();
 
             // Responsible person info

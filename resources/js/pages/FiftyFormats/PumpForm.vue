@@ -20,6 +20,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (ONLY addition in template) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- Identity + addresses -->
           <!-- <div class="section-header">
             <span class="section-title">
@@ -202,17 +219,6 @@
               />
             </v-col>
 
-            <!-- <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
-
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
               <v-autocomplete
@@ -332,6 +338,9 @@
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  /* ✅ Picture (ONLY addition) */
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useWakilanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -342,6 +351,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (ONLY addition) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -380,6 +393,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    /* ✅ picture url from API (ONLY addition) */
+    picture_url: null,
 
     // identity
     pump_name: '',
@@ -441,6 +457,9 @@
 
     b.id = x.id ?? null;
 
+    /* ✅ picture mapping (ONLY addition) */
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.pump_name = x.pump_name ?? '';
     b.pump_type = x.pump_type ?? '';
     b.main_owner = x.main_owner ?? '';
@@ -467,6 +486,10 @@
     b.resource_id = x.resource_id ?? r.id ?? null;
 
     b.note = x.note ?? '';
+
+    /* ✅ reset picker state after load (ONLY addition) */
+    pictureFile.value = null;
+    pictureChanged.value = false;
 
     return b;
   }
@@ -498,14 +521,23 @@
     return fd;
   }
 
+  /* ✅ attach picture (ONLY changes here) */
   function buildCreateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   /* =========================
@@ -760,6 +792,10 @@
 
   /* RESET & NAVIGATION */
   function resetForm() {
+    /* ✅ reset picture picker state too (ONLY addition) */
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     if (isEdit.value) {
       loadRecord();
     } else {

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class UniversityController extends Controller
 {
@@ -63,13 +64,30 @@ class UniversityController extends Controller
         return UniversityResource::collection($rows);
     }
 
+    /**
+     * POST /universities
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreUniversityRequest $request)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $university = University::create($request->validated());
+            return DB::transaction(function () use ($request, $user, $data) {
+
+                // ✅ picture: file OR string
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/universities', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $university = University::create($data);
                 $university->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -101,12 +119,18 @@ class UniversityController extends Controller
         return new UniversityResource($university);
     }
 
+    /**
+     * PUT /universities/{university}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateUniversityRequest $request, University $university)
     {
         $user = $request->user(); // 🔔
 
         try {
             return DB::transaction(function () use ($request, $university, $user) {
+
                 $original  = $university->getOriginal();
                 $validated = $request->validated();
                 $changes   = [];
@@ -120,6 +144,29 @@ class UniversityController extends Controller
                                 'new' => $newValue,
                             ];
                         }
+                    }
+                }
+
+                // ✅ picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+
+                    // delete old
+                    if ($university->picture && str_starts_with($university->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $university->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    // store new
+                    $path = $request->file('picture')->store('uploads/universities', 'public');
+                    $validated['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $validated) && !is_string($validated['picture'])) {
+                        unset($validated['picture']);
                     }
                 }
 
@@ -155,6 +202,12 @@ class UniversityController extends Controller
 
         return DB::transaction(function () use ($university, $user) {
             $name = $university->uni_name;
+
+            // ✅ delete picture file
+            if ($university->picture && str_starts_with($university->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $university->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $university->delete();
 

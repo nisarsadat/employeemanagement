@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->string('name');
 
             // from your picture (keep spellings as-is)
+            $table->string('picture')->nullable();
             $table->string('father_name')->nullable();
             $table->string('scientific_level')->nullable();
 

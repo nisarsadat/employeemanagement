@@ -26,6 +26,7 @@ class StoreRobbersRequest extends FormRequest
             'now_specific_place' => ['nullable','string','max:255'],
             'now_street_number'  => ['nullable','string','max:255'],
             'now_home_number'    => ['nullable','string','max:255'],
+            'picture' => ['nullable','image'],
 
             'old_job'            => ['nullable','string','max:255'],
             'now_job'            => ['nullable','string','max:255'],

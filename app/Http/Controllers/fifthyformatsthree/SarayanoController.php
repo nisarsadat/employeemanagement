@@ -10,6 +10,7 @@ use App\Http\Requests\fifthyformatsthree\UpdateSarayanoRequest;
 use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SarayanoController extends Controller
 {
@@ -54,9 +55,20 @@ class SarayanoController extends Controller
     public function store(StoreSarayanoRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            $saray = Sarayano::create($request->validated())
+            // ✅ picture: file OR string (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                $path = $request->file('picture')->store('uploads/sarayano', 'public');
+                $data['picture'] = "storage/{$path}";
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $saray = Sarayano::create($data)
                 ->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: CREATED
@@ -90,14 +102,14 @@ class SarayanoController extends Controller
     public function update(UpdateSarayanoRequest $request, Sarayano $sarayano)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
             // 🧮 build changes BEFORE update
-            $original  = $sarayano->getOriginal();
-            $validated = $request->validated();
-            $changes   = [];
+            $original = $sarayano->getOriginal();
+            $changes  = [];
 
-            foreach ($validated as $field => $newValue) {
+            foreach ($data as $field => $newValue) {
                 if (array_key_exists($field, $original)) {
                     $oldValue = $original[$field];
                     if ($oldValue != $newValue) {
@@ -109,7 +121,27 @@ class SarayanoController extends Controller
                 }
             }
 
-            $sarayano->update($validated);
+            // ✅ picture: replace file if uploaded (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                if ($sarayano->picture && str_starts_with($sarayano->picture, 'storage/')) {
+                    $old = str_replace('storage/', '', $sarayano->picture);
+                    Storage::disk('public')->delete($old);
+                }
+
+                $path = $request->file('picture')->store('uploads/sarayano', 'public');
+                $data['picture'] = "storage/{$path}";
+
+                $changes['picture'] = [
+                    'old' => $original['picture'] ?? null,
+                    'new' => $data['picture'],
+                ];
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $sarayano->update($data);
             $sarayano->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: UPDATED
@@ -139,6 +171,12 @@ class SarayanoController extends Controller
         $user = $request->user(); // 🔔
         $name = $sarayano->saray_name;
 
+        // ✅ delete picture file (same style as SaeenFasad)
+        if ($sarayano->picture && str_starts_with($sarayano->picture, 'storage/')) {
+            $old = str_replace('storage/', '', $sarayano->picture);
+            Storage::disk('public')->delete($old);
+        }
+
         $sarayano->delete();
 
         // 🔔 Notification: DELETED
@@ -160,8 +198,9 @@ class SarayanoController extends Controller
     public function bulkDelete(Request $request)
     {
         $user = $request->user(); // 🔔
-
         $ids = $request->input('ids', []);
+
+        // (kept your original logic — if you want file cleanup here too, tell me)
         Sarayano::destroy($ids);
 
         // 🔔 Notification: BULK DELETED

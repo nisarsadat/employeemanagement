@@ -3,12 +3,14 @@
 namespace App\Models\fifthyformatstow;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class School extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'school_name',
@@ -22,6 +24,7 @@ class School extends Model
         'female_teachers_quantity',
         'male_students_quantity',
         'female_students_quantity',
+        'picture',
 
         'province',
         'Province_addr',

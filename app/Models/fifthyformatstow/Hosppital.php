@@ -3,12 +3,14 @@
 namespace App\Models\fifthyformatstow;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Hosppital extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'name',
@@ -21,6 +23,7 @@ class Hosppital extends Model
         'responsible_f_name',
 
         'male_quantity',
+        'picture',
         'female_quantity',
         'guard_quantity',
 

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class EconemyProjectController extends Controller
 {
@@ -42,9 +43,9 @@ class EconemyProjectController extends Controller
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
                 $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('responsiable_name', 'like', "%{$s}%")
-                  ->orWhere('province', 'like', "%{$s}%")
-                  ->orWhere('district', 'like', "%{$s}%");
+                    ->orWhere('responsiable_name', 'like', "%{$s}%")
+                    ->orWhere('province', 'like', "%{$s}%")
+                    ->orWhere('district', 'like', "%{$s}%");
             });
         }
 
@@ -53,9 +54,9 @@ class EconemyProjectController extends Controller
         $pageRaw    = $request->query('page');
 
         $perPageInt = filter_var($perPageRaw, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($pageRaw,    FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($pageRaw, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
-        // If no valid pagination → return ALL (for your 100000 pattern)
+        // If no valid pagination → return ALL
         if ($perPageInt === false || $pageInt === false) {
             $rows = $query->orderByDesc('id')->get();
             return EconemyProjectResource::collection($rows);
@@ -69,13 +70,30 @@ class EconemyProjectController extends Controller
         return EconemyProjectResource::collection($rows);
     }
 
+    /**
+     * POST /econemy-projects
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreEconemyProjectRequest $request)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $row = EconemyProject::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: FILE OR STRING (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/econemy-projects', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $row = EconemyProject::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -91,7 +109,10 @@ class EconemyProjectController extends Controller
                     changes: null
                 );
 
-                return new EconemyProjectResource($row);
+                return (new EconemyProjectResource($row))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
             });
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
@@ -105,18 +126,23 @@ class EconemyProjectController extends Controller
         return new EconemyProjectResource($econemyProject);
     }
 
+    /**
+     * PUT /econemy-projects/{econemyProject}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateEconemyProjectRequest $request, EconemyProject $econemyProject)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $econemyProject, $user) {
-                // 🧮 changes BEFORE update (like InformationController)
-                $original  = $econemyProject->getOriginal();
-                $validated = $request->validated();
-                $changes   = [];
+            return DB::transaction(function () use ($request, $econemyProject, $data, $user) {
+                // 🧮 changes BEFORE update
+                $original = $econemyProject->getOriginal();
+                $changes  = [];
 
-                foreach ($validated as $field => $newValue) {
+                foreach ($data as $field => $newValue) {
                     if (array_key_exists($field, $original)) {
                         $oldValue = $original[$field];
                         if ($oldValue != $newValue) {
@@ -128,7 +154,27 @@ class EconemyProjectController extends Controller
                     }
                 }
 
-                $econemyProject->update($validated);
+                // ✅ picture: replace file if uploaded (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    if ($econemyProject->picture && str_starts_with($econemyProject->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $econemyProject->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/econemy-projects', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $econemyProject->update($data);
                 $econemyProject->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: UPDATED + changes
@@ -158,6 +204,12 @@ class EconemyProjectController extends Controller
 
         return DB::transaction(function () use ($econemyProject, $user) {
             $name = $econemyProject->name;
+
+            // ✅ delete picture file (same style as SaeenFasadController)
+            if ($econemyProject->picture && str_starts_with($econemyProject->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $econemyProject->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $econemyProject->delete();
 

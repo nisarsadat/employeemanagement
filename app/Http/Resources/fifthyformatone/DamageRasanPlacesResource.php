@@ -26,6 +26,7 @@ class DamageRasanPlacesResource extends JsonResource
             'Province_addr'               => $this->Province_addr,
             'note'            => $this->note,
             'resource_id'     => $this->resource_id,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             // Derived (flattened) fields for frontend convenience
             'resource_code'   => $res->code_number  ?? null,

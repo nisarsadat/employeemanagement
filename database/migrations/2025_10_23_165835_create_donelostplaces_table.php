@@ -12,6 +12,7 @@ return new class extends Migration {
 
             // Top
             $table->string('place_name')->nullable();
+            $table->string('picture')->nullable();
 
             // Lost person info
             $table->string('lost_person_name')->nullable();

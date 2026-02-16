@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ShoraController extends Controller
 {
@@ -39,18 +40,18 @@ class ShoraController extends Controller
 
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
-                $q->where('shora_name','like',"%$s%")
-                  ->orWhere('responsible_name','like',"%$s%")
-                  ->orWhere('shora_province','like',"%$s%")
-                  ->orWhere('shora_village','like',"%$s%");
+                $q->where('shora_name', 'like', "%$s%")
+                    ->orWhere('responsible_name', 'like', "%$s%")
+                    ->orWhere('shora_province', 'like', "%$s%")
+                    ->orWhere('shora_village', 'like', "%$s%");
             });
         }
 
         $perPage = $request->query('perPage');
         $page    = $request->query('page');
 
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         // Fallback → return ALL when missing/invalid
         if ($perPageInt === false || $pageInt === false) {
@@ -61,13 +62,30 @@ class ShoraController extends Controller
         return ShoraResource::collection($rows);
     }
 
+    /**
+     * POST /shoras
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreShoraRequest $request)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $row = Shora::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: FILE OR STRING (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/shoras', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $row = Shora::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -83,7 +101,10 @@ class ShoraController extends Controller
                     changes: null
                 );
 
-                return new ShoraResource($row);
+                return (new ShoraResource($row))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
             });
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
@@ -93,22 +114,27 @@ class ShoraController extends Controller
 
     public function show(Shora $shora)
     {
-        $shora->load('resource');
+        $shora->load(['resource:id,name,code_number,phone_number']);
         return ShoraResource::make($shora);
     }
 
+    /**
+     * PUT /shoras/{shora}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateShoraRequest $request, Shora $shora)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $shora, $user) {
+            return DB::transaction(function () use ($request, $shora, $data, $user) {
                 // 🧮 changes BEFORE update
-                $original  = $shora->getOriginal();
-                $validated = $request->validated();
-                $changes   = [];
+                $original = $shora->getOriginal();
+                $changes  = [];
 
-                foreach ($validated as $field => $newValue) {
+                foreach ($data as $field => $newValue) {
                     if (array_key_exists($field, $original)) {
                         $oldValue = $original[$field];
                         if ($oldValue != $newValue) {
@@ -120,7 +146,27 @@ class ShoraController extends Controller
                     }
                 }
 
-                $shora->update($validated);
+                // ✅ picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+                    if ($shora->picture && str_starts_with($shora->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $shora->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/shoras', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $shora->update($data);
                 $shora->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: UPDATED
@@ -150,6 +196,12 @@ class ShoraController extends Controller
 
         return DB::transaction(function () use ($shora, $user) {
             $name = $shora->shora_name;
+
+            // ✅ delete picture file (same style as SaeenFasadController)
+            if ($shora->picture && str_starts_with($shora->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $shora->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $shora->delete();
 

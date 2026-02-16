@@ -13,6 +13,7 @@ class UpdateShoraRequest extends FormRequest
         return [
             'shora_village'         => ['sometimes','nullable','string'],
             'note'                  => ['sometimes','nullable','string'],
+            'picture' => ['nullable','image'],
 
             'shora_name'            => ['sometimes','nullable','string'],
             'shora_goal'            => ['sometimes','nullable','string'],

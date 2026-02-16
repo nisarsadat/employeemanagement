@@ -21,6 +21,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (ONLY added part) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- Section: Place info -->
           <div class="section-header">
             <span class="section-title">{{ t('مشخصات محل') }}</span>
@@ -154,11 +171,7 @@
               />
             </v-col>
             <v-col cols="12" md="12">
-              <FormatZoneAutocomplete
-                v-model="form.zone"
-                :label="t('زون محل')"
-                :disabled="saving"
-              />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون محل')" :disabled="saving" />
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
@@ -341,6 +354,9 @@
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ Picture (ONLY added import)
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useWakilanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -350,6 +366,10 @@
   watch(locale, (l) => (isRtl.value = l === 'fa'));
 
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (ONLY added state) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* Form state */
   const formRef = ref(null);
@@ -388,6 +408,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API (ONLY added field)
+    picture_url: null,
 
     // place
     place_name: '',
@@ -453,6 +476,9 @@
 
     b.id = x.id ?? null;
 
+    // ✅ picture mapping (ONLY added mapping)
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.place_name = x.place_name ?? '';
     b.coordinates = x.coordinates ?? '';
     b.lost_quantity = x.lost_quantity ?? '';
@@ -500,6 +526,10 @@
         ? repo.DoneLostPlace[0]
         : repo.DoneLostPlace || {};
       form.value = { ...mapFromApi(single || {}) };
+
+      // ✅ reset picker state after load (ONLY added)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات ریکارډ'));
@@ -513,6 +543,23 @@
       if (v === undefined || v === null) return;
       fd.append(k, v);
     });
+    return fd;
+  }
+
+  // ✅ (ONLY added) attach picture to FormData
+  function buildCreateFormData() {
+    const payload = { ...form.value };
+    delete payload.id;
+    const fd = toFormData(payload);
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+    return fd;
+  }
+
+  function buildUpdateFormData() {
+    const payload = { ...form.value };
+    delete payload.id;
+    const fd = toFormData(payload);
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
     return fd;
   }
 
@@ -694,7 +741,8 @@
     saving.value = true;
 
     try {
-      const fd = toFormData({ ...form.value });
+      // ✅ ONLY changed: use picture-aware FormData builders
+      const fd = isEdit.value ? buildUpdateFormData() : buildCreateFormData();
 
       if (!isEdit.value) {
         const created = await repo.CreateDoneLostPlace?.(fd).catch((e) => {
@@ -732,6 +780,11 @@
   /* RESET & NAVIGATION */
   function resetForm() {
     clearBackendErrors();
+
+    // ✅ reset picker state too (ONLY added)
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     if (isEdit.value) {
       loadRecord();
     } else {
@@ -750,6 +803,10 @@
     await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadRecord();
+    } else {
+      // ✅ ensure picker default state (ONLY added)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
   });
 </script>

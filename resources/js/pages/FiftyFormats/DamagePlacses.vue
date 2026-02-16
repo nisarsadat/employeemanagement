@@ -168,7 +168,15 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    >
+    > <template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
+
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -279,6 +287,7 @@ import FilterableTable from '@/components/FilterableTable.vue';
 import PeekButton from '@/components/PeekButton.vue';
 import FlyToMapButton from '@/components/FlyToMapButton.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import PictureCell from '@/components/table/PictureCell.vue';
 
 import { useMawadRepository } from '@/stores/MawadRepository';
 
@@ -358,6 +367,8 @@ const filteredRowsFT = computed(() => {
 
 /* TABLE HEADERS */
 const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
+
   { title: t('ولایت'), key: 'province' },
   { title: t('زون'), key: 'zone' },
   { title: t('ولسوالی'), key: 'district' },

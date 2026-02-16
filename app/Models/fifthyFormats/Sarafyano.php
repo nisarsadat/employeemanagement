@@ -3,12 +3,14 @@
 namespace App\Models\fifthyFormats;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Sarafyano extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'name',
@@ -17,6 +19,7 @@ class Sarafyano extends Model
         'market_name','shop_number','cordinate',
         'provinces_hawala','countries_hawala','employee_quantity',
         'Province_addr',
+        'picture',
         'notes','resource_id',
     ];
 

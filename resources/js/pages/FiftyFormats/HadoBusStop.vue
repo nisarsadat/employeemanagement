@@ -161,7 +161,14 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    >
+    ><template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP (same behavior as Heist) -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -267,6 +274,7 @@
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
   import { useSchoolRepository } from '@/stores/SchoolRepository';
+import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useSchoolRepository();
   const router = useRouter();
@@ -338,6 +346,8 @@
 
   /* TABLE HEADERS – all fields + map + actions */
   const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
+
     { title: t('نام ایستگاه'), key: 'name' },
     { title: t('نوع هدا'), key: 'hada_type' },
 

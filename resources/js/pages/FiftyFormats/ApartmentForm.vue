@@ -20,6 +20,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (same as Mahajerat) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- Block / Shahrak -->
           <v-row>
             <v-col cols="12">
@@ -198,17 +215,6 @@
               </div>
             </v-col>
 
-            <!-- <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
-
             <!-- Resource -->
             <v-col cols="12" md="3">
               <v-autocomplete
@@ -326,6 +332,9 @@
   import { useSchoolRepository } from '@/stores/SchoolRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ added for picture (same as Mahajerat)
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useSchoolRepository();
   const route = useRoute();
   const router = useRouter();
@@ -336,6 +345,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (same as Mahajerat) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -374,6 +387,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API (same style as Mahajerat)
+    picture_url: null,
 
     block_name: '',
     apartments_quantity: '',
@@ -428,6 +444,9 @@
 
     b.id = x.id ?? null;
 
+    // ✅ picture (same mapping style)
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.block_name = x.block_name ?? '';
     b.apartments_quantity = x.apartments_quantity ?? '';
     b.shahrak_name = x.shahrak_name ?? '';
@@ -460,6 +479,11 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+
+      // ✅ reset picker state
+      pictureFile.value = null;
+      pictureChanged.value = false;
+
       return;
     }
     try {
@@ -467,6 +491,10 @@
       const single = Array.isArray(repo.Apartment) ? repo.Apartment[0] : repo.Apartment || {};
       if (!single) return;
       form.value = { ...mapFromApi(single) };
+
+      // ✅ reset picker state after load (same as Mahajerat)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات بلاک'));
@@ -485,12 +513,22 @@
 
   function buildCreateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    // ✅ attach picture file (same behavior)
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    // ✅ attach picture only when changed (same behavior)
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -751,6 +789,10 @@
       loadRecord();
     } else {
       form.value = blankForm();
+
+      // ✅ reset picture picker state too
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
 
     clearBackendErrors();
@@ -767,6 +809,10 @@
     await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadRecord();
+    } else {
+      // ✅ ensure clean picker state in create mode
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
   });
 </script>

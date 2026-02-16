@@ -22,6 +22,7 @@ class MashkokShopsResource extends JsonResource
             'shop_number'     => $this->shop_number,
             'coordinates'     => $this->coordinates,
             'Province_addr'   => $this->Province_addr,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'name'            => $this->name,
             'father_name'     => $this->father_name,

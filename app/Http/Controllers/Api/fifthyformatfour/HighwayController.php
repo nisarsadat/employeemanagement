@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class HighwayController extends Controller
 {
@@ -41,9 +42,9 @@ class HighwayController extends Controller
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
                 $q->where('high_way_name', 'like', "%{$s}%")
-                  ->orWhere('province', 'like', "%{$s}%")
-                  ->orWhere('district', 'like', "%{$s}%")
-                  ->orWhere('village', 'like', "%{$s}%");
+                    ->orWhere('province', 'like', "%{$s}%")
+                    ->orWhere('district', 'like', "%{$s}%")
+                    ->orWhere('village', 'like', "%{$s}%");
             });
         }
 
@@ -51,7 +52,7 @@ class HighwayController extends Controller
         $page    = $request->query('page');
 
         $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         // ✅ Same pattern: if perPage / page invalid → return all, no pagination
         if ($perPageInt === false || $pageInt === false) {
@@ -65,13 +66,30 @@ class HighwayController extends Controller
         return HighwayResource::collection($rows);
     }
 
+    /**
+     * POST /highways
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreHighwayRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $row = Highway::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: FILE OR STRING (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/highways', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $row = Highway::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -87,7 +105,10 @@ class HighwayController extends Controller
                     changes: null
                 );
 
-                return new HighwayResource($row);
+                return (new HighwayResource($row))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
             });
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
@@ -101,18 +122,23 @@ class HighwayController extends Controller
         return new HighwayResource($highway);
     }
 
+    /**
+     * PUT /highways/{highway}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateHighwayRequest $request, Highway $highway)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $highway, $user) {
-                // 🧮 build changes BEFORE update (like InformationController)
-                $original  = $highway->getOriginal();
-                $validated = $request->validated();
-                $changes   = [];
+            return DB::transaction(function () use ($request, $highway, $data, $user) {
+                // 🧮 build changes BEFORE update (like your current logic)
+                $original = $highway->getOriginal();
+                $changes  = [];
 
-                foreach ($validated as $field => $newValue) {
+                foreach ($data as $field => $newValue) {
                     if (array_key_exists($field, $original)) {
                         $oldValue = $original[$field];
                         if ($oldValue != $newValue) {
@@ -124,7 +150,27 @@ class HighwayController extends Controller
                     }
                 }
 
-                $highway->update($validated);
+                // ✅ picture: replace file if uploaded (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    if ($highway->picture && str_starts_with($highway->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $highway->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/highways', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $highway->update($data);
                 $highway->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: UPDATED + changes
@@ -154,6 +200,12 @@ class HighwayController extends Controller
 
         return DB::transaction(function () use ($highway, $user) {
             $name = $highway->high_way_name;
+
+            // ✅ delete picture file (same style as SaeenFasadController)
+            if ($highway->picture && str_starts_with($highway->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $highway->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $highway->delete();
 

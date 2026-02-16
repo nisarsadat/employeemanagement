@@ -10,6 +10,7 @@ use App\Http\Requests\fifthyformatsthree\UpdateMadrasaRequest;
 use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MadrasaController extends Controller
 {
@@ -54,9 +55,20 @@ class MadrasaController extends Controller
     public function store(StoreMadrasaRequest $request)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            $item = Madrasa::create($request->validated())
+            // ✅ picture: file OR string (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                $path = $request->file('picture')->store('uploads/madrasas', 'public');
+                $data['picture'] = "storage/{$path}";
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $item = Madrasa::create($data)
                 ->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: CREATED
@@ -90,13 +102,13 @@ class MadrasaController extends Controller
     public function update(UpdateMadrasaRequest $request, Madrasa $madrasa)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            $original  = $madrasa->getOriginal();
-            $validated = $request->validated();
-            $changes   = [];
+            $original = $madrasa->getOriginal();
+            $changes  = [];
 
-            foreach ($validated as $field => $newValue) {
+            foreach ($data as $field => $newValue) {
                 if (array_key_exists($field, $original)) {
                     $oldValue = $original[$field];
                     if ($oldValue != $newValue) {
@@ -105,7 +117,27 @@ class MadrasaController extends Controller
                 }
             }
 
-            $madrasa->update($validated);
+            // ✅ picture: replace file if uploaded (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                if ($madrasa->picture && str_starts_with($madrasa->picture, 'storage/')) {
+                    $old = str_replace('storage/', '', $madrasa->picture);
+                    Storage::disk('public')->delete($old);
+                }
+
+                $path = $request->file('picture')->store('uploads/madrasas', 'public');
+                $data['picture'] = "storage/{$path}";
+
+                $changes['picture'] = [
+                    'old' => $original['picture'] ?? null,
+                    'new' => $data['picture'],
+                ];
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $madrasa->update($data);
             $madrasa->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: UPDATED
@@ -133,8 +165,14 @@ class MadrasaController extends Controller
     public function destroy(Request $request, Madrasa $madrasa)
     {
         $user = $request->user(); // 🔔
-
         $name = $madrasa->name;
+
+        // ✅ delete picture file (same style as SaeenFasad)
+        if ($madrasa->picture && str_starts_with($madrasa->picture, 'storage/')) {
+            $old = str_replace('storage/', '', $madrasa->picture);
+            Storage::disk('public')->delete($old);
+        }
+
         $madrasa->delete();
 
         // 🔔 Notification: DELETED
@@ -156,8 +194,9 @@ class MadrasaController extends Controller
     public function bulkDelete(Request $request)
     {
         $user = $request->user(); // 🔔
-
         $ids = (array) $request->input('ids', []);
+
+        // (kept your original logic — if you want file cleanup here too, tell me)
         Madrasa::destroy($ids);
 
         // 🔔 Notification: BULK DELETED

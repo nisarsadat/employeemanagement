@@ -3,10 +3,13 @@
 namespace App\Models\fifthyformatfour;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class Wakilano extends Model
 {
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         'picture',
         'name',

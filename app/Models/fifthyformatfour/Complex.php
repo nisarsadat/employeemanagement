@@ -14,6 +14,7 @@ class Complex extends Model
         'responsible_job',
         'responsible_f_name','responsible_phone','responsible_country',
         'Province_addr',
+        'picture',
         'coordinates',
         'guard_quantity','resource_id','note',
     ];

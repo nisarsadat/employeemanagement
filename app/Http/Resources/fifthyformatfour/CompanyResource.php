@@ -15,6 +15,7 @@ class CompanyResource extends JsonResource
 
         return [
             'id'                      => $this->id,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'com_name'                => $this->com_name,
             'com_type'                => $this->com_type,

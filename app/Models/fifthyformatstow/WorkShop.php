@@ -3,12 +3,14 @@
 namespace App\Models\fifthyformatstow;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class WorkShop extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'workshop_name',
@@ -22,6 +24,7 @@ class WorkShop extends Model
         'province',
         'Province_addr',
         'zone',
+        'picture',
         'district',
         'village',
         'specific_place',

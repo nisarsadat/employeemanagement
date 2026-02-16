@@ -2,10 +2,13 @@
 
 namespace App\Models\fifthyformatfour;
 
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class EconemyProject extends Model
 {
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         'coordinates',
         'name','type',
@@ -13,6 +16,7 @@ class EconemyProject extends Model
         'province','zone','district','village','specefic_place',
         'amnyatee_khala','employee_quantity','gaurd_quantity',
         'Province_addr',
+        'picture',
         'resource_id','note',
     ];
 

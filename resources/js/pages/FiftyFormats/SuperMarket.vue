@@ -163,7 +163,14 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    >
+    ><template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -183,20 +190,7 @@
           </template>
         </v-tooltip>
       </template>
-      <!-- تصویر -->
-      <template #cell-picture="{ row }">
-        <div v-if="row.picture" class="pic-wrap">
-          <v-avatar size="32" class="cursor-pointer" @click.stop="openPreview(row.picture)">
-            <v-img :src="normalizePicture(row.picture)" :alt="row.supermarket_name" cover />
-          </v-avatar>
-        </div>
-        <div v-else class="pic-wrap">
-          <v-avatar size="32">
-            <v-icon size="20">mdi-store</v-icon>
-          </v-avatar>
-        </div>
-      </template>
-
+     
       <!-- 🗺 MAP CELL -->
       <template #cell-map="{ row }">
         <FlyToMapButton
@@ -309,6 +303,7 @@
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useWakilanoRepository();
   const router = useRouter();
@@ -394,6 +389,7 @@
   }
   /* TABLE HEADERS – list */
   const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
 
     { title: t('نام سوپرمارکیت'), key: 'supermarket_name' },
     { title: t('کدام فعایت'), key: 'market_activity_type' },

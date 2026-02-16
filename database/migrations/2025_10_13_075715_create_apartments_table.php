@@ -12,6 +12,7 @@ return new class extends Migration {
 
             $table->string('block_name')->nullable();
             $table->unsignedInteger('apartments_quantity')->nullable();
+            $table->string('picture')->nullable();
             $table->string('shahrak_name')->nullable();
 
             $table->string('responsible_name')->nullable();

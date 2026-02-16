@@ -11,6 +11,7 @@ use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage; // ✅ picture handling
 
 class RobbersController extends Controller
 {
@@ -74,7 +75,19 @@ class RobbersController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $user) {
-                $robber = Robbers::create($request->validated());
+                $data = $request->validated();
+
+                // ✅ picture: file OR string (same style)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/robbers', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $robber = Robbers::create($data);
 
                 $robber->load([
                     'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
@@ -142,6 +155,26 @@ class RobbersController extends Controller
                     }
                 }
 
+                // ✅ picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+                    if ($robber->picture && str_starts_with($robber->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $robber->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/robbers', 'public');
+                    $validated['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $validated) && !is_string($validated['picture'])) {
+                        unset($validated['picture']);
+                    }
+                }
+
                 $robber->update($validated);
 
                 $robber->load([
@@ -178,6 +211,12 @@ class RobbersController extends Controller
         return DB::transaction(function () use ($id, $user) {
             $robber = Robbers::findOrFail($id);
             $name   = $robber->name;
+
+            // ✅ delete picture file
+            if ($robber->picture && str_starts_with($robber->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $robber->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $robber->delete();
 

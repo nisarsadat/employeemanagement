@@ -1,4 +1,26 @@
 <template>
+  <VoiceCallDialog
+    v-model="voiceCallOpen"
+    :user="repo.activeUser"
+    :status="voiceStatus"
+    :muted="muted"
+    @accept="acceptVoice"
+    @end="endVoice"
+    @toggle-mute="toggleMute"
+  />
+
+  <VideoCallDialog
+    v-model="videoCallOpen"
+    :user="repo.activeUser"
+    :status="videoStatus"
+    :muted="muted"
+    :cameraOff="cameraOff"
+    @accept="acceptVideo"
+    @end="endVideo"
+    @toggle-mute="toggleMute"
+    @toggle-camera="toggleCamera"
+  />
+
   <v-menu
     v-model="menuOpen"
     location="bottom end"
@@ -65,11 +87,7 @@
             </template>
 
             <v-list density="compact" class="language-list">
-              <v-list-item
-                :active="chatLocale === 'fa'"
-                @click="setChatLocale('fa')"
-                title="دری"
-              />
+              <v-list-item :active="chatLocale === 'fa'" @click="setChatLocale('fa')" title="دری" />
               <v-list-item
                 :active="chatLocale === 'ps'"
                 @click="setChatLocale('ps')"
@@ -216,7 +234,10 @@
                   cover
                 />
                 <v-icon v-else size="46">mdi-account-circle</v-icon>
-                <div class="active-status-dot" :class="{ online: !!repo.activeUser.isOnline }"></div>
+                <div
+                  class="active-status-dot"
+                  :class="{ online: !!repo.activeUser.isOnline }"
+                ></div>
               </v-avatar>
 
               <div class="active-user-details">
@@ -233,9 +254,44 @@
               @jump="scrollToMessage"
             />
           </div>
+          <!-- Call buttons -->
+          <div class="d-flex align-center gap-1">
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              class="action-btn"
+              :disabled="!repo.activeUser"
+              @click="startVoiceCall"
+            >
+              <v-icon color="primary">mdi-phone</v-icon>
+              <v-tooltip activator="parent" location="bottom">Voice call</v-tooltip>
+            </v-btn>
 
-          <div ref="messagesBox" class="messages-box thin-scroll" @scroll="handleScroll" :dir="chatDir">
-            <div v-for="(messageGroup, groupIndex) in groupedMessages" :key="groupIndex" class="message-group">
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              class="action-btn"
+              :disabled="!repo.activeUser"
+              @click="startVideoCall"
+            >
+              <v-icon color="primary">mdi-video</v-icon>
+              <v-tooltip activator="parent" location="bottom">Video call</v-tooltip>
+            </v-btn>
+          </div>
+
+          <div
+            ref="messagesBox"
+            class="messages-box thin-scroll"
+            @scroll="handleScroll"
+            :dir="chatDir"
+          >
+            <div
+              v-for="(messageGroup, groupIndex) in groupedMessages"
+              :key="groupIndex"
+              class="message-group"
+            >
               <div
                 v-for="message in messageGroup"
                 :key="message.id"
@@ -267,6 +323,27 @@
                         {{ truncateText(message.replyTo.body || '', 80) }}
                       </div>
                     </div>
+                    <div v-if="message.type === 'call'" class="call-log">
+                      <v-icon size="18" class="mr-2">
+                        {{ message.call_type === 'video' ? 'mdi-video' : 'mdi-phone' }}
+                      </v-icon>
+
+                      <div class="call-log-text">
+                        <div class="call-log-title">
+                          {{ message.call_type === 'video' ? 'Video call' : 'Voice call' }}
+                        </div>
+
+                        <div class="call-log-sub">
+                          <span v-if="message.call_status === 'started'">Started</span>
+                          <span v-else-if="message.call_status === 'ended'">Ended</span>
+                          <span v-else-if="message.call_status === 'missed'">Missed</span>
+                          <span v-else-if="message.call_status === 'rejected'">Rejected</span>
+                          <span v-else>{{ message.call_status }}</span>
+
+                          <span v-if="message.call_duration"> • {{ message.call_duration }}</span>
+                        </div>
+                      </div>
+                    </div>
 
                     <div v-if="!message.deleted_at && message.body" class="message-text">
                       {{ message.body }}
@@ -293,7 +370,13 @@
                         </template>
 
                         <template v-else>
-                          <a class="attach-doc" :href="a.url" :download="a.name" target="_blank" rel="noopener">
+                          <a
+                            class="attach-doc"
+                            :href="a.url"
+                            :download="a.name"
+                            target="_blank"
+                            rel="noopener"
+                          >
                             <v-icon size="18" color="primary">mdi-file</v-icon>
                             <span>{{ a.name }}</span>
                           </a>
@@ -313,7 +396,13 @@
                           mdi-check-all
                         </v-icon>
 
-                        <v-btn icon size="x-small" variant="text" class="reply-btn" @click="startReply(message)">
+                        <v-btn
+                          icon
+                          size="x-small"
+                          variant="text"
+                          class="reply-btn"
+                          @click="startReply(message)"
+                        >
                           <v-icon size="14" color="grey">mdi-reply</v-icon>
                         </v-btn>
 
@@ -343,7 +432,9 @@
               <div class="reply-header">
                 <v-icon size="16" color="primary">mdi-reply</v-icon>
                 <span class="reply-title">
-                  {{ tr('chat.replyingTo', { name: replyToMessage.sender?.name || tr('chat.user') }) }}
+                  {{
+                    tr('chat.replyingTo', { name: replyToMessage.sender?.name || tr('chat.user') })
+                  }}
                 </span>
                 <v-btn icon size="x-small" variant="text" @click="cancelReply">
                   <v-icon size="16">mdi-close</v-icon>
@@ -366,13 +457,24 @@
             <div v-if="hasPendingAttachments" class="composer-previews">
               <div v-if="attachments.images.length" class="preview-row">
                 <div class="preview-label">
-                  <v-icon size="16" color="primary">mdi-image</v-icon><span>{{ tr('chat.images') }}</span>
+                  <v-icon size="16" color="primary">mdi-image</v-icon
+                  ><span>{{ tr('chat.images') }}</span>
                 </div>
 
                 <div class="preview-items">
-                  <div v-for="(f, idx) in attachments.images" :key="`img-${idx}`" class="thumb-wrap">
+                  <div
+                    v-for="(f, idx) in attachments.images"
+                    :key="`img-${idx}`"
+                    class="thumb-wrap"
+                  >
                     <v-img class="thumb" :src="makeObjectUrl(f)" :alt="f.name" />
-                    <v-btn icon size="x-small" variant="text" class="thumb-x" @click="removeAttach('images', idx)">
+                    <v-btn
+                      icon
+                      size="x-small"
+                      variant="text"
+                      class="thumb-x"
+                      @click="removeAttach('images', idx)"
+                    >
                       <v-icon size="16" color="error">mdi-close</v-icon>
                     </v-btn>
                   </div>
@@ -381,7 +483,8 @@
 
               <div v-if="attachments.videos.length" class="preview-row">
                 <div class="preview-label">
-                  <v-icon size="16" color="primary">mdi-video</v-icon><span>{{ tr('chat.videos') }}</span>
+                  <v-icon size="16" color="primary">mdi-video</v-icon
+                  ><span>{{ tr('chat.videos') }}</span>
                 </div>
                 <div class="preview-chips">
                   <v-chip
@@ -399,7 +502,8 @@
 
               <div v-if="attachments.docs.length" class="preview-row">
                 <div class="preview-label">
-                  <v-icon size="16" color="primary">mdi-file-document</v-icon><span>{{ tr('chat.docs') }}</span>
+                  <v-icon size="16" color="primary">mdi-file-document</v-icon
+                  ><span>{{ tr('chat.docs') }}</span>
                 </div>
                 <div class="preview-chips">
                   <v-chip
@@ -417,7 +521,8 @@
 
               <div v-if="attachments.voices.length" class="preview-row">
                 <div class="preview-label">
-                  <v-icon size="16" color="primary">mdi-microphone</v-icon><span>{{ tr('chat.voices') }}</span>
+                  <v-icon size="16" color="primary">mdi-microphone</v-icon
+                  ><span>{{ tr('chat.voices') }}</span>
                 </div>
                 <div class="preview-chips">
                   <v-chip
@@ -447,7 +552,14 @@
               single-line
             />
 
-            <v-btn icon color="primary" class="send-btn" :disabled="!canSend" @click="send" size="large">
+            <v-btn
+              icon
+              color="primary"
+              class="send-btn"
+              :disabled="!canSend"
+              @click="send"
+              size="large"
+            >
               <v-icon>mdi-send</v-icon>
               <v-tooltip activator="parent" location="top">{{ tr('chat.send') }}</v-tooltip>
             </v-btn>
@@ -486,6 +598,8 @@
   import MediaChat from '@/components/chat/MediaChat.vue';
   import VoiceRecorder from '@/components/chat/VoiceRecorder.vue';
   import ChatSearchInline from '@/components/chat/ChatSearchInline.vue';
+  import VoiceCallDialog from '@/components/chat/VoiceCallDialog.vue';
+  import VideoCallDialog from '@/components/chat/VideoCallDialog.vue';
 
   dayjs.extend(relativeTime);
   dayjs.extend(localizedFormat);
@@ -493,6 +607,203 @@
   dayjs.extend(isYesterday);
 
   const repo = useChatRepository();
+
+  // for the voice and video call
+  // ========================
+  // CALL STATE
+  // ========================
+  const voiceCallOpen = ref(false);
+  const videoCallOpen = ref(false);
+
+  const callType = ref(null); // 'voice'|'video'
+  const callStatus = ref('idle'); // idle|ringing|connected|ended|missed|rejected
+  const callStartedAt = ref(null);
+
+  const muted = ref(false);
+  const cameraOff = ref(false);
+
+  // ringtone (caller/receiver)
+  const ringAudio = new Audio('/sounds/ringtone.mp3');
+  ringAudio.loop = true;
+
+  const startRingtone = async () => {
+    try {
+      await ringAudio.play();
+    } catch {
+      // autoplay blocked until user gesture
+    }
+  };
+
+  const stopRingtone = () => {
+    try {
+      ringAudio.pause();
+      ringAudio.currentTime = 0;
+    } catch {}
+  };
+
+  const fmtDuration = (sec) => {
+    const s = Math.max(0, Number(sec || 0));
+    const mm = String(Math.floor(s / 60)).padStart(2, '0');
+    const ss = String(Math.floor(s % 60)).padStart(2, '0');
+    return `${mm}:${ss}`;
+  };
+
+  const secondsSinceStart = () => {
+    if (!callStartedAt.value) return 0;
+    return Math.max(0, dayjs().diff(dayjs(callStartedAt.value), 'second'));
+  };
+  const addCallLogMessage = (payload) => {
+    // payload example:
+    // { type:'call', call_type:'video', status:'ended', duration:'02:10', atIso:... }
+    const tmpId = `call-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    repo.messages.push({
+      id: tmpId,
+      conversation_id: repo.activeConversationId,
+      type: 'call',
+      call_type: payload.call_type,
+      call_status: payload.status,
+      call_duration: payload.duration || null,
+      created_at: payload.atIso || new Date().toISOString(),
+      sender: repo.currentUser ? { ...repo.currentUser } : { id: repo.currentUser?.id },
+    });
+  };
+
+  const startVoiceCall = async () => {
+    if (!repo.activeUser) return;
+
+    callType.value = 'voice';
+    callStatus.value = 'ringing';
+    callStartedAt.value = null;
+    muted.value = false;
+
+    voiceCallOpen.value = true;
+
+    // log in chat (WhatsApp style)
+    addCallLogMessage({
+      call_type: 'voice',
+      status: 'started',
+      duration: null,
+      atIso: new Date().toISOString(),
+    });
+
+    // start ring locally (caller tone)
+    await startRingtone();
+
+    // notify receiver (backend)
+    await repo
+      .startCall({
+        type: 'voice',
+        toUserId: repo.activeUser.id,
+        conversationId: repo.activeConversationId,
+      })
+      .catch(() => {});
+  };
+
+  const startVideoCall = async () => {
+    if (!repo.activeUser) return;
+
+    callType.value = 'video';
+    callStatus.value = 'ringing';
+    callStartedAt.value = null;
+    muted.value = false;
+    cameraOff.value = false;
+
+    videoCallOpen.value = true;
+
+    addCallLogMessage({
+      call_type: 'video',
+      status: 'started',
+      duration: null,
+      atIso: new Date().toISOString(),
+    });
+
+    await startRingtone();
+
+    await repo
+      .startCall({
+        type: 'video',
+        toUserId: repo.activeUser.id,
+        conversationId: repo.activeConversationId,
+      })
+      .catch(() => {});
+  };
+
+  const acceptCall = async () => {
+    stopRingtone();
+    callStatus.value = 'connected';
+    callStartedAt.value = new Date().toISOString();
+
+    // notify backend
+    await repo
+      .acceptCall({
+        conversationId: repo.activeConversationId,
+        type: callType.value,
+      })
+      .catch(() => {});
+  };
+
+  const endCall = async (reason = 'ended') => {
+    stopRingtone();
+
+    const durationSec = secondsSinceStart();
+    const duration = callStartedAt.value ? fmtDuration(durationSec) : '00:00';
+
+    callStatus.value = reason;
+
+    // close dialogs
+    voiceCallOpen.value = false;
+    videoCallOpen.value = false;
+
+    // log end in chat
+    addCallLogMessage({
+      call_type: callType.value || 'voice',
+      status: reason,
+      duration,
+      atIso: new Date().toISOString(),
+    });
+
+    // notify backend
+    await repo
+      .endCall({
+        conversationId: repo.activeConversationId,
+        type: callType.value,
+        status: reason,
+        duration_seconds: durationSec,
+      })
+      .catch(() => {});
+
+    // reset
+    callStartedAt.value = null;
+    callType.value = null;
+  };
+
+
+
+  const voiceStatus = ref('idle'); // ringing|connected|ended
+  const videoStatus = ref('idle');
+
+
+
+
+  const acceptVideo = () => {
+    videoStatus.value = 'connected';
+  };
+
+  const endVoice = () => {
+    voiceStatus.value = 'ended';
+  };
+
+  const endVideo = () => {
+    videoStatus.value = 'ended';
+  };
+
+  const toggleMute = () => {
+    muted.value = !muted.value;
+  };
+
+  const toggleCamera = () => {
+    cameraOff.value = !cameraOff.value;
+  };
 
   /* =========================================================
      ✅ LOCAL i18n (ONLY inside this menu)
@@ -786,18 +1097,17 @@
       })
       .error((err) => console.error('❌ Echo channel error', err));
 
-    window.Echo.private(key)
-      .listen('.MessageDeleted', (payload) => {
-        const id = payload?.message_id;
-        const deletedAt = payload?.deleted_at || new Date().toISOString();
-        if (!id) return;
+    window.Echo.private(key).listen('.MessageDeleted', (payload) => {
+      const id = payload?.message_id;
+      const deletedAt = payload?.deleted_at || new Date().toISOString();
+      if (!id) return;
 
-        repo.messages = repo.messages.map((m) =>
-          String(m.id) === String(id)
-            ? { ...m, deleted_at: deletedAt, body: null, attachments: [] }
-            : m
-        );
-      });
+      repo.messages = repo.messages.map((m) =>
+        String(m.id) === String(id)
+          ? { ...m, deleted_at: deletedAt, body: null, attachments: [] }
+          : m
+      );
+    });
   };
 
   watch(
@@ -1007,8 +1317,7 @@
   };
 
   // ✅ IMPORTANT: do NOT call dayjs.locale() globally (so it won't affect outside menu)
-  const formatTime = (iso) =>
-    iso ? dayjs(iso).locale(chatLocale.value).format('HH:mm') : '';
+  const formatTime = (iso) => (iso ? dayjs(iso).locale(chatLocale.value).format('HH:mm') : '');
 
   const formatRelativeTime = (iso) => {
     if (!iso) return '';
@@ -1649,6 +1958,32 @@
   }
   .message-wrapper.highlighted .message-bubble {
     animation: highlightPulse 2s ease;
+  }
+  .call-log {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .message-wrapper.sent .call-log {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .call-log-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .call-log-title {
+    font-weight: 900;
+    font-size: 13px;
+  }
+  .call-log-sub {
+    font-size: 12px;
+    opacity: 0.9;
   }
 
   @keyframes highlightPulse {

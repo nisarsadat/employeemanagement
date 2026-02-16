@@ -13,6 +13,7 @@ class UpdateUniversityRequest extends FormRequest
         return [
             'uni_name'                   => ['sometimes','nullable','string'],
             'uni_type'                   => ['sometimes','nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'           => ['sometimes','nullable','string'],
             'responsible_f_name'         => ['sometimes','nullable','string'],

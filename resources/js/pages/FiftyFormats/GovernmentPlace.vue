@@ -164,20 +164,14 @@
       @edit="goEdit"
       @peek="openPeek"
     >
-      <!-- تصویر -->
       <template #cell-picture="{ row }">
-        <div v-if="row.picture" class="pic-wrap">
-          <v-avatar size="32" class="cursor-pointer" @click.stop="openPreview(row.picture)">
-            <v-img :src="normalizePicture(row.picture)" :alt="row.government_place_name" cover />
-          </v-avatar>
-        </div>
-        <div v-else class="pic-wrap">
-          <v-avatar size="32">
-            <v-icon size="20">mdi-city-variant</v-icon>
-          </v-avatar>
-        </div>
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
       </template>
-
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -310,6 +304,7 @@ import FlyToMapButton from '@/components/FlyToMapButton.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
 import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+import PictureCell from '@/components/table/PictureCell.vue';
 
 const repo = useWakilanoRepository();
 const router = useRouter();
@@ -399,6 +394,7 @@ const filteredRowsFT = computed(() => {
 
 /* TABLE HEADERS – list */
 const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
 
   { title: t('نام اداره دولتی'), key: 'government_place_name' },
   { title: t('مراجعین روزانه'), key: 'daily_clientele' },

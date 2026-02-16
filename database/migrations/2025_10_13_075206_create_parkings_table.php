@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->string('parking_name');
             $table->string('parking_type')->nullable();
             $table->string('parking_type_pe')->nullable();
+            $table->string('picture')->nullable();
 
             $table->string('responsible_name')->nullable();
             $table->string('responsible_f_name')->nullable();

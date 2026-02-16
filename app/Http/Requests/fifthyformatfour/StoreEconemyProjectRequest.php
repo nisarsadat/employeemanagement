@@ -14,6 +14,7 @@ class StoreEconemyProjectRequest extends FormRequest
             'coordinates'           => ['nullable','string'],
             'name'                  => ['nullable','string'],
             'type'                  => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsiable_name'     => ['nullable','string'],
             'responsiable_f_name'   => ['nullable','string'],

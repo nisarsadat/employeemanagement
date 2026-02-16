@@ -21,322 +21,394 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="pa-4" elevation="2">
-          <!-- مشخصات اساسی -->
           <v-row>
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('مشخصات اساسی') }}
-              </h3>
-            </v-col>
-          </v-row>
+            <!-- ✅ Picture (same as other form) -->
+            <v-col cols="12" md="3">
+              <div class="d-flex flex-column align-center gap-2">
+                <div class="text-subtitle-2 font-weight-medium mb-2">
+                  {{ t('تصویر') }}
+                </div>
 
-          <v-row>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.sarafi_name"
-                :label="t('نام صرافی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
+                <div class="pic-wrap-simple">
+                  <input
+                    ref="pictureInput"
+                    class="hidden-file"
+                    type="file"
+                    accept="image/*"
+                    @change="onPickPicture"
+                  />
+
+                  <v-avatar
+                    size="88"
+                    class="mb-2 cursor-pointer primary-avatar"
+                    :key="form.previewUrl || form.picture_url || form.picture || 'no-picture'"
+                    @click="triggerPicture"
+                  >
+                    <v-img
+                      v-if="form.previewUrl || form.picture_url || form.picture"
+                      :src="normalizePicture(form.previewUrl || form.picture_url || form.picture)"
+                      :alt="t('عکس')"
+                      cover
+                    />
+                    <v-icon v-else size="40">mdi-account</v-icon>
+                  </v-avatar>
+
+                  <div class="d-flex flex-column align-center gap-1">
+                    <v-btn
+                      size="small"
+                      color="primary"
+                      variant="tonal"
+                      class="text-none rounded-pill soft-btn my-2"
+                      @click.stop="triggerPicture"
+                    >
+                      <v-icon start size="22">mdi-pencil</v-icon>
+                      {{ t('تغییر عکس') }}
+                    </v-btn>
+
+                    <v-btn
+                      v-if="form.previewUrl || form.picture_url || form.picture"
+                      size="small"
+                      color="secondary"
+                      variant="tonal"
+                      class="text-none rounded-pill soft-btn"
+                      @click.stop="openPreview(form.previewUrl || form.picture_url || form.picture)"
+                    >
+                      <v-icon start size="22">mdi-eye</v-icon>
+                      {{ t('نمایش') }}
+                    </v-btn>
+                  </div>
+                </div>
+              </div>
             </v-col>
 
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.sarafi_type"
-                :label="t('نوع صرافی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.name"
-                :label="t('نام شخص')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                required
-              />
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.father_name"
-                :label="t('نام پدر')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-          </v-row>
-
-          <v-row class="mt-1">
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.position"
-                :label="t('وظیفه/موقعیت')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-
+            <!-- ✅ The rest of form (no other changes) -->
             <v-col cols="12" md="9">
-              <v-text-field
-                v-model="form.phone_number"
-                :label="t('شماره تماس')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <!-- 
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col> -->
-          </v-row>
+              <!-- مشخصات اساسی -->
+              <v-row>
+                <v-col cols="12">
+                  <h3 class="section-title">
+                    {{ t('مشخصات اساسی') }}
+                  </h3>
+                </v-col>
+              </v-row>
 
-          <!-- آدرس -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('آدرس') }}
-              </h3>
-            </v-col>
-          </v-row>
+              <v-row>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.sarafi_name"
+                    :label="t('نام صرافی')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
 
-          <v-row>
-            <v-col cols="12" md="12">
-              <ProvinceDistrictNameSelect
-                v-model:province="form.province"
-                v-model:district="form.district"
-                :province-label="t('ولایت')"
-                :district-label="t('ولسوالی')"
-                :mdProvince="6"
-                :mdDistrict="6"
-              />
-            </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.sarafi_type"
+                    :label="t('نوع صرافی')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.name"
+                    :label="t('نام شخص')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                    :rules="[rules.required]"
+                    required
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.father_name"
+                    :label="t('نام پدر')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+              </v-row>
 
-            <v-col cols="12" md="6">
-              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
-            </v-col>
+              <v-row class="mt-1">
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.position"
+                    :label="t('وظیفه/موقعیت')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
 
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.village"
-                :label="t('قریه/ناحیه')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-          </v-row>
+                <v-col cols="12" md="9">
+                  <v-text-field
+                    v-model="form.phone_number"
+                    :label="t('شماره تماس')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+              </v-row>
 
-          <v-row class="mt-1">
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.specific_place"
-                :label="t('موقعیت مشخص')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
+              <!-- آدرس -->
+              <v-row class="mt-2">
+                <v-col cols="12">
+                  <h3 class="section-title">
+                    {{ t('آدرس') }}
+                  </h3>
+                </v-col>
+              </v-row>
 
-           
-          </v-row>
+              <v-row>
+                <v-col cols="12" md="12">
+                  <ProvinceDistrictNameSelect
+                    v-model:province="form.province"
+                    v-model:district="form.district"
+                    :province-label="t('ولایت')"
+                    :district-label="t('ولسوالی')"
+                    :mdProvince="6"
+                    :mdDistrict="6"
+                  />
+                </v-col>
 
-          <!-- بازار و دکان -->
+                <v-col cols="12" md="6">
+                  <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
+                </v-col>
 
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.market_name"
-                :label="t('نام بازار/مارکیټ')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.village"
+                    :label="t('قریه/ناحیه')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+              </v-row>
 
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.shop_number"
-                :label="t('نمبر دکان')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-             <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.cordinate"
-                :label="t('مختصات')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                persistent-hint
-                :rules="[rules.coordinatesOptional]"
-              />
-            </v-col>
-          </v-row>
+              <v-row class="mt-1">
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.specific_place"
+                    :label="t('موقعیت مشخص')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+              </v-row>
 
-          <!-- حواله و کارمندان -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('حواله و کارمندان') }}
-              </h3>
-            </v-col>
-          </v-row>
+              <!-- بازار و دکان -->
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.market_name"
+                    :label="t('نام بازار/مارکیټ')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
 
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.provinces_hawala"
-                :label="t('حواله به ولایات')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.shop_number"
+                    :label="t('نمبر دکان')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
 
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.countries_hawala"
-                :label="t('حواله به کشورها')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-          </v-row>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.cordinate"
+                    :label="t('مختصات')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                    persistent-hint
+                    :rules="[rules.coordinatesOptional]"
+                  />
+                </v-col>
+              </v-row>
 
-          <v-row class="mt-1">
-            <v-col cols="12" md="12">
-              <v-text-field
-                v-model="form.employee_quantity"
-                :label="t('تعداد کارمند')"
-                type="number"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.nonNegativeNumberOptional]"
-              />
-            </v-col>
-          </v-row>
+              <!-- حواله و کارمندان -->
+              <v-row class="mt-2">
+                <v-col cols="12">
+                  <h3 class="section-title">
+                    {{ t('حواله و کارمندان') }}
+                  </h3>
+                </v-col>
+              </v-row>
 
-          <!-- منبع -->
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('معلومات منبع') }}
-              </h3>
-            </v-col>
-          </v-row>
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.provinces_hawala"
+                    :label="t('حواله به ولایات')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
 
-          <v-row>
-            <v-col cols="12" md="4">
-              <v-autocomplete
-                v-model="form.resource_code"
-                :items="resources"
-                item-title="code_number"
-                item-value="code_number"
-                :label="t('کود منبع')"
-                :rules="[rules.required]"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                clearable
-                @update:model-value="onResourceCodeChange"
-              />
-            </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.countries_hawala"
+                    :label="t('حواله به کشورها')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+              </v-row>
 
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.resource_phone_number"
-                :label="t('شماره منبع')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                readonly
-              />
-            </v-col>
-          </v-row>
+              <v-row class="mt-1">
+                <v-col cols="12" md="12">
+                  <v-text-field
+                    v-model="form.employee_quantity"
+                    :label="t('تعداد کارمند')"
+                    type="number"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                    :rules="[rules.nonNegativeNumberOptional]"
+                  />
+                </v-col>
+              </v-row>
 
-          
-          <v-row>
-            <v-col cols="12">
-              <v-text-field
-                v-model="form.notes"
-                :label="t('ملاحظات')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-          </v-row>
+              <!-- منبع -->
+              <v-row class="mt-2">
+                <v-col cols="12">
+                  <h3 class="section-title">
+                    {{ t('معلومات منبع') }}
+                  </h3>
+                </v-col>
+              </v-row>
 
-          <!-- ACTIONS -->
-          <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
-              <!-- ✅ Export buttons beside submit (works even blank) -->
-              <v-tooltip :text="t('PDF ساده (بدون عکس)')" location="top">
-                <template #activator="{ props }">
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                    v-model="form.resource_code"
+                    :items="resources"
+                    item-title="code_number"
+                    item-value="code_number"
+                    :label="t('کود منبع')"
+                    :rules="[rules.required]"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                    clearable
+                    @update:model-value="onResourceCodeChange"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.resource_phone_number"
+                    :label="t('شماره منبع')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                    readonly
+                  />
+                </v-col>
+              </v-row>
+
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="form.notes"
+                    :label="t('ملاحظات')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+              </v-row>
+
+              <!-- ACTIONS -->
+              <v-row class="mt-4">
+                <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
+                  <!-- ✅ Export buttons beside submit (works even blank) -->
+                  <v-tooltip :text="t('PDF ساده (بدون عکس)')" location="top">
+                    <template #activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        variant="tonal"
+                        color="primary"
+                        class="text-none"
+                        prepend-icon="mdi-file-pdf-box"
+                        @click="downloadPdf"
+                      >
+                        {{ t('PDF') }}
+                      </v-btn>
+                    </template>
+                  </v-tooltip>
+
+                  <v-tooltip :text="t('Word ساده (بدون عکس)')" location="top">
+                    <template #activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        variant="tonal"
+                        color="primary"
+                        class="text-none"
+                        prepend-icon="mdi-file-word-box"
+                        @click="downloadWord"
+                      >
+                        {{ t('Word') }}
+                      </v-btn>
+                    </template>
+                  </v-tooltip>
+
                   <v-btn
-                    v-bind="props"
-                    variant="tonal"
                     color="primary"
+                    variant="flat"
                     class="text-none"
-                    prepend-icon="mdi-file-pdf-box"
-                    @click="downloadPdf"
+                    :loading="saving"
+                    type="submit"
                   >
-                    {{ t('PDF') }}
+                    {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
                   </v-btn>
-                </template>
-              </v-tooltip>
 
-              <v-tooltip :text="t('Word ساده (بدون عکس)')" location="top">
-                <template #activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    variant="tonal"
-                    color="primary"
-                    class="text-none"
-                    prepend-icon="mdi-file-word-box"
-                    @click="downloadWord"
-                  >
-                    {{ t('Word') }}
+                  <v-btn color="secondary" variant="text" class="text-none" @click="resetForm">
+                    {{ t('پاک کردن فرم') }}
                   </v-btn>
-                </template>
-              </v-tooltip>
-
-              <v-btn
-                color="primary"
-                variant="flat"
-                class="text-none"
-                :loading="saving"
-                type="submit"
-              >
-                {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
-              </v-btn>
-
-              <v-btn color="secondary" variant="text" class="text-none" @click="resetForm">
-                {{ t('پاک کردن فرم') }}
-              </v-btn>
+                </v-col>
+              </v-row>
             </v-col>
           </v-row>
         </v-card>
       </v-form>
     </v-container>
+
+    <!-- ✅ IMAGE PREVIEW DIALOG (same as other form) -->
+    <v-dialog v-model="previewOpen" max-width="520">
+      <v-card>
+        <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
+        <v-card-text class="d-flex justify-center">
+          <v-img
+            :src="normalizePicture(previewSrc)"
+            :alt="t('پیش نمایش')"
+            max-width="480"
+            max-height="420"
+            cover
+          />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn color="primary" variant="flat" @click="previewOpen = false">
+            {{ t('بستن') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
@@ -414,6 +486,11 @@
     resource_id: null,
 
     notes: '',
+
+    // ✅ media (added)
+    picture: null,
+    picture_url: null,
+    previewUrl: null,
   });
 
   /* Rules */
@@ -455,6 +532,56 @@
     showSuccess.value = true;
   }
 
+  /* ✅ Picture (same logic as other form) */
+  const pictureInput = ref(null);
+  const pictureFile = ref(null);
+  const pictureChanged = ref(false);
+
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
+
+  function triggerPicture() {
+    pictureInput.value?.click();
+  }
+
+  function onPickPicture(e) {
+    const file = e.target.files?.[0] ?? null;
+    pictureFile.value = file;
+    pictureChanged.value = !!file;
+
+    if (file) {
+      if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(form.value.previewUrl);
+      }
+      form.value.previewUrl = URL.createObjectURL(file);
+    } else {
+      form.value.previewUrl = form.value.picture_url || null;
+    }
+
+    if (e.target) e.target.value = '';
+  }
+
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
+
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+    clean = clean.replace(/\\\//g, '/');
+
+    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+    if (clean.startsWith('/')) return clean;
+
+    return '/' + clean.replace(/^\/+/, '');
+  }
+
+  function openPreview(src) {
+    const base = src || form.value.previewUrl || form.value.picture_url || form.value.picture;
+    const normalized = normalizePicture(base);
+    previewSrc.value = normalized;
+    if (previewSrc.value) previewOpen.value = true;
+  }
+
   /* Resources dropdown */
   const resources = computed(() => repo.resourcecode || []);
 
@@ -466,6 +593,10 @@
 
   /* Helpers */
   function resetForm() {
+    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(form.value.previewUrl);
+    }
+
     form.value = {
       id: isEdit.value ? form.value.id : null,
       name: '',
@@ -495,11 +626,22 @@
       resource_id: null,
 
       notes: '',
+
+      // ✅ keep media reset too
+      picture: null,
+      picture_url: isEdit.value ? form.value.picture_url : null,
+      previewUrl: isEdit.value ? form.value.picture_url : null,
     };
+
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     formRef.value?.resetValidation?.();
   }
 
   function fillFormFromRecord(x = {}) {
+    const fullUrl = x.picture ?? null;
+
     form.value = {
       id: x.id ?? null,
       name: x.name ?? '',
@@ -529,7 +671,15 @@
       resource_id: x.resource_id ?? null,
 
       notes: x.notes ?? '',
+
+      // ✅ media from API
+      picture: x.picture ?? null,
+      picture_url: fullUrl,
+      previewUrl: fullUrl,
     };
+
+    pictureFile.value = null;
+    pictureChanged.value = false;
   }
 
   /* Build FormData */
@@ -539,6 +689,38 @@
       if (v === undefined || v === null) return;
       fd.append(k, v);
     });
+    return fd;
+  }
+
+  function buildCreateFormData() {
+    const payload = { ...form.value };
+
+    delete payload.previewUrl;
+    delete payload.picture_url;
+    delete payload.picture;
+
+    const fd = toFormData(payload);
+
+    if (pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+
+    return fd;
+  }
+
+  function buildUpdateFormData() {
+    const payload = { ...form.value };
+
+    delete payload.previewUrl;
+    delete payload.picture_url;
+    delete payload.picture;
+
+    const fd = toFormData(payload);
+
+    if (pictureChanged.value && pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+
     return fd;
   }
 
@@ -553,9 +735,8 @@
 
     saving.value = true;
     try {
-      const fd = toFormData({ ...form.value });
-
       if (isEdit.value && form.value.id) {
+        const fd = buildUpdateFormData();
         const updated = await repo.UpdateSarafyano?.(form.value.id, fd);
         if (updated?.id) {
           showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
@@ -563,6 +744,7 @@
           return;
         }
       } else {
+        const fd = buildCreateFormData();
         const created = await repo.CreateSarafyano?.(fd);
         if (created?.id) {
           showSuccessMsg(t('صرافیانو جدید موفقانه ثبت شد'));
@@ -739,5 +921,31 @@
   }
   .ga-2 {
     gap: 8px;
+  }
+
+  /* ✅ picture styles (same as other form) */
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .pic-wrap-simple {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  .primary-avatar {
+    border: 2px solid rgba(33, 150, 243, 0.25);
+  }
+  .gap-2 {
+    gap: 8px;
+  }
+  .soft-btn {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   }
 </style>

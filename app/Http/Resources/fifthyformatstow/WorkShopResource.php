@@ -27,6 +27,7 @@ class WorkShopResource extends JsonResource
             'village'              => $this->village,
             'specific_place'       => $this->specific_place,
             'coordinates'          => $this->coordinates,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'workers_quantity'     => $this->workers_quantity,
             'note'                 => $this->note,

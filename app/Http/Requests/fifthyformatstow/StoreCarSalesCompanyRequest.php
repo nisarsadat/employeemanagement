@@ -15,6 +15,7 @@ class StoreCarSalesCompanyRequest extends FormRequest
     {
         return [
             'car_sales_company_name' => ['required','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'     => ['nullable','string'],
             'responsible_f_name'   => ['nullable','string'],

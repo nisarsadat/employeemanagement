@@ -16,6 +16,7 @@ class StoreMahajeratRequest extends FormRequest
         return [
             'name' => ['required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
+            'picture' => ['nullable','image'],
 
             'father_name' => ['nullable','string'],
             'scientific_level' => ['nullable','string'],

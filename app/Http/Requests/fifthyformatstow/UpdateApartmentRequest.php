@@ -17,6 +17,7 @@ class UpdateApartmentRequest extends FormRequest
             'block_name'           => ['nullable','string'],
             'apartments_quantity'  => ['nullable','integer','min:0'],
             'shahrak_name'         => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'     => ['nullable','string'],
             'responsible_f_name'   => ['nullable','string'],

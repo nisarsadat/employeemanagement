@@ -2,10 +2,13 @@
 
 namespace App\Models\fifthyformatfour;
 
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class Highway extends Model
 {
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         'high_way_name',
         'province',
@@ -13,6 +16,7 @@ class Highway extends Model
         'district',
         'village',
         'specific_place',
+        'picture',
         'coordinates',
         'Province_addr',
         'resource_id',

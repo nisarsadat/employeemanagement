@@ -17,6 +17,7 @@ class UpdateMasjidRequest extends FormRequest
             'coordinates'                   => ['sometimes','nullable','string'],
             'masjid_name'                   => ['sometimes','nullable','string'],
             'masjid_type'                   => ['sometimes','nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'              => ['sometimes','nullable','string'],
             'responsible_f_name'            => ['sometimes','nullable','string'],

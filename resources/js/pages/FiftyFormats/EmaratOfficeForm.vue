@@ -22,16 +22,26 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture (ONLY ADDITION) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <v-row>
             <!-- Fields -->
             <v-col cols="12" md="12">
-              <!-- Address -->
-              <!-- <div class="section-header">
-                <span class="section-title">
-                  {{ isEdit ? t('ویرایش ریکارډ امارت آفس') : t('ایجاد ریکارډ امارت آفس') }}
-                </span>
-              </div> -->
-
               <v-row>
                 <v-col cols="12" md="12">
                   <ProvinceDistrictNameSelect
@@ -45,11 +55,7 @@
                 </v-col>
 
                 <v-col cols="12" md="3">
-                  <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون')"
-                    :disabled="saving"
-                  />
+                  <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
                 </v-col>
 
                 <v-col cols="12" md="3">
@@ -95,6 +101,7 @@
                     :error-messages="getErrorMessages('home_number')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="8">
                   <v-text-field
                     v-model="form.coordenates"
@@ -106,11 +113,6 @@
                   />
                 </v-col>
               </v-row>
-
-              <!-- Office details -->
-              <!-- <div class="section-header mt-4">
-                <span class="section-title">{{ t('جزئیات امارت آفس') }}</span>
-              </div> -->
 
               <v-row>
                 <v-col cols="12" md="4">
@@ -125,6 +127,7 @@
                     :error-messages="getErrorMessages('home_type')"
                   />
                 </v-col>
+
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.responsible_office"
@@ -158,17 +161,6 @@
                     :error-messages="getErrorMessages('guard_quantity')"
                   />
                 </v-col>
-
-                <!-- <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.Province_addr"
-                    :label="t('ولایت مربوطه')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('Province_addr')"
-                    :error-messages="getErrorMessages('Province_addr')"
-                  />
-                </v-col> -->
               </v-row>
             </v-col>
           </v-row>
@@ -233,6 +225,7 @@
               >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
+
               <v-btn
                 color="secondary"
                 variant="tonal"
@@ -267,27 +260,6 @@
         </v-card>
       </v-form>
 
-      <!-- IMAGE PREVIEW DIALOG (kept, even if no picture field yet) -->
-      <v-dialog v-model="previewOpen" max-width="520">
-        <v-card>
-          <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
-          <v-card-text class="d-flex justify-center">
-            <v-img
-              :src="normalizePicture(previewSrc)"
-              :alt="t('پیش نمایش')"
-              max-width="480"
-              max-height="420"
-              cover
-            />
-          </v-card-text>
-          <v-card-actions class="justify-end">
-            <v-btn color="primary" variant="flat" @click="previewOpen = false">
-              {{ t('بستن') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
       <!-- Error Snackbar -->
       <v-snackbar v-model="showError" color="error" timeout="5000">
         {{ errorMessage }}
@@ -317,6 +289,9 @@
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository'; // ✅ replace with your EmaratOffice repo if different
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  // ✅ Picture (ONLY ADDITION)
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useBadmashanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -327,6 +302,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (ONLY ADDITION) */
+  const pictureFile = ref(null); // File|null
+  const pictureChanged = ref(false);
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -361,15 +340,15 @@
   function getErrorMessages(field) {
     return backendErrors.value?.[field] ?? [];
   }
+
   const hometypefortheemaratoffice = computed(() => [t('کرایی'), t('ګروی'), t('خپل')]);
 
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
 
-    // media (optional)
-    picture: null,
-    previewUrl: null,
+    // ✅ picture url from backend (ONLY ADDITION)
+    picture_url: null,
 
     // address
     province: '',
@@ -505,31 +484,6 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  /* PICTURE PREVIEW helpers (kept for consistency) */
-  const pictureInput = ref(null);
-  const pictureFile = ref(null);
-  const pictureChanged = ref(false);
-
-  const previewOpen = ref(false);
-  const previewSrc = ref(null);
-
-  function normalizePicture(src) {
-    if (!src) return null;
-    let clean = String(src).trim();
-    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
-    clean = clean.replace(/\\\//g, '/');
-    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-    if (clean.startsWith('/')) return clean;
-    return '/' + clean.replace(/^\/+/, '');
-  }
-
-  function openPreview(src) {
-    const base = src || form.value.previewUrl || form.value.picture;
-    const normalized = normalizePicture(base);
-    previewSrc.value = normalized;
-    if (previewSrc.value) previewOpen.value = true;
-  }
-
   /* RESOURCES DROPDOWN */
   const resources = computed(() => repo.resourcecode || []);
 
@@ -546,9 +500,8 @@
 
     b.id = x.id ?? null;
 
-    const fullUrl = x.picture ?? null;
-    b.picture = fullUrl;
-    b.previewUrl = fullUrl;
+    // ✅ picture mapping (ONLY ADDITION)
+    b.picture_url = x.picture ?? x.picture_url ?? null;
 
     b.province = x.province ?? '';
     b.zone = x.zone ?? '';
@@ -577,22 +530,26 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+
+      // ✅ reset picker state (ONLY ADDITION)
       pictureFile.value = null;
       pictureChanged.value = false;
+
       return;
     }
 
     try {
       await repo.FetchEmaratOfficeData?.(id);
-      const single = Array.isArray(repo.EmaratOffice)
-        ? repo.EmaratOffice[0]
-        : repo.EmaratOffice || {};
+      const single = Array.isArray(repo.EmaratOffice) ? repo.EmaratOffice[0] : repo.EmaratOffice || {};
       const mapped = mapFromApi(single);
+
       form.value = { ...mapped };
+
+      // ✅ reset picker after load (ONLY ADDITION)
       pictureFile.value = null;
       pictureChanged.value = false;
 
-      // ensure resource mapping is consistent
+      // keep mapping
       if (form.value.resource_code) onResourceCodeChange(form.value.resource_code);
     } catch (e) {
       console.error(e);
@@ -612,20 +569,21 @@
 
   function buildCreateFormData() {
     const payload = { ...form.value };
-    delete payload.previewUrl;
-
     const fd = toFormData(payload);
+
+    // ✅ attach picture (ONLY ADDITION)
     if (pictureFile.value) fd.append('picture', pictureFile.value);
+
     return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    delete payload.previewUrl;
-    delete payload.picture;
-
     const fd = toFormData(payload);
+
+    // ✅ attach only if changed (ONLY ADDITION)
     if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
     return fd;
   }
 
@@ -701,14 +659,12 @@
 
   /* RESET & NAVIGATION */
   function resetForm() {
-    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(form.value.previewUrl);
-    }
-
     if (isEdit.value) {
       loadRecord();
     } else {
       form.value = blankForm();
+
+      // ✅ reset picture state (ONLY ADDITION)
       pictureFile.value = null;
       pictureChanged.value = false;
     }
@@ -726,18 +682,14 @@
   onMounted(async () => {
     await repo.GetResourceCode?.();
     if (isEdit.value) await loadRecord();
+    else {
+      pictureFile.value = null;
+      pictureChanged.value = false;
+    }
   });
 </script>
 
 <style scoped>
-  .hidden-file {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
-  }
-
   /* main card */
   .simple-form-card {
     padding: 16px 16px 20px;
@@ -757,7 +709,7 @@
   }
 
   /* small gap utility */
-  .gap-2 {
+  .ga-2 {
     gap: 8px;
   }
 

@@ -231,6 +231,37 @@ class DashboardController extends Controller
             ->where('activity', 'غیر فعال')
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
+        /* -------------------------------------------------
+        | ✅ RESOURCES BY HAWZA (MAIN period)
+        |-------------------------------------------------*/
+        $resourcesByHawza = Resource::query()
+            ->select('hawza', DB::raw('COUNT(*) as total'))
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->groupBy('hawza')
+            ->get()
+            ->map(function ($row) {
+                $h = trim((string) $row->hawza);
+                if ($h === '') $h = 'نامعلوم';
+
+                // normalize Arabic/Persian chars like you did elsewhere
+                $h = str_replace(['ي', 'ى'], 'ی', $h);
+                $h = str_replace('ك', 'ک', $h);
+                $h = preg_replace('/\s+/', ' ', $h);
+                $h = trim($h);
+
+                return [
+                    'hawza' => $h,
+                    'count' => (int) $row->total,
+                ];
+            })
+            ->groupBy('hawza')
+            ->map(fn ($g, $hawza) => [
+                'hawza' => $hawza,
+                'count' => (int) $g->sum('count'),
+            ])
+            ->values()
+            ->sortByDesc('count')
+            ->values();
 
         /* -------------------------------------------------
         | INFORMATIONS (MAIN period)
@@ -444,6 +475,8 @@ class DashboardController extends Controller
                 'total'    => $resourcesTotal,
                 'active'   => $resourcesActive,
                 'inactive' => $resourcesInactive,
+                'resources_by_hawza' => $resourcesByHawza,
+
             ],
 
             'resources_monthly_counts' => $resourcesMonthlyCounts,

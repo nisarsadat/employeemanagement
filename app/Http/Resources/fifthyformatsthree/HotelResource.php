@@ -27,6 +27,7 @@ class HotelResource extends JsonResource
             'village'            => $this->village,
             'specific_place'     => $this->specific_place,
             'cordenate'          => $this->cordenate,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'employee_quantity'  => $this->employee_quantity,
             'note'               => $this->note,

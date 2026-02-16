@@ -9,6 +9,7 @@ use App\Http\Resources\fifthyFormats\SarafyanoResource;
 use App\Models\fifthyFormats\Sarafyano;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use App\Services\NotificationService; // 🔔 notifications
 
@@ -71,13 +72,28 @@ class SarafyanoController extends Controller
         return new SarafyanoResource($sarafyano);
     }
 
+    /**
+     * POST /sarafyanos
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreSarafyanoRequest $request)
     {
         $user = $request->user(); // 🔔
         $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($data, $user) {
+            return DB::transaction(function () use ($request, $data, $user) {
+                // ✅ picture: file OR string (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/sarafyanos', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
                 $sarafyano = Sarafyano::create($data);
 
                 $sarafyano->load(['resource:id,name,code_number,phone_number']);
@@ -115,13 +131,18 @@ class SarafyanoController extends Controller
         }
     }
 
+    /**
+     * PUT /sarafyanos/{sarafyano}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateSarafyanoRequest $request, Sarafyano $sarafyano)
     {
         $user = $request->user(); // 🔔
         $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($data, $sarafyano, $user) {
+            return DB::transaction(function () use ($request, $data, $sarafyano, $user) {
 
                 // 🧮 changes BEFORE update
                 $original = $sarafyano->getOriginal();
@@ -133,6 +154,26 @@ class SarafyanoController extends Controller
                             'old' => $original[$field],
                             'new' => $newValue,
                         ];
+                    }
+                }
+
+                // ✅ picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+                    if ($sarafyano->picture && str_starts_with($sarafyano->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $sarafyano->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/sarafyanos', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
                     }
                 }
 
@@ -174,6 +215,12 @@ class SarafyanoController extends Controller
 
         return DB::transaction(function () use ($sarafyano, $user) {
             $name = $sarafyano->name;
+
+            // ✅ delete picture file (same style as SaeenFasad destroy)
+            if ($sarafyano->picture && str_starts_with($sarafyano->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $sarafyano->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $sarafyano->delete();
 

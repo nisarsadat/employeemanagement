@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MasjidController extends Controller
 {
@@ -44,9 +45,9 @@ class MasjidController extends Controller
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
                 $q->where('masjid_name', 'like', "%$s%")
-                  ->orWhere('responsible_name', 'like', "%$s%")
-                  ->orWhere('responsible_f_name', 'like', "%$s%")
-                  ->orWhere('masjid_village', 'like', "%$s%");
+                    ->orWhere('responsible_name', 'like', "%$s%")
+                    ->orWhere('responsible_f_name', 'like', "%$s%")
+                    ->orWhere('masjid_village', 'like', "%$s%");
             });
         }
 
@@ -54,7 +55,7 @@ class MasjidController extends Controller
         $page    = $request->query('page');
 
         $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         if ($perPageInt === false || $pageInt === false) {
             $rows = $query->orderByDesc('id')->get();
@@ -70,20 +71,36 @@ class MasjidController extends Controller
 
     /**
      * POST /masjids
+     * Accepts:
+     * - picture as FILE or STRING
      */
     public function store(StoreMasjidRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $data = $request->validated();
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: FILE OR STRING (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/masjids', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
 
                 $row = Masjid::create($data);
-                $row->load(['resource:id,name,code_number,phone_number']);
+
+                // ✅ resource uniqueness check (keep your existing logic)
                 if (!empty($data['resource_id'])) {
                     $this->ensureResourceIsUniqueForThisTable((int) $data['resource_id']);
                 }
+
+                $row->load(['resource:id,name,code_number,phone_number']);
+
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
@@ -97,7 +114,10 @@ class MasjidController extends Controller
                     changes: null
                 );
 
-                return new MasjidResource($row);
+                return (new MasjidResource($row))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
             });
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
@@ -116,22 +136,26 @@ class MasjidController extends Controller
 
     /**
      * PUT /masjids/{masjid}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
      */
     public function update(UpdateMasjidRequest $request, Masjid $masjid)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $masjid, $user) {
-                // 🧮 build changes BEFORE update (like InformationController)
-                $original  = $masjid->getOriginal();
-                $validated = $request->validated();
-                if (!empty($validated['resource_id'])) {
-                    $this->ensureResourceIsUniqueForThisTable((int) $validated['resource_id'], $masjid->id);
-                }
-                $changes   = [];
+            return DB::transaction(function () use ($request, $masjid, $data, $user) {
+                // 🧮 build changes BEFORE update (like your current logic)
+                $original = $masjid->getOriginal();
+                $changes  = [];
 
-                foreach ($validated as $field => $newValue) {
+                // ✅ resource uniqueness check (keep your existing logic)
+                if (!empty($data['resource_id'])) {
+                    $this->ensureResourceIsUniqueForThisTable((int) $data['resource_id'], $masjid->id);
+                }
+
+                foreach ($data as $field => $newValue) {
                     if (array_key_exists($field, $original)) {
                         $oldValue = $original[$field];
                         if ($oldValue != $newValue) {
@@ -143,10 +167,30 @@ class MasjidController extends Controller
                     }
                 }
 
-                // 1️⃣ Update Masjid fields (including resource_id)
-                $masjid->update($validated);
+                // ✅ picture: replace file if uploaded (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    if ($masjid->picture && str_starts_with($masjid->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $masjid->picture);
+                        Storage::disk('public')->delete($old);
+                    }
 
-                // 2️⃣ (Optional) update linked Resource code/phone if frontend sends them
+                    $path = $request->file('picture')->store('uploads/masjids', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                // 1️⃣ Update Masjid fields (including picture + resource_id)
+                $masjid->update($data);
+
+                // 2️⃣ (Optional) update linked Resource code/phone if frontend sends them (keep your existing logic)
                 $resourceCode  = $request->input('resource_code');   // extra field
                 $resourcePhone = $request->input('resource_phone');  // extra field
 
@@ -216,6 +260,12 @@ class MasjidController extends Controller
 
         return DB::transaction(function () use ($masjid, $user) {
             $name = $masjid->masjid_name;
+
+            // ✅ delete picture file (same style as SaeenFasadController)
+            if ($masjid->picture && str_starts_with($masjid->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $masjid->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $masjid->delete();
 

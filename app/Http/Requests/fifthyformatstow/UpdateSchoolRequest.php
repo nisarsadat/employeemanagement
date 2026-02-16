@@ -16,6 +16,7 @@ class UpdateSchoolRequest extends FormRequest
         return [
             'school_name' => ['sometimes','required','string'],
             'school_type' => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'principle_name'   => ['nullable','string'],
             'principle_f_name' => ['nullable','string'],

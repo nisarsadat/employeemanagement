@@ -3,12 +3,14 @@
 namespace App\Models\fifthyformatstow;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class HadoBusStop extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'name',
@@ -21,6 +23,7 @@ class HadoBusStop extends Model
         'responsible_phone',
 
         'province',
+        'picture',
         'zone',
         'district',
         'village',

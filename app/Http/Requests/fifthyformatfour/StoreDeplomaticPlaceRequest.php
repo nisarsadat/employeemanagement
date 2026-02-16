@@ -15,6 +15,7 @@ class StoreDeplomaticPlaceRequest extends FormRequest
             'activity_type'         => ['nullable','string'],
             'supplier_country'        => ['nullable','string'],
             'activity_place'        => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'enter_male_quantity'   => ['nullable','integer'],
             'outer_male_quantity'   => ['nullable','integer'],

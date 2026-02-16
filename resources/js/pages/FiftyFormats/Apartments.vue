@@ -159,7 +159,15 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    >
+      ><template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
+
       <!-- 🗺 MAP CELL -->
       <template #cell-map="{ row }">
         <FlyToMapButton
@@ -260,6 +268,7 @@
   import { ref, computed, onMounted, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
+  import PictureCell from '@/components/table/PictureCell.vue';
 
   import AppBar from '@/components/AppBar.vue';
   import PeekButton from '@/components/PeekButton.vue';
@@ -362,6 +371,7 @@
 
   /* HEADERS for FilterableTable */
   const headersFT = computed(() => [
+    { title: t('picture'), key: 'picture' },
     { title: t('نام بلاک'), key: 'block_name' },
     { title: t('تعداد اپارتمان‌ها'), key: 'apartments_quantity' },
     { title: t('نام شهرک'), key: 'shahrak_name' },

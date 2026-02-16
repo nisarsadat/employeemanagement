@@ -11,6 +11,7 @@ class Park extends Model
         'responsible_name','responsible_f_name','responsible_phone','responsible_possition',
         'province','zone','village','specefic_place','coordinates',
         'Province_addr',
+        'picture',
         'employee_quantity',
         'guard_quantity',
         'resource_id','notes',

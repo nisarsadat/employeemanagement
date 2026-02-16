@@ -14,6 +14,7 @@ class UpdateCriminalCapturePlaceRequest extends FormRequest
             'name'                => ['sometimes','nullable','string'],
             'father_name'         => ['sometimes','nullable','string'],
             'job'                 => ['sometimes','nullable','string'],
+            'picture' => ['nullable','image'],
 
             'jorm_type'           => ['sometimes','nullable','string'],
             'criminals_quantity'  => ['sometimes','nullable','integer'],

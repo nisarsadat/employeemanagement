@@ -73,7 +73,14 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    >
+    ><template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
       <!-- 🔗 Resource code clickable -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به منبع')" location="top">
@@ -161,6 +168,7 @@
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useBadmashanoRepository();
   const router = useRouter();
@@ -232,6 +240,7 @@
 
   /* TABLE HEADERS – WITH PICTURE + MAP */
   const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
 
     { title: t('نام خواب گاه'), key: 'hostel_name' },
     { title: t('نوع خواب گاه'), key: 'hostel_type' },

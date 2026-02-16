@@ -161,7 +161,14 @@
       :enablePeek="true"
       @edit="goEdit"
       @peek="openPeek"
-    >
+    ><template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -268,6 +275,7 @@
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
   import { useSchoolRepository } from '@/stores/SchoolRepository';
+import PictureCell from '@/components/table/PictureCell.vue';
 
   const router = useRouter();
   const repo = useSchoolRepository();
@@ -335,6 +343,8 @@
 
   /* Headers */
   const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
+
     { title: t('نام مکتب'), key: 'school_name' },
     { title: t('نوع مکتب'), key: 'school_type' },
 

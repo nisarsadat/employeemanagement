@@ -26,6 +26,7 @@ class StoreOldSoldiersHomesRequest extends FormRequest
             'now_activity'    => ['nullable','string','max:255'],
             'note'            => ['nullable','string'],
             'Province_addr'             => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'resource_id'     => ['nullable','integer','exists:resources,id'],
         ];

@@ -2,18 +2,7 @@
   <div :dir="isRtl ? 'rtl' : 'ltr'" class="page-bg">
     <!-- APP BAR -->
     <AppBar :title="t('تمام اطلاعیه‌ها')">
-      <template #actions>
-        <v-btn
-          variant="text"
-          color="grey-darken-2"
-          prepend-icon="mdi-arrow-right"
-          @click="goBack"
-          class="back-btn"
-          :class="{ 'rtl-icon': isRtl }"
-        >
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
+     
     </AppBar>
 
     <v-container class=" px-4" :dir="isRtl ? 'rtl' : 'ltr'">

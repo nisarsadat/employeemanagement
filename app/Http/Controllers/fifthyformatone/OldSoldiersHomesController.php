@@ -11,6 +11,7 @@ use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage; // ✅ ONLY for picture delete/store
 
 class OldSoldiersHomesController extends Controller
 {
@@ -67,7 +68,19 @@ class OldSoldiersHomesController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $user) {
-                $record = OldSoldiersHomes::create($request->validated());
+                $data = $request->validated();
+
+                // ✅ picture: file OR string (same as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/old-soldiers-homes', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $record = OldSoldiersHomes::create($data);
 
                 $record->load(['resource:id,name,code_number,phone_number']);
 
@@ -126,6 +139,26 @@ class OldSoldiersHomesController extends Controller
                     }
                 }
 
+                // ✅ picture: replace file if uploaded (same as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    if ($oldSoldiersHome->picture && str_starts_with($oldSoldiersHome->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $oldSoldiersHome->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/old-soldiers-homes', 'public');
+                    $validated['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $validated) && !is_string($validated['picture'])) {
+                        unset($validated['picture']);
+                    }
+                }
+
                 $oldSoldiersHome->update($validated);
                 $oldSoldiersHome->load(['resource:id,name,code_number,phone_number']);
 
@@ -157,6 +190,12 @@ class OldSoldiersHomesController extends Controller
     {
         $user = $request->user(); // 🔔
         $name = $oldSoldiersHome->name;
+
+        // ✅ delete picture file (same as SaeenFasad)
+        if ($oldSoldiersHome->picture && str_starts_with($oldSoldiersHome->picture, 'storage/')) {
+            $old = str_replace('storage/', '', $oldSoldiersHome->picture);
+            Storage::disk('public')->delete($old);
+        }
 
         $oldSoldiersHome->delete();
 

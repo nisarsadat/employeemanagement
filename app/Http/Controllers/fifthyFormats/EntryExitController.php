@@ -9,6 +9,7 @@ use App\Http\Resources\fifthyFormats\EntryExitResource;
 use App\Models\fifthyFormats\EntryExit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use App\Services\NotificationService; // 🔔 notifications
 
@@ -68,13 +69,28 @@ class EntryExitController extends Controller
         return new EntryExitResource($entry_exit);
     }
 
+    /**
+     * POST /entry-exits
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreEntryExitRequest $request)
     {
         $user = $request->user(); // 🔔
         $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($data, $user) {
+            return DB::transaction(function () use ($request, $data, $user) {
+                // ✅ picture: file OR string (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/entry-exits', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
                 $entry_exit = EntryExit::create($data);
 
                 $entry_exit->load(['resource:id,name,code_number,phone_number']);
@@ -112,13 +128,18 @@ class EntryExitController extends Controller
         }
     }
 
+    /**
+     * PUT /entry-exits/{entry_exit}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateEntryExitRequest $request, EntryExit $entry_exit)
     {
         $user = $request->user(); // 🔔
         $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($data, $entry_exit, $user) {
+            return DB::transaction(function () use ($request, $data, $entry_exit, $user) {
 
                 // 🧮 changes BEFORE update
                 $original = $entry_exit->getOriginal();
@@ -130,6 +151,26 @@ class EntryExitController extends Controller
                             'old' => $original[$field],
                             'new' => $newValue,
                         ];
+                    }
+                }
+
+                // ✅ picture: replace file if uploaded (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    if ($entry_exit->picture && str_starts_with($entry_exit->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $entry_exit->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/entry-exits', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
                     }
                 }
 
@@ -172,6 +213,13 @@ class EntryExitController extends Controller
         return DB::transaction(function () use ($entry_exit, $user) {
 
             $way = $entry_exit->entry_way;
+
+            // ✅ delete picture file (same style as SaeenFasad destroy)
+            if ($entry_exit->picture && str_starts_with($entry_exit->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $entry_exit->picture);
+                Storage::disk('public')->delete($old);
+            }
+
             $entry_exit->delete();
 
             // 🔔 Notification: DELETED

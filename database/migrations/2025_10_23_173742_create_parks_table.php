@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->string('responsible_f_name')->nullable();
             $table->string('responsible_phone')->nullable();
             $table->string('responsible_possition')->nullable();
+            $table->string('picture')->nullable();
 
             $table->string('province')->nullable();
             $table->string('zone')->nullable();

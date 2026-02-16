@@ -9,6 +9,7 @@ use App\Http\Resources\fifthyFormats\MahajeratResource;
 use App\Models\fifthyFormats\Mahajerat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use App\Services\NotificationService; // 🔔 notifications
 
@@ -71,13 +72,29 @@ class MahajeratController extends Controller
         return new MahajeratResource($mahajerat);
     }
 
+    /**
+     * POST /mahajerats
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreMahajeratRequest $request)
     {
         $user = $request->user(); // 🔔
         $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($data, $user) {
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: file OR string (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/mahajerats', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
                 $item = Mahajerat::create($data);
 
                 $item->load(['resource:id,name,code_number,phone_number']);
@@ -114,13 +131,18 @@ class MahajeratController extends Controller
         }
     }
 
+    /**
+     * PUT /mahajerats/{mahajerat}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateMahajeratRequest $request, Mahajerat $mahajerat)
     {
         $user = $request->user(); // 🔔
         $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($data, $mahajerat, $user) {
+            return DB::transaction(function () use ($request, $data, $mahajerat, $user) {
 
                 // 🧮 changes BEFORE update
                 $original = $mahajerat->getOriginal();
@@ -132,6 +154,26 @@ class MahajeratController extends Controller
                             'old' => $original[$field],
                             'new' => $newValue,
                         ];
+                    }
+                }
+
+                // ✅ picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+                    if ($mahajerat->picture && str_starts_with($mahajerat->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $mahajerat->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/mahajerats', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
                     }
                 }
 
@@ -174,6 +216,13 @@ class MahajeratController extends Controller
         return DB::transaction(function () use ($mahajerat, $user) {
 
             $name = $mahajerat->name;
+
+            // ✅ delete picture file (same style as SaeenFasad destroy)
+            if ($mahajerat->picture && str_starts_with($mahajerat->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $mahajerat->picture);
+                Storage::disk('public')->delete($old);
+            }
+
             $mahajerat->delete();
 
             // 🔔 Notification: DELETED

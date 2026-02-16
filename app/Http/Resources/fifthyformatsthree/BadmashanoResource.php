@@ -21,6 +21,7 @@ class BadmashanoResource extends JsonResource
             'main_province'     => $this->main_province,
             'main_district'     => $this->main_district,
             'main_village'      => $this->main_village,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'now_province'      => $this->now_province,
             'now_zone'          => $this->now_zone,

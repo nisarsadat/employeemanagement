@@ -13,6 +13,7 @@ class UpdateGovernmentPlaceRequest extends FormRequest
         return [
             'government_place_name' => ['sometimes','nullable','string'],
             'daily_clientele'       => ['sometimes','nullable'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'      => ['sometimes','nullable','string'],
             'responsible_f_name'    => ['sometimes','nullable','string'],

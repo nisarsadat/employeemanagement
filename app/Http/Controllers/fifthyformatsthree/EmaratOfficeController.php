@@ -10,6 +10,7 @@ use App\Http\Requests\fifthyformatsthree\UpdateEmaratOfficeRequest;
 use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EmaratOfficeController extends Controller
 {
@@ -54,9 +55,20 @@ class EmaratOfficeController extends Controller
     public function store(StoreEmaratOfficeRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            $item = EmaratOffice::create($request->validated())
+            // ✅ picture: file OR string (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                $path = $request->file('picture')->store('uploads/emarat-offices', 'public');
+                $data['picture'] = "storage/{$path}";
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $item = EmaratOffice::create($data)
                 ->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: CREATED
@@ -90,14 +102,14 @@ class EmaratOfficeController extends Controller
     public function update(UpdateEmaratOfficeRequest $request, EmaratOffice $emaratOffice)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
             // 🧮 build changes BEFORE update
-            $original  = $emaratOffice->getOriginal();
-            $validated = $request->validated();
-            $changes   = [];
+            $original = $emaratOffice->getOriginal();
+            $changes  = [];
 
-            foreach ($validated as $field => $newValue) {
+            foreach ($data as $field => $newValue) {
                 if (array_key_exists($field, $original)) {
                     $oldValue = $original[$field];
                     if ($oldValue != $newValue) {
@@ -109,7 +121,27 @@ class EmaratOfficeController extends Controller
                 }
             }
 
-            $emaratOffice->update($validated);
+            // ✅ picture: replace file if uploaded (same style as SaeenFasad)
+            if ($request->hasFile('picture')) {
+                if ($emaratOffice->picture && str_starts_with($emaratOffice->picture, 'storage/')) {
+                    $old = str_replace('storage/', '', $emaratOffice->picture);
+                    Storage::disk('public')->delete($old);
+                }
+
+                $path = $request->file('picture')->store('uploads/emarat-offices', 'public');
+                $data['picture'] = "storage/{$path}";
+
+                $changes['picture'] = [
+                    'old' => $original['picture'] ?? null,
+                    'new' => $data['picture'],
+                ];
+            } else {
+                if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                    unset($data['picture']);
+                }
+            }
+
+            $emaratOffice->update($data);
             $emaratOffice->load(['resource:id,name,code_number,phone_number']);
 
             // 🔔 Notification: UPDATED
@@ -137,8 +169,13 @@ class EmaratOfficeController extends Controller
     public function destroy(Request $request, EmaratOffice $emaratOffice)
     {
         $user = $request->user(); // 🔔
-
         $province = $emaratOffice->province;
+
+        // ✅ delete picture file (same style as SaeenFasad)
+        if ($emaratOffice->picture && str_starts_with($emaratOffice->picture, 'storage/')) {
+            $old = str_replace('storage/', '', $emaratOffice->picture);
+            Storage::disk('public')->delete($old);
+        }
 
         $emaratOffice->delete();
 
@@ -161,8 +198,9 @@ class EmaratOfficeController extends Controller
     public function bulkDelete(Request $request)
     {
         $user = $request->user(); // 🔔
-
         $ids = (array) $request->input('ids', []);
+
+        // (kept your original logic — if you want file cleanup here too, tell me)
         EmaratOffice::destroy($ids);
 
         // 🔔 Notification: BULK DELETED

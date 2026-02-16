@@ -18,6 +18,7 @@ class UpdateComplexRequest extends FormRequest
             'specefic_place'         => ['sometimes','nullable','string'],
             'street_number'          => ['sometimes','nullable','string'],
             'home_number'            => ['sometimes','nullable','string'],
+            'picture' => ['nullable','image'],
 
             'complex_name'           => ['sometimes','nullable','string'],
             'activity_type'          => ['sometimes','nullable','string'],

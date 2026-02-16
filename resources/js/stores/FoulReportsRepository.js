@@ -166,7 +166,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
     if (shamsi)
       pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
-
     if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
 
     return pills.join('');
@@ -240,14 +239,13 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const isDay = (x) => /^\d{4}-\d{2}-\d{2}$/.test(x);
     const isMonth = (x) => /^\d{4}-\d{2}$/.test(x);
 
-    // ✅ NEW: if user gives day->day, use directly
+    // ✅ if user gives day->day, use directly
     if (isDay(a) || isDay(b)) {
       const from = isDay(a) ? a : todayIso();
       const to = isDay(b) ? b : from;
       return { from, to };
     }
 
-    // ✅ OLD: month->month fallback
     const fromFinal = isMonth(a) ? a : currentMonthIso();
     const toFinal = isMonth(b) ? b : fromFinal;
 
@@ -317,32 +315,71 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   }
 
   // =========================
+  // ✅ App font stack (same as app.css)
+  // =========================
+  function appFontStack() {
+    // ✅ keep simple & valid everywhere
+    return (
+      `'Amiri','Scheherazade New','Noto Naskh Arabic','Noto Sans Arabic','Tahoma',` +
+      `ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif`
+    );
+  }
+
+  // =========================
+  // ✅ System Name
+  // =========================
+  function getSystemName() {
+    try {
+      const a = window?.systemName;
+      if (typeof a === 'string' && a.trim()) return a.trim();
+    } catch {}
+    try {
+      // eslint-disable-next-line no-undef
+      const b = import.meta?.env?.VITE_SYSTEM_NAME;
+      if (typeof b === 'string' && b.trim()) return b.trim();
+    } catch {}
+    return 'د ۳۳۳ مدیریت';
+  }
+
+  const BISMILLAH = 'بسم الله الرحمن الرحیم';
+
+  // =========================
   // Export CSS
   // =========================
   function baseExportCss() {
-    const fontStack =
-      `'Amiri', 'Scheherazade New', ui-sans-serif, -apple-system, BlinkMacSystemFont,` +
-      ` 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji',` +
-      ` 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif`;
+    const fontStack = appFontStack();
 
     return `
+      /* ✅ ensure Arabic/Persian fonts also exist in the print window */
+      @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
+
       @page { size: A4 portrait; margin: 14mm; }
 
-      :root{ --app-font: ${fontStack}; }
-      * { box-sizing: border-box; }
+      :root{
+        --app-font: ${fontStack};
+        --v-font-family: var(--app-font);
+      }
+
+      * {
+        box-sizing: border-box;
+        font-family: var(--app-font) !important;
+        color: #000 !important;
+      }
 
       html, body {
         margin: 0;
         padding: 0;
-        background: #f6f7fb;
-        color: #111827;
+        background: #fff !important;
+        color: #000 !important;
         font-family: var(--app-font) !important;
         font-size: 12px;
+        direction: rtl !important;
+        text-align: right !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
 
-      .page { width: 100%; padding: 8mm; background: #f6f7fb; }
+      .page { width: 100%; padding: 8mm; background: #fff !important; }
 
       .hero {
         border-radius: 16px;
@@ -370,9 +407,26 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         gap:12px;
         position:relative;
         z-index:1;
+        direction: rtl !important;
       }
-      .hero-title{ color:#fff; font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; }
-      .hero-sub{ color: rgba(255,255,255,.92); margin:0; font-size:12px; line-height:1.55; font-weight:700; }
+
+      .hero, .hero * { color: #fff !important; }
+
+      .hero-bismillah{
+        font-weight: 900;
+        font-size: 13px;
+        margin: 0 0 6px;
+        line-height: 1.4;
+      }
+      .hero-system{
+        font-weight: 900;
+        font-size: 12px;
+        margin: 0 0 6px;
+        line-height: 1.4;
+      }
+
+      .hero-title{ font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; }
+      .hero-sub{ margin:0; font-size:12px; line-height:1.55; font-weight:700; }
 
       .pills{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
       .pill{
@@ -383,7 +437,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         font-size:11px;
         border:1px solid rgba(255,255,255,.28);
         background: rgba(255,255,255,.14);
-        color:#fff;
+        color:#fff !important;
       }
 
       .section { margin-top: 12px; }
@@ -411,8 +465,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         justify-content:space-between;
         gap:10px;
       }
-      .stat-label{ font-size:11px; color: rgba(17,24,39,.65); font-weight:900; margin-bottom:4px; }
-      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; }
+      .stat-label{ font-size:11px; font-weight:900; margin-bottom:4px; color:#000 !important; }
+      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; color:#000 !important; }
 
       .badge{
         display:inline-flex;
@@ -425,11 +479,12 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         margin-top:6px;
         border:1px solid;
         white-space:nowrap;
+        color: inherit !important;
       }
-      .b-primary{ background:#eef2ff; color:#1e40af; border-color:#c7d2fe; }
-      .b-info{ background:#e0f2fe; color:#075985; border-color:#bae6fd; }
-      .b-warning{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
-      .b-success{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+      .b-primary{ background:#eef2ff; border-color:#c7d2fe; }
+      .b-info{ background:#e0f2fe; border-color:#bae6fd; }
+      .b-warning{ background:#fff7ed; border-color:#fed7aa; }
+      .b-success{ background:#ecfdf5; border-color:#a7f3d0; }
 
       .header-strip{
         padding:10px 12px;
@@ -437,9 +492,10 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         align-items:center;
         justify-content:space-between;
         gap:10px;
+        direction: rtl !important;
       }
-      .strip-title{ font-weight:900; font-size:12px; margin:0; }
-      .strip-sub{ margin:2px 0 0; color: rgba(17,24,39,.55); font-size:10px; font-weight:800; }
+      .strip-title{ font-weight:900; font-size:12px; margin:0; color:#000 !important; }
+      .strip-sub{ margin:2px 0 0; font-size:10px; font-weight:800; color:#000 !important; }
 
       .chip{
         padding:5px 10px;
@@ -448,34 +504,35 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         font-size:10px;
         border:1px solid;
         white-space:nowrap;
+        color: inherit !important;
       }
 
       .bg-primary{ background: linear-gradient(135deg,#eef2ff 0%, #dde5ff 100%); }
       .bg-success{ background: linear-gradient(135deg,#e8fbf2 0%, #d2f7e5 100%); }
       .bg-warning{ background: linear-gradient(135deg,#fff6df 0%, #ffeab6 100%); }
 
-      .chip-primary{ background:#eef2ff; border-color:#c7d2fe; color:#1e40af; }
-      .chip-success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
-      .chip-warning{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+      .chip-primary{ background:#eef2ff; border-color:#c7d2fe; }
+      .chip-success{ background:#ecfdf5; border-color:#a7f3d0; }
+      .chip-warning{ background:#fff7ed; border-color:#fed7aa; }
 
-      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; }
+      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; direction: rtl !important; }
 
       thead th{
         background:#f8fafc;
-        color: rgba(17,24,39,.72);
         font-weight:900;
         font-size:11px;
         padding:9px 8px;
         border-bottom:1px solid #eef2f7;
         text-align: start;
+        color:#000 !important;
       }
       tbody td{
         padding:9px 8px;
         border-bottom:1px solid #f0f4fa;
         font-size:11px;
         vertical-align:middle;
-        color: rgba(17,24,39,.90);
         text-align:start;
+        color:#000 !important;
       }
       tbody tr:nth-child(even) td{ background: #fcfdff; }
 
@@ -489,15 +546,38 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         font-weight:900;
         font-size:10px;
         border:1px solid;
+        color: inherit !important;
       }
-      .count-primary{ border-color:#c7d2fe; color:#1e40af; background:#eef2ff; }
-      .count-success{ border-color:#a7f3d0; color:#065f46; background:#ecfdf5; }
+      .count-primary{ border-color:#c7d2fe; background:#eef2ff; }
+      .count-success{ border-color:#a7f3d0; background:#ecfdf5; }
 
-      .hero-logo{ display:flex; align-items:center; justify-content:flex-end; padding:10px 12px; border-radius:12px; min-width: 150px; }
+      .hero-logo{
+        display:flex;
+        align-items:center;
+        justify-content:flex-start;
+        padding:10px 12px;
+        border-radius:12px;
+        min-width: 150px;
+      }
       .hero-logo img{ height:82px; width:auto; object-fit:contain; display:block; }
 
       .no-break { break-inside: avoid; page-break-inside: avoid; }
       .card { break-inside: avoid; page-break-inside: avoid; }
+
+      .etype{
+        display:inline-block;
+        padding:3px 10px;
+        border-radius:999px;
+        font-weight:900;
+        font-size:10px;
+        border:1px solid rgba(17,24,39,.12);
+        color:#000 !important;
+      }
+      .etype-red{ background:#fee2e2; border-color:#fecaca; }
+      .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
+      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
+      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; }
+      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; }
 
       @media print{
         .stats-grid{ grid-template-columns: repeat(2, 1fr); }
@@ -553,10 +633,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
           <div style="padding:0;">
             <table>
-              <thead>
-                <tr>
-                </tr>
-              </thead>
+              <thead><tr></tr></thead>
               <tbody>${notesTr}</tbody>
             </table>
           </div>
@@ -570,6 +647,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   // =========================
   function buildDailyDashboardHtml(report, dateIso, notes = []) {
     const dateText = dateIso || todayIso();
+    const systemName = getSystemName();
 
     const resourcesTotal = safeNum(report?.resources?.total);
     const informationsTotal = safeNum(report?.informations?.total);
@@ -689,9 +767,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                           <tr>
                             <td>${province}</td>
                             <td>${hawza}</td>
-                            <td class="td-center"><span class="etype ${cls}">${
-                          etype || '-'
-                        }</span></td>
+                            <td class="td-center"><span class="etype ${cls}">${etype || '-'}</span></td>
                             <td class="td-center">${killed}</td>
                             <td class="td-center">${injured}</td>
                             <td class="td-end">${mali}</td>
@@ -719,13 +795,17 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
             <div class="hero no-break">
               <div class="hero-top">
                 <div>
-                  <h1 class="hero-title">د ۳۳۳ مدیریت ورځنی راپور</h1>
+                  <div class="hero-bismillah">${escapeHtml(BISMILLAH)}</div>
+                  <div class="hero-system">${escapeHtml(systemName)}</div>
+                  <h1 class="hero-title">ورځنی راپور</h1>
                   <p class="hero-sub">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ ورځنۍ عمومي کتنه</p>
                 </div>
+
                 <div class="hero-logo">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
+
               <div class="pills">${heroDatePills || ''}</div>
             </div>
 
@@ -770,6 +850,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   function buildMonthlyDashboardHtml(report, monthText, notes = []) {
     const monthVal = monthText || currentMonthIso();
     const headerIso = monthToIsoDate(monthVal);
+    const systemName = getSystemName();
 
     const resourcesTotal = safeNum(report?.resources?.total);
     const informationsTotal = safeNum(report?.informations?.total);
@@ -826,7 +907,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-success">
-                <div><div class="strip-title">پنځوس فارمټ</div><div class="strip-sub">د پنځوس فارمټ  لنډیز</div></div>
+                <div><div class="strip-title">پنځوس فارمټ</div><div class="strip-sub">د پنځوس فارمټ لنډیز</div></div>
                 <span class="chip chip-success">${formatsActive}</span>
               </div>
               <div style="padding:0;">
@@ -899,13 +980,17 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
             <div class="hero no-break">
               <div class="hero-top">
                 <div>
-                  <h1 class="hero-title">د ۳۳۳ مدیریت میاشتنی راپور</h1>
+                  <div class="hero-bismillah">${escapeHtml(BISMILLAH)}</div>
+                  <div class="hero-system">${escapeHtml(systemName)}</div>
+                  <h1 class="hero-title">میاشتنی راپور</h1>
                   <p class="hero-sub">د منابعو، اطلاعاتو، پېښو او د پنځوس فارمټ میاشتنۍ عمومي کتنه</p>
                 </div>
-               <div class="hero-logo">
+
+                <div class="hero-logo">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
+
               <div class="pills">${heroDatePills || ''}</div>
             </div>
 
@@ -944,18 +1029,88 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     `;
   }
 
-  function openPrintWindow(html) {
-    const w = window.open('', '_blank', 'width=1100,height=800');
-    if (!w) return false;
+  // =========================
+  // ✅ Print helper (FIX BLANK PDF)
+  // =========================
+  function printHtmlViaIframe(html) {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
+    iframe.setAttribute('aria-hidden', 'true');
 
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
+    document.body.appendChild(iframe);
 
-    w.addEventListener('load', () => {
-      w.focus();
-      w.print();
-    });
+    const w = iframe.contentWindow;
+    const doc = iframe.contentDocument || w.document;
+
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    const waitImages = () =>
+      new Promise((resolve) => {
+        try {
+          const imgs = Array.from(doc.images || []);
+          if (!imgs.length) return resolve();
+
+          let done = 0;
+          const tick = () => {
+            done += 1;
+            if (done >= imgs.length) resolve();
+          };
+
+          imgs.forEach((img) => {
+            if (img.complete) tick();
+            else {
+              img.addEventListener('load', tick, { once: true });
+              img.addEventListener('error', tick, { once: true });
+            }
+          });
+
+          setTimeout(resolve, 2000); // fallback
+        } catch {
+          resolve();
+        }
+      });
+
+    const waitFonts = () =>
+      new Promise((resolve) => {
+        try {
+          const fonts = doc.fonts;
+          if (fonts && typeof fonts.ready?.then === 'function') {
+            fonts.ready.then(resolve).catch(resolve);
+          } else resolve();
+        } catch {
+          resolve();
+        }
+      });
+
+    const doPrint = async () => {
+      try {
+        // allow render
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        await waitFonts();
+        await waitImages();
+
+        w.focus();
+        w.print();
+      } finally {
+        setTimeout(() => {
+          try {
+            document.body.removeChild(iframe);
+          } catch {}
+        }, 1200);
+      }
+    };
+
+    iframe.onload = () => setTimeout(doPrint, 150);
+    setTimeout(doPrint, 600);
 
     return true;
   }
@@ -1010,16 +1165,14 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         fromMonth || selectedMonthFrom.value || selectedMonth.value || currentMonthIso();
       const toFinal = toMonth || selectedMonthTo.value || fromFinal;
 
-      // persist (kept for compatibility)
       selectedMonthFrom.value = fromFinal;
       selectedMonthTo.value = toFinal;
       selectedMonth.value = fromFinal;
 
-      // ✅ NOW supports YYYY-MM-DD or YYYY-MM
       const rr = rangeForMonthlyBetween(fromFinal, toFinal);
 
       const { data } = await axios.get('/reports/foul/monthly', {
-        params: { from: rr.from, to: rr.to }, // ✅ day-to-day filtering
+        params: { from: rr.from, to: rr.to },
       });
 
       monthly.value = data;
@@ -1072,7 +1225,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     });
 
     const html = buildDailyDashboardHtml(report, dateText, notes);
-    openPrintWindow(html);
+    printHtmlViaIframe(html); // ✅ FIX: no more blank PDF
   };
 
   const DownloadDailyFoulWord = async () => {
@@ -1099,7 +1252,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const fromMonth = selectedMonthFrom.value || currentMonthIso();
     const toMonth = selectedMonthTo.value || fromMonth;
 
-    // ✅ notes are fetched for the selected monthly range
     const rr = rangeForMonthlyBetween(fromMonth, toMonth);
 
     const notes = await fetchNotesForExport({
@@ -1108,9 +1260,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       to: rr.to,
     });
 
-    // report HTML still based on FROM month (same as backend monthly report)
     const html = buildMonthlyDashboardHtml(report, fromMonth, notes);
-    openPrintWindow(html);
+    printHtmlViaIframe(html); // ✅ FIX: no more blank PDF
   };
 
   const DownloadMonthlyFoulWord = async () => {

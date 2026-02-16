@@ -21,6 +21,7 @@ class ParkResource extends JsonResource
             'responsible_f_name'   => $model->responsible_f_name,
             'responsible_phone'    => $model->responsible_phone,
             'responsible_possition'=> $model->responsible_possition,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'province'             => $model->province,
             'zone'                 => $model->zone,

@@ -13,6 +13,7 @@ class StoreBadmashanoRequest extends FormRequest
         return [
             'name' => ['required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
+            'picture' => ['nullable','image'],
 
             'nickname' => ['nullable','string'],
             'father_name' => ['nullable','string'],

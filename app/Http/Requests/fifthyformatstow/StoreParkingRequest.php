@@ -17,6 +17,7 @@ class StoreParkingRequest extends FormRequest
             'parking_name'  => ['required','string'],
             'parking_type'  => ['nullable','string'],
             'parking_type_pe' => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'     => ['nullable','string'],
             'responsible_f_name'   => ['nullable','string'],

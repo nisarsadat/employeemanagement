@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->string('create_reason')->nullable();
 
             $table->string('officer_name')->nullable();
+            $table->string('picture')->nullable();
             $table->string('officer_f_name')->nullable();
             $table->string('officer_phone')->nullable();
 

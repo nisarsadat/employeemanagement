@@ -13,6 +13,7 @@ class StoreSarayanoRequest extends FormRequest
         return [
             'saray_name' => ['required','string'],
             'saray_type' => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name' => ['nullable','string'],
             'responsible_f_name' => ['nullable','string'],

@@ -31,6 +31,7 @@ class UpdateDamageRasanPlacesRequest extends FormRequest
             'damage_place'    => ['nullable','string'],
             'note'            => ['nullable','string'],
             'Province_addr'             => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'resource_id'     => ['nullable','integer','exists:resources,id'],
         ];

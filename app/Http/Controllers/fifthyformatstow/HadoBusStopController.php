@@ -11,6 +11,7 @@ use App\Services\NotificationService; // 🔔
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class HadoBusStopController extends Controller
 {
@@ -32,6 +33,19 @@ class HadoBusStopController extends Controller
     private function isDuplicateKey(QueryException $e): bool
     {
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    // ✅ SaeenFasad-style picture delete helper (handles "storage/..." too)
+    private function deletePictureIfStored(?string $picture): void
+    {
+        if (!$picture) return;
+
+        $path = $picture;
+        if (str_starts_with($path, 'storage/')) {
+            $path = str_replace('storage/', '', $path);
+        }
+
+        Storage::disk('public')->delete($path);
     }
 
     /* =======================
@@ -62,14 +76,28 @@ class HadoBusStopController extends Controller
 
     /* =======================
      | POST /hado-bus-stops
+     | Accepts:
+     | - picture as FILE or STRING
      ======================= */
     public function store(StoreHadoBusStopRequest $request)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $stop = HadoBusStop::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: file OR string (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/hado-bus-stops', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $stop = HadoBusStop::create($data);
 
                 $stop->load(['resource:id,name,code_number,phone_number']);
 
@@ -109,14 +137,16 @@ class HadoBusStopController extends Controller
 
     /* =======================
      | PUT /hado-bus-stops/{id}
+     | Accepts:
+     | - picture as FILE or STRING (replaces old file if new uploaded)
      ======================= */
     public function update(UpdateHadoBusStopRequest $request, HadoBusStop $hadoBusStop)
     {
         $user = $request->user(); // 🔔
+        $validated = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $hadoBusStop, $user) {
-                $validated = $request->validated();
+            return DB::transaction(function () use ($request, $validated, $hadoBusStop, $user) {
 
                 // 🧮 detect changes
                 $original = $hadoBusStop->getOriginal();
@@ -128,6 +158,23 @@ class HadoBusStopController extends Controller
                             'old' => $original[$field],
                             'new' => $newValue,
                         ];
+                    }
+                }
+
+                // ✅ picture replace (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $this->deletePictureIfStored($hadoBusStop->picture);
+
+                    $path = $request->file('picture')->store('uploads/hado-bus-stops', 'public');
+                    $validated['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $validated) && !is_string($validated['picture'])) {
+                        unset($validated['picture']);
                     }
                 }
 
@@ -166,6 +213,9 @@ class HadoBusStopController extends Controller
         return DB::transaction(function () use ($hadoBusStop, $user) {
             $name = $hadoBusStop->name;
 
+            // ✅ delete picture file
+            $this->deletePictureIfStored($hadoBusStop->picture);
+
             $hadoBusStop->delete();
 
             NotificationService::record(
@@ -191,11 +241,18 @@ class HadoBusStopController extends Controller
     {
         $user = $request->user(); // 🔔
 
-        $ids = (array) $request->input('ids', []);
+        $ids = $request->input('ids', []);
+        $ids = is_array($ids) ? array_values(array_filter($ids)) : [];
 
         return DB::transaction(function () use ($ids, $user) {
             if (empty($ids)) {
                 return response()->noContent();
+            }
+
+            // ✅ delete pictures first (so files don't remain)
+            $rows = HadoBusStop::whereIn('id', $ids)->get(['id', 'picture']);
+            foreach ($rows as $row) {
+                $this->deletePictureIfStored($row->picture);
             }
 
             HadoBusStop::whereIn('id', $ids)->delete();

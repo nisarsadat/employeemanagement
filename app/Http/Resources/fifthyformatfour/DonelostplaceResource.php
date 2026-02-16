@@ -19,6 +19,7 @@ class DonelostplaceResource extends JsonResource
             'lost_person_f_name' => $model->lost_person_f_name,
             'lost_person_phone'  => $model->lost_person_phone,
             'lost_person_job'    => $model->lost_person_job,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'main_province'      => $model->main_province,
             'main_district'      => $model->main_district,

@@ -2,10 +2,13 @@
 
 namespace App\Models\fifthyformatfour;
 
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class Masjid extends Model
 {
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         
         'masjid_name','masjid_type',
@@ -17,6 +20,7 @@ class Masjid extends Model
         'masjid_province','masjid_zone','masjid_district','masjid_village',
         'masjid_specific_place','masjid_street_number','masjid_coordinates',
         'Province_addr',
+        'picture',
         'resource_id','note',
     ];
 

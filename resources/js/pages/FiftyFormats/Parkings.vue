@@ -166,7 +166,14 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    >
+    ><template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
       <!-- 🔗 RESOURCE CODE clickable with tooltip -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -278,6 +285,7 @@ import FlyToMapButton from '@/components/FlyToMapButton.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
 import { useSchoolRepository } from '@/stores/SchoolRepository';
+import PictureCell from '@/components/table/PictureCell.vue';
 
 const repo = useSchoolRepository();
 const router = useRouter();
@@ -363,6 +371,8 @@ const filteredRowsFT = computed(() => {
 
 /* TABLE HEADERS – ALL INPUTS + map */
 const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
+
   { title: t('نام پارکینگ'), key: 'parking_name' },
   { title: t('نوع پارکینگ'), key: 'parking_type' },
   { title: t('نوع پارکینگ (PE)'), key: 'parking_type_pe' },

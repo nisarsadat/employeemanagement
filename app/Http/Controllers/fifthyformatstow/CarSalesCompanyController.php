@@ -11,6 +11,7 @@ use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CarSalesCompanyController extends Controller
 {
@@ -31,6 +32,19 @@ class CarSalesCompanyController extends Controller
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
+    // ✅ SaeenFasad-style picture delete helper (handles "storage/..." too)
+    private function deletePictureIfStored(?string $picture): void
+    {
+        if (!$picture) return;
+
+        $path = $picture;
+        if (str_starts_with($path, 'storage/')) {
+            $path = str_replace('storage/', '', $path);
+        }
+
+        Storage::disk('public')->delete($path);
+    }
+
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
@@ -38,7 +52,9 @@ class CarSalesCompanyController extends Controller
         $rid     = $request->input('resource_id');
 
         $sortBy  = $request->input('sort_by', 'created_at');
-        $sortDir = in_array($request->input('sort_dir'), ['asc','desc'], true) ? $request->input('sort_dir') : 'desc';
+        $sortDir = in_array($request->input('sort_dir'), ['asc','desc'], true)
+            ? $request->input('sort_dir')
+            : 'desc';
 
         $q = CarSalesCompany::query()->with([
             'resource' => fn ($qr) => $qr->select('id','name','code_number','phone_number'),
@@ -63,13 +79,30 @@ class CarSalesCompanyController extends Controller
         return CarSalesCompanyResource::collection($q->paginate($perPage));
     }
 
+    /**
+     * POST /car-sales-companies
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreCarSalesCompanyRequest $request)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $company = CarSalesCompany::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: file OR string (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/car-sales-companies', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $company = CarSalesCompany::create($data);
 
                 $company->load([
                     'resource' => fn ($qr) => $qr->select('id','name','code_number','phone_number'),
@@ -81,7 +114,7 @@ class CarSalesCompanyController extends Controller
                     action: 'created',
                     title: 'شرکت جدید ثبت شد',
                     message: 'نام شرکت: ' . ($company->car_sales_company_name ?? ''),
-                    routeName: 'car-sales-companies',      // ⚠️ adjust to your real route name
+                    routeName: 'car-sales-companies', // ⚠️ adjust to your real route name
                     routeParams: ['id' => $company->id],
                     level: 'success',
                     changes: null
@@ -109,13 +142,18 @@ class CarSalesCompanyController extends Controller
         return CarSalesCompanyResource::make($carSalesCompany);
     }
 
+    /**
+     * PUT /car-sales-companies/{id}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateCarSalesCompanyRequest $request, CarSalesCompany $carSalesCompany)
     {
         $user = $request->user(); // 🔔
+        $validated = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $carSalesCompany, $user) {
-                $validated = $request->validated();
+            return DB::transaction(function () use ($request, $validated, $carSalesCompany, $user) {
 
                 // 🧮 changes BEFORE update
                 $original = $carSalesCompany->getOriginal();
@@ -124,6 +162,23 @@ class CarSalesCompanyController extends Controller
                 foreach ($validated as $field => $newValue) {
                     if (array_key_exists($field, $original) && $original[$field] != $newValue) {
                         $changes[$field] = ['old' => $original[$field], 'new' => $newValue];
+                    }
+                }
+
+                // ✅ picture replace (same style as SaeenFasad)
+                if ($request->hasFile('picture')) {
+                    $this->deletePictureIfStored($carSalesCompany->picture);
+
+                    $path = $request->file('picture')->store('uploads/car-sales-companies', 'public');
+                    $validated['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $validated) && !is_string($validated['picture'])) {
+                        unset($validated['picture']);
                     }
                 }
 
@@ -162,6 +217,9 @@ class CarSalesCompanyController extends Controller
         return DB::transaction(function () use ($carSalesCompany, $user) {
             $name = $carSalesCompany->car_sales_company_name;
 
+            // ✅ delete picture file
+            $this->deletePictureIfStored($carSalesCompany->picture);
+
             $carSalesCompany->delete();
 
             NotificationService::record(
@@ -189,6 +247,12 @@ class CarSalesCompanyController extends Controller
         return DB::transaction(function () use ($ids, $user) {
             if (empty($ids)) {
                 return response()->noContent();
+            }
+
+            // ✅ delete pictures first (so files don't remain)
+            $rows = CarSalesCompany::whereIn('id', $ids)->get(['id', 'picture']);
+            foreach ($rows as $row) {
+                $this->deletePictureIfStored($row->picture);
             }
 
             CarSalesCompany::whereIn('id', $ids)->delete();

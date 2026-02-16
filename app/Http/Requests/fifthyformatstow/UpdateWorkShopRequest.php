@@ -16,6 +16,7 @@ class UpdateWorkShopRequest extends FormRequest
         return [
             'workshop_name'  => ['sometimes','required','string'],
             'workshop_type'  => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'     => ['nullable','string'],
             'responsible_f_name'   => ['nullable','string'],

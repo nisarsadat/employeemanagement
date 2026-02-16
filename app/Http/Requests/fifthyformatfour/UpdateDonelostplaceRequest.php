@@ -12,6 +12,7 @@ class UpdateDonelostplaceRequest extends FormRequest
     {
         return [
             'place_name'           => ['sometimes','nullable','string'],
+            'picture' => ['nullable','image'],
 
             'lost_person_name'     => ['sometimes','nullable','string'],
             'lost_person_f_name'   => ['sometimes','nullable','string'],

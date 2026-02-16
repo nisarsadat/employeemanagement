@@ -17,6 +17,7 @@ class StoreHosppitalRequest extends FormRequest
             'name'          => ['required','string'],
             'specific_past' => ['nullable','string'],
             'hospita_type'  => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'responsible_name'     => ['nullable','string'],
             'responsible_position' => ['nullable','string'],

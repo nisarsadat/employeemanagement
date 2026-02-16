@@ -20,6 +20,7 @@ class ComplexResource extends JsonResource
             'specefic_place'         => $model->specefic_place,
             'street_number'          => $model->street_number,
             'home_number'            => $model->home_number,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'complex_name'           => $model->complex_name,
             'activity_type'          => $model->activity_type,

@@ -20,6 +20,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (ONLY addition in template) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <v-row>
             <v-col cols="12">
               <!-- School basic info -->
@@ -210,11 +227,7 @@
                   />
                 </v-col>
                 <v-col cols="12" md="3">
-                  <FormatZoneAutocomplete
-                    v-model="form.zone"
-                    :label="t('زون')"
-                    :disabled="saving"
-                  />
+                  <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
                 </v-col>
 
                 <v-col cols="12" md="3">
@@ -404,6 +417,9 @@
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  /* ✅ Picture (ONLY addition in script imports) */
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useBadmashanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -414,6 +430,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (ONLY addition) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -452,6 +472,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    /* ✅ picture url from API (ONLY addition) */
+    picture_url: null,
 
     // basic
     name: '',
@@ -523,6 +546,9 @@
 
     b.id = x.id ?? null;
 
+    /* ✅ picture mapping (ONLY addition) */
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.name = x.name ?? '';
     b.madrasa_type = x.madrasa_type ?? '';
     b.mazhab = x.mazhab ?? '';
@@ -555,6 +581,10 @@
 
     b.note = x.note ?? '';
 
+    /* ✅ reset picker state after load (ONLY addition) */
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     return b;
   }
 
@@ -569,7 +599,8 @@
       const single = Array.isArray(repo.Madrasa) ? repo.Madrasa[0] : repo.Madrasa || {};
       if (!single) return;
 
-      form.value = { ...mapFromApi(single) };
+      const mapped = mapFromApi(single);
+      form.value = { ...mapped };
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات مدرسه'));
@@ -585,11 +616,22 @@
     });
     return fd;
   }
+
+  /* ✅ attach picture (ONLY changes here) */
   function buildCreateFormData() {
-    return toFormData({ ...form.value });
+    const fd = toFormData({ ...form.value });
+
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
+
   function buildUpdateFormData() {
-    return toFormData({ ...form.value });
+    const fd = toFormData({ ...form.value });
+
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -805,6 +847,10 @@
 
   /* RESET & NAVIGATION */
   function resetForm() {
+    /* ✅ reset picture picker state too (ONLY addition) */
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     if (isEdit.value) {
       loadRecord();
     } else {

@@ -28,6 +28,7 @@ class RobbersResource extends JsonResource
             'now_street_number'   => $model->now_street_number,
             'now_home_number'     => $model->now_home_number,
             'Province_addr'               => $this->Province_addr,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'old_job'             => $model->old_job,
             'now_job'             => $model->now_job,

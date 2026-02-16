@@ -22,6 +22,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (ONLY added part) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- Identity + addresses -->
           <v-row>
             <v-col cols="12">
@@ -177,17 +194,6 @@
           </div>
 
           <v-row>
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
-
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
               <v-autocomplete
@@ -253,7 +259,6 @@
                 {{ t('پاک کردن فرم') }}
               </v-btn>
 
-              <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
               <v-btn
                 color="red"
                 variant="tonal"
@@ -306,7 +311,10 @@
   import AppBar from '@/components/AppBar.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
-  
+
+  // ✅ Picture (ONLY added import)
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useWakilanoRepository();
   const route = useRoute();
   const router = useRouter();
@@ -317,6 +325,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (ONLY added state) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -356,6 +368,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API (ONLY added field)
+    picture_url: null,
 
     name: '',
     father_name: '',
@@ -407,6 +422,9 @@
 
     b.id = x.id ?? null;
 
+    // ✅ picture mapping (ONLY added mapping)
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.name = x.name ?? '';
     b.father_name = x.father_name ?? '';
     b.job = x.job ?? '';
@@ -445,7 +463,12 @@
       const single = Array.isArray(repo.CriminalCapturePlace)
         ? repo.CriminalCapturePlace[0]
         : repo.CriminalCapturePlace || {};
+
       form.value = { ...mapFromApi(single || {}) };
+
+      // ✅ reset picker state after load (ONLY added)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات محل دستگیری'));
@@ -459,6 +482,18 @@
       if (v === undefined || v === null) return;
       fd.append(k, v);
     });
+    return fd;
+  }
+
+  // ✅ (ONLY added) attach picture to FormData
+  function buildCreateFormData() {
+    const fd = toFormData({ ...form.value });
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+    return fd;
+  }
+  function buildUpdateFormData() {
+    const fd = toFormData({ ...form.value });
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
     return fd;
   }
 
@@ -630,9 +665,8 @@
     saving.value = true;
 
     try {
-      const fd = toFormData({ ...form.value });
-
       if (!isEdit.value) {
+        const fd = buildCreateFormData();
         const created = await repo.CreateCriminalCapturePlace?.(fd).catch((e) => {
           if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
           return null;
@@ -645,6 +679,7 @@
           showErrorMessage(t('ثبت معلومات ناکام شد'));
         }
       } else {
+        const fd = buildUpdateFormData();
         const updated = await repo.UpdateCriminalCapturePlace?.(form.value.id, fd).catch((e) => {
           if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
           return null;
@@ -667,6 +702,10 @@
 
   /* RESET & NAVIGATION */
   function resetForm() {
+    // ✅ reset picture picker state too (ONLY added)
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     if (isEdit.value) {
       loadRecord();
     } else {
@@ -687,6 +726,10 @@
     await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadRecord();
+    } else {
+      // ✅ ensure picker default state (ONLY added)
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
   });
 </script>

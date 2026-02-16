@@ -3,12 +3,14 @@
 namespace App\Models\fifthyformatstow;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Bank extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'bank_name',
@@ -20,8 +22,10 @@ class Bank extends Model
         'responsible_position',
         'responsible_phone',
 
+        'which_offices_sallary',
         'province',
         'zone',
+        'picture',
         'district',
         'village',
         'specific_place',

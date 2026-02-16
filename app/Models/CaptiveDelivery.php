@@ -23,6 +23,7 @@ class CaptiveDelivery extends Model
         'old_job',
         'new_job',
         'language',
+        'picture',
         'scientific_level',
         'main_province',
         'main_district',

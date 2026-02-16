@@ -14,6 +14,7 @@ class StoreCriminalCapturePlaceRequest extends FormRequest
             'name'                => ['nullable','string'],
             'father_name'         => ['nullable','string'],
             'job'                 => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'jorm_type'           => ['nullable','string'],
             'criminals_quantity'  => ['nullable','integer'],

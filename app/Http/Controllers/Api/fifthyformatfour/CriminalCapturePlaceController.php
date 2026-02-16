@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CriminalCapturePlaceController extends Controller
 {
@@ -41,9 +42,9 @@ class CriminalCapturePlaceController extends Controller
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
                 $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('father_name', 'like', "%{$s}%")
-                  ->orWhere('office', 'like', "%{$s}%")
-                  ->orWhere('village', 'like', "%{$s}%");
+                    ->orWhere('father_name', 'like', "%{$s}%")
+                    ->orWhere('office', 'like', "%{$s}%")
+                    ->orWhere('village', 'like', "%{$s}%");
             });
         }
 
@@ -51,7 +52,7 @@ class CriminalCapturePlaceController extends Controller
         $page    = $request->query('page');
 
         $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         // ✅ Same pattern: invalid pagination → return ALL
         if ($perPageInt === false || $pageInt === false) {
@@ -66,13 +67,30 @@ class CriminalCapturePlaceController extends Controller
         return CriminalCapturePlaceResource::collection($rows);
     }
 
+    /**
+     * POST /criminal-capture-places
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreCriminalCapturePlaceRequest $request)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $row = CriminalCapturePlace::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: FILE OR STRING (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/criminal-capture-places', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $row = CriminalCapturePlace::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -88,12 +106,13 @@ class CriminalCapturePlaceController extends Controller
                     changes: null
                 );
 
-                return new CriminalCapturePlaceResource($row);
+                return (new CriminalCapturePlaceResource($row))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
             });
         } catch (QueryException $e) {
-            if ($this->isDuplicateKey($e)) {
-                return $this->duplicateResponse();
-            }
+            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
             throw $e;
         }
     }
@@ -104,18 +123,23 @@ class CriminalCapturePlaceController extends Controller
         return new CriminalCapturePlaceResource($criminalCapturePlace);
     }
 
+    /**
+     * PUT /criminal-capture-places/{criminalCapturePlace}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateCriminalCapturePlaceRequest $request, CriminalCapturePlace $criminalCapturePlace)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $criminalCapturePlace, $user) {
+            return DB::transaction(function () use ($request, $criminalCapturePlace, $data, $user) {
                 // 🧮 changes BEFORE update
-                $original  = $criminalCapturePlace->getOriginal();
-                $validated = $request->validated();
-                $changes   = [];
+                $original = $criminalCapturePlace->getOriginal();
+                $changes  = [];
 
-                foreach ($validated as $field => $newValue) {
+                foreach ($data as $field => $newValue) {
                     if (array_key_exists($field, $original)) {
                         if ($original[$field] != $newValue) {
                             $changes[$field] = [
@@ -126,7 +150,27 @@ class CriminalCapturePlaceController extends Controller
                     }
                 }
 
-                $criminalCapturePlace->update($validated);
+                // ✅ picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+                    if ($criminalCapturePlace->picture && str_starts_with($criminalCapturePlace->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $criminalCapturePlace->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/criminal-capture-places', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $criminalCapturePlace->update($data);
                 $criminalCapturePlace->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: UPDATED
@@ -145,9 +189,7 @@ class CriminalCapturePlaceController extends Controller
                 return new CriminalCapturePlaceResource($criminalCapturePlace);
             });
         } catch (QueryException $e) {
-            if ($this->isDuplicateKey($e)) {
-                return $this->duplicateResponse();
-            }
+            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
             throw $e;
         }
     }
@@ -158,6 +200,12 @@ class CriminalCapturePlaceController extends Controller
 
         return DB::transaction(function () use ($criminalCapturePlace, $user) {
             $name = $criminalCapturePlace->name;
+
+            // ✅ delete picture file (same style as SaeenFasadController)
+            if ($criminalCapturePlace->picture && str_starts_with($criminalCapturePlace->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $criminalCapturePlace->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $criminalCapturePlace->delete();
 

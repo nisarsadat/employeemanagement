@@ -20,6 +20,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture row (ONLY addition in template) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- ================= WORKSHOP INFO ================= -->
           <div class="section-header">
             <span class="section-title">{{ t('مشخصات ورکشاپ') }}</span>
@@ -159,6 +176,7 @@
                 :error-messages="getErrorMessages('coordinates')"
               />
             </v-col>
+
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.workers_quantity"
@@ -170,16 +188,6 @@
                 :error-messages="getErrorMessages('workers_quantity')"
               />
             </v-col>
-            <!-- <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                variant="outlined"
-                density="compact"
-                :error="hasError('Province_addr')"
-                :error-messages="getErrorMessages('Province_addr')"
-              />
-            </v-col> -->
           </v-row>
 
           <v-divider class="my-4" />
@@ -310,6 +318,9 @@
   import { useSchoolRepository } from '@/stores/SchoolRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  /* ✅ Picture (ONLY addition) */
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useSchoolRepository();
   const route = useRoute();
   const router = useRouter();
@@ -320,6 +331,10 @@
 
   /* MODE */
   const isEdit = computed(() => !!route.params.id);
+
+  /* ✅ Picture state (ONLY addition) */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
   /* FORM / STATE */
   const formRef = ref(null);
@@ -358,6 +373,9 @@
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    /* ✅ picture url from API (ONLY addition) */
+    picture_url: null,
 
     workshop_name: '',
     workshop_type: '',
@@ -415,6 +433,9 @@
 
     b.id = x.id ?? null;
 
+    /* ✅ picture mapping (ONLY addition) */
+    b.picture_url = x.picture ?? x.picture_url ?? null;
+
     b.workshop_name = x.workshop_name ?? '';
     b.workshop_type = x.workshop_type ?? '';
     b.workers_quantity = x.workers_quantity ?? '';
@@ -438,6 +459,10 @@
     b.resource_phone = x.resource_phone ?? r.phone_number ?? '';
 
     b.note = x.note ?? '';
+
+    /* ✅ reset picker state after load (ONLY addition) */
+    pictureFile.value = null;
+    pictureChanged.value = false;
 
     return b;
   }
@@ -471,14 +496,19 @@
     return fd;
   }
 
+  /* ✅ picture append (ONLY changes here) */
   function buildCreateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+    if (pictureFile.value) fd.append('picture', pictureFile.value);
+    return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+    if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -732,6 +762,10 @@
 
   /* RESET & NAVIGATION */
   function resetForm() {
+    /* ✅ reset picture picker state too (ONLY addition) */
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     if (isEdit.value) {
       loadRecord();
     } else {

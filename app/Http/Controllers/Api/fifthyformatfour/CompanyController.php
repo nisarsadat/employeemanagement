@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CompanyController extends Controller
 {
@@ -39,18 +40,18 @@ class CompanyController extends Controller
 
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
-                $q->where('com_name','like',"%$s%")
-                  ->orWhere('product_type','like',"%$s%")
-                  ->orWhere('com_district','like',"%$s%")
-                  ->orWhere('com_village','like',"%$s%");
+                $q->where('com_name', 'like', "%$s%")
+                    ->orWhere('product_type', 'like', "%$s%")
+                    ->orWhere('com_district', 'like', "%$s%")
+                    ->orWhere('com_village', 'like', "%$s%");
             });
         }
 
         $perPage = $request->query('perPage');
         $page    = $request->query('page');
 
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         // Fallback → return all when missing/invalid
         if ($perPageInt === false || $pageInt === false) {
@@ -61,13 +62,30 @@ class CompanyController extends Controller
         return CompanyResource::collection($rows);
     }
 
+    /**
+     * POST /companies
+     * Accepts:
+     * - picture as FILE or STRING
+     */
     public function store(StoreCompanyRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $row = Company::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: FILE OR STRING (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/companies', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $row = Company::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -83,7 +101,10 @@ class CompanyController extends Controller
                     changes: null
                 );
 
-                return new CompanyResource($row);
+                return (new CompanyResource($row))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
             });
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
@@ -97,18 +118,23 @@ class CompanyController extends Controller
         return new CompanyResource($company);
     }
 
+    /**
+     * PUT /companies/{company}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
+     */
     public function update(UpdateCompanyRequest $request, Company $company)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $company, $user) {
+            return DB::transaction(function () use ($request, $company, $data, $user) {
                 // 🧮 build changes BEFORE update
-                $original  = $company->getOriginal();
-                $validated = $request->validated();
-                $changes   = [];
+                $original = $company->getOriginal();
+                $changes  = [];
 
-                foreach ($validated as $field => $newValue) {
+                foreach ($data as $field => $newValue) {
                     if (array_key_exists($field, $original)) {
                         $oldValue = $original[$field];
                         if ($oldValue != $newValue) {
@@ -120,7 +146,27 @@ class CompanyController extends Controller
                     }
                 }
 
-                $company->update($validated);
+                // ✅ picture: replace file if uploaded (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    if ($company->picture && str_starts_with($company->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $company->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/companies', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $company->update($data);
                 $company->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: UPDATED + changes
@@ -150,6 +196,12 @@ class CompanyController extends Controller
 
         return DB::transaction(function () use ($company, $user) {
             $name = $company->com_name;
+
+            // ✅ delete picture file (same style as SaeenFasadController)
+            if ($company->picture && str_starts_with($company->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $company->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $company->delete();
 

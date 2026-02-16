@@ -14,6 +14,7 @@ class StoreCheckpointRequest extends FormRequest
             'check_point_place'   => ['nullable','string'],
             'checkpoint_name'   => ['nullable','string'],
             'employee_quantity' => ['nullable','integer'],
+            'picture' => ['nullable','image'],
 
             'organ'             => ['nullable','string'],
             'create_reason'     => ['nullable','string'],

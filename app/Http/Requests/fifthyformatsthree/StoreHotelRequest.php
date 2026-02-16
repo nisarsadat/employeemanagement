@@ -18,6 +18,7 @@ class StoreHotelRequest extends FormRequest
             'responsible_f_name'   => ['nullable','string'],
             'responsible_position' => ['nullable','string'],
             'responsible_phone'    => ['nullable','string'],
+            'picture' => ['nullable','image'],
 
             'province'       => ['nullable','string'],
             'zone'           => ['nullable','string'],

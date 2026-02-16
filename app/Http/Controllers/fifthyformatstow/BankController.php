@@ -7,18 +7,63 @@ use App\Http\Requests\fifthyformatstow\StoreBankRequest;
 use App\Http\Requests\fifthyformatstow\UpdateBankRequest;
 use App\Http\Resources\fifthyformatstow\BankResource;
 use App\Models\fifthyformatstow\Bank;
+use App\Services\NotificationService; // 🔔 (if you have it for this module)
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class BankController extends Controller
 {
+    /* =======================
+     | Helpers (same style)
+     ======================= */
+    private function duplicateErrorPashto(): array
+    {
+        return [
+            'message' => 'دا بانک مخکې ثبت شوی دی. مهرباني وکړئ تکراري معلومات مه داخلوی.',
+            'errors'  => [
+                'duplicate' => [
+                    'دا بانک مخکې ثبت شوی دی (نوم/ډول، مسؤل معلومات او پته یو شان دي).',
+                ],
+            ],
+        ];
+    }
+
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
+    }
+
+    // ✅ picture delete helper (handles "storage/..." too)
+    private function deletePictureIfStored(?string $picture): void
+    {
+        if (!$picture) return;
+
+        $path = $picture;
+        if (str_starts_with($path, 'storage/')) {
+            $path = str_replace('storage/', '', $path);
+        }
+
+        Storage::disk('public')->delete($path);
+    }
+
+    /* =======================
+     | GET /banks
+     ======================= */
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
         $search  = $request->input('search');
+        $rid     = $request->input('resource_id');
+
+        $sortBy  = $request->input('sort_by', 'created_at');
+        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
+            ? $request->input('sort_dir')
+            : 'desc';
 
         $q = Bank::query()
-            ->with(['resource:id,name,code_number,phone_number'])
-            ->latest();
+            ->with(['resource:id,name,code_number,phone_number']);
 
         if ($search) {
             $q->where(function ($qq) use ($search) {
@@ -32,41 +77,218 @@ class BankController extends Controller
             });
         }
 
+        if ($rid) {
+            $q->where('resource_id', $rid);
+        }
+
+        $q->orderBy($sortBy, $sortDir);
+
         return BankResource::collection($q->paginate($perPage));
     }
 
+    /* =======================
+     | POST /banks
+     | Accepts picture as FILE or STRING
+     ======================= */
     public function store(StoreBankRequest $request)
     {
-        $bank = Bank::create($request->validated())
-            ->load(['resource:id,name,code_number,phone_number']);
+        $user = $request->user(); // 🔔
+        $data = $request->validated();
 
-        return BankResource::make($bank);
+        try {
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: file OR string
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/banks', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $bank = Bank::create($data);
+                $bank->load(['resource:id,name,code_number,phone_number']);
+
+                // 🔔 (optional) notification
+                if (class_exists(NotificationService::class)) {
+                    NotificationService::record(
+                        $user,
+                        module: 'بانک‌ها',
+                        action: 'created',
+                        title: 'بانک جدید ثبت شد',
+                        message: 'نام بانک: ' . ($bank->bank_name ?? ''),
+                        routeName: 'banks', // ⚠️ adjust if needed
+                        routeParams: ['id' => $bank->id],
+                        level: 'success',
+                        changes: null
+                    );
+                }
+
+                return (new BankResource($bank))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return response()->json($this->duplicateErrorPashto(), 422);
+            }
+            throw $e;
+        }
     }
 
+    /* =======================
+     | GET /banks/{bank}
+     ======================= */
     public function show(Bank $bank)
     {
         $bank->load(['resource:id,name,code_number,phone_number']);
         return BankResource::make($bank);
     }
 
+    /* =======================
+     | PUT /banks/{bank}
+     | Replaces old picture if new uploaded
+     ======================= */
     public function update(UpdateBankRequest $request, Bank $bank)
     {
-        $bank->update($request->validated());
-        $bank->load(['resource:id,name,code_number,phone_number']);
+        $user = $request->user(); // 🔔
+        $validated = $request->validated();
 
-        return BankResource::make($bank);
+        try {
+            return DB::transaction(function () use ($request, $validated, $bank, $user) {
+
+                // 🧮 changes BEFORE update
+                $original = $bank->getOriginal();
+                $changes  = [];
+
+                foreach ($validated as $field => $newValue) {
+                    if (array_key_exists($field, $original) && $original[$field] != $newValue) {
+                        $changes[$field] = ['old' => $original[$field], 'new' => $newValue];
+                    }
+                }
+
+                // ✅ picture replace
+                if ($request->hasFile('picture')) {
+                    $this->deletePictureIfStored($bank->picture);
+
+                    $path = $request->file('picture')->store('uploads/banks', 'public');
+                    $validated['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $validated) && !is_string($validated['picture'])) {
+                        unset($validated['picture']);
+                    }
+                }
+
+                $bank->update($validated);
+                $bank->load(['resource:id,name,code_number,phone_number']);
+
+                // 🔔 (optional) notification
+                if (class_exists(NotificationService::class)) {
+                    NotificationService::record(
+                        $user,
+                        module: 'بانک‌ها',
+                        action: 'updated',
+                        title: 'بانک اصلاح شد',
+                        message: 'نام بانک: ' . ($bank->bank_name ?? ''),
+                        routeName: 'banks',
+                        routeParams: ['id' => $bank->id],
+                        level: 'info',
+                        changes: !empty($changes) ? $changes : null
+                    );
+                }
+
+                return BankResource::make($bank);
+            });
+        } catch (QueryException $e) {
+            if ($this->isDuplicateKey($e)) {
+                return response()->json($this->duplicateErrorPashto(), 422);
+            }
+            throw $e;
+        }
     }
 
-    public function destroy(Bank $bank)
+    /* =======================
+     | DELETE /banks/{bank}
+     ======================= */
+    public function destroy(Request $request, Bank $bank)
     {
-        $bank->delete();
-        return response()->noContent();
+        $user = $request->user(); // 🔔
+
+        return DB::transaction(function () use ($bank, $user) {
+
+            $bankName = $bank->bank_name;
+
+            // ✅ delete picture file
+            $this->deletePictureIfStored($bank->picture);
+
+            $bank->delete();
+
+            // 🔔 (optional) notification
+            if (class_exists(NotificationService::class)) {
+                NotificationService::record(
+                    $user,
+                    module: 'بانک‌ها',
+                    action: 'deleted',
+                    title: 'بانک حذف شد',
+                    message: 'نام بانک: ' . ($bankName ?? ''),
+                    routeName: null,
+                    routeParams: ['banks'],
+                    level: 'warning',
+                    changes: null
+                );
+            }
+
+            return response()->noContent();
+        });
     }
 
+    /* =======================
+     | POST /banks/bulk-delete
+     ======================= */
     public function bulkDelete(Request $request)
     {
+        $user = $request->user(); // 🔔
+
         $ids = $request->input('ids', []);
-        Bank::destroy($ids);
-        return response()->noContent();
+        $ids = is_array($ids) ? array_values(array_filter($ids)) : [];
+
+        return DB::transaction(function () use ($ids, $user) {
+            if (empty($ids)) {
+                return response()->noContent();
+            }
+
+            // ✅ delete pictures first
+            $rows = Bank::whereIn('id', $ids)->get(['id', 'picture']);
+            foreach ($rows as $row) {
+                $this->deletePictureIfStored($row->picture);
+            }
+
+            Bank::whereIn('id', $ids)->delete();
+
+            // 🔔 (optional) notification
+            if (class_exists(NotificationService::class)) {
+                NotificationService::record(
+                    $user,
+                    module: 'بانک‌ها',
+                    action: 'deleted',
+                    title: 'بانکونه به‌صورت گروهی حذف شد',
+                    message: 'تعداد: ' . count($ids),
+                    routeName: null,
+                    routeParams: ['banks'],
+                    level: 'warning',
+                    changes: null
+                );
+            }
+
+            return response()->noContent();
+        });
     }
 }

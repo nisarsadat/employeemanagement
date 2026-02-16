@@ -19,85 +19,131 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="pa-4" elevation="2">
-          <!-- هدر بخش‌ها -->
-          <!-- <v-row>
-            <v-col cols="12">
-              <h3 class="section-title">
-                {{ t('مشخصات اساسی کلب') }}
-              </h3>
-            </v-col>
-          </v-row> -->
-
-          <!-- Identity / basic -->
+          <!-- ✅ ONLY CHANGE: Picture part like SaeenFasad -->
           <v-row>
+            <!-- Picture -->
             <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.club_name"
-                :label="t('نام کلب')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                required
-              />
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.club_type"
-                :label="t('نوع کلب')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.name"
-                :label="t('نام مسئول/شخص')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                required
-              />
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.father_name"
-                :label="t('نام پدر')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
+              <div class="d-flex flex-column align-center gap-2">
+                <div class="text-subtitle-2 font-weight-medium mb-2">
+                  {{ t('تصویر') }}
+                </div>
+
+                <div class="pic-wrap-simple">
+                  <input
+                    ref="pictureInput"
+                    class="hidden-file"
+                    type="file"
+                    accept="image/*"
+                    @change="onPickPicture"
+                  />
+
+                  <v-avatar
+                    size="88"
+                    class="mb-2 cursor-pointer primary-avatar"
+                    :key="form.previewUrl || form.picture_url || form.picture || 'no-picture'"
+                    @click="triggerPicture"
+                  >
+                    <v-img
+                      v-if="form.previewUrl || form.picture_url || form.picture"
+                      :src="normalizePicture(form.previewUrl || form.picture_url || form.picture)"
+                      :alt="t('عکس')"
+                      cover
+                    />
+                    <v-icon v-else size="40">mdi-account</v-icon>
+                  </v-avatar>
+
+                  <div class="d-flex flex-column align-center gap-1">
+                    <v-btn
+                      size="small"
+                      color="primary"
+                      variant="tonal"
+                      class="text-none rounded-pill soft-btn my-2"
+                      @click.stop="triggerPicture"
+                    >
+                      <v-icon start size="22">mdi-pencil</v-icon>
+                      {{ t('تغییر عکس') }}
+                    </v-btn>
+
+                    <v-btn
+                      v-if="form.previewUrl || form.picture_url || form.picture"
+                      size="small"
+                      color="secondary"
+                      variant="tonal"
+                      class="text-none rounded-pill soft-btn"
+                      @click.stop="openPreview(form.previewUrl || form.picture_url || form.picture)"
+                    >
+                      <v-icon start size="22">mdi-eye</v-icon>
+                      {{ t('نمایش') }}
+                    </v-btn>
+                  </div>
+                </div>
+              </div>
             </v-col>
 
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.position"
-                :label="t('وظیفه/موقعیت')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
+            <!-- Identity / basic -->
             <v-col cols="12" md="9">
-              <v-text-field
-                v-model="form.phone_number"
-                :label="t('شماره تماس')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
+              <v-row>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.club_name"
+                    :label="t('نام کلب')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                    :rules="[rules.required]"
+                    required
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.club_type"
+                    :label="t('نوع کلب')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.name"
+                    :label="t('نام مسئول/شخص')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                    :rules="[rules.required]"
+                    required
+                  />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.father_name"
+                    :label="t('نام پدر')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="form.position"
+                    :label="t('وظیفه/موقعیت')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+                <v-col cols="12" md="9">
+                  <v-text-field
+                    v-model="form.phone_number"
+                    :label="t('شماره تماس')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                  />
+                </v-col>
+              </v-row>
             </v-col>
-            <!-- <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.Province_addr"
-                :label="t('ولایت مربوطه')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col> -->
           </v-row>
 
           <!-- آدرس / موقعیت -->
@@ -279,6 +325,27 @@
       </v-form>
     </v-container>
 
+    <!-- ✅ IMAGE PREVIEW DIALOG (same as SaeenFasad) -->
+    <v-dialog v-model="previewOpen" max-width="520">
+      <v-card>
+        <v-toolbar density="compact" color="primary" :title="t('پیش نمایش')" class="text-white" />
+        <v-card-text class="d-flex justify-center">
+          <v-img
+            :src="normalizePicture(previewSrc)"
+            :alt="t('پیش نمایش')"
+            max-width="480"
+            max-height="420"
+            cover
+          />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn color="primary" variant="flat" @click="previewOpen = false">
+            {{ t('بستن') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
@@ -326,8 +393,15 @@
   const formValid = ref(false);
   const saving = ref(false);
 
+  // ✅ ONLY CHANGE: add picture fields like SaeenFasad
   const form = ref({
     id: null,
+
+    // media
+    picture: null,
+    picture_url: null,
+    previewUrl: null,
+
     name: '',
     father_name: '',
     club_name: '',
@@ -349,6 +423,8 @@
     resource_code: '',
     resource_phone_number: '',
     resource_id: null,
+
+    notes: '',
   });
 
   /* Rules */
@@ -399,10 +475,69 @@
     form.value.resource_id = found?.id ?? null;
   }
 
+  /* ✅ ONLY CHANGE: Picture logic same as SaeenFasad */
+  const pictureInput = ref(null);
+  const pictureFile = ref(null);
+  const pictureChanged = ref(false);
+
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
+
+  function triggerPicture() {
+    pictureInput.value?.click();
+  }
+
+  function onPickPicture(e) {
+    const file = e.target.files?.[0] ?? null;
+    pictureFile.value = file;
+    pictureChanged.value = !!file;
+
+    if (file) {
+      if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(form.value.previewUrl);
+      }
+      form.value.previewUrl = URL.createObjectURL(file);
+    } else {
+      form.value.previewUrl = form.value.picture_url || null;
+    }
+    if (e.target) e.target.value = '';
+  }
+
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
+
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+    clean = clean.replace(/\\\//g, '/');
+
+    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+    if (clean.startsWith('/')) return clean;
+
+    return '/' + clean.replace(/^\/+/, '');
+  }
+
+  function openPreview(src) {
+    const base = src || form.value.previewUrl || form.value.picture_url || form.value.picture;
+    const normalized = normalizePicture(base);
+    previewSrc.value = normalized;
+    if (previewSrc.value) previewOpen.value = true;
+  }
+
   /* Helpers */
   function resetForm() {
+    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(form.value.previewUrl);
+    }
+
     form.value = {
       id: isEdit.value ? form.value.id : null,
+
+      // media
+      picture: isEdit.value ? form.value.picture : null,
+      picture_url: isEdit.value ? form.value.picture_url : null,
+      previewUrl: isEdit.value ? form.value.previewUrl : null,
+
       name: '',
       father_name: '',
       club_name: '',
@@ -424,13 +559,28 @@
       resource_code: '',
       resource_phone_number: '',
       resource_id: null,
+
+      notes: '',
     };
+
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
     formRef.value?.resetValidation?.();
   }
 
   function fillFormFromRecord(x = {}) {
+    // keep picture from API if exists
+    const fullUrl = x.picture ?? null;
+
     form.value = {
       id: x.id ?? null,
+
+      // media
+      picture: x.picture ?? null,
+      picture_url: fullUrl,
+      previewUrl: fullUrl,
+
       name: x.name ?? '',
       father_name: x.father_name ?? '',
       club_name: x.club_name ?? '',
@@ -452,7 +602,12 @@
       resource_code: x.resource_code ?? '',
       resource_phone_number: x.resource_phone_number ?? '',
       resource_id: x.resource_id ?? null,
+
+      notes: x.notes ?? '',
     };
+
+    pictureFile.value = null;
+    pictureChanged.value = false;
   }
 
   /* Build FormData */
@@ -476,7 +631,17 @@
 
     saving.value = true;
     try {
-      const fd = toFormData({ ...form.value });
+      // ✅ ONLY CHANGE: exclude preview-only fields, then append picture if chosen
+      const payload = { ...form.value };
+      delete payload.previewUrl;
+      delete payload.picture_url;
+      delete payload.picture;
+
+      const fd = toFormData(payload);
+
+      if (pictureChanged.value && pictureFile.value) {
+        fd.append('picture', pictureFile.value);
+      }
 
       if (isEdit.value && form.value.id) {
         const updated = await repo.UpdateClub?.(form.value.id, fd);
@@ -655,5 +820,34 @@
   }
   .ga-2 {
     gap: 8px;
+  }
+
+  /* ✅ styles copied from SaeenFasad picture part */
+  .hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .pic-wrap-simple {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  .primary-avatar {
+    border: 2px solid rgba(33, 150, 243, 0.25);
+  }
+
+  .gap-2 {
+    gap: 8px;
+  }
+
+  .soft-btn {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   }
 </style>

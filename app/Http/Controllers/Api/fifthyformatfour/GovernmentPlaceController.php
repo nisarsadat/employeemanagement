@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class GovernmentPlaceController extends Controller
 {
@@ -35,30 +36,44 @@ class GovernmentPlaceController extends Controller
 
     /**
      * GET /government-places
+     *
+     * ✅ Same pattern as others:
+     * - supports ?search=...&perPage=...&page=...
+     * - if page/perPage invalid → return ALL (no pagination)
      */
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = trim((string) $request->input('search', ''));
+        $query = GovernmentPlace::query()
+            ->with(['resource:id,name,code_number,phone_number']);
 
-        $q = GovernmentPlace::query()
-            ->with(['resource:id,name,code_number,phone_number'])
-            ->latest('id');
-
+        $search = trim((string) $request->query('search', ''));
         if ($search !== '') {
-            $q->where(function (Builder $w) use ($search) {
+            $query->where(function (Builder $w) use ($search) {
                 $w->where('government_place_name', 'like', "%{$search}%")
-                  ->orWhere('province', 'like', "%{$search}%")
-                  ->orWhere('district', 'like', "%{$search}%")
-                  ->orWhere('village', 'like', "%{$search}%");
+                    ->orWhere('province', 'like', "%{$search}%")
+                    ->orWhere('district', 'like', "%{$search}%")
+                    ->orWhere('village', 'like', "%{$search}%");
             });
         }
 
-        return GovernmentPlaceResource::collection($q->paginate($perPage));
+        $perPage = $request->query('perPage', $request->query('per_page'));
+        $page    = $request->query('page');
+
+        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+        if ($perPageInt === false || $pageInt === false) {
+            return GovernmentPlaceResource::collection($query->orderByDesc('id')->get());
+        }
+
+        $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
+        return GovernmentPlaceResource::collection($rows);
     }
 
     /**
      * POST /government-places
+     * Accepts:
+     * - picture as FILE or STRING
      */
     public function store(StoreGovernmentPlaceRequest $request)
     {
@@ -66,7 +81,18 @@ class GovernmentPlaceController extends Controller
         $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($data, $user) {
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: FILE OR STRING (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/government-places', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
                 $row = GovernmentPlace::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
@@ -83,7 +109,10 @@ class GovernmentPlaceController extends Controller
                     changes: null
                 );
 
-                return GovernmentPlaceResource::make($row);
+                return (new GovernmentPlaceResource($row))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
             });
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
@@ -102,6 +131,8 @@ class GovernmentPlaceController extends Controller
 
     /**
      * PUT /government-places/{governmentplace}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
      */
     public function update(UpdateGovernmentPlaceRequest $request, GovernmentPlace $governmentplace)
     {
@@ -109,7 +140,7 @@ class GovernmentPlaceController extends Controller
         $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($data, $governmentplace, $user) {
+            return DB::transaction(function () use ($request, $data, $governmentplace, $user) {
                 // 🧮 changes BEFORE update
                 $original = $governmentplace->getOriginal();
                 $changes  = [];
@@ -123,6 +154,26 @@ class GovernmentPlaceController extends Controller
                                 'new' => $newValue,
                             ];
                         }
+                    }
+                }
+
+                // ✅ picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+                    if ($governmentplace->picture && str_starts_with($governmentplace->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $governmentplace->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/government-places', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
                     }
                 }
 
@@ -160,6 +211,12 @@ class GovernmentPlaceController extends Controller
         return DB::transaction(function () use ($governmentplace, $user) {
             $name = $governmentplace->government_place_name;
 
+            // ✅ delete picture file
+            if ($governmentplace->picture && str_starts_with($governmentplace->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $governmentplace->picture);
+                Storage::disk('public')->delete($old);
+            }
+
             $governmentplace->delete();
 
             // 🔔 Notification: DELETED
@@ -186,6 +243,16 @@ class GovernmentPlaceController extends Controller
     public function bulkDelete(Request $request)
     {
         $ids = (array) $request->input('ids', []);
+
+        // ✅ delete pictures for selected rows (safe cleanup)
+        $rows = GovernmentPlace::query()->whereIn('id', $ids)->get();
+        foreach ($rows as $row) {
+            if ($row->picture && str_starts_with($row->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $row->picture);
+                Storage::disk('public')->delete($old);
+            }
+        }
+
         GovernmentPlace::destroy($ids);
 
         return response()->noContent();

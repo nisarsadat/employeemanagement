@@ -24,6 +24,7 @@ class SchoolResource extends JsonResource
             'female_teachers_quantity'  => $this->female_teachers_quantity,
             'male_students_quantity'    => $this->male_students_quantity,
             'female_students_quantity'  => $this->female_students_quantity,
+            'picture' => $this->picture ? url($this->picture) : null,
 
             'province'                  => $this->province,
             'zone'                      => $this->zone,

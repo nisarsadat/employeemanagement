@@ -3,12 +3,14 @@
 namespace App\Models\fifthyformatstow;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TransportCompany extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'transport_company_name',
@@ -21,6 +23,7 @@ class TransportCompany extends Model
         'zone',
         'district',
         'village',
+        'picture',
         'specific_place',
         'coordinate',
         'Province_addr',

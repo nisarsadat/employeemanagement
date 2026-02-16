@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DonelostplaceController extends Controller
 {
@@ -45,9 +46,9 @@ class DonelostplaceController extends Controller
         if ($s = trim((string) $request->query('search', ''))) {
             $query->where(function (Builder $q) use ($s) {
                 $q->where('place_name', 'like', "%{$s}%")
-                  ->orWhere('lost_person_name', 'like', "%{$s}%")
-                  ->orWhere('lost_person_phone', 'like', "%{$s}%")
-                  ->orWhere('village', 'like', "%{$s}%");
+                    ->orWhere('lost_person_name', 'like', "%{$s}%")
+                    ->orWhere('lost_person_phone', 'like', "%{$s}%")
+                    ->orWhere('village', 'like', "%{$s}%");
             });
         }
 
@@ -55,7 +56,7 @@ class DonelostplaceController extends Controller
         $page    = $request->query('page');
 
         $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         // ✅ Same pattern: if perPage / page invalid or missing → return ALL rows, no pagination
         if ($perPageInt === false || $pageInt === false) {
@@ -72,14 +73,28 @@ class DonelostplaceController extends Controller
 
     /**
      * POST /done-lost-places
+     * Accepts:
+     * - picture as FILE or STRING
      */
     public function store(StoreDonelostplaceRequest $request)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $row = Donelostplace::create($request->validated());
+            return DB::transaction(function () use ($request, $data, $user) {
+
+                // ✅ picture: FILE OR STRING (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/done-lost-places', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $row = Donelostplace::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -95,7 +110,10 @@ class DonelostplaceController extends Controller
                     changes: null
                 );
 
-                return new DonelostplaceResource($row);
+                return (new DonelostplaceResource($row))
+                    ->additional(['message' => 'Created'])
+                    ->response()
+                    ->setStatusCode(201);
             });
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
@@ -114,19 +132,21 @@ class DonelostplaceController extends Controller
 
     /**
      * PUT/PATCH /done-lost-places/{done_lost_place}
+     * Accepts:
+     * - picture as FILE or STRING (replaces old file if new uploaded)
      */
     public function update(UpdateDonelostplaceRequest $request, Donelostplace $done_lost_place)
     {
         $user = $request->user(); // 🔔
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $done_lost_place, $user) {
+            return DB::transaction(function () use ($request, $done_lost_place, $data, $user) {
                 // 🧮 changes BEFORE update
-                $original  = $done_lost_place->getOriginal();
-                $validated = $request->validated();
-                $changes   = [];
+                $original = $done_lost_place->getOriginal();
+                $changes  = [];
 
-                foreach ($validated as $field => $newValue) {
+                foreach ($data as $field => $newValue) {
                     if (array_key_exists($field, $original)) {
                         $oldValue = $original[$field];
                         if ($oldValue != $newValue) {
@@ -138,7 +158,27 @@ class DonelostplaceController extends Controller
                     }
                 }
 
-                $done_lost_place->update($validated);
+                // ✅ picture: replace file if uploaded (same style as SaeenFasadController)
+                if ($request->hasFile('picture')) {
+                    if ($done_lost_place->picture && str_starts_with($done_lost_place->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $done_lost_place->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    $path = $request->file('picture')->store('uploads/done-lost-places', 'public');
+                    $data['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $data['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $done_lost_place->update($data);
                 $done_lost_place->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: UPDATED
@@ -171,6 +211,12 @@ class DonelostplaceController extends Controller
 
         return DB::transaction(function () use ($done_lost_place, $user) {
             $place = $done_lost_place->place_name;
+
+            // ✅ delete picture file (same style as SaeenFasadController)
+            if ($done_lost_place->picture && str_starts_with($done_lost_place->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $done_lost_place->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $done_lost_place->delete();
 

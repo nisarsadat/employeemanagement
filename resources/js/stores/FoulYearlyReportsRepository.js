@@ -19,20 +19,27 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
   // =========================
   // Helpers
   // =========================
+  function pad2(n) {
+    return String(n).padStart(2, '0');
+  }
+
+  function isoDate(d) {
+    const y = d.getFullYear();
+    const m = pad2(d.getMonth() + 1);
+    const day = pad2(d.getDate());
+    return `${y}-${m}-${day}`;
+  }
+
   function currentYearIso() {
     return String(new Date().getFullYear());
   }
 
   function todayIso() {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+    return isoDate(new Date());
   }
 
   function yearToIsoDate(yearText) {
-    // YYYY -> YYYY-01-01 (for header pills same-day)
+    // YYYY -> YYYY-01-01 (for header pills)
     const y = String(yearText || '').trim();
     if (/^\d{4}$/.test(y)) return `${y}-01-01`;
     return todayIso();
@@ -59,7 +66,6 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
 
   function normalizeError(e) {
     const data = e?.response?.data;
-
     let msg = 'د کلني راپور ترلاسه کولو کې ستونزه رامنځته شوه.';
 
     if (typeof data === 'string') return data;
@@ -144,12 +150,11 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     const qamari = formatHijriQamari(dateIso);
 
     const pills = [];
-    if (qamari)
-      pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
 
+    // ✅ same order as we used: Qamari, Shamsi, Miladi (or keep your order if you want)
+    if (qamari) pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
+    if (shamsi) pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
     if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
-    if (shamsi)
-      pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
 
     return pills.join('');
   }
@@ -211,19 +216,17 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     if (!hasUsefulNotes(notes)) return '';
 
     const clean = notes
-      .map((n) => ({
-        text: String(n?.report_note ?? n?.note ?? '').trim(),
-      }))
+      .map((n) => ({ text: String(n?.report_note ?? n?.note ?? '').trim() }))
       .filter((x) => x.text);
 
     if (clean.length === 0) return '';
 
     const notesTr = clean
-      .map((n, idx) => {
+      .map((n) => {
         const text = escapeHtml(n.text);
         return `
           <tr>
-            <td style="width:92%;">${text || '-'}</td>
+            <td style="width:100%;">${text || '-'}</td>
           </tr>
         `;
       })
@@ -245,7 +248,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
             <table>
               <thead>
                 <tr>
-                  <th style="width:92%;">یادونه</th>
+                  <th style="width:100%;">یادونه</th>
                 </tr>
               </thead>
               <tbody>${notesTr}</tbody>
@@ -286,37 +289,71 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
   }
 
   // =========================
-  // Export CSS (✅ header text START + table START)
+  // ✅ System name + Bismillah (same as quarterly)
+  // =========================
+  function appFontStack() {
+    return (
+      `'Amiri','Scheherazade New','Noto Naskh Arabic','Noto Sans Arabic','Tahoma',` +
+      `ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif`
+    );
+  }
+
+  function getSystemName() {
+    try {
+      const a = window?.systemName;
+      if (typeof a === 'string' && a.trim()) return a.trim();
+    } catch {}
+    try {
+      // eslint-disable-next-line no-undef
+      const b = import.meta?.env?.VITE_SYSTEM_NAME;
+      if (typeof b === 'string' && b.trim()) return b.trim();
+    } catch {}
+    return 'د ۳۳۳ مدیریت';
+  }
+
+  const BISMILLAH = 'بسم الله الرحمن الرحیم';
+
+  // =========================
+  // ✅ Export CSS — SAME as quarterly (white bg + hero #547ca3 + RTL + start-align)
   // =========================
   function baseExportCss() {
-    const fontStack =
-      `'Amiri', 'Scheherazade New', ui-sans-serif, -apple-system, BlinkMacSystemFont,` +
-      ` 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji',` +
-      ` 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif`;
+    const fontStack = appFontStack();
 
     return `
+      @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
+
       @page { size: A4 portrait; margin: 14mm; }
 
-      :root{ --app-font: ${fontStack}; }
-      * { box-sizing: border-box; }
+      :root{
+        --app-font: ${fontStack};
+        --v-font-family: var(--app-font);
+      }
+
+      * {
+        box-sizing: border-box;
+        font-family: var(--app-font) !important;
+        color: #000 !important;
+      }
 
       html, body {
         margin: 0;
         padding: 0;
-        background: #f6f7fb;
-        color: #111827;
+        background: #fff !important;
+        color: #000 !important;
         font-family: var(--app-font) !important;
         font-size: 12px;
+        direction: rtl !important;
+        text-align: right !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
 
-      .page { width: 100%; padding: 8mm; background: #f6f7fb; }
+      .page { width: 100%; padding: 8mm; background: #fff !important; }
 
       .hero {
         border-radius: 16px;
         padding: 18px 18px 14px;
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        background: #547ca3; /* ✅ same as quarterly */
         position: relative;
         overflow: hidden;
         box-shadow: 0 18px 40px rgba(79,70,229,.18);
@@ -339,28 +376,37 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         gap:12px;
         position:relative;
         z-index:1;
+        direction: rtl !important;
       }
 
-      /* ✅ header text must start */
-      .hero-top > div:first-child { text-align: start; }
+      .hero, .hero * { color: #fff !important; }
 
-      .hero-title{
-        color:#fff;
-        font-weight:900;
-        font-size:18px;
-        margin:0 0 4px;
-        letter-spacing:.2px;
-        line-height:1.25;
-        text-align:start; /* ✅ */
+      .hero-text{ flex: 1.2; min-width: 0; }
+      .hero-mid{ flex: 1; display:flex; justify-content:center; }
+      .hero-logo{ flex: 0.6; display:flex; justify-content:flex-start; align-items:flex-start; }
+
+      .hero-system{
+        font-weight: 900;
+        font-size: 12px;
+        margin: 0 0 6px;
+        line-height: 1.4;
       }
-      .hero-sub{
-        color: rgba(255,255,255,.92);
-        margin:0;
-        font-size:12px;
-        line-height:1.55;
-        font-weight:700;
-        text-align:start; /* ✅ */
+
+      .hero-bismillah-mid{
+        font-weight: 900;
+        font-size: 13px;
+        margin: 0;
+        line-height: 1.4;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,.28);
+        background: rgba(255,255,255,.14);
+        padding: 6px 10px;
+        border-radius: 999px;
+        align-self: flex-start;
       }
+
+      .hero-title{ font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; text-align:start; }
+      .hero-sub{ margin:0; font-size:12px; line-height:1.55; font-weight:700; text-align:start; }
 
       .pills{
         margin-top:10px;
@@ -369,7 +415,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         flex-wrap:wrap;
         position:relative;
         z-index:1;
-        justify-content:flex-start; /* ✅ */
+        justify-content:flex-start;
       }
       .pill{
         display:inline-block;
@@ -379,12 +425,17 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         font-size:11px;
         border:1px solid rgba(255,255,255,.28);
         background: rgba(255,255,255,.14);
-        color:#fff;
+        color:#fff !important;
       }
 
       .section { margin-top: 12px; }
 
-      .stats-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:12px; }
+      .stats-grid{
+        display:grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap:10px;
+        margin-top:12px;
+      }
 
       .card{
         background:#fff;
@@ -394,9 +445,16 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         box-shadow: 0 10px 22px rgba(17,24,39,.06);
       }
 
-      .stat-card{ padding:12px 12px; min-height:90px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-      .stat-label{ font-size:11px; color: rgba(17,24,39,.65); font-weight:900; margin-bottom:4px; text-align:start; }
-      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; text-align:start; }
+      .stat-card{
+        padding:12px 12px;
+        min-height:90px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+      }
+      .stat-label{ font-size:11px; font-weight:900; margin-bottom:4px; color:#000 !important; text-align:start; }
+      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; color:#000 !important; text-align:start; }
 
       .badge{
         display:inline-flex;
@@ -409,11 +467,12 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         margin-top:6px;
         border:1px solid;
         white-space:nowrap;
+        color: inherit !important;
       }
-      .b-primary{ background:#eef2ff; color:#1e40af; border-color:#c7d2fe; }
-      .b-info{ background:#e0f2fe; color:#075985; border-color:#bae6fd; }
-      .b-warning{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
-      .b-success{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+      .b-primary{ background:#eef2ff; border-color:#c7d2fe; }
+      .b-info{ background:#e0f2fe; border-color:#bae6fd; }
+      .b-warning{ background:#fff7ed; border-color:#fed7aa; }
+      .b-success{ background:#ecfdf5; border-color:#a7f3d0; }
 
       .header-strip{
         padding:10px 12px;
@@ -421,14 +480,10 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         align-items:center;
         justify-content:space-between;
         gap:10px;
+        direction: rtl !important;
       }
-
-      /* ✅ section titles start */
-      .strip-left { display:flex; align-items:flex-start; gap:10px; }
-      .strip-left > div { text-align:start; }
-
-      .strip-title{ font-weight:900; font-size:12px; margin:0; text-align:start; }
-      .strip-sub{ margin:2px 0 0; color: rgba(17,24,39,.55); font-size:10px; font-weight:800; text-align:start; }
+      .strip-title{ font-weight:900; font-size:12px; margin:0; color:#000 !important; text-align:start; }
+      .strip-sub{ margin:2px 0 0; font-size:10px; font-weight:800; color:#000 !important; text-align:start; }
 
       .chip{
         padding:5px 10px;
@@ -437,38 +492,38 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         font-size:10px;
         border:1px solid;
         white-space:nowrap;
+        color: inherit !important;
       }
 
       .bg-primary{ background: linear-gradient(135deg,#eef2ff 0%, #dde5ff 100%); }
       .bg-success{ background: linear-gradient(135deg,#e8fbf2 0%, #d2f7e5 100%); }
       .bg-warning{ background: linear-gradient(135deg,#fff6df 0%, #ffeab6 100%); }
 
-      .chip-primary{ background:#eef2ff; border-color:#c7d2fe; color:#1e40af; }
-      .chip-success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
-      .chip-warning{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+      .chip-primary{ background:#eef2ff; border-color:#c7d2fe; }
+      .chip-success{ background:#ecfdf5; border-color:#a7f3d0; }
+      .chip-warning{ background:#fff7ed; border-color:#fed7aa; }
 
-      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; }
+      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; direction: rtl !important; }
       thead th{
         background:#f8fafc;
-        color: rgba(17,24,39,.72);
         font-weight:900;
         font-size:11px;
         padding:9px 8px;
         border-bottom:1px solid #eef2f7;
-        text-align:start; /* ✅ */
+        text-align:start;
+        color:#000 !important;
       }
       tbody td{
         padding:9px 8px;
         border-bottom:1px solid #f0f4fa;
         font-size:11px;
         vertical-align:middle;
-        color: rgba(17,24,39,.90);
-        text-align:start; /* ✅ */
+        text-align:start;
+        color:#000 !important;
       }
       tbody tr:nth-child(even) td{ background: #fcfdff; }
 
       .td-end{ text-align:end; }
-      .td-center{ text-align:center; }
 
       .count-pill{
         display:inline-block;
@@ -477,9 +532,10 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         font-weight:900;
         font-size:10px;
         border:1px solid;
+        color: inherit !important;
       }
-      .count-primary{ border-color:#c7d2fe; color:#1e40af; background:#eef2ff; }
-      .count-success{ border-color:#a7f3d0; color:#065f46; background:#ecfdf5; }
+      .count-primary{ border-color:#c7d2fe; background:#eef2ff; }
+      .count-success{ border-color:#a7f3d0; background:#ecfdf5; }
 
       .etype{
         display:inline-block;
@@ -489,26 +545,35 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         font-size:10px;
         border:1px solid #e5e7eb;
         background:#f3f4f6;
+        color: #000 !important;
       }
-      .etype-red{ background:#fee2e2; border-color:#fecaca; color:#991b1b; }
-      .etype-amber{ background:#ffedd5; border-color:#fed7aa; color:#9a3412; }
-      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; color:#5b21b6; }
-      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; color:#1e40af; }
-      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; color:#374151; }
+      .etype-red{ background:#fee2e2; border-color:#fecaca; }
+      .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
+      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; }
+      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
+      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; }
 
-      .hero-logo{ display:flex; align-items:center; justify-content:flex-end; padding:10px 12px; border-radius:12px; min-width: 150px; }
+      .hero-logo{
+        display:flex;
+        align-items:center;
+        justify-content:flex-start;
+        padding:10px 12px;
+        border-radius:12px;
+        min-width: 150px;
+      }
       .hero-logo img{ height:82px; width:auto; object-fit:contain; display:block; }
 
       .no-break { break-inside: avoid; page-break-inside: avoid; }
       .card { break-inside: avoid; page-break-inside: avoid; }
 
-      @media print{ .stats-grid{ grid-template-columns: repeat(2, 1fr); } }
+      @media print{
+        .stats-grid{ grid-template-columns: repeat(2, 1fr); }
+      }
     `;
   }
 
   function eventTypeClass(type) {
     const t = String(type ?? '').trim();
-
     const map = {
       حادثه: 'etype-red',
       پېښه: 'etype-red',
@@ -521,18 +586,18 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
       سیاسی: 'etype-purple',
       سياسي: 'etype-purple',
     };
-
     return map[t] || 'etype-gray';
   }
 
   // =========================
-  // Yearly HTML (✅ stacked tables) + ✅ notes appended
-  // ✅ header + text start (NOT center) via CSS above
+  // Yearly HTML (✅ bismillah middle + date pills + omit empty + notes)
   // =========================
   function buildYearlyDashboardHtml(report, yearText, notes = []) {
     const yearVal = String(yearText || selectedYear.value || currentYearIso()).trim();
-    const headerIso = yearToIsoDate(yearVal); // 01-01 for pills
+    const headerIso = yearToIsoDate(yearVal); // YYYY-01-01
     const heroDatePills = buildDatePillsSameDay(headerIso);
+
+    const systemName = getSystemName();
 
     const resourcesTotal = safeNum(report?.resources?.total);
     const informationsTotal = safeNum(report?.informations?.total);
@@ -553,11 +618,9 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-primary">
-                <div class="strip-left">
-                  <div>
-                    <div class="strip-title">اطلاعات</div>
-                    <div class="strip-sub">د ډول له مخې وېش (کال)</div>
-                  </div>
+                <div>
+                  <div class="strip-title">اطلاعات</div>
+                  <div class="strip-sub">د ډول له مخې وېش (کال)</div>
                 </div>
                 <span class="chip chip-primary">${informationsTotal}</span>
               </div>
@@ -597,11 +660,9 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-success">
-                <div class="strip-left">
-                  <div>
-                    <div class="strip-title">لیټري دوسیه</div>
-                    <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
-                  </div>
+                <div>
+                    <div><div class="strip-title">پنځوس فارمټ</div></div>
+                 
                 </div>
                 <span class="chip chip-success">${formatsActive}</span>
               </div>
@@ -641,11 +702,9 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
           <div class="section">
             <div class="card">
               <div class="header-strip bg-warning">
-                <div class="strip-left">
-                  <div>
-                    <div class="strip-title">ثبت شوې پېښې</div>
-                    <div class="strip-sub">د ډول له مخې د پېښو جزیات (کال)</div>
-                  </div>
+                <div>
+                  <div class="strip-title">ثبت شوې پېښې</div>
+                  <div class="strip-sub">د ډول له مخې د پېښو جزیات (کال)</div>
                 </div>
                 <span class="chip chip-warning">${eventsTotal}</span>
               </div>
@@ -685,17 +744,24 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
       <html dir="rtl">
         <head>
           <meta charset="utf-8" />
-          <title>yearly_dashboard_${yearVal}</title>
+          <title>yearly_dashboard_${escapeHtml(yearVal)}</title>
           <style>${baseExportCss()}</style>
         </head>
         <body>
           <div class="page">
             <div class="hero no-break">
               <div class="hero-top">
-                <div>
-                  <h1 class="hero-title">د 333 کلنی راپور</h1>
+                <div class="hero-text">
+                  <div class="hero-system">${escapeHtml(systemName)}</div>
+                  <h1 class="hero-title">کلنی راپور</h1>
                   <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو کلنی عمومي کتنه</p>
                 </div>
+
+                <!-- ✅ Bismillah in the middle -->
+                <div class="hero-mid">
+                  <div class="hero-bismillah-mid">${escapeHtml(BISMILLAH)}</div>
+                </div>
+
                 <div class="hero-logo">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
@@ -708,7 +774,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
               <div class="card"><div class="stat-card"><div>
                 <div class="stat-label">سرچینې</div>
                 <div class="stat-number">${resourcesTotal}</div>
-                <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
+                <span class="badge b-primary">استخدام ، چک او کنټرول</span>
               </div></div></div>
 
               <div class="card"><div class="stat-card"><div>
@@ -739,18 +805,87 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     `;
   }
 
-  function openPrintWindow(html) {
-    const w = window.open('', '_blank', 'width=1100,height=800');
-    if (!w) return false;
+  // =========================
+  // ✅ Print helper (FIX BLANK PDF) — SAME as quarterly
+  // =========================
+  function printHtmlViaIframe(html) {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
+    iframe.setAttribute('aria-hidden', 'true');
 
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
+    document.body.appendChild(iframe);
 
-    w.addEventListener('load', () => {
-      w.focus();
-      w.print();
-    });
+    const w = iframe.contentWindow;
+    const doc = iframe.contentDocument || w.document;
+
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    const waitImages = () =>
+      new Promise((resolve) => {
+        try {
+          const imgs = Array.from(doc.images || []);
+          if (!imgs.length) return resolve();
+
+          let done = 0;
+          const tick = () => {
+            done += 1;
+            if (done >= imgs.length) resolve();
+          };
+
+          imgs.forEach((img) => {
+            if (img.complete) tick();
+            else {
+              img.addEventListener('load', tick, { once: true });
+              img.addEventListener('error', tick, { once: true });
+            }
+          });
+
+          setTimeout(resolve, 2000);
+        } catch {
+          resolve();
+        }
+      });
+
+    const waitFonts = () =>
+      new Promise((resolve) => {
+        try {
+          const fonts = doc.fonts;
+          if (fonts && typeof fonts.ready?.then === 'function') {
+            fonts.ready.then(resolve).catch(resolve);
+          } else resolve();
+        } catch {
+          resolve();
+        }
+      });
+
+    const doPrint = async () => {
+      try {
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        await waitFonts();
+        await waitImages();
+
+        w.focus();
+        w.print();
+      } finally {
+        setTimeout(() => {
+          try {
+            document.body.removeChild(iframe);
+          } catch {}
+        }, 1200);
+      }
+    };
+
+    iframe.onload = () => setTimeout(doPrint, 150);
+    setTimeout(doPrint, 600);
 
     return true;
   }
@@ -806,7 +941,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
   if (!selectedYear.value) selectedYear.value = currentYearIso();
 
   // =========================
-  // EXPORT ACTIONS (✅ with notes)
+  // EXPORT ACTIONS (✅ with notes + ✅ fixed blank PDF)
   // =========================
   const DownloadYearlyFoulPdf = async () => {
     const report = yearly.value;
@@ -822,7 +957,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     });
 
     const html = buildYearlyDashboardHtml(report, yearText, notes);
-    openPrintWindow(html);
+    printHtmlViaIframe(html); // ✅ FIX: no blank PDF
   };
 
   const DownloadYearlyFoulWord = async () => {

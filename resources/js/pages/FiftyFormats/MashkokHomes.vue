@@ -157,7 +157,14 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    >
+    ><template #cell-picture="{ row }">
+        <PictureCell
+          :picture="row.picture"
+          :alt="row.name"
+          :title="t('پیش نمایش تصویر')"
+          :close-text="t('بستن')"
+        />
+      </template>
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -279,6 +286,7 @@
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
   import { useMawadRepository } from '@/stores/MawadRepository';
+import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useMawadRepository();
   const router = useRouter();
@@ -351,6 +359,8 @@
 
   /* TABLE HEADERS – all inputs + map */
   const headersFT = computed(() => [
+  { title: t('picture'), key: 'picture' },
+
     { title: t('ولایت'), key: 'province' },
     { title: t('زون'), key: 'zone' },
     { title: t('ولسوالی'), key: 'district' },

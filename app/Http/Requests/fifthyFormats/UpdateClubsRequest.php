@@ -16,12 +16,14 @@ class UpdateClubsRequest extends FormRequest
         return [
             'name' => ['sometimes','required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
+            'picture' => ['nullable','image'],
 
             'club_name' => ['nullable','string'],
             'club_type' => ['nullable','string'],
             'father_name' => ['nullable','string'],
             'position' => ['nullable','string'],
             'phone_number' => ['nullable','string'],
+            'notes' => ['nullable','string'],
 
             'province' => ['nullable','string'],
             'zone' => ['nullable','string'],

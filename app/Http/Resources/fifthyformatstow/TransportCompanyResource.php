@@ -32,7 +32,8 @@ public function toArray($request): array
         'coordinate'                 => $this->coordinate,
         'ways'                       => $this->ways,
         'note'                       => $this->note,
-            'Province_addr'               => $this->Province_addr,
+        'Province_addr'               => $this->Province_addr,
+        'picture' => $this->picture ? url($this->picture) : null,
 
         'resource_id'                => $this->resource_id,
         'resource_code'              => $resource?->code_number,

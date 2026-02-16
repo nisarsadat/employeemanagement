@@ -16,6 +16,7 @@ class UpdateMulkanoRequest extends FormRequest
         return [
             'name' => ['sometimes','required','string'],
             'resource_id' => ['nullable','integer','exists:resources,id'],
+            'picture' => ['nullable','image'],
 
             'picture' => ['nullable','image'],
             'father_name' => ['nullable','string'],

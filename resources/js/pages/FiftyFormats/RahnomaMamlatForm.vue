@@ -22,6 +22,23 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
+          <!-- ✅ Picture (ONLY NEW/CHANGED PART) -->
+          <v-row>
+            <v-col cols="12" md="3">
+              <PicturePicker
+                v-model:file="pictureFile"
+                v-model:url="form.picture_url"
+                :label="t('تصویر')"
+                :alt="t('عکس')"
+                :change-text="t('تغییر عکس')"
+                :view-text="t('نمایش')"
+                :close-text="t('بستن')"
+                :preview-title="t('پیش نمایش')"
+                @change="({ changed }) => (pictureChanged = !!changed)"
+              />
+            </v-col>
+          </v-row>
+
           <!-- Identity / Responsible -->
           <!-- <div class="section-header">
             <span class="section-title">
@@ -276,6 +293,9 @@
   import { useSchoolRepository } from '@/stores/SchoolRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 
+  /* ✅ PicturePicker (ONLY NEW IMPORT) */
+  import PicturePicker from '@/components/form/PicturePicker.vue';
+
   const repo = useSchoolRepository();
   const route = useRoute();
   const router = useRouter();
@@ -318,12 +338,20 @@
     return !!backendErrors.value?.[field];
   }
   function getErrorMessages(field) {
+    backendErrors.value?.[field] ?? [];
     return backendErrors.value?.[field] ?? [];
   }
+
+  /* ✅ PICTURE STATE (ONLY NEW PART) */
+  const pictureFile = ref(null);
+  const pictureChanged = ref(false);
 
   /* FORM MODEL */
   const blankForm = () => ({
     id: null,
+
+    // ✅ picture url from API
+    picture_url: null,
 
     name: '',
     responsible_name: '',
@@ -363,6 +391,7 @@
 
   function onResourceCodeChange(code) {
     const found = resources.value.find((r) => r.code_number === code);
+    form.value.resource_code = code || '';
     form.value.resource_phone = found?.phone_number ?? '';
     form.value.resource_id = found?.id ?? null;
   }
@@ -373,6 +402,9 @@
     const b = blankForm();
 
     b.id = x.id ?? null;
+
+    // ✅ picture url
+    b.picture_url = x.picture ?? x.picture_url ?? null;
 
     b.name = x.name ?? '';
     b.responsible_name = x.responsible_name ?? '';
@@ -402,6 +434,8 @@
     const id = route.params.id;
     if (!id) {
       form.value = blankForm();
+      pictureFile.value = null;
+      pictureChanged.value = false;
       return;
     }
     try {
@@ -412,6 +446,10 @@
       if (!single) return;
 
       form.value = { ...mapFromApi(single) };
+
+      // ✅ reset picker state
+      pictureFile.value = null;
+      pictureChanged.value = false;
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت معلومات رهنما مملات'));
@@ -430,12 +468,24 @@
 
   function buildCreateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    // ✅ picture upload
+    if (pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+    return fd;
   }
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    return toFormData(payload);
+    const fd = toFormData(payload);
+
+    // ✅ picture upload only if changed
+    if (pictureChanged.value && pictureFile.value) {
+      fd.append('picture', pictureFile.value);
+    }
+    return fd;
   }
 
   /* SCROLL TO FIRST INVALID */
@@ -690,6 +740,8 @@
       loadRecord();
     } else {
       form.value = blankForm();
+      pictureFile.value = null;
+      pictureChanged.value = false;
     }
 
     clearBackendErrors();

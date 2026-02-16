@@ -10,6 +10,7 @@ class SuperMarket extends Model
         'supermarket_name','market_activity_type','daily_clientele','shops_quantity',
         'responsible_name','responsible_f_name',
         'responsible_phone',
+        'picture',
         'responsible_job',
         'province','zone','district','village','specefic_place','coordinates',
         'Province_addr',

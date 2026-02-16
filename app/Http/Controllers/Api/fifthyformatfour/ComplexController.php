@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ComplexController extends Controller
 {
@@ -65,10 +66,22 @@ class ComplexController extends Controller
     public function store(StoreComplexRequest $request)
     {
         $user = $request->user(); // 🔔 who did this
+        $data = $request->validated();
 
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $row = Complex::create($request->validated());
+            return DB::transaction(function () use ($request, $user, $data) {
+
+                // ✅ picture: file OR string
+                if ($request->hasFile('picture')) {
+                    $path = $request->file('picture')->store('uploads/complexes', 'public');
+                    $data['picture'] = "storage/{$path}";
+                } else {
+                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
+                        unset($data['picture']);
+                    }
+                }
+
+                $row = Complex::create($data);
                 $row->load(['resource:id,name,code_number,phone_number']);
 
                 // 🔔 Notification: CREATED
@@ -106,6 +119,7 @@ class ComplexController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $complex, $user) {
+
                 $original  = $complex->getOriginal();
                 $validated = $request->validated();
                 $changes   = [];
@@ -119,6 +133,29 @@ class ComplexController extends Controller
                                 'new' => $newValue,
                             ];
                         }
+                    }
+                }
+
+                // ✅ picture: replace file if uploaded
+                if ($request->hasFile('picture')) {
+
+                    // delete old
+                    if ($complex->picture && str_starts_with($complex->picture, 'storage/')) {
+                        $old = str_replace('storage/', '', $complex->picture);
+                        Storage::disk('public')->delete($old);
+                    }
+
+                    // store new
+                    $path = $request->file('picture')->store('uploads/complexes', 'public');
+                    $validated['picture'] = "storage/{$path}";
+
+                    $changes['picture'] = [
+                        'old' => $original['picture'] ?? null,
+                        'new' => $validated['picture'],
+                    ];
+                } else {
+                    if (array_key_exists('picture', $validated) && !is_string($validated['picture'])) {
+                        unset($validated['picture']);
                     }
                 }
 
@@ -154,6 +191,12 @@ class ComplexController extends Controller
 
         return DB::transaction(function () use ($complex, $user) {
             $name = $complex->complex_name;
+
+            // ✅ delete picture file
+            if ($complex->picture && str_starts_with($complex->picture, 'storage/')) {
+                $old = str_replace('storage/', '', $complex->picture);
+                Storage::disk('public')->delete($old);
+            }
 
             $complex->delete();
 
