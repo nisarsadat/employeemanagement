@@ -166,7 +166,7 @@
         'reyasat_outgoing_date',
         'loy_reyasat_outgoing_date',
         'answer_date',
-        'docs_sign_date',
+        'peshnehad',
         'outgoing_incoming_date',
       ]"
       @edit="startEdit"
@@ -286,13 +286,6 @@
     { title: t('مرجع'), key: 'marja' },
     { title: t('تفصیل'), key: 'tafseel' },
 
-    // ✅ SECTION 2: Dates + Pages (as in your form)
-    { title: t('تاریخ امضاء'), key: 'docs_sign_date' },
-    { title: t('تاریخ صادره/وارده'), key: 'outgoing_incoming_date' },
-
-    { title: t('صفحه پاسخ'), key: 'answer_page' },
-    { title: t('پاسخ تاریخ'), key: 'answer_date' },
-
     { title: t('صادره (دفتر) صفحه'), key: 'office_outgoing_page' },
     { title: t('صادره (دفتر) تاریخ'), key: 'office_outgoing_date' },
 
@@ -302,8 +295,17 @@
     { title: t('صادره به ریاست صفحه'), key: 'reyasat_outgoing_page' },
     { title: t('صادره به ریاست تاریخ'), key: 'reyasat_outgoing_date' },
 
+    { title: t('وارده به ریاست صفحه'), key: 'reyasat_incomming_page' },
+    { title: t('وارده به ریاست تاریخ'), key: 'reyasat_incomming_date' },
+
     { title: t('صادره (لوی ریاست) صفحه'), key: 'loy_reyasat_outgoing_page' },
     { title: t('صادره (لوی ریاست) تاریخ'), key: 'loy_reyasat_outgoing_date' },
+    // ✅ SECTION 2: Dates + Pages (as in your form)
+    { title: t('صفحه پیشنهاد'), key: 'peshnehad' },
+    { title: t('تاریخ پیشنهاد'), key: 'outgoing_incoming_date' },
+
+    { title: t('صفحه پاسخ'), key: 'answer_page' },
+    { title: t('پاسخ تاریخ'), key: 'answer_date' },
 
     // ✅ SECTION 4: Attachments + Notes (as in your form)
     { title: t('صفحه'), key: 'page' },
@@ -373,7 +375,7 @@
   const topGroups = computed(() => [
     {
       title: t('اساسی'),
-      keys: ['docs_type', 'outgoing_incoming_date', 'docs_sign_date', 'marja', 'who_sighn'],
+      keys: ['docs_type', 'outgoing_incoming_date', 'peshnehad', 'marja', 'who_sighn'],
     },
     {
       title: t('دفتر'),

@@ -235,7 +235,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
           <div class="header-strip bg-primary">
             <div class="strip-left">
               <div>
-                <div class="strip-title">یادداشتونه</div>
+                <div class="strip-title">یادونه</div>
               </div>
             </div>
             <span class="chip chip-primary">${clean.length}</span>
@@ -245,7 +245,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
             <table>
               <thead>
                 <tr>
-                  <th style="width:92%;">یادداشت</th>
+                  <th style="width:92%;">یادونه</th>
                 </tr>
               </thead>
               <tbody>${notesTr}</tbody>

@@ -41,6 +41,11 @@ class OutgoingIncomingResource extends JsonResource
                 : null,
             'reyasat_outgoing_page' => $this->reyasat_outgoing_page,
 
+            'reyasat_incomming_date' => $this->reyasat_incomming_date
+                ? $this->reyasat_incomming_date->format('Y-m-d')
+                : null,
+            'reyasat_incomming_page' => $this->reyasat_incomming_page,
+
             // =====================
             // Loy Reyasat Outgoing
             // =====================
@@ -60,9 +65,7 @@ class OutgoingIncomingResource extends JsonResource
             // =====================
             // Sign & Final Dates
             // =====================
-            'docs_sign_date' => $this->docs_sign_date
-                ? $this->docs_sign_date->format('Y-m-d')
-                : null,
+            'peshnehad' => $this->peshnehad,
             'outgoing_incoming_date' => $this->outgoing_incoming_date
                 ? $this->outgoing_incoming_date->format('Y-m-d')
                 : null,

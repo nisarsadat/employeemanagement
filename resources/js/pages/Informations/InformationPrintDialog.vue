@@ -1,6 +1,6 @@
 <!-- src/pages/Informations/InformationPrint.vue -->
 <template>
-  <AppBar :title="t('فورم اطلاع شخص')" @back="goBack">
+  <AppBar :title="t('اطلاع فورم')" @back="goBack">
     <template #actions>
       <div class="top-actions no-print">
         <button class="btn btn-pdf" type="button" @click="downloadPdf">
@@ -26,6 +26,7 @@
               <div class="brand-title">{{ systemName }}</div>
               <div class="brand-sub">{{ t('اطلاع') }}</div>
             </div>
+            <div class="bismillah">بسم الله الرحمن الرحیم</div>
           </div>
         </div>
 
@@ -77,6 +78,18 @@
       </section>
 
       <main class="content">
+        <!-- ✅ Tafseel should take MORE height (main filler) -->
+        <section class="section tafseel-section">
+          <div class="section-h">
+            <div class="section-title">{{ t('تفصیل') }}</div>
+            <div class="chip">{{ t('کلمات') }}: {{ wordCount(item.tafseel) }}</div>
+          </div>
+          <div class="box box-text grow-box">
+            <div class="pre tafseel-pre">
+              {{ item.tafseel || '—' }}
+            </div>
+          </div>
+        </section>
         <!-- ✅ TWO ROWS (STACKED), NOT TWO COLUMNS -->
         <section class="two two-rows">
           <!-- Row 1 -->
@@ -91,20 +104,6 @@
             </div>
           </div>
         </section>
-
-        <!-- ✅ Tafseel should take MORE height (main filler) -->
-        <section class="section tafseel-section">
-          <div class="section-h">
-            <div class="section-title">{{ t('تفصیل') }}</div>
-            <div class="chip">{{ t('کلمات') }}: {{ wordCount(item.tafseel) }}</div>
-          </div>
-          <div class="box box-text grow-box">
-            <div class="pre tafseel-pre">
-              {{ item.tafseel || '—' }}
-            </div>
-          </div>
-        </section>
-
         <!-- Row 2 -->
         <section class="section manager-section">
           <div class="section">
@@ -126,6 +125,8 @@
           </div>
         </section>
       </main>
+      <!-- ✅ Bottom-right note (PDF/print) -->
+      <div class="print-note">{{ t('اشد محرم') }}</div>
 
       <!-- ✅ FOOTER REMOVED -->
     </div>
@@ -170,7 +171,7 @@
     return v && String(v).trim() ? String(v) : '—';
   });
 
-  const systemName = ref('333');
+  const systemName = ref('۳۳۳ مدیریت');
   const systemId = ref('');
   const printedAt = ref('');
 
@@ -252,7 +253,7 @@
       direction: rtl !important;
       text-align: right !important;
       unicode-bidi: plaintext !important;
-      height: 95%;
+      height: 100%;
       overflow: hidden !important; /* ✅ prevent extra page */
     }
 
@@ -280,6 +281,23 @@
       max-height: calc(297mm - 24mm);
       overflow: hidden !important; /* ✅ never spill to page 2 */
     }
+    .print-note{
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(0,0,0,.75);
+      max-width: 45%;
+      text-align: right;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px dashed rgba(0,0,0,.18);
+      background: rgba(255,255,255,.55);
+    }
+    .content { padding-bottom: 18mm; }
 
     /* ✅ Header */
     .hdr { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding-right: 12mm; }
@@ -305,6 +323,19 @@
     .k { font-size: 11px; color: rgba(0,0,0,.55); margin-bottom: 4px; }
     .v { font-size: 13px; font-weight: 650; }
     .strong { font-weight: 900; }
+    .hdr { position: relative; }  /* allow absolute centering */
+
+    .bismillah{
+      position: absolute;
+      left: 65%;
+      top: 18px;                 /* adjust a little if you want */
+      transform: translateX(10%);
+      font-weight: 900;
+      font-size: 13px;
+      text-align: center;
+      white-space: nowrap;
+      width: max-content;
+    }
 
     /* ✅ content consumes remaining height */
     .content {
@@ -339,31 +370,27 @@
       min-height: 0;
     }
 
-    .tafseel-section { flex: 4; display: flex; flex-direction: column; min-height: 0; overflow: hidden !important; }
+    .tafseel-section { flex: 5; display: flex; flex-direction: column; min-height: 0; overflow: hidden !important; }
     .tafseel-section .box { flex: 1; min-height: 0; overflow: hidden !important; }
     .tafseel-pre { height: 100%; overflow: hidden !important; }
 
-    /* ✅ Manager must stretch same as Direction (manager has extra inner .section wrapper) */
-    .manager-section {
-      flex: 2;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-      overflow: hidden !important;
+    /* ✅ Manager: fixed height (NO flex control) */
+    .manager-section{
+      flex: 0 0 auto !important;     /* do not participate in flex growth */
+      display: block !important;     /* no flex layout */
+      margin-top: 0;
+      min-height: 28mm;              /* ✅ make it higher (change value) */
     }
 
-    .manager-section > .section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
+    .manager-section > .section{
+      display: block !important;     /* keep normal flow */
     }
 
-    .manager-section > .section > .box {
-      flex: 1;
-      min-height: 0;
-      overflow: hidden !important;
+    .manager-section > .section > .box{
+      height: calc(28mm - 10px);     /* ✅ box fills most of that height */
+      overflow: hidden !important;   /* keep one page */
     }
+
 
     .direction-section { flex: 2; display: flex; flex-direction: column; min-height: 0; overflow: hidden !important; }
     .direction-section .box { flex: 1; min-height: 0; overflow: hidden !important; }
@@ -392,14 +419,14 @@
        COLORS (PDF/WORD) — ONLY THESE
     ================================ */
 
-    body { background: #F8F6F4 !important; }
-    .page-shell { background: #F8F6F4 !important; }
-    .paper { background: #F8F6F4 !important; }
+    body { background:  !important; }
+    .page-shell { background: # !important; }
+    .paper { background: # !important; }
 
-    .hdr { background: #C4DFDF !important; border-radius: 12px; padding: 8px; }
-    .meta-pill { background: #D2E9E9 !important; }
-    .field { background: #E3F4F4 !important; }
-    .box { background: #E3F4F4 !important; }
+    .hdr { background: #ACBAC4 !important; border-radius: 12px; padding: 8px; }
+    .meta-pill { background: #E3E3E3 !important; }
+    .field { background: #EFE9E3 !important; }
+    .box { background: #EEEEEE !important; }  
     `;
   }
 
@@ -538,7 +565,7 @@
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 12px;
-    align-items: start;
+    align-items: center;
 
     background: #c4dfdf; /* C4DFDF */
     border-radius: 12px;
@@ -546,7 +573,7 @@
   }
 
   .hdr-left {
-    justify-self: end;
+    justify-self: start;
   }
 
   .hdr-right {
@@ -592,7 +619,7 @@
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 10px;
     padding: 7px 10px;
-    min-width: 120px;
+    min-width: 90px;
     background: #d2e9e9; /* D2E9E9 */
   }
 

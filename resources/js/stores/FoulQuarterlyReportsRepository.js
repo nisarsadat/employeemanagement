@@ -84,6 +84,70 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
+    // ✅ DATE DISPLAY (Shamsi + Qamari)  ✅ ONLY CHANGE YOU ASKED
+    // =========================
+    function isoToDate(iso) {
+      const s = String(iso || '').trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+      // parse as UTC midnight to avoid timezone shifting
+      const d = new Date(`${s}T00:00:00.000Z`);
+      if (Number.isNaN(d.getTime())) return null;
+      return d;
+    }
+
+    function formatCalendarDate(iso, calendar) {
+      const d = isoToDate(iso);
+      if (!d) return '';
+
+      // Use Intl calendar formatting.
+      // - Shamsi: 'persian'
+      // - Qamari: 'islamic-umalqura' (widely supported). If not supported, fallback gracefully.
+      try {
+        const fmt = new Intl.DateTimeFormat('fa-AF-u-ca-' + calendar, {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        });
+        return fmt.format(d);
+      } catch {
+        // fallback to default locale (still will show something)
+        try {
+          const fmt2 = new Intl.DateTimeFormat('fa-AF', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          });
+          return fmt2.format(d);
+        } catch {
+          return String(iso || '');
+        }
+      }
+    }
+
+    function buildRangeLabel(from, to) {
+      const f = String(from || '').trim();
+      const t = String(to || '').trim();
+      if (!f || !t) return '';
+
+      // Shamsi (Hijri Shamsi / Jalali)
+      const shFrom = formatCalendarDate(f, 'persian');
+      const shTo = formatCalendarDate(t, 'persian');
+
+      // Qamari (Hijri Qamari)
+      const qaFrom = formatCalendarDate(f, 'islamic-umalqura');
+      const qaTo = formatCalendarDate(t, 'islamic-umalqura');
+
+      // Build combined label (ONLY for header)
+      const shRange = shFrom && shTo ? `${shFrom} تر ${shTo}` : '';
+      const qaRange = qaFrom && qaTo ? `${qaFrom} تر ${qaTo}` : '';
+
+      if (shRange && qaRange) return `هجري شمسي: ${shRange} | هجري قمري: ${qaRange}`;
+      if (shRange) return `هجري شمسي: ${shRange}`;
+      if (qaRange) return `هجري قمري: ${qaRange}`;
+      return `${f} تر ${t}`;
+    }
+
+    // =========================
     // ✅ EMPTY / USEFUL ROW HELPERS
     // =========================
     function hasUsefulRows(arr, countKey = 'count') {
@@ -155,8 +219,8 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             <div class="header-strip bg-primary">
               <div class="strip-left">
                 <div>
-                  <div class="strip-title">یادداشتونه</div>
-                  <div class="strip-sub">د راپور یادداشتونه</div>
+                  <div class="strip-title">یادوونه</div>
+                  <div class="strip-sub">د راپور یادوونه</div>
                 </div>
               </div>
               <span class="chip chip-primary">${clean.length}</span>
@@ -391,12 +455,14 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // Quarterly HTML (only uses from/to label)
+    // Quarterly HTML (now shows Hijri Shamsi + Hijri Qamari in header)
     // =========================
     function buildQuarterlyDashboardHtml(report, from, to, notes = []) {
       const fromText = String(from || fromDate.value || '').trim();
       const toText = String(to || toDate.value || '').trim();
-      const rangeLabel = fromText && toText ? `${fromText} تا ${toText}` : '';
+
+      // ✅ CHANGE: rangeLabel is now Shamsi + Qamari (not miladi)
+      const rangeLabel = buildRangeLabel(fromText, toText);
 
       const resourcesTotal = safeNum(report?.resources?.total);
       const informationsTotal = safeNum(report?.informations?.total);
@@ -469,8 +535,8 @@ export const useFoulQuarterlyReportsRepository = defineStore(
                 <div class="header-strip bg-success">
                   <div class="strip-left">
                     <div>
-                      <div class="strip-title">لیټري دوسیه</div>
-                      <div class="strip-sub">د لیټري دوسیه فارمت فورمونو لنډیز</div>
+                      <div class="strip-title">پنځوس فارمټ</div>
+                      <div class="strip-sub">د پنځوس فارمټ لنډیز</div>
                     </div>
                   </div>
                   <span class="chip chip-success">${formatsActive}</span>
@@ -564,7 +630,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
               <div class="hero-top">
                 <div>
                   <h1 class="hero-title">د 333 ربعه راپور</h1>
-                  <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو عمومي کتنه</p>
+                  <p class="hero-sub">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ عمومي کتنه</p>
                 </div>
                 <div class="hero-logo">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
@@ -578,7 +644,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
               <div class="card"><div class="stat-card"><div>
                 <div class="stat-label">منابع</div>
                 <div class="stat-number">${resourcesTotal}</div>
-                <span class="badge b-primary">استخدام چک او کنټرول روزنه ترسره شوه</span>
+                <span class="badge b-primary">استخدام روزنه او ارزونه ترسره شوه</span>
               </div></div></div>
 
               <div class="card"><div class="stat-card"><div>
@@ -594,7 +660,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
               </div></div></div>
 
               <div class="card"><div class="stat-card"><div>
-                <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
+                <div class="stat-label">پنځوس فارمټ</div>
                 <div class="stat-number">${formatsActive}</div>
               </div></div></div>
             </div>

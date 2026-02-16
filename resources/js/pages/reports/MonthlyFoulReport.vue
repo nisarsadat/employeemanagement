@@ -299,7 +299,7 @@
               </v-avatar>
               <div>
                 <div class="card-title fontfamily">{{ t('فورم‌ها') }}</div>
-                <div class="card-subtitle fontfamily">{{ t('فورم‌های  ۵۰ فارمت') }}</div>
+                <div class="card-subtitle fontfamily">{{ t('فورم‌های ۵۰ فارمت') }}</div>
               </div>
             </div>
             <v-chip color="success" variant="tonal" size="small" class="fontfamily">

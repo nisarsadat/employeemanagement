@@ -186,47 +186,6 @@
             <v-divider />
 
             <v-row class="pa-3">
-              <v-col cols="12" md="6">
-                <DateInput
-                  v-model="form.docs_sign_date"
-                  :label="t('تاریخ امضاء')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('docs_sign_date')"
-                  :error-messages="getErrorMessages('docs_sign_date')"
-                />
-              </v-col>
-
-              <!-- <v-col cols="12" md="3">
-                <DateInput
-                  v-model="form.outgoing_incoming_date"
-                  :label="t('تاریخ صادره/وارده')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('outgoing_incoming_date')"
-                  :error-messages="getErrorMessages('outgoing_incoming_date')"
-                />
-              </v-col> -->
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.answer_page"
-                  :label="t('صفحه پاسخ')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('answer_page')"
-                  :error-messages="getErrorMessages('answer_page')"
-                />
-              </v-col>
-              <v-col cols="12" md="3">
-                <DateInput
-                  v-model="form.answer_date"
-                  :label="t('پاسخ تاریخ')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('answer_date')"
-                  :error-messages="getErrorMessages('answer_date')"
-                />
-              </v-col>
               <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.office_outgoing_page"
@@ -289,6 +248,22 @@
               </v-col>
               <v-col cols="12" md="3">
                 <v-text-field
+                  v-model="form.reyasat_incomming_page"
+                  :label="t('وارده به ریاست صفحه')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <DateInput
+                  v-model="form.reyasat_incomming_date"
+                  :label="t('وارده به ریاست تاریخ')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-text-field
                   v-model="form.loy_reyasat_outgoing_page"
                   :label="t('صادره (لوی ریاست) صفحه')"
                   density="compact"
@@ -305,6 +280,45 @@
                   variant="outlined"
                   :error="hasError('loy_reyasat_outgoing_date')"
                   :error-messages="getErrorMessages('loy_reyasat_outgoing_date')"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.peshnehad"
+                  :label="t('صفحه پیشنهاد')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+
+              <v-col cols="12" md="3">
+                <DateInput
+                  v-model="form.outgoing_incoming_date"
+                  :label="t('تاریخ پیشنهاد')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('outgoing_incoming_date')"
+                  :error-messages="getErrorMessages('outgoing_incoming_date')"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.answer_page"
+                  :label="t('صفحه پاسخ')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('answer_page')"
+                  :error-messages="getErrorMessages('answer_page')"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <DateInput
+                  v-model="form.answer_date"
+                  :label="t('پاسخ تاریخ')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('answer_date')"
+                  :error-messages="getErrorMessages('answer_date')"
                 />
               </v-col>
             </v-row>
@@ -521,14 +535,17 @@
     reyasat_outgoing_date: '',
     reyasat_outgoing_page: '',
 
+    reyasat_incomming_date: '',
+    reyasat_incomming_page: '',
+
     loy_reyasat_outgoing_date: '',
     loy_reyasat_outgoing_page: '',
 
     answer_date: '',
     answer_page: '',
 
-    docs_sign_date: todayISO(),
-    // outgoing_incoming_date: todayISO(),
+    peshnehad: '',
+    // outgoing_incomingayISO()_date: todayISO(),
 
     who_sighn: '',
     marja: '',
@@ -569,13 +586,16 @@
     b.reyasat_outgoing_date = x.reyasat_outgoing_date ?? '';
     b.reyasat_outgoing_page = x.reyasat_outgoing_page ?? '';
 
+    b.reyasat_incomming_date = x.reyasat_outgoing_date ?? '';
+    b.reyasat_incomming_page = x.reyasat_outgoing_page ?? '';
+
     b.loy_reyasat_outgoing_date = x.loy_reyasat_outgoing_date ?? '';
     b.loy_reyasat_outgoing_page = x.loy_reyasat_outgoing_page ?? '';
 
     b.answer_date = x.answer_date ?? '';
     b.answer_page = x.answer_page ?? '';
 
-    b.docs_sign_date = x.docs_sign_date ?? todayISO();
+    b.peshnehad = x.peshnehad ?? todayISO();
     // b.outgoing_incoming_date = x.outgoing_incoming_date ?? todayISO();
 
     b.who_sighn = x.who_sighn ?? '';
@@ -611,22 +631,21 @@
   }
 
   /* Payload builder (no files ✅) */
- function buildPayload() {
-  const { id, ...p } = form.value; // ✅ remove id
+  function buildPayload() {
+    const { id, ...p } = form.value; // ✅ remove id
 
-  ['naqal_count', 'awraq', 'zamima'].forEach((k) => {
-    if (p[k] === '') return;
-    const n = Number(p[k]);
-    p[k] = Number.isFinite(n) ? n : p[k];
-  });
+    ['naqal_count', 'awraq', 'zamima'].forEach((k) => {
+      if (p[k] === '') return;
+      const n = Number(p[k]);
+      p[k] = Number.isFinite(n) ? n : p[k];
+    });
 
-  Object.keys(p).forEach((k) => {
-    if (typeof p[k] === 'string') p[k] = p[k].trim();
-  });
+    Object.keys(p).forEach((k) => {
+      if (typeof p[k] === 'string') p[k] = p[k].trim();
+    });
 
-  return p;
-}
-
+    return p;
+  }
 
   /* Submit */
   async function onSubmit() {
@@ -731,7 +750,7 @@
   const step2Complete = computed(
     () =>
       !!String(form.value.outgoing_incoming_date || '').trim() ||
-      !!String(form.value.docs_sign_date || '').trim() ||
+      !!String(form.value.peshnehad || '').trim() ||
       !!String(form.value.office_outgoing_date || '').trim() ||
       !!String(form.value.office_incoming_date || '').trim() ||
       !!String(form.value.reyasat_outgoing_date || '').trim() ||

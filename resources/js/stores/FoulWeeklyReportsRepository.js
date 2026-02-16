@@ -245,8 +245,8 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
           <div class="header-strip bg-primary">
             <div class="strip-left">
               <div>
-                <div class="strip-title">یادداشتونه</div>
-                <div class="strip-sub">د راپور یادداشتونه</div>
+                <div class="strip-title">یادونه</div>
+                <div class="strip-sub">د راپور یادونه</div>
               </div>
             </div>
             <span class="chip chip-primary">${clean.length}</span>
@@ -257,7 +257,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
               <thead>
                 <tr>
                   <th style="width:8%;">#</th>
-                  <th style="width:92%;">یادداشت</th>
+                  <th style="width:92%;">یادونه</th>
                 </tr>
               </thead>
               <tbody>${notesTr}</tbody>

@@ -691,7 +691,6 @@
     { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
     { title: t('نتیجه'), key: 'result' },
     { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
-    { title: t('وجه مصرف'), key: 'expense_result' },
     { title: t('نوت راجع به اسناد'), key: 'docs_note' },
     { title: t('ملاحظات'), key: 'note' },
   ]);

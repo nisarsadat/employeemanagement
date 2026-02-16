@@ -21,13 +21,16 @@ return new class extends Migration {
             $table->date('reyasat_outgoing_date')->nullable();
             $table->string('reyasat_outgoing_page')->nullable();
 
+            $table->date('reyasat_incomming_date')->nullable();
+            $table->string('reyasat_incomming_page')->nullable();
+
             $table->date('loy_reyasat_outgoing_date')->nullable();
             $table->string('loy_reyasat_outgoing_page')->nullable();
 
             $table->date('answer_date')->nullable();
             $table->string('answer_page')->nullable();
 
-            $table->date('docs_sign_date')->nullable();
+            $table->date('peshnehad')->nullable();
             $table->date('outgoing_incoming_date')->nullable();
 
             $table->string('who_sighn')->nullable();

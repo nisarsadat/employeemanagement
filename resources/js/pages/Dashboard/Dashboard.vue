@@ -399,7 +399,7 @@
                 </v-chip>
               </div> -->
 
-              <div class="stat-title">{{ t('ټولې پاتې شوې پیسې') }}</div>
+              <div class="stat-title">{{ t('ټولې پاتې پیسې') }}</div>
 
               <div class="stat-main">
                 <div class="stat-number">{{ num(moneyBalance) }}</div>

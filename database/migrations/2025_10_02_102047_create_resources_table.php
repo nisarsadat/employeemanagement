@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     public function up(): void
@@ -10,9 +11,8 @@ return new class extends Migration {
         Schema::create('resources', function (Blueprint $table) {
             $table->id();
 
-            
             $table->string('picture')->nullable();
-            // introduction
+
             $table->string('name');
             $table->string('father_name')->nullable();
             $table->string('grand_father_name')->nullable();
@@ -24,12 +24,10 @@ return new class extends Migration {
             $table->string('hawza')->nullable();
             $table->string('specefic_place')->nullable();
 
-            // main address
             $table->string('main_province')->nullable();
             $table->string('main_district')->nullable();
             $table->string('main_village')->nullable();
 
-            // current address
             $table->string('now_province')->nullable();
             $table->string('now_district')->nullable();
             $table->string('now_village')->nullable();
@@ -37,13 +35,11 @@ return new class extends Migration {
             $table->string('now_street_number')->nullable();
             $table->string('now_home_number')->nullable();
 
-            // jobs
             $table->string('old_job')->nullable();
             $table->string('now_job')->nullable();
             $table->string('job_place')->nullable();
             $table->string('letry_format_name')->nullable();
 
-            // status & education
             $table->enum('activity', ['غیر فعال','فعال'])->nullable();
             $table->enum('halat_madani', ['مجرد','متاهل'])->nullable();
             $table->string('age')->nullable();
@@ -53,13 +49,13 @@ return new class extends Migration {
             $table->string('train')->nullable();
             $table->string('trust_percentage')->nullable();
 
-            // misc
             $table->string('resource_saved_date')->nullable();
             $table->string('resource_activity_type')->nullable();
 
-            // relation
-            $table->foreignId('office_employee_id')->nullable()
-                  ->constrained('office_employees')->nullOnDelete();
+            $table->foreignId('office_employee_id')
+                  ->nullable()
+                  ->constrained('office_employees')
+                  ->nullOnDelete();
 
             $table->string('resedint_code')->nullable();
             $table->string('resource_cover')->nullable();
@@ -71,11 +67,10 @@ return new class extends Migration {
             $table->string('Province_addr')->nullable();
 
             $table->string('coordinates')->nullable();
-
             $table->text('note')->nullable();
 
             $table->timestamps();
-            // ✅ Prevent duplicate resource identity (composite unique)
+
             $table->unique([
                 'name',
                 'father_name',
@@ -86,8 +81,10 @@ return new class extends Migration {
                 'main_district',
                 'main_village',
             ], 'resources_identity_unique');
-
         });
+
+        // ✅ Start ID from 100
+        DB::statement("ALTER TABLE resources AUTO_INCREMENT = 101;");
     }
 
     public function down(): void

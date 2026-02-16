@@ -234,6 +234,7 @@
                       v-model="form.father_name"
                       :label="t('نام پدر')"
                       density="compact"
+                      :rules="[rules.required]"
                       variant="outlined"
                       :error="hasError('father_name')"
                       :error-messages="getErrorMessages('father_name')"
@@ -244,6 +245,7 @@
                     <v-text-field
                       v-model="form.grand_father_name"
                       :label="t('نام پدرکلان')"
+                      :rules="[rules.required]"
                       density="compact"
                       variant="outlined"
                       :error="hasError('grand_father_name')"
@@ -310,6 +312,7 @@
                   v-model:district="form.main_district"
                   :province-label="t('ولایت اصلی *')"
                   :district-label="t('ولسوالی اصلی *')"
+                  :rules="[rules.required]"
                   :mdProvince="6"
                   :mdDistrict="6"
                 />
@@ -476,7 +479,6 @@
               </v-col>
 
               <v-col cols="12" md="3">
-
                 <v-text-field
                   v-model="form.coordinates"
                   :label="t('کوردینات تدارک')"
@@ -573,6 +575,7 @@
                   item-title="code_number"
                   item-value="id"
                   :label="t('کارمند مربوطه')"
+                  :rules="[rules.required]"
                   density="compact"
                   variant="outlined"
                   hide-details="auto"
@@ -644,7 +647,6 @@
           </v-sheet>
           <!-- SECTION 4: تاریخ و نوت -->
           <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
-           
             <v-divider />
 
             <v-row class="pa-3">

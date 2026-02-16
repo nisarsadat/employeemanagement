@@ -235,7 +235,7 @@
     [
       {
         key: 'dashboard',
-        title: t('دشبورد'),
+        title: t('داشبورد'),
         icon: 'mdi-view-dashboard-outline',
         to: toName('Dashboard'),
         perm: 'dashboards.view',
@@ -263,7 +263,7 @@
       },
       {
         key: 'officeemployee',
-        title: t('  کارمندان'),
+        title: t('کارمندان'),
         icon: 'mdi-account-outline',
         to: { path: '/app/officeemployee' },
         perm: 'officeemployee.view',
@@ -334,7 +334,7 @@
       // ✅ Reports group (key is "reports")
       {
         key: 'reports',
-        title: t(' راپورها'),
+        title: t('راپورها'),
         icon: 'mdi-graph',
         perm: 'reports.view',
         children: [
@@ -353,7 +353,7 @@
 
           {
             key: 'r-monthly',
-            title: t(' راپور ماهانه'),
+            title: t('راپور ماهانه'),
             to: { path: '/app/monthlyfoulreports' },
             perm: 'monthlyfoulreports.view',
           },
@@ -365,7 +365,7 @@
           },
           {
             key: 'r-yearly',
-            title: t(' راپور سالانه'),
+            title: t('راپور سالانه'),
             to: { path: '/app/yearlyfoulreports' },
             perm: 'yearlyfoulreports.view',
           },
