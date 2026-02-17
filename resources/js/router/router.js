@@ -454,6 +454,8 @@ const router = createRouter({
         {
           path: 'fifthyformatsroute',
           component: FifthyFormatsRoute,
+          meta: { requiresAuth: true, perm: permFor('fifthyformatsroute') },
+
         },
 
         // 56 Formats — base

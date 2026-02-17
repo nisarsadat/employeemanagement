@@ -1,131 +1,112 @@
 <template>
-  <v-navigation-drawer
-    v-model="model"
-    location="left"
-    width="480"
-    temporary
-    :dir="rtl ? 'rtl' : 'ltr'"
-    elevation="3"
-    class="details-drawer"
-  >
-    <div class="drawer-content pa-5">
-      <!-- Header -->
-      <div class="header-section d-flex align-center justify-space-between mb-4">
-        <div class="d-flex align-center" style="gap: 12px">
-          <!-- ✅ NO PICTURE / AVATAR -->
+  <!-- ✅ Small popup instead of big drawer -->
+  <v-dialog v-model="model" max-width="520" scrollable>
+    <v-card class="details-card" rounded="xl" elevation="10" :dir="rtl ? 'rtl' : 'ltr'">
+      <!-- HEADER -->
+      <v-card-title class="d-flex align-center justify-space-between">
+        <div class="title-section">
+          <div class="text-subtitle-1 font-weight-bold text-primary title-line">
+            {{ item?.title || item?.typeLabel || (rtl ? 'جزییات' : 'Details') }}
+          </div>
 
-          <div class="title-section">
-            <h3 class="text-h6 font-weight-bold text-primary">
-              {{ item?.title || item?.typeLabel || (rtl ? 'جزییات' : 'Details') }}
-            </h3>
-
-            <!-- ✅ Type label becomes routable -->
-            <div
-              class="text-caption text-medium-emphasis d-flex align-center mt-1 type-link"
-              :class="{ disabled: !typeRoute }"
-              role="button"
-              tabindex="0"
-              @click="goTypeRoute"
-              @keydown.enter="goTypeRoute"
-              @keydown.space.prevent="goTypeRoute"
-            >
-              <v-icon size="16" class="mr-1">mdi-tag-outline</v-icon>
-              <span class="text-primary text-decoration-underline">
-                {{ item?.typeLabel || (rtl ? 'ډول' : 'Type') }}
-              </span>
-              <v-icon v-if="typeRoute" size="14" class="ml-1">mdi-open-in-new</v-icon>
-            </div>
-
-            <!-- ✅ Header meta line -->
-            <div v-if="headerMeta.length" class="header-meta-line mt-2">
-              <v-chip
-                v-for="m in headerMeta"
-                :key="m.key"
-                size="x-small"
-                variant="tonal"
-                class="meta-chip"
-              >
-                <v-icon start size="14">{{ m.icon }}</v-icon>
-                <span class="meta-label">{{ m.label }}:</span>
-                <span class="meta-value">{{ m.value }}</span>
-              </v-chip>
-            </div>
+          <!-- Type label (routable) -->
+          <div
+            class="text-caption text-medium-emphasis d-flex align-center mt-1 type-link"
+            :class="{ disabled: !typeRoute }"
+            role="button"
+            tabindex="0"
+            @click="goTypeRoute"
+            @keydown.enter="goTypeRoute"
+            @keydown.space.prevent="goTypeRoute"
+          >
+            <v-icon size="16" class="mr-1">mdi-tag-outline</v-icon>
+            <span class="text-primary text-decoration-underline">
+              {{ item?.typeLabel || (rtl ? 'ډول' : 'Type') }}
+            </span>
+            <v-icon v-if="typeRoute" size="14" class="ml-1">mdi-open-in-new</v-icon>
           </div>
         </div>
 
-        <div class="action-buttons d-flex align-center" style="gap: 8px">
+        <div class="d-flex align-center" style="gap: 8px">
           <v-tooltip :text="rtl ? 'موقعیت ته لاړ شه' : 'Fly to location'" location="bottom">
-            <template v-slot:activator="{ props }">
+            <template #activator="{ props: tip }">
               <v-btn
                 icon
                 variant="flat"
                 size="small"
-                v-bind="props"
+                v-bind="tip"
                 @click="$emit('flyToItem', item)"
                 :disabled="!item?.coordinates"
-                class="elevation-1"
               >
                 <v-icon>mdi-crosshairs-gps</v-icon>
               </v-btn>
             </template>
           </v-tooltip>
 
-          <v-btn icon variant="text" size="small" @click="model = false" class="close-btn">
+          <v-btn icon variant="text" size="small" @click="model = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </div>
-      </div>
+      </v-card-title>
 
-      <v-divider class="my-4" />
+      <v-divider />
 
-      <!-- Loading -->
-      <v-skeleton-loader v-if="loading" type="article, actions" class="mb-4" />
+      <!-- BODY -->
+      <v-card-text class="pt-4">
+        <!-- Loading -->
+        <v-skeleton-loader v-if="loading" type="article, actions" class="mb-2" />
 
-      <!-- Empty -->
-      <v-alert v-else-if="!data" type="info" variant="tonal" class="mb-4" :icon="false">
-        <div class="d-flex align-center">
-          <v-icon color="info" class="mr-3">mdi-information-outline</v-icon>
-          <span>{{ rtl ? 'هیڅ معلومات نشته' : 'No data available' }}</span>
-        </div>
-      </v-alert>
-
-      <!-- ✅ Content (Header meta only) -->
-      <div v-else class="details-content">
-        <v-alert type="info" variant="tonal" :icon="false">
+        <!-- Empty -->
+        <v-alert v-else-if="!data" type="info" variant="tonal" class="mb-0" :icon="false">
           <div class="d-flex align-center">
             <v-icon color="info" class="mr-3">mdi-information-outline</v-icon>
-            <span>{{ rtl ? 'یوازې د سر معلومات ښودل کېږي' : 'Only header info is shown' }}</span>
+            <span>{{ rtl ? 'هیڅ معلومات نشته' : 'No data available' }}</span>
           </div>
         </v-alert>
-      </div>
 
-      <!-- Footer -->
-      <div v-if="!loading && data" class="footer-actions mt-6 pt-4">
-        <v-divider class="mb-4" />
-        <div class="d-flex justify-end" style="gap: 8px">
-          <v-btn
-            variant="outlined"
-            color="primary"
-            size="small"
-            prepend-icon="mdi-content-copy"
-            @click="copyHeaderOnly"
-          >
-            {{ rtl ? 'کاپي' : 'Copy' }}
-          </v-btn>
-
-          <v-btn
-            variant="flat"
-            color="primary"
-            size="small"
-            prepend-icon="mdi-file-pdf-box"
-            @click="exportPdfHeaderOnly"
-          >
-            {{ rtl ? 'پي ډي اېف' : 'PDF' }}
-          </v-btn>
+        <!-- Header Chips -->
+        <div v-else>
+          <div v-if="headerMeta.length" class="header-meta-line">
+            <v-chip
+              v-for="m in headerMeta"
+              :key="m.key"
+              size="small"
+              variant="tonal"
+              class="meta-chip"
+            >
+              <v-icon start size="16">{{ m.icon }}</v-icon>
+              <span class="meta-label">{{ m.label }}:</span>
+              <span class="meta-value">{{ m.value }}</span>
+            </v-chip>
+          </div>
         </div>
-      </div>
-    </div>
-  </v-navigation-drawer>
+      </v-card-text>
+
+      <!-- FOOTER (small) -->
+      <v-divider />
+      <v-card-actions class="justify-end px-4 py-3" style="gap: 8px">
+        <v-btn
+          color="primary"
+          size="small"
+          prepend-icon="mdi-content-copy"
+          @click="copyHeaderOnly"
+          :disabled="!data || loading"
+        >
+          {{ rtl ? 'کاپي' : 'Copy' }}
+        </v-btn>
+
+        <v-btn
+          color="primary"
+          size="small"
+          prepend-icon="mdi-file-pdf-box"
+          @click="exportPdfHeaderOnly"
+          :disabled="!data || loading"
+        >
+          {{ rtl ? 'پي ډي اېف' : 'PDF' }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -149,6 +130,7 @@
     set: (v) => emit('update:modelValue', v),
   });
 
+  /* ---------------- Helpers ---------------- */
   function pickFirst(...vals) {
     for (const v of vals) {
       if (v === null || v === undefined) continue;
@@ -173,166 +155,182 @@
     return String(s || '')
       .trim()
       .toLowerCase()
-      .replace(/\s+/g, '');
+      .replace(/\s+/g, '')
+      .replace(/[-_]/g, '');
   }
 
-  // ✅ Header meta (Pashto labels)
+  /* ---------------- ✅ Header meta rules ----------------
+   ✅ Pashto labels
+   ✅ Resource shows 3 numbers (phone_number + 1 + 2 + 3)
+   ✅ Formats show resource phones from ANY possible place:
+      - flattened: resource_phone, resource_phone_1, resource_phone_2, resource_phone_3
+      - embedded:  resource.phone_number, resource.phone_number_1, resource.phone_number_2, resource.phone_number_3
+-------------------------------------------------------- */
   const headerMeta = computed(() => {
     const d = props.data && typeof props.data === 'object' ? props.data : {};
     const it = props.item || {};
     const t = normalizeType(it?.type || it?.typeLabel);
 
-    // ✅ RESOURCE: resource code + employee code + resource phones(1/2/3)
-    if (t === 'resource') {
-      const resourceCode = pickFirst(
+    // ========= OFFICE EMPLOYEE (ID + Code + Phone) =========
+    if (t.includes('officeemployee') || t.includes('employee')) {
+      const id = pickFirst(d?.id, d?.uuid, it?.id, it?._raw?.id);
+      const code = pickFirst(
         d?.code_number,
-        d?.resource?.code_number,
-        d?.resource_code,
-        it?.code_number,
-        it?._raw?.code_number
-      );
-
-      const officeEmployeeCode = pickFirst(
+        d?.office_employee_code,
         d?.office_employee?.code_number,
         d?.officeEmployee?.code_number,
-        d?.office_employee_code,
-        d?.office_employee?.code,
-        d?.officeEmployee?.code
-      );
-
-      const resourcePhones = joinPhones(
-        d?.phone_number,
-        d?.phone_number_1,
-        d?.phone_number_2,
-        d?.resource?.phone_number,
-        d?.resource_phone,
-        it?.phone_number,
-        it?._raw?.phone_number,
-        it?._raw?.phone_number_1,
-        it?._raw?.phone_number_2
-      );
-
-      const out = [];
-
-      if (resourceCode) {
-        out.push({
-          key: 'resource_code',
-          label: 'د سرچینې کود',
-          value: resourceCode,
-          icon: 'mdi-barcode',
-        });
-      }
-
-      if (officeEmployeeCode) {
-        out.push({
-          key: 'office_employee_code',
-          label: 'د کارمند کود',
-          value: officeEmployeeCode,
-          icon: 'mdi-account-badge-outline',
-        });
-      }
-
-      if (resourcePhones) {
-        out.push({
-          key: 'resource_phones',
-          label: 'د سرچینې تلیفونونه',
-          value: resourcePhones,
-          icon: 'mdi-phone-multiple',
-        });
-      }
-
-      return out;
-    }
-
-    // ✅ OFFICE EMPLOYEE: employee code + phone
-    if (t === 'office_employee') {
-      const employeeCode = pickFirst(
-        d?.code_number,
-        d?.office_employee?.code_number,
-        d?.office_employee_code,
         it?.code_number,
         it?._raw?.code_number
       );
-
-      const employeePhone = pickFirst(
+      const phone = pickFirst(
         d?.phone_number,
-        d?.office_employee?.phone_number,
         d?.office_employee_phone,
+        d?.office_employee?.phone_number,
+        d?.officeEmployee?.phone_number,
         it?.phone_number,
         it?._raw?.phone_number
       );
 
       const out = [];
-
-      if (employeeCode) {
+      if (id)
         out.push({
-          key: 'employee_code',
-          label: 'د کارمند کود',
-          value: employeeCode,
+          key: 'id',
+          label: props.rtl ? 'آی ډي(نمبر)' : 'ID',
+          value: id,
+          icon: 'mdi-identifier',
+        });
+      if (code)
+        out.push({
+          key: 'code',
+          label: props.rtl ? 'د کارمند کود' : 'Code',
+          value: code,
           icon: 'mdi-account-badge-outline',
         });
-      }
-
-      if (employeePhone) {
+      if (phone)
         out.push({
-          key: 'employee_phone',
-          label: 'د کارمند تلیفون',
-          value: employeePhone,
+          key: 'phone',
+          label: props.rtl ? 'د کارمند د تلیفون شمیره' : 'Phone',
+          value: phone,
           icon: 'mdi-phone',
         });
-      }
+      return out;
+    }
+
+    // ========= RESOURCE (ID + Code + 3 Phones) =========
+    if (t.includes('resource')) {
+      const id = pickFirst(d?.id, d?.uuid, it?.id, it?._raw?.id);
+
+      const code = pickFirst(
+        d?.code_number,
+        d?.resource_code,
+        it?.code_number,
+        it?._raw?.code_number
+      );
+
+      // ✅ Collect ALL resource phones explicitly (3 numbers)
+      const phoneList = [
+        d?.phone_number,
+        d?.phone_number_1,
+        d?.phone_number_2,
+        // d?.phone_number_3, // ✅ uncomment if you want 4th too
+      ]
+        .filter((v) => v !== null && v !== undefined)
+        .map((v) => String(v).trim())
+        .filter((v) => v && v !== '-' && v !== 'null' && v !== 'undefined');
+
+      // ✅ remove duplicates
+      const phones = phoneList.join(' / ');
+
+      const out = [];
+
+      if (id)
+        out.push({
+          key: 'id',
+          label: props.rtl ? 'آی ډي(نمبر)' : 'ID',
+          value: id,
+          icon: 'mdi-identifier',
+        });
+
+      if (code)
+        out.push({
+          key: 'code',
+          label: props.rtl ? 'د منبع کود' : 'Resource Code',
+          value: code,
+          icon: 'mdi-barcode',
+        });
+
+      if (phones)
+        out.push({
+          key: 'phones',
+          label: props.rtl ? 'د منبع د تلیفون شمیرې' : 'Phones',
+          value: phones,
+          icon: 'mdi-phone-multiple',
+        });
 
       return out;
     }
 
-    // ✅ ALL OTHER (57 formats): only resource code + resource phone
-    const resourceCode = pickFirst(d?.resource?.code_number, d?.resource_code);
-    const resourcePhone = pickFirst(d?.resource?.phone_number, d?.resource_phone);
+    // ========= ALL OTHER FORMATS =========
+    const id = pickFirst(d?.id, d?.uuid, it?.id, it?._raw?.id);
+
+    const resourceCode = pickFirst(
+      d?.resource_code,
+      d?.resource?.code_number,
+      d?.resource?.code,
+      it?.resource_code,
+      it?._raw?.resource_code,
+      it?._raw?.resource?.code_number
+    );
+
+    // ✅ show ALL resource phones (not just one)
+    const resourcePhones = joinPhones(
+      d?.resource_phone,
+      d?.resource_phone_1,
+      d?.resource_phone_2,
+      d?.resource_phone_3,
+      d?.resource?.phone_number,
+      d?.resource?.phone_number_1,
+      d?.resource?.phone_number_2,
+      d?.resource?.phone_number_3,
+      it?.resource_phone,
+      it?._raw?.resource_phone,
+      it?._raw?.resource?.phone_number
+    );
 
     const out = [];
+    if (id)
+      out.push({
+        key: 'id',
+        label: props.rtl ? 'آی ډي(نمبر)' : 'ID',
+        value: id,
+        icon: 'mdi-identifier',
+      });
     if (resourceCode)
       out.push({
         key: 'resource_code',
-        label: 'د سرچینې کود',
+        label: props.rtl ? 'د منبع کود' : 'Resource Code',
         value: resourceCode,
         icon: 'mdi-barcode',
       });
-    if (resourcePhone)
+    if (resourcePhones)
       out.push({
-        key: 'resource_phone',
-        label: 'د سرچینې تلیفون',
-        value: resourcePhone,
+        key: 'resource_phones',
+        label: props.rtl ? 'د منبع د تلیفون شمیره' : 'Resource Phone',
+        value: resourcePhones,
         icon: 'mdi-phone',
       });
-
     return out;
   });
 
-  // -----------------------------
-  // ✅ ROUTING
-  // -----------------------------
+  /* ---------------- ROUTING ---------------- */
   const typeRoute = computed(() => {
     const t = normalizeType(props.item?.type || props.item?.typeLabel);
-
     if (t.includes('resource')) return { path: '/app/resources' };
-    if (t.includes('officeemployee') || t.includes('employee')) return { name: 'officeemployee' };
+    if (t.includes('officeemployee') || t.includes('employee'))
+      return { path: '/app/officeemployee' };
     if (t.includes('event')) return { path: '/app/events' };
     if (t.includes('information')) return { path: '/app/informations' };
-    if (t.includes('deleviry') || t.includes('delivery') || t.includes('captive'))
-      return { path: '/app/delevirycaptive' };
-
-    if (t.includes('fasad')) return { path: '/app/fasads' };
-    if (t.includes('heist')) return { path: '/app/heist' };
-    if (t.includes('mulkano')) return { path: '/app/mulkanos' };
-    if (t.includes('bank')) return { path: '/app/banks' };
-    if (t.includes('apartment')) return { path: '/app/apartments' };
-    if (t.includes('school')) return { path: '/app/schools' };
-    if (t.includes('masjid') || t.includes('mosque')) return { path: '/app/masjids' };
-    if (t.includes('wakilano')) return { path: '/app/wakilanos' };
-    if (t.includes('university')) return { path: '/app/universities' };
-    if (t.includes('park')) return { path: '/app/parks' };
-    if (t.includes('company')) return { path: '/app/companies' };
-
+    if (t.includes('highway')) return { path: '/app/highways' };
     return null;
   });
 
@@ -342,9 +340,7 @@
     router.push(typeRoute.value);
   }
 
-  // -----------------------------
-  // ✅ Copy / PDF (Header meta only)
-  // -----------------------------
+  /* ---------------- Copy / PDF (Header meta only) ---------------- */
   function copyHeaderOnly() {
     const title = props.item?.title || props.item?.typeLabel || (props.rtl ? 'جزییات' : 'Details');
     const lines = [
@@ -372,103 +368,76 @@
     const rowsHtml = headerMeta.value
       .map(
         (m) => `
-        <tr>
-          <td class="k">${escapeHtml(m.label)}</td>
-          <td class="v">${escapeHtml(m.value)}</td>
-        </tr>
-      `
+      <tr>
+        <td class="k">${escapeHtml(m.label)}</td>
+        <td class="v">${escapeHtml(m.value)}</td>
+      </tr>
+    `
       )
       .join('');
 
     const html = `
-  <!doctype html>
-  <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>${escapeHtml(title)}</title>
-    <style>
-      @page { size: A4; margin: 14mm; }
-      body { font-family: Arial, sans-serif; direction: ${dir}; }
-      h2 { margin: 0 0 10px 0; font-size: 16px; }
-      .meta { margin-bottom: 12px; font-size: 12px; opacity: .75; }
-      table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-      th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; text-align: ${
-        dir === 'rtl' ? 'right' : 'left'
-      }; }
-      th { background: #f5f5f5; }
-      td.k { width: 35%; font-weight: 700; }
-      td.v { width: 65%; }
-      .footer { margin-top: 14px; font-size: 11px; opacity: .7; }
-    </style>
-  </head>
-  <body>
-    <h2>${escapeHtml(title)}</h2>
-    <div class="meta">${escapeHtml(props.item?.typeLabel || '')}</div>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(title)}</title>
+  <style>
+    @page { size: A4; margin: 14mm; }
+    body { font-family: Arial, sans-serif; direction: ${dir}; }
+    h2 { margin: 0 0 10px 0; font-size: 16px; }
+    .meta { margin-bottom: 12px; font-size: 12px; opacity: .75; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; text-align: ${
+      dir === 'rtl' ? 'right' : 'left'
+    }; }
+    th { background: #f5f5f5; }
+    td.k { width: 35%; font-weight: 700; }
+    td.v { width: 65%; }
+    .footer { margin-top: 14px; font-size: 11px; opacity: .7; }
+  </style>
+</head>
+<body>
+  <h2>${escapeHtml(title)}</h2>
+  <div class="meta">${escapeHtml(props.item?.typeLabel || '')}</div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>${props.rtl ? 'سرلیک' : 'Label'}</th>
-          <th>${props.rtl ? 'معلومات' : 'Value'}</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rowsHtml || `<tr><td class="k">-</td><td class="v">-</td></tr>`}
-      </tbody>
-    </table>
+  <table>
+    <thead>
+      <tr>
+        <th>${props.rtl ? 'سرلیک' : 'Label'}</th>
+        <th>${props.rtl ? 'معلومات' : 'Value'}</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rowsHtml || `<tr><td class="k">-</td><td class="v">-</td></tr>`}
+    </tbody>
+  </table>
 
-    <div class="footer">${escapeHtml(new Date().toLocaleString())}</div>
-  </body>
-  </html>
-  `;
+  <div class="footer">${escapeHtml(new Date().toLocaleString())}</div>
+</body>
+</html>
+`;
 
     const w = window.open('', '_blank');
     if (!w) return;
-
     w.document.open();
     w.document.write(html);
     w.document.close();
-
     w.focus();
     setTimeout(() => w.print(), 250);
   }
 </script>
 
 <style scoped>
-  .details-drawer {
-    border-radius: 0 16px 16px 0 !important;
+  .details-card {
+    max-height: 70vh; /* ✅ small popup height */
   }
 
-  :deep(.v-navigation-drawer__content) {
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .drawer-content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .header-section {
-    flex-shrink: 0;
-  }
-
-  .title-section {
-    min-width: 0;
-  }
-  .title-section h3 {
+  .title-line {
+    max-width: 380px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  .close-btn {
-    transition: transform 0.2s;
-  }
-  .close-btn:hover {
-    transform: rotate(90deg);
   }
 
   .type-link {
@@ -480,30 +449,18 @@
     opacity: 0.7;
   }
 
-  .details-content {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .footer-actions {
-    flex-shrink: 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-  }
-
+  /* ✅ compact chips row (like screenshot) */
   .header-meta-line {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap; /* ✅ allow wrap in small popup */
     padding-bottom: 2px;
   }
 
   .meta-chip {
     white-space: nowrap;
-    flex: 0 0 auto;
+    border-radius: 999px;
   }
 
   .meta-label {

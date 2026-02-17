@@ -300,6 +300,8 @@ const navigationItems = computed(() =>
       title: t('۵۶ فارمت'),
       icon: 'mdi-file-table-box-multiple-outline',
       to: { path: '/app/fifthyformatsroute' },
+      perm: 'fifthyformatsroute.view',
+
     },
     {
       key: 'finance',

@@ -19,14 +19,14 @@
             rounded="xl"
             prepend-icon="mdi-format-list-bulleted"
           >
-            نقاط ({{ allMapItems.length }})
+            نقطې ({{ allMapItems.length }})
           </v-btn>
         </template>
 
         <v-card class="points-menu-card" rounded="xl">
           <div class="points-menu-head">
-            <div class="points-title">نقاط روی نقشه</div>
-            <div class="points-sub">مجموع: {{ allMapItems.length }}</div>
+            <div class="points-title">په نقشه کې نقطې</div>
+            <div class="points-sub">ټول: {{ allMapItems.length }}</div>
           </div>
 
           <v-divider />
@@ -55,7 +55,6 @@
                   "
                 >
                   <template #prepend>
-                    <!-- ✅ Vuetify mdi font icon -->
                     <v-icon
                       :color="
                         it.type === 'resource'
@@ -80,15 +79,13 @@
               </v-list>
             </div>
 
-            <div v-if="!groupedPoints.length" class="empty-points">هیچ نقطه‌ای یافت نشد.</div>
+            <div v-if="!groupedPoints.length" class="empty-points">هېڅ نقطه ونه موندل شوه.</div>
           </v-card-text>
 
           <v-divider />
 
           <div class="points-menu-actions">
-            <v-btn variant="text" rounded="lg" @click="() => (pointsMenuOpen = false)">
-              بستن
-            </v-btn>
+            <v-btn variant="text" rounded="lg" @click="() => (pointsMenuOpen = false)"> تړل </v-btn>
           </div>
         </v-card>
       </v-menu>
@@ -197,7 +194,7 @@
     // ---------------- 56 Formats (Base) ----------------
     {
       type: 'fasad',
-      label: 'فساد',
+      label: 'شر او فساد',
       list: '/api/fasads',
       show: (id) => `/api/fasads/${id}`,
       route: '/app/fasads',
@@ -205,7 +202,7 @@
     },
     {
       type: 'saeen_fasad',
-      label: 'ساین فساد',
+      label: 'ساعین بالفساد',
       list: '/api/saeen-fasads',
       show: (id) => `/api/saeen-fasads/${id}`,
       route: '/app/saeenfasad',
@@ -213,7 +210,7 @@
     },
     {
       type: 'heist',
-      label: 'سرقت',
+      label: 'سرقت کوونکي',
       list: '/api/heists',
       show: (id) => `/api/heists/${id}`,
       route: '/app/heist',
@@ -221,7 +218,7 @@
     },
     {
       type: 'captive',
-      label: 'اسیر',
+      label: 'راخوشي شوي بندیان',
       list: '/api/captives',
       show: (id) => `/api/captives/${id}`,
       route: '/app/captives',
@@ -229,7 +226,7 @@
     },
     {
       type: 'mulkano',
-      label: 'ملکانو',
+      label: 'د کوڅو نمایندګان',
       list: '/api/mulkanos',
       show: (id) => `/api/mulkanos/${id}`,
       route: '/app/mulkanos',
@@ -237,7 +234,7 @@
     },
     {
       type: 'entry_exit',
-      label: 'ورود/خروج',
+      label: 'د ښار اړوند دخولي/خروجي دروازې او فرعي لارې',
       list: '/api/entry-exits',
       show: (id) => `/api/entry-exits/${id}`,
       route: '/app/entry-exits',
@@ -245,7 +242,7 @@
     },
     {
       type: 'sarafyano',
-      label: 'صرافیانو',
+      label: 'صرافیانې',
       list: '/api/sarafyanos',
       show: (id) => `/api/sarafyanos/${id}`,
       route: '/app/sarafyanos',
@@ -253,7 +250,7 @@
     },
     {
       type: 'clubs',
-      label: 'کلب',
+      label: 'ورزشي کلپونه',
       list: '/api/clubs',
       show: (id) => `/api/clubs/${id}`,
       route: '/app/clubs',
@@ -261,7 +258,7 @@
     },
     {
       type: 'mahajerat',
-      label: 'مهاجرت',
+      label: 'نوي راغلي کورونه',
       list: '/api/mahajerats',
       show: (id) => `/api/mahajerats/${id}`,
       route: '/app/mahajerats',
@@ -269,7 +266,7 @@
     },
     {
       type: 'soldier',
-      label: 'سرباز',
+      label: 'پخواني چارواکې',
       list: '/api/soldiers',
       show: (id) => `/api/soldiers/${id}`,
       route: '/app/soldiers',
@@ -279,7 +276,7 @@
     // ---------------- Format One ----------------
     {
       type: 'mawad',
-      label: 'مواد',
+      label: 'د نشه یی توکو پلورونکي',
       list: '/api/mawads',
       show: (id) => `/api/mawads/${id}`,
       route: '/app/mawads',
@@ -287,7 +284,7 @@
     },
     {
       type: 'lost_mujremeen',
-      label: 'گم مجرمین',
+      label: 'نادرکه شوي مجرمین',
       list: '/api/lost-mujremeens',
       show: (id) => `/api/lost-mujremeens/${id}`,
       route: '/app/lostmujremeens',
@@ -295,7 +292,7 @@
     },
     {
       type: 'old_soldiers_homes',
-      label: 'خانه‌های سربازان قدیم',
+      label: 'د پخواني چاروکو کورونه',
       list: '/api/old-soldiers-homes',
       show: (id) => `/api/old-soldiers-homes/${id}`,
       route: '/app/oldsoldiershomes',
@@ -303,7 +300,7 @@
     },
     {
       type: 'robbers',
-      label: 'دزدان',
+      label: 'اختطاف ګران',
       list: '/api/robbers',
       show: (id) => `/api/robbers/${id}`,
       route: '/app/robbers',
@@ -311,7 +308,7 @@
     },
     {
       type: 'non_responsable_people',
-      label: 'اشخاص غیرمسؤول',
+      label: 'غیر مسؤوله وسله وال',
       list: '/api/non-responsable-people',
       show: (id) => `/api/non-responsable-people/${id}`,
       route: '/app/nonresponsablepeople',
@@ -320,7 +317,7 @@
     },
     {
       type: 'mashkok_homes',
-      label: 'خانه‌های مشکوک',
+      label: 'مشکوکو کورونه',
       list: '/api/mashkok-homes',
       show: (id) => `/api/mashkok-homes/${id}`,
       route: '/app/mashkokhomes',
@@ -328,7 +325,7 @@
     },
     {
       type: 'damage_places',
-      label: 'محلات خساره',
+      label: 'آسیب پذیره ساحې',
       list: '/api/damage-places',
       show: (id) => `/api/damage-places/${id}`,
       route: '/app/damageplaces',
@@ -336,7 +333,7 @@
     },
     {
       type: 'damage_rasan_places',
-      label: 'محلات خساره رسان',
+      label: 'آسیب رسانه ساحې',
       list: '/api/damage-rasan-places',
       show: (id) => `/api/damage-rasan-places/${id}`,
       route: '/app/damagerasanplaces',
@@ -344,7 +341,7 @@
     },
     {
       type: 'mashkok_shops',
-      label: 'دکان‌های مشکوک',
+      label: 'مشکوک دوکانونه',
       list: '/api/mashkok-shops',
       show: (id) => `/api/mashkok-shops/${id}`,
       route: '/app/mashkokshops',
@@ -352,7 +349,7 @@
     },
     {
       type: 'luchakanos',
-      label: 'لوچکانو',
+      label: 'لوچکان او بی بند و باره افراد',
       list: '/api/luchakanos',
       show: (id) => `/api/luchakanos/${id}`,
       route: '/app/luchakanos',
@@ -362,7 +359,7 @@
     // ---------------- Format Two ----------------
     {
       type: 'schools',
-      label: 'مکتب',
+      label: 'ښونځیو او روزنیز مرکزونو او روزنیز مراکز',
       list: '/api/schools',
       show: (id) => `/api/schools/${id}`,
       route: '/app/schools',
@@ -370,7 +367,7 @@
     },
     {
       type: 'hado_bus_stops',
-      label: 'تم‌گاه بس',
+      label: 'هډې',
       list: '/api/hado-bus-stops',
       show: (id) => `/api/hado-bus-stops/${id}`,
       route: '/app/hadobusstops',
@@ -378,7 +375,7 @@
     },
     {
       type: 'transport_companies',
-      label: 'شرکت ترانسپورت',
+      label: 'ترانسپورتي شرکتونه',
       list: '/api/transport-companies',
       show: (id) => `/api/transport-companies/${id}`,
       route: '/app/transportcompanies',
@@ -387,7 +384,7 @@
     },
     {
       type: 'car_sales_companies',
-      label: 'موتر فروشی',
+      label: 'موټر پلورونځی',
       list: '/api/car-sales-companies',
       show: (id) => `/api/car-sales-companies/${id}`,
       route: '/app/carsalescompanies',
@@ -395,7 +392,7 @@
     },
     {
       type: 'parkings',
-      label: 'پارکینگ',
+      label: 'موټرو تمځای(پارکینګ)',
       list: '/api/parkings',
       show: (id) => `/api/parkings/${id}`,
       route: '/app/parkings',
@@ -403,7 +400,7 @@
     },
     {
       type: 'banks',
-      label: 'بانک',
+      label: 'بانکونه',
       list: '/api/banks',
       show: (id) => `/api/banks/${id}`,
       route: '/app/banks',
@@ -411,7 +408,7 @@
     },
     {
       type: 'apartments',
-      label: 'اپارتمان',
+      label: 'رهایشي بلاکونه',
       list: '/api/apartments',
       show: (id) => `/api/apartments/${id}`,
       route: '/app/apartments',
@@ -419,7 +416,7 @@
     },
     {
       type: 'rahnoma_mamlats',
-      label: 'رهنما',
+      label: 'د معاملاتو رهنما',
       list: '/api/rahnoma-mamlats',
       show: (id) => `/api/rahnoma-mamlats/${id}`,
       route: '/app/rahnomamamlats',
@@ -427,7 +424,7 @@
     },
     {
       type: 'hosppitals',
-      label: 'شفاخانه',
+      label: 'روغتوتونه او صحي مراکز',
       list: '/api/hosppitals',
       show: (id) => `/api/hosppitals/${id}`,
       route: '/app/hosppitals',
@@ -435,7 +432,7 @@
     },
     {
       type: 'work_shops',
-      label: 'ورکشاپ',
+      label: 'مستري خانې او مستري خانې',
       list: '/api/work-shops',
       show: (id) => `/api/work-shops/${id}`,
       route: '/app/workshops',
@@ -445,7 +442,7 @@
     // ---------------- Format Three ----------------
     {
       type: 'badmashanos',
-      label: 'بدماشانو',
+      label: 'زورواکان او ولکه داران',
       list: '/api/badmashanos',
       show: (id) => `/api/badmashanos/${id}`,
       route: '/app/badmashanos',
@@ -453,7 +450,7 @@
     },
     {
       type: 'emarat_offices',
-      label: 'ادارات امارت',
+      label: 'امارتي اداراتو،مسولینو کورونه او میلمسنونونه',
       list: '/api/emarat-offices',
       show: (id) => `/api/emarat-offices/${id}`,
       route: '/app/emaratoffices',
@@ -461,7 +458,7 @@
     },
     {
       type: 'hostels',
-      label: 'لیلیه',
+      label: 'لیلې او کرایي اطاقونه',
       list: '/api/hostels',
       show: (id) => `/api/hostels/${id}`,
       route: '/app/hostels',
@@ -469,7 +466,7 @@
     },
     {
       type: 'hotels',
-      label: 'هوتل',
+      label: 'میلمستونونو،مسافرخانو،هوټلونه او رسټوردانټ',
       list: '/api/hotels',
       show: (id) => `/api/hotels/${id}`,
       route: '/app/hotels',
@@ -477,7 +474,7 @@
     },
     {
       type: 'madrasas',
-      label: 'مدرسه',
+      label: 'دینې مدارس',
       list: '/api/madrasas',
       show: (id) => `/api/madrasas/${id}`,
       route: '/app/madrasas',
@@ -485,7 +482,7 @@
     },
     {
       type: 'mashkok_people',
-      label: 'اشخاص مشکوک',
+      label: 'مشکوک افراد',
       list: '/api/mashkok-people',
       show: (id) => `/api/mashkok-people/${id}`,
       route: '/app/mashkokpeoples',
@@ -501,7 +498,7 @@
     },
     {
       type: 'old_jahadis',
-      label: 'جهادی‌های قدیم',
+      label: 'پخواني جهادي قومندانان',
       list: '/api/old-jahadis',
       show: (id) => `/api/old-jahadis/${id}`,
       route: '/app/oldjahadis',
@@ -509,7 +506,7 @@
     },
     {
       type: 'sarayanos',
-      label: 'سرایانو',
+      label: 'سرایونه',
       list: '/api/sarayanos',
       show: (id) => `/api/sarayanos/${id}`,
       route: '/app/sarayanos',
@@ -517,7 +514,7 @@
     },
     {
       type: 'tujarans',
-      label: 'تجاران',
+      label: 'علماوو ، متنفذینو ، تجارانو او عالي رتبه اشخاص اشخاص',
       list: '/api/tujarans',
       show: (id) => `/api/tujarans/${id}`,
       route: '/app/tujarans',
@@ -527,7 +524,7 @@
     // ---------------- Format Four ----------------
     {
       type: 'checkpoints',
-      label: 'چک‌پاینت',
+      label: 'چک پواینټونه او پوستې',
       list: '/api/checkpoints',
       show: (id) => `/api/checkpoints/${id}`,
       route: '/app/checkpoints',
@@ -535,7 +532,7 @@
     },
     {
       type: 'masjids',
-      label: 'مسجد',
+      label: 'مساجد خاناقاوې او تکیه خانې',
       list: '/api/masjids',
       show: (id) => `/api/masjids/${id}`,
       route: '/app/masjids',
@@ -543,7 +540,7 @@
     },
     {
       type: 'highways',
-      label: 'شاهراه',
+      label: 'څلور لارې او درې لارې',
       list: '/api/highways',
       show: (id) => `/api/highways/${id}`,
       route: '/app/highways',
@@ -551,7 +548,7 @@
     },
     {
       type: 'companies',
-      label: 'شرکت',
+      label: 'فابریکې او شرکتونه',
       list: '/api/companies',
       show: (id) => `/api/companies/${id}`,
       route: '/app/companies',
@@ -559,7 +556,7 @@
     },
     {
       type: 'done_lost_places',
-      label: 'محل گمشده',
+      label: 'هغه ساحې چې اختطاف پکې ترسره شوی',
       list: '/api/done-lost-places',
       show: (id) => `/api/done-lost-places/${id}`,
       route: '/app/donelostplaces',
@@ -567,7 +564,7 @@
     },
     {
       type: 'econemy_projects',
-      label: 'پروژه اقتصادی',
+      label: 'مهم تاسیسات او اقتصادي پروژې',
       list: '/api/econemy-projects',
       show: (id) => `/api/econemy-projects/${id}`,
       route: '/app/econemyprojects',
@@ -575,7 +572,7 @@
     },
     {
       type: 'criminal_capture_places',
-      label: 'محل دستگیری',
+      label: 'هغې ساحې چې مجرمین پکې نیول شوی',
       list: '/api/criminal-capture-places',
       show: (id) => `/api/criminal-capture-places/${id}`,
       route: '/app/criminalcaptureplaces',
@@ -584,7 +581,7 @@
     },
     {
       type: 'pumps',
-      label: 'پمپ',
+      label: 'پمپونه',
       list: '/api/pumps',
       show: (id) => `/api/pumps/${id}`,
       route: '/app/pumps',
@@ -592,7 +589,7 @@
     },
     {
       type: 'shoras',
-      label: 'شورا',
+      label: 'محلي شوراګانې',
       list: '/api/shoras',
       show: (id) => `/api/shoras/${id}`,
       route: '/app/shoras',
@@ -600,7 +597,7 @@
     },
     {
       type: 'governmentplaces',
-      label: 'اداره دولتی',
+      label: 'دولتي ځایونه',
       list: '/api/governmentplaces',
       show: (id) => `/api/governmentplaces/${id}`,
       route: '/app/governmentplaces',
@@ -608,7 +605,7 @@
     },
     {
       type: 'supermarkets',
-      label: 'سوپرمارکیت',
+      label: 'تجارتي مراکز او سوپر مارکیټونه',
       list: '/api/supermarkets',
       show: (id) => `/api/supermarkets/${id}`,
       route: '/app/supermarkets',
@@ -616,7 +613,7 @@
     },
     {
       type: 'parks',
-      label: 'پارک',
+      label: 'تفریحي پارکونه او سیاحتي سیمې',
       list: '/api/parks',
       show: (id) => `/api/parks/${id}`,
       route: '/app/parks',
@@ -624,7 +621,7 @@
     },
     {
       type: 'complexes',
-      label: 'موسسه',
+      label: 'داخلي موسسې او بنسټونه',
       list: '/api/complexes',
       show: (id) => `/api/complexes/${id}`,
       route: '/app/complexes',
@@ -632,7 +629,7 @@
     },
     {
       type: 'deplomaticplaces',
-      label: 'محل دیپلوماتیک',
+      label: 'دیپلوماتیک ځایونه،خارجي موسسې،دبهرنیانو د اوسیدو او کار ځایونه',
       list: '/api/deplomaticplaces',
       show: (id) => `/api/deplomaticplaces/${id}`,
       route: '/app/deplomaticplaces',
@@ -640,7 +637,7 @@
     },
     {
       type: 'universities',
-      label: 'پوهنتون',
+      label: 'پوهنتونونو ، دلوړو زده کړو موسسو او انسټیټیوټونو',
       list: '/api/universities',
       show: (id) => `/api/universities/${id}`,
       route: '/app/universities',
@@ -648,21 +645,20 @@
     },
     {
       type: 'wakilanos',
-      label: 'وکیلانو',
+      label: 'وکیلان او ملکان',
       list: '/api/wakilanos',
       show: (id) => `/api/wakilanos/${id}`,
       route: '/app/wakilanos',
       routeForm: (id) => (id ? `/app/wakilanatform/${id}` : `/app/wakilanatform`),
     },
 
-    // ---------------- Extra (present in API + router) ----------------
+    // ---------------- Extra ----------------
     {
       type: 'jawasis',
       label: 'جواسیس',
       list: '/api/jawasis',
       show: (id) => `/api/jawasis/${id}`,
       route: '/app/jawasis',
-      // router has /jawasis/create and /jawasis/edit/:id (no /app prefix there in your file)
       routeForm: (id) => (id ? `/jawasis/edit/${id}` : `/jawasis/create`),
     },
   ];
@@ -848,8 +844,6 @@
   // ✅ All formats + proper icons (Material Design Icons / mdi-*)
   // ✅ Keep resource icon behavior EXACTLY as you already have in map
   const MAP_RESOURCE_ICON = 'mdi-circle'; // ✅ do not change resource part icon behavior
-
-
 
   // 🔁 Fix singular/plural mismatches between MAP_SOURCES.type and ICON_MAP keys
   const ICON_ALIASES = {
