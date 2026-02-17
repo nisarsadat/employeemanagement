@@ -24,6 +24,7 @@ class StoreInformationRequest extends FormRequest
             'job' => ['nullable','string'],
             'madani_halat' => ['nullable','string'],
             'age' => ['nullable','string'],
+            'tahlil' => ['nullable','string'],
             'estijalyat_degree' => ['nullable','string'],
             'information_category' => ['nullable','string'],
 

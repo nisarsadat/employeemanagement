@@ -48,6 +48,7 @@ class Information extends Model
         'resource_lasrasy',
 
         'tafseel',
+        'tahlil',
         'manager_comment',
         'lead_drirection',
         'talks',

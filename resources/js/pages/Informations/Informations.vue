@@ -687,6 +687,7 @@
     { title: t('شماره مکتوب'), key: 'maktop_number' },
     { title: t('ارگان'), key: 'organ' },
     { title: t('تفصیل'), key: 'tafseel' },
+    { title: t('نظر آمریت تعقیب اطلاع'), key: 'tahlil' },
     { title: t('نظر مدیر'), key: 'manager_comment' },
     { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
     { title: t('نتیجه'), key: 'result' },

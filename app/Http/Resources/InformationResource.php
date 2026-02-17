@@ -64,6 +64,7 @@ class InformationResource extends JsonResource
             'madani_halat'      => $info ? $info->madani_halat : null,
             'job'               => $info ? $info->job : null,
             'age'               => $info ? $info->age : null,
+            'tahlil'            => $info ? $info->tahlil : null,
             'estijalyat_degree' => $info ? $info->estijalyat_degree : null,
             'information_category' => $info ? $info->information_category : null,
             'resource_lasrasy' => $info ? $info->resource_lasrasy : null,

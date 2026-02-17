@@ -23,6 +23,7 @@ class UpdateInformationRequest extends FormRequest
             'job' => ['sometimes','nullable','string'],
             'madani_halat' => ['sometimes','nullable','string'],
             'age' => ['sometimes','nullable','string'],
+            'tahlil' => ['sometimes','nullable','string'],
             'estijalyat_degree' => ['sometimes','nullable','string'],
             'information_category' => ['sometimes','nullable','string'],
 

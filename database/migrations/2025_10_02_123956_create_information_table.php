@@ -28,6 +28,7 @@ return new class extends Migration {
             $table->string('father_name')->nullable();
             $table->string('grand_father_name')->nullable();
             $table->string('age')->nullable();
+            $table->string('tahlil')->nullable();
             $table->string('job')->nullable();
             $table->string('madani_halat')->nullable();
             $table->string('estijalyat_degree')->nullable();

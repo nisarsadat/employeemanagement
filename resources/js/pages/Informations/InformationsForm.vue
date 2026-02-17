@@ -525,7 +525,16 @@
                   :error-messages="getErrorMessages('tafseel')"
                 />
               </v-col>
-
+              <v-col cols="12" md="6">
+                <v-textarea
+                  v-model="form.tahlil"
+                  :label="t('نظر آمریت تعقیب اطلاع')"
+                  rows="3"
+                  auto-grow
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
               <v-col cols="12" md="6">
                 <v-textarea
                   v-model="form.manager_comment"
@@ -538,10 +547,8 @@
                   :error-messages="getErrorMessages('manager_comment')"
                 />
               </v-col>
-            </v-row>
 
-            <v-row class="px-3 pb-3 pt-0">
-              <v-col cols="12" md="12">
+              <v-col cols="12" md="6">
                 <v-textarea
                   v-model="form.lead_drirection"
                   :label="t('رهنمود رهبریت')"
@@ -946,6 +953,7 @@
 
     tafseel: '',
     manager_comment: '',
+    tahlil: '',
     lead_drirection: '',
     // talks: '',
     note: '',
@@ -1077,6 +1085,7 @@
 
     base.tafseel = x.tafseel ?? '';
     base.manager_comment = x.manager_comment ?? '';
+    base.tahlil = x.tahlil ?? '';
     base.lead_drirection = x.lead_drirection ?? '';
     base.talks = x.talks ?? '';
     base.note = x.note ?? '';
