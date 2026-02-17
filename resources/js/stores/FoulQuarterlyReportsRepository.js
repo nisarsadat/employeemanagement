@@ -42,6 +42,10 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       return Number.isFinite(n) ? n : 0;
     }
 
+    function formatMoney(val) {
+      return safeNum(val).toLocaleString();
+    }
+
     function escapeHtml(s) {
       const str = String(s ?? '');
       return str
@@ -90,7 +94,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // ✅ DATE DISPLAY (Miladi + Shamsi + Qamari)
+    // Dates (Miladi + Hijri Shamsi + Hijri Qamari)  ✅ SAME AS WEEKLY
     // =========================
     function formatMiladi(iso) {
       const s = String(iso || '').trim();
@@ -174,7 +178,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // ✅ NOTES fetch (from/to)
+    // ✅ NOTES: fetch + html section ✅ SAME AS WEEKLY (NO # COLUMN)
     // =========================
     async function fetchNotesForExport({ type, from, to }) {
       const endpoints = ['/report-notes', '/report_notes'];
@@ -195,10 +199,11 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             if (Array.isArray(res?.data?.data)) return res.data.data;
             if (Array.isArray(res?.data)) return res.data;
           } catch {
-            // try next
+            // try next variant
           }
         }
       }
+
       return [];
     }
 
@@ -212,12 +217,11 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       if (clean.length === 0) return '';
 
       const notesTr = clean
-        .map((n, idx) => {
+        .map((n) => {
           const text = escapeHtml(n.text);
           return `
             <tr>
-              <td style="width:8%;">${idx + 1}</td>
-              <td style="width:92%;">${text || '-'}</td>
+              <td style="width:72%;">${text || '-'}</td>
             </tr>
           `;
         })
@@ -237,12 +241,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
 
             <div style="padding:0;">
               <table>
-                <thead>
-                  <tr>
-                    <th style="width:8%;">#</th>
-                    <th style="width:92%;">یادداشت</th>
-                  </tr>
-                </thead>
+                <thead><tr></tr></thead>
                 <tbody>${notesTr}</tbody>
               </table>
             </div>
@@ -252,7 +251,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // ✅ Format name localization (same as your weekly)
+    // ✅ Format name localization
     // =========================
     function formatNameLocal(name) {
       const n = String(name ?? '').trim();
@@ -280,6 +279,9 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       return map[n] || n;
     }
 
+    // =========================
+    // ✅ App font stack (SAME AS WEEKLY)
+    // =========================
     function appFontStack() {
       return (
         `'Amiri','Scheherazade New','Noto Naskh Arabic','Noto Sans Arabic','Tahoma',` +
@@ -287,6 +289,9 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       );
     }
 
+    // =========================
+    // ✅ System Name (same logic)
+    // =========================
     function getSystemName() {
       try {
         const a = window?.systemName;
@@ -303,11 +308,10 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     const BISMILLAH = 'بسم الله الرحمن الرحیم';
 
     // =========================
-    // ✅ Export CSS (SAME STYLE AS DAILY/MONTHLY/WEEKLY you approved)
-    // - WHITE background
-    // - RTL
-    // - HERO background #547ca3
-    // - tables aligned start
+    // ✅ Export CSS (MATCH WEEKLY EXACT)
+    // - same hero + same pills
+    // - table align start
+    // - HERO TEXT BLACK (same as weekly)
     // =========================
     function baseExportCss() {
       const fontStack = appFontStack();
@@ -372,11 +376,8 @@ export const useFoulQuarterlyReportsRepository = defineStore(
           direction: rtl !important;
         }
 
-        .hero, .hero * { color: #fff !important; }
-
-        .hero-text{ flex: 1.2; min-width: 0; }
-        .hero-mid{ flex: 1; display:flex; justify-content:center; }
-        .hero-logo{ flex: 0.6; display:flex; justify-content:flex-start; align-items:flex-start; margin-right:44px;}
+        /* ✅ HERO TEXT MUST BE BLACK (same as weekly) */
+        .hero, .hero * { color: #000 !important; }
 
         .hero-system{
           font-weight: 900;
@@ -385,32 +386,19 @@ export const useFoulQuarterlyReportsRepository = defineStore(
           line-height: 1.4;
         }
 
-        /* ✅ Bismillah BETWEEN logo and other text (middle column) */
-        .hero-bismillah-mid{
+        .hero-bismillah{
           font-weight: 900;
-          font-size: 13px;
-          margin: 0;
-          margin-top: 24px;
+          font-size: 18px;
+          margin: 0 0 6px;
           line-height: 1.4;
+          margin-top: 24px;
           text-align: center;
-          border: 1px solid rgba(255,255,255,.28);
-          background: rgba(255,255,255,.14);
-          padding: 6px 10px;
-          border-radius: 999px;
-          align-self: flex-start;
         }
 
         .hero-title{ font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; }
         .hero-sub{ margin:0; font-size:12px; line-height:1.55; font-weight:700; }
 
-        .pills{
-          margin-top:10px;
-          display:flex;
-          gap:8px;
-          flex-wrap:wrap;
-          position:relative;
-          z-index:1;
-        }
+        .pills{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
         .pill{
           display:inline-block;
           padding:6px 10px;
@@ -419,7 +407,6 @@ export const useFoulQuarterlyReportsRepository = defineStore(
           font-size:11px;
           border:1px solid rgba(255,255,255,.28);
           background: rgba(255,255,255,.14);
-          color:#fff !important;
         }
 
         .section { margin-top: 12px; }
@@ -519,6 +506,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         tbody tr:nth-child(even) td{ background: #fcfdff; }
 
         .td-end{ text-align:end; }
+        .td-center{ text-align:center; }
 
         .count-pill{
           display:inline-block;
@@ -552,8 +540,9 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // Quarterly HTML (✅ same style + bismillah middle + date pills)
-    // ✅ omit tables if no useful rows
+    // ✅ Quarterly HTML (EXACT HERO LAYOUT AS WEEKLY)
+    // - hero: left texts, middle bismillah, right logo
+    // - omit sections with no useful rows
     // =========================
     function buildQuarterlyDashboardHtml(report, fromIso, toIso, notes = []) {
       const systemName = getSystemName();
@@ -572,7 +561,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         return `${window.location.origin}/logo.jpeg`;
       }
 
-      const datePills = buildDatePillsRange(fromIso, toIso);
+      const heroDatePills = buildDatePillsRange(fromIso, toIso);
 
       const infoSection =
         hasUsefulRows(infoTypes, 'count')
@@ -580,20 +569,12 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             <div class="section">
               <div class="card no-break">
                 <div class="header-strip bg-primary">
-                  <div>
-                    <div class="strip-title">اطلاعات</div>
-                    <div class="strip-sub"></div>
-                  </div>
+                  <div><div class="strip-title">اطلاعات</div><div class="strip-sub"></div></div>
                   <span class="chip chip-primary">${informationsTotal}</span>
                 </div>
                 <div style="padding:0;">
                   <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">ډول</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
+                    <thead><tr><th style="width:70%;">ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                     <tbody>
                       ${infoTypes
                         .filter((x) => safeNum(x?.count) > 0)
@@ -622,20 +603,12 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             <div class="section">
               <div class="card no-break">
                 <div class="header-strip bg-success">
-                  <div>
-                    <div class="strip-title">پنځوس فارمټ</div>
-                    <div class="strip-sub">د پنځوس فارمټ لنډیز</div>
-                  </div>
+                  <div><div class="strip-title">پنځوس فارمټ</div><div class="strip-sub">د پنځوس فارمټ لنډیز</div></div>
                   <span class="chip chip-success">${formatsActive}</span>
                 </div>
                 <div style="padding:0;">
                   <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">فورم</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
+                    <thead><tr><th style="width:70%;">فورم</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                     <tbody>
                       ${formats
                         .filter((f) => safeNum(f?.count) > 0)
@@ -664,20 +637,12 @@ export const useFoulQuarterlyReportsRepository = defineStore(
             <div class="section">
               <div class="card">
                 <div class="header-strip bg-warning">
-                  <div>
-                    <div class="strip-title">پېښې (د ډول له مخې)</div>
-                    <div class="strip-sub">د مودې د پېښو وېش</div>
-                  </div>
+                  <div><div class="strip-title">پېښې (د ډول له مخې)</div><div class="strip-sub">د مودې د پېښو وېش</div></div>
                   <span class="chip chip-warning">${eventsTotal}</span>
                 </div>
                 <div style="padding:0;">
                   <table>
-                    <thead>
-                      <tr>
-                        <th style="width:70%;">د پېښې ډول</th>
-                        <th class="td-end" style="width:30%;">شمېر</th>
-                      </tr>
-                    </thead>
+                    <thead><tr><th style="width:70%;">د پېښې ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                     <tbody>
                       ${eventTypes
                         .filter((t) => safeNum(t?.count) > 0)
@@ -704,30 +669,31 @@ export const useFoulQuarterlyReportsRepository = defineStore(
         <html dir="rtl">
           <head>
             <meta charset="utf-8" />
-            <title>quarterly_dashboard_${escapeHtml(fromIso || 'from')}_${escapeHtml(toIso || 'to')}</title>
+            <title>quarterly_dashboard_${fromIso}_${toIso}</title>
             <style>${baseExportCss()}</style>
           </head>
           <body>
             <div class="page">
               <div class="hero no-break">
                 <div class="hero-top">
-                  <div class="hero-text">
-                    <div class="hero-system">${escapeHtml(systemName)}</div>
-                    <h1 class="hero-title">ربعه راپور</h1>
-                    <p class="hero-sub">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ عمومي کتنه</p>
+                  <!-- ✅ left texts (same structure as weekly) -->
+                  <div class="hero-info">
+                    <div class="hero-system">${escapeHtml(systemName)} ربعه راپور</div>
+                    <p class="hero-sub">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ ربعه عمومي کتنه</p>
                   </div>
 
-                  <!-- ✅ Bismillah in the middle column -->
+                  <!-- ✅ middle bismillah (same as weekly) -->
                   <div class="hero-mid">
-                    <div class="hero-bismillah-mid">${escapeHtml(BISMILLAH)}</div>
+                    <div class="hero-bismillah">${escapeHtml(BISMILLAH)}</div>
                   </div>
 
+                  <!-- ✅ right logo -->
                   <div class="hero-logo">
                     <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                   </div>
                 </div>
 
-                <div class="pills">${datePills || ''}</div>
+                <div class="pills">${heroDatePills || ''}</div>
               </div>
 
               <div class="stats-grid section no-break">
@@ -766,7 +732,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     }
 
     // =========================
-    // ✅ Print helper (FIX BLANK PDF) — SAME as your working daily/monthly/weekly
+    // ✅ Print helper (FIX BLANK PDF) — SAME as weekly
     // =========================
     function printHtmlViaIframe(html) {
       const iframe = document.createElement('iframe');
@@ -906,7 +872,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
     if (!toDate.value) toDate.value = todayIso();
 
     // =========================
-    // EXPORT ACTIONS (✅ with notes, ✅ fixed blank PDF)
+    // EXPORT ACTIONS (✅ with notes)
     // =========================
     const DownloadQuarterlyFoulPdf = async () => {
       const report = quarterly.value;
@@ -922,7 +888,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       });
 
       const html = buildQuarterlyDashboardHtml(report, f, t, notes);
-      printHtmlViaIframe(html); // ✅ FIX: no blank PDF
+      printHtmlViaIframe(html);
     };
 
     const DownloadQuarterlyFoulWord = async () => {
@@ -939,8 +905,7 @@ export const useFoulQuarterlyReportsRepository = defineStore(
       });
 
       const html = buildQuarterlyDashboardHtml(report, f, t, notes);
-      const safeName = `${f || 'from'}_${t || 'to'}`.replaceAll(':', '-');
-      downloadWordFile(html, `quarterly_dashboard_${safeName}.doc`);
+      downloadWordFile(html, `quarterly_dashboard_${f}_${t}.doc`);
     };
 
     return {

@@ -10,20 +10,13 @@
     <!-- Title and subtitle -->
     <div class="d-flex align-center" style="gap: 16px">
       <!-- FULL HIDE/SHOW NAV -->
-      <v-btn
-        @click="toggleDrawerVisible"
-        icon
-        size="small"
-        variant="tonal"
-        color="primary"
-        class="nav-toggle-btn"
-      >
-        <v-icon size="24">mdi-tune</v-icon>
+      <v-btn @click="toggleDrawerVisible" variant="plain" class="logo-btn" :ripple="false">
+        <v-img src="/logo.jpeg" width="52" height="52" contain />
       </v-btn>
 
       <div class="d-flex align-center title-section" style="gap: 12px">
         <v-toolbar-title class="font-weight-bold text-h5 main-title">
-          {{ t('333') }}
+          {{ t('۳۳۳') }}
         </v-toolbar-title>
 
         <v-divider vertical :thickness="2" class="border-opacity-25 title-divider" />
@@ -358,15 +351,6 @@
     color: rgba(var(--v-theme-on-background), 0.6) !important;
   }
 
-  .nav-toggle-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: rgba(var(--v-theme-primary), 0.1) !important;
-    border: 1px solid rgba(var(--v-theme-primary), 0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
   .nav-toggle-btn:hover {
     background: rgba(var(--v-theme-primary), 0.2) !important;
     transform: translateY(-2px);
@@ -454,6 +438,21 @@
   /* ✨ Back button / actions hover animation */
   .appbar-actions :deep(.v-btn) {
     transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  }
+  .logo-btn {
+    padding: 0 !important;
+    min-width: 0 !important;
+    width: 52px !important;
+    height: 52px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .logo-btn :deep(.v-btn__overlay) {
+    display: none !important;
   }
 
   /* LTR: slide a bit left on hover */

@@ -331,6 +331,23 @@
         </div>
         <span v-else class="text-xs text-red">0</span>
       </template>
+      <!-- 📑 Fifty-six formats count -->
+      <template #cell-code_number="{ row }">
+        <div class="d-flex flex-column align-start">
+              <v-btn
+                class="px-2 py-1 text-none"
+                color="warning"
+                size="default"
+                variant="tonal"
+              >
+                <div class="d-flex align-center ga-1">
+                  <span class="text-body-2">
+                    {{ getRow(row).code_number }}
+                  </span>
+                </div>
+              </v-btn>
+        </div>
+      </template>
 
       <!-- 🗺 Map cell -->
       <template #cell-map="{ row }">
@@ -767,18 +784,17 @@
     { title: t('مهارت‌های خاص'), key: 'specific_skills' },
     { title: t('تاریخ ثبت منبع'), key: 'resource_saved_date' },
     { title: t('نوع فعالیت منبع'), key: 'resource_activity_type' },
-   
+
     { title: t('پوشش منبع'), key: 'resource_cover' },
     { title: t('زبان'), key: 'language' },
     { title: t('قوم'), key: 'nation' },
-     { title: t('گروپ خون'), key: 'blood_group' },
+    { title: t('گروپ خون'), key: 'blood_group' },
     { title: t('دوره/آموزش'), key: 'train' },
     { title: t('مربوطه پروژه'), key: 'project' },
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('میزان اعتماد'), key: 'trust_percentage' },
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('نوت'), key: 'note' },
-
   ]);
 
   /* ===== Top filter groups ===== */

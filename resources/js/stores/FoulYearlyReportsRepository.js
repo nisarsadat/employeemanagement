@@ -267,7 +267,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     if (!n) return '';
 
     const map = {
-      Resources: 'سرچینې',
+      Resources: 'منابع',
       Resource: 'سرچینه',
       Informations: 'اطلاعات',
       Information: 'اطلاعات',
@@ -289,7 +289,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
   }
 
   // =========================
-  // ✅ System name + Bismillah (same as quarterly)
+  // ✅ App font stack (SAME AS WEEKLY)
   // =========================
   function appFontStack() {
     return (
@@ -298,6 +298,9 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     );
   }
 
+  // =========================
+  // ✅ System name (same logic)
+  // =========================
   function getSystemName() {
     try {
       const a = window?.systemName;
@@ -314,7 +317,10 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
   const BISMILLAH = 'بسم الله الرحمن الرحیم';
 
   // =========================
-  // ✅ Export CSS — SAME as quarterly (white bg + hero #547ca3 + RTL + start-align)
+  // ✅ Export CSS (MATCH WEEKLY EXACT)
+  // - RTL + same hero + same pill styles
+  // - table align start
+  // - HERO TEXT BLACK (same as weekly)
   // =========================
   function baseExportCss() {
     const fontStack = appFontStack();
@@ -353,7 +359,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
       .hero {
         border-radius: 16px;
         padding: 18px 18px 14px;
-        background: #547ca3; /* ✅ same as quarterly */
+        background: #547ca3;
         position: relative;
         overflow: hidden;
         box-shadow: 0 18px 40px rgba(79,70,229,.18);
@@ -379,11 +385,8 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         direction: rtl !important;
       }
 
-      .hero, .hero * { color: #fff !important; }
-
-      .hero-text{ flex: 1.2; min-width: 0; }
-      .hero-mid{ flex: 1; display:flex; justify-content:center; }
-      .hero-logo{ flex: 0.6; display:flex; justify-content:flex-start; align-items:flex-start; }
+      /* ✅ HERO TEXT MUST BE BLACK (same as weekly) */
+      .hero, .hero * { color: #000 !important; }
 
       .hero-system{
         font-weight: 900;
@@ -392,31 +395,19 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         line-height: 1.4;
       }
 
-      .hero-bismillah-mid{
+      .hero-bismillah{
         font-weight: 900;
-        font-size: 13px;
-        margin: 0;
+        font-size: 18px;
+        margin: 0 0 6px;
         line-height: 1.4;
+        margin-top: 24px;
         text-align: center;
-        border: 1px solid rgba(255,255,255,.28);
-        background: rgba(255,255,255,.14);
-        padding: 6px 10px;
-        border-radius: 999px;
-        align-self: flex-start;
       }
 
-      .hero-title{ font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; text-align:start; }
-      .hero-sub{ margin:0; font-size:12px; line-height:1.55; font-weight:700; text-align:start; }
+      .hero-title{ font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; }
+      .hero-sub{ margin:0; font-size:12px; line-height:1.55; font-weight:700; }
 
-      .pills{
-        margin-top:10px;
-        display:flex;
-        gap:8px;
-        flex-wrap:wrap;
-        position:relative;
-        z-index:1;
-        justify-content:flex-start;
-      }
+      .pills{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
       .pill{
         display:inline-block;
         padding:6px 10px;
@@ -425,7 +416,6 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         font-size:11px;
         border:1px solid rgba(255,255,255,.28);
         background: rgba(255,255,255,.14);
-        color:#fff !important;
       }
 
       .section { margin-top: 12px; }
@@ -453,8 +443,8 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         justify-content:space-between;
         gap:10px;
       }
-      .stat-label{ font-size:11px; font-weight:900; margin-bottom:4px; color:#000 !important; text-align:start; }
-      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; color:#000 !important; text-align:start; }
+      .stat-label{ font-size:11px; font-weight:900; margin-bottom:4px; color:#000 !important; }
+      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; color:#000 !important; }
 
       .badge{
         display:inline-flex;
@@ -482,8 +472,8 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         gap:10px;
         direction: rtl !important;
       }
-      .strip-title{ font-weight:900; font-size:12px; margin:0; color:#000 !important; text-align:start; }
-      .strip-sub{ margin:2px 0 0; font-size:10px; font-weight:800; color:#000 !important; text-align:start; }
+      .strip-title{ font-weight:900; font-size:12px; margin:0; color:#000 !important; }
+      .strip-sub{ margin:2px 0 0; font-size:10px; font-weight:800; color:#000 !important; }
 
       .chip{
         padding:5px 10px;
@@ -504,13 +494,14 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
       .chip-warning{ background:#fff7ed; border-color:#fed7aa; }
 
       table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; direction: rtl !important; }
+
       thead th{
         background:#f8fafc;
         font-weight:900;
         font-size:11px;
         padding:9px 8px;
         border-bottom:1px solid #eef2f7;
-        text-align:start;
+        text-align: start;
         color:#000 !important;
       }
       tbody td{
@@ -524,6 +515,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
       tbody tr:nth-child(even) td{ background: #fcfdff; }
 
       .td-end{ text-align:end; }
+      .td-center{ text-align:center; }
 
       .count-pill{
         display:inline-block;
@@ -537,22 +529,6 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
       .count-primary{ border-color:#c7d2fe; background:#eef2ff; }
       .count-success{ border-color:#a7f3d0; background:#ecfdf5; }
 
-      .etype{
-        display:inline-block;
-        padding:4px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid #e5e7eb;
-        background:#f3f4f6;
-        color: #000 !important;
-      }
-      .etype-red{ background:#fee2e2; border-color:#fecaca; }
-      .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
-      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; }
-      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
-      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; }
-
       .hero-logo{
         display:flex;
         align-items:center;
@@ -565,6 +541,30 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
 
       .no-break { break-inside: avoid; page-break-inside: avoid; }
       .card { break-inside: avoid; page-break-inside: avoid; }
+
+      .etype{
+        display:inline-block;
+        padding:3px 10px;
+        border-radius:999px;
+        font-weight:900;
+        font-size:10px;
+        border:1px solid rgba(17,24,39,.12);
+        color:#000 !important;
+      }
+      .margintowline
+      {
+      margin-top:12px;
+      }
+      .fontsizeb
+      {
+      font-size: 18px;
+      color: #0000;
+      }
+      .etype-red{ background:#fee2e2; border-color:#fecaca; }
+      .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
+      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
+      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; }
+      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; }
 
       @media print{
         .stats-grid{ grid-template-columns: repeat(2, 1fr); }
@@ -590,7 +590,10 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
   }
 
   // =========================
-  // Yearly HTML (✅ bismillah middle + date pills + omit empty + notes)
+  // Yearly HTML (✅ EXACT HERO LAYOUT AS WEEKLY)
+  // - hero: left texts, middle bismillah, right logo
+  // - omit sections with no useful rows
+  // - notes included
   // =========================
   function buildYearlyDashboardHtml(report, yearText, notes = []) {
     const yearVal = String(yearText || selectedYear.value || currentYearIso()).trim();
@@ -613,26 +616,18 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
       return `${window.location.origin}/logo.jpeg`;
     }
 
-    const infoSection = hasUsefulRows(infoTypes, 'count')
-      ? `
+    const infoSection =
+      hasUsefulRows(infoTypes, 'count')
+        ? `
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-primary">
-                <div>
-                  <div class="strip-title">اطلاعات</div>
-                  <div class="strip-sub">د ډول له مخې وېش (کال)</div>
-                </div>
+                <div><div class="strip-title">اطلاعات</div><div class="strip-sub">د ډول له مخې وېش (کال)</div></div>
                 <span class="chip chip-primary">${informationsTotal}</span>
               </div>
-
               <div style="padding:0;">
                 <table>
-                  <thead>
-                    <tr>
-                      <th style="width:70%;">ډول</th>
-                      <th class="td-end" style="width:30%;">شمېر</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th style="width:70%;">ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                   <tbody>
                     ${infoTypes
                       .filter((x) => safeNum(x?.count) > 0)
@@ -653,28 +648,20 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
             </div>
           </div>
         `
-      : '';
+        : '';
 
-    const formatsSection = hasUsefulRows(formats, 'count')
-      ? `
+    const formatsSection =
+      hasUsefulRows(formats, 'count')
+        ? `
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-success">
-                <div>
-                    <div><div class="strip-title">پنځوس فارمټ</div></div>
-                 
-                </div>
+                <div><div class="strip-title">پنځوس فارمټ</div><div class="strip-sub"></div></div>
                 <span class="chip chip-success">${formatsActive}</span>
               </div>
-
               <div style="padding:0;">
                 <table>
-                  <thead>
-                    <tr>
-                      <th style="width:70%;">فورم</th>
-                      <th class="td-end" style="width:30%;">شمېر</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th style="width:70%;">فورم</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                   <tbody>
                     ${formats
                       .filter((f) => safeNum(f?.count) > 0)
@@ -695,28 +682,20 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
             </div>
           </div>
         `
-      : '';
+        : '';
 
-    const eventsSection = hasUsefulRows(eventTypes, 'count')
-      ? `
+    const eventsSection =
+      hasUsefulRows(eventTypes, 'count')
+        ? `
           <div class="section">
             <div class="card">
               <div class="header-strip bg-warning">
-                <div>
-                  <div class="strip-title">ثبت شوې پېښې</div>
-                  <div class="strip-sub">د ډول له مخې د پېښو جزیات (کال)</div>
-                </div>
+                <div><div class="strip-title">ثبت شوې پېښې</div><div class="strip-sub">د ډول له مخې د پېښو جزیات (کال)</div></div>
                 <span class="chip chip-warning">${eventsTotal}</span>
               </div>
-
               <div style="padding:0;">
                 <table>
-                  <thead>
-                    <tr>
-                      <th style="width:70%;">د پېښې ډول</th>
-                      <th class="td-end" style="width:30%;">شمېر</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th style="width:70%;">د پېښې ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                   <tbody>
                     ${eventTypes
                       .filter((t) => safeNum(t?.count) > 0)
@@ -738,7 +717,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
             </div>
           </div>
         `
-      : '';
+        : '';
 
     return `
       <html dir="rtl">
@@ -749,30 +728,31 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         </head>
         <body>
           <div class="page">
-            <div class="hero no-break">
+            <div class="hero no-break fontsizeb">
               <div class="hero-top">
-                <div class="hero-text">
-                  <div class="hero-system">${escapeHtml(systemName)}</div>
-                  <h1 class="hero-title">کلنی راپور</h1>
-                  <p class="hero-sub">د سرچینو، معلوماتو، پېښو او فورمونو کلنی عمومي کتنه</p>
+                <!-- ✅ left texts (same structure as weekly) -->
+                <div class="hero-info margintowline">
+                  <div class="hero-system fontsizeb">${escapeHtml(systemName)} کلنی راپور</div>
+                  <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ کلنی عمومي کتنه</p>
                 </div>
 
-                <!-- ✅ Bismillah in the middle -->
+                <!-- ✅ middle bismillah (same as weekly “hero-mid”) -->
                 <div class="hero-mid">
-                  <div class="hero-bismillah-mid">${escapeHtml(BISMILLAH)}</div>
+                  <div class="hero-bismillah fontsizeb">${escapeHtml(BISMILLAH)}</div>
                 </div>
 
+                <!-- ✅ right logo -->
                 <div class="hero-logo">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
 
-              <div class="pills">${heroDatePills || ''}</div>
+              <div class="pills fontsizeb">${heroDatePills || ''}</div>
             </div>
 
             <div class="stats-grid section no-break">
               <div class="card"><div class="stat-card"><div>
-                <div class="stat-label">سرچینې</div>
+                <div class="stat-label">منابع</div>
                 <div class="stat-number">${resourcesTotal}</div>
                 <span class="badge b-primary">استخدام ، چک او کنټرول</span>
               </div></div></div>
@@ -790,7 +770,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
               </div></div></div>
 
               <div class="card"><div class="stat-card"><div>
-                <div class="stat-label">لیټري دوسیه فارمت فورمونه</div>
+                <div class="stat-label">پنځوس فارمټ</div>
                 <div class="stat-number">${formatsActive}</div>
               </div></div></div>
             </div>
@@ -806,7 +786,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
   }
 
   // =========================
-  // ✅ Print helper (FIX BLANK PDF) — SAME as quarterly
+  // ✅ Print helper (FIX BLANK PDF) — same as weekly
   // =========================
   function printHtmlViaIframe(html) {
     const iframe = document.createElement('iframe');
@@ -957,7 +937,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     });
 
     const html = buildYearlyDashboardHtml(report, yearText, notes);
-    printHtmlViaIframe(html); // ✅ FIX: no blank PDF
+    printHtmlViaIframe(html);
   };
 
   const DownloadYearlyFoulWord = async () => {

@@ -405,18 +405,21 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         align-items:flex-start;
         justify-content:space-between;
         gap:12px;
+        font-size: 18px;
         position:relative;
         z-index:1;
         direction: rtl !important;
       }
 
-      .hero, .hero * { color: #fff !important; }
+      /* ✅ HERO TEXT MUST BE BLACK */
+      .hero, .hero * { color: #000 !important; }
 
       .hero-bismillah{
         font-weight: 900;
-        font-size: 13px;
+        font-size: 18px;
         margin: 0 0 6px;
         line-height: 1.4;
+        margin-top: 24px;
       }
       .hero-system{
         font-weight: 900;
@@ -437,7 +440,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         font-size:11px;
         border:1px solid rgba(255,255,255,.28);
         background: rgba(255,255,255,.14);
-        color:#fff !important;
       }
 
       .section { margin-top: 12px; }
@@ -579,6 +581,15 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       .etype-purple{ background:#ede9fe; border-color:#ddd6fe; }
       .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; }
 
+      .fontsizeb
+      {
+      font-size: 18px;
+      color: #0000;
+      }
+      .margintowline
+      {
+      margin-top:12px;
+      }
       @media print{
         .stats-grid{ grid-template-columns: repeat(2, 1fr); }
       }
@@ -767,7 +778,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                           <tr>
                             <td>${province}</td>
                             <td>${hawza}</td>
-                            <td class="td-center"><span class="etype ${cls}">${etype || '-'}</span></td>
+                            <td class="td-center"><span class="etype ${cls}">${
+                          etype || '-'
+                        }</span></td>
                             <td class="td-center">${killed}</td>
                             <td class="td-center">${injured}</td>
                             <td class="td-end">${mali}</td>
@@ -792,21 +805,29 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         </head>
         <body>
           <div class="page">
-            <div class="hero no-break">
-              <div class="hero-top">
-                <div>
-                  <div class="hero-bismillah">${escapeHtml(BISMILLAH)}</div>
-                  <div class="hero-system">${escapeHtml(systemName)}</div>
-                  <h1 class="hero-title">ورځنی راپور</h1>
-                  <p class="hero-sub">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ ورځنۍ عمومي کتنه</p>
+            <div class="hero no-break fontsizeb">
+              <div class="hero-top fontsizeb">
+                <div class="hero-info fontsizeb">
+                  <div class="hero-system fontsizeb margintowline">${escapeHtml(systemName)}
+           ورځنی راپور
+                  </div>
+           
+                  <div>
+                         
+                  <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ ورځنۍ عمومي کتنه</p></div>
                 </div>
 
-                <div class="hero-logo">
+                <div class="hero-mid">
+                  <div class="hero-bismillah fontsizeb">${escapeHtml(BISMILLAH)}</div>
+                </div>
+
+                <div class="hero-logo fontsizeb">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
 
-              <div class="pills">${heroDatePills || ''}</div>
+
+              <div class="pills fontsizeb">${heroDatePills || ''}</div>
             </div>
 
             <div class="stats-grid section no-break">
@@ -977,23 +998,30 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         </head>
         <body>
           <div class="page">
-            <div class="hero no-break">
-              <div class="hero-top">
-                <div>
-                  <div class="hero-bismillah">${escapeHtml(BISMILLAH)}</div>
-                  <div class="hero-system">${escapeHtml(systemName)}</div>
-                  <h1 class="hero-title">میاشتنی راپور</h1>
-                  <p class="hero-sub">د منابعو، اطلاعاتو، پېښو او د پنځوس فارمټ میاشتنۍ عمومي کتنه</p>
+            <div class="hero no-break fontsizeb">
+              <div class="hero-top fontsizeb">
+                <div class="hero-info fontsizeb">
+                  <div class="hero-system fontsizeb margintowline">
+                    ${escapeHtml(systemName)}
+                    میاشتنی راپور
+                  </div>
+
+                  <div>
+                    <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو او د پنځوس فارمټ میاشتنۍ عمومي کتنه</p>
+                  </div>
                 </div>
 
-                <div class="hero-logo">
+                <div class="hero-mid">
+                  <div class="hero-bismillah fontsizeb">${escapeHtml(BISMILLAH)}</div>
+                </div>
+
+                <div class="hero-logo fontsizeb">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
 
-              <div class="pills">${heroDatePills || ''}</div>
+              <div class="pills fontsizeb">${heroDatePills || ''}</div>
             </div>
-
             <div class="stats-grid section no-break">
               <div class="card"><div class="stat-card"><div>
                 <div class="stat-label">منابع</div>

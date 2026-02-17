@@ -847,7 +847,7 @@
   // ✅ mdi icon names (Vuetify font icons)
   // ✅ All formats + proper icons (Material Design Icons / mdi-*)
   // ✅ Keep resource icon behavior EXACTLY as you already have in map
-  const MAP_RESOURCE_ICON = 'mdi-database'; // ✅ do not change resource part icon behavior
+  const MAP_RESOURCE_ICON = 'mdi-circle'; // ✅ do not change resource part icon behavior
 
 
 

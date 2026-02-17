@@ -41,6 +41,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const d = new Date();
     const day = d.getDay(); // 0..6 (Sun..Sat)
     const diffToMonday = (day === 0 ? -6 : 1) - day;
+
     const monday = new Date(d);
     monday.setDate(d.getDate() + diffToMonday);
 
@@ -224,9 +225,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     if (!hasUsefulNotes(notes)) return '';
 
     const clean = notes
-      .map((n) => ({
-        text: String(n?.report_note ?? n?.note ?? '').trim(),
-      }))
+      .map((n) => ({ text: String(n?.report_note ?? n?.note ?? '').trim() }))
       .filter((x) => x.text);
 
     if (clean.length === 0) return '';
@@ -294,7 +293,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   }
 
   // =========================
-  // ✅ App font stack (same as your daily/monthly repo)
+  // ✅ App font stack (SAME AS DAILY/MONTHLY REPO)
   // =========================
   function appFontStack() {
     return (
@@ -322,15 +321,15 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   const BISMILLAH = 'بسم الله الرحمن الرحیم';
 
   // =========================
-  // ✅ Export CSS (MATCH daily/monthly EXACT vibe)
-  // - RTL + white page background + same hero bg (#547ca3)
+  // ✅ Export CSS (MATCH daily/monthly EXACT)
+  // - RTL + same hero + same pill styles
   // - table align start
+  // - HERO TEXT BLACK (same as your daily/monthly)
   // =========================
   function baseExportCss() {
     const fontStack = appFontStack();
 
     return `
-      /* ✅ ensure Arabic/Persian fonts also exist in the print window */
       @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
 
       @page { size: A4 portrait; margin: 14mm; }
@@ -390,7 +389,8 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         direction: rtl !important;
       }
 
-      .hero, .hero * { color: #fff !important; }
+      /* ✅ HERO TEXT MUST BE BLACK (same as daily/monthly) */
+      .hero, .hero * { color: #000 !important; }
 
       .hero-system{
         font-weight: 900;
@@ -399,17 +399,13 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         line-height: 1.4;
       }
 
-      /* ✅ Bismillah BETWEEN logo and other text (NOT at the top) */
-      .hero-bismillah-mid{
+      .hero-bismillah{
         font-weight: 900;
-        font-size: 13px;
-        margin: 8px 0 10px;
+        font-size: 18px;
+        margin: 0 0 6px;
         line-height: 1.4;
+        margin-top: 24px;
         text-align: center;
-        border: 1px solid rgba(255,255,255,.28);
-        background: rgba(255,255,255,.14);
-        padding: 6px 10px;
-        border-radius: 999px;
       }
 
       .hero-title{ font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; }
@@ -424,7 +420,6 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         font-size:11px;
         border:1px solid rgba(255,255,255,.28);
         background: rgba(255,255,255,.14);
-        color:#fff !important;
       }
 
       .section { margin-top: 12px; }
@@ -560,6 +555,15 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         border:1px solid rgba(17,24,39,.12);
         color:#000 !important;
       }
+      .margintowline
+      {
+      margin-top:12px;
+      }
+      .fontsizeb
+      {
+      font-size: 18px;
+      color: #0000;
+      }
       .etype-red{ background:#fee2e2; border-color:#fecaca; }
       .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
       .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
@@ -590,8 +594,9 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   }
 
   // =========================
-  // ✅ Weekly HTML (MATCH daily/monthly + BISMILLAH in the middle)
-  // ✅ omit tables if no useful rows
+  // ✅ Weekly HTML (EXACT HERO LAYOUT AS DAILY/MONTHLY)
+  // - hero: left texts, middle bismillah, right logo
+  // - omit sections with no useful rows
   // =========================
   function buildWeeklyDashboardHtml(report, fromIso, toIso, notes = []) {
     const systemName = getSystemName();
@@ -652,7 +657,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-success">
-                <div><div class="strip-title">پنځوس فارمټ</div></div>
+                <div><div class="strip-title">پنځوس فارمټ</div><div class="strip-sub">د پنځوس فارمټ لنډیز</div></div>
                 <span class="chip chip-success">${formatsActive}</span>
               </div>
               <div style="padding:0;">
@@ -724,25 +729,26 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         </head>
         <body>
           <div class="page">
-            <div class="hero no-break">
+            <div class="hero no-break fontsizeb">
               <div class="hero-top">
-                <!-- ✅ left block (texts) -->
-                <div>
-                  <div class="hero-system">${escapeHtml(systemName)}</div>
-                  <h1 class="hero-title">اوونیز راپور</h1>
-                  <p class="hero-sub">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ اوونیزه عمومي کتنه</p>
+                <!-- ✅ left texts (same structure as daily/monthly) -->
+                <div class="hero-info margintowline">
+                  <div class="hero-system fontsizeb">${escapeHtml(systemName)} اوونیز راپور</div>
+                  <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ اوونیزه عمومي کتنه</p>
                 </div>
 
-                <!-- ✅ logo on the other side -->
+                <!-- ✅ middle bismillah (same as daily/monthly “hero-mid”) -->
+                <div class="hero-mid">
+                  <div class="hero-bismillah fontsizeb">${escapeHtml(BISMILLAH)}</div>
+                </div>
+
+                <!-- ✅ right logo -->
                 <div class="hero-logo">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
 
-              <!-- ✅ Bismillah BETWEEN logo and other text (middle row) -->
-              <div class="hero-bismillah-mid">${escapeHtml(BISMILLAH)}</div>
-
-              <div class="pills">${heroDatePills || ''}</div>
+              <div class="pills fontsizeb">${heroDatePills || ''}</div>
             </div>
 
             <div class="stats-grid section no-break">
@@ -824,7 +830,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
             }
           });
 
-          setTimeout(resolve, 2000); // fallback
+          setTimeout(resolve, 2000);
         } catch {
           resolve();
         }
@@ -844,7 +850,6 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
 
     const doPrint = async () => {
       try {
-        // allow render
         await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
         await waitFonts();
         await waitImages();
@@ -927,7 +932,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   }
 
   // =========================
-  // EXPORT ACTIONS (✅ with notes) — same flow as daily/monthly
+  // EXPORT ACTIONS (✅ with notes)
   // =========================
   const DownloadWeeklyFoulPdf = async () => {
     const report = weekly.value;
@@ -943,7 +948,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     });
 
     const html = buildWeeklyDashboardHtml(report, fromIso, toIso, notes);
-    printHtmlViaIframe(html); // ✅ FIX: no more blank PDF + same as daily/monthly
+    printHtmlViaIframe(html);
   };
 
   const DownloadWeeklyFoulWord = async () => {
