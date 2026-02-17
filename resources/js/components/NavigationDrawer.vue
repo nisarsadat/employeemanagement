@@ -230,171 +230,175 @@
 
   const withPerms = (node) => ({ ...node });
 
-  // ✅ IMPORTANT: give every item a UNIQUE `key`
-  const navigationItems = computed(() =>
-    [
-      {
-        key: 'dashboard',
-        title: t('داشبورد'),
-        icon: 'mdi-view-dashboard-outline',
-        to: toName('Dashboard'),
-        perm: 'dashboards.view',
-      },
-      {
-        key: 'map',
-        title: t('نقشه'),
-        icon: 'mdi-map',
-        to: { path: '/app/map-afg' },
-        perm: 'map-afg.view',
-      },
-      {
-        key: 'inlineinfo',
-        title: t('ارتباطی مرکز'),
-        icon: 'mdi-menu',
-        to: { path: '/app/inlineinfo' },
-        perm: 'inlineinfo.view',
-      },
-      {
-        key: 'users',
-        title: t('استفاده کننده ها'),
-        icon: 'mdi-account',
-        to: { path: '/app/users' },
-        perm: 'users.view',
-      },
-      {
-        key: 'officeemployee',
-        title: t('کارمندان'),
-        icon: 'mdi-account-outline',
-        to: { path: '/app/officeemployee' },
-        perm: 'officeemployee.view',
-      },
-      {
-        key: 'resources',
-        title: t('منابع'),
-        icon: 'mdi-pen',
-        to: { path: '/app/resources' },
-        perm: 'resources.view',
-      },
-      {
-        key: 'informations',
-        title: t('اطلاعات'),
-        icon: 'mdi-book',
-        to: { path: '/app/informations' },
-        perm: 'informations.view',
-      },
-      {
-        key: 'events',
-        title: t('واقعات'),
-        icon: 'mdi-book-outline',
-        to: { path: '/app/events' },
-        perm: 'events.view',
-      },
-      {
-        key: 'captives',
-        title: t('زندانی های تسلیم شده'),
-        icon: 'mdi-lock',
-        to: { path: '/app/delevirycaptive' },
-        perm: 'captives.view',
-      },
-      {
-        key: 'fifthyformats',
-        title: t('۵۶ فارمت'),
-        icon: 'mdi-view-dashboard-outline',
-        to: { path: '/app/fifthyformatsroute' },
-      },
-      {
-        key: 'finance',
-        title: t('بخش حساب مالی'),
-        icon: 'mdi-cash-multiple',
-        to: { path: '/app/finincalindex' },
-        perm: 'finincalindex.view',
-      },
-      {
-        key: 'outgoingincommings',
-        title: t('صادره وارده'),
-        icon: 'mdi-cash-multiple',
-        to: { path: '/app/outgoingincommings' },
-        perm: 'outgoingincomming.view',
-      },
-      {
-        key: 'khayratreports',
-        title: t('راپور خیریت'),
-        icon: 'mdi-graph',
-        to: { path: '/app/khayratreports' },
-        perm: 'khayratreport.view',
-      },
-      {
-        key: 'roles',
-        title: t('نقش ها'),
-        icon: 'mdi-home',
-        to: { path: '/app/roles' },
-        perm: 'roles.view',
-      },
+const navigationItems = computed(() =>
+  [
+    {
+      key: 'dashboard',
+      title: t('داشبورد'),
+      icon: 'mdi-view-dashboard-variant-outline',
+      to: toName('Dashboard'),
+      perm: 'dashboards.view',
+    },
+    {
+      key: 'map',
+      title: t('نقشه'),
+      icon: 'mdi-map-marker-radius-outline',
+      to: { path: '/app/map-afg' },
+      perm: 'map-afg.view',
+    },
+    {
+      key: 'inlineinfo',
+      title: t('ارتباطی مرکز'),
+      icon: 'mdi-chat-processing-outline',
+      to: { path: '/app/inlineinfo' },
+      perm: 'inlineinfo.view',
+    },
+    {
+      key: 'users',
+      title: t('استفاده کننده ها'),
+      icon: 'mdi-account-group-outline',
+      to: { path: '/app/users' },
+      perm: 'users.view',
+    },
+    {
+      key: 'officeemployee',
+      title: t('کارمندان'),
+      icon: 'mdi-badge-account-outline',
+      to: { path: '/app/officeemployee' },
+      perm: 'officeemployee.view',
+    },
+    {
+      key: 'resources',
+      title: t('منابع'),
+      icon: 'mdi-database-outline',
+      to: { path: '/app/resources' },
+      perm: 'resources.view',
+    },
+    {
+      key: 'informations',
+      title: t('اطلاعات'),
+      icon: 'mdi-file-document-multiple-outline',
+      to: { path: '/app/informations' },
+      perm: 'informations.view',
+    },
+    {
+      key: 'events',
+      title: t('واقعات'),
+      icon: 'mdi-alert-circle-outline',
+      to: { path: '/app/events' },
+      perm: 'events.view',
+    },
+    {
+      key: 'captives',
+      title: t('زندانی های تسلیم شده'),
+      icon: 'mdi-handcuffs',
+      to: { path: '/app/delevirycaptive' },
+      perm: 'captives.view',
+    },
+    {
+      key: 'fifthyformats',
+      title: t('۵۶ فارمت'),
+      icon: 'mdi-file-table-box-multiple-outline',
+      to: { path: '/app/fifthyformatsroute' },
+    },
+    {
+      key: 'finance',
+      title: t('بخش حساب مالی'),
+      icon: 'mdi-cash-register',
+      to: { path: '/app/finincalindex' },
+      perm: 'finincalindex.view',
+    },
+    {
+      key: 'outgoingincommings',
+      title: t('صادره وارده'),
+      icon: 'mdi-swap-horizontal-bold',
+      to: { path: '/app/outgoingincommings' },
+      perm: 'outgoingincomming.view',
+    },
+    {
+      key: 'khayratreports',
+      title: t('راپور خیریت'),
+      icon: 'mdi-chart-donut-variant',
+      to: { path: '/app/khayratreports' },
+      perm: 'khayratreport.view',
+    },
+    {
+      key: 'roles',
+      title: t('نقش ها'),
+      icon: 'mdi-shield-account-outline',
+      to: { path: '/app/roles' },
+      perm: 'roles.view',
+    },
 
-      // ✅ Reports group (key is "reports")
-      {
-        key: 'reports',
-        title: t('راپورها'),
-        icon: 'mdi-graph',
-        perm: 'reports.view',
-        children: [
-          {
-            key: 'r-daily',
-            title: t('راپور روزانه'),
-            to: { path: '/app/dailyfoulreports' },
-            perm: 'dailyfoulreports.view',
-          },
-          {
-            key: 'r-weekly',
-            title: t('راپور هفته وار'),
-            to: { path: '/app/weeklyfoulreports' },
-            perm: 'weeklyfoulreports.view',
-          },
+    // Reports Group
+    {
+      key: 'reports',
+      title: t('راپورها'),
+      icon: 'mdi-chart-box-multiple-outline',
+      perm: 'reports.view',
+      children: [
+        {
+          key: 'r-daily',
+          title: t('راپور روزانه'),
+          to: { path: '/app/dailyfoulreports' },
+          icon: 'mdi-calendar-today',
+          perm: 'dailyfoulreports.view',
+        },
+        {
+          key: 'r-weekly',
+          title: t('راپور هفته وار'),
+          to: { path: '/app/weeklyfoulreports' },
+          icon: 'mdi-calendar-week',
+          perm: 'weeklyfoulreports.view',
+        },
+        {
+          key: 'r-monthly',
+          title: t('راپور ماهانه'),
+          to: { path: '/app/monthlyfoulreports' },
+          icon: 'mdi-calendar-month',
+          perm: 'monthlyfoulreports.view',
+        },
+        {
+          key: 'r-quarterly',
+          title: t('راپور ربعه وار'),
+          to: { path: '/app/quarterlyfoulreports' },
+          icon: 'mdi-calendar-range',
+          perm: 'quarterlyfoulreports.view',
+        },
+        {
+          key: 'r-yearly',
+          title: t('راپور سالانه'),
+          to: { path: '/app/yearlyfoulreports' },
+          icon: 'mdi-calendar',
+          perm: 'yearlyfoulreports.view',
+        },
+        {
+          key: 'r-archive',
+          title: t('آرشیف'),
+          to: { path: '/app/alltimefoulreports' },
+          icon: 'mdi-archive-outline',
+          perm: 'alltimefoulreports.view',
+        },
+        {
+          key: 'reportnote',
+          title: t('نوت'),
+          to: { path: '/app/reportnote' },
+          icon: 'mdi-note-text-outline',
+          perm: 'reports.view',
+        },
+      ],
+    },
 
-          {
-            key: 'r-monthly',
-            title: t('راپور ماهانه'),
-            to: { path: '/app/monthlyfoulreports' },
-            perm: 'monthlyfoulreports.view',
-          },
-          {
-            key: 'r-quarterly',
-            title: t('راپور ربعه وار'),
-            to: { path: '/app/quarterlyfoulreports' },
-            perm: 'quarterlyfoulreports.view',
-          },
-          {
-            key: 'r-yearly',
-            title: t('راپور سالانه'),
-            to: { path: '/app/yearlyfoulreports' },
-            perm: 'yearlyfoulreports.view',
-          },
+    {
+      key: 'settings',
+      title: t('تنظیمات سیستم'),
+      icon: 'mdi-cog-outline',
+      to: { path: '/app/settings' },
+      perm: 'settings.view',
+    },
+  ].map(withPerms)
+);
 
-          {
-            key: 'r-archive',
-            title: t('آرشیف'),
-            to: { path: '/app/alltimefoulreports' },
-            perm: 'alltimefoulreports.view',
-          },
-          {
-            key: 'reportnote',
-            title: t('نوت'),
-            to: { path: '/app/reportnote' },
-            perm: 'reports.view',
-          },
-        ],
-      },
-
-      // src/router/index.js (or wherever your routes live)
-      {
-        key: 'settings',
-        title: t('تنظیمات سیستم'),
-        icon: 'mdi-cog',
-        to: { path: '/app/settings' },
-        perm: 'settings.view',
-      },
-    ].map(withPerms)
-  );
 
   const filteredNavigationItems = computed(() => {
     const result = [];
