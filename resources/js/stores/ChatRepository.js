@@ -23,6 +23,7 @@ export const useChatRepository = defineStore('ChatRepository', {
     userChannelSubscribed: false,
     activeConversationChannelName: null,
 
+    
     // timers (kept, but NOT used for unread polling anymore)
     unreadPollId: null,
     presencePingId: null,

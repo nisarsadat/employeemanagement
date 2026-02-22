@@ -1,12 +1,6 @@
 <template>
   <div class="p-4 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar :title="t('کارمندان غیر فعال')" :subtitle="t('فهرست و جستجو')">
-      <template #actions>
-        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
-    </AppBar>
+    <AppBar :title="t('کارمندان غیر فعال')" :subtitle="t('فهرست و جستجو')"> </AppBar>
 
     <!-- Filters -->
     <div class="mb-3 grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -324,54 +318,72 @@
 
   /* headers */
   const headers = computed(() => [
-    { title: t('عکس'), key: 'picture', width: 64 },
-    { title: t('نام'), key: 'name', width: 160 },
-    { title: t('کد'), key: 'code_number', width: 110 },
-    { title: t('تلفن'), key: 'phone_number', width: 130 },
-    { title: t('وضعیت'), key: 'activity', width: 100 },
-    { title: t('تاریخ شروع'), key: 'join_date', width: 120 },
-    { title: t('تاریخ ترک'), key: 'left_date', width: 120 },
-    { title: t('واقعات'), key: 'events_count', width: 90 },
-    { title: t('منابع'), key: 'resources_count', width: 90 },
-    { title: t('اطلاعات'), key: 'informations_count', width: 100 },
-    { title: t('اسناد'), key: 'documents_count', width: 90 },
+    // Counts
+    { title: t('اطلاعات'), key: 'informations_count', sortable: false },
+    { title: t('حوادث'), key: 'events_count', sortable: false },
+    { title: t('منابع'), key: 'resources_count', sortable: false },
+    { title: t('منابع فعال'), key: 'resources_active_count', sortable: false },
+    { title: t('منابع غیر فعال'), key: 'resources_inactive_count', sortable: false },
 
-    { title: t('نام پدر'), key: 'father_name', width: 140 },
-    { title: t('نام پدرکلان'), key: 'grand_father_name', width: 140 },
-    { title: t('نام مستعار'), key: 'nick_name', width: 120 },
-    { title: t('آدرس ولایت'), key: 'Province_addr', width: 140 },
+    // Identity
+    { title: t('نام'), key: 'name' },
+    { title: t('نام پدر'), key: 'father_name' },
+    { title: t('نام پدرکلان'), key: 'grand_father_name' },
+    { title: t('نام مستعار'), key: 'nick_name' },
+    { title: t('کود نمبر'), key: 'code_number' },
+    { title: t('شماره تذکره'), key: 'tazkira' },
+    { title: t('سن'), key: 'age' },
 
-    { title: t('بست'), key: 'bast', width: 90 },
-    { title: t('سطح'), key: 'level', width: 90 },
-    { title: t('سابقه جهاد'), key: 'history_jahad', width: 120 },
-    { title: t('تذکره'), key: 'tazkira', width: 130 },
+    // Job / Rank
+    { title: t('نوعیت وظیفه'), key: 'job_type' },
+    { title: t('وظیفه مشخص'), key: 'specific_job' },
+    { title: t('قسم'), key: 'qisem' },
+    { title: t('بست'), key: 'bast' },
+    { title: t('رتبه/سطح'), key: 'level' },
+    { title: t('زون'), key: 'zone' },
+    { title: t('حوزه'), key: 'hawza' },
 
-    { title: t('ولایت اصلی'), key: 'main_province', width: 120 },
-    { title: t('ولسوالی اصلی'), key: 'main_district', width: 120 },
-    { title: t('قریه اصلی'), key: 'main_village', width: 120 },
+    // Jihad background
+    { title: t('سابقه جهاد'), key: 'history_jahad' },
+    { title: t('دلګی مشر'), key: 'dilgay_mesher' },
+    { title: t('موقف جهادی'), key: 'jahadi_mawaqaf' },
+    { title: t('مسئولیت جهاد'), key: 'jahad_time_responsibility' },
+    { title: t('محل جهاد'), key: 'jahad_place' },
 
-    { title: t('ولایت فعلی'), key: 'now_province', width: 120 },
-    { title: t('ولسوالی فعلی'), key: 'now_district', width: 120 },
-    { title: t('قریه فعلی'), key: 'now_village', width: 120 },
+    // Addresses
+    { title: t('ولایت اصلی'), key: 'main_province' },
+    { title: t('ولسوالی اصلی'), key: 'main_district' },
+    { title: t('قریه اصلی'), key: 'main_village' },
 
-    { title: t('وظیفه مشخص'), key: 'specific_job', width: 140 },
-    { title: t('قسم'), key: 'qisem', width: 100 },
-    { title: t('زون'), key: 'zone', width: 100 },
-    { title: t('حوزه'), key: 'hawza', width: 100 },
+    { title: t('ولایت فعلی'), key: 'now_province' },
+    { title: t('ولسوالی فعلی'), key: 'now_district' },
+    { title: t('قریه فعلی'), key: 'now_village' },
+    { title: t('محل مشخص فعلی'), key: 'now_specific_place' },
+    { title: t('نمبر سرک'), key: 'now_street_number' },
+    { title: t('نمبر خانه'), key: 'now_home_number' },
 
-    { title: t('تحصیلات دینی'), key: 'relegy_study', width: 110 },
-    { title: t('تحصیلات عصری'), key: 'new_study', width: 110 },
-    { title: t('فاکولته'), key: 'faculty', width: 110 },
-    { title: t('دروس نظامی'), key: 'nizami', width: 90 },
-    { title: t('مهارت های سلاح'), key: 'gun_knowledge', width: 110 },
+    // Education
+    { title: t('تعلیمات دینی'), key: 'relegy_study' },
+    { title: t('تعلیمات عصری'), key: 'new_study' },
+    { title: t('پوهنحی/رشته'), key: 'faculty' },
+    { title: t('نظامی'), key: 'nizami' },
+    { title: t('معلومات سلاح'), key: 'gun_knowledge' },
 
-    { title: t('عمر'), key: 'age', width: 80 },
-    { title: t('مهارت‌ها'), key: 'specific_skills', width: 140 },
-    { title: t('زبان'), key: 'language', width: 100 },
-    { title: t('قوم'), key: 'nation', width: 100 },
+    // Contact & misc
+    { title: t('شماره تماس'), key: 'phone_number' },
+    { title: t('زبان'), key: 'language' },
+    { title: t('قوم/ملیت'), key: 'nation' },
+    { title: t('مهارت‌های خاص'), key: 'specific_skills' },
+    { title: t('فعالیت'), key: 'activity' },
+    { title: t('مختصات'), key: 'coordinates' },
+    { title: t('مخافات'), key: 'makhafat' },
+    { title: t('مکافات'), key: 'makafat' },
 
-    { title: t('مختصات'), key: 'coordinates', width: 140 },
-    { title: t('یادداشت'), key: 'note', width: 200 },
+    // Dates & finance
+    { title: t('تاریخ آمدن'), key: 'join_date' },
+    { title: t('تاریخ رفتن'), key: 'left_date' },
+    { title: t('پول داده شده'), key: 'payed_money' },
+    { title: t('ملاحظات'), key: 'note' },
   ]);
 
   /* groups & filters */
