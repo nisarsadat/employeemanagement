@@ -11,6 +11,7 @@ export const useNotificationRepository = defineStore('NotificationRepository', {
     lastPage: 1,
     perPage: 10, // max 10 per page
     pollingId: null, // for auto refresh
+    subscribed: false,
   }),
 
   actions: {
@@ -113,18 +114,39 @@ export const useNotificationRepository = defineStore('NotificationRepository', {
 
       this.pollingId = setInterval(async () => {
         try {
-          await this.fetchUnreadCount();            // optional extra sync with backend
+          await this.fetchUnreadCount(); // optional extra sync with backend
         } catch (e) {
           console.error('notification polling error', e);
         }
       }, 20000); // every 10 seconds
     },
+    subscribeToRealtime(userId) {
+      if (this.subscribed) return;
+      if (!window.Echo || !userId) return;
 
-    stopPolling() {
-      if (this.pollingId) {
-        clearInterval(this.pollingId);
-        this.pollingId = null;
-      }
+      window.Echo.private(`user.${userId}`).listen('.notification.created', (e) => {
+        // e.notification is what backend sends
+
+        // ✅ update badge instantly
+        if (e?.notification && e.notification.is_read === false) {
+          this.unreadCount += 1;
+        } else {
+          // if backend doesn’t include is_read reliably:
+          this.unreadCount += 1;
+        }
+
+        // ✅ optional: keep list fresh (only if list is shown)
+        // push to top but keep max 10 for UI speed
+        if (e?.notification) {
+          this.notifications = [e.notification, ...this.notifications].slice(0, this.perPage);
+        }
+      });
+
+      this.subscribed = true;
+    },
+    startPolling() {
+      // ❌ no polling when realtime is enabled
+      return;
     },
   },
 });

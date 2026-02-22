@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\NotificationResource;
 use App\Models\Notification;
 use Illuminate\Http\Request;
-
+use App\Events\NotificationRead;
 class NotificationController extends Controller
 {
     public function index(Request $request)
@@ -39,7 +39,7 @@ class NotificationController extends Controller
         return response()->json(['unread_count' => $count]);
     }
 
-    public function markAsRead(Request $request, Notification $notification)
+   public function markAsRead(Request $request, Notification $notification)
     {
         $user = $request->user();
 
@@ -50,6 +50,9 @@ class NotificationController extends Controller
                 'is_read' => true,
                 'read_at' => now(),
             ]);
+
+            // ✅ NEW: realtime decrement for other open tabs/devices
+            event(new NotificationRead($user->id, $notification->id));
         }
 
         return new NotificationResource($notification->loadMissing('user'));
@@ -59,12 +62,19 @@ class NotificationController extends Controller
     {
         $user = $request->user();
 
-        Notification::where('user_id', $user->id)
+        $ids = Notification::where('user_id', $user->id)
             ->where('is_read', false)
-            ->update([
-                'is_read' => true,
-                'read_at' => now(),
-            ]);
+            ->pluck('id');
+
+        Notification::whereIn('id', $ids)->update([
+            'is_read' => true,
+            'read_at' => now(),
+        ]);
+
+        // ✅ NEW: broadcast each id (simple + correct)
+        foreach ($ids as $id) {
+            event(new NotificationRead($user->id, (int)$id));
+        }
 
         return response()->json(['status' => 'ok']);
     }

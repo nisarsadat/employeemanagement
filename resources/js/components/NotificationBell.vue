@@ -494,11 +494,9 @@
     }
 
     // Start polling
-    repo.startPolling();
   });
 
   onUnmounted(() => {
-    repo.stopPolling();
 
     // Clean up audio
     if (notificationSound) {

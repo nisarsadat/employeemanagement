@@ -1,228 +1,80 @@
 <?php
 
-namespace App\Http\Controllers\Api\fifthyformatfour;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\fifthyformatfour\StoreCriminalCapturePlaceRequest;
-use App\Http\Requests\fifthyformatfour\UpdateCriminalCapturePlaceRequest;
-use App\Http\Resources\fifthyformatfour\CriminalCapturePlaceResource;
-use App\Models\fifthyformatfour\CriminalCapturePlace;
-use App\Services\NotificationService; // 🔔 notifications
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\QueryException;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\fifthyFormats\Captive;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use ZipArchive;
 
-class CriminalCapturePlaceController extends Controller
+class CaptiveDocumentController extends Controller
 {
-    private function isDuplicateKey(QueryException $e): bool
-    {
-        // MySQL duplicate key error code
-        return (int) ($e->errorInfo[1] ?? 0) === 1062;
-    }
-
-    private function duplicateResponse()
-    {
-        return response()->json([
-            'message' => 'این ثبت قبلاً موجود است.',
-            'errors' => [
-                'duplicate' => [
-                    'محل دستگیری با همین مشخصات (مشخصات فرد، نوع جرم و آدرس) قبلاً در سیستم ثبت شده است.',
-                ],
-            ],
-        ], 422);
-    }
-
-    public function index(Request $request)
-    {
-        $query = CriminalCapturePlace::query()
-            ->with(['resource:id,name,code_number,phone_number']);
-
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('name', 'like', "%{$s}%")
-                    ->orWhere('father_name', 'like', "%{$s}%")
-                    ->orWhere('office', 'like', "%{$s}%")
-                    ->orWhere('village', 'like', "%{$s}%");
-            });
-        }
-
-        $perPage = $request->query('perPage');
-        $page    = $request->query('page');
-
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-
-        // ✅ Same pattern: invalid pagination → return ALL
-        if ($perPageInt === false || $pageInt === false) {
-            return CriminalCapturePlaceResource::collection(
-                $query->orderByDesc('id')->get()
-            );
-        }
-
-        $rows = $query->orderByDesc('id')
-            ->paginate($perPageInt, ['*'], 'page', $pageInt);
-
-        return CriminalCapturePlaceResource::collection($rows);
-    }
-
     /**
-     * POST /criminal-capture-places
-     * Accepts:
-     * - picture as FILE or STRING
+     * Download all documents related to a specific captive as a ZIP file.
      */
-    public function store(StoreCriminalCapturePlaceRequest $request)
+    public function downloadAll(Captive $captive)
     {
-        $user = $request->user(); // 🔔
-        $data = $request->validated();
+        // Make sure relationship exists in Captive model:
+        // public function documents() { return $this->hasMany(CaptiveDocument::class); }
+        $captive->load('documents');
 
-        try {
-            return DB::transaction(function () use ($request, $data, $user) {
-
-                // ✅ picture: FILE OR STRING (same style as SaeenFasadController)
-                if ($request->hasFile('picture')) {
-                    $path = $request->file('picture')->store('uploads/criminal-capture-places', 'public');
-                    $data['picture'] = "storage/{$path}";
-                } else {
-                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
-                        unset($data['picture']);
-                    }
-                }
-
-                $row = CriminalCapturePlace::create($data);
-                $row->load(['resource:id,name,code_number,phone_number']);
-
-                // 🔔 Notification: CREATED
-                NotificationService::record(
-                    $user,
-                    module: 'محل دستگیری',
-                    action: 'created',
-                    title: 'محل دستگیری جدید ثبت شد',
-                    message: 'نام فرد: ' . ($row->name ?? ''),
-                    routeName: 'criminal-capture-places', // adjust if needed
-                    routeParams: ['id' => $row->id],
-                    level: 'success',
-                    changes: null
-                );
-
-                return (new CriminalCapturePlaceResource($row))
-                    ->additional(['message' => 'Created'])
-                    ->response()
-                    ->setStatusCode(201);
-            });
-        } catch (QueryException $e) {
-            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
-            throw $e;
+        if ($captive->documents->isEmpty()) {
+            return response()->json(['message' => 'No documents to download'], 404);
         }
-    }
 
-    public function show(CriminalCapturePlace $criminalCapturePlace)
-    {
-        $criminalCapturePlace->load(['resource:id,name,code_number,phone_number']);
-        return new CriminalCapturePlaceResource($criminalCapturePlace);
-    }
-
-    /**
-     * PUT /criminal-capture-places/{criminalCapturePlace}
-     * Accepts:
-     * - picture as FILE or STRING (replaces old file if new uploaded)
-     */
-    public function update(UpdateCriminalCapturePlaceRequest $request, CriminalCapturePlace $criminalCapturePlace)
-    {
-        $user = $request->user(); // 🔔
-        $data = $request->validated();
-
-        try {
-            return DB::transaction(function () use ($request, $criminalCapturePlace, $data, $user) {
-                // 🧮 changes BEFORE update
-                $original = $criminalCapturePlace->getOriginal();
-                $changes  = [];
-
-                foreach ($data as $field => $newValue) {
-                    if (array_key_exists($field, $original)) {
-                        if ($original[$field] != $newValue) {
-                            $changes[$field] = [
-                                'old' => $original[$field],
-                                'new' => $newValue,
-                            ];
-                        }
-                    }
-                }
-
-                // ✅ picture: replace file if uploaded (same style as SaeenFasadController)
-                if ($request->hasFile('picture')) {
-                    if ($criminalCapturePlace->picture && str_starts_with($criminalCapturePlace->picture, 'storage/')) {
-                        $old = str_replace('storage/', '', $criminalCapturePlace->picture);
-                        Storage::disk('public')->delete($old);
-                    }
-
-                    $path = $request->file('picture')->store('uploads/criminal-capture-places', 'public');
-                    $data['picture'] = "storage/{$path}";
-
-                    $changes['picture'] = [
-                        'old' => $original['picture'] ?? null,
-                        'new' => $data['picture'],
-                    ];
-                } else {
-                    if (array_key_exists('picture', $data) && !is_string($data['picture'])) {
-                        unset($data['picture']);
-                    }
-                }
-
-                $criminalCapturePlace->update($data);
-                $criminalCapturePlace->load(['resource:id,name,code_number,phone_number']);
-
-                // 🔔 Notification: UPDATED
-                NotificationService::record(
-                    $user,
-                    module: 'محل دستگیری',
-                    action: 'updated',
-                    title: 'محل دستگیری اصلاح شد',
-                    message: 'نام فرد: ' . ($criminalCapturePlace->name ?? ''),
-                    routeName: 'criminal-capture-places',
-                    routeParams: ['id' => $criminalCapturePlace->id],
-                    level: 'info',
-                    changes: !empty($changes) ? $changes : null
-                );
-
-                return new CriminalCapturePlaceResource($criminalCapturePlace);
-            });
-        } catch (QueryException $e) {
-            if ($this->isDuplicateKey($e)) return $this->duplicateResponse();
-            throw $e;
+        // Ensure tmp directory exists
+        $tmpDir = storage_path('app/tmp');
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0775, true);
         }
-    }
 
-    public function destroy(Request $request, CriminalCapturePlace $criminalCapturePlace)
-    {
-        $user = $request->user(); // 🔔
+        // Safe base name from captive name or fallback
+        $base = trim($captive->name ?? 'captive_documents');
+        $safe = preg_replace('/[^A-Za-z0-9_\-]+/', '_', mb_strtolower($base));
+        $zipPath = $tmpDir . DIRECTORY_SEPARATOR . $safe . '_' . Str::random(6) . '.zip';
 
-        return DB::transaction(function () use ($criminalCapturePlace, $user) {
-            $name = $criminalCapturePlace->name;
+        // Create ZIP
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            return response()->json(['message' => 'Could not create zip'], 500);
+        }
 
-            // ✅ delete picture file (same style as SaeenFasadController)
-            if ($criminalCapturePlace->picture && str_starts_with($criminalCapturePlace->picture, 'storage/')) {
-                $old = str_replace('storage/', '', $criminalCapturePlace->picture);
-                Storage::disk('public')->delete($old);
+        $added = 0;
+
+        foreach ($captive->documents as $doc) {
+
+            $relativePath = $doc->file_path;
+            $fullPath     = Storage::disk('public')->path($relativePath);
+
+            if (!is_file($fullPath)) {
+                continue; // skip missing files
             }
 
-            $criminalCapturePlace->delete();
+            $nameInZip = $doc->file_name ?? basename($relativePath);
 
-            // 🔔 Notification: DELETED
-            NotificationService::record(
-                $user,
-                module: 'محل دستگیری',
-                action: 'deleted',
-                title: 'محل دستگیری حذف شد',
-                message: 'نام فرد: ' . ($name ?? ''),
-                routeName: null,
-                routeParams: ['criminal-capture-places'],
-                level: 'warning',
-                changes: null
-            );
+            // Optional: put inside folder named after captive
+            $zip->addFile($fullPath, $safe . '/' . $nameInZip);
+            $added++;
+        }
 
-            return response()->json(['message' => 'Deleted']);
-        });
+        if ($added === 0) {
+            $zip->close();
+            @unlink($zipPath);
+            return response()->json(['message' => 'No valid files found to include'], 404);
+        }
+
+        if ($zip->close() === false) {
+            @unlink($zipPath);
+            return response()->json(['message' => 'Failed to finalize zip'], 500);
+        }
+
+        // Prevent corrupted zip (important in production)
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        return response()
+            ->download($zipPath, $safe . '_documents.zip')
+            ->deleteFileAfterSend(true);
     }
 }

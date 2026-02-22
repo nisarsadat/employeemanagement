@@ -12,3 +12,11 @@ Broadcast::channel('conversation.{conversationId}', function ($user, $conversati
         ->whereHas('participants', fn ($q) => $q->where('user_id', $user->id))
         ->exists();
 });
+
+// ✅ NEW: presence channel for realtime online/offline (no ping)
+Broadcast::channel('presence.chat', function ($user) {
+    return [
+        'id' => $user->id,
+        'name' => $user->name,
+    ];
+});

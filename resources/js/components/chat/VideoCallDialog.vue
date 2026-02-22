@@ -24,7 +24,7 @@
         </div>
       </div>
 
-      <div class="mt-5 d-flex justify-center gap-3">
+      <div class="mt-5 d-flex justify-center gap-3 flex-wrap">
         <v-btn
           rounded="xl"
           variant="tonal"
@@ -93,6 +93,17 @@ const statusLabel = computed(() => {
   return 'Ready';
 });
 
+// ✅ parent will set streams
+const setLocalStream = (stream) => {
+  if (localVideo.value) localVideo.value.srcObject = stream || null;
+};
+
+const setRemoteStream = (stream) => {
+  if (remoteVideo.value) remoteVideo.value.srcObject = stream || null;
+};
+
+defineExpose({ setLocalStream, setRemoteStream });
+
 const endCall = () => {
   emit('end');
   emit('update:modelValue', false);
@@ -100,11 +111,7 @@ const endCall = () => {
 </script>
 
 <style scoped>
-.video-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
+.video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .video-tile {
   position: relative;
   background: #0b1220;
@@ -125,14 +132,6 @@ const endCall = () => {
   padding: 6px 10px;
   border-radius: 999px;
 }
-.vid {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-@media (max-width: 900px) {
-  .video-grid {
-    grid-template-columns: 1fr;
-  }
-}
+.vid { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 900px) { .video-grid { grid-template-columns: 1fr; } }
 </style>

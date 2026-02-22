@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\CallEnded;
+use App\Events\CallIncoming;
+use App\Events\CallSignal;
 use App\Events\MessageDeleted;
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Message;
-use App\Models\Conversation;
-use App\Models\MessageAttachment;
 use App\Events\MessageSent;
 use App\Events\MessageSeen;
+use App\Http\Controllers\Controller;
+use App\Models\Conversation;
+use App\Models\Message;
+use App\Models\MessageAttachment;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class ChatController extends Controller
 {
@@ -190,7 +194,7 @@ class ChatController extends Controller
                     'type' => $type,
                     'name' => $file->getClientOriginalName(),
                     'path' => $path,
-                    'mime' => $file->getClientMimeType(),
+                    'mime' => $file->getClientMimeType() ?: $file->getMimeType(),
                     'size' => $file->getSize(),
                 ]);
             }
@@ -289,19 +293,15 @@ class ChatController extends Controller
     /* =========================================================
      | DELETE MESSAGE (SOFT)
      ========================================================= */
-
-
     public function deleteMessage(Request $request, Message $message)
     {
         abort_if($message->sender_id !== $request->user()->id, 403);
 
-        // ensure sender is participant in that conversation
         $conversation = Conversation::findOrFail($message->conversation_id);
         $this->authorizeConversation($request->user(), $conversation);
 
-        $message->delete(); // SoftDeletes (deleted_at set)
+        $message->delete();
 
-        // 🔥 REALTIME: tell the other user too
         broadcast(new MessageDeleted(
             conversation_id: $message->conversation_id,
             message_id: $message->id,
@@ -310,15 +310,15 @@ class ChatController extends Controller
 
         return response()->json(['ok' => true]);
     }
+
     /* =========================================================
-    | PRESENCE
-    ========================================================= */
+     | PRESENCE
+     ========================================================= */
     public function ping(Request $request)
     {
         $request->user()->update(['last_seen_at' => now()]);
         return response()->json(['ok' => true]);
     }
-
 
     /* =========================================================
      | AUTH CHECK
@@ -330,53 +330,128 @@ class ChatController extends Controller
             403
         );
     }
+
     /* =========================================================
- | DELETE ALL CHATS (for current user)
- ========================================================= */
-public function deleteAllChats(Request $request)
-{
-    $auth = $request->user();
+     | DELETE ALL CHATS (for current user)
+     ========================================================= */
+    public function deleteAllChats(Request $request)
+    {
+        $auth = $request->user();
 
-    $conversationIds = Conversation::whereHas('participants', fn ($q) =>
-        $q->where('user_id', $auth->id)
-    )->pluck('id');
+        $conversationIds = Conversation::whereHas('participants', fn ($q) =>
+            $q->where('user_id', $auth->id)
+        )->pluck('id');
 
-    if ($conversationIds->isEmpty()) {
+        if ($conversationIds->isEmpty()) {
+            return response()->json(['ok' => true]);
+        }
+
+        Message::whereIn('conversation_id', $conversationIds)->delete();
+
+        DB::table('conversation_participants')
+            ->where('user_id', $auth->id)
+            ->whereIn('conversation_id', $conversationIds)
+            ->delete();
+
         return response()->json(['ok' => true]);
     }
 
-    Message::whereIn('conversation_id', $conversationIds)->delete();
+    /* =========================================================
+     | SEARCH MESSAGES IN A CONVERSATION
+     ========================================================= */
+    public function searchMessages(Request $request, Conversation $conversation)
+    {
+        $this->authorizeConversation($request->user(), $conversation);
 
-    // detach user from conversations
-    DB::table('conversation_participants')
-        ->where('user_id', $auth->id)
-        ->whereIn('conversation_id', $conversationIds)
-        ->delete();
+        $q = trim((string) $request->get('q', ''));
+        if ($q === '') return response()->json([]);
 
-    return response()->json(['ok' => true]);
-}
+        $items = Message::where('conversation_id', $conversation->id)
+            ->whereNull('deleted_at')
+            ->where(function ($qq) use ($q) {
+                $qq->where('body', 'like', "%{$q}%");
+            })
+            ->with(['sender:id,name,image'])
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get();
 
-/* =========================================================
- | SEARCH MESSAGES IN A CONVERSATION
- ========================================================= */
-public function searchMessages(Request $request, Conversation $conversation)
-{
-    $this->authorizeConversation($request->user(), $conversation);
+        return response()->json($items);
+    }
 
-    $q = trim((string) $request->get('q', ''));
-    if ($q === '') return response()->json([]);
+    /* =========================================================
+     | CALLS (VOICE/VIDEO)
+     ========================================================= */
+    public function startCall(Request $request)
+    {
+        $user = $request->user();
 
-    $items = Message::where('conversation_id', $conversation->id)
-        ->whereNull('deleted_at')
-        ->where(function ($qq) use ($q) {
-            $qq->where('body', 'like', "%{$q}%");
-        })
-        ->with(['sender:id,name,image'])
-        ->orderByDesc('id')
-        ->limit(50)
-        ->get();
+        $data = Validator::make($request->all(), [
+            'to_user_id' => ['required', 'integer'],
+            'conversation_id' => ['required', 'integer'],
+            'call_id' => ['required', 'string'],
+            'call_type' => ['required', 'in:voice,video'],
+        ])->validate();
 
-    return response()->json($items);
-}
+        broadcast(new CallIncoming(
+            toUserId: (int)$data['to_user_id'],
+            fromUserId: (int)$user->id,
+            conversationId: (int)$data['conversation_id'],
+            callId: (string)$data['call_id'],
+            callType: (string)$data['call_type'],
+        ))->toOthers();
 
+        return response()->json(['ok' => true]);
+    }
+
+    public function signalCall(Request $request)
+    {
+        $user = $request->user();
+
+        $data = Validator::make($request->all(), [
+            'to_user_id' => ['required', 'integer'],
+            'conversation_id' => ['required', 'integer'],
+            'call_id' => ['required', 'string'],
+            'call_type' => ['required', 'in:voice,video'],
+            'signal' => ['required', 'array'],
+            'signal.type' => ['required', 'in:offer,answer,ice'],
+        ])->validate();
+
+        broadcast(new CallSignal(
+            toUserId: (int)$data['to_user_id'],
+            fromUserId: (int)$user->id,
+            conversationId: (int)$data['conversation_id'],
+            callId: (string)$data['call_id'],
+            callType: (string)$data['call_type'],
+            signal: (array)$data['signal'],
+        ))->toOthers();
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function endCall(Request $request)
+    {
+        $user = $request->user();
+
+        $data = Validator::make($request->all(), [
+            'to_user_id' => ['required', 'integer'],
+            'conversation_id' => ['required', 'integer'],
+            'call_id' => ['required', 'string'],
+            'call_type' => ['required', 'in:voice,video'],
+            'status' => ['required', 'in:ended,rejected,missed'],
+            'duration_seconds' => ['nullable', 'integer', 'min:0'],
+        ])->validate();
+
+        broadcast(new CallEnded(
+            toUserId: (int)$data['to_user_id'],
+            fromUserId: (int)$user->id,
+            conversationId: (int)$data['conversation_id'],
+            callId: (string)$data['call_id'],
+            callType: (string)$data['call_type'],
+            status: (string)$data['status'],
+            durationSeconds: (int)($data['duration_seconds'] ?? 0),
+        ))->toOthers();
+
+        return response()->json(['ok' => true]);
+    }
 }

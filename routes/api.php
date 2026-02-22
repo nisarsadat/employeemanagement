@@ -549,6 +549,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/chat/conversations/{conversation}/search', [ChatController::class, 'searchMessages']);
 
         Route::post('/chat/ping', [ChatController::class, 'ping']);
+
+            // ✅ Calls (signaling)
+        Route::post('/chat/calls/start',  [ChatController::class, 'startCall']);
+        Route::post('/chat/calls/signal', [ChatController::class, 'signalCall']);
+        Route::post('/chat/calls/end',    [ChatController::class, 'endCall']);
     });
 
 

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import dayjs from 'dayjs';
 
 export const useChatRepository = defineStore('ChatRepository', {
   state: () => ({
@@ -33,6 +34,9 @@ export const useChatRepository = defineStore('ChatRepository', {
 
     lastIncomingMessage: null,
     lastSentMessageId: null,
+    onCallIncoming: null,
+    onCallSignal: null,
+    onCallEnded: null,
   }),
 
   getters: {
@@ -48,8 +52,10 @@ export const useChatRepository = defineStore('ChatRepository', {
     async initBadge() {
       if (!this.currentUser) await this.fetchCurrentUser();
 
-      // ✅ realtime: no unread polling
-      this.startPresencePing();
+      // ❌ remove startPresencePing()
+      // ✅ replace with realtime presence
+      this.subscribeToPresence();
+
       this.subscribeToUserChannel();
     },
     async fetchUsers() {
@@ -112,7 +118,10 @@ export const useChatRepository = defineStore('ChatRepository', {
       UNREAD (REALTIME ONLY)
     ========================================================= */
     recalculateUnread() {
-      this.unreadCount = this.conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+      this.unreadCount = (this.conversations || []).reduce(
+        (sum, c) => sum + (Number(c.unread_count) || 0),
+        0
+      );
     },
 
     // ❌ polling disabled (kept so nothing breaks if referenced somewhere)
@@ -244,52 +253,34 @@ export const useChatRepository = defineStore('ChatRepository', {
     /* =========================================================
       SEND (API) - KEEP AS IS
     ========================================================= */
-    async sendMessageForm({ body, replyToId = null, attachments = null }) {
-      if (!this.activeUser?.id) return;
+    async sendMessageForm({ body, replyToId, attachments, receiverId, conversationId }) {
+      const fd = new FormData();
+      fd.append('receiver_id', String(receiverId));
+      if (body?.trim()) fd.append('body', body.trim());
+      if (replyToId) fd.append('reply_to', String(replyToId));
 
-      this.sending = true;
-      try {
-        const fd = new FormData();
-        fd.append('receiver_id', String(this.activeUser.id));
-        if (body && body.trim()) fd.append('body', body.trim());
-        if (replyToId) fd.append('reply_to', String(replyToId));
+      (attachments?.images || []).forEach((f) => fd.append('images[]', f));
+      (attachments?.videos || []).forEach((f) => fd.append('videos[]', f));
+      (attachments?.docs || []).forEach((f) => fd.append('docs[]', f));
+      (attachments?.voices || []).forEach((f) => fd.append('voices[]', f));
 
-        const addMany = (key, files) => {
-          if (!files || !Array.isArray(files) || files.length === 0) return;
-          files.forEach((f) => fd.append(`${key}[]`, f));
-        };
+      const res = await axios.post('/chat/messages', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
-        addMany('images', attachments?.images);
-        addMany('videos', attachments?.videos);
-        addMany('docs', attachments?.docs);
-        addMany('voices', attachments?.voices);
-
-        const { data } = await axios.post('/chat/messages', fd, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-
-        // ✅ optimistic append for sender (because backend broadcasts with ->toOthers())
-        if (
-          this.activeConversationId &&
-          String(data?.conversation_id) === String(this.activeConversationId)
-        ) {
-          const exists = this.messages.some((m) => String(m.id) === String(data.id));
-          if (!exists) this.messages.push(data);
-        }
-
-        this.lastSentMessageId = data?.id || null;
-
-        // ✅ update last_message locally (no refreshLists)
-        this.bumpConversationLastMessage(data);
-
-        return data;
-      } finally {
-        this.sending = false;
-      }
+      return res.data;
     },
 
-    async sendMessage(body) {
-      return this.sendMessageForm({ body });
+    async sendMessage(body, { replyToId = null, attachments = null } = {}) {
+      if (!this.activeUser?.id) throw new Error('No active user selected');
+
+      return this.sendMessageForm({
+        body,
+        replyToId,
+        attachments,
+        receiverId: this.activeUser.id,
+        conversationId: this.activeConversationId,
+      });
     },
 
     /* =========================================================
@@ -300,7 +291,11 @@ export const useChatRepository = defineStore('ChatRepository', {
 
       window.Echo.private(`user.${this.currentUser.id}`)
         .listen('.MessageSeen', (e) => this.handleMessageSeen(e))
-        .listen('.MessageSent', (e) => this.handleIncomingMessage(e?.message ?? e));
+        .listen('.MessageSent', (e) => this.handleIncomingMessage(e?.message ?? e))
+        // ✅ CALLS
+        .listen('.CallIncoming', (e) => this.onCallIncoming?.(e?.call ?? e))
+        .listen('.CallSignal', (e) => this.onCallSignal?.(e?.call ?? e))
+        .listen('.CallEnded', (e) => this.onCallEnded?.(e?.call ?? e));
 
       this.userChannelSubscribed = true;
     },
@@ -317,10 +312,11 @@ export const useChatRepository = defineStore('ChatRepository', {
       if (!window.Echo) return;
 
       this.stopConversationRealtime();
-      const publicName = `conversation.${conversationId}`;
-      const internalName = `private-${publicName}`;
-      this.activeConversationChannelName = internalName;
-      window.Echo.private(publicName)
+
+      const channelName = `conversation.${conversationId}`;
+      this.activeConversationChannelName = channelName;
+
+      window.Echo.private(channelName)
         .listen('.MessageSent', (e) => this.handleIncomingMessage(e?.message ?? e))
         .listen('.MessageSeen', (e) => this.handleMessageSeen(e))
         .listen('.MessageDeleted', (e) => {
@@ -370,24 +366,92 @@ export const useChatRepository = defineStore('ChatRepository', {
         String(this.activeConversationId) === String(m.conversation_id)
       ) {
         const exists = this.messages.some((x) => String(x.id) === String(m.id));
-        if (!exists) this.messages.push(m);
+        if (!exists) {
+          // ✅ REPLACE optimistic tmp message instead of pushing duplicate
+          const incomingSenderId = m?.sender_id || m?.sender?.id;
+          const incomingBody = (m?.body || '').trim();
+
+          const incomingTs = m?.created_at ? dayjs(m.created_at) : dayjs();
+
+          const replaceIndex = this.messages.findIndex((x) => {
+            if (!String(x.id || '').startsWith('tmp-')) return false;
+
+            const tmpSenderId = x?.sender_id || x?.sender?.id;
+            if (String(tmpSenderId) !== String(incomingSenderId)) return false;
+
+            if ((x?.body || '').trim() !== incomingBody) return false;
+
+            const tmpTs = x?.created_at ? dayjs(x.created_at) : null;
+            if (!tmpTs) return false;
+
+            return Math.abs(incomingTs.diff(tmpTs, 'second')) <= 10;
+          });
+
+          if (replaceIndex !== -1) {
+            this.messages.splice(replaceIndex, 1, m);
+          } else {
+            this.messages.push(m);
+          }
+        }
 
         // if not mine, mark read (this will broadcast MessageSeen to others)
         if (!isMine) this.markConversationAsReadById(this.activeConversationId);
-      } else {
-        // not open => realtime unread increment ONLY if not mine
-        if (!isMine) {
-          this.conversations = this.conversations.map((c) =>
-            String(c.id) === String(m.conversation_id)
-              ? { ...c, unread_count: (c.unread_count || 0) + 1 }
-              : c
-          );
-          this.recalculateUnread();
-          this.lastIncomingMessage = m;
+      }
+      // ✅ if active conversation open, do NOT increment unread
+      if (
+        this.activeConversationId &&
+        String(this.activeConversationId) === String(m.conversation_id)
+      ) {
+        // (your existing logic to add message)
+        if (!isMine) this.markConversationAsReadById(this.activeConversationId);
+        return; // ✅ IMPORTANT
+      }
+
+      // ✅ NEW: conversation is NOT open -> increment unread in realtime (receiver only)
+      if (!isMine) {
+        let found = false;
+
+        this.conversations = this.conversations.map((c) => {
+          if (String(c.id) !== String(m.conversation_id)) return c;
+
+          found = true;
+          return {
+            ...c,
+            last_message: m,
+            unread_count: (c.unread_count || 0) + 1,
+          };
+        });
+
+        // if it's a new conversation not loaded in list
+        if (!found) {
+          this.fetchConversations(); // one-time sync
+        } else {
+          this.recalculateUnread(); // ✅ updates badge instantly
         }
       }
     },
+    subscribeToPresence() {
+      if (!window.Echo || !this.currentUser?.id) return;
 
+      window.Echo.join('presence.chat')
+        .here((users) => {
+          const onlineIds = new Set(users.map((u) => String(u.id)));
+          this.users = (this.users || []).map((u) => ({
+            ...u,
+            isOnline: onlineIds.has(String(u.id)),
+          }));
+        })
+        .joining((user) => {
+          this.users = (this.users || []).map((u) =>
+            String(u.id) === String(user.id) ? { ...u, isOnline: true } : u
+          );
+        })
+        .leaving((user) => {
+          this.users = (this.users || []).map((u) =>
+            String(u.id) === String(user.id) ? { ...u, isOnline: false } : u
+          );
+        });
+    },
     handleMessageSeen(payload) {
       const ids = payload?.message_ids || [];
       const seenAt = payload?.seen_at;
@@ -416,6 +480,35 @@ export const useChatRepository = defineStore('ChatRepository', {
       } catch (e) {
         console.error('ChatRepository.refreshLists failed', e);
       }
+    },
+    async startCall({ type, toUserId, conversationId, call_id }) {
+      await axios.post('/chat/calls/start', {
+        call_type: type,
+        to_user_id: toUserId,
+        conversation_id: conversationId,
+        call_id,
+      });
+    },
+
+    async sendCallSignal({ toUserId, conversationId, callId, callType, signal }) {
+      await axios.post('/chat/calls/signal', {
+        to_user_id: toUserId,
+        conversation_id: conversationId,
+        call_id: callId,
+        call_type: callType,
+        signal,
+      });
+    },
+
+    async endCall({ toUserId, conversationId, callId, type, status, duration_seconds }) {
+      await axios.post('/chat/calls/end', {
+        to_user_id: toUserId,
+        conversation_id: conversationId,
+        call_id: callId,
+        call_type: type,
+        status,
+        duration_seconds: duration_seconds ?? 0,
+      });
     },
   },
 });

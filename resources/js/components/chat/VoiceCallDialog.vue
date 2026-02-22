@@ -52,28 +52,25 @@
         </v-btn>
       </div>
 
-      <!-- hidden audio to satisfy some browsers -->
-      <audio ref="ringEl" preload="auto" />
+      <!-- ✅ remote audio output -->
+      <audio ref="remoteAudio" autoplay></audio>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   user: { type: Object, default: null },
   status: { type: String, default: 'idle' }, // idle|ringing|connected|ended
   muted: { type: Boolean, default: false },
-  // optional: play ringing inside dialog too
-  ringSrc: { type: String, default: '/sounds/ringtone.mp3' },
-  playRing: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue', 'accept', 'end', 'toggle-mute']);
 
-const ringEl = ref(null);
+const remoteAudio = ref(null);
 
 const model = computed({
   get: () => props.modelValue,
@@ -87,44 +84,14 @@ const statusLabel = computed(() => {
   return 'Ready';
 });
 
-const stopLocalRing = () => {
-  try {
-    if (!ringEl.value) return;
-    ringEl.value.pause();
-    ringEl.value.currentTime = 0;
-  } catch {}
+// ✅ parent will set remote stream
+const setRemoteStream = (stream) => {
+  if (remoteAudio.value) remoteAudio.value.srcObject = stream || null;
 };
 
-const startLocalRing = async () => {
-  try {
-    if (!ringEl.value) return;
-    ringEl.value.src = props.ringSrc;
-    ringEl.value.loop = true;
-    await ringEl.value.play();
-  } catch {
-    // autoplay may be blocked until user gesture
-  }
-};
-
-watch(
-  () => props.playRing,
-  async (v) => {
-    if (!props.modelValue) return;
-    if (v) await startLocalRing();
-    else stopLocalRing();
-  }
-);
-
-watch(
-  () => props.modelValue,
-  (open) => {
-    if (!open) stopLocalRing();
-    else if (props.playRing) startLocalRing();
-  }
-);
+defineExpose({ setRemoteStream });
 
 const endCall = () => {
-  stopLocalRing();
   emit('end');
   emit('update:modelValue', false);
 };

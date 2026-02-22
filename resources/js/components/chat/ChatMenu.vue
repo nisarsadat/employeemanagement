@@ -6,6 +6,7 @@
     :muted="muted"
     @accept="acceptVoice"
     @end="endVoice"
+    ref="voiceDialogRef"
     @toggle-mute="toggleMute"
   />
 
@@ -19,6 +20,7 @@
     @end="endVideo"
     @toggle-mute="toggleMute"
     @toggle-camera="toggleCamera"
+    ref="videoDialogRef"
   />
 
   <v-menu
@@ -323,6 +325,7 @@
                         {{ truncateText(message.replyTo.body || '', 80) }}
                       </div>
                     </div>
+
                     <div v-if="message.type === 'call'" class="call-log">
                       <v-icon size="18" class="mr-2">
                         {{ message.call_type === 'video' ? 'mdi-video' : 'mdi-phone' }}
@@ -451,8 +454,11 @@
               <v-tooltip activator="parent" location="top">{{ tr('chat.attach') }}</v-tooltip>
             </v-btn>
 
-            <VoiceRecorder ref="voiceRef" @recording-changed="voiceRecording = $event" />
-
+            <VoiceRecorder
+              ref="voiceRef"
+              @ready="onVoiceReady"
+              @recording-changed="voiceRecording = $event"
+            />
             <!-- preview bar -->
             <div v-if="hasPendingAttachments" class="composer-previews">
               <div v-if="attachments.images.length" class="preview-row">
@@ -601,6 +607,17 @@
   import VoiceCallDialog from '@/components/chat/VoiceCallDialog.vue';
   import VideoCallDialog from '@/components/chat/VideoCallDialog.vue';
 
+  import { useWebRtcCall } from '@/composables/useWebRtcCall';
+  import { v4 as uuidv4 } from 'uuid';
+  const videoDialogRef = ref(null);
+  const voiceDialogRef = ref(null);
+  const receiverAccepted = ref(false);
+  const receiverAcceptedAt = ref(null);
+  const activeCallId = ref(null);
+  const pendingOfferSdp = ref(null);
+  const peerSide = ref(null); // caller|receiver
+  const callPeerUserId = ref(null);
+  const callConversationId = ref(null);
   dayjs.extend(relativeTime);
   dayjs.extend(localizedFormat);
   dayjs.extend(isToday);
@@ -622,6 +639,40 @@
   const muted = ref(false);
   const cameraOff = ref(false);
 
+  const pendingSignalsByCallId = new Map();
+  let currentChannelKey = null;
+  const queueSignal = (call) => {
+    const id = call?.call_id;
+    if (!id) return;
+    const arr = pendingSignalsByCallId.get(id) || [];
+    arr.push(call);
+    pendingSignalsByCallId.set(id, arr);
+  };
+
+  const flushSignals = async (callId) => {
+    const arr = pendingSignalsByCallId.get(callId) || [];
+    pendingSignalsByCallId.delete(callId);
+    for (const c of arr) await handleCallSignalNow(c);
+  };
+
+  const handleCallSignalNow = async (call) => {
+    const sig = call.signal;
+
+    if (sig?.type === 'offer') {
+      pendingOfferSdp.value = sig.sdp;
+      return;
+    }
+
+    if (sig?.type === 'answer') {
+      stopRingtone();
+      await applyAnswer(sig.sdp);
+      return;
+    }
+
+    if (sig?.type === 'ice') {
+      await addIce(sig.candidate);
+    }
+  };
   // ringtone (caller/receiver)
   const ringAudio = new Audio('/sounds/ringtone.mp3');
   ringAudio.loop = true;
@@ -652,6 +703,7 @@
     if (!callStartedAt.value) return 0;
     return Math.max(0, dayjs().diff(dayjs(callStartedAt.value), 'second'));
   };
+
   const addCallLogMessage = (payload) => {
     // payload example:
     // { type:'call', call_type:'video', status:'ended', duration:'02:10', atIso:... }
@@ -668,93 +720,185 @@
     });
   };
 
+  // the rington part
+
   const startVoiceCall = async () => {
     if (!repo.activeUser) return;
 
+    peerSide.value = 'caller';
     callType.value = 'voice';
+    activeCallId.value = uuidv4();
+    callPeerUserId.value = repo.activeUser.id;
+    callConversationId.value = repo.activeConversationId;
     callStatus.value = 'ringing';
-    callStartedAt.value = null;
-    muted.value = false;
-
+    voiceStatus.value = 'ringing';
     voiceCallOpen.value = true;
 
-    // log in chat (WhatsApp style)
-    addCallLogMessage({
-      call_type: 'voice',
-      status: 'started',
-      duration: null,
-      atIso: new Date().toISOString(),
-    });
-
-    // start ring locally (caller tone)
     await startRingtone();
 
-    // notify receiver (backend)
+    // ✅ permission + mic
+    await getMedia({ video: false });
+    attachLocalTracks();
+
     await repo
       .startCall({
         type: 'voice',
         toUserId: repo.activeUser.id,
         conversationId: repo.activeConversationId,
+        call_id: activeCallId.value,
       })
       .catch(() => {});
+
+    await createOffer();
+
+    addCallLogMessage({ call_type: 'voice', status: 'started', atIso: new Date().toISOString() });
   };
 
   const startVideoCall = async () => {
     if (!repo.activeUser) return;
 
+    peerSide.value = 'caller';
     callType.value = 'video';
+    activeCallId.value = uuidv4();
+    callPeerUserId.value = repo.activeUser.id;
+    callConversationId.value = repo.activeConversationId;
     callStatus.value = 'ringing';
-    callStartedAt.value = null;
-    muted.value = false;
-    cameraOff.value = false;
-
+    videoStatus.value = 'ringing';
     videoCallOpen.value = true;
 
-    addCallLogMessage({
-      call_type: 'video',
-      status: 'started',
-      duration: null,
-      atIso: new Date().toISOString(),
-    });
-
     await startRingtone();
+
+    // ✅ permission + cam+mic
+    await getMedia({ video: true });
+    attachLocalTracks();
+
+    await nextTick();
+    videoDialogRef.value?.setLocalStream?.(localStream.value);
 
     await repo
       .startCall({
         type: 'video',
         toUserId: repo.activeUser.id,
         conversationId: repo.activeConversationId,
+        call_id: activeCallId.value,
       })
       .catch(() => {});
+
+    await createOffer();
+
+    addCallLogMessage({ call_type: 'video', status: 'started', atIso: new Date().toISOString() });
   };
 
-  const acceptCall = async () => {
+  repo.onCallIncoming = async (call) => {
+    activeCallId.value = call.call_id;
+    callType.value = call.call_type;
+    peerSide.value = 'receiver';
+
+    // ✅ IMPORTANT: store who is calling + which conversation
+    callPeerUserId.value = call.from_user_id;
+    callConversationId.value = call.conversation_id;
+
+    // optional: show correct user in dialog
+    const u = repo.users.find((x) => String(x.id) === String(call.from_user_id));
+    if (u) repo.activeUser = u;
+    repo.activeConversationId = call.conversation_id;
+
+    if (call.call_type === 'video') {
+      videoCallOpen.value = true;
+      videoStatus.value = 'ringing';
+    } else {
+      voiceCallOpen.value = true;
+      voiceStatus.value = 'ringing';
+    }
+
+    await startRingtone();
+    await flushSignals(activeCallId.value);
+  };
+
+  repo.onCallSignal = async (call) => {
+    if (!call?.call_id) return;
+
+    // ✅ if incoming not processed yet, queue
+    if (!activeCallId.value) {
+      queueSignal(call);
+      return;
+    }
+
+    if (call.call_id !== activeCallId.value) {
+      queueSignal(call);
+      return;
+    }
+
+    await handleCallSignalNow(call);
+  };
+
+  repo.onCallEnded = async (call) => {
+    if (!call?.call_id || call.call_id !== activeCallId.value) return;
+    await endCall(call.status || 'ended', true);
+  };
+
+  const acceptVideo = async () => {
     stopRingtone();
+
+    receiverAccepted.value = true;
+    receiverAcceptedAt.value = 'video';
+
+    videoStatus.value = 'connected';
     callStatus.value = 'connected';
     callStartedAt.value = new Date().toISOString();
 
-    // notify backend
-    await repo
-      .acceptCall({
-        conversationId: repo.activeConversationId,
-        type: callType.value,
-      })
-      .catch(() => {});
+    await getMedia({ video: true });
+    attachLocalTracks();
+
+    await nextTick();
+    videoDialogRef.value?.setLocalStream?.(localStream.value);
+
+    // If offer already came, answer now
+    if (pendingOfferSdp.value) {
+      await acceptOfferCreateAnswer(pendingOfferSdp.value);
+      pendingOfferSdp.value = null;
+    }
   };
 
-  const endCall = async (reason = 'ended') => {
+  const acceptVoice = async () => {
+    stopRingtone();
+
+    receiverAccepted.value = true;
+    receiverAcceptedAt.value = 'voice';
+
+    voiceStatus.value = 'connected';
+    callStatus.value = 'connected';
+    callStartedAt.value = new Date().toISOString();
+
+    await getMedia({ video: false });
+    attachLocalTracks();
+
+    if (pendingOfferSdp.value) {
+      await acceptOfferCreateAnswer(pendingOfferSdp.value);
+      pendingOfferSdp.value = null;
+    }
+    // ✅ now we know the callId, process any signals that arrived early
+    await flushSignals(activeCallId.value);
+  };
+
+  const endVoice = () => endCall('ended');
+  const endVideo = () => endCall('ended');
+
+  const endCall = async (reason = 'ended', fromRemote = false) => {
     stopRingtone();
 
     const durationSec = secondsSinceStart();
     const duration = callStartedAt.value ? fmtDuration(durationSec) : '00:00';
 
-    callStatus.value = reason;
-
-    // close dialogs
     voiceCallOpen.value = false;
     videoCallOpen.value = false;
 
-    // log end in chat
+    voiceStatus.value = 'ended';
+    videoStatus.value = 'ended';
+    callStatus.value = reason;
+
+    cleanup(); // ✅ stop mic/cam + close peer
+
     addCallLogMessage({
       call_type: callType.value || 'voice',
       status: reason,
@@ -762,48 +906,78 @@
       atIso: new Date().toISOString(),
     });
 
-    // notify backend
-    await repo
-      .endCall({
-        conversationId: repo.activeConversationId,
-        type: callType.value,
-        status: reason,
-        duration_seconds: durationSec,
-      })
-      .catch(() => {});
+    if (!fromRemote && callPeerUserId.value && callConversationId.value && activeCallId.value) {
+      await repo
+        .endCall({
+          toUserId: callPeerUserId.value,
+          conversationId: callConversationId.value,
+          callId: activeCallId.value,
+          type: callType.value,
+          status: reason,
+          duration_seconds: durationSec,
+        })
+        .catch(() => {});
+    }
 
-    // reset
     callStartedAt.value = null;
     callType.value = null;
+    activeCallId.value = null;
+    pendingOfferSdp.value = null;
   };
-
-
 
   const voiceStatus = ref('idle'); // ringing|connected|ended
   const videoStatus = ref('idle');
 
+  const {
+    localStream,
+    remoteStream,
+    getMedia,
+    attachLocalTracks,
+    createOffer,
+    acceptOfferCreateAnswer,
+    applyAnswer,
+    addIce,
+    cleanup,
+  } = useWebRtcCall({
+    onSendSignal: async (signal) => {
+      if (!callConversationId.value || !callPeerUserId.value || !activeCallId.value) return;
 
-
-
-  const acceptVideo = () => {
-    videoStatus.value = 'connected';
-  };
-
-  const endVoice = () => {
-    voiceStatus.value = 'ended';
-  };
-
-  const endVideo = () => {
-    videoStatus.value = 'ended';
-  };
+      await repo
+        .sendCallSignal({
+          toUserId: callPeerUserId.value,
+          conversationId: callConversationId.value,
+          callId: activeCallId.value,
+          callType: callType.value,
+          signal,
+        })
+        .catch(() => {});
+    },
+  });
 
   const toggleMute = () => {
     muted.value = !muted.value;
+    localStream.value?.getAudioTracks()?.forEach((t) => (t.enabled = !muted.value));
   };
 
   const toggleCamera = () => {
     cameraOff.value = !cameraOff.value;
+    localStream.value?.getVideoTracks()?.forEach((t) => (t.enabled = !cameraOff.value));
   };
+
+  const unlockRingtone = () => {
+    ringAudio
+      .play()
+      .then(() => {
+        ringAudio.pause();
+        ringAudio.currentTime = 0;
+      })
+      .catch(() => {});
+  };
+
+  onMounted(() => {
+    window.addEventListener('click', unlockRingtone, { once: true });
+    window.addEventListener('keydown', unlockRingtone, { once: true });
+  });
 
   /* =========================================================
      ✅ LOCAL i18n (ONLY inside this menu)
@@ -929,7 +1103,10 @@
   const searchOpen = ref(false);
   const voiceRef = ref(null);
   const voiceRecording = ref(false);
-
+  const onVoiceReady = (file) => {
+    if (!file) return;
+    attachments.voices = [...attachments.voices, file]; // ✅ keep it in attachments preview
+  };
   // reactive attachments (never undefined in template)
   const attachments = reactive({ images: [], videos: [], docs: [], voices: [] });
 
@@ -942,6 +1119,7 @@
       searchInlineRef.value?.focus?.();
     }
   };
+
   watch(
     () => repo.activeConversationId,
     () => {
@@ -1008,125 +1186,6 @@
     blobUrlMap.clear();
   });
 
-  /* =========================================================
-     REALTIME (Echo) - unchanged
-  ========================================================= */
-  let currentChannelKey = null;
-
-  const mergeIncomingMessage = async (msg) => {
-    if (!msg) return;
-
-    const exists = repo.messages.some((m) => String(m.id) === String(msg.id));
-    if (exists) return;
-
-    const myId = repo.currentUser?.id;
-    const incomingSenderId = msg?.sender?.id || msg?.sender_id;
-    const incomingBody = (msg?.body || '').trim();
-
-    const incomingTs = msg?.created_at ? dayjs(msg.created_at) : dayjs();
-    const replaceIndex = repo.messages.findIndex((m) => {
-      if (!String(m.id || '').startsWith('tmp-')) return false;
-      const tmpSenderId = m?.sender?.id || m?.sender_id;
-      if (String(tmpSenderId) !== String(incomingSenderId)) return false;
-      if ((m?.body || '').trim() !== incomingBody) return false;
-
-      const tmpTs = m?.created_at ? dayjs(m.created_at) : null;
-      if (!tmpTs) return false;
-
-      return Math.abs(incomingTs.diff(tmpTs, 'second')) <= 10;
-    });
-
-    if (replaceIndex !== -1) {
-      repo.messages.splice(replaceIndex, 1, msg);
-    } else {
-      repo.messages.push(msg);
-    }
-
-    await nextTick();
-    scrollToBottom();
-
-    if (
-      repo.activeConversationId === msg.conversation_id &&
-      String(incomingSenderId) !== String(myId)
-    ) {
-      repo.markConversationAsReadById(repo.activeConversationId);
-    }
-  };
-
-  const subscribeToConversation = (conversationId) => {
-    if (!conversationId || !window.Echo) return;
-
-    if (currentChannelKey) {
-      try {
-        window.Echo.leave(currentChannelKey);
-      } catch {}
-      currentChannelKey = null;
-    }
-
-    const key = `conversation.${conversationId}`;
-    currentChannelKey = key;
-
-    window.Echo.private(key)
-      .listen('.MessageSent', async (payload) => {
-        let msg = payload?.message ?? payload;
-
-        if (typeof msg?.data === 'string') {
-          try {
-            msg = JSON.parse(msg.data);
-          } catch {}
-        }
-
-        if (typeof msg === 'string') {
-          try {
-            msg = JSON.parse(msg);
-          } catch {}
-        }
-
-        if (msg && msg.id) {
-          await mergeIncomingMessage(msg);
-        }
-      })
-      .listen('.MessageSeen', (payload) => {
-        const ids = payload?.message_ids || [];
-        const seenAt = payload?.seen_at || null;
-        if (!ids.length || !seenAt) return;
-
-        repo.messages = repo.messages.map((m) =>
-          ids.includes(m.id) ? { ...m, seen_at: seenAt } : m
-        );
-      })
-      .error((err) => console.error('❌ Echo channel error', err));
-
-    window.Echo.private(key).listen('.MessageDeleted', (payload) => {
-      const id = payload?.message_id;
-      const deletedAt = payload?.deleted_at || new Date().toISOString();
-      if (!id) return;
-
-      repo.messages = repo.messages.map((m) =>
-        String(m.id) === String(id)
-          ? { ...m, deleted_at: deletedAt, body: null, attachments: [] }
-          : m
-      );
-    });
-  };
-
-  watch(
-    () => repo.activeConversationId,
-    (id) => {
-      if (id) subscribeToConversation(id);
-    },
-    { immediate: true }
-  );
-
-  onBeforeUnmount(() => {
-    if (currentChannelKey && window.Echo) {
-      try {
-        window.Echo.leave(currentChannelKey);
-      } catch {}
-    }
-  });
-  /* ========================================================= */
-
   const filteredUsers = computed(() => {
     const term = searchQuery.value.trim().toLowerCase();
     if (!term) return repo.users;
@@ -1172,6 +1231,7 @@
 
   const onActivatorClick = async () => {
     try {
+      await unlockRingtone(); // ✅ unlock sound on user click
       await repo.bootstrap();
       await repo.initBadge();
     } catch {}
@@ -1196,10 +1256,23 @@
       replyToMessage.value = null;
       clearAttachments();
     }
+    let currentChannelKey = null;
   });
 
   const selectUser = async (user) => {
+    // ✅ leave old channel before switching
+    if (currentChannelKey && window.Echo) {
+      try {
+        window.Echo.leave(currentChannelKey);
+      } catch {}
+      currentChannelKey = null;
+    }
+
     await repo.openConversationWith(user);
+
+    // ✅ set the new channel key
+    currentChannelKey = `conversation.${repo.activeConversationId}`;
+
     await nextTick();
     scrollToBottom();
   };
@@ -1207,12 +1280,27 @@
   const send = async () => {
     if (!repo.activeUser) return;
 
+    // ✅ If recording, finalize first so it becomes a File and goes to attachments
     if (voiceRecording.value && voiceRef.value?.finalize) {
-      const file = await voiceRef.value.finalize();
-      if (file) attachments.voices = [...attachments.voices, file];
+      const blobOrFile = await voiceRef.value.finalize();
+
+      if (blobOrFile) {
+        const file =
+          blobOrFile instanceof File
+            ? blobOrFile
+            : new File([blobOrFile], `voice_${Date.now()}.webm`, {
+                type: blobOrFile.type || 'audio/webm',
+              });
+
+        // ✅ Replace instead of append (prevents duplicate)
+        attachments.voices = [file];
+      }
     }
 
-    if (!canSend.value) return;
+    // ✅ after finalize voiceRecording becomes false, so check again
+    const hasText = !!draft.value.trim();
+    const hasFiles = hasPendingAttachments.value;
+    if (!hasText && !hasFiles) return;
 
     const body = draft.value.trim();
     const replyToId = replyToMessage.value?.id || null;
@@ -1223,6 +1311,16 @@
       docs: [...attachments.docs],
       voices: [...attachments.voices],
     };
+
+    // ✅ DEBUG (important)
+    console.log(
+      'SENDING VOICES:',
+      files.voices.map((f) => ({
+        name: f.name,
+        type: f.type,
+        size: f.size,
+      }))
+    );
 
     const tmpId = `tmp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     const nowIso = new Date().toISOString();
@@ -1236,11 +1334,12 @@
       seen_at: null,
       sender: repo.currentUser ? { ...repo.currentUser } : { id: repo.currentUser?.id },
       replyTo: replyToMessage.value || null,
-      attachments: [],
+      attachments: [], // (backend will return real attachments)
     };
 
     repo.messages.push(optimistic);
 
+    // ✅ reset UI after pushing optimistic message
     draft.value = '';
     replyToMessage.value = null;
     clearAttachments();
@@ -1249,19 +1348,47 @@
     scrollToBottom();
 
     try {
-      const created = await repo.sendMessageForm({
+      const createdRes = await repo.sendMessageForm({
         body,
         replyToId,
+        receiverId: repo.activeUser?.id,
+        conversationId: repo.activeConversationId,
         attachments: files,
       });
 
+      const created = createdRes?.message ?? createdRes; // support both shapes
+
       if (created && created.id) {
+        // if conversation was created now, set it
+        if (!repo.activeConversationId && created.conversation_id) {
+          repo.activeConversationId = created.conversation_id;
+          repo.subscribeToConversationChannel(repo.activeConversationId);
+        }
+
+        // update tmp conversation_id (optional)
+        const tmpIndex = repo.messages.findIndex((m) => String(m.id) === String(tmpId));
+        if (tmpIndex !== -1) {
+          repo.messages[tmpIndex] = {
+            ...repo.messages[tmpIndex],
+            conversation_id: created.conversation_id || repo.activeConversationId,
+          };
+        }
+
+        // ✅ remove duplicates of the real id, but KEEP the tmp one
+        repo.messages = repo.messages.filter(
+          (m) => String(m.id) === String(tmpId) || String(m.id) !== String(created.id)
+        );
+
+        // ✅ replace tmp with real (or push if tmp not found)
         const idx = repo.messages.findIndex((m) => String(m.id) === String(tmpId));
         if (idx !== -1) repo.messages.splice(idx, 1, created);
-        else await mergeIncomingMessage(created);
+        else repo.messages.push(created);
       }
     } catch (e) {
-      console.error(e);
+      console.error('SEND FAILED:', e);
+
+      // ✅ remove optimistic if failed
+      repo.messages = repo.messages.filter((m) => String(m.id) !== String(tmpId));
     }
   };
 
@@ -1342,6 +1469,22 @@
     const c = repo.conversations.find((x) => x.other_user?.id === userId);
     return c?.unread_count || 0;
   };
+
+  watch(remoteStream, async (s) => {
+    await nextTick();
+    if (callType.value === 'video') {
+      videoDialogRef.value?.setRemoteStream?.(s);
+    } else {
+      voiceDialogRef.value?.setRemoteStream?.(s);
+    }
+  });
+
+  watch(localStream, async (s) => {
+    await nextTick();
+    if (callType.value === 'video') {
+      videoDialogRef.value?.setLocalStream?.(s);
+    }
+  });
 
   onMounted(() => {
     // keep empty; we intentionally avoid global locale changes

@@ -1,0 +1,172 @@
+{
+  "_pdfmake-D2zSfgve.js": {
+    "file": "assets/pdfmake-D2zSfgve.js",
+    "name": "pdfmake",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "node_modules/@fontsource/amiri/files/amiri-arabic-400-normal.woff": {
+    "file": "assets/amiri-arabic-400-normal-C_1DQziU.woff",
+    "src": "node_modules/@fontsource/amiri/files/amiri-arabic-400-normal.woff"
+  },
+  "node_modules/@fontsource/amiri/files/amiri-arabic-400-normal.woff2": {
+    "file": "assets/amiri-arabic-400-normal-D0NIBXga.woff2",
+    "src": "node_modules/@fontsource/amiri/files/amiri-arabic-400-normal.woff2"
+  },
+  "node_modules/@fontsource/amiri/files/amiri-arabic-700-normal.woff": {
+    "file": "assets/amiri-arabic-700-normal-dUd6sHq-.woff",
+    "src": "node_modules/@fontsource/amiri/files/amiri-arabic-700-normal.woff"
+  },
+  "node_modules/@fontsource/amiri/files/amiri-arabic-700-normal.woff2": {
+    "file": "assets/amiri-arabic-700-normal-D8FrblyB.woff2",
+    "src": "node_modules/@fontsource/amiri/files/amiri-arabic-700-normal.woff2"
+  },
+  "node_modules/@fontsource/amiri/files/amiri-latin-400-normal.woff": {
+    "file": "assets/amiri-latin-400-normal-Bv6IM0kz.woff",
+    "src": "node_modules/@fontsource/amiri/files/amiri-latin-400-normal.woff"
+  },
+  "node_modules/@fontsource/amiri/files/amiri-latin-400-normal.woff2": {
+    "file": "assets/amiri-latin-400-normal-Czk41Rjn.woff2",
+    "src": "node_modules/@fontsource/amiri/files/amiri-latin-400-normal.woff2"
+  },
+  "node_modules/@fontsource/amiri/files/amiri-latin-700-normal.woff": {
+    "file": "assets/amiri-latin-700-normal-BH9dHmOv.woff",
+    "src": "node_modules/@fontsource/amiri/files/amiri-latin-700-normal.woff"
+  },
+  "node_modules/@fontsource/amiri/files/amiri-latin-700-normal.woff2": {
+    "file": "assets/amiri-latin-700-normal-DIjoEGk6.woff2",
+    "src": "node_modules/@fontsource/amiri/files/amiri-latin-700-normal.woff2"
+  },
+  "node_modules/@fontsource/amiri/files/amiri-latin-ext-400-normal.woff": {
+    "file": "assets/amiri-latin-ext-400-normal-CGn-6a7O.woff",
+    "src": "node_modules/@fontsource/amiri/files/amiri-latin-ext-400-normal.woff"
+  },
+  "node_modules/@fontsource/amiri/files/amiri-latin-ext-400-normal.woff2": {
+    "file": "assets/amiri-latin-ext-400-normal-C9hoIjPx.woff2",
+    "src": "node_modules/@fontsource/amiri/files/amiri-latin-ext-400-normal.woff2"
+  },
+  "node_modules/@fontsource/amiri/files/amiri-latin-ext-700-normal.woff": {
+    "file": "assets/amiri-latin-ext-700-normal-Ck-lxu84.woff",
+    "src": "node_modules/@fontsource/amiri/files/amiri-latin-ext-700-normal.woff"
+  },
+  "node_modules/@fontsource/amiri/files/amiri-latin-ext-700-normal.woff2": {
+    "file": "assets/amiri-latin-ext-700-normal-ByFuOT8o.woff2",
+    "src": "node_modules/@fontsource/amiri/files/amiri-latin-ext-700-normal.woff2"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-arabic-400-normal.woff": {
+    "file": "assets/scheherazade-new-arabic-400-normal-B9Z1CNLi.woff",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-arabic-400-normal.woff"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-arabic-400-normal.woff2": {
+    "file": "assets/scheherazade-new-arabic-400-normal-B6Zu4K6Y.woff2",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-arabic-400-normal.woff2"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-arabic-700-normal.woff": {
+    "file": "assets/scheherazade-new-arabic-700-normal-Dm76q_dj.woff",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-arabic-700-normal.woff"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-arabic-700-normal.woff2": {
+    "file": "assets/scheherazade-new-arabic-700-normal-B6G5lFFe.woff2",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-arabic-700-normal.woff2"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-400-normal.woff": {
+    "file": "assets/scheherazade-new-latin-400-normal-Dnb0tPGV.woff",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-400-normal.woff"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-400-normal.woff2": {
+    "file": "assets/scheherazade-new-latin-400-normal-DZIaORvg.woff2",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-400-normal.woff2"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-700-normal.woff": {
+    "file": "assets/scheherazade-new-latin-700-normal-CBC1nKRi.woff",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-700-normal.woff"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-700-normal.woff2": {
+    "file": "assets/scheherazade-new-latin-700-normal-CPQDEa8M.woff2",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-700-normal.woff2"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-ext-400-normal.woff": {
+    "file": "assets/scheherazade-new-latin-ext-400-normal-5N5cbqXv.woff",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-ext-400-normal.woff"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-ext-400-normal.woff2": {
+    "file": "assets/scheherazade-new-latin-ext-400-normal-DjkTxprb.woff2",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-ext-400-normal.woff2"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-ext-700-normal.woff": {
+    "file": "assets/scheherazade-new-latin-ext-700-normal-CddY41AR.woff",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-ext-700-normal.woff"
+  },
+  "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-ext-700-normal.woff2": {
+    "file": "assets/scheherazade-new-latin-ext-700-normal-DxZ2ubph.woff2",
+    "src": "node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-ext-700-normal.woff2"
+  },
+  "node_modules/@mdi/font/fonts/materialdesignicons-webfont.eot": {
+    "file": "assets/materialdesignicons-webfont-CSr8KVlo.eot",
+    "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.eot"
+  },
+  "node_modules/@mdi/font/fonts/materialdesignicons-webfont.ttf": {
+    "file": "assets/materialdesignicons-webfont-B7mPwVP_.ttf",
+    "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.ttf"
+  },
+  "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff": {
+    "file": "assets/materialdesignicons-webfont-PXm3-2wK.woff",
+    "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff"
+  },
+  "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff2": {
+    "file": "assets/materialdesignicons-webfont-Dp5v-WZN.woff2",
+    "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff2"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-BZ3-cbsa.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-CamF0iUF.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "_pdfmake-D2zSfgve.js"
+    ],
+    "css": [
+      "assets/app-Cvo8wHAN.css"
+    ],
+    "assets": [
+      "assets/materialdesignicons-webfont-CSr8KVlo.eot",
+      "assets/materialdesignicons-webfont-Dp5v-WZN.woff2",
+      "assets/materialdesignicons-webfont-PXm3-2wK.woff",
+      "assets/materialdesignicons-webfont-B7mPwVP_.ttf",
+      "assets/amiri-arabic-400-normal-D0NIBXga.woff2",
+      "assets/amiri-arabic-400-normal-C_1DQziU.woff",
+      "assets/amiri-latin-ext-400-normal-C9hoIjPx.woff2",
+      "assets/amiri-latin-ext-400-normal-CGn-6a7O.woff",
+      "assets/amiri-latin-400-normal-Czk41Rjn.woff2",
+      "assets/amiri-latin-400-normal-Bv6IM0kz.woff",
+      "assets/amiri-arabic-700-normal-D8FrblyB.woff2",
+      "assets/amiri-arabic-700-normal-dUd6sHq-.woff",
+      "assets/amiri-latin-ext-700-normal-ByFuOT8o.woff2",
+      "assets/amiri-latin-ext-700-normal-Ck-lxu84.woff",
+      "assets/amiri-latin-700-normal-DIjoEGk6.woff2",
+      "assets/amiri-latin-700-normal-BH9dHmOv.woff",
+      "assets/scheherazade-new-arabic-400-normal-B6Zu4K6Y.woff2",
+      "assets/scheherazade-new-arabic-400-normal-B9Z1CNLi.woff",
+      "assets/scheherazade-new-latin-ext-400-normal-DjkTxprb.woff2",
+      "assets/scheherazade-new-latin-ext-400-normal-5N5cbqXv.woff",
+      "assets/scheherazade-new-latin-400-normal-DZIaORvg.woff2",
+      "assets/scheherazade-new-latin-400-normal-Dnb0tPGV.woff",
+      "assets/scheherazade-new-arabic-700-normal-B6G5lFFe.woff2",
+      "assets/scheherazade-new-arabic-700-normal-Dm76q_dj.woff",
+      "assets/scheherazade-new-latin-ext-700-normal-DxZ2ubph.woff2",
+      "assets/scheherazade-new-latin-ext-700-normal-CddY41AR.woff",
+      "assets/scheherazade-new-latin-700-normal-CPQDEa8M.woff2",
+      "assets/scheherazade-new-latin-700-normal-CBC1nKRi.woff"
+    ]
+  }
+}
