@@ -810,40 +810,27 @@
     'name_int',
   ];
   const LOCAL_NAME_EXPR = ['coalesce', ...LOCAL_NAME_ORDER.map((f) => ['get', f])];
-  const FONT_Z_LT6 = 'Noto Naskh Arabic Regular';
-  const FONT_Z_GE6 = 'Noto Naskh Arabic Bold';
+  const FONT_STACK_Z_LT6 = ['Noto Naskh Arabic Regular', 'Noto Sans Regular'];
+  const FONT_STACK_Z_GE6 = ['Noto Naskh Arabic Bold', 'Noto Sans Bold'];
 
   function applyBilingualLabels(style) {
     if (!style?.layers) return style;
-
     for (const l of style.layers) {
-      if (l.type !== 'symbol') continue;
-
-      l.layout ||= {};
-
-      // ✅ Only touch layers that already contain text, to avoid breaking icon-only layers
-      const hasText =
-        l.layout['text-field'] !== undefined ||
-        l.layout['text-size'] !== undefined ||
-        String(l.id || '').includes('name');
-
-      if (!hasText) continue;
-
-      l.layout['text-field'] = LOCAL_NAME_EXPR;
-
-      l.layout['text-font'] = [
-        'step',
-        ['zoom'],
-        'Noto Naskh Arabic Regular',
-        6,
-        'Noto Naskh Arabic Bold',
-      ];
-
-      l.paint ||= {};
-      l.paint['text-halo-color'] = '#fff';
-      l.paint['text-halo-width'] = 1.1;
+      if (l.type === 'symbol') {
+        l.layout ||= {};
+        l.layout['text-field'] = LOCAL_NAME_EXPR;
+        l.layout['text-font'] = [
+          'step',
+          ['zoom'],
+          ['literal', FONT_STACK_Z_LT6],
+          6,
+          ['literal', FONT_STACK_Z_GE6],
+        ];
+        l.paint ||= {};
+        l.paint['text-halo-color'] = '#fff';
+        l.paint['text-halo-width'] = 1.1;
+      }
     }
-
     return style;
   }
 
