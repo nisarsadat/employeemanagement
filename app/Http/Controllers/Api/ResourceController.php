@@ -55,6 +55,11 @@ class ResourceController extends Controller
             ->with(['officeEmployee:id,name,code_number,father_name'])
             ->withSum('finances as payed_money', 'money_amount_number')
 
+            ->withCount([
+                'events',
+                'informations',
+                'khayratReports',
+            ])
             // ✅ NEW: apply year/month filter
             ->when($year !== null, function ($w) use ($dateField, $year) {
                 $w->whereNotNull($dateField)->whereYear($dateField, $year);
@@ -104,6 +109,11 @@ class ResourceController extends Controller
         $row = Resource::query()
             ->with(['officeEmployee:id,name,code_number,father_name,nick_name'])
             ->withSum('finances as payed_money', 'money_amount_number')
+            ->withCount([
+                'events',
+                'informations',
+                'khayratReports',
+            ])
             ->findOrFail($id);
 
         return new ResourceResource($row);
@@ -134,15 +144,15 @@ class ResourceController extends Controller
                 $user,
                 module: 'resources',
                 action: 'created',
-                title: 'منبع جدید ثبت شد',
-                message: 'کد منبع: ' . ($row->code_number ?? ''),
+                title: 'نوی منبع ثبت ښو',
+                message: 'د منبع کوډ' . ($row->code_number ?? ''),
                 routeName: 'resources.edit',
                 routeParams: ['id' => $row->id],
                 level: 'success',
             );
 
             return (new ResourceResource(
-                $row->loadMissing('officeEmployee:id,name,code_number,father_name')
+                $row->loadMissing('officeEmployee:id,name,code_number,father_name')->loadCount(['events','informations','khayratReports'])
             ))
                 ->additional(['message' => 'Created'])
                 ->response()
@@ -194,15 +204,15 @@ class ResourceController extends Controller
                 $user,
                 module: 'resources',
                 action: 'updated',
-                title: 'منبع اصلاح شد',
-                message: 'کد منبع: ' . ($row->code_number ?? ''),
+                title: 'منبع اصلاح شو',
+                message: 'د منبع کوډ' . ($row->code_number ?? ''),
                 routeName: 'resources',
                 routeParams: ['id' => $row->id],
                 level: 'info',
             );
 
             return new ResourceResource(
-                $row->loadMissing('officeEmployee:id,name,code_number,father_name')
+                $row->loadMissing('officeEmployee:id,name,code_number,father_name')->loadCount(['events','informations','khayratReports'])
             );
 
         } catch (QueryException $e) {
@@ -234,8 +244,8 @@ class ResourceController extends Controller
             $user,
             module: 'resources',
             action: 'deleted',
-            title: 'منبع حذف شد',
-            message: 'کد منبع: ' . ($code ?? ''),
+            title: 'منبع حذف شو',
+            message: 'د منبع کوډ' . ($code ?? ''),
             routeName: null,
             routeParams: [],
             level: 'warning',
