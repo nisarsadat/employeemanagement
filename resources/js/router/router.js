@@ -1,207 +1,232 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
 
-// ---------- Public ----------
-import Login from '@/pages/Login.vue';
-
-// ---------- Protected Shell (layout after login) ----------
-import Home from '@/pages/Home.vue';
-
-// ---------- Protected Child Pages (render inside Home.vue <router-view/>) ----------
-import Dashboard from '@/pages/Dashboard/Dashboard.vue';
-import ActiveAndInactiveEmployees from '@/pages/ActiveInactive/ActiveAndInactiveEmployees.vue';
-
-import User from '@/pages/User/User.vue';
-
-import OfficeEmployeesPage from '@/pages/OfficeEmployee/OfficeEmployeesPage.vue';
-import Resources from '@/pages/Resources/Resources.vue';
-import Events from '@/pages/Events/Events.vue';
-import DeleviryCaptive from '@/pages/DeleviryCaptive/DeleviryCaptive.vue';
-import Informations from '@/pages/Informations/Informations.vue';
-
-import FifthyFormatsRoute from '@/components/FiftyFormatsRoute.vue';
-
-import Fasads from '@/pages/FiftyFormats/Fasads.vue';
-import SaeenFasad from '@/pages/FiftyFormats/SaeenFasad.vue';
-import Heist from '@/pages/FiftyFormats/Heist.vue';
-import Captives from '@/pages/FiftyFormats/Captives.vue';
-import Mulkanos from '@/pages/FiftyFormats/Mulkanos.vue';
-import EntryExits from '@/pages/FiftyFormats/EntryExit.vue';
-import Sarafyanos from '@/pages/FiftyFormats/Sarafyano.vue';
-import Clubs from '@/pages/FiftyFormats/Clubs.vue';
-import Mahajerats from '@/pages/FiftyFormats/Mahajerat.vue';
-import Soldiers from '@/pages/FiftyFormats/Soldiers.vue';
-
-import Mawads from '@/pages/FiftyFormats/Mawads.vue';
-import LostMujremeens from '@/pages/FiftyFormats/LostMujremens.vue';
-import OldSoldiersHomes from '@/pages/FiftyFormats/OldSoldiersHomes.vue';
-import Robbers from '@/pages/FiftyFormats/Robbers.vue';
-import NonResposablePeople from '@/pages/FiftyFormats/NonResponsablePeople.vue';
-import MashkokHomes from '@/pages/FiftyFormats/MashkokHomes.vue';
-import DamagePlacses from '@/pages/FiftyFormats/DamagePlacses.vue';
-import DamageRasanPlaces from '@/pages/FiftyFormats/DamageRasanPlaces.vue';
-import MashkokShops from '@/pages/FiftyFormats/MashkokShops.vue';
-import Luchakanos from '@/pages/FiftyFormats/Luchakanos.vue';
-
-import Schools from '@/pages/FiftyFormats/Schools.vue';
-import HadoBusStop from '@/pages/FiftyFormats/HadoBusStop.vue';
-import TransportCompany from '@/pages/FiftyFormats/TransportCompany.vue';
-import CarSalesCompany from '@/pages/FiftyFormats/CarSalesCompany.vue';
-import Parkings from '@/pages/FiftyFormats/Parkings.vue';
-import Banks from '@/pages/FiftyFormats/Bank.vue';
-import Apartments from '@/pages/FiftyFormats/Apartments.vue';
-import RahnomaMamlats from '@/pages/FiftyFormats/RahnomaMamlat.vue';
-import Hosppitals from '@/pages/FiftyFormats/Hosppital.vue';
-import WorkShops from '@/pages/FiftyFormats/WorkShops.vue';
-
-import Badmashanos from '@/pages/FiftyFormats/Badmashano.vue';
-import Sarayanos from '@/pages/FiftyFormats/Sarayanos.vue';
-import Hotels from '@/pages/FiftyFormats/Hotels.vue';
-import Hostels from '@/pages/FiftyFormats/Hostels.vue';
-import Tujarans from '@/pages/FiftyFormats/Tujarans.vue';
-import Mujahedinos from '@/pages/FiftyFormats/Mujahedinos.vue';
-import EmaratOffices from '@/pages/FiftyFormats/EmaratOffices.vue';
-import OldJahadis from '@/pages/FiftyFormats/OldJahadis.vue';
-import MashkokPeopls from '@/pages/FiftyFormats/MashkokPeoples.vue';
-import Madrasa from '@/pages/FiftyFormats/Madrasa.vue';
-
-import Wakilanos from '@/pages/FiftyFormats/Wakilano.vue';
-import Universities from '@/pages/FiftyFormats/University.vue';
-import Masjids from '@/pages/FiftyFormats/Masjid.vue';
-import HighWays from '@/pages/FiftyFormats/Highway.vue';
-import Companies from '@/pages/FiftyFormats/Company.vue';
-import DoneLostPlaces from '@/pages/FiftyFormats/DoneLostPlaces.vue';
-import EconemyProjects from '@/pages/FiftyFormats/EconemyProject.vue';
-import CriminalCapturePlaces from '@/pages/FiftyFormats/CriminalCapturePlace.vue';
-import Pumps from '@/pages/FiftyFormats/pump.vue';
-import Shoras from '@/pages/FiftyFormats/Shora.vue';
-import CheckPoints from '@/pages/FiftyFormats/Checkpoint.vue';
-import GovernmentPlaces from '@/pages/FiftyFormats/GovernmentPlace.vue';
-import Parks from '@/pages/FiftyFormats/Park.vue';
-import Complexes from '@/pages/FiftyFormats/Complex.vue';
-import DeplomaticPlaces from '@/pages/FiftyFormats/DeplomaticPlace.vue';
-import SuperMarkets from '@/pages/FiftyFormats/SuperMarket.vue';
-
-import finincalIndex from '@/pages/Finincal/finincalIndex.vue';
-
-import Inlineinfoindex from '@/pages/InlineInfo/inlineinfoindex.vue';
-import ResourceInfo from '@/pages/InlineInfo/ResourceInfo.vue';
-import Resourcetab from '@/pages/InlineInfo/Resourcetab.vue';
-import Eventtab from '@/pages/InlineInfo/Eventtab.vue';
-
-import MapAfghanistan from '@/pages/Map/MapAfghanistan.vue';
-import offlinemap from '@/pages/Map/offlinemap.vue';
-
-import Roles from '@/pages/rbac/Roles.vue';
-// import Permission from '@/pages/rbac/Permissions.vue';
-
-import NoAccess from '@/pages/NoAccess.vue'; // simple page if blocked
-
-// RBAC helpers
+// RBAC helpers (keep as normal imports)
 import { firstAccessiblePath, canAccess, permFor } from '@/rbac';
-import FiftyFormatsReportPage from '../pages/reports/FiftyFormatsReportPage.vue';
-import OfficeEmployeesActivityReport from '../pages/reports/OfficeEmployeesActivityReport.vue';
-import OfficeEmployeeRelationPage from '../pages/reports/OfficeEmployeeRelationPage.vue';
-import EventReport from '../pages/reports/EventActivityReport.vue';
-import InformationActivityReport from '../pages/reports/InformationActivityReport.vue';
-import InformationsForm from '../pages/Informations/InformationsForm.vue';
-import OfficeEmployeeForm from '../pages/OfficeEmployee/OfficeEmployeeForm.vue';
-import ResourcesForm from '../pages/Resources/ResourcesForm.vue';
-import EventsForm from '../pages/Events/EventsForm.vue';
-import DeleviryCaptiveForm from '../pages/DeleviryCaptive/DeleviryCaptiveForm.vue';
-import CaptiveForm from '../pages/FiftyFormats/CaptiveForm.vue';
-import HeistForm from '../pages/FiftyFormats/HeistForm.vue';
-import FasadForm from '../pages/FiftyFormats/FasadForm.vue';
-import SaeenFasadForm from '../pages/FiftyFormats/SaeenFasadForm.vue';
-import EntryExitForm from '../pages/FiftyFormats/EntryExitForm.vue';
-import SarafyanoForm from '../pages/FiftyFormats/SarafyanoForm.vue';
-import MahajeratForm from '../pages/FiftyFormats/MahajeratForm.vue';
-import ClubForm from '../pages/FiftyFormats/ClubForm.vue';
-import SoldierForm from '../pages/FiftyFormats/SoldierForm.vue';
-import MawadForm from '../pages/FiftyFormats/MawadForm.vue';
-import MulkanoForm from '../pages/FiftyFormats/MulkanoForm.vue';
-import LostMujremeenForm from '../pages/FiftyFormats/LostMujremeenForm.vue';
-import OldSoldiersHomeForm from '../pages/FiftyFormats/OldSoldiersHomeForm.vue';
-import RobberForm from '../pages/FiftyFormats/RobberForm.vue';
-import NonResponsablePeopleForm from '../pages/FiftyFormats/NonResponsablePeopleForm.vue';
-import MashkokHomeForm from '../pages/FiftyFormats/MashkokHomeForm.vue';
-import DamagePlaceForm from '../pages/FiftyFormats/DamagePlaceForm.vue';
-import DamageRasanPlaceForm from '../pages/FiftyFormats/DamageRasanPlaceForm.vue';
-import MashkokShopForm from '../pages/FiftyFormats/MashkokShopForm.vue';
-import LuchakanoForm from '../pages/FiftyFormats/LuchakanoForm.vue';
-import SchoolForm from '../pages/FiftyFormats/SchoolForm.vue';
-import HadaBusStopForm from '../pages/FiftyFormats/HadaBusStopForm.vue';
-import TransportCompanyForm from '../pages/FiftyFormats/TransportCompanyForm.vue';
-import ParkingForm from '../pages/FiftyFormats/ParkingForm.vue';
-import BankForm from '../pages/FiftyFormats/BankForm.vue';
-import CarSalesCompanyForm from '../pages/FiftyFormats/CarSalesCompanyForm.vue';
-import ApartmentForm from '../pages/FiftyFormats/ApartmentForm.vue';
-import RahnomaMamlatForm from '../pages/FiftyFormats/RahnomaMamlatForm.vue';
-import HospitalForm from '../pages/FiftyFormats/HospitalForm.vue';
-import WorkShopForm from '../pages/FiftyFormats/WorkShopForm.vue';
-import BadmashanoForm from '../pages/FiftyFormats/BadmashanoForm.vue';
-import SarayanoForm from '../pages/FiftyFormats/SarayanoForm.vue';
-import HostelForm from '../pages/FiftyFormats/HostelForm.vue';
-import EmaratOfficeForm from '../pages/FiftyFormats/EmaratOfficeForm.vue';
-import HotelForm from '../pages/FiftyFormats/HotelForm.vue';
-import MadrasaForm from '../pages/FiftyFormats/MadrasaForm.vue';
-import MashkokPeopleForm from '../pages/FiftyFormats/MashkokPeopleForm.vue';
-import MujahedinoForm from '../pages/FiftyFormats/MujahedinoForm.vue';
-import OldJahadisForm from '../pages/FiftyFormats/OldJahadisForm.vue';
-import TujaransForm from '../pages/FiftyFormats/TujaransForm.vue';
-import MasjidForm from '../pages/FiftyFormats/MasjidForm.vue';
-import CheckpointForm from '../pages/FiftyFormats/CheckpointForm.vue';
-import HighwayForm from '../pages/FiftyFormats/HighwayForm.vue';
-import CompanyForm from '../pages/FiftyFormats/CompanyForm.vue';
-import DoneLostPlaceForm from '../pages/FiftyFormats/DoneLostPlaceForm.vue';
-import CriminalCapturePlaceForm from '../pages/FiftyFormats/CriminalCapturePlaceForm.vue';
-import EconemyProjectForm from '../pages/FiftyFormats/EconemyProjectForm.vue';
-import PumpForm from '../pages/FiftyFormats/PumpForm.vue';
-import GovernmentPlaceForm from '../pages/FiftyFormats/GovernmentPlaceForm.vue';
-import SuperMarketForm from '../pages/FiftyFormats/SuperMarketForm.vue';
-import ShoraForm from '../pages/FiftyFormats/ShoraForm.vue';
-import ParkForm from '../pages/FiftyFormats/ParkForm.vue';
-import ComplexForm from '../pages/FiftyFormats/ComplexForm.vue';
-import DeplomaticPlaceForm from '../pages/FiftyFormats/DeplomaticPlaceForm.vue';
-import UniversityForm from '../pages/FiftyFormats/UniversityForm.vue';
-import WakilanoForm from '../pages/FiftyFormats/WakilanoForm.vue';
-import InformationPrintDialog from '../pages/Informations/InformationPrintDialog.vue';
-import NotificationsPage from '../components/NotificationsPage.vue';
-import ActiveEmployeesIndex from '../pages/ActiveInactive/ActiveEmployeesIndex.vue';
-import InactiveEmployeesIndex from '../pages/ActiveInactive/InactiveEmployeesIndex.vue';
-import ActiveResource from '../pages/ActiveInactiveResource/ActiveResource.vue';
-import InactiveResource from '../pages/ActiveInactiveResource/InactiveResource.vue';
-import DailyFoulReport from '../pages/reports/DailyFoulReport.vue';
-import MonthlyFoulReport from '../pages/reports/MonthlyFoulReport.vue';
-import YearlyFoulReport from '../pages/reports/YearlyFoulReport.vue';
-import WeeklyFoulReports from '../pages/reports/WeeklyFoulReports.vue';
-import FoulQuarterlyReports from '../pages/reports/FoulQuarterlyReports.vue';
-import AllTimeFoulReports from '../pages/reports/AllTimeFoulReports.vue';
-import OutgoingIncomingForm from '../pages/OutgoingIncoming/OutgoingIncomingForm.vue';
-import OutgoingIncomingIndex from '../pages/OutgoingIncoming/OutgoingIncomingIndex.vue';
-import RolePermissions from '../pages/rbac/RolePermissions.vue';
-import ProvincesPage from '../pages/Settings/ProvincesPage.vue';
-import DistrictsPage from '../pages/Settings/DistrictsPage.vue';
-import ZonesIndex from '../pages/Settings/Zones/ZonesIndex.vue';
-import HawzasIndex from '../pages/Settings/Zones/HawzasIndex.vue';
-import EventTypes from '../pages/Settings/EventType/EventTypes.vue';
-import EventSpecificTypes from '../pages/Settings/EventType/EventSpecificTypes.vue';
-import JenayeeTypesIndex from '../pages/Settings/JenayeeTypes/JenayeeTypesIndex.vue';
-import SeyaseeTypesIndex from '../pages/Settings/SeyaseeTypes/SeyaseeTypesIndex.vue';
-import OrgansIndex from '../pages/Settings/Organs/OrgansIndex.vue';
-import JobTypesIndex from '../pages/Settings/JobTypes/JobTypesIndex.vue';
-import ResourceActivityTypesIndex from '../pages/Settings/ResourceActivityTypes/ResourceActivityTypesIndex.vue';
-import SystemSettingsIndex from '../pages/Settings/SystemSettingsIndex.vue';
-import MawqafJahadisIndex from '../pages/Settings/MawqafJahadis/MawqafJahadisIndex.vue';
-import KhayratReportsIndex from '../pages/KHayratReport/KhayratReportsIndex.vue';
-import Khayratreport from '../pages/InlineInfo/khayratreport.vue';
-import FormatZonePage from '../pages/Settings/FormatZone/FormatZonePage.vue';
-import DocsTypesIndex from '../pages/Settings/DocsType/DocsTypesIndex.vue';
-import MarjasIndex from '../pages/Settings/Marja/MarjasIndex.vue';
-import JawasisIndex from '../pages/FiftyFormats/JawasisIndex.vue';
-import JawasisForm from '../pages/FiftyFormats/JawasiForm.vue';
-import ReportNotesIndex from '../pages/reports/ReportNotesIndex.vue';
-import LetryFormatsIndex from '../pages/Settings/LetryFormats/LetryFormatsIndex.vue';
+
+// ---------- Lazy-loaded Components ----------
+
+// Public
+const Login = () => import('@/pages/Login.vue');
+
+// Protected shell
+const Home = () => import('@/pages/Home.vue');
+
+// Core
+const Dashboard = () => import('@/pages/Dashboard/Dashboard.vue');
+const ActiveAndInactiveEmployees = () =>
+  import('@/pages/ActiveInactive/ActiveAndInactiveEmployees.vue');
+const ActiveEmployeesIndex = () => import('../pages/ActiveInactive/ActiveEmployeesIndex.vue');
+const InactiveEmployeesIndex = () => import('../pages/ActiveInactive/InactiveEmployeesIndex.vue');
+
+const User = () => import('@/pages/User/User.vue');
+
+const OfficeEmployeesPage = () => import('@/pages/OfficeEmployee/OfficeEmployeesPage.vue');
+const OfficeEmployeeForm = () => import('../pages/OfficeEmployee/OfficeEmployeeForm.vue');
+const Resources = () => import('@/pages/Resources/Resources.vue');
+const ResourcesForm = () => import('../pages/Resources/ResourcesForm.vue');
+const Events = () => import('@/pages/Events/Events.vue');
+const EventsForm = () => import('../pages/Events/EventsForm.vue');
+const DeleviryCaptive = () => import('@/pages/DeleviryCaptive/DeleviryCaptive.vue');
+const DeleviryCaptiveForm = () => import('../pages/DeleviryCaptive/DeleviryCaptiveForm.vue');
+const Informations = () => import('@/pages/Informations/Informations.vue');
+const InformationsForm = () => import('../pages/Informations/InformationsForm.vue');
+const InformationPrintDialog = () => import('../pages/Informations/InformationPrintDialog.vue');
+
+const FifthyFormatsRoute = () => import('@/components/FiftyFormatsRoute.vue');
+
+// 56 Formats pages
+const Fasads = () => import('@/pages/FiftyFormats/Fasads.vue');
+const SaeenFasad = () => import('@/pages/FiftyFormats/SaeenFasad.vue');
+const Heist = () => import('@/pages/FiftyFormats/Heist.vue');
+const Captives = () => import('@/pages/FiftyFormats/Captives.vue');
+const Mulkanos = () => import('@/pages/FiftyFormats/Mulkanos.vue');
+const EntryExits = () => import('@/pages/FiftyFormats/EntryExit.vue');
+const Sarafyanos = () => import('@/pages/FiftyFormats/Sarafyano.vue');
+const Clubs = () => import('@/pages/FiftyFormats/Clubs.vue');
+const Mahajerats = () => import('@/pages/FiftyFormats/Mahajerat.vue');
+const Soldiers = () => import('@/pages/FiftyFormats/Soldiers.vue');
+
+const Mawads = () => import('@/pages/FiftyFormats/Mawads.vue');
+const LostMujremeens = () => import('@/pages/FiftyFormats/LostMujremens.vue');
+const OldSoldiersHomes = () => import('@/pages/FiftyFormats/OldSoldiersHomes.vue');
+const Robbers = () => import('@/pages/FiftyFormats/Robbers.vue');
+const NonResposablePeople = () => import('@/pages/FiftyFormats/NonResponsablePeople.vue');
+const MashkokHomes = () => import('@/pages/FiftyFormats/MashkokHomes.vue');
+const DamagePlacses = () => import('@/pages/FiftyFormats/DamagePlacses.vue');
+const DamageRasanPlaces = () => import('@/pages/FiftyFormats/DamageRasanPlaces.vue');
+const MashkokShops = () => import('@/pages/FiftyFormats/MashkokShops.vue');
+const Luchakanos = () => import('@/pages/FiftyFormats/Luchakanos.vue');
+
+const Schools = () => import('@/pages/FiftyFormats/Schools.vue');
+const HadoBusStop = () => import('@/pages/FiftyFormats/HadoBusStop.vue');
+const TransportCompany = () => import('@/pages/FiftyFormats/TransportCompany.vue');
+const CarSalesCompany = () => import('@/pages/FiftyFormats/CarSalesCompany.vue');
+const Parkings = () => import('@/pages/FiftyFormats/Parkings.vue');
+const Banks = () => import('@/pages/FiftyFormats/Bank.vue');
+const Apartments = () => import('@/pages/FiftyFormats/Apartments.vue');
+const RahnomaMamlats = () => import('@/pages/FiftyFormats/RahnomaMamlat.vue');
+const Hosppitals = () => import('@/pages/FiftyFormats/Hosppital.vue');
+const WorkShops = () => import('@/pages/FiftyFormats/WorkShops.vue');
+
+const Badmashanos = () => import('@/pages/FiftyFormats/Badmashano.vue');
+const Sarayanos = () => import('@/pages/FiftyFormats/Sarayanos.vue');
+const Hotels = () => import('@/pages/FiftyFormats/Hotels.vue');
+const Hostels = () => import('@/pages/FiftyFormats/Hostels.vue');
+const Tujarans = () => import('@/pages/FiftyFormats/Tujarans.vue');
+const Mujahedinos = () => import('@/pages/FiftyFormats/Mujahedinos.vue');
+const EmaratOffices = () => import('@/pages/FiftyFormats/EmaratOffices.vue');
+const OldJahadis = () => import('@/pages/FiftyFormats/OldJahadis.vue');
+const MashkokPeopls = () => import('@/pages/FiftyFormats/MashkokPeoples.vue');
+const Madrasa = () => import('@/pages/FiftyFormats/Madrasa.vue');
+
+const Wakilanos = () => import('@/pages/FiftyFormats/Wakilano.vue');
+const Universities = () => import('@/pages/FiftyFormats/University.vue');
+const Masjids = () => import('@/pages/FiftyFormats/Masjid.vue');
+const HighWays = () => import('@/pages/FiftyFormats/Highway.vue');
+const Companies = () => import('@/pages/FiftyFormats/Company.vue');
+const DoneLostPlaces = () => import('@/pages/FiftyFormats/DoneLostPlaces.vue');
+const EconemyProjects = () => import('@/pages/FiftyFormats/EconemyProject.vue');
+const CriminalCapturePlaces = () => import('@/pages/FiftyFormats/CriminalCapturePlace.vue');
+const Pumps = () => import('@/pages/FiftyFormats/Pump.vue');
+const Shoras = () => import('@/pages/FiftyFormats/Shora.vue');
+const CheckPoints = () => import('@/pages/FiftyFormats/Checkpoint.vue');
+const GovernmentPlaces = () => import('@/pages/FiftyFormats/GovernmentPlace.vue');
+const Parks = () => import('@/pages/FiftyFormats/Park.vue');
+const Complexes = () => import('@/pages/FiftyFormats/Complex.vue');
+const DeplomaticPlaces = () => import('@/pages/FiftyFormats/DeplomaticPlace.vue');
+const SuperMarkets = () => import('@/pages/FiftyFormats/SuperMarket.vue');
+
+// Finance
+const finincalIndex = () => import('@/pages/Finincal/finincalIndex.vue');
+
+// Inline info
+const Inlineinfoindex = () => import('@/pages/InlineInfo/inlineinfoindex.vue');
+const ResourceInfo = () => import('@/pages/InlineInfo/ResourceInfo.vue');
+const Resourcetab = () => import('@/pages/InlineInfo/Resourcetab.vue');
+const Eventtab = () => import('@/pages/InlineInfo/Eventtab.vue');
+const Khayratreport = () => import('../pages/InlineInfo/khayratreport.vue');
+
+// Map
+const MapAfghanistan = () => import('@/pages/Map/MapAfghanistan.vue');
+const offlinemap = () => import('@/pages/Map/offlinemap.vue');
+
+// RBAC pages
+const Roles = () => import('@/pages/rbac/Roles.vue');
+const RolePermissions = () => import('../pages/rbac/RolePermissions.vue');
+
+// Misc
+const NoAccess = () => import('@/pages/NoAccess.vue');
+const NotificationsPage = () => import('../components/NotificationsPage.vue');
+
+// Reports
+const FiftyFormatsReportPage = () => import('../pages/reports/FiftyFormatsReportPage.vue');
+const OfficeEmployeesActivityReport = () =>
+  import('../pages/reports/OfficeEmployeesActivityReport.vue');
+const OfficeEmployeeRelationPage = () => import('../pages/reports/OfficeEmployeeRelationPage.vue');
+const EventReport = () => import('../pages/reports/EventActivityReport.vue');
+const InformationActivityReport = () => import('../pages/reports/InformationActivityReport.vue');
+
+const DailyFoulReport = () => import('../pages/reports/DailyFoulReport.vue');
+const MonthlyFoulReport = () => import('../pages/reports/MonthlyFoulReport.vue');
+const YearlyFoulReport = () => import('../pages/reports/YearlyFoulReport.vue');
+const WeeklyFoulReports = () => import('../pages/reports/WeeklyFoulReports.vue');
+const FoulQuarterlyReports = () => import('../pages/reports/FoulQuarterlyReports.vue');
+const AllTimeFoulReports = () => import('../pages/reports/AllTimeFoulReports.vue');
+const ReportNotesIndex = () => import('../pages/reports/ReportNotesIndex.vue');
+
+// Outgoing incoming
+const OutgoingIncomingForm = () => import('../pages/OutgoingIncoming/OutgoingIncomingForm.vue');
+const OutgoingIncomingIndex = () => import('../pages/OutgoingIncoming/OutgoingIncomingIndex.vue');
+
+// Active/Inactive resource
+const ActiveResource = () => import('../pages/ActiveInactiveResource/ActiveResource.vue');
+const InactiveResource = () => import('../pages/ActiveInactiveResource/InactiveResource.vue');
+
+// Settings
+const ProvincesPage = () => import('../pages/Settings/ProvincesPage.vue');
+const DistrictsPage = () => import('../pages/Settings/DistrictsPage.vue');
+const ZonesIndex = () => import('../pages/Settings/Zones/ZonesIndex.vue');
+const HawzasIndex = () => import('../pages/Settings/Zones/HawzasIndex.vue');
+const EventTypes = () => import('../pages/Settings/EventType/EventTypes.vue');
+const EventSpecificTypes = () => import('../pages/Settings/EventType/EventSpecificTypes.vue');
+const JenayeeTypesIndex = () => import('../pages/Settings/JenayeeTypes/JenayeeTypesIndex.vue');
+const SeyaseeTypesIndex = () => import('../pages/Settings/SeyaseeTypes/SeyaseeTypesIndex.vue');
+const OrgansIndex = () => import('../pages/Settings/Organs/OrgansIndex.vue');
+const JobTypesIndex = () => import('../pages/Settings/JobTypes/JobTypesIndex.vue');
+const ResourceActivityTypesIndex = () =>
+  import('../pages/Settings/ResourceActivityTypes/ResourceActivityTypesIndex.vue');
+const SystemSettingsIndex = () => import('../pages/Settings/SystemSettingsIndex.vue');
+const MawqafJahadisIndex = () => import('../pages/Settings/MawqafJahadis/MawqafJahadisIndex.vue');
+const FormatZonePage = () => import('../pages/Settings/FormatZone/FormatZonePage.vue');
+const DocsTypesIndex = () => import('../pages/Settings/DocsType/DocsTypesIndex.vue');
+const MarjasIndex = () => import('../pages/Settings/Marja/MarjasIndex.vue');
+const LetryFormatsIndex = () => import('../pages/Settings/LetryFormats/LetryFormatsIndex.vue');
+
+// Khayrat report index
+const KhayratReportsIndex = () => import('../pages/KHayratReport/KhayratReportsIndex.vue');
+
+// Jawasis
+const JawasisIndex = () => import('../pages/FiftyFormats/JawasisIndex.vue');
+const JawasisForm = () => import('../pages/FiftyFormats/JawasiForm.vue');
+
+// Forms (56 formats)
+const CaptiveForm = () => import('../pages/FiftyFormats/CaptiveForm.vue');
+const HeistForm = () => import('../pages/FiftyFormats/HeistForm.vue');
+const FasadForm = () => import('../pages/FiftyFormats/FasadForm.vue');
+const SaeenFasadForm = () => import('../pages/FiftyFormats/SaeenFasadForm.vue');
+const EntryExitForm = () => import('../pages/FiftyFormats/EntryExitForm.vue');
+const SarafyanoForm = () => import('../pages/FiftyFormats/SarafyanoForm.vue');
+const MahajeratForm = () => import('../pages/FiftyFormats/MahajeratForm.vue');
+const ClubForm = () => import('../pages/FiftyFormats/ClubForm.vue');
+const SoldierForm = () => import('../pages/FiftyFormats/SoldierForm.vue');
+const MawadForm = () => import('../pages/FiftyFormats/MawadForm.vue');
+const MulkanoForm = () => import('../pages/FiftyFormats/MulkanoForm.vue');
+const LostMujremeenForm = () => import('../pages/FiftyFormats/LostMujremeenForm.vue');
+const OldSoldiersHomeForm = () => import('../pages/FiftyFormats/OldSoldiersHomeForm.vue');
+const RobberForm = () => import('../pages/FiftyFormats/RobberForm.vue');
+const NonResponsablePeopleForm = () => import('../pages/FiftyFormats/NonResponsablePeopleForm.vue');
+const MashkokHomeForm = () => import('../pages/FiftyFormats/MashkokHomeForm.vue');
+const DamagePlaceForm = () => import('../pages/FiftyFormats/DamagePlaceForm.vue');
+const DamageRasanPlaceForm = () => import('../pages/FiftyFormats/DamageRasanPlaceForm.vue');
+const MashkokShopForm = () => import('../pages/FiftyFormats/MashkokShopForm.vue');
+const LuchakanoForm = () => import('../pages/FiftyFormats/LuchakanoForm.vue');
+const SchoolForm = () => import('../pages/FiftyFormats/SchoolForm.vue');
+const HadaBusStopForm = () => import('../pages/FiftyFormats/HadaBusStopForm.vue');
+const TransportCompanyForm = () => import('../pages/FiftyFormats/TransportCompanyForm.vue');
+const ParkingForm = () => import('../pages/FiftyFormats/ParkingForm.vue');
+const BankForm = () => import('../pages/FiftyFormats/BankForm.vue');
+const CarSalesCompanyForm = () => import('../pages/FiftyFormats/CarSalesCompanyForm.vue');
+const ApartmentForm = () => import('../pages/FiftyFormats/ApartmentForm.vue');
+const RahnomaMamlatForm = () => import('../pages/FiftyFormats/RahnomaMamlatForm.vue');
+const HospitalForm = () => import('../pages/FiftyFormats/HospitalForm.vue');
+const WorkShopForm = () => import('../pages/FiftyFormats/WorkShopForm.vue');
+const BadmashanoForm = () => import('../pages/FiftyFormats/BadmashanoForm.vue');
+const SarayanoForm = () => import('../pages/FiftyFormats/SarayanoForm.vue');
+const HostelForm = () => import('../pages/FiftyFormats/HostelForm.vue');
+const EmaratOfficeForm = () => import('../pages/FiftyFormats/EmaratOfficeForm.vue');
+const HotelForm = () => import('../pages/FiftyFormats/HotelForm.vue');
+const MadrasaForm = () => import('../pages/FiftyFormats/MadrasaForm.vue');
+const MashkokPeopleForm = () => import('../pages/FiftyFormats/MashkokPeopleForm.vue');
+const MujahedinoForm = () => import('../pages/FiftyFormats/MujahedinoForm.vue');
+const OldJahadisForm = () => import('../pages/FiftyFormats/OldJahadisForm.vue');
+const TujaransForm = () => import('../pages/FiftyFormats/TujaransForm.vue');
+const MasjidForm = () => import('../pages/FiftyFormats/MasjidForm.vue');
+const CheckpointForm = () => import('../pages/FiftyFormats/CheckpointForm.vue');
+const HighwayForm = () => import('../pages/FiftyFormats/HighwayForm.vue');
+const CompanyForm = () => import('../pages/FiftyFormats/CompanyForm.vue');
+const DoneLostPlaceForm = () => import('../pages/FiftyFormats/DoneLostPlaceForm.vue');
+const CriminalCapturePlaceForm = () => import('../pages/FiftyFormats/CriminalCapturePlaceForm.vue');
+const EconemyProjectForm = () => import('../pages/FiftyFormats/EconemyProjectForm.vue');
+const PumpForm = () => import('../pages/FiftyFormats/PumpForm.vue');
+const GovernmentPlaceForm = () => import('../pages/FiftyFormats/GovernmentPlaceForm.vue');
+const SuperMarketForm = () => import('../pages/FiftyFormats/SuperMarketForm.vue');
+const ShoraForm = () => import('../pages/FiftyFormats/ShoraForm.vue');
+const ParkForm = () => import('../pages/FiftyFormats/ParkForm.vue');
+const ComplexForm = () => import('../pages/FiftyFormats/ComplexForm.vue');
+const DeplomaticPlaceForm = () => import('../pages/FiftyFormats/DeplomaticPlaceForm.vue');
+const UniversityForm = () => import('../pages/FiftyFormats/UniversityForm.vue');
+const WakilanoForm = () => import('../pages/FiftyFormats/WakilanoForm.vue');
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -455,7 +480,6 @@ const router = createRouter({
           path: 'fifthyformatsroute',
           component: FifthyFormatsRoute,
           meta: { requiresAuth: true, perm: permFor('fifthyformatsroute') },
-
         },
 
         // 56 Formats — base
