@@ -25,6 +25,7 @@ class ResourceResource extends JsonResource
         // counts (use withCount when available)
         $eventsCount = $this->relCount('events_count', 'events');
         $infosCount  = $this->relCount('informations_count', 'informations');
+        $khayratCount = $this->relCount('khayrat_reports_count', 'khayratReports');
 
         // ✅ Prefer precomputed value if present
         $fiftySixFormatsCount = isset($this->fifty_six_formats_count)
@@ -136,6 +137,8 @@ class ResourceResource extends JsonResource
             // ✅ trust percentage computed
             'trust_percentage'   => $trustPercentage,
 
+            'khayrat_reports_count' => $khayratCount,
+            
             'payed_money' => (float) ($this->payed_money ?? 0),
 
             // misc
