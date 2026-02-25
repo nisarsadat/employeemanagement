@@ -741,6 +741,7 @@
     { title: t('پول داده شده'), key: 'payed_money' },
     { title: t('تعداد واقعات'), key: 'events_count' },
     { title: t('تعداد اطلاعات'), key: 'informations_count' },
+    { title: t('تعداد راپور خیریت'), key: 'khayrat_reports_count' },
     { title: t('تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
     { title: t('۵۶ فارمټ'), key: 'letry_format_name' },
     { title: t('کارمند مربوطه'), key: 'office_employee_id' },
