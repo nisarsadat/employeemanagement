@@ -9,6 +9,10 @@ return new class extends Migration {
     {
         Schema::create('saeen_fasads', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('information_id')
+            ->nullable()
+            ->constrained('information')   // because your table name is singular
+            ->nullOnDelete();              // if Information deleted, set NULL (or use cascadeOnDelete if you prefer)
             $table->string('name'); // required
 
             // from your picture (kept as-is)

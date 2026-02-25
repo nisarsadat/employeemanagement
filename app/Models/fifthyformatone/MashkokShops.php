@@ -11,6 +11,8 @@ class MashkokShops extends Model
     use HasFactory;
 
     protected $fillable = [
+        'information_id',
+
         'province',
         'zone',
         'district',
@@ -38,5 +40,9 @@ class MashkokShops extends Model
     public function resource()
     {
         return $this->belongsTo(Resource::class , 'resource_id' , 'id');
+    }
+    public function information()
+    {
+        return $this->belongsTo(\App\Models\Information::class, 'information_id');
     }
 }

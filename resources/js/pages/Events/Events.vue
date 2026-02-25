@@ -318,6 +318,7 @@
           <v-tooltip :text="t('ویرایش واقعه')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
+                v-if="auth.can('events.update')"
                 size="small"
                 v-bind="tooltipProps"
                 color="amber-darken-2"
@@ -394,9 +395,9 @@
 
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
+  const auth = useLoginRepository();
 
   const repo = useDatabaseRepository();
-  const auth = useLoginRepository();
   const router = useRouter();
 
   /* i18n / RTL */
@@ -501,7 +502,10 @@
     if (calendar.value === 'jalali') {
       try {
         const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat(locale.value, { calendar: 'persian', month: 'numeric' });
+        const fmt = new Intl.DateTimeFormat(locale.value, {
+          calendar: 'persian',
+          month: 'numeric',
+        });
         const parts = fmt.formatToParts(dt);
         const m = Number(parts.find((p) => p.type === 'month')?.value);
         if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
@@ -512,7 +516,10 @@
     if (calendar.value === 'hijri') {
       try {
         const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat('ar', { calendar: 'islamic-umalqura', month: 'numeric' });
+        const fmt = new Intl.DateTimeFormat('ar', {
+          calendar: 'islamic-umalqura',
+          month: 'numeric',
+        });
         const parts = fmt.formatToParts(dt);
         const m = Number(parts.find((p) => p.type === 'month')?.value);
         if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
@@ -570,8 +577,12 @@
     );
   }
 
-  const syasiCount = computed(() => baseEvents.value.filter((r) => isSyasiType(r.event_type)).length);
-  const jenayeeCount = computed(() => baseEvents.value.filter((r) => isJenayeeType(r.event_type)).length);
+  const syasiCount = computed(
+    () => baseEvents.value.filter((r) => isSyasiType(r.event_type)).length
+  );
+  const jenayeeCount = computed(
+    () => baseEvents.value.filter((r) => isJenayeeType(r.event_type)).length
+  );
 
   function isSameDate(dateValue, today) {
     if (!dateValue) return false;
@@ -667,21 +678,29 @@
     { title: t('نوع واقعه'), keys: ['event_type', 'event_specific_type'] },
     { title: t('هدف و عامل'), keys: ['target_person', 'criminal'] },
     { title: t('زمان'), keys: ['event_date', 'event_hour'] },
-    { title: t('مکان'), keys: ['event_zone', 'event_hawza', 'event_specific_place', 'coordinates'] },
+    {
+      title: t('مکان'),
+      keys: ['event_zone', 'event_hawza', 'event_specific_place', 'coordinates'],
+    },
     { title: t('تلفات'), keys: ['talafat_mali', 'injured', 'killed'] },
     { title: t('متن‌ها'), keys: ['tafseel', 'note', 'docs_note'] },
   ]);
 
   function financeStatusLabel(v) {
-    const s = String(v ?? '').trim().toLowerCase();
+    const s = String(v ?? '')
+      .trim()
+      .toLowerCase();
     if (s === 'paid' || s === 'پرداخت' || s === 'paid_finance') return 'پرداخت شوی';
-    if (s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid') return 'ناپرداخت';
+    if (s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid')
+      return 'ناپرداخت';
     if (!s) return '—';
     return v;
   }
 
   function financeStatusColor(v) {
-    const s = String(v ?? '').trim().toLowerCase();
+    const s = String(v ?? '')
+      .trim()
+      .toLowerCase();
     if (s === 'paid' || s === 'پرداخت' || s === 'paid_finance') return 'green';
     if (s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid') return 'amber';
     return 'grey';

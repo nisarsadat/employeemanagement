@@ -139,7 +139,7 @@
 
             <v-row class="pa-3">
               <!-- منبع -->
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <v-autocomplete
                   v-model="form.resource_id"
                   :items="resourceCodeItems"
@@ -155,7 +155,7 @@
               </v-col>
 
               <!-- کارمند دفتر -->
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <v-autocomplete
                   v-model="form.office_employee_id"
                   :items="officeEmployeesCodeItems"
@@ -192,7 +192,7 @@
               </v-col>
 
               <!-- مجرم -->
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.criminal"
                   :label="t('انجام دهنده جرم')"
@@ -320,7 +320,7 @@
                 />
               </v-col> -->
 
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.talafat_mali"
                   :label="t('تلفات مالی')"
@@ -330,7 +330,7 @@
                   :error-messages="getErrorMessages('talafat_mali')"
                 />
               </v-col>
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.killed"
                   :label="t('کشته شده')"
@@ -340,7 +340,7 @@
                   :error-messages="getErrorMessages('talafat_jani')"
                 />
               </v-col>
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.injured"
                   :label="t('زخمی شده')"
@@ -350,7 +350,6 @@
                   :error-messages="getErrorMessages('talafat_mali')"
                 />
               </v-col>
-              <v-row>
                 <v-col cols="12" md="3">
                   <v-autocomplete
                     v-model="form.office_employee_akhistonky_id"
@@ -365,9 +364,7 @@
                     :error-messages="getErrorMessages('office_employee_akhistonky_id')"
                   />
                 </v-col>
-              </v-row>
               <!-- تفصیل / وضاحت -->
-              <v-row class="px-3 pb-3 pt-0">
                 <v-col cols="12" md="12">
                   <v-text-field
                     v-model="form.tafseel"
@@ -381,7 +378,6 @@
                 <v-col cols="12" md="12">
                   <OrganSelect v-model="form.talks" :label="t('ارگان')" />
                 </v-col>
-              </v-row>
               <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.note"

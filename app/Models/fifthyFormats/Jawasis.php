@@ -14,6 +14,8 @@ class Jawasis extends Model
     protected $table = 'jawasis';
 
     protected $fillable = [
+        'information_id',
+
         'picture',
         'name',
         'nick_name',
@@ -46,6 +48,7 @@ class Jawasis extends Model
 
         'resource_id',
         'notes',
+        'tafseel',
     ];
 
     public function resource()
@@ -56,5 +59,9 @@ class Jawasis extends Model
     public function documents()
     {
         return $this->hasMany(JawasisDocument::class);
+    }
+            public function information()
+    {
+        return $this->belongsTo(\App\Models\Information::class, 'information_id');
     }
 }

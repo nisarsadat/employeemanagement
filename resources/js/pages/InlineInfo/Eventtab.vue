@@ -268,9 +268,7 @@
           <v-card variant="outlined" class="sheet-card px-4 py-3 mt-3">
             <v-card-item class="sheet-title-row">
               <v-icon class="mr-2" size="small">mdi-text-long</v-icon>
-              <v-card-subtitle class="sheet-title">{{
-                t(' اسناد او شواهد')
-              }}</v-card-subtitle>
+              <v-card-subtitle class="sheet-title">{{ t(' اسناد او شواهد') }}</v-card-subtitle>
             </v-card-item>
             <!-- Documents -->
             <v-card variant="outlined" class="docs-field-row">
@@ -440,7 +438,7 @@
             :disabled="submitting || !valid"
             size="large"
           >
-            <v-icon start>mdi-content-save</v-icon>
+            <v-icon v-if="auth.can('inlineinfo.create')" start>mdi-content-save</v-icon>
             {{ t('اظافه کردن واقعه') }}
           </v-btn>
           <v-btn variant="text" color="primary" @click="printEventForm">
@@ -466,7 +464,8 @@
   import ZoneHawzaSelect from '@/components/ZoneHawzaSelect.vue';
   import EventTypeSpecificTypeSelect from '@/components/EventTypeSpecificTypePicker.vue';
   import OrganSelect from '@/components/OrganSelect.vue';
-
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
 

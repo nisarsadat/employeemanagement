@@ -10,7 +10,10 @@ return new class extends Migration
     {
         Schema::create('mawads', function (Blueprint $table) {
             $table->id();
-
+        $table->foreignId('information_id')
+        ->nullable()
+        ->constrained('information')   // because your table name is singular
+        ->nullOnDelete();              // if Information deleted, set NULL (or use cascadeOnDelete if you prefer)
             /* =====================
              | Identity
              |=====================*/

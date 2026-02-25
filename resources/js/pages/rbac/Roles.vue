@@ -104,7 +104,9 @@
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="createDialog = false">{{ t('Cancel') }}</v-btn>
-          <v-btn color="primary" :loading="repo.loading" @click="createRole">
+          <v-btn
+          v-if="auth.can('roles.create')"
+          color="primary" :loading="repo.loading" @click="createRole">
             {{ t('Create') }}
           </v-btn>
         </v-card-actions>

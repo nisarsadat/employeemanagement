@@ -227,6 +227,7 @@
           <v-tooltip :text="t('ویرایش زندانی تسلیم شده')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
+                v-if="auth.can('delevirycaptive.update')"
                 v-bind="tooltipProps"
                 size="small"
                 color="amber-darken-2"
@@ -488,7 +489,6 @@
 
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('ملاحظات'), key: 'notes' },
-
   ]);
 
   /* TOP GROUPS (ارتباطی group removed) */

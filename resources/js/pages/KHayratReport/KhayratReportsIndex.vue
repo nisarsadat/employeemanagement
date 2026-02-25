@@ -41,6 +41,7 @@
 
         <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
           <v-btn
+            v-if="auth.can('khayratreport.create')"
             color="primary"
             variant="flat"
             size="large"
@@ -122,6 +123,7 @@
           <v-tooltip :text="t('ویرایش')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
+                v-if="auth.can('khayratreport.update')"
                 size="small"
                 v-bind="tooltipProps"
                 color="amber-darken-2"
@@ -135,6 +137,7 @@
           <v-tooltip :text="t('حذف')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
+                v-if="auth.can('khayratreport.delete')"
                 size="small"
                 v-bind="tooltipProps"
                 color="red-darken-2"
@@ -181,7 +184,8 @@
 
   import KhayratReportFormDialog from './KhayratReportFormDialog.vue';
   import { useKhayratReportRepository } from '@/stores/KhayratReportRepository';
-
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (v) => (isRtl.value = v === 'fa'));

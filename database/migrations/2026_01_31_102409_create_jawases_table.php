@@ -9,7 +9,10 @@ return new class extends Migration {
     {
         Schema::create('jawasis', function (Blueprint $table) {
             $table->id();
-
+        $table->foreignId('information_id')
+        ->nullable()
+        ->constrained('information')   // because your table name is singular
+        ->nullOnDelete();              // if Information deleted, set NULL (or use cascadeOnDelete if you prefer)
             $table->string('picture')->nullable();
             $table->string('name')->nullable();
             $table->string('nick_name')->nullable();
@@ -42,6 +45,7 @@ return new class extends Migration {
 
             $table->foreignId('resource_id')->nullable()->constrained()->nullOnDelete();
             $table->text('notes')->nullable();
+            $table->text('tafseel')->nullable();
 
             $table->timestamps();
         });

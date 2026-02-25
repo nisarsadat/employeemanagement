@@ -9,6 +9,10 @@ return new class extends Migration {
     {
         Schema::create('captives', function (Blueprint $table) {
             $table->id();
+        $table->foreignId('information_id')
+        ->nullable()
+        ->constrained('information')   // because your table name is singular
+        ->nullOnDelete();              // if Information deleted, set NULL (or use cascadeOnDelete if you prefer)
             $table->string('name'); // required
 
             $table->string('picture')->nullable();

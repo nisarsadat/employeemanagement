@@ -47,6 +47,7 @@ class StoreJawasisRequest extends FormRequest
 
             'resource_id' => ['nullable', 'integer', 'exists:resources,id'],
             'notes' => ['nullable', 'string'],
+            'tafseel' => ['nullable', 'string'],
 
             // multiple docs
             'documents' => ['nullable', 'array'],

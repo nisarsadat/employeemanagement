@@ -29,6 +29,7 @@
 
         <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
           <v-btn
+            v-if="auth.can('outgoingincomming.create')"
             color="primary"
             variant="flat"
             size="large"
@@ -187,6 +188,7 @@
           <v-tooltip text="ویرایش" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
+                v-if="auth.can('outgoingincomming.edit')"
                 size="small"
                 v-bind="tooltipProps"
                 @click.stop="startEdit(item)"
@@ -200,6 +202,7 @@
           <v-tooltip text="حذف" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
+                v-if="auth.can('outgoingincomming.delete')"
                 size="small"
                 v-bind="tooltipProps"
                 @click.stop="openDeleteDialog(item)"
@@ -242,7 +245,8 @@
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
   import { useOutgoingIncomingRepository } from '@/stores/OutgoingIncomingRepository';
-
+  import { useLoginRepository } from '@/stores/LoginRepository';
+  const auth = useLoginRepository();
   const router = useRouter();
   const { t, locale } = useI18n();
   const repo = useOutgoingIncomingRepository();

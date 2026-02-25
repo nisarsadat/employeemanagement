@@ -13,6 +13,8 @@ class Mawad extends Model
     use EnforceSingleFormatPerResource;
 
     protected $fillable = [
+        'information_id',
+
         'mawad_type',
         'nickname',
         'name',
@@ -47,5 +49,9 @@ class Mawad extends Model
     public function resource()
     {
         return $this->belongsTo(Resource::class , 'resource_id' , 'id');
+    }
+    public function information()
+    {
+        return $this->belongsTo(\App\Models\Information::class, 'information_id');
     }
 }

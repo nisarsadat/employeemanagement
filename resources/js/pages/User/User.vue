@@ -2,10 +2,7 @@
 <template>
   <!-- Dialogs -->
   <CreateUser v-if="UsersRepository.createDialog" />
-  <UpdateUser
-    v-if="UsersRepository.updateDialog"
-    :key="UsersRepository.User.id || 'update-user'"
-  />
+  <UpdateUser v-if="UsersRepository.updateDialog" :key="UsersRepository.User.id || 'update-user'" />
 
   <v-container fluid class="mt-12 pl-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <AppBar :title="t('User')" :subtitle="t('Add a User')" @toggle-drawer="drawer = !drawer">
@@ -28,12 +25,7 @@
       </v-col>
 
       <v-col cols="12" md="1" class="text-right">
-        <v-btn
-          v-if="auth.can('users.create')"
-          color="primary"
-          variant="flat"
-          @click="createPopUp"
-        >
+        <v-btn v-if="auth.can('users.create')" color="primary" variant="flat" @click="createPopUp">
           <v-icon left>mdi-plus</v-icon>
         </v-btn>
       </v-col>
@@ -80,7 +72,7 @@
       <template #item.roles="{ item }">
         <div class="d-flex flex-wrap gap-1">
           <v-chip
-            v-for="role in (Array.isArray(item.roles) ? item.roles : [])"
+            v-for="role in Array.isArray(item.roles) ? item.roles : []"
             :key="role"
             :color="stringToColor(role)"
             variant="flat"
@@ -105,7 +97,12 @@
             <v-list-item
               v-if="auth.can('users.update')"
               :disabled="!rowId(item)"
-              @click="() => { const id = rowId(item); if (id) editItem(id); }"
+              @click="
+                () => {
+                  const id = rowId(item);
+                  if (id) editItem(id);
+                }
+              "
             >
               <template #prepend>
                 <v-icon color="grey-darken-1">mdi-pencil-outline</v-icon>
@@ -116,7 +113,12 @@
             <v-list-item
               v-if="auth.can('users.delete')"
               :disabled="!rowId(item)"
-              @click="() => { const id = rowId(item); if (id) deleteItem(id); }"
+              @click="
+                () => {
+                  const id = rowId(item);
+                  if (id) deleteItem(id);
+                }
+              "
             >
               <template #prepend>
                 <v-icon color="grey-darken-1">mdi-delete-outline</v-icon>
@@ -152,95 +154,95 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import AppBar from '../../components/AppBar.vue'
-import CreateUser from './CreateUser.vue'
-import UpdateUser from './UpdateUser.vue'
-import { useUsersRepository } from '../../stores/UsersRepository'
-import { useLoginRepository } from '../../stores/LoginRepository'
+  import { ref, watch, computed, onMounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import AppBar from '../../components/AppBar.vue';
+  import CreateUser from './CreateUser.vue';
+  import UpdateUser from './UpdateUser.vue';
+  import { useUsersRepository } from '../../stores/UsersRepository';
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
 
-const UsersRepository = useUsersRepository()
-const auth = useLoginRepository()
+  const UsersRepository = useUsersRepository();
 
-const drawer = ref(false)
-const { t, locale } = useI18n()
-const isRtl = ref(locale.value === 'fa')
-watch(locale, l => (isRtl.value = l === 'fa'))
+  const drawer = ref(false);
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-onMounted(() => {
-  UsersRepository.FetchUsersData()
-  UsersRepository.FetchRolesAll()
-})
+  onMounted(() => {
+    UsersRepository.FetchUsersData();
+    UsersRepository.FetchRolesAll();
+  });
 
-const headers = computed(() => [
-  { title: t('انتخاب'), key: 'data-table-select', sortable: false, align: 'end' },
-  { title: t('تصویر'), key: 'image_url', sortable: false },
-  { title: t('نام کاربر'), key: 'username', sortable: true },
-  { title: t('نقش'), key: 'roles', sortable: false },
-  { title: t('عملیات'), key: 'actions', sortable: false, align: 'end' },
-])
+  const headers = computed(() => [
+    { title: t('انتخاب'), key: 'data-table-select', sortable: false, align: 'end' },
+    { title: t('تصویر'), key: 'image_url', sortable: false },
+    { title: t('نام کاربر'), key: 'username', sortable: true },
+    { title: t('نقش'), key: 'roles', sortable: false },
+    { title: t('عملیات'), key: 'actions', sortable: false, align: 'end' },
+  ]);
 
-const search = computed({
-  get: () => UsersRepository.Search,
-  set: (val) => {
-    UsersRepository.Search = val || ''
-    UsersRepository.page = 1
-    UsersRepository.FetchUsersData()
-  },
-})
+  const search = computed({
+    get: () => UsersRepository.Search,
+    set: (val) => {
+      UsersRepository.Search = val || '';
+      UsersRepository.page = 1;
+      UsersRepository.FetchUsersData();
+    },
+  });
 
-/** ✅ Safely extract row id (datatable may wrap rows) */
-const rowId = (it) => it?.raw?.id ?? it?.id ?? null
+  /** ✅ Safely extract row id (datatable may wrap rows) */
+  const rowId = (it) => it?.raw?.id ?? it?.id ?? null;
 
-const createPopUp = () => {
-  UsersRepository.createDialog = true
-}
-const editItem = async (id) => {
-  await UsersRepository.startEdit(id)
-}
-const deleteItem = (id) => {
-  UsersRepository.DeleteUser(id)
-}
+  const createPopUp = () => {
+    UsersRepository.createDialog = true;
+  };
+  const editItem = async (id) => {
+    await UsersRepository.startEdit(id);
+  };
+  const deleteItem = (id) => {
+    UsersRepository.DeleteUser(id);
+  };
 
-/** 🔵 Unlimited role colors: deterministic HSL by role name */
-function stringToColor(str) {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  /** 🔵 Unlimited role colors: deterministic HSL by role name */
+  function stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360; // 0..360
+    const sat = 65; // tweak if needed
+    const light = 55; // tweak if needed
+    return `hsl(${hue}, ${sat}%, ${light}%)`;
   }
-  const hue = Math.abs(hash) % 360              // 0..360
-  const sat = 65                                 // tweak if needed
-  const light = 55                               // tweak if needed
-  return `hsl(${hue}, ${sat}%, ${light}%)`
-}
 
-/** 🖼️ Image preview state */
-const previewSrc = ref(null)
-const previewOpen = ref(false)
-const openPreview = (src) => {
-  if (!src) return
-  previewSrc.value = src
-  previewOpen.value = true
-}
+  /** 🖼️ Image preview state */
+  const previewSrc = ref(null);
+  const previewOpen = ref(false);
+  const openPreview = (src) => {
+    if (!src) return;
+    previewSrc.value = src;
+    previewOpen.value = true;
+  };
 </script>
 
 <style scoped>
-.v-data-table {
-  border-radius: 4px;
-  overflow: hidden;
-}
-.v-data-table-header {
-  background-color: rgba(0, 0, 0, 0.02);
-}
-.v-data-table-header th {
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-.clickable {
-  cursor: zoom-in;
-}
-.role-chip {
-  color: white; /* ensure readable text over vivid HSL */
-}
+  .v-data-table {
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .v-data-table-header {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  .v-data-table-header th {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .clickable {
+    cursor: zoom-in;
+  }
+  .role-chip {
+    color: white; /* ensure readable text over vivid HSL */
+  }
 </style>

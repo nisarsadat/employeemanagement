@@ -31,7 +31,9 @@
       <v-card class="pa-4 form-card mx-2" elevation="2" rounded="xl">
         <!-- Header -->
         <v-card-title class="form-title d-flex align-center mb-4">
-          <v-icon color="primary" class="me-2">mdi-file-document</v-icon>
+          <v-icon v-if="auth.can('khayratreport.create')" color="primary" class="me-2"
+            >mdi-file-document</v-icon
+          >
           {{ t('ثبت گزارش خیرات') }}
         </v-card-title>
 
@@ -182,6 +184,7 @@
             :loading="submitting"
             :disabled="submitting || !valid"
             size="large"
+            v-if="auth.can('khayratreport.create')"
           >
             <v-icon start>mdi-content-save</v-icon>
             {{ t('ثبت گزارش') }}
@@ -218,7 +221,8 @@
 
   import DateInput from '@/components/DateInput.vue';
   import ZoneHawzaPicker from '@/components/ZoneHawzaSelect.vue';
-
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
   import { useKhayratReportRepository } from '@/stores/KhayratReportRepository';
 
   const router = useRouter();

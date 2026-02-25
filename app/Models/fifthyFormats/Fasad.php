@@ -10,6 +10,8 @@ class Fasad extends Model
     use HasFactory;
 
     protected $fillable = [
+        'information_id',
+
         'name',
         'picture', // ✅ single picture path
         'nick_name',
@@ -52,5 +54,9 @@ class Fasad extends Model
     public function documents()
     {
         return $this->hasMany(FasadDocument::class);
+    }
+        public function information()
+    {
+        return $this->belongsTo(\App\Models\Information::class, 'information_id');
     }
 }

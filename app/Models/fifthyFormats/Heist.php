@@ -10,6 +10,8 @@ class Heist extends Model
     use HasFactory;
 
     protected $fillable = [
+        'information_id',
+
         'name',
         'picture',
         'father_name',
@@ -43,5 +45,9 @@ class Heist extends Model
     public function documents()
     {
         return $this->hasMany(HeistDocument::class);
+    }
+    public function information()
+    {
+        return $this->belongsTo(\App\Models\Information::class, 'information_id');
     }
 }

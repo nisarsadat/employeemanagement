@@ -12,6 +12,7 @@ class Captive extends Model
     use HasFactory;
 
     protected $fillable = [
+        'information_id',
         'name',
         'picture',
         'nick_name',
@@ -47,7 +48,10 @@ class Captive extends Model
     {
         return $this->belongsTo(Resource::class);
     }
-
+    public function information()
+    {
+        return $this->belongsTo(\App\Models\Information::class, 'information_id');
+    }
     // 🧹 delete files when a captive is deleted
     protected static function booted()
     {

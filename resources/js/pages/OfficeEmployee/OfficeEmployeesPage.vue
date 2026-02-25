@@ -399,6 +399,7 @@
           <v-tooltip text="تغییر جزیات کارمند" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
+                v-if="auth.can('officeemployee.update')"
                 size="small"
                 v-bind="tooltipProps"
                 @click.stop="startEdit(item)"

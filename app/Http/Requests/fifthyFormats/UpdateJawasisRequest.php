@@ -47,6 +47,7 @@ class UpdateJawasisRequest extends FormRequest
 
             'resource_id' => ['nullable', 'integer', 'exists:resources,id'],
             'notes' => ['nullable', 'string'],
+            'tafseel' => ['nullable', 'string'],
 
             // docs
             'documents' => ['nullable', 'array'],

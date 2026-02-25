@@ -11,6 +11,8 @@ class MashkokHomes extends Model
     use HasFactory;
 
     protected $fillable = [
+        'information_id',
+
         'picture',
         'province',
         'zone',
@@ -37,6 +39,9 @@ class MashkokHomes extends Model
     {
         return $this->hasMany(MashkokHomesDocument::class, 'mashkok_home_id');
     }
-
+    public function information()
+    {
+        return $this->belongsTo(\App\Models\Information::class, 'information_id');
+    }
 
 }

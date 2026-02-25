@@ -334,18 +334,13 @@
       <!-- 📑 Fifty-six formats count -->
       <template #cell-code_number="{ row }">
         <div class="d-flex flex-column align-start">
-              <v-btn
-                class="px-2 py-1 text-none"
-                color="warning"
-                size="default"
-                variant="tonal"
-              >
-                <div class="d-flex align-center ga-1">
-                  <span class="text-body-2">
-                    {{ getRow(row).code_number }}
-                  </span>
-                </div>
-              </v-btn>
+          <v-btn class="px-2 py-1 text-none" color="warning" size="default" variant="tonal">
+            <div class="d-flex align-center ga-1">
+              <span class="text-body-2">
+                {{ getRow(row).code_number }}
+              </span>
+            </div>
+          </v-btn>
         </div>
       </template>
 
@@ -377,6 +372,7 @@
           <v-tooltip text="تغییر جزیات منبع" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
+                v-if="auth.can('resources.update')"
                 size="small"
                 v-bind="tooltipProps"
                 @click.stop="startEdit(item)"

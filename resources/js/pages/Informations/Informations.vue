@@ -79,6 +79,7 @@
         <!-- Create -->
         <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
           <v-btn
+            v-if="auth.can('informations.create')"
             color="primary"
             variant="flat"
             size="large"
@@ -339,6 +340,7 @@
           <v-tooltip text="تغییر جزیات اطلاع" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
+                v-if="auth.can('informations.update')"
                 size="small"
                 v-bind="tooltipProps"
                 color="amber-darken-2"
@@ -366,6 +368,7 @@
           <v-tooltip text="حذف اطلاع" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
+                v-if="auth.can('informations.delete')"
                 size="small"
                 v-bind="tooltipProps"
                 color="red-darken-2"

@@ -490,9 +490,7 @@
               </v-col>
               <v-col cols="12" md="4">
                 <v-card-item>
-                  <v-card-subtitle class="field-label">{{
-                    t('کتگوری اطلاع')
-                  }}</v-card-subtitle>
+                  <v-card-subtitle class="field-label">{{ t('کتگوری اطلاع') }}</v-card-subtitle>
                 </v-card-item>
                 <v-card-text>
                   <v-text-field
@@ -660,6 +658,7 @@
           </v-btn>
 
           <v-btn
+            v-if="auth.can('inlineinfo.create')"
             color="primary"
             type="submit"
             :loading="submitting"
@@ -684,7 +683,8 @@
   import SeyaseeTypeSelect from '@/components/SeyaseeTypeSelect.vue';
   import JenayeeTypeSelect from '@/components/JenayeeTypeSelect.vue';
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
-
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
 
