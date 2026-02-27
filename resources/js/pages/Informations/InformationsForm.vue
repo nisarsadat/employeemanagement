@@ -485,7 +485,7 @@
                   variant="outlined"
                 />
               </v-col>
-              <v-col cols="12" md="12">
+              <v-col cols="12" md="6">
                 <v-select
                   v-model="form.resource_lasrasy"
                   :items="['مستقیم', 'غیر مستقیم']"
@@ -493,6 +493,14 @@
                   variant="outlined"
                   density="compact"
                   clearable
+                />
+              </v-col>
+              <v-col cols="6" md="12">
+                <v-text-field
+                  v-model="form.coordinates"
+                  :label="t('مختصات')"
+                  variant="outlined"
+                  density="compact"
                 />
               </v-col>
             </v-row>
@@ -950,6 +958,7 @@
     information_degree: '',
     information_category: '',
     resource_lasrasy: '',
+    coordinates: '',
 
     tafseel: '',
     manager_comment: '',
@@ -1082,6 +1091,7 @@
     base.information_degree = x.information_degree ?? '';
     base.information_category = x.information_category ?? '';
     base.resource_lasrasy = x.resource_lasrasy ?? '';
+    base.coordinates = x.coordinates ?? '';
 
     base.tafseel = x.tafseel ?? '';
     base.manager_comment = x.manager_comment ?? '';

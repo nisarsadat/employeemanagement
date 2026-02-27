@@ -31,6 +31,7 @@ class StoreInformationRequest extends FormRequest
             'hamahangi_date' => ['nullable','string'],
             'maktop_number'  => ['nullable','string'],
             'organ'          => ['nullable','string'],
+            'coordinates'          => ['nullable','string'],
 
             'main_province' => ['nullable','string'],
             'main_districts' => ['nullable','string'],

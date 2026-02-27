@@ -206,7 +206,7 @@
 
       <!-- Footer -->
       <div class="px-5 py-4 d-flex align-center justify-end" style="gap: 10px;">
-        <!-- ✅ Added: PDF / Word (simple table export) -->
+        <!-- ✅ HTML export (PDF button = printable HTML) -->
         <v-tooltip location="top">
           <template #activator="{ props }">
             <v-btn
@@ -219,9 +219,10 @@
               {{ t('PDF') }}
             </v-btn>
           </template>
-          <span>{{ t('دانلود PDF') }}</span>
+          <span>{{ t('دانلود فایل چاپی (HTML)') }}</span>
         </v-tooltip>
 
+        <!-- ✅ Word export (still HTML, Word-friendly) -->
         <v-tooltip location="top">
           <template #activator="{ props }">
             <v-btn
@@ -234,7 +235,7 @@
               {{ t('Word') }}
             </v-btn>
           </template>
-          <span>{{ t('دانلود Word') }}</span>
+          <span>{{ t('دانلود Word (HTML)') }}</span>
         </v-tooltip>
 
         <v-btn variant="text" @click="close">{{ t('بستن') }}</v-btn>
@@ -284,15 +285,12 @@ function goEmployeeDetails() {
   if (!id) return;
   go(`/app/officeemployee/${id}`);
 }
-
 function goResources() {
   go('/app/resources');
 }
-
 function goInformations() {
   go('/app/informations');
 }
-
 function goEvents() {
   go('/app/events');
 }
@@ -345,11 +343,13 @@ function scoreLabel(score) {
 }
 
 /* ---------------------------
-   ✅ Simple Table Export (PDF/Word)
-   - PDF: window.print() from a clean HTML document
-   - Word: msword blob (HTML)
-   - Simple 2-column table label/value
+   ✅ Beautiful HTML Export (Browser-open + Download)
+   - "PDF": downloads a PRINTABLE HTML (open in browser → Ctrl+P → Save as PDF)
+   - "Word": downloads a Word-friendly HTML (still HTML)
+   - Uses SAME font-family as app.css by reading document.body computed style
+   - Omits empty rows (but keeps numeric counts)
 ---------------------------- */
+
 function escapeHtml(v) {
   return String(v ?? '')
     .replaceAll('&', '&amp;')
@@ -359,26 +359,49 @@ function escapeHtml(v) {
     .replaceAll("'", '&#039;');
 }
 
-function buildRows() {
-  const e = props.employee || {};
-  return [
-    { label: t('نام'), value: e.name ?? '—' },
-    { label: t('کود'), value: e.code_number ?? '—' },
-    { label: t('رتبه'), value: e.rank ?? '—' },
-    { label: t('امتیاز'), value: num(e.score) },
-    { label: t('منابع'), value: num(e.resources_count) },
-    { label: t('اطلاعات'), value: num(e.informations_count) },
-    { label: t('رویدادها'), value: num(e.events_count) },
-  ];
+function getAppFontFamily() {
+  try {
+    const ff = window.getComputedStyle(document.body).fontFamily;
+    return ff && ff.trim() ? ff : 'Arial, Helvetica, sans-serif';
+  } catch {
+    return 'Arial, Helvetica, sans-serif';
+  }
 }
 
-function exportHtmlDocument() {
-  const e = props.employee || {};
-  const dir = rtl.value ? 'rtl' : 'ltr';
-  const lang = rtl.value ? 'fa' : 'en';
-  const title = `${t('پروفایل کارمند')} - ${e.name || ''}`.trim();
+function isEmptyValue(v) {
+  // keep 0 as valid
+  if (typeof v === 'number') return false;
+  const s = String(v ?? '').trim();
+  return !s || s === '—' || s === '-';
+}
 
-  const rows = buildRows()
+function buildRows() {
+  const e = props.employee || {};
+  const rows = [
+    { label: t('نام'), value: e.name ?? '—', keepIfZero: false },
+    { label: t('کود'), value: e.code_number ?? '—', keepIfZero: false },
+    { label: t('رتبه'), value: e.rank ?? '—', keepIfZero: false },
+    { label: t('امتیاز'), value: num(e.score), keepIfZero: true },
+    { label: t('منابع'), value: num(e.resources_count), keepIfZero: true },
+    { label: t('اطلاعات'), value: num(e.informations_count), keepIfZero: true },
+    { label: t('رویدادها'), value: num(e.events_count), keepIfZero: true },
+  ];
+
+  // ✅ omit empty rows (but keep numeric rows like 0 counts)
+  return rows.filter((r) => {
+    if (r.keepIfZero) return true;
+    return !isEmptyValue(r.value);
+  });
+}
+
+function exportHtmlDocument({ mode = 'pdf' } = {}) {
+  const e = props.employee || {};
+  const dir = rtl.value ? 'ltr' : 'ltr';
+  const lang = rtl.value ? 'fa' : 'en';
+  const title = `${t('')} - ${e.name || ''}`.trim();
+  const fontFamily = getAppFontFamily();
+
+  const rowsHtml = buildRows()
     .map(
       (r) => `
         <tr>
@@ -389,7 +412,11 @@ function exportHtmlDocument() {
     )
     .join('');
 
-  // ✅ Simple clean doc: no images, no app header UI; only title + table + signatures
+  const scoreP = scorePercentage(e.score);
+  const scoreTxt = scoreLabel(e.score);
+
+  const softBg = mode === 'word' ? '#ffffff' : '#f7f8fb';
+
   return `
 <!doctype html>
 <html lang="${escapeHtml(lang)}" dir="${escapeHtml(dir)}">
@@ -398,54 +425,263 @@ function exportHtmlDocument() {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(title)}</title>
   <style>
-    * { box-sizing: border-box; }
-    body { font-family: Arial, Helvetica, sans-serif; margin: 28px; color: #111; }
-    h1 { font-size: 18px; margin: 0 0 12px 0; }
-    .meta { font-size: 12px; color: #555; margin-bottom: 16px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ddd; padding: 10px 12px; vertical-align: top; }
-    th { width: 32%; text-align: start; background: #f6f6f6; font-weight: 700; }
-    td { text-align: start; }
-    .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 26px; }
-    .line { border-top: 1px solid #333; padding-top: 8px; font-size: 12px; color: #333; }
-    @media print {
-      body { margin: 14mm; }
-      a { color: inherit; text-decoration: none; }
+    :root{
+      --text: #111;
+      --muted: rgba(0,0,0,.62);
+      --card: #fff;
+      --line: rgba(0,0,0,.08);
+      --soft: rgba(0,0,0,.035);
+      --shadow: 0 18px 40px rgba(0,0,0,.12);
+      --radius: 18px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:${softBg};
+      color:var(--text);
+      font-family:${escapeHtml(fontFamily)};
+    }
+
+    .page{
+      max-width: 900px;
+      margin: 26px auto;
+      padding: 0 14px;
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: ${mode === 'word' ? 'none' : 'var(--shadow)'};
+      overflow:hidden;
+    }
+
+    .header{
+      padding: 18px 18px 14px 18px;
+      background: linear-gradient(135deg, rgba(0,0,0,.06), rgba(0,0,0,.02));
+      border-bottom: 1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 14px;
+    }
+
+    .h-left{ display:flex; align-items:center; gap: 12px; min-width:0; }
+    .avatar{
+      width: 52px; height: 52px;
+      border-radius: 16px;
+      display:flex; align-items:center; justify-content:center;
+      color:#fff;
+      font-weight:900;
+      background: linear-gradient(135deg, rgba(0,0,0,.65), rgba(0,0,0,.25));
+      box-shadow: 0 12px 26px rgba(0,0,0,.18);
+      flex: 0 0 auto;
+    }
+
+    .title{
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1.2;
+      margin:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .sub{
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      font-size: 12px;
+      color: #222;
+      white-space: nowrap;
+    }
+
+    .body{ padding: 18px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .stat{
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      background: rgba(0,0,0,.02);
+    }
+
+    .stat .k{
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .stat .v{
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .scoreWrap{
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 14px;
+      background: #fff;
+    }
+
+    .scoreTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .bar{
+      width:100%;
+      height: 12px;
+      background: rgba(0,0,0,.06);
+      border-radius: 999px;
+      overflow:hidden;
+      border: 1px solid rgba(0,0,0,.05);
+    }
+    .bar > span{
+      display:block;
+      height: 100%;
+      width: ${Number.isFinite(scoreP) ? scoreP : 0}%;
+      background: linear-gradient(90deg, rgba(0,0,0,.85), rgba(0,0,0,.35));
+    }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background:#fff;
+    }
+    th, td{
+      padding: 12px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: start;
+    }
+    th{
+      width: 34%;
+      background: rgba(0,0,0,.03);
+      font-weight: 900;
+      color: #222;
+    }
+    tr:last-child th, tr:last-child td{
+      border-bottom:none;
+    }
+
+    .sign{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .line{
+      border-top: 1px solid rgba(0,0,0,.35);
+      padding-top: 8px;
+      font-size: 12px;
+      color: #222;
+    }
+
+    body { direction: rtl; }
+    th, td { text-align: right; }
+    @media (max-width: 720px){
+      .grid{ grid-template-columns: 1fr; }
+      .header{ flex-direction: column; align-items:flex-start; }
+    }
+
+    @media print{
+      body{ background:#fff; }
+      .page{ margin: 0; max-width:none; padding:0; }
+      .card{ box-shadow:none; border:none; border-radius:0; }
     }
   </style>
 </head>
 <body>
-  <h1>${escapeHtml(t('پروفایل کارمند'))}</h1>
-  <div class="meta">${escapeHtml(t('نام'))}: ${escapeHtml(e.name || '—')} &nbsp; • &nbsp; ${escapeHtml(t('کود'))}: ${escapeHtml(e.code_number || '—')}</div>
+  <div class="page">
+    <div class="card">
+      <div class="header">
+        <div class="h-left">
+          <div class="avatar">${escapeHtml(initials(e.name))}</div>
+          <div style="min-width:0;">
+            <h1 class="title">${escapeHtml(t(''))}</h1>
+            <div class="sub">
+              <span class="chip">${escapeHtml(t('نام'))}: ${escapeHtml(e.name || '—')}</span>
+              <span class="chip">${escapeHtml(t('کود'))}: ${escapeHtml(e.code_number || '—')}</span>
+              <span class="chip">${escapeHtml(t('رتبه'))}: ${escapeHtml(e.rank ?? '—')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <table>
-    <tbody>
-      ${rows}
-    </tbody>
-  </table>
+      <div class="body">
+        <div class="grid">
+          <div class="stat">
+            <div class="k">${escapeHtml(t('منابع'))}</div>
+            <div class="v">${escapeHtml(num(e.resources_count))}</div>
+          </div>
+          <div class="stat">
+            <div class="k">${escapeHtml(t('اطلاعات'))}</div>
+            <div class="v">${escapeHtml(num(e.informations_count))}</div>
+          </div>
+          <div class="stat">
+            <div class="k">${escapeHtml(t('رویدادها'))}</div>
+            <div class="v">${escapeHtml(num(e.events_count))}</div>
+          </div>
+          <div class="stat">
+            <div class="k">${escapeHtml(t('امتیاز'))}</div>
+            <div class="v">${escapeHtml(num(e.score))}</div>
+          </div>
+        </div>
 
-  <div class="sign">
-    <div class="line">${escapeHtml(t('امضا'))}</div>
-    <div class="line">${escapeHtml(t('تاریخ'))}</div>
+        <div class="scoreWrap">
+          <div class="scoreTop">
+            <div>${escapeHtml(t('امتیاز'))}: <b style="color:#111;">${escapeHtml(num(e.score))}</b></div>
+            <div>${escapeHtml(scoreTxt)}</div>
+          </div>
+          <div class="bar"><span></span></div>
+        </div>
+
+        <table>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+
+        <div class="sign">
+          <div class="line">${escapeHtml(t('امضا'))}</div>
+          <div class="line">${escapeHtml(t('تاریخ'))}</div>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 </html>
   `.trim();
-}
-
-function openPrintWindow(html, title = 'print') {
-  const w = window.open('', '_blank');
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  // Ensure styles loaded before printing
-  w.onload = () => {
-    w.document.title = title;
-    w.focus();
-    w.print();
-    // optional: w.close();
-  };
 }
 
 function downloadBlob(content, mime, filename) {
@@ -471,24 +707,30 @@ function safeFileName(name) {
 function exportPdf() {
   if (props.loading || !props.employee) return;
   const e = props.employee;
-  const html = exportHtmlDocument();
-  const fname = `Employee_${safeFileName(e?.name)}_${e?.code_number || ''}.pdf`.replace(/_+\.pdf$/, '.pdf');
-  // PDF via print dialog (user can save as PDF)
-  openPrintWindow(html, fname);
+
+  // ✅ printable HTML file (open in browser then Ctrl+P → Save as PDF)
+  const html = exportHtmlDocument({ mode: 'pdf' });
+  const fname = `Employee_${safeFileName(e?.name)}_${e?.code_number || ''}.html`
+    .replace(/_+\.html$/, '.html');
+
+  downloadBlob(html, 'text/html;charset=utf-8', fname);
 }
 
 function exportWord() {
   if (props.loading || !props.employee) return;
   const e = props.employee;
-  const html = exportHtmlDocument();
 
-  // Word-compatible HTML
-  const wordHtml =
-    `<!doctype html><html><head><meta charset="utf-8"></head><body>${html
-      .replace(/^[\s\S]*<body>/i, '')
-      .replace(/<\/body>[\s\S]*$/i, '')}</body></html>`;
+  // ✅ Word-friendly HTML (still HTML)
+  const html = exportHtmlDocument({ mode: 'word' });
 
-  const fname = `Employee_${safeFileName(e?.name)}_${e?.code_number || ''}.doc`.replace(/_+\.doc$/, '.doc');
+  // Minimal Word wrapper
+  const wordHtml = `<!doctype html><html><head><meta charset="utf-8"></head><body>${html
+    .replace(/^[\s\S]*<body>/i, '')
+    .replace(/<\/body>[\s\S]*$/i, '')}</body></html>`;
+
+  const fname = `Employee_${safeFileName(e?.name)}_${e?.code_number || ''}.doc`
+    .replace(/_+\.doc$/, '.doc');
+
   downloadBlob(wordHtml, 'application/msword;charset=utf-8', fname);
 }
 </script>

@@ -14,11 +14,15 @@ server {
     gzip_types text/plain text/css application/json application/javascript application/xml text/xml image/svg+xml;
 
     # ✅ IMPORTANT: Serve Vite build assets directly + cache (fixes slow frontend)
-    location ^~ /build/ {
-        try_files $uri =404;
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
+location ^~ /build/ {
+    alias /var/www/employeemanagement/public/build/;
+    access_log off;
+
+    expires 1y;
+    add_header Cache-Control "public, max-age=31536000, immutable" always;
+
+    try_files $uri =404;
+}
 
     # ✅ Other static files cache
     location ~* \.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?)$ {

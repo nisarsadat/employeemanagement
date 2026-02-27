@@ -393,6 +393,16 @@
           </v-tooltip>
         </div>
       </template>
+      <!-- 🗺 Map cell -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="getRow(row).coordinates"
+          :title="getRow(row).name"
+          :subtitle="getRow(row).syasi_info_type || getRow(row).jenayee_info_type"
+          type="information"
+          :zoom="16"
+        />
+      </template>
     </FilterableTable>
 
     <DeleteConfirmDialog
@@ -423,7 +433,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
-
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
 
@@ -689,6 +699,7 @@
     { title: t('تاریخ هم‌آهنگی'), key: 'hamahangi_date' },
     { title: t('شماره مکتوب'), key: 'maktop_number' },
     { title: t('ارگان'), key: 'organ' },
+    { title: t('مختصات'), key: 'coordinates' },
     { title: t('تفصیل'), key: 'tafseel' },
     { title: t('نظر آمریت تعقیب اطلاع'), key: 'tahlil' },
     { title: t('نظر مدیر'), key: 'manager_comment' },
@@ -696,6 +707,7 @@
     { title: t('نتیجه'), key: 'result' },
     { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
     { title: t('نوت راجع به اسناد'), key: 'docs_note' },
+    { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('ملاحظات'), key: 'note' },
   ]);
 

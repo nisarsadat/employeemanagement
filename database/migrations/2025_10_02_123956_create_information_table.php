@@ -68,6 +68,7 @@ return new class extends Migration {
             $table->string('hamahangi_date')->nullable();
             $table->string('maktop_number')->nullable();
             $table->string('organ')->nullable();
+            $table->string('coordinates')->nullable();
 
             $table->string('information_saved_hour')->nullable();
             $table->string('information_degree')->nullable();

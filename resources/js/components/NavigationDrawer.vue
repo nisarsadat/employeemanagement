@@ -1,128 +1,127 @@
 <template>
   <v-navigation-drawer
-    app
-    permanent
+    v-model="drawerOpen"
+    temporary
+    :location="props.location"
     width="240"
     :dir="isRtl ? 'rtl' : 'ltr'"
-    :color="$vuetify.theme.current.dark ? 'grey-darken-4' : 'bgproject'"
-    class="brright px-2 d-flex flex-column"
+    class="blur-drawer"
+    @mouseleave="drawerOpen = false"
   >
-    <!-- Top logo -->
-    <div class="logo-container">
-      <v-list-item class="logo-container2" />
-    </div>
-
-    <!-- Scrollable nav -->
-    <div class="scrollable-content">
-      <!-- ✅ Control opened groups from ONE place -->
-      <v-list v-model:opened="openedGroups">
-        <template v-for="item in filteredNavigationItems" :key="item.key">
-          <!-- Single items -->
-          <v-list-item
-            v-if="!item.children"
-            :to="item.to"
-            rounded="lg"
-            :dir="isRtl ? 'rtl' : 'ltr'"
-            :active="isActive(item)"
-            class="nav-item"
-            :class="{ 'nav-item-active': isActive(item) }"
-          >
-            <template #prepend>
-              <div class="icon-bg" :class="{ 'icon-bg-active': isActive(item) }">
-                <v-icon :icon="item.icon" />
-              </div>
-            </template>
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
-          </v-list-item>
-
-          <!-- Groups -->
-          <v-list-group v-else :value="item.key">
-            <template #activator="{ props }">
-              <v-list-item
-                v-bind="props"
-                :append-icon="null"
-                class="nav-item"
-                :class="{
-                  'nav-item-active': isGroupOpen(item),
-                  'group-open': isGroupOpen(item),
-                }"
-                :dir="isRtl ? 'rtl' : 'ltr'"
-              >
-                <template #prepend>
-                  <div class="icon-bg" :class="{ 'icon-bg-active': isGroupOpen(item) }">
-                    <v-icon :icon="item.icon" />
-                  </div>
-                </template>
-
-                <v-list-item-title>{{ item.title }}</v-list-item-title>
-
-                <template #append>
-                  <v-icon
-                    :icon="isGroupOpen(item) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
-                    size="small"
-                    class="group-chevron"
-                  />
-                </template>
-              </v-list-item>
-            </template>
-
+    <div class="drawer-root">
+      <!-- Scrollable nav -->
+      <div class="scrollable-content">
+        <!-- ✅ Control opened groups from ONE place -->
+        <v-list v-model:opened="openedGroups">
+          <template v-for="item in filteredNavigationItems" :key="item.key">
+            <!-- Single items -->
             <v-list-item
-              v-for="child in item.children"
-              :key="child.key"
-              :to="child.to"
-              class="nav-child-item"
-              :class="{ 'nav-child-active': isActive(child) }"
-              :active="isActive(child)"
+              v-if="!item.children"
+              :to="item.to"
+              rounded="lg"
+              :dir="isRtl ? 'rtl' : 'ltr'"
+              :active="isActive(item)"
+              class="nav-item"
+              :class="{ 'nav-item-active': isActive(item) }"
             >
               <template #prepend>
-                <div class="child-indicator">
-                  <div class="child-dot" :class="{ 'child-dot-active': isActive(child) }"></div>
+                <div class="icon-bg" :class="{ 'icon-bg-active': isActive(item) }">
+                  <v-icon :icon="item.icon" />
                 </div>
               </template>
-              <v-list-item-title>{{ child.title }}</v-list-item-title>
+              <v-list-item-title>{{ item.title }}</v-list-item-title>
             </v-list-item>
-          </v-list-group>
-        </template>
-      </v-list>
-    </div>
 
-    <!-- Bottom profile block -->
-    <v-divider class="mt-2 mb-1" />
+            <!-- Groups -->
+            <v-list-group v-else :value="item.key">
+              <template #activator="{ props }">
+                <v-list-item
+                  v-bind="props"
+                  :append-icon="null"
+                  class="nav-item"
+                  :class="{
+                    'nav-item-active': isGroupOpen(item),
+                    'group-open': isGroupOpen(item),
+                  }"
+                  :dir="isRtl ? 'rtl' : 'ltr'"
+                >
+                  <template #prepend>
+                    <div class="icon-bg" :class="{ 'icon-bg-active': isGroupOpen(item) }">
+                      <v-icon :icon="item.icon" />
+                    </div>
+                  </template>
 
-    <v-menu
-      v-model="profileMenu"
-      location="top start"
-      :dir="isRtl ? 'rtl' : 'ltr'"
-      :close-on-content-click="true"
-    >
-      <template #activator="{ props }">
-        <v-list-item v-bind="props" class="profile-tile my-2" rounded="lg" role="button">
-          <template #prepend>
-            <v-avatar size="30" class="mr-3 br-1" v-if="avatarSrc">
-              <v-img :src="avatarSrc" alt="avatar" cover />
-            </v-avatar>
-            <v-avatar size="40" class="mr-3 bg-primary bold" v-else>
-              <span class="text-subtitle-1 font-weight-bold">{{ initials }}</span>
-            </v-avatar>
+                  <v-list-item-title>{{ item.title }}</v-list-item-title>
+
+                  <template #append>
+                    <v-icon
+                      :icon="isGroupOpen(item) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                      size="small"
+                      class="group-chevron"
+                    />
+                  </template>
+                </v-list-item>
+              </template>
+
+              <v-list-item
+                v-for="child in item.children"
+                :key="child.key"
+                :to="child.to"
+                class="nav-child-item"
+                :class="{ 'nav-child-active': isActive(child) }"
+                :active="isActive(child)"
+              >
+                <template #prepend>
+                  <div class="child-indicator">
+                    <div class="child-dot" :class="{ 'child-dot-active': isActive(child) }"></div>
+                  </div>
+                </template>
+                <v-list-item-title>{{ child.title }}</v-list-item-title>
+              </v-list-item>
+            </v-list-group>
+          </template>
+        </v-list>
+      </div>
+
+      <!-- ✅ Fixed bottom profile (does not move on scroll) -->
+      <div class="profile-fixed ">
+
+        <v-menu
+          v-model="profileMenu"
+          location="top start"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+          :close-on-content-click="true"
+        >
+          <template #activator="{ props }">
+            <v-list-item v-bind="props" class="profile-tile my-2 " rounded="lg" role="button">
+              <template #prepend>
+                <v-avatar size="30" class="mr-3 br-1" v-if="avatarSrc">
+                  <v-img :src="avatarSrc" alt="avatar" cover />
+                </v-avatar>
+                <v-avatar size="40" class="mr-3 bg-primary bold" v-else>
+                  <span class="text-subtitle-1 font-weight-bold">{{ initials }}</span>
+                </v-avatar>
+              </template>
+
+              <v-list-item-title class="text-body-2 font-weight-medium">
+                {{ displayName }}
+              </v-list-item-title>
+              <v-list-item-subtitle class="text-caption text-grey-darken-1">
+                {{ usernameAt }}
+              </v-list-item-subtitle>
+            </v-list-item>
           </template>
 
-          <v-list-item-title class="text-body-2 font-weight-medium">
-            {{ displayName }}
-          </v-list-item-title>
-          <v-list-item-subtitle class="text-caption text-grey-darken-1">
-            {{ usernameAt }}
-          </v-list-item-subtitle>
-        </v-list-item>
-      </template>
-
-      <v-card min-width="220">
-        <v-list density="compact">
-          <v-list-item @click="onLogout" prepend-icon="mdi-logout-variant">
-            <v-list-item-title>{{ t('Logout') }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-card>
-    </v-menu>
+          <v-card min-width="220">
+            <v-list density="compact">
+              <v-list-item @click="onLogout" prepend-icon="mdi-logout-variant">
+                <v-list-item-title>{{ t('Logout') }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </div>
+    </div>
   </v-navigation-drawer>
 </template>
 
@@ -134,6 +133,17 @@
   // Stores
   import { useLoginRepository } from '@/stores/LoginRepository';
   import { useUsersRepository } from '@/stores/UsersRepository';
+
+  const props = defineProps({
+    modelValue: { type: Boolean, default: false }, // open/close from parent
+    location: { type: String, default: 'left' }, // left/right from parent
+  });
+  const emit = defineEmits(['update:modelValue']);
+
+  const drawerOpen = computed({
+    get: () => props.modelValue,
+    set: (v) => emit('update:modelValue', v),
+  });
 
   const route = useRoute();
   const { locale, t } = useI18n();
@@ -432,6 +442,40 @@
 </script>
 
 <style scoped>
+  .drawer-root {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* critical for scroll */
+  }
+
+  .scrollable-content {
+    flex: 1 1 auto;
+    min-height: 0; /* critical for scroll */
+    overflow-y: auto;
+    padding-bottom: 10px;
+  }
+
+  .profile-fixed {
+    flex: 0 0 auto;
+    padding: 0 8px 8px;
+    background: inherit;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(6px);
+    z-index: 10;
+  }
+
+  .scrollable-content {
+    flex: 1 1 auto;
+    min-height: 0; /* important so the flex child can scroll */
+    overflow-y: auto;
+    padding-bottom: 110px; /* keeps last nav items visible above fixed profile */
+  }
+  .scrollable-content::-webkit-scrollbar {
+    width: 0px;
+  }
+
+  /* keep your existing styles (no logic/icon changes) */
   .icon-bg {
     background-color: white;
     color: black;
@@ -454,14 +498,6 @@
     color: white;
     box-shadow: 0 4px 8px rgba(var(--v-theme-primary), 0.3);
     transform: scale(1.05);
-  }
-
-  .scrollable-content {
-    height: calc(99vh - 200px);
-    overflow-y: auto;
-  }
-  .scrollable-content::-webkit-scrollbar {
-    width: 0px;
   }
 
   /* Navigation item styles */
@@ -600,5 +636,18 @@
   .nav-child-item:focus-within {
     outline: 2px solid rgba(var(--v-theme-primary), 0.3);
     outline-offset: 2px;
+  }
+  .blur-drawer {
+    background: rgba(255, 255, 255, 0.6) !important; /* light mode */
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(14px);
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4%;
+  }
+
+  /* Dark mode support */
+  .v-theme--dark .blur-drawer {
+    background: rgba(30, 30, 30, 0.6) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
   }
 </style>

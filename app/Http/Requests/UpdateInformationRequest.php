@@ -34,6 +34,7 @@ class UpdateInformationRequest extends FormRequest
             'hamahangi_date' => ['nullable','string','sometimes'],
             'maktop_number'  => ['nullable','string','sometimes'],
             'organ'          => ['nullable','string','sometimes'],
+            'coordinates'          => ['nullable','string','sometimes'],
 
             'now_province' => ['sometimes','nullable','string'],
             'now_district' => ['sometimes','nullable','string'],

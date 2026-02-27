@@ -6,16 +6,16 @@
   </AppBar>
 
   <!-- 🟩 Parent Row -->
-  <v-container fluid class="bg-bgproject split-wrapper">
-    <v-row class="align-start">
+  <v-container fluid class="bg-bgproject split-wrapper ">
+    <v-row class="align-start ">
       <!-- 🟩 Right Section (Resource Info) -->
-      <v-col cols="12" md="4" lg="5" v-if="auth.can('inlineinfo.view')">
+      <v-col cols="12" md="4" lg="5" class="border-end" v-if="auth.can('inlineinfo.view')">
         <div class="column-scroll">
           <ResourceInfo />
         </div>
       </v-col>
       <!-- 🟦 Left Section (tabs + window) -->
-      <v-col cols="12" md="8" lg="7" class="border-end">
+      <v-col cols="12" md="8" lg="7" class="">
         <div class="column-scroll">
           <v-tabs v-model="tab" fixed-tabs>
             <v-tab color="primary" value="resource">

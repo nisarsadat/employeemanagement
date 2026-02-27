@@ -809,11 +809,10 @@
           />
         </v-col>
         <v-col cols="12" lg="12">
-        <ResourcesByHawzaBarChart
-  :loading="repo.loading"
-  :data="repo.dashboard?.resources?.resources_by_hawza || []"
-/>
-
+          <ResourcesByHawzaBarChart
+            :loading="repo.loading"
+            :data="repo.dashboard?.resources?.resources_by_hawza || []"
+          />
         </v-col>
       </v-row>
     </div>
@@ -868,7 +867,17 @@
 
   // ✅ calendar comes from AppBar (fallback to repo or localStorage)
   const calendar = ref(localStorage.getItem('calendar') || repo.calendar || 'miladi');
+  // dialogs (add these)
+  const employeeDialog = ref(false);
+  const selectedEmployee = ref(null);
+  const employeeDialogLoading = ref(false);
 
+  function closeEmployeeDialog() {
+    employeeDialog.value = false;
+    employeeDialogLoading.value = false;
+    // optional:
+    // selectedEmployee.value = null
+  }
   function onCalendarChange(newCal) {
     const c = String(newCal || '').toLowerCase();
     calendar.value = c || 'miladi';
@@ -1389,9 +1398,7 @@
     }
   }
 
-  function closeEmployeeDialog() {
-    employeeDialog.value = false;
-  }
+
 </script>
 <style scoped>
   /* Add these styles for the new toggles */
