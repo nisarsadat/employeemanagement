@@ -56,10 +56,12 @@ document.addEventListener('DOMContentLoaded', function () {
 import { initReverb } from './plugins/reverb.js';
 initReverb();
 /* ========================================================= */
+import NoAutofill from '@/plugins/noAutofill'
 
 const app = createApp(App);
 const pinia = createPinia();
 
+app.use(NoAutofill)
 app.use(pinia);
 app.use(router);
 app.use(vuetify);

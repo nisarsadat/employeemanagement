@@ -1,12 +1,6 @@
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar :title="t('منابع غیر فعال')" :subtitle="t('فهرست و جستجو')">
-      <template #actions>
-        <v-btn variant="text" prepend-icon="mdi-arrow-left" class="text-none" @click="goBack">
-          {{ t('برگشت') }}
-        </v-btn>
-      </template>
-    </AppBar>
+    <AppBar :title="t('منابع غیر فعال')" :subtitle="t('فهرست و جستجو')"> </AppBar>
 
     <!-- 🔍 Search + ➕ Create -->
     <v-container class="pa-0">

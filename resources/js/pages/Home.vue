@@ -39,7 +39,7 @@ watch(locale, (l) => (isRtl.value = l === "fa"));
 const location = computed(() => (locale.value === "fa" ? "right" : "left"));
 </script> -->
 <template>
-  <v-app flat fluid class="rounded-xl bg-white">
+  <v-app flat fluid class="rounded-xl bg-white" >
     <v-layout flat fluid class="no-scroll-layout">
       <NavigationDrawer
         v-model="drawerOpen"
