@@ -53,6 +53,10 @@ return new class extends Migration {
             $table->string('now_district')->nullable();
             $table->string('now_village')->nullable();
 
+            $table->string('specefic_place')->nullable();
+            $table->string('home_number')->nullable();
+            $table->string('street_number')->nullable();
+
             // ===============================
             // Info types
             // ===============================

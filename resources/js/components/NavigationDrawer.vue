@@ -84,8 +84,7 @@
       </div>
 
       <!-- ✅ Fixed bottom profile (does not move on scroll) -->
-      <div class="profile-fixed ">
-
+      <div class="profile-fixed">
         <v-menu
           v-model="profileMenu"
           location="top start"
@@ -93,7 +92,7 @@
           :close-on-content-click="true"
         >
           <template #activator="{ props }">
-            <v-list-item v-bind="props" class="profile-tile my-2 " rounded="lg" role="button">
+            <v-list-item v-bind="props" class="profile-tile my-2" rounded="lg" role="button">
               <template #prepend>
                 <v-avatar size="30" class="mr-3 br-1" v-if="avatarSrc">
                   <v-img :src="avatarSrc" alt="avatar" cover />
@@ -446,16 +445,75 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    min-height: 0; /* critical for scroll */
+    min-height: 0; /* critical */
   }
 
+  /* IMPORTANT: allow it to shrink inside flex */
   .scrollable-content {
     flex: 1 1 auto;
-    min-height: 0; /* critical for scroll */
+    min-height: 0;
     overflow-y: auto;
-    padding-bottom: 10px;
+  }
+  /* ✅ BEAUTIFUL SCROLLBAR (glass + modern) */
+  .scrollable-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: 110px;
+
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
   }
 
+  /* Chrome / Edge / Safari */
+  .scrollable-content::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .scrollable-content::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 10px 0; /* top/bottom gap */
+    border-radius: 999px;
+  }
+
+  .scrollable-content::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: linear-gradient(
+      180deg,
+      rgba(var(--v-theme-primary), 0.55),
+      rgba(var(--v-theme-primary), 0.25)
+    );
+    border: 3px solid rgba(255, 255, 255, 0.55); /* makes it look “floating” */
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  }
+
+  .scrollable-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      180deg,
+      rgba(var(--v-theme-primary), 0.75),
+      rgba(var(--v-theme-primary), 0.35)
+    );
+  }
+
+  /* Optional: subtle when not interacting */
+  .scrollable-content::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(
+      180deg,
+      rgba(var(--v-theme-primary), 0.9),
+      rgba(var(--v-theme-primary), 0.45)
+    );
+  }
+
+  /* Dark mode tuning */
+  .v-theme--dark .scrollable-content {
+    scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+  }
+
+  .v-theme--dark .scrollable-content::-webkit-scrollbar-thumb {
+    border: 3px solid rgba(0, 0, 0, 0.35);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  }
   .profile-fixed {
     flex: 0 0 auto;
     padding: 0 8px 8px;
@@ -463,16 +521,6 @@
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     backdrop-filter: blur(6px);
     z-index: 10;
-  }
-
-  .scrollable-content {
-    flex: 1 1 auto;
-    min-height: 0; /* important so the flex child can scroll */
-    overflow-y: auto;
-    padding-bottom: 110px; /* keeps last nav items visible above fixed profile */
-  }
-  .scrollable-content::-webkit-scrollbar {
-    width: 0px;
   }
 
   /* keep your existing styles (no logic/icon changes) */

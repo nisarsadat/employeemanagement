@@ -41,6 +41,10 @@ class StoreInformationRequest extends FormRequest
             'now_district' => ['nullable','string'],
             'now_village' => ['nullable','string'],
 
+            'specefic_place' => ['nullable','string'],
+            'home_number' => ['nullable','string'],
+            'street_number' => ['nullable','string'],
+
             'syasi_info_type' => ['nullable','string'],
             'jenayee_info_type' => ['nullable','string'],
 

@@ -188,7 +188,66 @@
                   />
                 </v-card-text>
               </v-col>
-
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('موقعیت مشخص') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.specefic_place"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    class="cell"
+                    clearable
+                  />
+                </v-card-text>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('شماره خانه') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.home_number"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    class="cell"
+                    clearable
+                  />
+                </v-card-text>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('شماره سرک') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.street_number"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    class="cell"
+                    clearable
+                  />
+                </v-card-text>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('مختصات') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.coordinates"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    class="cell"
+                    clearable
+                  />
+                </v-card-text>
+              </v-col>
               <!-- ✅ NEW: madani_halat (مجرد/متاحل) -->
               <v-col cols="12" md="4">
                 <v-card-item>
@@ -209,7 +268,7 @@
               </v-col>
 
               <!-- ✅ NEW: job -->
-              <v-col cols="12" md="12">
+              <v-col cols="12" md="8">
                 <v-card-item>
                   <v-card-subtitle class="field-label">{{ t('وظیفه') }}</v-card-subtitle>
                 </v-card-item>
@@ -428,6 +487,13 @@
                     :md="12"
                     :disabled="!!draft.syasi_info_type"
                   />
+                </v-card-text> </v-col
+              ><v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('۵۶ فارمټ') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <LetryFormatSelect v-model="draft.letry_format_name" :label="t('۵۶ فارمټ')" />
                 </v-card-text>
               </v-col>
 
@@ -684,6 +750,8 @@
   import JenayeeTypeSelect from '@/components/JenayeeTypeSelect.vue';
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
   import { useLoginRepository } from '../../stores/LoginRepository';
+  import LetryFormatSelect from '@/components/LetryFormatSelect.vue';
+
   const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
@@ -732,6 +800,10 @@
     father_name: '',
     grand_father_name: '',
     age: '', // ✅ NEW
+    specefic_place: '', // ✅ NEW
+    home_number: '', // ✅ NEW
+    street_number: '', // ✅ NEW
+    coordinates: '', // ✅ NEW
     madani_halat: '', // ✅ NEW (مجرد/متاحل)
     job: '', // ✅ NEW
 
@@ -752,6 +824,7 @@
 
     // types & time
     syasi_info_type: '',
+    letry_format_name: '',
     jenayee_info_type: '',
     information_saved_date: '',
     information_saved_hour: '',

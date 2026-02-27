@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->string('grand_father_name')->nullable();
             $table->string('nick_name')->nullable();
             $table->string('code_number')->nullable()->index();
-            $table->string('tazkira')->nullable();
+            $table->string('tazkira')->nullable()->unique();
             $table->string('project')->nullable();
             $table->string('zone')->nullable();
             $table->string('hawza')->nullable();

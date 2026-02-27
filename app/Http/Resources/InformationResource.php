@@ -73,6 +73,11 @@ class InformationResource extends JsonResource
             'main_province'  => $info ? $info->main_province : null,
             'main_districts' => $info ? $info->main_districts : null,
             'main_village'   => $info ? $info->main_village : null,
+
+            'specefic_place'  => $info ? $info->specefic_place : null,
+            'home_number' => $info ? $info->home_number : null,
+            'street_number'   => $info ? $info->street_number : null,
+
             'account_id' => $this->account_id,
             'account' => $this->whenLoaded('account', function () {
                 return [

@@ -47,6 +47,10 @@ class Information extends Model
         'trust_percentage',
         'resource_lasrasy',
 
+        'specefic_plpace',
+        'home_number',
+        'street_number',
+
         'tafseel',
         'coordinates',
         'tahlil',

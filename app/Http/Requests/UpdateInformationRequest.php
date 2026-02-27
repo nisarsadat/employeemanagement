@@ -40,6 +40,10 @@ class UpdateInformationRequest extends FormRequest
             'now_district' => ['sometimes','nullable','string'],
             'now_village'  => ['sometimes','nullable','string'],
 
+            'specefic_place' => ['sometimes','nullable','string'],
+            'home_number' => ['sometimes','nullable','string'],
+            'street_number'  => ['sometimes','nullable','string'],
+
             'syasi_info_type'   => ['sometimes','nullable','string'],
             'jenayee_info_type' => ['sometimes','nullable','string'],
 

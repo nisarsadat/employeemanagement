@@ -283,6 +283,30 @@
                   clearable
                 />
               </v-col>
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.specefic_place"
+                  :label="t('موقعیت مشخص')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.home_number"
+                  :label="t('شماره خانه')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.street_number"
+                  :label="t('شماره سرک')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
             </v-row>
           </v-sheet>
 
@@ -441,6 +465,9 @@
                   :md="12"
                   :disabled="!!form.syasi_info_type"
                 />
+              </v-col>
+              <v-col>
+                <LetryFormatSelect v-model="form.letry_format_name" :label="t('۵۶ فارمټ')" />
               </v-col>
             </v-row>
 
@@ -862,6 +889,8 @@
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
   import SeyaseeTypeSelect from '@/components/SeyaseeTypeSelect.vue';
   import JenayeeTypeSelect from '@/components/JenayeeTypeSelect.vue';
+  import LetryFormatSelect from '@/components/LetryFormatSelect.vue';
+
   import OrganSelect from '@/components/OrganSelect.vue';
   import AppBar from '../../components/AppBar.vue';
   import DateInput from '../../components/DateInput.vue';
@@ -940,6 +969,9 @@
     age: '',
     job: '',
     madani_halat: '',
+    specefic_place: '',
+    home_number: '',
+    street_number: '',
     account_id: null,
 
     main_province: '',
@@ -952,6 +984,7 @@
 
     syasi_info_type: '',
     jenayee_info_type: '',
+    letry_format_name: '',
 
     information_saved_date: repo.getCurrentDate ? repo.getCurrentDate() : '',
     information_saved_hour: '',
@@ -1073,6 +1106,9 @@
     base.age = x.age ?? '';
     base.job = x.job ?? '';
     base.madani_halat = x.madani_halat ?? '';
+    base.specefic_place = x.specefic_place ?? '';
+    base.street_number = x.street_number ?? '';
+    base.home_number = x.home_number ?? '';
     base.account_id = x.account_id ?? x.account?.id ?? null;
 
     base.main_province = x.main_province ?? '';
@@ -1085,6 +1121,7 @@
 
     base.syasi_info_type = x.syasi_info_type ?? '';
     base.jenayee_info_type = x.jenayee_info_type ?? '';
+    base.letry_format_name = x.letry_format_name ?? '';
 
     base.information_saved_date = x.information_saved_date ?? '';
     base.information_saved_hour = x.information_saved_hour ?? '';

@@ -241,6 +241,7 @@
       :autoDetectDates="false"
       :dateKeys="['information_saved_date', 'hamahangi_date']"
       class="mb-20 mx-2"
+      
     >
       <!-- RESOURCE -->
       <template #cell-resource_id="{ row }">
@@ -675,6 +676,9 @@
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
     { title: t('حالت مدنی'), key: 'madani_halat' },
+    { title: t('موقعیت مشخص'), key: 'specefic_place' },
+    { title: t('شماره خانه'), key: 'home_number' },
+    { title: t('شماره سرک'), key: 'street_number' },
     { title: t('سن'), key: 'age' },
     { title: t('وظیفه'), key: 'job' },
 
@@ -688,6 +692,7 @@
 
     { title: t('سیاسی'), key: 'syasi_info_type' },
     { title: t('جنایی'), key: 'jenayee_info_type' },
+    { title: t('۵۶ فارمت'), key: 'letry_format_name' },
 
     { title: t('تاریخ اطلاع'), key: 'information_saved_date' },
     { title: t('ساعت اطلاع'), key: 'information_saved_hour' },
