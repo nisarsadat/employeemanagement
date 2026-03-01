@@ -1,1 +1,7 @@
 public/pmtiles/
+node_modules/
+vendor/
+.env
+dist/
+build/
+public/build/
