@@ -85,6 +85,10 @@ export const MODULE_PASHTO = {
   doctypes: 'د اسنادو ډولونه تنظیمات', // (just in case your slug is this)
 
   reports: 'راپورونه',
+  infocategory: 'د اطلاعاتو کتګوري',
+  letryformatindex: 'د ۵۶ فارمټ د سیستم د ترتیباتو برخه',
+  managercomment: 'مالی برخه او د مدیر نظر',
+  direction: 'د اطلاعاتو د تعقیب آمریت نظر',
 
 
   // These show as "... types" in UI (usually underscore slugs)

@@ -26,12 +26,24 @@
         <v-card class="points-menu-card" rounded="xl">
           <div class="points-menu-head">
             <div class="points-title">په نقشه کې نقطې</div>
-            <div class="points-sub">ټول: {{ allMapItems.length }}</div>
+            <div class="points-sub">
+              ټول: {{ filteredMapItems.length }} / {{ allMapItems.length }}
+            </div>
           </div>
 
           <v-divider />
 
           <v-card-text class="points-menu-body">
+            <v-text-field
+              v-model="pointsQ"
+              density="compact"
+              variant="outlined"
+              hide-details
+              clearable
+              prepend-inner-icon="mdi-magnify"
+              label="لټون"
+              class="mb-3"
+            />
             <!-- Types -->
             <div v-for="g in groupedPoints" :key="g.type" class="type-block">
               <div class="type-head">
@@ -125,6 +137,7 @@
 
   const mapEl = ref(null);
   const map = ref(null);
+  const pointsQ = ref('');
   let protocol;
   const pmtilesUrl = '/pmtiles-range/afghanistan.pmtiles';
 
@@ -874,7 +887,15 @@
     const k = iconKeyOfType(t);
     return ICON_MAP?.[k]?.mdi || 'mdi-map-marker';
   }
-
+  function asText(v) {
+    if (v === null || v === undefined) return '';
+    if (typeof v === 'string') return v;
+    try {
+      return JSON.stringify(v);
+    } catch {
+      return String(v);
+    }
+  }
   function createMarkerEl(item, showLabel) {
     const wrapper = document.createElement('div');
     wrapper.className = 'mmi-marker';
@@ -956,12 +977,27 @@
       m.on('zoom', zoomHandler);
     }
   }
+  const filteredMapItems = computed(() => {
+    const q = String(pointsQ.value || '')
+      .trim()
+      .toLowerCase();
+    const arr = Array.isArray(allMapItems.value) ? allMapItems.value : [];
+    if (!q) return arr;
 
+    return arr.filter((it) => {
+      return (
+        asText(it.title).toLowerCase().includes(q) ||
+        asText(it.subtitle).toLowerCase().includes(q) ||
+        asText(it.typeLabel).toLowerCase().includes(q) ||
+        asText(it.id).toLowerCase().includes(q)
+      );
+    });
+  });
   /* ============================================================
  ✅ Points menu data (group + count + items)
 ============================================================ */
   const groupedPoints = computed(() => {
-    const arr = Array.isArray(allMapItems.value) ? allMapItems.value : [];
+    const arr = filteredMapItems.value;
     const mapG = new Map();
 
     for (const it of arr) {

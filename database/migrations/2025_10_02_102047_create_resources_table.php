@@ -65,6 +65,7 @@ return new class extends Migration {
             $table->string('phone_number_1')->nullable();
             $table->string('phone_number_2')->nullable();
             $table->string('Province_addr')->nullable();
+            $table->string('blood_group')->nullable();
 
             $table->string('coordinates')->nullable();
             $table->text('note')->nullable();

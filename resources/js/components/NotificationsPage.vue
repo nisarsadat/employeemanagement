@@ -607,7 +607,7 @@ onMounted(async () => {
 
 /* CUSTOM SCROLLBAR */
 .notifications-container::-webkit-scrollbar {
-  width: 6px;
+  width: 18px;
 }
 
 .notifications-container::-webkit-scrollbar-track {

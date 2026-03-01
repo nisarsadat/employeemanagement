@@ -199,7 +199,14 @@
       title: t('۵۶ فارمټ ډراپ ډوون'),
       icon: 'mdi-book',
       to: { path: '/app/letryformatindex' },
-      // permission: 'letryformatindex.view',
+      permission: 'letryformatindex.view',
+    },
+    {
+      key: 'infoCategory',
+      title: t('کتگوری اطلاعات'),
+      icon: 'mdi-book',
+      to: { path: '/app/infoCategory' },
+      permission: 'InfoCategory.view',
     },
   ]);
 

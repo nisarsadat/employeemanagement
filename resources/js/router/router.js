@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 // RBAC helpers (keep as normal imports)
 import { firstAccessiblePath, canAccess, permFor } from '@/rbac';
+import InformationCategoriesIndex from '../pages/Settings/InformationCategory/InformationCategoriesIndex.vue';
 
 // ---------- Lazy-loaded Components ----------
 
@@ -1607,6 +1608,11 @@ const router = createRouter({
           path: '/app/marjas',
           name: 'marjas',
           component: MarjasIndex,
+        },
+        {
+          path: '/app/infoCategory',
+          name: 'inforCategory',
+          component: InformationCategoriesIndex,
         },
       ],
     },

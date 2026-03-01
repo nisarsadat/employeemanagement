@@ -32,6 +32,9 @@ import {
   mdiSchool,
   mdiMosque,
   mdiFactory,
+  mdiGymnastics,
+  mdiHomeGroup,
+  mdiPoliceBadge,
   mdiTrafficLightOutline,
   mdiAccountLock,
   mdiGreenhouse,
@@ -94,6 +97,9 @@ const ICONS = {
   universities: { label: 'پوهنتونونه', path: mdiSchool },
   masjids: { label: 'مساجد، خانقاوی', path: mdiMosque },
   companies: { label: 'شرکتونه', path: mdiFactory },
+  companies: { label: 'ورزشي کلبونه', path: mdiGymnastics },
+  mahajerat: { label: 'نوې راغلي کورونه', path: mdiHomeGroup },
+  soldier: { label: 'پخواني چارواکي', path: mdiPoliceBadge },
 
   // "څلور لاری" mapping: I mapped it to complexes (you can change)
   complexes: { label: 'څلور لاری', path: mdiTrafficLightOutline },

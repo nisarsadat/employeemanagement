@@ -180,7 +180,17 @@
           </v-avatar>
         </div>
       </template>
-
+ <!-- 🗺 map -->
+      <template #cell-map="{ row }">
+        <FlyToMapButton
+          :coordinates="row.coordinates"
+          :title="row.name"
+          :subtitle="row.Province_addr"
+          type="fasads"
+          :photo-url="row.picture"
+          :zoom="16"
+        />
+      </template>
       <!-- 🔗 RESOURCE CODE CLICKABLE (same as Fasad) -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -379,7 +389,7 @@ const headersFT = computed(() => [
   { title: t('کوڅه'), key: 'street' },
   { title: t('گذر'), key: 'guzar' },
   { title: t('coordinates'), key: 'coordinates' },
-  { title: t('تفسیر صحیح'), key: 'tafseel_sahi' },
+  { title: t('تفصیل'), key: 'tafseel_sahi' },
   // { title: t('مقدار سرک'), key: 'street_amount' },
   { title: t('وظیفه قبلی'), key: 'old_job' },
   { title: t('وظیفه جدید'), key: 'new_job' },

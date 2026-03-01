@@ -398,7 +398,6 @@
 
   const form = ref({
     id: null,
-    name: '',
     entry_way: '',
     way_type: '',
     province: '',
@@ -519,7 +518,6 @@
 
     form.value = {
       id: isEdit.value ? form.value.id : null,
-      name: '',
       entry_way: '',
       way_type: '',
       province: '',
@@ -555,7 +553,6 @@
 
     form.value = {
       id: x.id ?? null,
-      name: x.name ?? '',
       entry_way: x.entry_way ?? '',
       way_type: x.way_type ?? '',
       province: x.province ?? '',
@@ -705,7 +702,6 @@
     const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
 
     const rows = [
-      [t('نام'), form.value.name],
       [t('طریق ورود/خروج'), form.value.entry_way],
       [t('نوعه طریق'), form.value.way_type],
 

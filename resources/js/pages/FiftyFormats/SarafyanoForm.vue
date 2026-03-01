@@ -152,6 +152,7 @@
                     density="compact"
                     variant="outlined"
                     hide-details="auto"
+                    maxlength="10"
                   />
                 </v-col>
               </v-row>
@@ -178,7 +179,11 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
+                  <FormatZoneAutocomplete
+                    v-model="form.zone"
+                    :label="t('زون')"
+                    :disabled="saving"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">

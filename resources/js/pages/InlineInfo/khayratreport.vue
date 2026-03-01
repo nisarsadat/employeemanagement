@@ -27,6 +27,7 @@
       lazy-validation
       @submit.prevent="onCreate"
       :dir="isRtl ? 'rtl' : 'ltr'"
+      @keydown.enter.prevent
     >
       <v-card class="pa-4 form-card mx-2" elevation="2" rounded="xl">
         <!-- Header -->
@@ -281,23 +282,13 @@
   const resourceOptions = computed(() => repo.lookups?.resources || []);
   const employeeOptions = computed(() => repo.lookups?.employees || []);
 
-  function resourceTitle(x) {
-    const code = x?.code_number ?? '';
-    const name = x?.name ?? '';
-    const left = String(code || '').trim();
-    const right = String(name || '').trim();
-    if (left && right) return `${left} - ${right}`;
-    return right || left || '';
-  }
+function resourceTitle(x) {
+  return String(x?.code_number ?? '').trim();
+}
 
-  function employeeTitle(x) {
-    const code = x?.code_number ?? '';
-    const name = x?.name ?? '';
-    const left = String(code || '').trim();
-    const right = String(name || '').trim();
-    if (left && right) return `${left} - ${right}`;
-    return right || left || '';
-  }
+function employeeTitle(x) {
+  return String(x?.code_number ?? '').trim();
+}
 
   let resTimer = null;
   let empTimer = null;
@@ -376,13 +367,16 @@
     await preloadLookups();
   });
 
-  // ✅ Auto-fill office_employee_id + trust_percentage when resource selected
+  // ✅ Auto-fill office_employee_id + trust_percentage + zone/hawza/specefic_place when resource selected
   watch(
     () => draft.resource_id,
     (newVal) => {
       if (!newVal) {
         draft.office_employee_id = null;
         draft.trust_percentage = '';
+        draft.zone = '';
+        draft.hawza = '';
+        draft.specefic_place = '';
         return;
       }
 
@@ -401,9 +395,15 @@
         r.employee_id ??
         null;
 
-      if (empId) {
-        draft.office_employee_id = empId;
-      }
+      if (empId) draft.office_employee_id = empId;
+
+      // ✅ resource -> zone/hawza (support multiple backend keys)
+      draft.zone = r.zone ?? r.Zone ?? r.zone_name ?? r.zoneName ?? '';
+      draft.hawza = r.hawza ?? r.Hawza ?? r.hawza_name ?? r.hawzaName ?? '';
+
+      // ✅ resource -> specefic_place (support multiple backend keys)
+      draft.specefic_place =
+        r.specefic_place ?? r.specific_place ?? r.specificPlace ?? r.place ?? '';
     }
   );
 </script>

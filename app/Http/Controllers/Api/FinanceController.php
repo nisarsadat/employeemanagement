@@ -254,7 +254,7 @@ class FinanceController extends Controller
             'event_id'           => ['nullable', 'integer', 'exists:events,id'],
 
             // ✅ FIX: correct table name
-            'information_id'     => ['nullable', 'integer', 'exists:informations,id'],
+            'information_id'     => ['nullable', 'integer', 'exists:information,id'],
 
             'money_amount_number' => ['required', 'numeric', 'gt:0'],
             'money_amount_words'  => ['nullable', 'string', 'max:500'],

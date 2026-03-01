@@ -2215,8 +2215,8 @@
   }
 
   .overflow-x-auto::-webkit-scrollbar {
-    width: 6px;
-    height: 8px;
+    width: 18px;
+    height: 18px;
   }
 
   .overflow-x-auto::-webkit-scrollbar-track {
@@ -2239,14 +2239,11 @@
     z-index: 40;
   }
 
-  .overflow-x-auto::-webkit-scrollbar {
-    width: 0px;
-    height: 0px;
-  }
+
 
   .overflow-x-auto:hover::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    width: 18px;
+    height: 18px;
   }
 
   .overflow-x-auto::-webkit-scrollbar-thumb {

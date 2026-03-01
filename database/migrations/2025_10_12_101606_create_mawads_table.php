@@ -74,6 +74,7 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('resources')
                 ->nullOnDelete();
+            $table->unique('resource_id');
 
             $table->timestamps();
 

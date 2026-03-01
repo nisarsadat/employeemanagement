@@ -37,6 +37,7 @@ return new class extends Migration {
 
             // Link to Resource + note
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();
+            $table->unique('resource_id');
             $table->text('note')->nullable();
 
             $table->timestamps();

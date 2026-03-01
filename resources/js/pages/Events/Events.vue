@@ -145,7 +145,7 @@
       </v-col>
 
       <!-- جینایی -->
-      <v-col cols="12" md="3" lg="3">
+      <v-col cols="12" md="3" lg="2">
         <v-card
           class="stat-card"
           :class="{ 'stat-card--active': activeCard === 'jenayee' }"
@@ -168,7 +168,7 @@
       </v-col>
 
       <!-- Today -->
-      <v-col cols="12" md="3" lg="3">
+      <v-col cols="12" md="3" lg="2">
         <v-card
           class="stat-card"
           :class="{ 'stat-card--active': activeCard === 'today' }"
@@ -185,6 +185,28 @@
             </div>
             <v-avatar color="amber" variant="tonal" size="48">
               <v-icon color="amber">mdi-calendar-today</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <!-- Unpaid -->
+      <v-col cols="12" md="3" lg="2">
+        <v-card
+          class="stat-card"
+          :class="{ 'stat-card--active': activeCard === 'unpaid' }"
+          @click="setCardFilter('unpaid')"
+        >
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-red-darken-2 fontfamily">
+                {{ unpaidCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('ناپرداخت') }}
+              </div>
+            </div>
+            <v-avatar color="red-darken-2" variant="tonal" size="48">
+              <v-icon color="red-darken-2">mdi-cash-remove</v-icon>
             </v-avatar>
           </v-card-text>
         </v-card>
@@ -601,7 +623,16 @@
     const today = new Date();
     return baseEvents.value.filter((r) => isSameDate(r.created_at, today)).length;
   });
+  function isUnpaidStatus(v) {
+    const s = String(v ?? '')
+      .trim()
+      .toLowerCase();
+    return s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid';
+  }
 
+  const unpaidCount = computed(
+    () => baseEvents.value.filter((r) => isUnpaidStatus(r.finance_status)).length
+  );
   const filteredEvents = computed(() => {
     const all = baseEvents.value;
 
@@ -611,6 +642,12 @@
       const today = new Date();
       return all.filter((r) => isSameDate(r.created_at, today));
     }
+
+    // ✅ NEW: unpaid
+    if (activeCard.value === 'unpaid') {
+      return all.filter((r) => isUnpaidStatus(r.finance_status));
+    }
+
     return all;
   });
 
@@ -640,6 +677,10 @@
     { title: t('آی ډی'), key: 'id' },
     { title: t('کود منبع'), key: 'resource_display' },
     { title: t('کود کارمند'), key: 'office_employee_display' },
+    { title: t('همغږی'), key: 'talks' },
+    { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
+    { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
+    { title: t('نقشه'), key: 'map', sortable: false },
 
     { title: t('نوعیت واقعه'), key: 'event_type' },
     { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
@@ -660,12 +701,9 @@
     { title: t('کشته شده'), key: 'killed' },
     { title: t('کود کارمند واقعه گیرنده'), key: 'office_employee_akhistonky_code' },
     { title: t('تفصیل'), key: 'tafseel' },
-    { title: t('همغږی'), key: 'talks' },
-    { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
-    { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
+
     { title: t('وجه مصرف'), key: 'money_amount_words' },
 
-    { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('ملاحظات'), key: 'note' },
     { title: t('نوت راجع به اسناد'), key: 'docs_note' },
   ]);

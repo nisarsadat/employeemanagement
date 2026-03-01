@@ -39,6 +39,7 @@ export const useLookupsRepository = defineStore('LookupsRepository', {
       FormatZones: reactive([]),
       DocsTypes: reactive([]),
       Marjas: reactive([]),
+      InformationCategories: reactive([]),
       // ✅ new
       LetryFormats: [],
       loading: false,
@@ -294,6 +295,17 @@ export const useLookupsRepository = defineStore('LookupsRepository', {
       try {
         const { data } = await axios.get(`/letry-formats?page=1&perPage=10000&search=`);
         this.LetryFormats = data?.data || [];
+      } finally {
+        this.loading = false;
+      }
+    },
+    async GetInformationCategories() {
+      this.loading = true;
+      try {
+        const res = await axios.get('/information-categories', {
+          params: { page: 1, perPage: 10000, search: '' },
+        });
+        this.InformationCategories = res?.data ?? [];
       } finally {
         this.loading = false;
       }

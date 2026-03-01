@@ -27,21 +27,46 @@
           <v-row>
             <!-- picture -->
             <v-col cols="12" md="3">
-              <v-card class="d-flex flex-column align-center justify-center pa-3" outlined>
-                <v-avatar size="80" class="mb-2">
-                  <v-img v-if="previewUrl" :src="previewUrl" :alt="form.name" cover />
-                  <v-icon v-else size="48">mdi-account</v-icon>
-                </v-avatar>
+              <v-card class="image-card" variant="outlined" rounded="xl">
+                <div class="image-wrap" @click="triggerFile">
+                  <v-img
+                    v-if="previewUrl"
+                    :src="previewUrl"
+                    height="160"
+                    cover
+                    class="image-preview"
+                  />
+                  <div v-else class="image-empty">
+                    <v-icon size="40">mdi-camera-outline</v-icon>
+                    <div class="text-caption mt-2">{{ t('عکس را انتخاب کنید') }}</div>
+                  </div>
 
-                <v-btn
-                  size="small"
-                  variant="outlined"
-                  prepend-icon="mdi-image"
-                  class="text-none mb-1"
-                  @click="triggerFile"
-                >
-                  {{ t('انتخاب تصویر') }}
-                </v-btn>
+                  <!-- hover overlay -->
+                  <div class="image-overlay">
+                    <v-btn size="small" variant="flat" color="primary" class="text-none">
+                      <v-icon start>mdi-image</v-icon>
+                      {{ t('انتخاب') }}
+                    </v-btn>
+
+                    <v-btn
+                      v-if="previewUrl"
+                      size="small"
+                      variant="tonal"
+                      color="error"
+                      class="text-none"
+                      @click.stop="
+                        form.picture = null;
+                        if (previewUrl && String(previewUrl).startsWith('blob:'))
+                          URL.revokeObjectURL(previewUrl);
+                        previewUrl = null;
+                        fileInput && (fileInput.value = '');
+                      "
+                    >
+                      <v-icon start>mdi-delete-outline</v-icon>
+                      {{ t('حذف') }}
+                    </v-btn>
+                  </div>
+                </div>
 
                 <input
                   ref="fileInput"
@@ -50,12 +75,14 @@
                   accept="image/*"
                   @change="onFileChange"
                 />
+
+               
               </v-card>
             </v-col>
             <v-col cols="12">
               <h3 class="section-title">{{ t('مشخصات اساسی') }}</h3>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.name"
                 :label="t('نام')"
@@ -67,7 +94,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.father_name"
                 :label="t('نام پدر')"
@@ -77,7 +104,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.grand_father_name"
                 :label="t('نام پدرکلان')"
@@ -210,22 +237,14 @@
           </v-row>
 
           <v-row class="mt-1">
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.hawza"
-                :label="t('حوزه')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              /> </v-col
-            ><v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.nahya"
-                :label="t('ناحیه')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              /> </v-col
+            <v-col cols="12" md="12">
+              <ZoneHawzaNameSelect
+                v-model:zone="form.zone"
+                v-model:hawza="form.hawza"
+                :zone-label="t('زون')"
+                :hawza-label="t('حوزه')"
+                :mdZone="6"
+                :mdHawza="6" /></v-col
             ><v-col cols="12" md="3">
               <v-text-field
                 v-model="form.guzar"
@@ -502,6 +521,7 @@
   import { useFasadRepository } from '@/stores/FasadRepository';
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
+  import ZoneHawzaNameSelect from '../../components/ZoneHawzaSelect.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -607,7 +627,7 @@
       const s = String(v ?? '').trim();
       if (!s) return true;
       const clean = s.replace(/\s+/g, '');
-      if (!/^\+?\d{6,20}$/.test(clean)) return t('شماره تماس معتبر نیست');
+      if (!/^\+?\d{10,10}$/.test(clean)) return t('شماره تماس معتبر نیست');
       return true;
     },
 
@@ -981,5 +1001,39 @@
   }
   .ga-2 {
     gap: 8px;
+  }
+  .image-card {
+    overflow: hidden;
+  }
+  .image-wrap {
+    position: relative;
+    cursor: pointer;
+    border-radius: 16px;
+  }
+  .image-preview {
+    border-radius: 16px;
+  }
+  .image-empty {
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed rgba(0, 0, 0, 0.25);
+    border-radius: 16px;
+  }
+  .image-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: 0.18s ease;
+  }
+  .image-wrap:hover .image-overlay {
+    opacity: 1;
   }
 </style>

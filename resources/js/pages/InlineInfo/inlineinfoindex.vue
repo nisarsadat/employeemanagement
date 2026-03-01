@@ -79,7 +79,7 @@
 
   /* Optional: slim scrollbar */
   .column-scroll::-webkit-scrollbar {
-    width: 4px;
+    width: 18px;
   }
   .column-scroll::-webkit-scrollbar-track {
     background: transparent;

@@ -139,6 +139,7 @@
                     :label="t('شماره تماس')"
                     density="compact"
                     variant="outlined"
+                maxlength="10"
                     hide-details="auto"
                   />
                 </v-col>

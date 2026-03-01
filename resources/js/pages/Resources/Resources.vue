@@ -383,21 +383,6 @@
             </template>
           </v-tooltip>
 
-          <!-- دانلود اسناد منبع -->
-          <v-tooltip text="دانلود اسناد مربوط به منبع" location="top">
-            <template #activator="{ props: tooltipProps }">
-              <v-icon
-                size="small"
-                v-bind="tooltipProps"
-                :disabled="!hasDocuments(item)"
-                @click.stop="downloadResourceDocs(item)"
-                color="green-darken-2"
-              >
-                mdi-paperclip
-              </v-icon>
-            </template>
-          </v-tooltip>
-
           <!-- حذف -->
           <v-tooltip text="حذف منبع" location="top">
             <template #activator="{ props: tooltipProps }">
@@ -741,16 +726,17 @@
     { title: t('پول داده شده'), key: 'payed_money' },
     { title: t('تعداد واقعات'), key: 'events_count' },
     { title: t('تعداد اطلاعات'), key: 'informations_count' },
+    { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('تعداد راپور خیریت'), key: 'khayrat_reports_count' },
     { title: t('تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
     { title: t('۵۶ فارمټ'), key: 'letry_format_name' },
     { title: t('کارمند مربوطه'), key: 'office_employee_id' },
     { title: t('رزیدنت مربوطه'), key: 'resedint_code' },
+    { title: t('کود نمبر'), key: 'code_number' },
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
     { title: t('نام مستعار'), key: 'nick_name' },
-    { title: t('کود نمبر'), key: 'code_number' },
     { title: t('تذکره نمبر'), key: 'tazkira' },
 
     { title: t('ولایت اصلی'), key: 'main_province' },
@@ -790,7 +776,6 @@
     { title: t('مربوطه پروژه'), key: 'project' },
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('میزان اعتماد'), key: 'trust_percentage' },
-    { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('نوت'), key: 'note' },
   ]);
 
@@ -916,24 +901,6 @@
       path: '/app/officeemployee',
       query: { office_employee_id: empId },
     });
-  }
-
-  /* ===== Download documents ZIP ===== */
-  async function downloadResourceDocs(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-
-    try {
-      if (typeof repo.DownloadResourceZip === 'function') {
-        await repo.DownloadResourceZip(row.id);
-      } else {
-        console.warn('DownloadResourceZip not implemented on repo');
-        showErrorMessage(t('دانلود اسناد برای این منبع هنوز تنظیم نشده است'));
-      }
-    } catch (e) {
-      console.error('downloadResourceDocs error', e);
-      showErrorMessage(t('خطا در دانلود اسناد منبع'));
-    }
   }
 
   /* ===== Delete using DeleteConfirmDialog ===== */

@@ -421,7 +421,6 @@
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
 
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('ملاحظات'), key: 'note' },

@@ -468,7 +468,7 @@
 
   /* Chrome / Edge / Safari */
   .scrollable-content::-webkit-scrollbar {
-    width: 10px;
+    width: 18px;
   }
 
   .scrollable-content::-webkit-scrollbar-track {

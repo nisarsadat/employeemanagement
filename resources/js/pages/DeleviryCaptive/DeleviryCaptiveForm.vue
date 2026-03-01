@@ -9,7 +9,6 @@
           : t('ثبت یک زندانی تسلیم شده جدید در سیستم')
       "
     >
-      
     </AppBar>
 
     <!-- STEPPER (sticky when scrolling) -->
@@ -404,7 +403,6 @@
                   v-model:district="form.main_district"
                   :province-label="t('ولایت اصلی*')"
                   :district-label="t('ولسوالی اصلی*')"
-                  :rules="[rules.required]"
                   :mdProvince="6"
                   :mdDistrict="6"
                 />
@@ -415,7 +413,6 @@
                   :label="t('قریه/گذر اصلی *')"
                   density="compact"
                   variant="outlined"
-                  :rules="[rules.required]"
                   :error="hasError('main_village')"
                   :error-messages="getErrorMessages('main_village')"
                 />
@@ -511,7 +508,6 @@
                   :error-messages="getErrorMessages('taslimi_akhistonky_person')"
                 />
               </v-col>
-
 
               <v-col cols="12" md="8">
                 <OrganSelect
@@ -902,7 +898,7 @@
     captive_place: '',
     captive_marja: '',
     captive_date: '',
-    captive_hour: '',
+    captive_hour: new Date().toTimeString().slice(0, 5),
 
     // suspect / evidence / notes
     captive_halat: '',
@@ -920,7 +916,7 @@
   /* ===== RULES ===== */
   const rules = {
     required: (v) => !!v || t('این فیلد الزامی است'),
-    phone: (v) => !v || /^(\+?\d{7,15})$/.test(String(v)) || t('شماره تماس نامعتبر است'),
+    phone: (v) => !v || /^(\+?\d{10,10})$/.test(String(v)) || t('شماره تماس نامعتبر است'),
     ageRange: (v) => {
       if (v === '' || v === null || v === undefined) return true;
       const n = Number(v);

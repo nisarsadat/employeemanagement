@@ -17,7 +17,7 @@ class StoreInformationRequest extends FormRequest
             'office_employee_id' => ['nullable','integer','exists:office_employees,id'],
             'office_employee_info_id' => ['nullable','integer','exists:office_employees,id'],
 
-            'name' => ['required','string'],
+            'name' => ['nullable','string'],
             'nick_name' => ['nullable','string'],
             'father_name' => ['nullable','string'],
             'grand_father_name' => ['nullable','string'],

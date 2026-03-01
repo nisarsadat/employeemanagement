@@ -189,9 +189,13 @@
                   density="compact"
                   variant="outlined"
                   clearable
+                  :disabled="officeEmployeeLocked"
                   :error="hasError('office_employee_id')"
                   :error-messages="getErrorMessages('office_employee_id')"
                 />
+                <div v-if="officeEmployeeLocked" class="text-caption text-medium-emphasis mt-1">
+                  {{ t('کارمند مربوط از روی منبع به صورت خودکار انتخاب شد') }}
+                </div>
               </v-col>
             </v-row>
           </v-sheet>
@@ -217,7 +221,6 @@
                   :label="t('نام *')"
                   density="compact"
                   variant="outlined"
-                  :rules="[rules.required]"
                   :error="hasError('name')"
                   :error-messages="getErrorMessages('name')"
                 />
@@ -342,7 +345,6 @@
                   :label="t('قریه/گذر اصلی *')"
                   density="compact"
                   variant="outlined"
-                  :rules="[rules.required]"
                   :error="hasError('main_village')"
                   :error-messages="getErrorMessages('main_village')"
                 />
@@ -505,11 +507,10 @@
                 />
               </v-col>
               <v-col cols="12" md="4">
-                <v-text-field
+                <InformationCategorySelect
                   v-model="form.information_category"
-                  :label="t(' د اطلاع کتګوري')"
-                  density="compact"
-                  variant="outlined"
+                  :label="t('کتگوری اطلاع')"
+                  :disabled="loadingEdit"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -895,6 +896,7 @@
   import AppBar from '../../components/AppBar.vue';
   import DateInput from '../../components/DateInput.vue';
   import { useFinanceRepository } from '@/stores/FinanceRepository';
+  import InformationCategorySelect from '@/components/InformationCategorySelect.vue';
 
   const financeRepo = useFinanceRepository();
 
@@ -1332,10 +1334,8 @@
   const formatResource = (r) => {
     if (!r) return '';
     const code = r.code_number ? String(r.code_number) : '';
-    const nm = r.name ? String(r.name) : '';
-    const dad = r.father_name ? String(r.father_name) : '';
     const id = r.id != null ? `#${r.id}` : '';
-    return [code, nm, dad, id].filter(Boolean).join(' — ');
+    return [code, id].filter(Boolean).join(' — ');
   };
 
   /* ===== STEPPER LOGIC ===== */
@@ -1389,6 +1389,26 @@
       }
     }
   );
+  // ✅ Auto-fill office_employee_id from selected resource
+  watch(
+    () => form.value.resource_id,
+    (resourceId) => {
+      if (!resourceId) {
+        // when resource cleared → free the field + clear value
+        form.value.office_employee_id = null;
+        return;
+      }
+
+      const r = (resourceItems.value || []).find((x) => x.id === resourceId);
+      if (!r) return;
+
+      // ✅ your case: resource has office_employee_id
+      form.value.office_employee_id = r.office_employee_id ?? null;
+    }
+  );
+
+  // ✅ Freeze office employee field when resource selected
+  const officeEmployeeLocked = computed(() => !!form.value.resource_id);
 </script>
 
 <style scoped>

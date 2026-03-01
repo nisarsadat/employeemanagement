@@ -1,6 +1,74 @@
 <template>
   <v-container flat fluid :dir="isRtl ? 'rtl' : 'ltr'">
-    <v-form ref="form" v-model="valid" lazy-validation @submit.prevent="onCreate">
+    <v-dialog v-model="reviewOpen" max-width="900" scrollable>
+      <v-card rounded="xl" :dir="isRtl ? 'rtl' : 'ltr'">
+        <v-card-title class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center" style="gap: 10px">
+            <v-icon>mdi-clipboard-text-outline</v-icon>
+            <span>{{ t('بازبینی معلومات قبل از ثبت') }}</span>
+          </div>
+          <v-btn icon variant="text" @click="reviewOpen = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text class="pretty-scroll" style="max-height: 70vh">
+          <!-- Simple 2-column review table -->
+          <v-table density="compact">
+            <tbody>
+              <tr v-for="row in reviewRows" :key="row.key">
+                <td class="font-weight-bold" style="white-space: nowrap">
+                  {{ row.label }}
+                </td>
+                <td>
+                  {{ row.value || '—' }}
+                </td>
+              </tr>
+
+              <!-- docs -->
+              <tr>
+                <td class="font-weight-bold">{{ t('اسناد / ضمایم') }}</td>
+                <td>
+                  <div v-if="(draft._newDocs || []).length">
+                    <v-chip
+                      v-for="f in draft._newDocs"
+                      :key="fileKey(f)"
+                      size="small"
+                      class="ma-1"
+                      variant="outlined"
+                    >
+                      {{ f.name }}
+                    </v-chip>
+                  </div>
+                  <span v-else>—</span>
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
+        </v-card-text>
+
+        <v-divider />
+
+        <v-card-actions>
+          <v-btn variant="text" @click="reviewOpen = false" :disabled="submitting">
+            {{ t('برگشت') }}
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            :loading="submitting"
+            :disabled="submitting"
+            @click="confirmSubmit"
+          >
+            <v-icon start>mdi-check</v-icon>
+            {{ t('تایید و ثبت') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-form ref="form" v-model="valid" @keydown.enter.prevent lazy-validation @submit.prevent>
       <v-card class="pa-4 form-card" elevation="2">
         <!-- Header -->
         <v-card-title class="form-title d-flex align-center mb-4" :dir="isRtl ? 'rtl' : 'ltr'">
@@ -110,7 +178,6 @@
                     rounded="lg"
                     class="cell"
                     clearable
-                    :rules="[rules.required(t('نام'))]"
                     prepend-inner-icon="mdi-account"
                   />
                 </v-card-text>
@@ -370,15 +437,29 @@
 
           <!-- Types + Time -->
           <v-card variant="outlined" class="sheet-card px-4 py-3 mt-3">
-            <v-card-item class="sheet-title-row">
-              <v-icon class="mr-2" size="small">mdi-timer-outline</v-icon>
-              <v-card-subtitle class="sheet-title">{{
-                t('د اطلاع اړوند اسناد او شواهد')
-              }}</v-card-subtitle>
-            </v-card-item>
-
             <v-row class="tight-grid mt-2">
               <v-col cols="12" md="12">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{ t('تفصیل') }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-textarea
+                    v-model="draft.tafseel"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    rounded="lg"
+                    rows="3"
+                    auto-grow
+                  />
+                </v-card-text>
+              </v-col>
+              <v-col cols="12" md="12">
+                <v-card-item class="sheet-title-row">
+                  <v-card-subtitle class="sheet-title">{{
+                    t('د اطلاع اړوند اسناد او شواهد')
+                  }}</v-card-subtitle>
+                </v-card-item>
                 <!-- Documents -->
                 <v-card variant="outlined" class="docs-field-row sheet-card px-4 py-3 mt-3">
                   <v-card-item class="sheet-title-row">
@@ -458,7 +539,26 @@
                   </v-card-text>
                 </v-card>
               </v-col>
-
+              <!-- information_degree -->
+              <v-col cols="12" md="4">
+                <v-card-item>
+                  <v-card-subtitle class="field-label">{{
+                    t('درجه موثقیت اطلاع')
+                  }}</v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <v-text-field
+                    v-model="draft.information_degree"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    suffix="%"
+                    prepend-inner-icon="mdi-star"
+                    rounded="lg"
+                    class="cell"
+                  />
+                </v-card-text>
+              </v-col>
               <v-col cols="12" md="4">
                 <v-card-item>
                   <v-card-subtitle class="field-label">{{ t('سیاسی - نوع') }}</v-card-subtitle>
@@ -534,39 +634,19 @@
                 </v-card-text>
               </v-col>
 
-              <!-- information_degree -->
-              <v-col cols="12" md="4">
-                <v-card-item>
-                  <v-card-subtitle class="field-label">{{
-                    t('درجه موثقیت اطلاع')
-                  }}</v-card-subtitle>
-                </v-card-item>
-                <v-card-text>
-                  <v-text-field
-                    v-model="draft.information_degree"
-                    variant="outlined"
-                    density="compact"
-                    clearable
-                    suffix="%"
-                    prepend-inner-icon="mdi-star"
-                    rounded="lg"
-                    class="cell"
-                  />
-                </v-card-text>
-              </v-col>
               <v-col cols="12" md="4">
                 <v-card-item>
                   <v-card-subtitle class="field-label">{{ t('کتگوری اطلاع') }}</v-card-subtitle>
                 </v-card-item>
                 <v-card-text>
-                  <v-text-field
+                  <InformationCategorySelect
                     v-model="draft.information_category"
+                    :disabled="loadingEdit"
+                    class="cell"
+                    rounded="lg"
                     variant="outlined"
                     density="compact"
                     clearable
-                    prepend-inner-icon="mdi-star"
-                    rounded="lg"
-                    class="cell"
                   />
                 </v-card-text>
               </v-col>
@@ -585,22 +665,6 @@
                   prepend-inner-icon="mdi-alert-circle-outline"
                 />
               </v-col>
-              <v-col cols="12" md="12">
-                <v-card-item>
-                  <v-card-subtitle class="field-label">{{ t('تفصیل') }}</v-card-subtitle>
-                </v-card-item>
-                <v-card-text>
-                  <v-textarea
-                    v-model="draft.tafseel"
-                    variant="outlined"
-                    density="compact"
-                    clearable
-                    rounded="lg"
-                    rows="3"
-                    auto-grow
-                  />
-                </v-card-text>
-              </v-col>
             </v-row>
           </v-card>
           <v-card variant="outlined" class="sheet-card px-4 py-3 mt-3">
@@ -617,7 +681,7 @@
                     <DateInput
                       v-model="draft.hamahangi_date"
                       :label="t('تاریخ هم‌آهنگی')"
-                      :disabled="submitting || isUrgent"
+                      :disabled="submitting || isNotUrgent"
                     />
                   </div>
                 </v-card-text>
@@ -632,7 +696,7 @@
                   <OrganSelect
                     v-model="draft.organ"
                     :label="t('ارگان')"
-                    :disabled="submitting || isUrgent"
+                    :disabled="submitting || isNotUrgent"
                   />
                 </v-card-text>
               </v-col>
@@ -678,6 +742,7 @@
                     rounded="lg"
                     rows="2"
                     auto-grow
+                    :disabled="submitting || isNotUrgent"
                   />
                 </v-card-text>
               </v-col>
@@ -722,14 +787,13 @@
             <v-icon start>mdi-delete</v-icon>
             {{ t('پاک کردن فرم') }}
           </v-btn>
-
           <v-btn
             v-if="auth.can('inlineinfo.create')"
             color="primary"
-            type="submit"
             :loading="submitting"
-            :disabled="submitting || !valid"
+            :disabled="submitting"
             size="large"
+            @click="openReview"
           >
             <v-icon start>mdi-content-save</v-icon>
             {{ t('اضافه کردن اطلاعات') }}
@@ -751,7 +815,7 @@
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
   import { useLoginRepository } from '../../stores/LoginRepository';
   import LetryFormatSelect from '@/components/LetryFormatSelect.vue';
-
+  import InformationCategorySelect from '@/components/InformationCategorySelect.vue';
   const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
@@ -827,8 +891,7 @@
     letry_format_name: '',
     jenayee_info_type: '',
     information_saved_date: '',
-    information_saved_hour: '',
-    information_degree: '',
+    information_saved_hour: new Date().toTimeString().slice(0, 5), // "HH:MM"    information_degree: '',
     estijalyat_degree: '',
     information_category: '',
 
@@ -845,7 +908,7 @@
     _newDocs: [],
   });
   const draft = reactive(baseDraft());
-  const isUrgent = computed(() => String(draft.estijalyat_degree || '').trim() === t('عاجل'));
+  const isNotUrgent = computed(() => String(draft.estijalyat_degree || '').trim() === t('عادی'));
 
   /* Rules (unchanged) */
   const rules = {
@@ -965,12 +1028,151 @@
   const formatResource = (r) => {
     if (!r) return '';
     const code = r.code_number ? String(r.code_number) : '';
-    const nm = r.name ? String(r.name) : '';
-    const dad = r.father_name ? String(r.father_name) : '';
     const id = r.id != null ? `#${r.id}` : '';
-    return [code, nm, dad, id].filter(Boolean).join(' — ');
+    return [code, id].filter(Boolean).join(' — ');
   };
+  const reviewOpen = ref(false);
 
+  function displayValue(v) {
+    if (v == null) return '';
+    if (typeof v === 'string') return v.trim();
+    return String(v);
+  }
+
+  const reviewRows = computed(() => {
+    // ✅ map IDs to readable labels (optional but nice)
+    const r = resourceItems.value.find((x) => x?.id === draft.resource_id);
+    const emp = officeEmployeesItems.value.find((x) => x?.id === draft.office_employee_id);
+    const infoEmp = officeEmployeesItems.value.find((x) => x?.id === draft.office_employee_info_id);
+
+    return [
+      {
+        key: 'resource_id',
+        label: t('کود منبع'),
+        value: r ? formatResource(r) : draft.resource_id,
+      },
+      {
+        key: 'office_employee_id',
+        label: t('کود کارمند'),
+        value: emp?.code_number || draft.office_employee_id,
+      },
+      {
+        key: 'trust_percentage',
+        label: t('فیصدی موثقیت'),
+        value: displayValue(draft.trust_percentage),
+      },
+      {
+        key: 'resource_lasrasy',
+        label: t('د منبع لاسرسی'),
+        value: displayValue(draft.resource_lasrasy),
+      },
+
+      { key: 'name', label: t('نام'), value: displayValue(draft.name) },
+      { key: 'nick_name', label: t('نام مستعار'), value: displayValue(draft.nick_name) },
+      { key: 'father_name', label: t('نام پدر'), value: displayValue(draft.father_name) },
+      {
+        key: 'grand_father_name',
+        label: t('نام پدرکلان'),
+        value: displayValue(draft.grand_father_name),
+      },
+      { key: 'age', label: t('عمر'), value: displayValue(draft.age) },
+      { key: 'specefic_place', label: t('موقعیت مشخص'), value: displayValue(draft.specefic_place) },
+      { key: 'home_number', label: t('شماره خانه'), value: displayValue(draft.home_number) },
+      { key: 'street_number', label: t('شماره سرک'), value: displayValue(draft.street_number) },
+      { key: 'coordinates', label: t('مختصات'), value: displayValue(draft.coordinates) },
+      { key: 'madani_halat', label: t('حالت مدنی'), value: displayValue(draft.madani_halat) },
+      { key: 'job', label: t('وظیفه'), value: displayValue(draft.job) },
+
+      { key: 'main_province', label: t('ولایت اصلی'), value: displayValue(draft.main_province) },
+      {
+        key: 'main_districts',
+        label: t('ولسوالی اصلی'),
+        value: displayValue(draft.main_districts),
+      },
+      { key: 'main_village', label: t('قریه/ناحیه اصلی'), value: displayValue(draft.main_village) },
+
+      { key: 'now_province', label: t('ولایت فعلی'), value: displayValue(draft.now_province) },
+      { key: 'now_district', label: t('ولسوالی فعلی'), value: displayValue(draft.now_district) },
+      { key: 'now_village', label: t('قریه/ناحیه فعلی'), value: displayValue(draft.now_village) },
+
+      {
+        key: 'syasi_info_type',
+        label: t('سیاسی - نوع'),
+        value: displayValue(draft.syasi_info_type),
+      },
+      { key: 'jenayee_info_type', label: t('جنایی'), value: displayValue(draft.jenayee_info_type) },
+      {
+        key: 'letry_format_name',
+        label: t('۵۶ فارمټ'),
+        value: displayValue(draft.letry_format_name),
+      },
+
+      {
+        key: 'information_saved_date',
+        label: t('تاریخ اطلاع'),
+        value: displayValue(draft.information_saved_date),
+      },
+      {
+        key: 'information_saved_hour',
+        label: t('ساعت اطلاع'),
+        value: displayValue(draft.information_saved_hour),
+      },
+      {
+        key: 'information_degree',
+        label: t('درجه موثقیت اطلاع'),
+        value: displayValue(draft.information_degree),
+      },
+      {
+        key: 'information_category',
+        label: t('کتگوری اطلاع'),
+        value: displayValue(draft.information_category),
+      },
+      {
+        key: 'estijalyat_degree',
+        label: t('درجه استعجالیت'),
+        value: displayValue(draft.estijalyat_degree),
+      },
+
+      { key: 'tafseel', label: t('تفصیل'), value: displayValue(draft.tafseel) },
+      { key: 'manager_comment', label: t('نظر مدیر'), value: displayValue(draft.manager_comment) },
+      { key: 'note', label: t('ملاحظات'), value: displayValue(draft.note) },
+      { key: 'docs_note', label: t('نوت راجع به اسناد'), value: displayValue(draft.docs_note) },
+
+      {
+        key: 'hamahangi_date',
+        label: t('تاریخ هم‌آهنگی'),
+        value: displayValue(draft.hamahangi_date),
+      },
+      { key: 'organ', label: t('ارگان'), value: displayValue(draft.organ) },
+
+      {
+        key: 'office_employee_info_id',
+        label: t('کود کارمند اطلاع گیرنده'),
+        value: infoEmp?.code_number || draft.office_employee_info_id,
+      },
+    ];
+  });
+
+  async function openReview() {
+    const ok = await form.value?.validate();
+    if (!ok?.valid) {
+      requestAnimationFrame(() => {
+        const firstInvalid =
+          document.querySelector('[aria-invalid="true"]') ||
+          document.querySelector('.v-input--error');
+        firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstInvalid?.focus?.();
+      });
+      return;
+    }
+
+    reviewOpen.value = true;
+  }
+
+  async function confirmSubmit() {
+    reviewOpen.value = false;
+    await onCreate(); // ✅ reuse your existing create logic
+  }
   watch(
     () => draft.syasi_info_type,
     (val) => {

@@ -81,15 +81,38 @@ body,
   overflow-y: auto !important;
 }
 
-/* Hide scrollbar but keep scrolling */
-.scroll-hidden::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
-.scroll-hidden {
-  scrollbar-width: none; /* Firefox */
+
+/* =========================
+   GLOBAL SCROLLBARS
+   ========================= */
+
+/* Firefox */
+* {
+  scrollbar-width: auto; /* or thin */
+  scrollbar-color: rgba(120, 120, 120, 0.55) transparent;
 }
 
+/* Chrome / Edge / Safari */
+*::-webkit-scrollbar {
+  width: 18px !important;   /* ✅ vertical scrollbar width */
+  height: 18px !important;  /* ✅ horizontal scrollbar height */
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 120, 0.55);
+  border-radius: 10px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.8);
+  background-clip: padding-box;
+}
 /* 🌈 Table variables */
 .v-data-table {
   --primary-color: #08989f;

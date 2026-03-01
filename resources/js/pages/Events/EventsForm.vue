@@ -164,7 +164,8 @@
                   :label="t('کود کارمند')"
                   density="compact"
                   variant="outlined"
-                  clearable
+                  :clearable="!officeEmployeeFrozen"
+                  :disabled="officeEmployeeFrozen"
                   :error="hasError('office_employee_id')"
                   :error-messages="getErrorMessages('office_employee_id')"
                 />
@@ -350,34 +351,35 @@
                   :error-messages="getErrorMessages('talafat_mali')"
                 />
               </v-col>
-                <v-col cols="12" md="3">
-                  <v-autocomplete
-                    v-model="form.office_employee_akhistonky_id"
-                    :items="officeEmployeesCodeItems"
-                    item-title="display"
-                    item-value="id"
-                    :label="t('کود کارمند واقعه گیرنده')"
-                    density="compact"
-                    variant="outlined"
-                    clearable
-                    :error="hasError('office_employee_akhistonky_id')"
-                    :error-messages="getErrorMessages('office_employee_akhistonky_id')"
-                  />
-                </v-col>
+              <v-col cols="12" md="3">
+                <v-autocomplete
+                  v-model="form.office_employee_akhistonky_id"
+                  :items="officeEmployeesCodeItems"
+                  item-title="display"
+                  item-value="id"
+                  :label="t('کود کارمند واقعه گیرنده')"
+                  density="compact"
+                  variant="outlined"
+                  clearable
+                  :rules="[rules.required]"
+                  :error="hasError('office_employee_akhistonky_id')"
+                  :error-messages="getErrorMessages('office_employee_akhistonky_id')"
+                />
+              </v-col>
               <!-- تفصیل / وضاحت -->
-                <v-col cols="12" md="12">
-                  <v-text-field
-                    v-model="form.tafseel"
-                    :label="t('تفصیل')"
-                    density="compact"
-                    variant="outlined"
-                    :error="hasError('tafseel')"
-                    :error-messages="getErrorMessages('tafseel')"
-                  />
-                </v-col>
-                <v-col cols="12" md="12">
-                  <OrganSelect v-model="form.talks" :label="t('ارگان')" />
-                </v-col>
+              <v-col cols="12" md="12">
+                <v-text-field
+                  v-model="form.tafseel"
+                  :label="t('تفصیل')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('tafseel')"
+                  :error-messages="getErrorMessages('tafseel')"
+                />
+              </v-col>
+              <v-col cols="12" md="12">
+                <OrganSelect v-model="form.talks" :label="t('ارگان')" />
+              </v-col>
               <v-col cols="12" md="12">
                 <v-text-field
                   v-model="form.note"
@@ -644,7 +646,9 @@
   /* rules */
   const rules = {
     required: (v) => !!v || t('این فیلد الزامی است'),
+    selectRequired: (label) => (v) => !!v || t('{label} الزامی است', { label }),
   };
+
 
   const toArray = (v) => {
     if (v && typeof v.then === 'function') return [];
@@ -694,7 +698,7 @@
     target_person: '',
     criminal: '',
 
-    event_date: '',
+    event_date: repo.getCurrentDate ? repo.getCurrentDate() : '',
     event_hour: '',
 
     event_zone: '',
@@ -721,7 +725,43 @@
   });
 
   const form = ref(blankForm());
+  const officeEmployeeFrozen = ref(false);
 
+  // find selected resource record
+  const selectedResource = computed(() => {
+    const list = toArray(repo.resourcecode);
+    return list.find((r) => String(r.id) === String(form.value.resource_id)) || null;
+  });
+
+  // IMPORTANT:
+  // adjust these keys to match your real resource object
+  // (example: office_employee_id or office_employee?.id)
+  function getOfficeEmployeeIdFromResource(r) {
+    return r?.office_employee_id ?? r?.office_employee?.id ?? r?.officeEmployeeId ?? null;
+  }
+
+  watch(
+    () => form.value.resource_id,
+    (newVal) => {
+      if (!newVal) {
+        // allow manual select again if no resource chosen
+        officeEmployeeFrozen.value = false;
+        return;
+      }
+
+      const r = selectedResource.value;
+      const empId = getOfficeEmployeeIdFromResource(r);
+
+      if (empId) {
+        form.value.office_employee_id = empId;
+        officeEmployeeFrozen.value = true; // freeze
+      } else {
+        // resource has no employee mapping -> keep editable
+        officeEmployeeFrozen.value = false;
+      }
+    },
+    { immediate: true }
+  );
   /* docs */
   function triggerDocs() {
     docsInput.value?.click();
@@ -949,7 +989,7 @@
 
     await loadForEdit();
   });
-
+ 
   /* stepper logic */
   const step1Complete = computed(() => !!form.value.event_type?.trim());
   const step2Complete = computed(() => !!form.value.event_date?.trim());

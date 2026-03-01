@@ -862,7 +862,7 @@
   const itemsPerPage = 10;
   const sortKeys = ref(['score_desc']);
 
-  const period = ref('yearly'); // main filter
+  const period = ref('all'); // main filter
   const financePeriod = ref('monthly'); // affects money + oil + employee table
 
   // ✅ calendar comes from AppBar (fallback to repo or localStorage)
@@ -1397,8 +1397,6 @@
       }
     }
   }
-
-
 </script>
 <style scoped>
   /* Add these styles for the new toggles */

@@ -740,7 +740,7 @@
 
   /* Custom scrollbar */
   .notification-list::-webkit-scrollbar {
-    width: 6px;
+    width: 18px;
   }
 
   .notification-list::-webkit-scrollbar-track {

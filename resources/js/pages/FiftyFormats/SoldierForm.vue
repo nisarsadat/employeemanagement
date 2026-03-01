@@ -290,6 +290,7 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                maxlength="10"
               />
             </v-col>
           </v-row>

@@ -49,7 +49,7 @@ return new class extends Migration {
 
             // Common fields
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();
-            $table->unique('resource_id', 'masjids_resource_id_unique'); // ✅ one resource -> one masjid
+            $table->unique('resource_id');
             $table->text('note')->nullable();
             $table->string('Province_addr')->nullable();
 

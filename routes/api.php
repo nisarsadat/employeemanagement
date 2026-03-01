@@ -166,6 +166,7 @@ use App\Http\Controllers\Api\ZoneController;
 use App\Http\Controllers\CaptiveDocumentController;
 use App\Http\Controllers\DocsTypeController;
 use App\Http\Controllers\EmployeeManagementDashboardController;
+use App\Http\Controllers\InformationCategoryController;
 use App\Http\Controllers\LetryFormatController;
 
 /*
@@ -632,5 +633,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::apiResource('letry-formats', LetryFormatController::class);
+    Route::apiResource('information-categories', InformationCategoryController::class);
 
 });

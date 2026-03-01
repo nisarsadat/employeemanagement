@@ -33,6 +33,7 @@ return new class extends Migration {
             $table->string('employee_quantity')->nullable();
 
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();
+            $table->unique('resource_id');
             $table->text('note')->nullable();
 
             $table->timestamps();

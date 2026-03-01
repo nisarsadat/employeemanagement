@@ -2090,7 +2090,7 @@
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
   }
   .thin-scroll::-webkit-scrollbar {
-    width: 6px;
+    width: 18px;
   }
   .thin-scroll::-webkit-scrollbar-thumb {
     background: #cbd5e1;

@@ -34,6 +34,7 @@ return new class extends Migration {
                 ->constrained('resources')
                 ->cascadeOnDelete();
 
+            $table->unique('resource_id');
             // extra
             $table->text('notes')->nullable();
 

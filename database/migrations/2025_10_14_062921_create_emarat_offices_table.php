@@ -30,6 +30,7 @@ return new class extends Migration {
                 ->nullable()
                 ->constrained('resources')
                 ->cascadeOnDelete();
+            $table->unique('resource_id');
 
             // ✅ unique composite (exact fields you listed)
             $table->unique([

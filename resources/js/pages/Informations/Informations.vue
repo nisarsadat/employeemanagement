@@ -1,5 +1,27 @@
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <ManagerFinanceDialog
+      v-model="managerFinanceDialogOpen"
+      :id="selectedRow?.id"
+      :account_id="selectedRow?.account_id ?? null"
+      :message_to_finance="selectedRow?.message_to_finance ?? ''"
+      :money_amount_words="selectedRow?.money_amount_words ?? ''"
+      :manager_comment="selectedRow?.manager_comment ?? ''"
+      :account-items="accountItems"
+      :is-rtl="isRtl"
+      :loading="dialogSaving"
+      @save="handleSaveManagerFinance"
+    />
+
+    <AnalysisLeadershipDialog
+      v-model="analysisLeadershipDialogOpen"
+      :id="selectedRow?.id"
+      :tahlil="selectedRow?.tahlil ?? ''"
+      :lead_drirection="selectedRow?.lead_drirection ?? ''"
+      :is-rtl="isRtl"
+      :loading="dialogSaving"
+      @save="handleSaveAnalysisLeadership"
+    />
     <AppBar :title="t('اطلاعات')" :subtitle="t('فهرست و جستجو')">
       <template #actions>
         <v-btn icon></v-btn>
@@ -166,7 +188,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="2">
+      <v-col cols="12" sm="1">
         <v-card
           class="stat-card cursor-pointer"
           @click="filterByStat('spy')"
@@ -211,6 +233,52 @@
           </v-card-text>
         </v-card>
       </v-col>
+      <!-- ✅ NEW: Category Alef -->
+      <v-col cols="12" sm="2">
+        <v-card
+          class="stat-card cursor-pointer"
+          @click="filterByStat('cat_alef')"
+          :class="{ 'active-stat': activeStat === 'cat_alef' }"
+          rounded="xl"
+        >
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-indigo fontfamily">
+                {{ categoryAlefCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('اطلاعات کتگوری الف') }}
+              </div>
+            </div>
+            <v-avatar color="indigo" variant="tonal" size="48">
+              <v-icon color="indigo">mdi-format-list-bulleted</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <!-- ✅ NEW: Unpaid records -->
+      <v-col cols="12" sm="1">
+        <v-card
+          class="stat-card cursor-pointer"
+          @click="filterByStat('unpaid')"
+          :class="{ 'active-stat': activeStat === 'unpaid' }"
+          rounded="xl"
+        >
+          <v-card-text class="pa-4 d-flex align-center justify-space-between">
+            <div>
+              <div class="text-h5 font-weight-bold text-red-darken-2 fontfamily">
+                {{ unpaidCount }}
+              </div>
+              <div class="text-caption text-medium-emphasis fontfamily">
+                {{ t('ناپرداخت') }}
+              </div>
+            </div>
+            <v-avatar color="red-darken-2" variant="tonal" size="48">
+              <v-icon color="red-darken-2">mdi-cash-remove</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
     </v-row>
 
     <!-- Peek -->
@@ -241,7 +309,6 @@
       :autoDetectDates="false"
       :dateKeys="['information_saved_date', 'hamahangi_date']"
       class="mb-20 mx-2"
-      
     >
       <!-- RESOURCE -->
       <template #cell-resource_id="{ row }">
@@ -379,7 +446,35 @@
               </v-icon>
             </template>
           </v-tooltip>
+          <!-- ✅ Manager / Finance Dialog -->
+          <v-tooltip text="مدیر / مالی" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-if="auth.can('managercomment.view')"
+                size="small"
+                v-bind="tooltipProps"
+                color="indigo"
+                @click.stop="openManagerFinanceDialog(item)"
+              >
+                mdi-cash-edit
+              </v-icon>
+            </template>
+          </v-tooltip>
 
+          <!-- ✅ Analysis / Leadership Dialog -->
+          <v-tooltip text="تحلیل / رهنمود" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-if="auth.can('direction.view')"
+                size="small"
+                v-bind="tooltipProps"
+                color="deep-purple"
+                @click.stop="openAnalysisLeadershipDialog(item)"
+              >
+                mdi-text-box-edit
+              </v-icon>
+            </template>
+          </v-tooltip>
           <v-tooltip text="فرم معلومات (PDF / Word)" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -437,17 +532,25 @@
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
-
+  import { useFinanceRepository } from '@/stores/FinanceRepository';
   import { useCalendar } from '../../../composables/useCalendar';
-
+  import ManagerFinanceDialog from './ManagerFinanceDialog.vue';
+  import AnalysisLeadershipDialog from './AnalysisLeadershipDialog.vue';
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const repo = useDatabaseRepository();
+  const financeRepo = useFinanceRepository();
   const router = useRouter();
   const route = useRoute();
 
   const { calendar, formatYearDisplay } = useCalendar();
 
+  const accountItems = computed(() =>
+    (financeRepo.accounts || []).map((a) => ({
+      ...a,
+      display: a.name ? `${a.name} (${a.price ?? '0'})` : `${a.id}`,
+    }))
+  );
   /* ===== RTL ===== */
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (newLocale) => (isRtl.value = newLocale === 'fa'));
@@ -633,12 +736,24 @@
     () =>
       allRows.value.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی')).length
   );
-
+  const categoryAlefCount = computed(
+    () =>
+      allRows.value.filter((item) => String(item?.information_category ?? '').trim() === 'الف')
+        .length
+  );
   const filterOfficeEmployeeId = computed(() => {
     const v = route.query?.office_employee_id;
     return v ? Number(v) : null;
   });
-
+  const unpaidCount = computed(
+    () =>
+      allRows.value.filter((item) => {
+        const s = String(item?.finance_status ?? '')
+          .trim()
+          .toLowerCase();
+        return s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid';
+      }).length
+  );
   const filteredRows = computed(() => {
     let rows = allRows.value;
 
@@ -657,8 +772,17 @@
       rows = rows.filter((item) => matchType(item, 'شر و فساد'));
     } else if (activeStat.value === 'spy') {
       rows = rows.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی'));
+    } else if (activeStat.value === 'cat_alef') {
+      rows = rows.filter((item) => String(item?.information_category ?? '').trim() === 'الف');
     } else if (activeStat.value === 'resources') {
       rows = allRows.value;
+    } else if (activeStat.value === 'unpaid') {
+      rows = rows.filter((item) => {
+        const s = String(item?.finance_status ?? '')
+          .trim()
+          .toLowerCase();
+        return s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid';
+      });
     }
 
     return rows;
@@ -670,6 +794,8 @@
     { title: t('کود منبع'), key: 'resource_id' },
     { title: t('کارمند مربوط'), key: 'office_employee_code_number' },
     { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
+    { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
+    { title: t('نقشه'), key: 'map', sortable: false },
 
     { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },
@@ -710,9 +836,7 @@
     { title: t('نظر مدیر'), key: 'manager_comment' },
     { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
     { title: t('نتیجه'), key: 'result' },
-    { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
     { title: t('نوت راجع به اسناد'), key: 'docs_note' },
-    { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('ملاحظات'), key: 'note' },
   ]);
 
@@ -783,7 +907,62 @@
       showErrorMessage(t('خطا در دانلود اسناد'));
     }
   }
+  const managerFinanceDialogOpen = ref(false);
+  const analysisLeadershipDialogOpen = ref(false);
+  const dialogSaving = ref(false);
 
+  const selectedRow = ref(null);
+
+  function openManagerFinanceDialog(payload) {
+    selectedRow.value = getRow(payload);
+    managerFinanceDialogOpen.value = true;
+  }
+
+  function openAnalysisLeadershipDialog(payload) {
+    selectedRow.value = getRow(payload);
+    analysisLeadershipDialogOpen.value = true;
+  }
+  async function handleSaveManagerFinance(patch) {
+    dialogSaving.value = true;
+    try {
+      // ✅ if your UpdateInformation expects FormData, uncomment below and use fd
+      // const fd = new FormData()
+      // Object.entries(patch).forEach(([k, v]) => fd.append(k, v ?? ''))
+      // await repo.UpdateInformation(patch.id, fd)
+
+      await repo.UpdateInformation(patch.id, patch);
+
+      await fetchAll();
+      managerFinanceDialogOpen.value = false;
+    } catch (e) {
+      console.error('handleSaveManagerFinance error', e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      dialogSaving.value = false;
+    }
+  }
+
+  async function handleSaveAnalysisLeadership(patch) {
+    dialogSaving.value = true;
+    try {
+      // ✅ force only the 2 fields you want
+      const cleanPatch = {
+        id: patch?.id,
+        tahlil: patch?.tahlil ?? '',
+        lead_drirection: patch?.lead_drirection ?? '',
+      };
+
+      await repo.UpdateInformation(cleanPatch.id, cleanPatch);
+
+      await fetchAll();
+      analysisLeadershipDialogOpen.value = false;
+    } catch (e) {
+      console.error('handleSaveAnalysisLeadership error', e);
+      showErrorMessage(t('خطا در ذخیره اطلاعات'));
+    } finally {
+      dialogSaving.value = false;
+    }
+  }
   /* ===== Delete ===== */
   const deleteDialog = ref(false);
   const deleteTarget = ref(null);
@@ -907,7 +1086,10 @@
       showErrorMessage(t('خطا در دریافت معلومات'));
     }
   }
-
+  onMounted(async () => {
+    await fetchAll();
+    await financeRepo.FetchAccountsData();
+  });
   /* ===== Init ===== */
   onMounted(async () => {
     await fetchYearItemsFromDb(); // ✅ NEW

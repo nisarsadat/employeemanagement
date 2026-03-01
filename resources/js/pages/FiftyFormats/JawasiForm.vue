@@ -10,7 +10,7 @@
 
   <div class="fasad-page" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- TOP BAR (only for app view, hidden on print) -->
-    
+
     <!-- FORM -->
     <v-container class="mt-4 form-container no-print" style="max-width: 1200px">
       <v-form
@@ -208,25 +208,17 @@
           </v-row>
 
           <v-row dense>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_province"
-                :label="t('ولایت اصلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.main_province"
+                v-model:district="form.main_district"
+                :province-label="t('ولایت اصلی')"
+                :district-label="t('ولسوالی اصلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="form.main_district"
-                :label="t('ولسوالی اصلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="12">
               <v-text-field
                 v-model="form.main_village"
                 :label="t('قریه/ناحیه اصلی')"
@@ -248,37 +240,26 @@
           </v-row>
 
           <v-row dense>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_province"
-                :label="t('ولایت فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+            <v-col cols="12" md="12">
+              <ProvinceDistrictNameSelect
+                v-model:province="form.now_province"
+                v-model:district="form.now_district"
+                :province-label="t('ولایت فعلی')"
+                :district-label="t('ولسوالی فعلی')"
+                :mdProvince="6"
+                :mdDistrict="6"
               />
             </v-col>
 
-            <v-col cols="12" md="3">
-              <v-text-field
+            <v-col cols="12" md="6">
+              <FormatZoneAutocomplete
                 v-model="form.now_zone"
                 :label="t('زون فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
+                :disabled="saving"
               />
             </v-col>
 
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="form.now_district"
-                :label="t('ولسوالی فعلی')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.now_village"
                 :label="t('قریه/ناحیه فعلی')"
@@ -289,8 +270,8 @@
             </v-col>
           </v-row>
 
-          <v-row dense class="mt-1">
-            <v-col cols="12" md="6">
+          <v-row dense>
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_specific_place"
                 :label="t('موقعیت مشخص فعلی')"
@@ -300,7 +281,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_street_number"
                 :label="t('شماره سرک')"
@@ -310,7 +291,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.now_home_number"
                 :label="t('شماره خانه')"
@@ -424,6 +405,7 @@
                 :label="t('شماره تماس')"
                 density="compact"
                 variant="outlined"
+                maxlength="10"
                 hide-details="auto"
               />
             </v-col>
@@ -513,8 +495,8 @@
           <v-row dense>
             <v-col cols="12">
               <v-textarea
-                v-model="form.notes"
-                :label="t('یادداشت')"
+                v-model="form.tafseel"
+                :label="t('تفصیل')"
                 rows="3"
                 density="compact"
                 variant="outlined"
@@ -523,8 +505,8 @@
             </v-col>
             <v-col cols="12">
               <v-textarea
-                v-model="form.tafseel"
-                :label="t('تفصیل')"
+                v-model="form.notes"
+                :label="t('یادداشت')"
                 rows="3"
                 density="compact"
                 variant="outlined"
@@ -602,7 +584,8 @@
 
   import AppBar from '@/components/AppBar.vue';
   import { useJawasiRepository } from '@/stores/JawasiRepository';
-
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (l) => (isRtl.value = l === 'fa'));

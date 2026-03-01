@@ -1,6 +1,70 @@
 <template>
   <v-container flat fluid :dir="isRtl ? 'rtl' : 'ltr'">
-    <v-form ref="form" v-model="valid" lazy-validation @submit.prevent="onCreate">
+    <v-dialog v-model="reviewOpen" max-width="900" scrollable>
+      <v-card rounded="xl" :dir="isRtl ? 'rtl' : 'ltr'">
+        <v-card-title class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center" style="gap: 10px">
+            <v-icon>mdi-clipboard-text-outline</v-icon>
+            <span>{{ t('بازبینی معلومات قبل از ثبت') }}</span>
+          </div>
+          <v-btn icon variant="text" @click="reviewOpen = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text class="pretty-scroll" style="max-height: 70vh">
+          <v-table density="compact">
+            <tbody>
+              <tr v-for="row in reviewRows" :key="row.key">
+                <td class="font-weight-bold" style="white-space: nowrap">
+                  {{ row.label }}
+                </td>
+                <td>{{ row.value || '—' }}</td>
+              </tr>
+
+              <tr>
+                <td class="font-weight-bold">{{ t('اسناد / ضمایم') }}</td>
+                <td>
+                  <div v-if="(draft._newDocs || []).length">
+                    <v-chip
+                      v-for="f in draft._newDocs"
+                      :key="fileKey(f)"
+                      size="small"
+                      class="ma-1"
+                      variant="outlined"
+                    >
+                      {{ f.name }}
+                    </v-chip>
+                  </div>
+                  <span v-else>—</span>
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
+        </v-card-text>
+
+        <v-divider />
+
+        <v-card-actions>
+          <v-btn variant="text" @click="reviewOpen = false" :disabled="submitting">
+            {{ t('برگشت') }}
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            :loading="submitting"
+            :disabled="submitting"
+            @click="confirmSubmit"
+          >
+            <v-icon start>mdi-check</v-icon>
+            {{ t('تایید و ثبت') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-form ref="form" v-model="valid" lazy-validation @submit.prevent @keydown.enter.prevent>
       <v-card class="pa-4 form-card" elevation="2" :dir="isRtl ? 'rtl' : 'ltr'">
         <!-- Header -->
         <v-card-title class="form-title d-flex align-center mb-4">
@@ -433,10 +497,10 @@
           </v-btn>
           <v-btn
             color="primary"
-            type="submit"
             :loading="submitting"
-            :disabled="submitting || !valid"
+            :disabled="submitting"
             size="large"
+            @click="openReview"
           >
             <v-icon v-if="auth.can('inlineinfo.create')" start>mdi-content-save</v-icon>
             {{ t('اظافه کردن واقعه') }}
@@ -582,7 +646,7 @@
     criminal: '',
 
     event_date: '',
-    event_hour: '',
+    event_hour: new Date().toTimeString().slice(0, 5),
     trust_percentage: '',
 
     event_zone: '',
@@ -704,7 +768,98 @@
     form.value?.resetValidation();
     if (fileInput.value) fileInput.value.value = '';
   }
+  const reviewOpen = ref(false);
 
+  function displayValue(v) {
+    if (v == null) return '';
+    if (typeof v === 'string') return v.trim();
+    return String(v);
+  }
+
+  const reviewRows = computed(() => {
+    const r = resourceCodeItems.value.find((x) => x?.id === draft.resource_id);
+    const emp = officeEmployeesCodeItems.value.find((x) => x?.id === draft.office_employee_id);
+    const receiver = officeEmployeesCodeItems.value.find(
+      (x) => x?.id === draft.office_employee_akhistonky_id
+    );
+
+    return [
+      { key: 'resource_id', label: t('کود منبع'), value: r?.code_number || draft.resource_id },
+      {
+        key: 'office_employee_id',
+        label: t('کود کارمند'),
+        value: emp?.code_number || draft.office_employee_id,
+      },
+      {
+        key: 'trust_percentage',
+        label: t('فیصدی موثقیت'),
+        value: displayValue(draft.trust_percentage),
+      },
+
+      { key: 'event_type', label: t('نوعیت واقعه'), value: displayValue(draft.event_type) },
+      {
+        key: 'event_specific_type',
+        label: t('نوعیت مشخص واقعه'),
+        value: displayValue(draft.event_specific_type),
+      },
+
+      {
+        key: 'target_person',
+        label: t('هدف کی بود/مکان بود'),
+        value: displayValue(draft.target_person),
+      },
+      { key: 'criminal', label: t('کی جرم را انجام داده'), value: displayValue(draft.criminal) },
+
+      { key: 'event_date', label: t('تاریخ واقعه'), value: displayValue(draft.event_date) },
+      { key: 'event_hour', label: t('ساعت واقعه'), value: displayValue(draft.event_hour) },
+
+      { key: 'event_zone', label: t('زون'), value: displayValue(draft.event_zone) },
+      { key: 'event_hawza', label: t('حوزه'), value: displayValue(draft.event_hawza) },
+      {
+        key: 'event_specific_place',
+        label: t('محل مشخص'),
+        value: displayValue(draft.event_specific_place),
+      },
+
+      { key: 'talafat_mali', label: t('تلفات مالی'), value: displayValue(draft.talafat_mali) },
+      { key: 'killed', label: t('کشته شده'), value: displayValue(draft.killed) },
+      { key: 'injured', label: t('زخمی شده'), value: displayValue(draft.injured) },
+
+      { key: 'coordinates', label: t('کوردینات'), value: displayValue(draft.coordinates) },
+
+      { key: 'docs_note', label: t('نوت راجع به اسناد'), value: displayValue(draft.docs_note) },
+      { key: 'tafseel', label: t('تفصیل'), value: displayValue(draft.tafseel) },
+
+      { key: 'talks', label: t('ارگان'), value: displayValue(draft.talks) },
+
+      {
+        key: 'office_employee_akhistonky_id',
+        label: t('کود کارمند واقعه گیرنده'),
+        value: receiver?.code_number || draft.office_employee_akhistonky_id,
+      },
+      { key: 'note', label: t('ملاحظات'), value: displayValue(draft.note) },
+    ];
+  });
+
+  async function openReview() {
+    const ok = await form.value?.validate();
+    if (!ok?.valid) {
+      requestAnimationFrame(() => {
+        const firstInvalid =
+          document.querySelector('[aria-invalid="true"]') ||
+          document.querySelector('.v-input--error');
+        firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstInvalid?.focus?.();
+      });
+      return;
+    }
+    reviewOpen.value = true;
+  }
+
+  async function confirmSubmit() {
+    reviewOpen.value = false;
+    await onCreate(); // reuse your existing submit logic
+  }
   /* preload dropdowns (kept) */
   (async () => {
     await Promise.all([
@@ -890,8 +1045,8 @@
 
   /* ✅ Pretty scrollbar (Chrome/Edge/Safari) */
   .pretty-scroll::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 18px;
+    height: 18px;
   }
 
   .pretty-scroll::-webkit-scrollbar-track {

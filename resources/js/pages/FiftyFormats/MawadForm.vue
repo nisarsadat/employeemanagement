@@ -179,7 +179,7 @@
             </v-col>
             <v-col cols="12" md="12">
               <FormatZoneAutocomplete
-                v-model="form.now_zone"
+                v-model="form.zone"
                 :label="t('زون فعلی')"
                 :disabled="saving"
               />
@@ -272,6 +272,7 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                maxlength="10"
               />
             </v-col>
           </v-row>

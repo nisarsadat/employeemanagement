@@ -42,6 +42,7 @@ return new class extends Migration {
 
             // Link to resources
             $table->foreignId('resource_id')->nullable()->constrained('resources')->nullOnDelete();
+            $table->unique('resource_id');
 
             // Notes
             $table->text('note')->nullable();

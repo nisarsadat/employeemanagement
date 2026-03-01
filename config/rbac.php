@@ -23,6 +23,8 @@ return [
         'events',
         'delevirycaptive',
         'informations',
+        'managercomment',
+        'direction',
 
         'inlineinfo',
         'resourceinfo',
@@ -87,6 +89,7 @@ return [
         'docstypes',
         'marjas',
         'letryformatindex',
+        'InfoCategory',
         // ---- API Resources (exact controller/resource slugs) ----
         'users',
         'office_employees',

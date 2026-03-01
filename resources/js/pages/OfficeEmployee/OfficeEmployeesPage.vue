@@ -690,12 +690,15 @@
     // Media
     { title: t('تصویر'), key: 'picture', sortable: false },
 
-    // Counts
-    { title: t('اطلاعات'), key: 'informations_count', sortable: false },
-    { title: t('حوادث'), key: 'events_count', sortable: false },
     { title: t('منابع'), key: 'resources_count', sortable: false },
     { title: t('منابع فعال'), key: 'resources_active_count', sortable: false },
     { title: t('منابع غیر فعال'), key: 'resources_inactive_count', sortable: false },
+    { title: t('تاریخ رفتن'), key: 'left_date' },
+    { title: t('پول داده شده'), key: 'payed_money' },
+    { title: t('نقشه'), key: 'map', sortable: false },
+    // Counts
+    { title: t('اطلاعات'), key: 'informations_count', sortable: false },
+    { title: t('حوادث'), key: 'events_count', sortable: false },
 
     // Identity
     { title: t('نام'), key: 'name' },
@@ -753,9 +756,7 @@
 
     // Dates & finance
     { title: t('تاریخ آمدن'), key: 'join_date' },
-    { title: t('تاریخ رفتن'), key: 'left_date' },
-    { title: t('پول داده شده'), key: 'payed_money' },
-    { title: t('نقشه'), key: 'map', sortable: false },
+
     { title: t('ملاحظات'), key: 'note' },
 
     // Map

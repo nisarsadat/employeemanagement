@@ -108,7 +108,7 @@ const location = computed(() => (locale.value === "fa" ? "right" : "left"));
 
   /* Chrome / Edge / Safari */
   .main-scroll::-webkit-scrollbar {
-    width: 32px !important;
+    width: 18px !important;
   }
   .main-scroll::-webkit-scrollbar-track {
     background: transparent;

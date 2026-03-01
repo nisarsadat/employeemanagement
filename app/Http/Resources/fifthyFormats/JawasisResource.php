@@ -9,6 +9,8 @@ class JawasisResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $resource = $this->getRelationValue('resource'); // safe even if not loaded
+
         return [
             'id' => $this->id,
 
@@ -41,13 +43,16 @@ class JawasisResource extends JsonResource
             'old_job' => $this->old_job,
             'now_job' => $this->now_job,
 
-            'resource_id' => $this->resource_id,
+            // ✅ Fasad-style flat resource fields (derived from relation)
+            'resource_code'  => $resource?->code_number,
+            'resource_phone' => $resource?->phone_number,
+            'resource_id'    => $this->resource_id,
+
             'notes' => $this->notes,
+            'tafseel' => $this->tafseel,
 
             /* ===== Picture ===== */
-            'picture' => $this->picture
-                ? asset('storage/' . $this->picture)
-                : null,
+            'picture' => $this->picture ? asset('storage/' . $this->picture) : null,
 
             /* ===== Documents ===== */
             'documents' => $this->documents->map(function ($d) {
@@ -62,10 +67,10 @@ class JawasisResource extends JsonResource
 
             /* ===== Resource ===== */
             'resource' => $this->whenLoaded('resource', fn () => [
-                'id' => $this->resource->id,
-                'name' => $this->resource->name,
-                'code_number' => $this->resource->code_number,
-                'phone_number' => $this->resource->phone_number,
+                'id' => $resource->id,
+                'name' => $resource->name,
+                'code_number' => $resource->code_number,
+                'phone_number' => $resource->phone_number,
             ]),
         ];
     }
