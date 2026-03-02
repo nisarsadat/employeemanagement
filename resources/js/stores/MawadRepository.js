@@ -157,7 +157,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         setContentType(null);
         const res = await axios.post(`/mawads`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ فساد بریالیتوب سره اضافه شو', {
+        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
         // optionally refresh list here
@@ -166,7 +166,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ فساد اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
         throw e;
       }
     },
@@ -182,14 +182,14 @@ export const useMawadRepository = defineStore('MawadRepository', {
           setContentType('application/json');
           res = await axios.put(`/mawads/${id}`, data);
         }
-        toast.success('ریکارډ فساد بریالیتوب سره تغییر شو', {
+        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ فساد تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ  تغییر نشو'));
         throw e;
       }
     },
@@ -197,7 +197,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
     async DeleteMawad(id) {
       try {
         await axios.delete(`/mawads/${id}`);
-        toast.success('ریکارډ فساد بریالیتوب سره حذف شو', {
+        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
         this.FetchMawadsData({
@@ -207,7 +207,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ فساد حذف نشو'));
+        toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
     /* ============================ Lost Mujremeens ============================ */
@@ -222,7 +222,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.LostMujremeens = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.LostMujremeens.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -312,7 +312,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.OldSoldiersHomes = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.OldSoldiersHomes.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -406,7 +406,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.Robbers = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.Robbers.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -500,7 +500,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.NonResponsablePeoples = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.NonResponsablePeoples.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -594,7 +594,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.MashkokHomes = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.MashkokHomes.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -666,7 +666,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.success('ریکارډ  بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
-        this.FetchEntryExitsData({
+        this.FetchMashkokHomesData({
           page: this.page,
           itemsPerPage: this.itemsPerPage,
         });
@@ -688,7 +688,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.DamagePlaces = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.DamagePlaces.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -754,7 +754,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
       }
     },
 
-    async DeleteDamagePlacse(id) {
+    async DeleteDamagePlace(id) {
       try {
         await axios.delete(`/damage-places/${id}`);
         toast.success('ریکارډ  بریالیتوب سره حذف شو', {
@@ -782,7 +782,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.DamageRasanPlaces = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.DamageRasanPlaces.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -873,7 +873,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.MashkokShops = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.MashkokShops.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -963,7 +963,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.Luchakanos = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.Luchakanos.length;
       } catch (e) {
         console.error(e);
         this.error = e;

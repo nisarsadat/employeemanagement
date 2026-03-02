@@ -216,6 +216,7 @@
                 :label="t('شماره مسوول')"
                 variant="outlined"
                 density="compact"
+                maxlength="10"
                 :error="hasError('masool_phone')"
                 :error-messages="getErrorMessages('masool_phone')"
               />

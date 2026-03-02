@@ -21,8 +21,8 @@
         @submit.prevent="onSubmit"
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
-        <v-card class="simple-form-card" elevation="1">
-          <v-row>
+        <v-card class="simple-form-card" elevation="1" :dir="isRtl ? 'rtl' : 'ltr'">
+          <v-row :dir="isRtl ? 'rtl' : 'ltr'">
             <!-- 🖼 Picture -->
             <div class="section-header mt-4">
               <span class="section-title">{{ t('عکس') }}</span>
@@ -30,58 +30,52 @@
 
             <!-- Identity + addresses -->
             <v-col cols="12">
-              <v-row>
+              <v-row class="mt-2">
                 <v-col cols="12" md="6">
+                  <!-- hide the default input UI if you want screenshot style -->
                   <v-file-input
+                    ref="picInputRef"
                     v-model="pictureFile"
-                    :label="t('انتخاب عکس')"
-                    variant="outlined"
-                    density="compact"
+                    class="d-none"
                     accept="image/*"
-                    prepend-icon="mdi-camera"
-                    clearable
-                    show-size
-                    :error="hasError('picture')"
-                    :error-messages="getErrorMessages('picture')"
                     @update:model-value="onPickPicture"
                   />
-                  <div class="text-caption mt-1 opacity-70">
-                    <!-- {{ t('فرمت‌های مجاز: JPG/PNG. اندازه مناسب: تا 5MB') }} -->
-                  </div>
                 </v-col>
 
-                <v-col cols="12" md="6" class="d-flex align-center">
-                  <div class="d-flex align-center ga-2">
-                    <v-avatar size="54" class="pic-thumb" @click="previewPicture()">
-                      <v-img
-                        v-if="picturePreviewUrl || form.picture"
-                        :src="picturePreviewUrl || form.picture"
-                        cover
-                      />
-                      <v-icon v-else size="22">mdi-image-off</v-icon>
-                    </v-avatar>
+                <v-col cols="12" md="6" class="d-flex justify-center">
+                  <div class="image-card">
+                    <div class="image-card-title">{{ t('انځور') }}</div>
 
-                    <v-btn
-                      v-if="picturePreviewUrl || form.picture"
-                      variant="tonal"
-                      color="primary"
-                      class="text-none"
-                      prepend-icon="mdi-eye"
-                      @click="previewPicture()"
-                    >
-                      {{ t('پیش‌نمایش') }}
-                    </v-btn>
+                    <div class="image-card-body">
+                      <div class="avatar-ring" @click="previewPicture()">
+                        <div class="avatar-inner">
+                          <img
+                            v-if="picturePreviewUrl || form.picture"
+                            :src="picturePreviewUrl || form.picture"
+                          />
+                          <v-icon v-else size="30">mdi-account</v-icon>
+                        </div>
+                      </div>
 
-                    <v-btn
-                      v-if="picturePreviewUrl"
-                      variant="text"
-                      color="red"
-                      class="text-none"
-                      prepend-icon="mdi-close"
-                      @click="clearPickedPicture"
-                    >
-                      {{ t('حذف انتخاب') }}
-                    </v-btn>
+                      <div class="change-photo-pill" @click="openPicPicker">
+                        <span>{{ t('عکس بدلول') }}</span>
+                        <span class="pencil-bubble">
+                          <v-icon size="16">mdi-pencil</v-icon>
+                        </span>
+                      </div>
+
+                      <div v-if="picturePreviewUrl" class="mt-2">
+                        <v-btn
+                          variant="text"
+                          color="red"
+                          class="text-none"
+                          prepend-icon="mdi-close"
+                          @click="clearPickedPicture"
+                        >
+                          {{ t('حذف انتخاب') }}
+                        </v-btn>
+                      </div>
+                    </div>
                   </div>
                 </v-col>
               </v-row>
@@ -277,6 +271,7 @@
                 :label="t('شماره تماس')"
                 variant="outlined"
                 density="compact"
+                maxlength="10"
                 :rules="[rules.number]"
                 :error="hasError('phone_number')"
                 :error-messages="getErrorMessages('phone_number')"
@@ -573,13 +568,17 @@
 
   const imgDialog = ref(false);
   const imgSrc = ref('');
+  const picInputRef = ref(null);
 
+  function openPicPicker() {
+    picInputRef.value?.$el?.querySelector('input[type="file"]')?.click();
+  }
   function onPickPicture(v) {
     const file = Array.isArray(v) ? v[0] : v;
-    pictureFile.value = file || null;
+    pictureFile.value = file instanceof File ? file : null;
 
     if (picturePreviewUrl.value) URL.revokeObjectURL(picturePreviewUrl.value);
-    picturePreviewUrl.value = file ? URL.createObjectURL(file) : '';
+    picturePreviewUrl.value = pictureFile.value ? URL.createObjectURL(pictureFile.value) : '';
   }
 
   function previewPicture() {
@@ -739,9 +738,10 @@
   }
 
   /* FORM DATA HELPERS */
-  function toFormData(obj) {
+  function toFormData(obj, skipKeys = []) {
     const fd = new FormData();
     Object.entries(obj).forEach(([k, v]) => {
+      if (skipKeys.includes(k)) return;
       if (v === undefined || v === null) return;
       fd.append(k, v);
     });
@@ -750,10 +750,10 @@
 
   function buildCreateFormData() {
     const payload = { ...form.value };
-    const fd = toFormData(payload);
+    const fd = toFormData(payload, ['picture']); // ✅ skip URL/string field
 
     if (pictureFile.value) {
-      fd.append('picture', pictureFile.value);
+      fd.append('picture', pictureFile.value); // ✅ only file
     }
 
     return fd;
@@ -761,14 +761,15 @@
 
   function buildUpdateFormData() {
     const payload = { ...form.value };
-    const fd = toFormData(payload);
+    const fd = toFormData(payload, ['picture']); // ✅ skip URL/string field
 
     if (pictureFile.value) {
-      fd.append('picture', pictureFile.value);
+      fd.append('picture', pictureFile.value); // ✅ only file when changed
     }
 
     return fd;
   }
+
 
   /* SCROLL TO FIRST INVALID */
   function scrollToFirstInvalid() {
@@ -1071,7 +1072,7 @@
   /* sections */
   .section-header {
     display: flex;
-    align-items: center;
+    align-items: right;
     padding-block: 2px;
   }
   .section-title {
@@ -1128,5 +1129,100 @@
 
   .ga-2 {
     gap: 8px;
+  }
+  /* =========================
+   IMAGE CARD (LIKE SCREENSHOT)
+========================= */
+
+  .image-card {
+    width: 100%;
+    max-width: 360px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  }
+
+  /* title above avatar */
+  .image-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    opacity: 0.85;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  /* center everything */
+  .image-card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* big avatar circle with blue ring */
+  .avatar-ring {
+    width: 120px;
+    height: 120px;
+    border-radius: 999px;
+    border: 2px solid rgba(33, 150, 243, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+  }
+
+  /* inside icon/image */
+  .avatar-inner {
+    width: 78px;
+    height: 78px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+  }
+
+  /* if you show an image */
+  .avatar-inner img {
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+
+  /* pill "change photo" */
+  .change-photo-pill {
+    margin-top: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(25, 118, 210, 0.08);
+    color: #1976d2;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: 0.18s ease;
+  }
+
+  /* hover effect */
+  .change-photo-pill:hover {
+    background: rgba(25, 118, 210, 0.12);
+  }
+
+  /* pencil icon bubble (right side like screenshot) */
+  .pencil-bubble {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: #00bcd4; /* teal-ish like screenshot */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 188, 212, 0.35);
   }
 </style>

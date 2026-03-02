@@ -454,19 +454,14 @@
                 />
               </v-col>
               <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.zone"
-                  :label="t('زون تدارک')"
-                  density="compact"
-                  variant="outlined"
-                />
-              </v-col>
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.hawza"
-                  :label="t('حوزه تدارک')"
-                  density="compact"
-                  variant="outlined"
+                <ZoneHawzaPicker
+                  v-model:zone="form.zone"
+                  v-model:hawza="form.hawza"
+                  :disabled="false"
+                  :colsZone="12"
+                  :mdZone="6"
+                  :colsHawza="12"
+                  :mdHawza="6"
                 />
               </v-col>
               <v-col cols="12" md="3">
@@ -804,6 +799,7 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
   import ProvinceDistrictNameSelect from '../../components/ProvinceDistrictSelect.vue';
   import ResourceActivityTypeSelect from '../../components/ResourceActivityTypeSelect.vue';
+  import ZoneHawzaPicker from '@/components/ZoneHawzaSelect.vue';
   import { useLookupsRepository } from '../../stores/LookupsRepository';
   const lookups = useLookupsRepository();
 
@@ -901,6 +897,9 @@
     now_street_number: '',
     now_home_number: '',
     // Province_addr: '',
+    zone: '',
+    hawza: '',
+    specefic_place: '',
     coordinates: '',
     tadarok_place: '',
     train: '',
@@ -1024,6 +1023,9 @@
     b.now_street_number = x.now_street_number ?? '';
     b.now_home_number = x.now_home_number ?? '';
     // b.Province_addr = x.Province_addr ?? '';
+    b.zone = x.zone ?? '';
+    b.hawza = x.hawza ?? '';
+    b.specefic_place = x.specefic_place ?? '';
     b.coordinates = x.coordinates ?? '';
     b.tadarok_place = x.tadarok_place ?? '';
     b.elmi_level = x.elmi_level ?? '';

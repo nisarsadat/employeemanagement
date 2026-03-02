@@ -13,6 +13,7 @@ import {
   mdiBed,
   mdiAccountMultiplePlus,
   mdiAccountCheck,
+  mdiHomeGroupRemove,
   mdiHomePlusOutline,
   mdiAccountStar,
   mdiAccountQuestion,
@@ -33,6 +34,8 @@ import {
   mdiMosque,
   mdiFactory,
   mdiGymnastics,
+  mdiFireplaceOff,
+  mdiFireplace,
   mdiHomeGroup,
   mdiPoliceBadge,
   mdiTrafficLightOutline,
@@ -40,8 +43,10 @@ import {
   mdiGreenhouse,
   mdiAccountAlert,
   mdiGasStation,
+  mdiRobber,
   mdiAccountSwitch,
   mdiTreeOutline,
+  mdiPistol,
   mdiHomeAnalytics,
   mdiCart,
   mdiBriefcase,
@@ -67,6 +72,7 @@ const ICONS = {
 
   tujarans: { label: 'علماء او متنفذین', path: mdiAccountMultiplePlus },
   mujahedinos: { label: 'مجاهدین', path: mdiAccountCheck },
+  mashkok_homes: { label: 'مشکوک کورونه', path: mdiHomeGroupRemove },
 
   // NOTE: you didn’t provide an explicit table for "د مسولینو کورونه"
   // I mapped it to old_jahadis as “important persons/old commanders” group.
@@ -97,6 +103,8 @@ const ICONS = {
   universities: { label: 'پوهنتونونه', path: mdiSchool },
   masjids: { label: 'مساجد، خانقاوی', path: mdiMosque },
   companies: { label: 'شرکتونه', path: mdiFactory },
+  damage_places: { label: 'آسیب پذیره ساحې', path: mdiFireplace },
+  damage_rasan_places: { label: 'آسیب رسانه ساحې', path: mdiFireplaceOff },
   companies: { label: 'ورزشي کلبونه', path: mdiGymnastics },
   mahajerat: { label: 'نوې راغلي کورونه', path: mdiHomeGroup },
   soldier: { label: 'پخواني چارواکي', path: mdiPoliceBadge },
@@ -104,16 +112,18 @@ const ICONS = {
   // "څلور لاری" mapping: I mapped it to complexes (you can change)
   complexes: { label: 'څلور لاری', path: mdiTrafficLightOutline },
 
-  captives: { label: 'اختطاف شوی', path: mdiAccountLock },
+  captives: { label: 'راخوشي شوي بندیان', path: mdiAccountLock },
 
   // "مهم تاسیسات" mapping: I mapped it to econemy_projects (you can change)
   econemy_projects: { label: 'مهم تاسیسات', path: mdiGreenhouse },
 
   criminal_capture_places: { label: 'هغه ساحی چې مجرمین پکې نیول شوی', path: mdiAccountAlert },
 
-  pumps: { label: 'پمپونه', path: mdiGasStation },
+  pumps: { label: 'پمپونه', path: mdiGasStation }, 
+  robbers: { label: 'اختطاف ګران', path: mdiRobber },
   shoras: { label: 'محلی شورا ګانی', path: mdiAccountSwitch },
   parks: { label: 'پارکونه', path: mdiTreeOutline },
+  non_responsable_people: { label: 'غیر مسوله وسله وال', path: mdiPistol },
   governmentplaces: { label: 'دولتی ځایونه', path: mdiHomeAnalytics },
   supermarkets: { label: 'سوپر مارکیټونه', path: mdiCart },
 

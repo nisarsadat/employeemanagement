@@ -316,7 +316,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.Heists = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.Heists.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -410,7 +410,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.Captives = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.Captives.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -543,7 +543,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.Mulkanos = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.Mulkanos.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -637,7 +637,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.EntryExits = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.EntryExits.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -731,7 +731,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.Sarafyanos = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.Sarafyanos.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -825,7 +825,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.Clubs = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.Clubs.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -920,7 +920,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.Mahajerats = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.Mahajerats.length;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -1014,7 +1014,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         );
         const items = res?.data ?? res ?? [];
         this.Soldiers = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+        this.totalItems = res?.meta?.total ?? res?.total ?? this.Soldiers.length;
       } catch (e) {
         console.error(e);
         this.error = e;

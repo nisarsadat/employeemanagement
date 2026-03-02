@@ -55,7 +55,7 @@
               />
             </v-col>
             <v-col cols="12" md="3">
-              <FormatZoneAutocomplete v-model="form.zonne" :label="t('زون')" :disabled="saving" />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
             </v-col>
             <v-col cols="12" md="3">
               <v-text-field
@@ -169,8 +169,8 @@
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="form.resource_code"
-                :label="t('کود منبع')"
+                v-model="form.resource_phone"
+                :label="t('شماره منبع')"
                 variant="outlined"
                 :rules="[rules.required]"
                 density="compact"

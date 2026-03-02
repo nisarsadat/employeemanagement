@@ -164,11 +164,14 @@
 
           <v-row>
             <v-col cols="12" md="4">
-              <v-text-field
+              <v-autocomplete
                 v-model="form.home_type"
+                :items="['خپل', 'کرایی', 'ګرویي']"
                 :label="t('نوع خانه')"
                 variant="outlined"
                 density="compact"
+                clearable
+                hide-details="auto"
                 :error="hasError('home_type')"
                 :error-messages="getErrorMessages('home_type')"
               />

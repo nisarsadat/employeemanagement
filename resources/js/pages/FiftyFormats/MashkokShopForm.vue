@@ -152,6 +152,7 @@
                 v-model="form.phone_numbers"
                 :label="t('شماره تماس')"
                 variant="outlined"
+                maxlength="10"
                 density="compact"
                 :error="hasError('phone_numbers')"
                 :error-messages="getErrorMessages('phone_numbers')"

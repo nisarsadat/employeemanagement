@@ -60,10 +60,68 @@
             color="primary"
             :loading="submitting"
             :disabled="submitting"
-            @click="confirmSubmit"
+            @click="openSubmitConfirm"
           >
             <v-icon start>mdi-check</v-icon>
             {{ t('تایید و ثبت') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- ✅ SMALL CONFIRM: Submit -->
+    <v-dialog v-model="confirmSubmitOpen" max-width="420">
+      <v-card rounded="xl" :dir="isRtl ? 'rtl' : 'ltr'">
+        <v-card-title class="d-flex align-center" style="gap: 10px">
+          <v-icon color="primary">mdi-check-decagram</v-icon>
+          <span>{{ t('تایید نهایی') }}</span>
+        </v-card-title>
+
+        <v-card-text class="pt-2">
+          {{ t('آیا مطمئن هستید که می‌خواهید این معلومات ثبت شود؟') }}
+        </v-card-text>
+
+        <v-divider />
+
+        <v-card-actions>
+          <v-btn variant="text" @click="confirmSubmitOpen = false" :disabled="submitting">
+            {{ t('لغو') }}
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            :loading="submitting"
+            :disabled="submitting"
+            @click="doConfirmedSubmit"
+          >
+            <v-icon start>mdi-check</v-icon>
+            {{ t('بلی، ثبت شود') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- ✅ SMALL CONFIRM: Reset -->
+    <v-dialog v-model="confirmResetOpen" max-width="420">
+      <v-card rounded="xl" :dir="isRtl ? 'rtl' : 'ltr'">
+        <v-card-title class="d-flex align-center" style="gap: 10px">
+          <v-icon color="error">mdi-alert</v-icon>
+          <span>{{ t('هشدار') }}</span>
+        </v-card-title>
+
+        <v-card-text class="pt-2">
+          {{ t('با پاک کردن فرم، تمام معلومات وارد شده حذف می‌شود. ادامه می‌دهید؟') }}
+        </v-card-text>
+
+        <v-divider />
+
+        <v-card-actions>
+          <v-btn variant="text" @click="confirmResetOpen = false" :disabled="submitting">
+            {{ t('لغو') }}
+          </v-btn>
+          <v-spacer />
+          <v-btn color="error" :disabled="submitting" @click="doConfirmedReset">
+            <v-icon start>mdi-delete</v-icon>
+            {{ t('بلی، پاک شود') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -783,7 +841,12 @@
             Word
           </v-btn>
 
-          <v-btn variant="text" color="grey-darken-1" @click="onReset" :disabled="submitting">
+          <v-btn
+            variant="text"
+            color="grey-darken-1"
+            @click="openResetConfirm"
+            :disabled="submitting"
+          >
             <v-icon start>mdi-delete</v-icon>
             {{ t('پاک کردن فرم') }}
           </v-btn>
@@ -1168,7 +1231,28 @@
 
     reviewOpen.value = true;
   }
+const confirmSubmitOpen = ref(false);
+const confirmResetOpen = ref(false);
 
+function openSubmitConfirm() {
+  // close review first (optional)
+  reviewOpen.value = false;
+  confirmSubmitOpen.value = true;
+}
+
+async function doConfirmedSubmit() {
+  confirmSubmitOpen.value = false;
+  await onCreate();
+}
+
+function openResetConfirm() {
+  confirmResetOpen.value = true;
+}
+
+function doConfirmedReset() {
+  confirmResetOpen.value = false;
+  onReset();
+}
   async function confirmSubmit() {
     reviewOpen.value = false;
     await onCreate(); // ✅ reuse your existing create logic
@@ -1364,7 +1448,10 @@
     width: 10px;
     height: 10px;
   }
-
+:deep(.v-dialog .v-card-text) {
+  font-size: 0.95rem;
+  color: #334155;
+}
   .pretty-scroll::-webkit-scrollbar-track {
     background: rgba(148, 163, 184, 0.18); /* soft slate */
     border-radius: 999px;

@@ -702,8 +702,9 @@
                 </template>
 
                 <!-- Score -->
-                <template #item.score="{ item }">
-                  <div class="score-cell">
+                <!-- ✅ Score Bar column -->
+                <template #item.score_bar="{ item }">
+                  <div class="score-bar-cell">
                     <v-progress-linear
                       :model-value="getScorePercentage(item.score)"
                       height="10"
@@ -712,11 +713,15 @@
                       bg-color="rgba(0,0,0,0.06)"
                       class="score-bar"
                     />
-                    <div class="score-meta">
-                      <div class="score-number">{{ num(item.score) }}</div>
-                      <div class="score-label text-caption text-medium-emphasis">
-                        {{ getScoreLabel(item.score) }}
-                      </div>
+                  </div>
+                </template>
+
+                <!-- ✅ Score Value column -->
+                <template #item.score_value="{ item }">
+                  <div class="score-value-cell">
+                    <div class="score-number">{{ num(item.score) }}</div>
+                    <div class="score-label text-caption text-medium-emphasis">
+                      {{ getScoreLabel(item.score) }}
                     </div>
                   </div>
                 </template>
@@ -1055,7 +1060,8 @@
       sortable: false,
       align: 'center',
     },
-    { title: t('امتیاز'), key: 'score', width: 220, sortable: false, align: 'center' },
+    { title: t('نمودار امتیاز'), key: 'score_bar', width: 150, sortable: false, align: 'center' },
+    { title: t('امتیاز'), key: 'score_value', width: 120, sortable: false, align: 'center' },
     { title: t('د معلواتو لیدنه'), key: 'actions', width: 70, sortable: false, align: 'center' },
   ]);
   function toggleSort(key) {
@@ -1119,9 +1125,9 @@
   function getScoreLabel(score) {
     const percentage = getScorePercentage(score);
     if (percentage >= 80) return t('عالی');
-    if (percentage >= 60) return t('خوب');
+    if (percentage >= 60) return t('ښه');
     if (percentage >= 40) return t('متوسط');
-    return t('نیازمند بهبود');
+    return t('');
   }
 
   /* ===========================
@@ -1998,7 +2004,26 @@
       radial-gradient(900px 500px at 100% 10%, rgba(var(--v-theme-teal), 0.14), transparent 55%),
       #121212;
   }
+  .score-bar-cell {
+    display: flex;
+    justify-content: center;
+  }
 
+  .score-value-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+  }
+
+  .score-value-cell .score-number {
+    font-weight: 900;
+    font-size: 1rem;
+  }
+
+  .score-value-cell .score-label {
+    margin-top: 2px;
+  }
   :deep(.v-theme--dark) .stat-card {
     background: #1e1e1e;
     border-color: rgba(255, 255, 255, 0.08);
