@@ -371,6 +371,7 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                maxlength="10"
               />
             </v-col>
 
@@ -437,13 +438,13 @@
               />
             </v-col>
             <v-col cols="12" md="12">
-              <v-text-field
+              <v-textarea
                 v-model="form.tafseel"
                 :label="t('تفصیل')"
-                density="compact"
                 variant="outlined"
-                hide-details="auto"
-                persistent-hint
+                density="compact"
+                rows="4"
+                auto-grow
               />
             </v-col>
           </v-row>
@@ -483,6 +484,16 @@
                 variant="outlined"
                 hide-details="auto"
                 readonly
+              />
+            </v-col>
+            <v-col cols="12" md="12">
+              <v-text-field
+                v-model="form.notes"
+                :label="t('ملاحظات')"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                persistent-hint
               />
             </v-col>
           </v-row>
@@ -542,16 +553,6 @@
                   </v-btn>
                 </div>
               </div>
-            </v-col>
-            <v-col cols="12" md="12">
-              <v-text-field
-                v-model="form.notes"
-                :label="t('ملاحظات')"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                persistent-hint
-              />
             </v-col>
           </v-row>
         </v-card>

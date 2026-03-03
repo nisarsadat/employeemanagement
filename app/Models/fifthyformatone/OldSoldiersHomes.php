@@ -18,6 +18,7 @@ class OldSoldiersHomes extends Model
         'specific_place',
         'street_number',
         'home_number',
+        'phone_number',
         'picture',
         'coordinates',
         'name',

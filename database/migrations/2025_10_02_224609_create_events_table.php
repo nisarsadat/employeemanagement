@@ -36,8 +36,8 @@ return new class extends Migration {
                 $table->string('injured')->nullable();
                 $table->string('killed')->nullable();
                 $table->string('trust_percentage')->nullable();
+                $table->longText('tafseel')->nullable();
 
-                $table->text('tafseel')->nullable();
                 $table->text('talks')->nullable();
                 $table->string('coordinates')->nullable();
                 $table->text('note')->nullable();

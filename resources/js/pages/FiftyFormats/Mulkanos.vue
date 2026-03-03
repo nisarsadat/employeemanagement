@@ -406,8 +406,9 @@ const headersFT = computed(() => [
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone_number' },
 
-  { title: t('ملاحظات'), key: 'notes' },
   { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('ملاحظات'), key: 'notes' },
+
 ]);
 
 /* TOP GROUPS (same style as Fasad, with Mulkano keys) */

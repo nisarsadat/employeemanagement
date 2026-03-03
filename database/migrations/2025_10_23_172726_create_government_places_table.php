@@ -26,7 +26,7 @@ return new class extends Migration {
             $table->string('specefic_place')->nullable();
             $table->string('coordinates')->nullable();
 
-            $table->text('tafseel')->nullable();
+            $table->longText('tafseel')->nullable();
             $table->string('amnyatee_khala')->nullable();
             $table->integer('guard_quantity')->nullable();
             $table->string('Province_addr')->nullable();

@@ -45,7 +45,7 @@ return new class extends Migration {
 
             $table->foreignId('resource_id')->nullable()->constrained()->nullOnDelete();
             $table->text('notes')->nullable();
-            $table->text('tafseel')->nullable();
+            $table->longText('tafseel')->nullable();
 
             $table->timestamps();
         });

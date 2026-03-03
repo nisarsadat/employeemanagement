@@ -305,7 +305,7 @@
     },
     {
       type: 'old_soldiers_homes',
-      label: 'د پخواني چاروکو کورونه',
+      label: 'د پخواني چارواکو کورونه',
       list: '/api/old-soldiers-homes',
       show: (id) => `/api/old-soldiers-homes/${id}`,
       route: '/app/oldsoldiershomes',

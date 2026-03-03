@@ -256,11 +256,13 @@
               />
             </v-col>
             <v-col cols="12" md="12">
-              <v-text-field
+              <v-textarea
                 v-model="form.tafseel"
                 :label="t('تفصیل')"
                 variant="outlined"
                 density="compact"
+                rows="4"
+                auto-grow
               />
             </v-col>
           </v-row>

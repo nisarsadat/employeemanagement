@@ -36,7 +36,7 @@ return new class extends Migration {
             $table->string('who_sighn')->nullable();
 
             $table->string('marja')->nullable();
-            $table->text('tafseel')->nullable();
+            $table->longText('tafseel')->nullable();
 
             $table->string('page')->nullable();
             $table->string('dusya')->nullable();

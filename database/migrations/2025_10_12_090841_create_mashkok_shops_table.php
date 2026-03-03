@@ -32,7 +32,7 @@ return new class extends Migration {
             $table->string('mashkok_type')->nullable();
 
             $table->text('note')->nullable();
-            $table->text('tafseel')->nullable();
+            $table->longText('tafseel')->nullable();
             $table->string('Province_addr')->nullable();
 
             $table->foreignId('resource_id')

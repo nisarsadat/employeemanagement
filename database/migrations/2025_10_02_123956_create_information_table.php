@@ -81,7 +81,7 @@ return new class extends Migration {
             // ===============================
             // Text areas
             // ===============================
-            $table->text('tafseel')->nullable();
+            $table->longText('tafseel')->nullable();
             $table->text('manager_comment')->nullable();
             $table->text('lead_drirection')->nullable();
             $table->text('talks')->nullable();

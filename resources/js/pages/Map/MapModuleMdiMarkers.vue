@@ -13,6 +13,13 @@ import {
   mdiBed,
   mdiAccountMultiplePlus,
   mdiAccountCheck,
+  mdiAccountRemove,
+  mdiCarBack,
+  mdiBankTransfer,
+  mdiAccountMinus,
+  mdiWarehouse,
+  mdiAccountMultipleRemove,
+  mdiTrainCar,
   mdiHomeGroupRemove,
   mdiHomePlusOutline,
   mdiAccountStar,
@@ -31,6 +38,7 @@ import {
   mdiAccountEdit,
   mdiAccountDetails,
   mdiSchool,
+  mdiAccountQuestion,
   mdiMosque,
   mdiFactory,
   mdiGymnastics,
@@ -72,12 +80,19 @@ const ICONS = {
 
   tujarans: { label: 'علماء او متنفذین', path: mdiAccountMultiplePlus },
   mujahedinos: { label: 'مجاهدین', path: mdiAccountCheck },
+  saeen_fasad: { label: 'ساعین بالفساد', path: mdiAccountRemove },
+  fasad: { label: 'فساد', path: mdiAccountMinus },
+  sarayanos: { label: 'سرایونه', path: mdiWarehouse },
+  sarafyano: { label: 'صرافیانې', path: mdiBankTransfer },
+  badmashanos: { label: 'زورواکان او ولکه داران', path: mdiAccountMultipleRemove },
+  car_sales_companies: { label: 'موټر پلورونځی', path: mdiCarBack },
+  transport_companies: { label: 'ترانسپورتي شرکتونه', path: mdiTrainCar },
   mashkok_homes: { label: 'مشکوک کورونه', path: mdiHomeGroupRemove },
 
   // NOTE: you didn’t provide an explicit table for "د مسولینو کورونه"
   // I mapped it to old_jahadis as “important persons/old commanders” group.
   // If you want it for another table, tell me and I will switch.
-  old_soldiers_homes: { label: 'د مسولینو کورونه', path: mdiHomePlusOutline },
+  old_soldiers_homes: { label: 'د پخواني چارواکو کورونه', path: mdiHomePlusOutline },
 
   old_jahadis: { label: 'پخوانی جهادی قومندانان', path: mdiAccountStar },
   mashkok_people: { label: 'مشکوک افراد', path: mdiAccountQuestion },
@@ -98,14 +113,15 @@ const ICONS = {
   work_shops: { label: 'مستری خانی', path: mdiCarWrench },
 
   wakilanos: { label: 'وکیلان او ملکان', path: mdiAccountEdit },
-  sarayanos: { label: 'د کوڅو نماینده کان', path: mdiAccountDetails },
+  mulkano: { label: 'د کوڅو نماینده کان', path: mdiAccountDetails },
 
   universities: { label: 'پوهنتونونه', path: mdiSchool },
+  heist: { label: 'سرقت کوونکي', path: mdiAccountQuestion },
   masjids: { label: 'مساجد، خانقاوی', path: mdiMosque },
   companies: { label: 'شرکتونه', path: mdiFactory },
   damage_places: { label: 'آسیب پذیره ساحې', path: mdiFireplace },
   damage_rasan_places: { label: 'آسیب رسانه ساحې', path: mdiFireplaceOff },
-  companies: { label: 'ورزشي کلبونه', path: mdiGymnastics },
+  clubs: { label: 'ورزشي کلبونه', path: mdiGymnastics },
   mahajerat: { label: 'نوې راغلي کورونه', path: mdiHomeGroup },
   soldier: { label: 'پخواني چارواکي', path: mdiPoliceBadge },
 

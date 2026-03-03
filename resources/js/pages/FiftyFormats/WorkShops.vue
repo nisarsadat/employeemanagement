@@ -383,6 +383,7 @@
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
+    { title: t('نقشه'), key: 'map' },
     { title: t('یادداشت'), key: 'note' },
   ]);
 

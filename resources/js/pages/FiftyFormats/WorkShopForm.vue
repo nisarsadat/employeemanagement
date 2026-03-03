@@ -194,7 +194,7 @@
 
           <!-- ================= RESOURCE + NOTE ================= -->
           <div class="section-header">
-            <span class="section-title">{{ t('منبع و یادداشت') }}</span>
+            <span class="section-title">{{ t('معلوات منبع') }}</span>
           </div>
 
           <v-row>

@@ -40,7 +40,7 @@ return new class extends Migration {
             $table->string('mushkokyat_points')->nullable();
 
             $table->text('note')->nullable();
-            $table->text('tafseel')->nullable();
+            $table->longText('tafseel')->nullable();
             $table->string('Province_addr')->nullable();
 
             // Resource relation

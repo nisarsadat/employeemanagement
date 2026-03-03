@@ -45,7 +45,7 @@ return new class extends Migration {
             $table->string('resource_code')->nullable();
             $table->string('resource_phone_number')->nullable();
             $table->text('note')->nullable();
-            $table->text('tafseel')->nullable();
+            $table->longText('tafseel')->nullable();
             $table->string('Province_addr')->nullable();
             $table->string('coordinates')->nullable();
 

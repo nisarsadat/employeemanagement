@@ -94,6 +94,7 @@
                 v-model="form.principle_phone"
                 :label="t('شماره مدیر')"
                 variant="outlined"
+                maxlength="10"
                 density="compact"
                 :error="hasError('principle_phone')"
                 :error-messages="getErrorMessages('principle_phone')"

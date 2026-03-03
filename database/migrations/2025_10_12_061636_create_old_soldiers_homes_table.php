@@ -26,6 +26,7 @@ return new class extends Migration {
             $table->string('father_name')->nullable();
             $table->string('main_province')->nullable();
             $table->string('old_job')->nullable();
+            $table->string('phone_number')->nullable();
             $table->string('now_activity')->nullable();
 
             $table->text('note')->nullable();

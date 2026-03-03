@@ -45,6 +45,72 @@
           </v-btn>
         </v-col>
       </v-row>
+      <!-- ✅ Filter Cards -->
+      <v-row class="mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'all' }"
+            @click="cardFilter = 'all'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon"><v-icon>mdi-account-group</v-icon></div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('همه') }}</div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withCoordinates' }"
+            @click="cardFilter = 'withCoordinates'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon"><v-icon>mdi-map-marker-radius</v-icon></div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withPhone' }"
+            @click="cardFilter = 'withPhone'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon"><v-icon>mdi-phone</v-icon></div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای شماره تماس') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withPhone }}</div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3">
+          <v-card
+            class="stat-card"
+            :class="{ 'stat-card--active': cardFilter === 'withResource' }"
+            @click="cardFilter = 'withResource'"
+          >
+            <div class="stat-card-body">
+              <div class="stat-card-icon"><v-icon>mdi-card-account-phone</v-icon></div>
+              <div class="stat-card-text">
+                <div class="stat-card-title">{{ t('دارای منبع') }}</div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withResource }}</div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
     </v-container>
 
     <!-- 👁 Peek drawer -->
@@ -67,7 +133,7 @@
     <!-- 📋 MAIN TABLE -->
     <FilterableTable
       :headers="headersFT"
-      :rows="rowsFT"
+      :rows="filteredRowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
@@ -288,7 +354,6 @@
     { title: t('شماره منبع'), key: 'resource_phone' },
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('یادداشت'), key: 'note' },
-
   ]);
 
   /* TOP GROUPS (same idea as before) */
@@ -387,7 +452,37 @@
       deleteTarget.value = null;
     }
   }
+  const cardFilter = ref('all');
 
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
+
+    const withCoordinates = rows.filter(
+      (r) => r?.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
+    const withPhone = rows.filter(
+      (r) => r?.phone_number && String(r.phone_number).trim() !== ''
+    ).length;
+    const withResource = rows.filter(
+      (r) => r?.resource_code && String(r.resource_code).trim() !== ''
+    ).length;
+
+    return { total, withCoordinates, withPhone, withResource };
+  });
+
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+
+    if (cardFilter.value === 'withCoordinates')
+      return base.filter((r) => r?.coordinates && String(r.coordinates).trim() !== '');
+    if (cardFilter.value === 'withPhone')
+      return base.filter((r) => r?.phone_number && String(r.phone_number).trim() !== '');
+    if (cardFilter.value === 'withResource')
+      return base.filter((r) => r?.resource_code && String(r.resource_code).trim() !== '');
+
+    return base;
+  });
   /* Fetch ALL */
   async function fetchAll() {
     try {
@@ -421,5 +516,44 @@
 
   .ga-2 {
     gap: 8px;
+  }
+  .stat-card {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #fff;
+    transition: 0.2s;
+  }
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
+  }
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #fff 60%);
+  }
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
   }
 </style>

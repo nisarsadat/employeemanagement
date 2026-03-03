@@ -484,8 +484,8 @@
       if (!v) return true;
       const s = String(v).trim();
       if (!s) return true;
-      if (s.length < 7) return t('شماره باید حداقل ۷ رقم باشد');
-      if (s.length > 15) return t('شماره باید حداکثر ۱۵ رقم باشد');
+      if (s.length < 10) return t('شماره باید حداقل ۱۰ رقم باشد');
+      if (s.length > 10) return t('شماره باید حداکثر ۱۰ رقم باشد');
       return true;
     },
   };

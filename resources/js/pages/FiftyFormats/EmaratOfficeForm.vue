@@ -105,7 +105,7 @@
                 <v-col cols="12" md="8">
                   <v-text-field
                     v-model="form.coordenates"
-                    :label="t('مختصات (coordenates)')"
+                    :label="t('مختصات')"
                     variant="outlined"
                     density="compact"
                     :error="hasError('coordenates')"

@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->string('liter_in_words')->nullable();
 
             $table->string('account_name')->nullable(); // if you store text snapshot
-            $table->text('tafseel')->nullable();
+            $table->longText('tafseel')->nullable();
             $table->string('payer')->nullable();
             $table->text('note')->nullable();
 

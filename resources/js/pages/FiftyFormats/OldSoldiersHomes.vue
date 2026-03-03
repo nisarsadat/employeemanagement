@@ -392,6 +392,7 @@ const headersFT = computed(() => [
 
   { title: t('وظیفه قبلی'), key: 'old_job' },
   { title: t('فعالیت فعلی'), key: 'now_activity' },
+  { title: t('شماره تماس'), key: 'phone_number' },
 
 
   { title: t('کود منبع'), key: 'resource_code' },

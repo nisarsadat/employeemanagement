@@ -272,6 +272,7 @@
                 :label="t('شماره تماس')"
                 variant="outlined"
                 density="compact"
+                maxlength="10"
                 :error="hasError('phone_number')"
                 :error-messages="getErrorMessages('phone_number')"
               />
