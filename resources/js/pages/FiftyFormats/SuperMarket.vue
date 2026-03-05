@@ -392,7 +392,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
   { title: t('picture'), key: 'picture' },
 
     { title: t('نام سوپرمارکیت'), key: 'supermarket_name' },
-    { title: t('کدام فعایت'), key: 'market_activity_type' },
+    { title: t('کدام فعالیت'), key: 'market_activity_type' },
     { title: t('تعداد دکان‌ها'), key: 'shops_quantity' },
     { title: t('مراجعین روزانه'), key: 'daily_clientele' },
 

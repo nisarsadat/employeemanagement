@@ -20,16 +20,7 @@
         :dir="isRtl ? 'rtl' : 'ltr'"
       >
         <v-card class="simple-form-card" elevation="1">
-          <!-- Identity -->
           <v-row>
-            <!-- <v-col cols="12">
-              <div class="section-header">
-                <span class="section-title">
-                  {{ isEdit ? t('ویرایش ریکارډ مجاهد') : t('ایجاد ریکارډ مجاهد') }}
-                </span>
-              </div>
-            </v-col> -->
-
             <!-- ✅ Picture picker + preview -->
             <v-col cols="12" md="4">
               <div class="d-flex align-center ga-3">
@@ -79,6 +70,16 @@
                 </div>
               </div>
             </v-col>
+          </v-row>
+          <!-- Identity -->
+          <v-row>
+            <!-- <v-col cols="12">
+              <div class="section-header">
+                <span class="section-title">
+                  {{ isEdit ? t('ویرایش ریکارډ مجاهد') : t('ایجاد ریکارډ مجاهد') }}
+                </span>
+              </div>
+            </v-col> -->
 
             <v-col cols="12" md="4">
               <v-text-field

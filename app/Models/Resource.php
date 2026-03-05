@@ -305,8 +305,5 @@ class Resource extends Model
     {
         return $this->hasMany(KhayratReport::class);
     }
-    public function formatLock()
-    {
-    return $this->hasOne(ResourceFormat::class);
-    }
+   
 }

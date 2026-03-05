@@ -24,12 +24,9 @@
           <v-row class="mb-2">
             <v-col cols="12">
               <div class="d-flex align-center justify-space-between flex-wrap" style="gap: 12px">
-                <div class="section-header">
-                  <span class="section-title">{{ t('عکس') }}</span>
-                </div>
-
+               
                 <div class="d-flex align-center" style="gap: 12px">
-                  <v-avatar size="72" class="picture-avatar" rounded="xl">
+                  <v-avatar size="72" class="picture-avatar" rounded="50%">
                     <v-img v-if="picturePreviewUrl" :src="picturePreviewUrl" cover />
                     <v-icon v-else size="30">mdi-account</v-icon>
                   </v-avatar>

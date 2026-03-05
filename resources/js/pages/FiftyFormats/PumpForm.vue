@@ -60,7 +60,7 @@
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="form.pump_type"
-                :label="t('مارتي/شخصي')"
+                :label="t('امارتي/شخصي')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('pump_type')"
@@ -437,7 +437,7 @@
     required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
     nonNegativeInt: (v) =>
       v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
-    phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
+    phone: (v) => !v || /^[+]?\d[\d\s\-]{10,10}$/.test(String(v)) || t('شماره تماس نادرست است'),
   };
 
   /* RESOURCES DROPDOWN */

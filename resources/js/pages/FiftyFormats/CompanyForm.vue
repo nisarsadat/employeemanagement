@@ -506,7 +506,7 @@
     required: (v) => !!v || t('این فیلد الزامی است'),
     nonNegativeInt: (v) =>
       v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
-    phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
+    phone: (v) => !v || /^[+]?\d[\d\s\-]{10,10}$/.test(String(v)) || t('شماره تماس نادرست است'),
   };
 
   /* RESOURCES DROPDOWN */

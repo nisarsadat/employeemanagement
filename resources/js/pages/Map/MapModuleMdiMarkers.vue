@@ -18,6 +18,7 @@ import {
   mdiBankTransfer,
   mdiAccountMinus,
   mdiWarehouse,
+  mdiHighway,
   mdiAccountMultipleRemove,
   mdiTrainCar,
   mdiHomeGroupRemove,
@@ -38,15 +39,16 @@ import {
   mdiAccountEdit,
   mdiAccountDetails,
   mdiSchool,
-  mdiAccountQuestion,
+  mdiAccountBoxMinusOutline,
   mdiMosque,
   mdiFactory,
   mdiGymnastics,
+  mdiSelectPlace,
   mdiFireplaceOff,
   mdiFireplace,
   mdiHomeGroup,
   mdiPoliceBadge,
-  mdiTrafficLightOutline,
+  mdiOfficeBuildingPlus,
   mdiAccountLock,
   mdiGreenhouse,
   mdiAccountAlert,
@@ -82,6 +84,7 @@ const ICONS = {
   mujahedinos: { label: 'مجاهدین', path: mdiAccountCheck },
   saeen_fasad: { label: 'ساعین بالفساد', path: mdiAccountRemove },
   fasad: { label: 'فساد', path: mdiAccountMinus },
+  highways: { label: 'څلور لارې او درې لارې', path: mdiHighway },
   sarayanos: { label: 'سرایونه', path: mdiWarehouse },
   sarafyano: { label: 'صرافیانې', path: mdiBankTransfer },
   badmashanos: { label: 'زورواکان او ولکه داران', path: mdiAccountMultipleRemove },
@@ -95,7 +98,7 @@ const ICONS = {
   old_soldiers_homes: { label: 'د پخواني چارواکو کورونه', path: mdiHomePlusOutline },
 
   old_jahadis: { label: 'پخوانی جهادی قومندانان', path: mdiAccountStar },
-  mashkok_people: { label: 'مشکوک افراد', path: mdiAccountQuestion },
+  mashkok_people: { label: 'مشکوک افراد', path: mdiAccountBoxMinusOutline },
 
   madrasas: { label: 'دینی مدرسی', path: mdiTownHall },
   schools: { label: 'ښوونځی او روزنیز مرکزونه', path: mdiBookOpenBlankVariantOutline },
@@ -115,18 +118,19 @@ const ICONS = {
   wakilanos: { label: 'وکیلان او ملکان', path: mdiAccountEdit },
   mulkano: { label: 'د کوڅو نماینده کان', path: mdiAccountDetails },
 
-  universities: { label: 'پوهنتونونه', path: mdiSchool },
+  universities: { label: 'پوهنتونونو ، دلوړو زده کړو موسسو او انسټیټیوټونو', path: mdiSchool },
   heist: { label: 'سرقت کوونکي', path: mdiAccountQuestion },
   masjids: { label: 'مساجد، خانقاوی', path: mdiMosque },
-  companies: { label: 'شرکتونه', path: mdiFactory },
+  companies: { label: 'فابریکې او شرکتونه', path: mdiFactory },
   damage_places: { label: 'آسیب پذیره ساحې', path: mdiFireplace },
   damage_rasan_places: { label: 'آسیب رسانه ساحې', path: mdiFireplaceOff },
   clubs: { label: 'ورزشي کلبونه', path: mdiGymnastics },
+  done_lost_places: { label: 'هغه ساحې چې اختطاف پکې ترسره شوی', path: mdiSelectPlace },
   mahajerat: { label: 'نوې راغلي کورونه', path: mdiHomeGroup },
   soldier: { label: 'پخواني چارواکي', path: mdiPoliceBadge },
 
   // "څلور لاری" mapping: I mapped it to complexes (you can change)
-  complexes: { label: 'څلور لاری', path: mdiTrafficLightOutline },
+  complexes: { label: 'داخلي موسسې او بنسټونه', path: mdiOfficeBuildingPlus },
 
   captives: { label: 'راخوشي شوي بندیان', path: mdiAccountLock },
 
@@ -141,10 +145,10 @@ const ICONS = {
   parks: { label: 'پارکونه', path: mdiTreeOutline },
   non_responsable_people: { label: 'غیر مسوله وسله وال', path: mdiPistol },
   governmentplaces: { label: 'دولتی ځایونه', path: mdiHomeAnalytics },
-  supermarkets: { label: 'سوپر مارکیټونه', path: mdiCart },
+  supermarkets: { label: 'تجارتي مراکز او سوپر مارکیټونه', path: mdiCart },
 
   emarat_offices: { label: 'داخلی مؤسسه او بنسټونه', path: mdiBriefcase },
-  deplomaticplaces: { label: 'دیپلوماتیک ځایونه', path: mdiBriefcaseVariant },
+  deplomaticplaces: { label: 'دیپلوماتیک ځایونه،خارجي موسسې،دبهرنیانو د اوسیدو او کار ځایونه', path: mdiBriefcaseVariant },
   checkpoints: { label: 'پوستی او چیک پاینټونه', path: mdiShieldLock },
 };
 

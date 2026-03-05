@@ -44,7 +44,7 @@
           </div>
 
           <v-row>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="form.place_name"
                 :label="t('ساحه که اختطاف صورت گرفته *')"
@@ -456,7 +456,7 @@
     required: (v) => !!(v && String(v).trim()) || t('این فیلد الزامی است'),
     nonNegativeInt: (v) =>
       v === '' || v === null || /^\d+$/.test(String(v)) || t('فقط اعداد غیرمنفی'),
-    phone: (v) => !v || /^[+]?\d[\d\s\-]{5,}$/.test(String(v)) || t('شماره تماس نادرست است'),
+    phone: (v) => !v || /^[+]?\d[\d\s\-]{10,10}$/.test(String(v)) || t('شماره تماس نادرست است'),
   };
 
   /* RESOURCES */

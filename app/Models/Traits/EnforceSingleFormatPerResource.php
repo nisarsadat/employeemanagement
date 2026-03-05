@@ -21,7 +21,7 @@ trait EnforceSingleFormatPerResource
             // ✅ Enforce: only ONE row per resource_id in THIS model/table
             if ($model::where('resource_id', $rid)->exists()) {
                 throw ValidationException::withMessages([
-                    'resource_id' => 'دا سرچینه له مخکې نه د همدې برخې ریکارډ لري.',
+                    'resource_id' => 'دا منبع له مخکې نه د همدې برخې ریکارډ لري.',
                 ]);
             }
         });

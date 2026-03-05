@@ -490,7 +490,7 @@
       label: 'دینې مدارس',
       list: '/api/madrasas',
       show: (id) => `/api/madrasas/${id}`,
-      route: '/app/madrasas',
+      route: '/madrasas',
       routeForm: (id) => `/app/madrasas/form/${id ?? ''}`.replace(/\/$/, ''),
     },
     {
