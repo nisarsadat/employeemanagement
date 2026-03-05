@@ -81,21 +81,18 @@ body,
   overflow-y: auto !important;
 }
 
-
 /* =========================
-   GLOBAL SCROLLBARS
+   GLOBAL SCROLLBARS (with override support)
    ========================= */
 
-/* Firefox */
-* {
-  scrollbar-width: auto; /* or thin */
-  scrollbar-color: rgba(120, 120, 120, 0.55) transparent;
+:root {
+  --sb-size: 32px; /* ✅ change this to increase everywhere */
 }
 
 /* Chrome / Edge / Safari */
 *::-webkit-scrollbar {
-  width: 18px !important;   /* ✅ vertical scrollbar width */
-  height: 18px !important;  /* ✅ horizontal scrollbar height */
+  width: var(--sb-size) !important;
+  height: var(--sb-size) !important;
 }
 
 *::-webkit-scrollbar-track {
@@ -112,6 +109,12 @@ body,
 *::-webkit-scrollbar-thumb:hover {
   background: rgba(120, 120, 120, 0.8);
   background-clip: padding-box;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: auto; /* Firefox can't set px width; only auto/thin */
+  scrollbar-color: rgba(120, 120, 120, 0.55) transparent;
 }
 /* 🌈 Table variables */
 .v-data-table {

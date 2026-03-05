@@ -39,7 +39,7 @@ watch(locale, (l) => (isRtl.value = l === "fa"));
 const location = computed(() => (locale.value === "fa" ? "right" : "left"));
 </script> -->
 <template>
-  <v-app flat fluid class="rounded-xl bg-white" >
+  <v-app flat fluid class="rounded-xl bg-white">
     <v-layout flat fluid class="no-scroll-layout">
       <NavigationDrawer
         v-model="drawerOpen"
@@ -92,35 +92,11 @@ const location = computed(() => (locale.value === "fa" ? "right" : "left"));
     right: 0;
   }
   .main-scroll {
-    height: 100vh; /* full screen */
+    height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
     scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch; /* iOS smooth */
-    padding-right: 12px; /* so content doesn't sit under scrollbar */
-  }
-
-  /* Firefox */
-  .main-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(22, 94, 51, 0.681) transparent;
-  }
-
-  /* Chrome / Edge / Safari */
-  .main-scroll::-webkit-scrollbar {
-    width: 18px !important;
-  }
-  .main-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .main-scroll::-webkit-scrollbar-thumb {
-    background: rgba(48, 129, 70, 0.35);
-    border-radius: 999px;
-    border: 3px solid transparent; /* makes it look “floating” */
-    background-clip: padding-box;
-  }
-  .main-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(26, 102, 99, 0.55);
-    background-clip: padding-box;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 12px;
   }
 </style>

@@ -2162,21 +2162,6 @@
     box-shadow: none !important;
   }
 
-  .overflow-x-auto::-webkit-scrollbar {
-    height: 8px;
-  }
-  .overflow-x-auto::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-  .overflow-x-auto::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-  }
-  .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-    background: #a1a1a1;
-  }
-
   #print-this-table table {
     border-collapse: separate;
     border-spacing: 0;
@@ -2214,58 +2199,10 @@
     background-color: rgba(0, 0, 0, 0.03);
   }
 
-  .overflow-x-auto::-webkit-scrollbar {
-    width: 18px;
-    height: 18px;
-  }
-
-  .overflow-x-auto::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-
-  .overflow-x-auto::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-  }
-
-  .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-    background: #a1a1a1;
-  }
-
   .overflow-x-auto > table > thead.table-header {
     position: sticky;
     top: 0;
     z-index: 40;
-  }
-
-
-
-  .overflow-x-auto:hover::-webkit-scrollbar {
-    width: 18px;
-    height: 18px;
-  }
-
-  .overflow-x-auto::-webkit-scrollbar-thumb {
-    background: #bfbfbf;
-    border-radius: 4px;
-  }
-
-  .overflow-x-auto:hover::-webkit-scrollbar-thumb {
-    background: #888;
-  }
-
-  .overflow-x-auto::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .overflow-x-auto {
-    scrollbar-width: none;
-  }
-
-  .overflow-x-auto:hover {
-    scrollbar-width: thin;
-    scrollbar-color: #b9b6b6 transparent;
   }
 
   td .cell-box {
