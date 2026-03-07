@@ -56,7 +56,11 @@
     </div>
 
     <!-- Right-side icons -->
-    <div class="d-flex align-center" :class="isRtl ? 'rtl-icons' : 'ltr-icons'" style="gap: 12px">
+    <div
+      class="d-flex align-center right-icons"
+      :class="isRtl ? 'rtl-icons' : 'ltr-icons'"
+      style="gap: 12px"
+    >
       <!-- 🔙 BACK -->
       <v-btn
         @click="!iconsLoading && goBack()"
@@ -358,22 +362,52 @@
   }
 
   /* 🔔 Make action buttons (including NotificationMenu) share the same design */
-  :deep(.action-btn) {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+  .action-btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    border-radius: 50% !important;
     background: rgba(var(--v-theme-surface), 0.7) !important;
-    border: 1px solid rgba(var(--v-theme-outline), 0.15);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(var(--v-theme-outline), 0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
-  :deep(.action-btn:hover) {
+  .action-btn:hover {
     background: rgba(var(--v-theme-surface), 0.9) !important;
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    border-color: rgba(var(--v-theme-primary), 0.3);
+    border-color: rgba(var(--v-theme-primary), 0.3) !important;
   }
 
+  /* extra safety for Vuetify generated inner structure */
+  :deep(.action-btn .v-btn__content) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :deep(.action-btn.v-btn) {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    border-radius: 50% !important;
+  }
+  .right-icons :deep(.v-btn.action-btn) {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    border-radius: 50% !important;
+    background: rgba(var(--v-theme-surface), 0.7) !important;
+    border: 1px solid rgba(var(--v-theme-outline), 0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .right-icons :deep(.v-btn.action-btn:hover) {
+    background: rgba(var(--v-theme-surface), 0.9) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border-color: rgba(var(--v-theme-primary), 0.3) !important;
+  }
   .language-menu {
     border-radius: 16px !important;
     padding: 8px !important;
