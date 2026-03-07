@@ -1,7 +1,7 @@
-import { createI18n } from "vue-i18n";
-import EN from "./EN.json";
-import DARI from "./DARI.json";
-import PS from "./PS.json"; // ✅ add this
+import { createI18n } from 'vue-i18n';
+import EN from './EN.json';
+import DARI from './DARI.json';
+import PS from './ps.json'; // ✅ add this
 
 const savedLang = localStorage.getItem('apartment-lang') || 'fa';
 
