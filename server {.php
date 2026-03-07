@@ -10,9 +10,10 @@ server {
     ssl_certificate /etc/nginx/ssl/employeeanagement.crt;
     ssl_certificate_key /etc/nginx/ssl/employeeanagement.key;
 
-    # Gzip compression - MOVED TO HTTP BLOCK (see below)
-    
-    # Your existing font location blocks are fine
+    # REMOVE gzip from here - it should be in http block only
+    # gzip on;  <-- DELETE THIS LINE IF IT EXISTS HERE
+
+    # Your existing font location blocks
     location ~ /fonts/ {
         root /var/www/employeeanagement/public;
         try_files $uri =404;
@@ -40,28 +41,24 @@ server {
         add_header Cache-Control "public";
     }
 
-    # *** CRITICAL FIX: Your build location was empty ***
+    # FIXED build location
     location ^~ /build/ {
         root /var/www/employeeanagement/public;
         try_files $uri =404;
         expires 1y;
         add_header Cache-Control "public, immutable";
         access_log off;
-        
-        # Add gzip static support
+        # gzip_static works without gzip on in server block
         gzip_static on;
-        gzip_vary on;
     }
 
-    # Handle JS/CSS files with proper compression
+    # Handle JS/CSS files
     location ~* \.(js|css)$ {
         root /var/www/employeeanagement/public;
         try_files $uri $uri.gz =404;
         expires 1y;
         add_header Cache-Control "public, immutable";
-        add_header Content-Encoding gzip;
         gzip_static on;
-        gzip_vary on;
         access_log off;
     }
 
@@ -74,12 +71,12 @@ server {
         access_log off;
     }
 
-    # Your main location block had syntax errors
+    # Main location block
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }
 
-    # PHP handling - fixed syntax
+    # PHP handling
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php8.3-fpm.sock;
@@ -107,7 +104,8 @@ server {
     }
 }
 
-# Add this outside the server block (at the end of file)
+# Gzip configuration - KEEP THIS HERE ONLY (outside server block)
+# This should be in the main nginx.conf or at the end of this file
 gzip on;
 gzip_vary on;
 gzip_min_length 1024;
