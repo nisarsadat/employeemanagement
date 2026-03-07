@@ -101,7 +101,7 @@
 
 <script setup>
   import { computed, reactive, ref, watch } from 'vue';
-  import { useFinanceRepository } from '@/stores/financeRepository';
+  import { useFinanceRepository } from '@/stores/FinanceRepository';
   import DateInput from '@/components/DateInput.vue'; // Import DateInput component
   import { useI18n } from 'vue-i18n';
 

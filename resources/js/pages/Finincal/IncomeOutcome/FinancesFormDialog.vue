@@ -296,7 +296,7 @@
 <script setup>
   import { computed, reactive, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { useFinanceRepository } from '@/stores/financeRepository';
+  import { useFinanceRepository } from '@/stores/FinanceRepository';
   import DateInput from '@/components/DateInput.vue';
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
 

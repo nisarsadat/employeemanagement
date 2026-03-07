@@ -95,7 +95,7 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
-import { useFinanceRepository } from "@/stores/financeRepository";
+import { useFinanceRepository } from "@/stores/FinanceRepository";
   import { useI18n } from 'vue-i18n'
 
   const { t } = useI18n()

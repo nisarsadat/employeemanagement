@@ -255,7 +255,7 @@
   import FilterableTable from '@/components/FilterableTable.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
   import AccountFormDialog from './AccountsFormDialog.vue';
-  import { useFinanceRepository } from '@/stores/financeRepository';
+  import { useFinanceRepository } from '@/stores/FinanceRepository';
   import { useCalendar } from '../../../../composables/useCalendar';
 
   const { t } = useI18n();

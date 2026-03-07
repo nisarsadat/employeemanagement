@@ -310,7 +310,7 @@ import dayjs from 'dayjs';
 import FilterableTable from '@/components/FilterableTable.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 import FinanceFormDialog from './FinancesFormDialog.vue';
-import { useFinanceRepository } from '@/stores/financeRepository';
+import { useFinanceRepository } from '@/stores/FinanceRepository';
 import { useCalendar } from '../../../../composables/useCalendar';
 
 const { t, locale } = useI18n();
