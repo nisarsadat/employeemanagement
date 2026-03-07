@@ -8,7 +8,10 @@ import i18n from './localization/Local.js';
 import Toast from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 import VueApexCharts from 'vue3-apexcharts';
-
+import '@fontsource/amiri/400.css';
+import '@fontsource/amiri/700.css';
+import '@fontsource/scheherazade-new/400.css';
+import '@fontsource/scheherazade-new/700.css';
 import { ensureRandomUUID } from './polyfills/cryptoRandomUUID';
 ensureRandomUUID();
 // ✅ Date libs
