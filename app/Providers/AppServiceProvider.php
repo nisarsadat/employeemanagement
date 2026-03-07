@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Information;
 use App\Observers\InformationObserver;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,6 +16,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Schema::defaultStringLength(80);
+
         Information::observe(InformationObserver::class);
     }
 }
