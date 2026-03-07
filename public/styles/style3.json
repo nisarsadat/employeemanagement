@@ -711,9 +711,7 @@
           ]
         ],
         "text-font": [
-          "Noto Naskh Arabic Regular",
-          "Noto Sans Regular"
-        ],
+          "Noto Naskh Arabic Regular"        ],
         "text-size": [
           "interpolate",
           [
@@ -809,9 +807,7 @@
           ""
         ],
         "text-font": [
-          "Noto Naskh Arabic Regular",
-          "Noto Sans Regular"
-        ],
+          "Noto Naskh Arabic Regular"        ],
         "text-offset": [
           0,
           0.8
@@ -872,9 +868,7 @@
           ]
         ],
         "text-font": [
-          "Noto Naskh Arabic Regular",
-          "Noto Sans Regular"
-        ],
+          "Noto Naskh Arabic Regular"        ],
         "text-size": [
           "interpolate",
           [
@@ -1072,9 +1066,7 @@
           ]
         ],
         "text-font": [
-          "Noto Naskh Arabic Regular",
-          "Noto Sans Regular"
-        ],
+          "Noto Naskh Arabic Regular"        ],
         "text-size": [
           "interpolate",
           [
@@ -1130,9 +1122,7 @@
           ]
         ],
         "text-font": [
-          "Noto Naskh Arabic Regular",
-          "Noto Sans Regular"
-        ],
+          "Noto Naskh Arabic Regular"        ],
         "text-size": [
           "interpolate",
           [
@@ -1165,9 +1155,7 @@
           "housenumber"
         ],
         "text-size": 10,
-        "text-font": [
-          "Noto Sans Regular"
-        ],
+        "text-font":         ],
         "text-optional": true
       },
       "paint": {
