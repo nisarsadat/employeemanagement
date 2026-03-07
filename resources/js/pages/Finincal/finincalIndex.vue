@@ -148,7 +148,7 @@
   import Finances from './IncomeOutcome/Finances.vue';
 
   // Oil area
-  import OilIndex from './oil/oilIUndex.vue';
+  import OilIndex from './oil/oilIndex.vue';
   import OilIncomeIndex from './oil/oilIncomeIndex.vue';
   import OilExpenseIndex from './oil/expenseOil.vue';
 
