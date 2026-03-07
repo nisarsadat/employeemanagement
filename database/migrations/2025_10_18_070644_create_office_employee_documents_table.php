@@ -9,13 +9,16 @@ return new class extends Migration {
     {
         Schema::create('office_employee_documents', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('office_employee_id')
                   ->constrained('office_employees')
-                  ->onDelete('cascade'); // cascade row delete
-            $table->string('file_name')->nullable();
-            $table->string('file_path'); // stored on 'public' disk
-            $table->string('mime_type')->nullable();
+                  ->cascadeOnDelete(); // cleaner syntax
+
+            $table->string('file_name', 500)->nullable();
+            $table->string('file_path', 500); // path may be long
+            $table->string('mime_type', 100)->nullable();
             $table->unsignedBigInteger('size_bytes')->nullable();
+
             $table->timestamps();
         });
     }
