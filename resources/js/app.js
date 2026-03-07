@@ -54,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function () {
    ✅ Reverb (from your component)
 ========================================================= */
 import { initReverb } from './plugins/reverb.js';
-initReverb();
 /* ========================================================= */
 import NoAutofill from '@/plugins/noAutofill';
 
@@ -196,3 +195,4 @@ document.addEventListener(
 /* ========================================================= */
 
 app.mount('#app');
+initReverb();
