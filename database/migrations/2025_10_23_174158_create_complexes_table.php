@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->string('street_number')->nullable();
             $table->string('home_number')->nullable();
 
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             // Complex info
             $table->string('complex_name')->nullable();
             $table->string('activity_type')->nullable();

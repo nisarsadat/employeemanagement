@@ -15,7 +15,7 @@ return new class extends Migration {
         ->nullOnDelete();              // if Information deleted, set NULL (or use cascadeOnDelete if you prefer)
             $table->string('name'); // required
 
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('nick_name')->nullable();
             $table->string('father_name')->nullable();
 

@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('main_owner')->nullable();
 
             $table->string('responsible_name')->nullable();
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('responsible_f_name')->nullable();
             $table->string('responsible_possition')->nullable();
             $table->string('responsible_phone')->nullable();

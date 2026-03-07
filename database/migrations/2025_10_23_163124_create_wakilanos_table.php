@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
 
             // Core block
-            $table->string('picture')->nullable();       // free text / GPS
+            $table->string('picture' , 500)->nullable();       // free text / GPS
             $table->string('name')->nullable();
             $table->string('f_name')->nullable();
             $table->string('grand_father_name')->nullable();

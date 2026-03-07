@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
 
             $table->string('school_name');
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('school_type')->nullable();
 
             $table->string('principle_name')->nullable();

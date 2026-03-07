@@ -15,8 +15,7 @@ return new class extends Migration {
             $table->string('password');
 
             // ✅ avatar image path (storage/public)
-            $table->string('image')->nullable();
-
+            $table->string('image', 500)->nullable();
             // ✅ online/offline + last seen
             $table->boolean('is_online')->default(false);
             $table->timestamp('last_seen_at')->nullable();

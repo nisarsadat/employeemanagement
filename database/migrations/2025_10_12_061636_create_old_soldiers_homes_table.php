@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
 
             // location (UNIQUE identity)
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('province')->nullable();
             $table->string('zone')->nullable();
             $table->string('district')->nullable();

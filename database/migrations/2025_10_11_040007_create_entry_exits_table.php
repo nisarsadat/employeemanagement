@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
 
 
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
 
             // from your picture (kept as-is)
             $table->string('entry_way');

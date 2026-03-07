@@ -11,8 +11,7 @@ return new class extends Migration {
         Schema::create('resources', function (Blueprint $table) {
             $table->id();
 
-            $table->string('picture')->nullable();
-
+            $table->string('picture', 500)->nullable();
             $table->string('name');
             $table->string('father_name')->nullable();
             $table->string('grand_father_name')->nullable();

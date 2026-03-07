@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('nick_name')->nullable();
             $table->string('name');
             $table->string('father_name')->nullable();
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
 
             // main address (identity)
             $table->string('main_province')->nullable();

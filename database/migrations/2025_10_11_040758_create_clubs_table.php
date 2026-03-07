@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->string('name');
 
             // from your picture (kept spellings)
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('club_name')->nullable();
             $table->string('club_type')->nullable();
             $table->string('father_name')->nullable();

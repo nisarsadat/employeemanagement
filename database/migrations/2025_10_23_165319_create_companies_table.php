@@ -13,7 +13,7 @@ return new class extends Migration {
             // Top block
             $table->string('com_name')->nullable();
             $table->string('com_type')->nullable();
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('product_type')->nullable();
             $table->string('com_level')->nullable();
             $table->string('main_owner')->nullable();

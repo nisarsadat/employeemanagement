@@ -13,7 +13,7 @@ return new class extends Migration {
         ->nullable()
         ->constrained('information')   // because your table name is singular
         ->nullOnDelete();              // if Information deleted, set NULL (or use cascadeOnDelete if you prefer)
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('province')->nullable();
             $table->string('zone')->nullable();
             $table->string('district')->nullable();

@@ -22,7 +22,7 @@ return new class extends Migration
             /* =====================
              | ✅ Picture
              |=====================*/
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
 
             /* =====================
              | Main address

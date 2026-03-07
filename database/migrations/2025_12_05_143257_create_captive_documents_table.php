@@ -13,9 +13,9 @@ return new class extends Migration
             $table->foreignId('captive_id')
                 ->constrained('captives')
                 ->onDelete('cascade'); // delete docs when captive is deleted
-            $table->string('file_name');
-            $table->string('file_path'); // relative path in storage/app/public/...
-            $table->string('mime_type')->nullable();
+            $table->string('file_name' , 500);
+            $table->string('file_path' , 500); // relative path in storage/app/public/...
+            $table->string('mime_type' , 500)->nullable();
             $table->unsignedBigInteger('size_bytes')->nullable();
             $table->timestamps();
         });

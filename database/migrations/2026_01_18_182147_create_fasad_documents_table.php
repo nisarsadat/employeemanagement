@@ -14,9 +14,9 @@ return new class extends Migration {
                 ->constrained('fasads')
                 ->cascadeOnDelete();
 
-            $table->string('file_path');       // storage path
-            $table->string('original_name');  // original filename
-            $table->string('mime_type')->nullable();
+            $table->string('file_path' , 500);       // storage path
+            $table->string('original_name' , 500);  // original filename
+            $table->string('mime_type' ,500)->nullable();
             $table->unsignedBigInteger('size')->nullable();
 
             $table->timestamps();

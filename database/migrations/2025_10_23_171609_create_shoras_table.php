@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->string('shora_village')->nullable();
             $table->text('note')->nullable();
 
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             // Core shora details
             $table->string('shora_name')->nullable();
             $table->string('shora_goal')->nullable();

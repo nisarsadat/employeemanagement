@@ -24,7 +24,7 @@ return new class extends Migration {
             $table->string('zone')->nullable();
             $table->string('district')->nullable();
             $table->string('village')->nullable();
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('specefic_place')->nullable();
             $table->string('coordinates')->nullable();
 

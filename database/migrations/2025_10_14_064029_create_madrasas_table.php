@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->string('name');
             $table->string('madrasa_type')->nullable();
 
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('responsible_name')->nullable();
             $table->string('responsible_f_name')->nullable();
             $table->string('responsible_position')->nullable();

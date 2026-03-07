@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('mujahedinos', function (Blueprint $table) {
             $table->id();
 
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('nickname')->nullable();
             $table->string('name');
             $table->string('father_name')->nullable();

@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->string('father_name')->nullable();
             $table->string('job')->nullable();
 
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('jorm_type')->nullable();
             $table->integer('criminals_quantity')->nullable();
             $table->string('office')->nullable();

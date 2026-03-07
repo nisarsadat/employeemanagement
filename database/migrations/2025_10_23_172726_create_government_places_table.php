@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->string('responsible_possition')->nullable();
             $table->string('responsible_phone')->nullable();
 
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('province')->nullable();
             $table->string('zone')->nullable();
             $table->string('district')->nullable();

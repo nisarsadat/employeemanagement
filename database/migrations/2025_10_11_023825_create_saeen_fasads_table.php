@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('name'); // required
 
             // from your picture (kept as-is)
-            $table->string('picture')->nullable();
+            $table->string('picture' , 500)->nullable();
             $table->string('nick_name')->nullable();
             $table->string('father_name')->nullable();
 
