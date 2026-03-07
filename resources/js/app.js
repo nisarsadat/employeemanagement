@@ -1,4 +1,3 @@
-// main.js
 import { createApp } from 'vue';
 import App from './App.vue';
 import vuetify from './plugins/vuetify';
@@ -8,55 +7,51 @@ import i18n from './localization/Local.js';
 import Toast from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 import VueApexCharts from 'vue3-apexcharts';
-import '@fontsource/amiri/400.css';
-import '@fontsource/amiri/700.css';
-import '@fontsource/scheherazade-new/400.css';
-import '@fontsource/scheherazade-new/700.css';
 import { ensureRandomUUID } from './polyfills/cryptoRandomUUID';
-ensureRandomUUID();
-// ✅ Date libs
 import dayjs from 'dayjs';
 import jalaliday from 'jalaliday';
-dayjs.extend(jalaliday);
-
-// ✅ pickers
 import Vue3PersianDatetimePicker from 'vue3-persian-datetime-picker';
 import HijriGregorianDatepicker from 'vue3-hijri-gregorian-datepicker';
 import 'vue3-hijri-gregorian-datepicker/dist/style.css';
-
-// ✅ Chat store
 import { useChatRepository } from './stores/ChatRepository.js';
-
-// ✅ Axios for Bearer token mode
 import axios from 'axios';
-import { installUiDigitLocalizer } from './plugins/uiDigits.js';
+import { initReverb } from './plugins/reverb.js';
+import NoAutofill from '@/plugins/noAutofill';
 
+ensureRandomUUID();
+dayjs.extend(jalaliday);
+
+/* =========================================
+   Axios
+========================================= */
 axios.defaults.withCredentials = false;
 axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-// ✅ API base
-axios.defaults.baseURL = `https://200.100.100.1/api`;
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+axios.defaults.baseURL = `${API_BASE}/api`;
 
-// ✅ attach token for all API requests
-axios.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('token'); // ✅ same place
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+axios.interceptors.request.use(
+  (config) => {
+    const token = sessionStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-document.addEventListener('DOMContentLoaded', function () {
+/* =========================================
+   Optional startup tweaks
+========================================= */
+document.addEventListener('DOMContentLoaded', () => {
   document.body.style.zoom = '100%';
 });
 
-/* =========================================================
-   ✅ Reverb (from your component)
-========================================================= */
-import { initReverb } from './plugins/reverb.js';
-initReverb();
-/* ========================================================= */
-import NoAutofill from '@/plugins/noAutofill';
-
+/* =========================================
+   Vue app
+========================================= */
 const app = createApp(App);
 const pinia = createPinia();
 
@@ -65,30 +60,37 @@ app.use(pinia);
 app.use(router);
 app.use(vuetify);
 app.use(i18n);
-
-// installUiDigitLocalizer(() => i18n.global.locale.value)
-
 app.use(Toast);
 app.use(VueApexCharts);
 
-// ✅ register pickers
 app.component('PersianDatePicker', Vue3PersianDatetimePicker);
 app.component('HijriGregorianDatepicker', HijriGregorianDatepicker);
 
-// ✅ start badge polling + presence
-useChatRepository(pinia).initBadge();
+/* =========================================
+   Reverb + Chat badge
+   Keep, but guarded
+========================================= */
+try {
+  initReverb();
+} catch (error) {
+  console.warn('Reverb init skipped:', error);
+}
 
-/* =========================================================
-   ✅ GLOBAL Persian/Arabic digits → English (IME-safe)
-   - Fixes: Dari/Persian typing not showing (composition/IME)
-========================================================= */
+try {
+  useChatRepository(pinia).initBadge();
+} catch (error) {
+  console.warn('Chat badge init skipped:', error);
+}
+
+/* =========================================
+   Global Persian/Arabic digits -> English
+========================================= */
 const FA = '۰۱۲۳۴۵۶۷۸۹';
 const AR = '٠١٢٣٤٥٦٧٨٩';
 
-// mark composing state per element
-function setComposing(el, v) {
+function setComposing(el, value) {
   try {
-    el.__digit_norm_composing__ = v;
+    el.__digit_norm_composing__ = value;
   } catch {}
 }
 
@@ -96,43 +98,49 @@ function isComposing(el, evt) {
   return !!(evt?.isComposing || el?.__digit_norm_composing__);
 }
 
-function toEnglishDigits(val) {
-  if (val === null || val === undefined) return val;
-  const s = String(val);
+function toEnglishDigits(value) {
+  if (value === null || value === undefined) return value;
 
-  // ✅ quick check: only touch if it contains fa/ar digits
-  let has = false;
-  for (const ch of s) {
+  const str = String(value);
+  let hasArabicDigits = false;
+
+  for (const ch of str) {
     if (FA.includes(ch) || AR.includes(ch)) {
-      has = true;
+      hasArabicDigits = true;
       break;
     }
   }
-  if (!has) return s;
+
+  if (!hasArabicDigits) return str;
 
   let out = '';
-  for (const ch of s) {
-    const fa = FA.indexOf(ch);
-    if (fa !== -1) {
-      out += String(fa);
+
+  for (const ch of str) {
+    const faIndex = FA.indexOf(ch);
+    if (faIndex !== -1) {
+      out += String(faIndex);
       continue;
     }
-    const ar = AR.indexOf(ch);
-    if (ar !== -1) {
-      out += String(ar);
+
+    const arIndex = AR.indexOf(ch);
+    if (arIndex !== -1) {
+      out += String(arIndex);
       continue;
     }
+
     out += ch;
   }
+
   return out;
 }
 
-// ✅ track IME composition so Dari typing works
 document.addEventListener(
   'compositionstart',
   (e) => {
     const el = e.target;
-    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) setComposing(el, true);
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+      setComposing(el, true);
+    }
   },
   true
 );
@@ -141,22 +149,25 @@ document.addEventListener(
   'compositionend',
   (e) => {
     const el = e.target;
-    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) setComposing(el, false);
 
-    // after composition ends, normalize once
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+      setComposing(el, false);
+    }
+
     if (!el) return;
-    const v = el.value;
-    if (!v) return;
-    const nv = toEnglishDigits(v);
-    if (nv !== v) {
-      el.value = nv;
+
+    const currentValue = el.value;
+    if (!currentValue) return;
+
+    const normalizedValue = toEnglishDigits(currentValue);
+    if (normalizedValue !== currentValue) {
+      el.value = normalizedValue;
       el.dispatchEvent(new Event('input', { bubbles: true }));
     }
   },
   true
 );
 
-// ✅ normalize digits during normal typing (but NEVER during IME composition)
 document.addEventListener(
   'input',
   (e) => {
@@ -169,18 +180,17 @@ document.addEventListener(
     const type = (el.getAttribute('type') || '').toLowerCase();
     if (type === 'password' || type === 'file') return;
 
-    // ✅ critical: do nothing while composing
     if (isComposing(el, e)) return;
 
-    const v = el.value;
-    if (!v) return;
+    const currentValue = el.value;
+    if (!currentValue) return;
 
-    const nv = toEnglishDigits(v);
-    if (nv !== v) {
+    const normalizedValue = toEnglishDigits(currentValue);
+    if (normalizedValue !== currentValue) {
       const start = el.selectionStart;
       const end = el.selectionEnd;
 
-      el.value = nv;
+      el.value = normalizedValue;
       el.dispatchEvent(new Event('input', { bubbles: true }));
 
       if (typeof start === 'number' && typeof end === 'number') {
@@ -192,6 +202,5 @@ document.addEventListener(
   },
   true
 );
-/* ========================================================= */
 
 app.mount('#app');
