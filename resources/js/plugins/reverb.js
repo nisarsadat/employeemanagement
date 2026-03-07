@@ -15,10 +15,10 @@ export function initReverb() {
     wsHost: import.meta.env.VITE_REVERB_HOST || '200.100.100.1',
     wsPort: Number(import.meta.env.VITE_REVERB_PORT || 443),
     wssPort: Number(import.meta.env.VITE_REVERB_PORT || 443),
-    wsPath: '/reverb',
+    wsPath: '/reverb/',
 
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'https') === 'https',
-    enabledTransports: ['wss'],
+    forceTLS: true,
+    enabledTransports: ['wss', 'ws'],
 
     authorizer: (channel) => ({
       authorize: (socketId, callback) => {
@@ -35,6 +35,7 @@ export function initReverb() {
               headers: {
                 Authorization: token ? `Bearer ${token}` : '',
                 Accept: 'application/json',
+                'Content-Type': 'application/json',
               },
             }
           )
