@@ -54,3 +54,61 @@ location ^~ /build/ {
         proxy_read_timeout 60s;
     }
 }
+
+
+
+
+
+
+
+
+
+location ^~ /pmtiles-range/ {
+    root /var/www/employeeanagement/public;
+    try_files $uri =404;
+    expires 30d;
+    add_header Cache-Control "public, immutable";
+    types {
+        application/octet-stream pmtiles;
+    }
+}
+
+location ^~ /vendor/maplibre/ {
+    root /var/www/employeeanagement/public;
+    try_files $uri =404;
+    expires 30d;
+    add_header Cache-Control "public, immutable";
+}
+
+location ^~ /fonts/ {
+    root /var/www/employeeanagement/public;
+    try_files $uri =404;
+    expires 30d;
+    add_header Cache-Control "public, immutable";
+}
+
+location ^~ /styles/ {
+    root /var/www/employeeanagement/public;
+    try_files $uri =404;
+    expires 30d;
+    add_header Cache-Control "public, immutable";
+}
+
+location ^~ /sprites/ {
+    root /var/www/employeeanagement/public;
+    try_files $uri =404;
+    expires 30d;
+    add_header Cache-Control "public, immutable";
+}
+
+location ^~ /sounds/ {
+    root /var/www/employeeanagement/public;
+    try_files $uri =404;
+    expires 30d;
+    add_header Cache-Control "public";
+    types {
+        audio/mpeg mp3;
+        audio/ogg ogg;
+        audio/wav wav;
+    }
+}
