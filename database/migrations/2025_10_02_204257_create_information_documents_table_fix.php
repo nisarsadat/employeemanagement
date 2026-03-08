@@ -10,9 +10,9 @@ return new class extends Migration {
         Schema::create('information_documents', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('information_id');
-            $table->string('file_name');
-            $table->string('file_path');
-            $table->string('mime_type')->nullable();
+            $table->string('file_name' , 500);
+            $table->string('file_path' , 500);
+            $table->string('mime_type' , 500)->nullable();
             $table->unsignedBigInteger('size_bytes')->nullable();
             $table->timestamps();
 
