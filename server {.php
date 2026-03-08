@@ -84,3 +84,15 @@ location ^~ /pmtiles-range/ {
     add_header Accept-Ranges "bytes" always;
     expires 30d;
 }
+
+
+
+
+
+
+
+window.mapDebug.getStyle().layers.filter(l => l.type === 'symbol').slice(0, 3).map(l => ({
+  id: l.id,
+  textField: l.layout?.['text-field'],
+  textFont: l.layout?.['text-font']
+}))
