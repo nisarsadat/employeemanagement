@@ -1154,7 +1154,7 @@
     const STYLE_JSON = `${ORIGIN}/styles/bright-complete.json`;
     const SPRITE_URL = `${ORIGIN}/sprites/sprite`;
     const GLYPHS_URL = `${ORIGIN}/fonts/{fontstack}/{range}.pbf`;
-    const RTL_PLUGIN_URL = `${ORIGIN}/vendor/maplibre/mapbox-gl-rtl-text.js`;
+    // const RTL_PLUGIN_URL = `${ORIGIN}/vendor/maplibre/mapbox-gl-rtl-text.js`;
 
     try {
       protocol = new Protocol();
@@ -1169,11 +1169,8 @@
       const pm = new PMTiles(archiveUrl);
       protocol.add(pm);
 
-      try {
-        maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, null, true);
-      } catch (e) {
-        console.warn('RTL plugin warning:', e);
-      }
+      // TEMP: disable RTL plugin
+      // maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, null, true);
 
       let styleJson = await fetch(STYLE_JSON).then((r) => r.json());
 
@@ -1189,12 +1186,19 @@
 
       styleJson.sources[vectorSourceKey] = {
         type: 'vector',
-        url: 'pmtiles:///pmtiles-range/afghanistan.pmtiles',
+        url: `pmtiles://${pmtilesUrl}`,
       };
 
       styleJson.sprite = SPRITE_URL;
       styleJson.glyphs = GLYPHS_URL;
-      styleJson = applyBilingualLabels(styleJson);
+
+      // TEMP: disable label mutation
+      // styleJson = applyBilingualLabels(styleJson);
+
+      console.log('STYLE_JSON', STYLE_JSON);
+      console.log('SPRITE_URL', SPRITE_URL);
+      console.log('GLYPHS_URL', GLYPHS_URL);
+      console.log('styleJson before map init', styleJson);
 
       map.value = new maplibregl.Map({
         container: mapEl.value,
@@ -1212,14 +1216,14 @@
 
       map.value.on('load', async () => {
         console.log('Map load event fired');
-
         await loadAllModulePoints();
         rebuildMarkers();
         applyFlyTarget(mapBus.flyTarget);
       });
 
       map.value.on('error', (e) => {
-        console.error('MAPLIBRE ERROR:', e);
+        console.error('MAPLIBRE ERROR object:', e);
+        console.error('MAPLIBRE ERROR details:', e?.error);
       });
     } catch (err) {
       console.error('MAP INIT FAILED:', err);
