@@ -1168,6 +1168,16 @@
       const pm = new PMTiles(`${ORIGIN}${pmtilesUrl}`);
       protocol.add(pm);
 
+      const header = await pm.getHeader();
+      const metadata = await pm.getMetadata();
+
+      console.log('PMTiles header:', header);
+      console.log('PMTiles metadata:', metadata);
+      console.log(
+        'PMTiles vector_layers:',
+        metadata?.vector_layers || metadata?.json?.vector_layers
+      );
+
       try {
         maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, null, true);
       } catch (e) {
@@ -1178,20 +1188,22 @@
 
       console.log('Loaded style JSON');
       console.log('Original style sources:', Object.keys(styleJson.sources || {}));
-      console.log('Original layer source names:', [
-        ...new Set((styleJson.layers || []).filter((l) => l.source).map((l) => l.source)),
-      ]);
 
-      const sourceKeys = Object.keys(styleJson.sources || {});
-      if (!sourceKeys.length) {
-        throw new Error('No sources found in bright-complete.json');
+      const layerSourceNames = [
+        ...new Set((styleJson.layers || []).filter((l) => l.source).map((l) => l.source)),
+      ];
+
+      console.log('Original layer source names:', layerSourceNames);
+
+      if (!layerSourceNames.length) {
+        throw new Error('No layer sources found in bright-complete.json');
       }
 
-      const vectorSourceKey = sourceKeys[0];
+      const vectorSourceKey = layerSourceNames[0];
 
       styleJson.sources[vectorSourceKey] = {
         type: 'vector',
-        url: `pmtiles://${ORIGIN}${pmtilesUrl}`,
+        url: `pmtiles://${pmtilesUrl}`, // ✅ fixed
       };
 
       styleJson.sprite = SPRITE_URL;
