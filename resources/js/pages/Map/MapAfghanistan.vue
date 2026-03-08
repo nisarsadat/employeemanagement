@@ -828,6 +828,7 @@
     for (const l of style.layers) {
       if (l.type === 'symbol') {
         l.layout ||= {};
+        l.paint ||= {};
 
         l.layout['text-field'] = LOCAL_NAME_EXPR;
         l.layout['text-font'] = [
@@ -838,7 +839,10 @@
           ['literal', FONT_STACK_Z_GE6],
         ];
 
-        l.paint ||= {};
+        // important for cleaner label rendering
+        l.layout['text-anchor'] = l.layout['text-anchor'] || 'center';
+        l.layout['text-justify'] = 'auto';
+
         l.paint['text-halo-color'] = '#fff';
         l.paint['text-halo-width'] = 1.1;
       }
@@ -906,14 +910,13 @@
     const iconWrap = document.createElement('div');
     iconWrap.className = 'mmi-icon';
 
-    // ✅ mdi font icon inside marker (NO SVG)
     const i = document.createElement('i');
     i.className = `mdi ${safeMdiFor(item)}`;
     i.style.fontSize = '18px';
     i.style.lineHeight = '1';
 
     if (item.type === 'resource') {
-      i.style.color = item.is_active ? '#16a34a' : '#dc2626'; // ✅ green / red
+      i.style.color = item.is_active ? '#16a34a' : '#dc2626';
     } else {
       i.style.color = '#1f2937';
     }
@@ -925,8 +928,13 @@
     label.textContent = safeLabelFor(item);
     if (!showLabel) label.style.display = 'none';
 
-    bubble.appendChild(iconWrap);
-    bubble.appendChild(label);
+    if (isRtl.value) {
+      bubble.appendChild(label);
+      bubble.appendChild(iconWrap);
+    } else {
+      bubble.appendChild(iconWrap);
+      bubble.appendChild(label);
+    }
 
     wrapper.appendChild(bubble);
     return { wrapper, label };
@@ -1151,7 +1159,8 @@
     const ORIGIN = window.location.origin;
     const STYLE_JSON = `${ORIGIN}/styles/bright-complete.json`;
     const SPRITE_URL = `${ORIGIN}/sprites/sprite`;
-    const GLYPHS_URL = `${ORIGIN}/fonts/{fontstack}/{range}.pbf`; // const RTL_PLUGIN_URL = `${ORIGIN}/vendor/maplibre/mapbox-gl-rtl-text.js`;
+    const GLYPHS_URL = `${ORIGIN}/fonts/{fontstack}/{range}.pbf`;
+    const RTL_PLUGIN_URL = `${ORIGIN}/vendor/maplibre/mapbox-gl-rtl-text.js`;
 
     try {
       protocol = new Protocol();
@@ -1167,8 +1176,12 @@
       protocol.add(pm);
 
       // TEMP: disable RTL plugin
-      // maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, null, true);
-
+      try {
+        maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, false);
+        console.log('RTL plugin requested:', RTL_PLUGIN_URL);
+      } catch (e) {
+        console.warn('RTL plugin warning:', e);
+      }
       let styleJson = await fetch(STYLE_JSON).then((r) => r.json());
 
       const layerSourceNames = [
@@ -1456,6 +1469,7 @@
     background: #ffffff;
     box-shadow: 0 0 0 2px #ffffff, 0 1px 6px rgba(0, 0, 0, 0.3);
     white-space: nowrap;
+    direction: rtl;
   }
 
   :deep(.mmi-icon) {
@@ -1475,5 +1489,8 @@
     color: #111827;
     opacity: 0.95;
     line-height: 1;
+    direction: rtl;
+    text-align: right;
+    unicode-bidi: plaintext;
   }
 </style>

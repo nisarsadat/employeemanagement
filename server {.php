@@ -96,3 +96,6 @@ window.mapDebug.getStyle().layers.filter(l => l.type === 'symbol').slice(0, 3).m
   textField: l.layout?.['text-field'],
   textFont: l.layout?.['text-font']
 }))
+
+
+const RTL_PLUGIN_URL = `${ORIGIN}/vendor/maplibre/mapbox-gl-rtl-text.js`;
