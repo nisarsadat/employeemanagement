@@ -137,6 +137,16 @@
 
   const mapEl = ref(null);
   const map = ref(null);
+  map.value = new maplibregl.Map({
+    container: mapEl.value,
+    style,
+    center: [69.2, 34.5],
+    zoom: 7,
+    minZoom: 3,
+    maxZoom: 18,
+  });
+
+  window.mapDebug = map.value;
   const pointsQ = ref('');
   let protocol;
   const pmtilesUrl = '/pmtiles-range/afghanistan.pmtiles';
@@ -1170,11 +1180,21 @@
 
     let style = await fetch(STYLE_JSON).then((r) => r.json());
 
-    style.sources = {
-      openmaptiles: {
-        type: 'vector',
-        url: `pmtiles://${ORIGIN}${pmtilesUrl}`,
-      },
+    console.log('Original style sources:', Object.keys(style.sources || {}));
+    console.log('Layer source names before patch:', [
+      ...new Set((style.layers || []).filter((l) => l.source).map((l) => l.source)),
+    ]);
+
+    const originalSourceKeys = Object.keys(style.sources || {});
+    const vectorSourceKey = originalSourceKeys[0];
+
+    if (!vectorSourceKey) {
+      throw new Error('No sources found in bright-complete.json');
+    }
+
+    style.sources[vectorSourceKey] = {
+      type: 'vector',
+      url: `pmtiles://${ORIGIN}${pmtilesUrl}`,
     };
 
     style.sprite = SPRITE_URL;
@@ -1190,10 +1210,23 @@
       maxZoom: 18,
     });
 
+    window.mapDebug = map.value;
+
     map.value.addControl(new maplibregl.NavigationControl(), 'top-right');
     map.value.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
 
     map.value.on('load', async () => {
+      console.log('Map loaded');
+      console.log('Final map sources:', map.value.getStyle().sources);
+      console.log('Final layer source names:', [
+        ...new Set(
+          map.value
+            .getStyle()
+            .layers.filter((l) => l.source)
+            .map((l) => l.source)
+        ),
+      ]);
+
       await loadAllModulePoints();
       rebuildMarkers();
       applyFlyTarget(mapBus.flyTarget);
