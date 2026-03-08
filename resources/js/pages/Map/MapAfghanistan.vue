@@ -1185,7 +1185,7 @@
       container: mapEl.value,
       style,
       center: [69.2, 34.5],
-      zoom: 7,
+      zoom: 12,
       minZoom: 3,
       maxZoom: 18,
     });
