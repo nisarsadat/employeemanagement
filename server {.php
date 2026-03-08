@@ -72,3 +72,15 @@ location ^~ /pmtiles/ {
         application/octet-stream pmtiles;
     }
 }
+
+location ^~ /pmtiles-range/ {
+    alias /var/www/employeeanagement/public/pmtiles-range/;
+    default_type application/vnd.pmtiles;
+    types {
+        application/vnd.pmtiles pmtiles;
+        application/octet-stream pmtiles;
+    }
+    add_header Cache-Control "public, immutable" always;
+    add_header Accept-Ranges "bytes" always;
+    expires 30d;
+}

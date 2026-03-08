@@ -1165,18 +1165,9 @@
         console.warn('addProtocol warning:', e);
       }
 
-      const pm = new PMTiles(`${ORIGIN}${pmtilesUrl}`);
+      const archiveUrl = `${window.location.origin}/pmtiles-range/afghanistan.pmtiles`;
+      const pm = new PMTiles(archiveUrl);
       protocol.add(pm);
-
-      const header = await pm.getHeader();
-      const metadata = await pm.getMetadata();
-
-      console.log('PMTiles header:', header);
-      console.log('PMTiles metadata:', metadata);
-      console.log(
-        'PMTiles vector_layers:',
-        metadata?.vector_layers || metadata?.json?.vector_layers
-      );
 
       try {
         maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, null, true);
@@ -1186,14 +1177,9 @@
 
       let styleJson = await fetch(STYLE_JSON).then((r) => r.json());
 
-      console.log('Loaded style JSON');
-      console.log('Original style sources:', Object.keys(styleJson.sources || {}));
-
       const layerSourceNames = [
         ...new Set((styleJson.layers || []).filter((l) => l.source).map((l) => l.source)),
       ];
-
-      console.log('Original layer source names:', layerSourceNames);
 
       if (!layerSourceNames.length) {
         throw new Error('No layer sources found in bright-complete.json');
@@ -1203,7 +1189,7 @@
 
       styleJson.sources[vectorSourceKey] = {
         type: 'vector',
-        url: `pmtiles://${pmtilesUrl}`, // ✅ fixed
+        url: 'pmtiles:///pmtiles-range/afghanistan.pmtiles',
       };
 
       styleJson.sprite = SPRITE_URL;
@@ -1226,15 +1212,6 @@
 
       map.value.on('load', async () => {
         console.log('Map load event fired');
-        console.log('Final sources:', map.value.getStyle().sources);
-        console.log('Final layer sources:', [
-          ...new Set(
-            map.value
-              .getStyle()
-              .layers.filter((l) => l.source)
-              .map((l) => l.source)
-          ),
-        ]);
 
         await loadAllModulePoints();
         rebuildMarkers();
