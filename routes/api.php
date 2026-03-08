@@ -223,12 +223,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // ---------------------- RBAC admin (still behind auth only) ----------------------
-    Route::apiResource('roles',        RoleController::class);
-    Route::apiResource('permissions',  PermissionController::class);
+    Route::apiResource('roles', RoleController::class);
+    Route::apiResource('permissions', PermissionController::class);
 
     // Lightweight lists
-    Route::get('rbac/roles',        [RbacController::class, 'roles']);
-    Route::get('rbac/permissions',  [RbacController::class, 'permissions']);
+    Route::get('rbac/roles', [RbacController::class, 'roles']);
+    Route::get('rbac/permissions', [RbacController::class, 'indexPermissions']);
+
+    // Sync role permissions
+    Route::post('rbac/roles/{role}/permissions/sync', [RbacController::class, 'syncRolePermissions']);
 
     // ---------------------- Custom bindings ----------------------
     Route::bind('office_employee', function ($value) {
