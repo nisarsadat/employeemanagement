@@ -809,28 +809,26 @@
       curve: 1.3,
     });
   }
-
-  /* ---------- bilingual labels (unchanged) ---------- */
-  const LOCAL_NAME_ORDER = [
-    'name:fa',
-    'name:prs',
-    'name:ps',
-    'name:ar',
-    'name:nonlatin',
-    'name',
-    'name:en',
-    'name_en',
-    'name:latin',
-    'name_int',
+  const LOCAL_NAME_EXPR = [
+    'coalesce',
+    ['get', 'name:fa'],
+    ['get', 'name:prs'],
+    ['get', 'name:ps'],
+    ['get', 'name:ar'],
+    ['get', 'name'],
+    ['get', 'name:en'],
   ];
-  const LOCAL_NAME_EXPR = ['coalesce', ...LOCAL_NAME_ORDER.map((f) => ['get', f])];
+
   const FONT_STACK_Z_LT6 = ['NotoNaskhArabic-Regular', 'NotoSans-Regular'];
   const FONT_STACK_Z_GE6 = ['NotoNaskhArabic-Bold', 'NotoSans-Bold'];
+
   function applyBilingualLabels(style) {
     if (!style?.layers) return style;
+
     for (const l of style.layers) {
       if (l.type === 'symbol') {
         l.layout ||= {};
+
         l.layout['text-field'] = LOCAL_NAME_EXPR;
         l.layout['text-font'] = [
           'step',
@@ -839,14 +837,15 @@
           6,
           ['literal', FONT_STACK_Z_GE6],
         ];
+
         l.paint ||= {};
         l.paint['text-halo-color'] = '#fff';
         l.paint['text-halo-width'] = 1.1;
       }
     }
+
     return style;
   }
-
   /* ============================================================
  ✅ MARKERS (OFFLINE + mdi font icons)
 ============================================================ */
@@ -1191,8 +1190,7 @@
       styleJson.glyphs = GLYPHS_URL;
 
       // TEMP: disable label mutation
-      // styleJson = applyBilingualLabels(styleJson);
-
+      styleJson = applyBilingualLabels(styleJson);
       console.log('STYLE_JSON', STYLE_JSON);
       console.log('SPRITE_URL', SPRITE_URL);
       console.log('GLYPHS_URL', GLYPHS_URL);
