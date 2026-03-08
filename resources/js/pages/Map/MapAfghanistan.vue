@@ -137,16 +137,7 @@
 
   const mapEl = ref(null);
   const map = ref(null);
-  map.value = new maplibregl.Map({
-    container: mapEl.value,
-    style,
-    center: [69.2, 34.5],
-    zoom: 7,
-    minZoom: 3,
-    maxZoom: 18,
-  });
 
-  window.mapDebug = map.value;
   const pointsQ = ref('');
   let protocol;
   const pmtilesUrl = '/pmtiles-range/afghanistan.pmtiles';
@@ -1165,72 +1156,85 @@
     const GLYPHS_URL = `${ORIGIN}/fonts/{fontstack}/{range}.pbf`;
     const RTL_PLUGIN_URL = `${ORIGIN}/vendor/maplibre/mapbox-gl-rtl-text.js`;
 
-    protocol = new Protocol();
-
     try {
-      maplibregl.addProtocol('pmtiles', protocol.tile);
-    } catch {}
+      protocol = new Protocol();
 
-    const pm = new PMTiles(`${ORIGIN}${pmtilesUrl}`);
-    protocol.add(pm);
+      try {
+        maplibregl.addProtocol('pmtiles', protocol.tile);
+      } catch (e) {
+        console.warn('addProtocol warning:', e);
+      }
 
-    try {
-      maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, null, true);
-    } catch {}
+      const pm = new PMTiles(`${ORIGIN}${pmtilesUrl}`);
+      protocol.add(pm);
 
-    let style = await fetch(STYLE_JSON).then((r) => r.json());
+      try {
+        maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, null, true);
+      } catch (e) {
+        console.warn('RTL plugin warning:', e);
+      }
 
-    console.log('Original style sources:', Object.keys(style.sources || {}));
-    console.log('Layer source names before patch:', [
-      ...new Set((style.layers || []).filter((l) => l.source).map((l) => l.source)),
-    ]);
+      let styleJson = await fetch(STYLE_JSON).then((r) => r.json());
 
-    const originalSourceKeys = Object.keys(style.sources || {});
-    const vectorSourceKey = originalSourceKeys[0];
-
-    if (!vectorSourceKey) {
-      throw new Error('No sources found in bright-complete.json');
-    }
-
-    style.sources[vectorSourceKey] = {
-      type: 'vector',
-      url: `pmtiles://${ORIGIN}${pmtilesUrl}`,
-    };
-
-    style.sprite = SPRITE_URL;
-    style.glyphs = GLYPHS_URL;
-    style = applyBilingualLabels(style);
-
-    map.value = new maplibregl.Map({
-      container: mapEl.value,
-      style,
-      center: [69.2, 34.5],
-      zoom: 7,
-      minZoom: 3,
-      maxZoom: 18,
-    });
-
-    window.mapDebug = map.value;
-
-    map.value.addControl(new maplibregl.NavigationControl(), 'top-right');
-    map.value.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
-
-    map.value.on('load', async () => {
-      console.log('Map loaded');
-      console.log('Final map sources:', map.value.getStyle().sources);
-      console.log('Final layer source names:', [
-        ...new Set(
-          map.value
-            .getStyle()
-            .layers.filter((l) => l.source)
-            .map((l) => l.source)
-        ),
+      console.log('Loaded style JSON');
+      console.log('Original style sources:', Object.keys(styleJson.sources || {}));
+      console.log('Original layer source names:', [
+        ...new Set((styleJson.layers || []).filter((l) => l.source).map((l) => l.source)),
       ]);
 
-      await loadAllModulePoints();
-      rebuildMarkers();
-      applyFlyTarget(mapBus.flyTarget);
-    });
+      const sourceKeys = Object.keys(styleJson.sources || {});
+      if (!sourceKeys.length) {
+        throw new Error('No sources found in bright-complete.json');
+      }
+
+      const vectorSourceKey = sourceKeys[0];
+
+      styleJson.sources[vectorSourceKey] = {
+        type: 'vector',
+        url: `pmtiles://${ORIGIN}${pmtilesUrl}`,
+      };
+
+      styleJson.sprite = SPRITE_URL;
+      styleJson.glyphs = GLYPHS_URL;
+      styleJson = applyBilingualLabels(styleJson);
+
+      map.value = new maplibregl.Map({
+        container: mapEl.value,
+        style: styleJson,
+        center: [69.2, 34.5],
+        zoom: 7,
+        minZoom: 3,
+        maxZoom: 18,
+      });
+
+      window.mapDebug = map.value;
+
+      map.value.addControl(new maplibregl.NavigationControl(), 'top-right');
+      map.value.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
+
+      map.value.on('load', async () => {
+        console.log('Map load event fired');
+        console.log('Final sources:', map.value.getStyle().sources);
+        console.log('Final layer sources:', [
+          ...new Set(
+            map.value
+              .getStyle()
+              .layers.filter((l) => l.source)
+              .map((l) => l.source)
+          ),
+        ]);
+
+        await loadAllModulePoints();
+        rebuildMarkers();
+        applyFlyTarget(mapBus.flyTarget);
+      });
+
+      map.value.on('error', (e) => {
+        console.error('MAPLIBRE ERROR:', e);
+      });
+    } catch (err) {
+      console.error('MAP INIT FAILED:', err);
+    }
   });
 
   /* reload */
