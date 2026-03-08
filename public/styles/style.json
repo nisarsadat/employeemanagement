@@ -24,7 +24,7 @@
   "sources": {
     "openmaptiles": {
       "type": "vector",
-      "url": "pmtiles://pmtiles-range/afghanistan.pmtiles"
+      "url": "pmtiles:///pmtiles-range/afghanistan.pmtiles"
     }
   },
   "sprite": "/styles/icons/sprite",
