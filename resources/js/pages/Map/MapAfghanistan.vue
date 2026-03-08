@@ -824,9 +824,8 @@
     'name_int',
   ];
   const LOCAL_NAME_EXPR = ['coalesce', ...LOCAL_NAME_ORDER.map((f) => ['get', f])];
-  const FONT_STACK_Z_LT6 = ['Noto Naskh Arabic Regular', 'Noto Sans Regular'];
-  const FONT_STACK_Z_GE6 = ['Noto Naskh Arabic Bold', 'Noto Sans Bold'];
-
+  const FONT_STACK_Z_LT6 = ['NotoNaskhArabic-Regular', 'NotoSans-Regular'];
+  const FONT_STACK_Z_GE6 = ['NotoNaskhArabic-Bold', 'NotoSans-Bold'];
   function applyBilingualLabels(style) {
     if (!style?.layers) return style;
     for (const l of style.layers) {
