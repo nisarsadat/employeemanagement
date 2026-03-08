@@ -1170,12 +1170,12 @@
 
     let style = await fetch(STYLE_JSON).then((r) => r.json());
 
-    for (const [, src] of Object.entries(style.sources)) {
-      if (src.type === 'vector') {
-        src.url = `pmtiles://${ORIGIN}${pmtilesUrl}`;
-        delete src.tiles;
-      }
-    }
+    style.sources = {
+      openmaptiles: {
+        type: 'vector',
+        url: `pmtiles://${ORIGIN}${pmtilesUrl}`,
+      },
+    };
 
     style.sprite = SPRITE_URL;
     style.glyphs = GLYPHS_URL;
@@ -1185,7 +1185,7 @@
       container: mapEl.value,
       style,
       center: [69.2, 34.5],
-      zoom: 12,
+      zoom: 7,
       minZoom: 3,
       maxZoom: 18,
     });
