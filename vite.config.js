@@ -12,24 +12,14 @@ export default defineConfig({
   ],
 
   build: {
-    // ✅ reduce build output size
-    sourcemap: false,
-
-    // ✅ good target for modern browsers (less polyfills)
-    target: 'es2017',
-
-    // ✅ keep CSS split (better loading)
+    sourcemap: true,
+    target: 'es2020',
     cssCodeSplit: true,
-
-    // ✅ fast minify
-    minify: 'esbuild',
-
-    // (only a warning limit, not performance)
+    minify: false,
     chunkSizeWarningLimit: 1500,
 
     rollupOptions: {
       output: {
-        // ✅ force vendor chunk splitting
         manualChunks(id) {
           if (!id.includes('node_modules')) return
 
@@ -45,7 +35,12 @@ export default defineConfig({
             return 'vendor-charts'
           }
 
-          if (id.includes('maplibre') || id.includes('mapbox') || id.includes('leaflet') || id.includes('pmtiles')) {
+          if (
+            id.includes('maplibre') ||
+            id.includes('mapbox') ||
+            id.includes('leaflet') ||
+            id.includes('pmtiles')
+          ) {
             return 'vendor-map'
           }
 
