@@ -268,7 +268,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         const res = await axios.get('/resources', {
           params: {
             page: params.page ?? 1,
-            perPage: params.itemsPerPage ?? 200,
+            perPage: params.itemsPerPage ?? 100,
             search: params.search ?? this.Search ?? '',
 
             // ✅ NEW FILTERS
@@ -536,7 +536,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         const res = await axios.get('/informations', {
           params: {
             page: params.page ?? 1,
-            perPage: params.itemsPerPage ?? params.perPage ?? 200,
+            perPage: params.itemsPerPage ?? params.perPage ?? 100,
             search: params.search ?? this.Search ?? '',
 
             // ✅ NEW: month/year filter support (same as officeemployees)
