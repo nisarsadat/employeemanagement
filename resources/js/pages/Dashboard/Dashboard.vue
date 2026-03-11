@@ -225,6 +225,10 @@
 
               <div class="stat-title">{{ t('منابع') }}</div>
 
+              <div class="stat-main">
+                <div class="stat-number">{{ resourcesTotal.toLocaleString() }}</div>
+              </div>
+
               <v-progress-linear
                 :model-value="resourcesActivePercentage"
                 height="5"

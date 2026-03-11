@@ -86,7 +86,7 @@ body,
    ========================= */
 
 :root {
-  --sb-size: 32px; /* ✅ change this to increase everywhere */
+  --sb-size: 22px; /* ✅ change this to increase everywhere */
 }
 
 /* Chrome / Edge / Safari */
