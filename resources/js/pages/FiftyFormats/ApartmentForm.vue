@@ -217,18 +217,15 @@
 
             <!-- Resource -->
             <v-col cols="12" md="3">
-              <v-autocomplete
-                v-model="form.resource_code"
-                :items="resources"
-                item-title="code_number"
-                item-value="code_number"
+              <ResourceRemoteAutocomplete
+                v-model="form.resource_id"
                 :label="t('کود منبع')"
-                variant="outlined"
                 density="compact"
-                clearable
-                @update:model-value="onResourceCodeChange"
-                :error="hasError('resource_code')"
-                :error-messages="getErrorMessages('resource_code')"
+                variant="outlined"
+                :rules="[rules.required]"
+                :item-title="resourceTitle"
+                @selected="onResourceSelected"
+                @cleared="onResourceCleared"
               />
             </v-col>
 
@@ -331,7 +328,7 @@
   import AppBar from '@/components/AppBar.vue';
   import { useSchoolRepository } from '@/stores/SchoolRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
-
+  import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   // ✅ added for picture (same as Mahajerat)
   import PicturePicker from '@/components/form/PicturePicker.vue';
 
@@ -360,6 +357,25 @@
   const showSuccess = ref(false);
   const successMessage = ref('');
 
+  function resourceTitle(r) {
+    if (!r) return '';
+    const code = r.code_number ?? '';
+    const name = r.name ?? '';
+    return [code, name].filter(Boolean).join(' - ');
+  }
+
+  function onResourceSelected(r) {
+    if (!r) return;
+    form.value.resource_id = r.id ?? null;
+    form.value.resource_code = r.code_number ?? '';
+    form.value.resource_phone = r.phone_number ?? '';
+  }
+
+  function onResourceCleared() {
+    form.value.resource_id = null;
+    form.value.resource_code = '';
+    form.value.resource_phone = '';
+  }
   function showErrorMessage(message) {
     errorMessage.value = message;
     showError.value = true;
@@ -428,15 +444,25 @@
     },
   };
 
-  /* RESOURCES DROPDOWN */
-  const resources = computed(() => repo.resourcecode || []);
-
-  function onResourceCodeChange(code) {
-    const found = resources.value.find((r) => r.code_number === code);
-    form.value.resource_phone = found?.phone_number ?? '';
-    form.value.resource_id = found?.id ?? null;
+  function resourceTitle(r) {
+    if (!r) return '';
+    const code = r.code_number ?? '';
+    const name = r.name ?? '';
+    return [code, name].filter(Boolean).join(' - ');
   }
 
+  function onResourceSelected(r) {
+    if (!r) return;
+    form.value.resource_id = r.id ?? null;
+    form.value.resource_code = r.code_number ?? '';
+    form.value.resource_phone = r.phone_number ?? '';
+  }
+
+  function onResourceCleared() {
+    form.value.resource_id = null;
+    form.value.resource_code = '';
+    form.value.resource_phone = '';
+  }
   /* MAP FROM API */
   function mapFromApi(payload = {}) {
     const x = payload.data ?? payload;
@@ -806,7 +832,6 @@
 
   /* INIT */
   onMounted(async () => {
-    await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadRecord();
     } else {

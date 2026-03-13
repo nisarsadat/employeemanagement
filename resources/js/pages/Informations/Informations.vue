@@ -1114,7 +1114,6 @@
   /* ===== Init ===== */
   onMounted(async () => {
     await fetchYearItemsFromDb(); // ✅ NEW
-    await Promise.allSettled([repo.GetOfficeEmployee?.(), repo.GetResource?.()]);
     await fetchAll();
   });
 </script>

@@ -199,6 +199,7 @@
                     prepend-inner-icon="mdi-lock-plus-outline"
                     :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
                     class="custom-text-field"
+                    :disabled="!passwordForm.current_password"
                     @click:append-inner="showNewPassword = !showNewPassword"
                   />
                 </v-col>
@@ -216,6 +217,7 @@
                     :color="confirmPasswordColor"
                     :base-color="confirmPasswordColor"
                     :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                    :disabled="!passwordForm.current_password || !passwordForm.new_password"
                     @click:append-inner="showConfirmPassword = !showConfirmPassword"
                   >
                     <template v-if="passwordForm.new_password" #details>

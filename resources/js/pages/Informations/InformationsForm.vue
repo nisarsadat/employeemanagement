@@ -163,18 +163,15 @@
             <v-divider />
             <v-row class="pa-3">
               <v-col cols="12" md="6">
-                <v-autocomplete
+                <ResourceRemoteAutocomplete
                   class="primary-select"
                   v-model="form.resource_id"
-                  :items="resourceItems"
-                  :item-title="formatResource"
-                  item-value="id"
                   :label="t('کود منبع')"
-                  density="compact"
-                  variant="outlined"
-                  clearable
+                  :item-title="formatResource"
                   :error="hasError('resource_id')"
                   :error-messages="getErrorMessages('resource_id')"
+                  @selected="onInformationResourceSelected"
+                  @cleared="onInformationResourceCleared"
                 />
               </v-col>
 
@@ -891,7 +888,7 @@
   import SeyaseeTypeSelect from '@/components/SeyaseeTypeSelect.vue';
   import JenayeeTypeSelect from '@/components/JenayeeTypeSelect.vue';
   import LetryFormatSelect from '@/components/LetryFormatSelect.vue';
-
+  import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   import OrganSelect from '@/components/OrganSelect.vue';
   import AppBar from '../../components/AppBar.vue';
   import DateInput from '../../components/DateInput.vue';
@@ -1023,7 +1020,6 @@
     return [];
   };
 
-  const resourceItems = computed(() => toArray(repo.resource));
   const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
   const seyasiItems = computed(() => toArray(repo.seyasiOptions));
   const jenayeeItems = computed(() => toArray(repo.jenayeeOptions));
@@ -1291,7 +1287,17 @@
       saving.value = false;
     }
   }
+  function onInformationResourceSelected(r) {
+    if (!r) return;
 
+    form.value.resource_id = r.id ?? null;
+    form.value.office_employee_id = r.office_employee?.id ?? r.office_employee_id ?? null;
+  }
+
+  function onInformationResourceCleared() {
+    form.value.resource_id = null;
+    form.value.office_employee_id = null;
+  }
   function scrollToFirstInvalid() {
     const first =
       document.querySelector('.v-input--error, [aria-invalid="true"]') ||
@@ -1319,7 +1325,6 @@
   onMounted(async () => {
     await Promise.allSettled([
       repo.GetOfficeEmployee?.(),
-      repo.GetResource?.(),
       repo.FetchInformationsData?.({
         page: 1,
         itemsPerPage: 1,
@@ -1389,23 +1394,7 @@
       }
     }
   );
-  // ✅ Auto-fill office_employee_id from selected resource
-  watch(
-    () => form.value.resource_id,
-    (resourceId) => {
-      if (!resourceId) {
-        // when resource cleared → free the field + clear value
-        form.value.office_employee_id = null;
-        return;
-      }
 
-      const r = (resourceItems.value || []).find((x) => x.id === resourceId);
-      if (!r) return;
-
-      // ✅ your case: resource has office_employee_id
-      form.value.office_employee_id = r.office_employee_id ?? null;
-    }
-  );
 
   // ✅ Freeze office employee field when resource selected
   const officeEmployeeLocked = computed(() => !!form.value.resource_id);

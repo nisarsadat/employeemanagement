@@ -140,17 +140,16 @@
             <v-row class="pa-3">
               <!-- منبع -->
               <v-col cols="12" md="6">
-                <v-autocomplete
+                <ResourceRemoteAutocomplete
                   v-model="form.resource_id"
-                  :items="resourceCodeItems"
-                  item-title="display"
-                  item-value="id"
                   :label="t('کود منبع')"
                   density="compact"
                   variant="outlined"
-                  clearable
+                  :item-title="resourceDisplay"
                   :error="hasError('resource_id')"
                   :error-messages="getErrorMessages('resource_id')"
+                  @selected="onEventResourceSelected"
+                  @cleared="onEventResourceCleared"
                 />
               </v-col>
 
@@ -598,7 +597,7 @@
   import ZoneHawzaSelect from '@/components/ZoneHawzaSelect.vue';
   import { useFinanceRepository } from '@/stores/FinanceRepository';
   import OrganSelect from '@/components/OrganSelect.vue';
-
+  import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   const financeRepo = useFinanceRepository();
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
@@ -649,7 +648,6 @@
     selectRequired: (label) => (v) => !!v || t('{label} الزامی است', { label }),
   };
 
-
   const toArray = (v) => {
     if (v && typeof v.then === 'function') return [];
     if (Array.isArray(v)) return v;
@@ -659,13 +657,6 @@
     return [];
   };
 
-  const resourceCodeItems = computed(() =>
-    toArray(repo.resourcecode).map((r) => ({
-      ...r,
-      display:
-        r.code_number && r.name ? `${r.code_number} - ${r.name}` : r.code_number || r.name || '',
-    }))
-  );
   const accountItems = computed(() =>
     (financeRepo.accounts || []).map((a) => ({
       ...a,
@@ -727,41 +718,42 @@
   const form = ref(blankForm());
   const officeEmployeeFrozen = ref(false);
 
-  // find selected resource record
-  const selectedResource = computed(() => {
-    const list = toArray(repo.resourcecode);
-    return list.find((r) => String(r.id) === String(form.value.resource_id)) || null;
-  });
-
-  // IMPORTANT:
-  // adjust these keys to match your real resource object
-  // (example: office_employee_id or office_employee?.id)
+  function resourceDisplay(r) {
+    if (!r) return '';
+    const code = r.code_number ?? '';
+    const name = r.name ?? '';
+    return [code, name].filter(Boolean).join(' - ');
+  }
   function getOfficeEmployeeIdFromResource(r) {
     return r?.office_employee_id ?? r?.office_employee?.id ?? r?.officeEmployeeId ?? null;
   }
 
-  watch(
-    () => form.value.resource_id,
-    (newVal) => {
-      if (!newVal) {
-        // allow manual select again if no resource chosen
-        officeEmployeeFrozen.value = false;
-        return;
-      }
+  function onEventResourceSelected(r) {
+    if (!r) return;
 
-      const r = selectedResource.value;
-      const empId = getOfficeEmployeeIdFromResource(r);
+    form.value.resource_id = r.id ?? null;
 
-      if (empId) {
-        form.value.office_employee_id = empId;
-        officeEmployeeFrozen.value = true; // freeze
-      } else {
-        // resource has no employee mapping -> keep editable
-        officeEmployeeFrozen.value = false;
-      }
-    },
-    { immediate: true }
-  );
+    const empId = getOfficeEmployeeIdFromResource(r);
+
+    if (empId) {
+      form.value.office_employee_id = empId;
+      officeEmployeeFrozen.value = true;
+    } else {
+      form.value.office_employee_id = null;
+      officeEmployeeFrozen.value = false;
+    }
+  }
+
+  function onEventResourceCleared() {
+    form.value.resource_id = null;
+    form.value.office_employee_id = null;
+    officeEmployeeFrozen.value = false;
+  }
+
+  // IMPORTANT:
+  // adjust these keys to match your real resource object
+  // (example: office_employee_id or office_employee?.id)
+
   /* docs */
   function triggerDocs() {
     docsInput.value?.click();
@@ -974,9 +966,7 @@
   /* init */
   onMounted(async () => {
     await Promise.allSettled([
-      repo.GetResource?.(),
       repo.GetOfficeEmployee?.(),
-      repo.GetResourceCode?.(),
       repo.GetOfficeEmployeeCode?.(),
 
       financeRepo.FetchAccountsData(), // ✅ درست (accounts loads into financeRepo.accounts)
@@ -989,7 +979,7 @@
 
     await loadForEdit();
   });
- 
+
   /* stepper logic */
   const step1Complete = computed(() => !!form.value.event_type?.trim());
   const step2Complete = computed(() => !!form.value.event_date?.trim());

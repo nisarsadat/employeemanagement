@@ -146,18 +146,17 @@
                   <v-card-subtitle class="field-label">{{ t('کود منبع') }}</v-card-subtitle>
                 </v-card-item>
                 <v-card-text>
-                  <v-autocomplete
+                  <ResourceRemoteAutocomplete
                     v-model="draft.resource_id"
-                    :items="resourceCodeItems"
-                    item-title="code_number"
-                    item-value="id"
+                    :label="t('کود منبع')"
+                    density="compact"
                     variant="outlined"
                     rounded="lg"
                     class="cell"
-                    density="compact"
-                    clearable
                     :rules="[rules.selectRequired(t('کود منبع'))]"
-                    prepend-inner-icon="mdi-database"
+                    :item-title="resourceTitle"
+                    @selected="onResourceSelected"
+                    @cleared="onResourceCleared"
                   />
                 </v-card-text>
               </v-col>
@@ -592,6 +591,7 @@
   import EventTypeSpecificTypeSelect from '@/components/EventTypeSpecificTypePicker.vue';
   import OrganSelect from '@/components/OrganSelect.vue';
   import { useLoginRepository } from '../../stores/LoginRepository';
+  import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
@@ -620,7 +620,6 @@
   };
 
   /* dropdown items (same names used in the editor) */
-  const resourceCodeItems = computed(() => toArray(repo.resourcecode));
   const officeEmployeesCodeItems = computed(() => toArray(repo.officeemployeescode));
   const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
   const zoneEmployeesItems = computed(() => toArray(repo.ZoneEmployees));
@@ -945,10 +944,43 @@
     confirmResetOpen.value = false;
     onReset();
   }
+  function resourceTitle(r) {
+    if (!r) return '';
+    const code = r.code_number ?? '';
+    const name = r.name ?? '';
+    return [code, name].filter(Boolean).join(' - ');
+  }
+
+  function onResourceSelected(r) {
+    if (!r) return;
+
+    draft.resource_id = r.id ?? null;
+
+    draft.trust_percentage =
+      r.trust_percentage ?? r.trustPercentage ?? r.trust_percent ?? r.trustPercent ?? '';
+
+    const empId =
+      r.office_employee?.id ??
+      r.officeEmployee?.id ??
+      r.office_employee_id ??
+      r.employee_id ??
+      null;
+
+    if (empId) {
+      draft.office_employee_id = empId;
+    } else {
+      draft.office_employee_id = null;
+    }
+  }
+
+  function onResourceCleared() {
+    draft.resource_id = null;
+    draft.office_employee_id = null;
+    draft.trust_percentage = '';
+  }
   /* preload dropdowns (kept) */
   (async () => {
     await Promise.all([
-      repo.GetResourceCode?.(),
       repo.GetOfficeEmployeeCode?.(),
       repo.GetOfficeEmployee?.(),
       repo.GetZoneEmployees?.(),
@@ -956,39 +988,7 @@
       repo.GetMaliTalafatOptions?.(),
     ]).catch(() => {});
   })();
-  watch(
-    () => draft.resource_id,
-    (newVal) => {
-      // if resource cleared -> clear auto fields
-      if (!newVal) {
-        draft.office_employee_id = null;
-        draft.trust_percentage = '';
-        return;
-      }
 
-      // find selected resource object
-      const r = resourceCodeItems.value.find((x) => x?.id === newVal);
-      if (!r) return;
-
-      // ✅ trust percentage (support multiple backend keys)
-      draft.trust_percentage =
-        r.trust_percentage ?? r.trustPercentage ?? r.trust_percent ?? r.trustPercent ?? '';
-
-      // ✅ resource -> employee
-      const empId =
-        r.office_employee?.id ??
-        r.officeEmployee?.id ??
-        r.office_employee_id ??
-        r.employee_id ??
-        null;
-
-      if (empId) {
-        draft.office_employee_id = empId;
-      }
-
-      // ❌ do NOT touch draft.office_employee_akhistonky_id
-    }
-  );
 </script>
 
 <style scoped>

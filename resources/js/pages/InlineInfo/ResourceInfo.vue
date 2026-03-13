@@ -31,6 +31,7 @@
               class="search-field elevation-1 fontfamily"
               :dir="isRtl ? 'rtl' : 'ltr'"
               clearable
+              no-filter
               @update:search="onType"
             >
               <template #prepend-inner>
@@ -72,7 +73,6 @@
           >
             {{ model.activity || t('نامشخص') }}
 
-            <!-- ● status dot -->
             <span
               class="status-dot mx-2"
               :class="{
@@ -330,12 +330,14 @@
 </template>
 
 <script setup>
-  import { ref, computed, watch } from 'vue';
+  import { ref, computed, watch, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
+  import { useLookupRepository } from '@/stores/LookupRepository';
 
   const repo = useDatabaseRepository();
+  const lookupRepo = useLookupRepository();
   const router = useRouter();
   const { t, locale } = useI18n();
 
@@ -350,21 +352,10 @@
   const selectedItemRaw = ref(null);
   const loading = ref(false);
   const searchText = ref('');
-  const placeholder = ''; // mdi-account used when no image
+  const placeholder = '';
 
-  /* Helpers */
-  const toArray = (v) => {
-    if (v && typeof v.then === 'function') return [];
-    if (Array.isArray(v)) return v;
-    if (Array.isArray(v?.data)) return v.data;
-    if (Array.isArray(v?.items)) return v.items;
-    if (v && typeof v === 'object') return Object.values(v);
-    return [];
-  };
+  const rawList = computed(() => lookupRepo.resources || []);
 
-  const rawList = computed(() => toArray(repo.Resources || repo.resource));
-
-  // ✅ FIX #1: normalize id to String to avoid number/string mismatch
   const resourceItems = computed(() =>
     rawList.value.map((r) => ({
       id: String(r.id),
@@ -384,7 +375,6 @@
     selectedItemRaw.value = found ? found._raw : null;
   });
 
-  /* Normalized model for template */
   const model = computed(() => {
     if (!selectedItemRaw.value) return null;
     const r = selectedItemRaw.value;
@@ -393,16 +383,9 @@
       id: r.id,
       picture: r.picture,
       name: r.name || '',
-
-      // ✅ nick_name instead of father_name
       nick_name: r.nick_name || '',
-
-      // ✅ keep this (chip under image uses it)
       code_number: r.code_number || '',
-
-      // ✅ FIX #2: avoid crash if office_employee is null
       office_employee_code: r.office_employee?.code_number || r.employee_code || '',
-
       activity: r.activity || '',
       phone: r.phone_number || '',
       phone1: r.phone_number_1 || '',
@@ -414,7 +397,6 @@
     };
   });
 
-  /* Status chip color */
   const statusState = computed(() => {
     const s = (model.value?.activity || '').toString().toLowerCase();
 
@@ -428,6 +410,7 @@
 
     return 'unknown';
   });
+
   const statusChipColor = computed(() => {
     if (statusState.value === 'active') return 'white';
     if (statusState.value === 'inactive') return 'error';
@@ -442,8 +425,10 @@
     tmr = setTimeout(async () => {
       loading.value = true;
       try {
-        repo.Search = searchText.value;
-        await repo.FetchResourcesData?.({ page: 1, itemsPerPage: 20 }).catch(() => {});
+        await lookupRepo.FetchResourcesLookup({
+          search: searchText.value || '',
+          perPage: 20,
+        });
       } finally {
         loading.value = false;
       }
@@ -484,14 +469,14 @@
   };
 
   /* Initial load */
-  (async () => {
+  onMounted(async () => {
     loading.value = true;
     try {
-      await repo.FetchResourcesData?.({ page: 1, itemsPerPage: 20 }).catch(() => {});
+      await lookupRepo.FetchResourcesLookup({ search: '', perPage: 20 });
     } finally {
       loading.value = false;
     }
-  })();
+  });
 </script>
 
 <style scoped>
@@ -600,7 +585,6 @@
     border: 1px solid rgba(var(--v-theme-primary), 0.08);
   }
 
-  /* label + value block in a row */
   .primary-info {
     display: flex;
     flex-direction: row;
@@ -684,7 +668,6 @@
     }
   }
 
-  /* Responsive adjustments */
   @media (max-width: 960px) {
     .resource-container {
       padding: 12px;
@@ -723,10 +706,10 @@
   }
 
   .status-dot.active {
-    background-color: #2e7d32; /* green */
+    background-color: #2e7d32;
   }
 
   .status-dot.inactive {
-    background-color: #c62828; /* red */
+    background-color: #c62828;
   }
 </style>

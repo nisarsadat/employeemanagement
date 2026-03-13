@@ -75,7 +75,7 @@
       :loading="repo.loading"
       :autoDetectDates="false"
       :dateKeys="['saved_date']"
-      class="mb-20 mx-2"
+      class="mx-2"
     >
       <!-- resource -->
       <template #cell-resource_name="{ row }">

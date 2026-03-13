@@ -32,9 +32,9 @@
       <v-card class="pa-4 form-card mx-2" elevation="2" rounded="xl">
         <!-- Header -->
         <v-card-title class="form-title d-flex align-center mb-4">
-          <v-icon v-if="auth.can('khayratreport.create')" color="primary" class="me-2"
-            >mdi-file-document</v-icon
-          >
+          <v-icon v-if="auth.can('khayratreport.create')" color="primary" class="me-2">
+            mdi-file-document
+          </v-icon>
           {{ t('ثبت گزارش خیرات') }}
         </v-card-title>
 
@@ -47,20 +47,17 @@
                 <v-card-subtitle class="field-label">{{ t('کود منبع') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
-                <v-autocomplete
+                <ResourceRemoteAutocomplete
                   v-model="draft.resource_id"
-                  :items="resourceOptions"
-                  :item-title="resourceTitle"
-                  item-value="id"
+                  :label="t('کود منبع')"
                   density="compact"
                   variant="outlined"
                   rounded="lg"
-                  clearable
-                  prepend-inner-icon="mdi-account-badge"
-                  :loading="repo.lookups.loadingResources"
-                  :rules="[rules.selectRequired(t('منبع'))]"
-                  @update:search="onResourceSearch"
                   class="cell"
+                  :rules="[rules.selectRequired(t('منبع'))]"
+                  :item-title="resourceTitle"
+                  @selected="onResourceSelected"
+                  @cleared="onResourceCleared"
                 />
               </v-card-text>
             </v-col>
@@ -73,6 +70,7 @@
               <v-card-text>
                 <v-autocomplete
                   v-model="draft.office_employee_id"
+                  v-model:search="employeeSearch"
                   :items="employeeOptions"
                   :item-title="employeeTitle"
                   item-value="id"
@@ -83,12 +81,15 @@
                   prepend-inner-icon="mdi-account"
                   :loading="repo.lookups.loadingEmployees"
                   :rules="[rules.selectRequired(t('کارمند'))]"
-                  @update:search="onEmployeeSearch"
                   class="cell"
+                  :disabled="officeEmployeeLocked"
+                  :clearable="!officeEmployeeLocked"
+                  @update:search="onEmployeeSearch"
                 />
               </v-card-text>
             </v-col>
-            <!-- ✅ Trust Percentage (read-only) -->
+
+            <!-- Trust Percentage -->
             <v-col cols="12" md="12">
               <v-card-item>
                 <v-card-subtitle class="field-label">{{ t('فیصدی موثقیت') }}</v-card-subtitle>
@@ -204,6 +205,7 @@
       </template>
     </v-snackbar>
 
+    <!-- Success Snackbar -->
     <v-snackbar v-model="showSuccess" color="success" timeout="10000">
       {{ successMessage }}
       <template #actions>
@@ -217,16 +219,14 @@
 
 <script setup>
   import { ref, reactive, computed, watch, onMounted } from 'vue';
-  import { useRouter } from 'vue-router';
   import { useI18n } from 'vue-i18n';
-
   import DateInput from '@/components/DateInput.vue';
   import ZoneHawzaPicker from '@/components/ZoneHawzaSelect.vue';
+  import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   import { useLoginRepository } from '../../stores/LoginRepository';
-  const auth = useLoginRepository();
   import { useKhayratReportRepository } from '@/stores/KhayratReportRepository';
 
-  const router = useRouter();
+  const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const repo = useKhayratReportRepository();
 
@@ -239,6 +239,8 @@
   const formRef = ref(null);
   const valid = ref(false);
   const submitting = ref(false);
+  const officeEmployeeLocked = ref(false);
+  const employeeSearch = ref('');
 
   const showError = ref(false);
   const errorMessage = ref('');
@@ -257,12 +259,12 @@
   /* draft (CREATE only) */
   const baseDraft = () => ({
     resource_id: null,
-    trust_percentage: '', // ✅ NEW (auto-filled)
-    office_employee_id: null, // ✅ auto-filled from resource
+    trust_percentage: '',
+    office_employee_id: null,
     zone: '',
     hawza: '',
     specefic_place: '',
-    saved_date: '', // 'YYYY-MM-DD'
+    saved_date: '',
   });
   const draft = reactive(baseDraft());
 
@@ -279,39 +281,85 @@
   };
 
   /* Lookups */
-  const resourceOptions = computed(() => repo.lookups?.resources || []);
   const employeeOptions = computed(() => repo.lookups?.employees || []);
 
-function resourceTitle(x) {
-  return String(x?.code_number ?? '').trim();
-}
-
-function employeeTitle(x) {
-  return String(x?.code_number ?? '').trim();
-}
-
-  let resTimer = null;
-  let empTimer = null;
-
-  function onResourceSearch(q) {
-    clearTimeout(resTimer);
-    resTimer = setTimeout(() => repo.FetchResourcesLookup({ search: q || '' }), 250);
+  function resourceTitle(x) {
+    const code = x?.code_number ?? '';
+    const name = x?.name ?? '';
+    const left = String(code || '').trim();
+    const right = String(name || '').trim();
+    if (left && right) return `${left} - ${right}`;
+    return right || left || '';
   }
 
+  function employeeTitle(x) {
+    const code = x?.code_number ?? '';
+    const name = x?.name ?? '';
+    const left = String(code || '').trim();
+    const right = String(name || '').trim();
+    if (left && right) return `${left} - ${right}`;
+    return right || left || '';
+  }
+
+  let empTimer = null;
+
   function onEmployeeSearch(q) {
+    employeeSearch.value = q || '';
     clearTimeout(empTimer);
-    empTimer = setTimeout(() => repo.FetchOfficeEmployeesLookup({ search: q || '' }), 250);
+    empTimer = setTimeout(() => {
+      repo.FetchOfficeEmployeesLookup({ search: q || '' });
+    }, 250);
   }
 
   async function preloadLookups() {
-    await Promise.allSettled([
-      repo.FetchResourcesLookup({ search: '' }),
-      repo.FetchOfficeEmployeesLookup({ search: '' }),
-    ]);
+    await Promise.allSettled([repo.FetchOfficeEmployeesLookup({ search: '' })]);
+  }
+
+  function getOfficeEmployeeIdFromResource(r) {
+    return (
+      r?.office_employee?.id ??
+      r?.officeEmployee?.id ??
+      r?.office_employee_id ??
+      r?.employee_id ??
+      null
+    );
+  }
+
+  function onResourceSelected(r) {
+    if (!r) return;
+
+    draft.resource_id = r.id ?? null;
+
+    draft.trust_percentage =
+      r.trust_percentage ?? r.trustPercentage ?? r.trust_percent ?? r.trustPercent ?? '';
+
+    const empId = getOfficeEmployeeIdFromResource(r);
+    if (empId) {
+      draft.office_employee_id = empId;
+      officeEmployeeLocked.value = true;
+    } else {
+      draft.office_employee_id = null;
+      officeEmployeeLocked.value = false;
+    }
+
+    draft.zone = r.zone ?? r.Zone ?? r.zone_name ?? r.zoneName ?? '';
+    draft.hawza = r.hawza ?? r.Hawza ?? r.hawza_name ?? r.hawzaName ?? '';
+    draft.specefic_place = r.specefic_place ?? r.specific_place ?? r.specificPlace ?? r.place ?? '';
+  }
+
+  function onResourceCleared() {
+    draft.resource_id = null;
+    draft.office_employee_id = null;
+    draft.trust_percentage = '';
+    draft.zone = '';
+    draft.hawza = '';
+    draft.specefic_place = '';
+    officeEmployeeLocked.value = false;
   }
 
   function onReset() {
     Object.assign(draft, baseDraft());
+    officeEmployeeLocked.value = false;
     clearBackendErrors();
     formRef.value?.resetValidation?.();
   }
@@ -340,10 +388,6 @@ function employeeTitle(x) {
         hawza: draft.hawza || null,
         specefic_place: draft.specefic_place || null,
         saved_date: draft.saved_date || null,
-
-        // NOTE: trust_percentage is read-only UI field.
-        // Only include it in payload IF your backend expects it.
-        // trust_percentage: draft.trust_percentage || null,
       };
 
       await repo.CreateKhayratReport(payload);
@@ -366,46 +410,6 @@ function employeeTitle(x) {
   onMounted(async () => {
     await preloadLookups();
   });
-
-  // ✅ Auto-fill office_employee_id + trust_percentage + zone/hawza/specefic_place when resource selected
-  watch(
-    () => draft.resource_id,
-    (newVal) => {
-      if (!newVal) {
-        draft.office_employee_id = null;
-        draft.trust_percentage = '';
-        draft.zone = '';
-        draft.hawza = '';
-        draft.specefic_place = '';
-        return;
-      }
-
-      const r = resourceOptions.value.find((x) => x?.id === newVal);
-      if (!r) return;
-
-      // ✅ trust percentage (support multiple backend keys)
-      draft.trust_percentage =
-        r.trust_percentage ?? r.trustPercentage ?? r.trust_percent ?? r.trustPercent ?? '';
-
-      // ✅ resource -> employee
-      const empId =
-        r.office_employee?.id ??
-        r.officeEmployee?.id ??
-        r.office_employee_id ??
-        r.employee_id ??
-        null;
-
-      if (empId) draft.office_employee_id = empId;
-
-      // ✅ resource -> zone/hawza (support multiple backend keys)
-      draft.zone = r.zone ?? r.Zone ?? r.zone_name ?? r.zoneName ?? '';
-      draft.hawza = r.hawza ?? r.Hawza ?? r.hawza_name ?? r.hawzaName ?? '';
-
-      // ✅ resource -> specefic_place (support multiple backend keys)
-      draft.specefic_place =
-        r.specefic_place ?? r.specific_place ?? r.specificPlace ?? r.place ?? '';
-    }
-  );
 </script>
 
 <style scoped>
@@ -452,6 +456,7 @@ function employeeTitle(x) {
     direction: rtl;
     text-align: right;
   }
+
   :deep([dir='rtl'] .v-field-label),
   :deep([dir='rtl'] .v-label),
   :deep([dir='rtl'] .v-input__details) {

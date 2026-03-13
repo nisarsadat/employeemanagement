@@ -14,21 +14,13 @@
               </h2>
               <p class="text-white text-caption opacity-75 mb-0">
                 {{
-                  isEdit
-                    ? t('accounts.dialog.editSubtitle')
-                    : t('accounts.dialog.createSubtitle')
+                  isEdit ? t('accounts.dialog.editSubtitle') : t('accounts.dialog.createSubtitle')
                 }}
               </p>
             </div>
           </div>
 
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            color="white"
-            size="small"
-            @click="close"
-          />
+          <v-btn icon="mdi-close" variant="text" color="white" size="small" @click="close" />
         </div>
       </div>
 
@@ -46,17 +38,6 @@
               :rules="[rules.required]"
               :error="hasError('name')"
               :error-messages="getErrorMessages('name')"
-            />
-
-            <v-text-field
-              v-model="draft.price"
-              :label="t('accounts.form.price')"
-              density="compact"
-              variant="outlined"
-              prepend-inner-icon="mdi-currency-usd"
-              :rules="[rules.requiredNumber]"
-              :error="hasError('price')"
-              :error-messages="getErrorMessages('price')"
             />
 
             <v-textarea
@@ -94,136 +75,136 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from "vue";
-import { useFinanceRepository } from "@/stores/FinanceRepository";
-  import { useI18n } from 'vue-i18n'
+  import { computed, reactive, ref, watch } from 'vue';
+  import { useFinanceRepository } from '@/stores/FinanceRepository';
+  import { useI18n } from 'vue-i18n';
 
-  const { t } = useI18n()
+  const { t } = useI18n();
 
-  const rtl = ref(true)
-const props = defineProps({
-  modelValue: { type: Boolean, default: false },
-  editId: { type: [Number, String, null], default: null },
-});
+  const rtl = ref(true);
+  const props = defineProps({
+    modelValue: { type: Boolean, default: false },
+    editId: { type: [Number, String, null], default: null },
+  });
 
-const emit = defineEmits(["update:modelValue", "saved"]);
+  const emit = defineEmits(['update:modelValue', 'saved']);
 
-const repo = useFinanceRepository();
+  const repo = useFinanceRepository();
 
-const model = computed({
-  get: () => props.modelValue,
-  set: (v) => emit("update:modelValue", v),
-});
+  const model = computed({
+    get: () => props.modelValue,
+    set: (v) => emit('update:modelValue', v),
+  });
 
-const isEdit = computed(() => !!props.editId);
+  const isEdit = computed(() => !!props.editId);
 
-const formRef = ref(null);
-const saving = ref(false);
+  const formRef = ref(null);
+  const saving = ref(false);
 
-const draft = reactive({
-  name: "",
-  price: "",
-  details: "",
-});
+  const draft = reactive({
+    name: '',
+    price: 0,
+    details: '',
+  });
 
-const backendErrors = reactive({});
+  const backendErrors = reactive({});
 
-const rules = {
-  required: (v) => (!!v || v === 0) || "این فیلد ضروری است",
-  requiredNumber: (v) => {
-    if (v === null || v === undefined || v === "") return "این فیلد ضروری است";
-    const n = Number(v);
-    return Number.isFinite(n) ? true : "عدد معتبر وارد کنید";
-  },
-};
+  const rules = {
+    required: (v) => !!v || v === 0 || 'این فیلد ضروری است',
+    requiredNumber: (v) => {
+      if (v === null || v === undefined || v === '') return 'این فیلد ضروری است';
+      const n = Number(v);
+      return Number.isFinite(n) ? true : 'عدد معتبر وارد کنید';
+    },
+  };
 
-function clearErrors() {
-  Object.keys(backendErrors).forEach((k) => delete backendErrors[k]);
-}
+  function clearErrors() {
+    Object.keys(backendErrors).forEach((k) => delete backendErrors[k]);
+  }
 
-function hasError(key) {
-  return Array.isArray(backendErrors[key]) && backendErrors[key].length > 0;
-}
+  function hasError(key) {
+    return Array.isArray(backendErrors[key]) && backendErrors[key].length > 0;
+  }
 
-function getErrorMessages(key) {
-  return backendErrors[key] || [];
-}
+  function getErrorMessages(key) {
+    return backendErrors[key] || [];
+  }
 
-function resetDraft() {
-  draft.name = "";
-  draft.price = "";
-  draft.details = "";
-}
+  function resetDraft() {
+    draft.name = '';
+    draft.price = 0;
+    draft.details = '';
+  }
 
-async function loadForEdit() {
-  if (!props.editId) return;
-  clearErrors();
-  const item = await repo.FetchAccountData(props.editId);
-  draft.name = item?.name ?? "";
-  draft.price = item?.price ?? "";
-  draft.details = item?.details ?? "";
-}
-
-watch(
-  () => model.value,
-  async (open) => {
-    if (!open) return;
-    resetDraft();
+  async function loadForEdit() {
+    if (!props.editId) return;
     clearErrors();
-    if (props.editId) await loadForEdit();
+    const item = await repo.FetchAccountData(props.editId);
+    draft.name = item?.name ?? '';
+    draft.price = item?.price ?? 0;
+    draft.details = item?.details ?? '';
   }
-);
 
-function close() {
-  model.value = false;
-}
-
-async function onSubmit() {
-  clearErrors();
-
-  const res = await formRef.value?.validate();
-  if (!res?.valid) return;
-
-  saving.value = true;
-  try {
-    const payload = {
-      name: draft.name,
-      price: draft.price,
-      details: draft.details,
-    };
-
-    if (isEdit.value) {
-      await repo.UpdateAccount(props.editId, payload);
-    } else {
-      await repo.CreateAccount(payload);
+  watch(
+    () => model.value,
+    async (open) => {
+      if (!open) return;
+      resetDraft();
+      clearErrors();
+      if (props.editId) await loadForEdit();
     }
+  );
 
-    emit("saved");
-    close();
-  } catch (e) {
-    const errors = e?.response?.data?.errors;
-    if (errors && typeof errors === "object") {
-      Object.assign(backendErrors, errors);
-    } else {
-      backendErrors.general = ["خطا رخ داد. دوباره تلاش کنید."];
-    }
-  } finally {
-    saving.value = false;
+  function close() {
+    model.value = false;
   }
-}
+
+  async function onSubmit() {
+    clearErrors();
+
+    const res = await formRef.value?.validate();
+    if (!res?.valid) return;
+
+    saving.value = true;
+    try {
+      const payload = {
+        name: draft.name,
+        price: draft.price,
+        details: draft.details,
+      };
+
+      if (isEdit.value) {
+        await repo.UpdateAccount(props.editId, payload);
+      } else {
+        await repo.CreateAccount(payload);
+      }
+
+      emit('saved');
+      close();
+    } catch (e) {
+      const errors = e?.response?.data?.errors;
+      if (errors && typeof errors === 'object') {
+        Object.assign(backendErrors, errors);
+      } else {
+        backendErrors.general = ['خطا رخ داد. دوباره تلاش کنید.'];
+      }
+    } finally {
+      saving.value = false;
+    }
+  }
 </script>
 
 <style scoped>
-.bg-gradient-primary {
-  background: linear-gradient(135deg, rgba(25, 118, 210, 1), rgba(33, 150, 243, 0.9));
-}
-.d-grid {
-  display: grid;
-}
-.gap-3 {
-  gap: 12px;
-}
-.gap-2 {
-  gap: 8px;
-}
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, rgba(25, 118, 210, 1), rgba(33, 150, 243, 0.9));
+  }
+  .d-grid {
+    display: grid;
+  }
+  .gap-3 {
+    gap: 12px;
+  }
+  .gap-2 {
+    gap: 8px;
+  }
 </style>

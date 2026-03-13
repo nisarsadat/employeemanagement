@@ -153,19 +153,16 @@
 
             <!-- Resource dropdown (id -> code + phone) -->
             <v-col cols="12" md="4">
-              <v-autocomplete
-                v-model="form.resource_id"
-                :items="resources"
-                item-title="code_number"
-                item-value="id"
-                :label="t('منبع')"
-                variant="outlined"
-                density="compact"
-                clearable
-                @update:model-value="onResourceSelect"
-                :error="hasError('resource_id')"
-                :error-messages="getErrorMessages('resource_id')"
-              />
+              <ResourceRemoteAutocomplete
+  v-model="form.resource_id"
+  :label="t('کود منبع')"
+  density="compact"
+  variant="outlined"
+  :rules="[rules.required]"
+  :item-title="resourceTitle"
+  @selected="onResourceSelected"
+  @cleared="onResourceCleared"
+/>
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
@@ -274,6 +271,7 @@
 
   // ✅ Picture (ONLY added import)
   import PicturePicker from '@/components/form/PicturePicker.vue';
+  import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
 
   const repo = useMawadRepository();
   const route = useRoute();
@@ -358,14 +356,25 @@
     required: (v) => !!v || t('این فیلد الزامی است'),
   };
 
-  /* RESOURCES DROPDOWN */
-  const resources = computed(() => repo.resourcecode || []);
+function resourceTitle(r) {
+  if (!r) return '';
+  const code = r.code_number ?? '';
+  const name = r.name ?? '';
+  return [code, name].filter(Boolean).join(' - ');
+}
 
-  function onResourceSelect(id) {
-    const found = resources.value.find((r) => r.id === id);
-    form.value.resource_code = found?.code_number ?? '';
-    form.value.resource_phone = found?.phone_number ?? '';
-  }
+function onResourceSelected(r) {
+  if (!r) return;
+  form.value.resource_id = r.id ?? null;
+  form.value.resource_code = r.code_number ?? '';
+  form.value.resource_phone = r.phone_number ?? '';
+}
+
+function onResourceCleared() {
+  form.value.resource_id = null;
+  form.value.resource_code = '';
+  form.value.resource_phone = '';
+}
 
   /* MAP FROM API */
   function mapFromApi(payload = {}) {
@@ -722,7 +731,6 @@
 
   /* INIT */
   onMounted(async () => {
-    await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadRecord();
     } else {

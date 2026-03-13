@@ -144,18 +144,17 @@
                 <v-card-subtitle class="field-label">{{ t('کود منبع') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
-                <v-autocomplete
+                <ResourceRemoteAutocomplete
                   v-model="draft.resource_id"
-                  :items="resourceItems"
-                  :item-title="formatResource"
-                  item-value="id"
+                  :label="t('کود منبع')"
+                  density="compact"
                   variant="outlined"
                   rounded="lg"
                   class="cell"
-                  density="compact"
-                  clearable
                   :rules="[rules.selectRequired(t('کود منبع'))]"
-                  prepend-inner-icon="mdi-database"
+                  :item-title="resourceTitle"
+                  @selected="onResourceSelected"
+                  @cleared="onResourceCleared"
                 />
               </v-card-text>
             </v-col>
@@ -879,6 +878,7 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
   import LetryFormatSelect from '@/components/LetryFormatSelect.vue';
   import InformationCategorySelect from '@/components/InformationCategorySelect.vue';
+  import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
@@ -905,7 +905,6 @@
     if (v && typeof v === 'object') return Object.values(v);
     return [];
   };
-  const resourceItems = computed(() => toArray(repo.resource));
   const officeEmployeesItems = computed(() => toArray(repo.officeemployees));
   const seyasiItems = computed(() => toArray(repo.seyasiOptions));
   const jenayeeItems = computed(() => toArray(repo.jenayeeOptions));
@@ -1081,12 +1080,9 @@
     form.value?.resetValidation();
     if (fileInput.value) fileInput.value.value = '';
   }
-
-  /* Preload dropdowns (unchanged) */
   (async () => {
-    await Promise.all([repo.GetOfficeEmployee(), repo.GetResource()]).catch(() => {});
+    await Promise.all([repo.GetOfficeEmployee()]).catch(() => {});
   })();
-
   /* pretty resource label */
   const formatResource = (r) => {
     if (!r) return '';
@@ -1231,28 +1227,28 @@
 
     reviewOpen.value = true;
   }
-const confirmSubmitOpen = ref(false);
-const confirmResetOpen = ref(false);
+  const confirmSubmitOpen = ref(false);
+  const confirmResetOpen = ref(false);
 
-function openSubmitConfirm() {
-  // close review first (optional)
-  reviewOpen.value = false;
-  confirmSubmitOpen.value = true;
-}
+  function openSubmitConfirm() {
+    // close review first (optional)
+    reviewOpen.value = false;
+    confirmSubmitOpen.value = true;
+  }
 
-async function doConfirmedSubmit() {
-  confirmSubmitOpen.value = false;
-  await onCreate();
-}
+  async function doConfirmedSubmit() {
+    confirmSubmitOpen.value = false;
+    await onCreate();
+  }
 
-function openResetConfirm() {
-  confirmResetOpen.value = true;
-}
+  function openResetConfirm() {
+    confirmResetOpen.value = true;
+  }
 
-function doConfirmedReset() {
-  confirmResetOpen.value = false;
-  onReset();
-}
+  function doConfirmedReset() {
+    confirmResetOpen.value = false;
+    onReset();
+  }
   async function confirmSubmit() {
     reviewOpen.value = false;
     await onCreate(); // ✅ reuse your existing create logic
@@ -1280,34 +1276,41 @@ function doConfirmedReset() {
       }
     }
   );
+  function resourceTitle(r) {
+    if (!r) return '';
+    const code = r.code_number ?? '';
+    const name = r.name ?? '';
+    return [code, name].filter(Boolean).join(' - ');
+  }
 
-  watch(
-    () => draft.resource_id,
-    (newVal) => {
-      // if cleared, clear related auto fields
-      if (!newVal) {
-        draft.office_employee_id = null;
-        draft.trust_percentage = '';
-        return;
-      }
+  function onResourceSelected(r) {
+    if (!r) return;
 
-      // find selected resource object
-      const r = resourceItems.value.find((x) => x?.id === newVal);
-      if (!r) return;
+    draft.resource_id = r.id ?? null;
 
-      // ✅ trust percentage (support multiple possible backend keys)
-      draft.trust_percentage =
-        r.trust_percentage ?? r.trustPercentage ?? r.trust_percent ?? r.trustPercent ?? '';
+    draft.trust_percentage =
+      r.trust_percentage ?? r.trustPercentage ?? r.trust_percent ?? r.trustPercent ?? '';
 
-      // ✅ map resource -> office_employee_id (pick the correct field name that exists in your API)
-      const empId = r.office_employee_id ?? r.employee_id ?? r.officeEmployeeId ?? null;
+    const empId =
+      r.office_employee?.id ??
+      r.officeEmployee?.id ??
+      r.office_employee_id ??
+      r.employee_id ??
+      null;
 
-      if (empId) {
-        draft.office_employee_id = empId;
-      }
-      // ❌ do nothing to draft.office_employee_info_id
+    if (empId) {
+      draft.office_employee_id = empId;
+    } else {
+      draft.office_employee_id = null;
     }
-  );
+  }
+
+  function onResourceCleared() {
+    draft.resource_id = null;
+    draft.office_employee_id = null;
+    draft.trust_percentage = '';
+  }
+ 
 </script>
 
 <style scoped>
@@ -1448,10 +1451,10 @@ function doConfirmedReset() {
     width: 10px;
     height: 10px;
   }
-:deep(.v-dialog .v-card-text) {
-  font-size: 0.95rem;
-  color: #334155;
-}
+  :deep(.v-dialog .v-card-text) {
+    font-size: 0.95rem;
+    color: #334155;
+  }
   .pretty-scroll::-webkit-scrollbar-track {
     background: rgba(148, 163, 184, 0.18); /* soft slate */
     border-radius: 999px;

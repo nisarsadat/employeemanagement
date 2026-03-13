@@ -189,20 +189,17 @@
                 @update:model-value="onEmployeeManualChange"
               />
 
-              <v-autocomplete
+              <ResourceRemoteAutocomplete
                 v-model="draft.resource_id"
-                :items="resourceOptions"
-                :item-title="resourceTitle"
-                item-value="id"
                 :label="t('finances.form.resource')"
                 density="compact"
                 variant="outlined"
-                prepend-inner-icon="mdi-link-box-outline"
-                clearable
-                :loading="repo.resourcesLoading"
+                class="field"
+                :item-title="resourceTitle"
                 :error="hasError('resource_id')"
                 :error-messages="getErrorMessages('resource_id')"
-                class="field"
+                @selected="onResourceSelected"
+                @cleared="onResourceCleared"
               />
 
               <v-autocomplete
@@ -241,7 +238,10 @@
             </div>
 
             <!-- tiny hint when locked -->
-            <div v-if="accountLocked || amountLocked || wordsLocked" class="mt-2 text-caption opacity-75">
+            <div
+              v-if="accountLocked || amountLocked || wordsLocked"
+              class="mt-2 text-caption opacity-75"
+            >
               {{ t('finances.hints.amountLockedFromMessage') }}
             </div>
           </div>
@@ -299,7 +299,7 @@
   import { useFinanceRepository } from '@/stores/FinanceRepository';
   import DateInput from '@/components/DateInput.vue';
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
-
+  import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   const dbRepo = useDatabaseRepository();
   const { t } = useI18n();
 
@@ -391,18 +391,11 @@
     if (!row) return null;
 
     const direct =
-      row.account_id ??
-      row.account?.id ??
-      row.finance_account_id ??
-      row.financeAccountId ??
-      null;
+      row.account_id ?? row.account?.id ?? row.finance_account_id ?? row.financeAccountId ?? null;
     if (direct) return direct;
 
     const fromRes =
-      row.resource?.account_id ??
-      row.resource?.account?.id ??
-      row.resource_account_id ??
-      null;
+      row.resource?.account_id ?? row.resource?.account?.id ?? row.resource_account_id ?? null;
     if (fromRes) return fromRes;
 
     const fromEmp =
@@ -487,7 +480,6 @@
 
   const accountOptions = computed(() => repo.accounts || []);
   const officeEmployeeOptions = computed(() => repo.officeEmployees || []);
-  const resourceOptions = computed(() => repo.resources || []);
 
   const selectedEventsById = reactive({});
   const selectedInfosById = reactive({});
@@ -501,7 +493,25 @@
     }
     return base;
   });
+  function onResourceSelected(r) {
+    if (!r) return;
+    draft.resource_id = r.id ?? null;
 
+    const empId =
+      r.office_employee?.id ??
+      r.officeEmployee?.id ??
+      r.office_employee_id ??
+      r.employee_id ??
+      null;
+
+    if (empId) {
+      setEmployeeAndPhone(empId);
+    }
+  }
+
+  function onResourceCleared() {
+    draft.resource_id = null;
+  }
   const informationOptions = computed(() => {
     const base = Array.isArray(repo.informations) ? [...repo.informations] : [];
     const id = draft.information_id;
@@ -524,11 +534,7 @@
     return code ? `${code} — ${item.name}` : item.name;
   };
 
-  const resourceTitle = (item) => {
-    if (!item) return '';
-    const code = item.code_number ?? item.code ?? item.codeNumber ?? '';
-    return code ? `${code} — ${item.name}` : item.name;
-  };
+
 
   const eventTitle = (item) => {
     if (!item) return '';
@@ -648,10 +654,7 @@
     if (Array.isArray(repo.officeEmployees) && repo.officeEmployees.length) return;
     await repo.FetchOfficeEmployeesOptions({ search: '' });
   }
-  async function ensureResourcesLoaded() {
-    if (Array.isArray(repo.resources) && repo.resources.length) return;
-    await repo.FetchResourcesOptions({ search: '' });
-  }
+
 
   async function ensureEventsLoaded() {
     if (Array.isArray(repo.events) && repo.events.length) return;
@@ -953,7 +956,6 @@
 
       await ensureAccountsLoaded();
       await ensureOfficeEmployeesLoaded();
-      await ensureResourcesLoaded();
       await ensureEventsLoaded();
       await ensureInformationsLoaded();
 

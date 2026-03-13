@@ -225,20 +225,16 @@
 
           <v-row>
             <v-col cols="12" md="4">
-              <v-autocomplete
-                v-model="form.resource_code"
-                :items="resources"
-                item-title="code_number"
-                item-value="code_number"
-                :label="t('کود منبع')"
-                :rules="[rules.required]"
-                density="compact"
-                variant="outlined"
-                clearable
-                @update:model-value="onResourceCodeChange"
-                :error="hasError('resource_code')"
-                :error-messages="getErrorMessages('resource_code')"
-              />
+              <ResourceRemoteAutocomplete
+  v-model="form.resource_id"
+  :label="t('کود منبع')"
+  density="compact"
+  variant="outlined"
+  :rules="[rules.required]"
+  :item-title="resourceTitle"
+  @selected="onResourceSelected"
+  @cleared="onResourceCleared"
+/>
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
@@ -356,6 +352,7 @@
 
   // ✅ Picture (ONLY added import)
   import PicturePicker from '@/components/form/PicturePicker.vue';
+  import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
 
   const repo = useWakilanoRepository();
   const route = useRoute();
@@ -459,16 +456,25 @@
     phone: (v) => !v || /^[+]?\d[\d\s\-]{10,10}$/.test(String(v)) || t('شماره تماس نادرست است'),
   };
 
-  /* RESOURCES */
-  const resources = computed(() => repo.resourcecode || []);
+function resourceTitle(r) {
+  if (!r) return '';
+  const code = r.code_number ?? '';
+  const name = r.name ?? '';
+  return [code, name].filter(Boolean).join(' - ');
+}
 
-  function onResourceCodeChange(code) {
-    const found = resources.value.find((r) => r.code_number === code);
-    form.value.resource_code = code || '';
-    form.value.resource_phone = found?.phone_number ?? '';
-    form.value.resource_id = found?.id ?? null;
-  }
+function onResourceSelected(r) {
+  if (!r) return;
+  form.value.resource_id = r.id ?? null;
+  form.value.resource_code = r.code_number ?? '';
+  form.value.resource_phone = r.phone_number ?? '';
+}
 
+function onResourceCleared() {
+  form.value.resource_id = null;
+  form.value.resource_code = '';
+  form.value.resource_phone = '';
+}
   /* MAP FROM API */
   function mapFromApi(payload = {}) {
     const x = payload.data ?? payload;
@@ -800,7 +806,6 @@
 
   /* INIT */
   onMounted(async () => {
-    await repo.GetResourceCode?.();
     if (isEdit.value) {
       await loadRecord();
     } else {

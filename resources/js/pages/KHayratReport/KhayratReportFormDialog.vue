@@ -35,27 +35,24 @@
             </div>
 
             <div class="grid-2">
-              <!-- ✅ Resource dropdown (code + name) -->
-              <v-autocomplete
+              <!-- ✅ Remote Resource dropdown -->
+              <ResourceRemoteAutocomplete
                 v-model="draft.resource_id"
-                :items="resourceOptions"
-                :item-title="resourceTitle"
-                item-value="id"
                 :label="t('منبع')"
+                :item-title="resourceTitle"
                 density="compact"
                 variant="outlined"
-                prepend-inner-icon="mdi-account-badge"
-                clearable
-                :loading="repo.lookups.loadingResources"
+                class="field"
                 :error="hasError('resource_id')"
                 :error-messages="getErrorMessages('resource_id')"
-                class="field"
-                @update:search="onResourceSearch"
+                @selected="onResourceSelected"
+                @cleared="onResourceCleared"
               />
 
-              <!-- ✅ Office employee dropdown (code + name) -->
+              <!-- ✅ Office employee dropdown -->
               <v-autocomplete
                 v-model="draft.office_employee_id"
+                v-model:search="employeeSearch"
                 :items="employeeOptions"
                 :item-title="employeeTitle"
                 item-value="id"
@@ -63,7 +60,8 @@
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-account"
-                clearable
+                :clearable="!officeEmployeeFrozen"
+                :disabled="officeEmployeeFrozen"
                 :loading="repo.lookups.loadingEmployees"
                 :error="hasError('office_employee_id')"
                 :error-messages="getErrorMessages('office_employee_id')"
@@ -71,7 +69,7 @@
                 @update:search="onEmployeeSearch"
               />
 
-              <!-- ✅ Zone/Hawza component (backend expects names) -->
+              <!-- ✅ Zone/Hawza -->
               <div class="grid-span-2">
                 <ZoneHawzaPicker
                   v-model:zone="draft.zone"
@@ -95,18 +93,15 @@
                 class="field"
               />
 
-              <!-- ✅ DateInput component -->
-              <v-row class="pa-3 pt-0">
-                <v-col cols="12" md="12">
-                  <DateInput
-                    v-model="draft.saved_date"
-                    :label="t('تاریخ ثبت')"
-                    :error="hasError('saved_date')"
-                    :error-messages="getErrorMessages('saved_date')"
-                    class="field"
-                  />
-                </v-col>
-              </v-row>
+              <div class="grid-span-2">
+                <DateInput
+                  v-model="draft.saved_date"
+                  :label="t('تاریخ ثبت')"
+                  :error="hasError('saved_date')"
+                  :error-messages="getErrorMessages('saved_date')"
+                  class="field"
+                />
+              </div>
             </div>
           </div>
 
@@ -144,12 +139,9 @@
   import { computed, reactive, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useKhayratReportRepository } from '@/stores/KhayratReportRepository';
-
-  // ✅ import your zone/hawza component
   import ZoneHawzaPicker from '@/components/ZoneHawzaSelect.vue';
-
-  // ✅ import DateInput (adjust path if yours is different)
   import DateInput from '@/components/DateInput.vue';
+  import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
 
   const { t, locale } = useI18n();
   const rtl = computed(() => locale.value === 'fa');
@@ -174,6 +166,8 @@
   const formRef = ref(null);
   const saving = ref(false);
   const loadingEdit = ref(false);
+  const officeEmployeeFrozen = ref(false);
+  const employeeSearch = ref('');
 
   const draft = reactive({
     resource_id: null,
@@ -181,7 +175,7 @@
     zone: '',
     hawza: '',
     specefic_place: '',
-    saved_date: '', // ✅ DateInput keeps string like 'YYYY-MM-DD'
+    saved_date: '',
   });
 
   const backendErrors = reactive({});
@@ -189,12 +183,15 @@
   function clearErrors() {
     Object.keys(backendErrors).forEach((k) => delete backendErrors[k]);
   }
+
   function hasError(key) {
     return Array.isArray(backendErrors[key]) && backendErrors[key].length > 0;
   }
+
   function getErrorMessages(key) {
     return backendErrors[key] || [];
   }
+
   function resetDraft() {
     draft.resource_id = null;
     draft.office_employee_id = null;
@@ -202,20 +199,16 @@
     draft.hawza = '';
     draft.specefic_place = '';
     draft.saved_date = '';
+    officeEmployeeFrozen.value = false;
+    employeeSearch.value = '';
   }
+
   function unwrapData(res) {
     return res?.data ?? res;
   }
 
-  /* ==========================
-   * dropdown options
-   * ========================== */
-  const resourceOptions = computed(() => repo.lookups?.resources || []);
   const employeeOptions = computed(() => repo.lookups?.employees || []);
 
-  /* ==========================
-   * ✅ titles (code_number + name)
-   * ========================== */
   function resourceTitle(x) {
     const code = x?.code_number ?? '';
     const name = x?.name ?? '';
@@ -226,7 +219,6 @@
   }
 
   function employeeTitle(x) {
-    // ✅ office employee code_number
     const code = x?.code_number ?? '';
     const name = x?.name ?? '';
     const left = String(code || '').trim();
@@ -235,20 +227,10 @@
     return right || left || '';
   }
 
-  /* ==========================
-   * debounce search
-   * ========================== */
-  let resTimer = null;
   let empTimer = null;
 
-  function onResourceSearch(q) {
-    clearTimeout(resTimer);
-    resTimer = setTimeout(() => {
-      repo.FetchResourcesLookup({ search: q || '' });
-    }, 250);
-  }
-
   function onEmployeeSearch(q) {
+    employeeSearch.value = q || '';
     clearTimeout(empTimer);
     empTimer = setTimeout(() => {
       repo.FetchOfficeEmployeesLookup({ search: q || '' });
@@ -257,9 +239,47 @@
 
   async function preloadLookups() {
     await Promise.allSettled([
-      repo.FetchResourcesLookup({ search: '' }),
       repo.FetchOfficeEmployeesLookup({ search: '' }),
     ]);
+  }
+
+  function getOfficeEmployeeIdFromResource(r) {
+    return (
+      r?.office_employee?.id ??
+      r?.officeEmployee?.id ??
+      r?.office_employee_id ??
+      r?.employee_id ??
+      null
+    );
+  }
+
+  function onResourceSelected(r) {
+    if (!r) return;
+
+    draft.resource_id = r.id ?? null;
+
+    const empId = getOfficeEmployeeIdFromResource(r);
+    if (empId) {
+      draft.office_employee_id = empId;
+      officeEmployeeFrozen.value = true;
+    } else {
+      draft.office_employee_id = null;
+      officeEmployeeFrozen.value = false;
+    }
+
+    draft.zone = r?.zone ?? r?.Zone ?? r?.zone_name ?? r?.zoneName ?? '';
+    draft.hawza = r?.hawza ?? r?.Hawza ?? r?.hawza_name ?? r?.hawzaName ?? '';
+    draft.specefic_place =
+      r?.specefic_place ?? r?.specific_place ?? r?.specificPlace ?? r?.place ?? '';
+  }
+
+  function onResourceCleared() {
+    draft.resource_id = null;
+    draft.office_employee_id = null;
+    draft.zone = '';
+    draft.hawza = '';
+    draft.specefic_place = '';
+    officeEmployeeFrozen.value = false;
   }
 
   async function loadForEdit() {
@@ -274,12 +294,12 @@
 
       draft.resource_id = item?.resource_id ?? null;
       draft.office_employee_id = item?.office_employee_id ?? null;
-
       draft.zone = item?.zone ?? '';
       draft.hawza = item?.hawza ?? '';
-
       draft.specefic_place = item?.specefic_place ?? '';
-      draft.saved_date = item?.saved_date ?? ''; // must be 'YYYY-MM-DD'
+      draft.saved_date = item?.saved_date ?? '';
+
+      officeEmployeeFrozen.value = !!draft.resource_id && !!draft.office_employee_id;
     } catch (e) {
       console.error('loadForEdit error', e);
       backendErrors.general = [t('خطا در دریافت معلومات گزارش')];
@@ -329,10 +349,8 @@
       const payload = {
         resource_id: draft.resource_id || null,
         office_employee_id: draft.office_employee_id || null,
-
         zone: draft.zone || null,
         hawza: draft.hawza || null,
-
         specefic_place: draft.specefic_place || null,
         saved_date: draft.saved_date || null,
       };
