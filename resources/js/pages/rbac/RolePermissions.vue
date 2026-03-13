@@ -8,15 +8,6 @@
       "
       @toggle-drawer="drawer = !drawer"
     >
-      <template #actions>
-        <v-tooltip :text="ps('واپس (Escape)')" location="bottom">
-          <template v-slot:activator="{ props }">
-            <v-btn icon variant="text" @click="tryGoBack" :disabled="repo.loading" v-bind="props">
-              <v-icon>mdi-arrow-left</v-icon>
-            </v-btn>
-          </template>
-        </v-tooltip>
-      </template>
     </AppBar>
 
     <v-card class="mt-6" rounded="xl" variant="flat" border>
@@ -240,7 +231,9 @@
                       </v-chip>
 
                       <v-chip
-                        v-if="countSelectedInGroup(g.items) === g.items.length && g.items.length > 0"
+                        v-if="
+                          countSelectedInGroup(g.items) === g.items.length && g.items.length > 0
+                        "
                         size="x-small"
                         variant="flat"
                         color="success"
@@ -378,7 +371,12 @@
           </v-alert>
 
           <!-- Selection Summary -->
-          <v-card v-if="selectedCount > 0 && !repo.loading" variant="tonal" class="mt-4" rounded="lg">
+          <v-card
+            v-if="selectedCount > 0 && !repo.loading"
+            variant="tonal"
+            class="mt-4"
+            rounded="lg"
+          >
             <v-card-text class="py-3">
               <div class="d-flex align-center justify-space-between">
                 <div class="d-flex align-center ga-3">
@@ -423,7 +421,13 @@
           >
             <v-icon start>mdi-content-save-outline</v-icon>
             {{ ps('ساتل') }}
-            <v-badge v-if="selectedCount > 0" :content="selectedCount" inline color="white" class="ml-2" />
+            <v-badge
+              v-if="selectedCount > 0"
+              :content="selectedCount"
+              inline
+              color="white"
+              class="ml-2"
+            />
           </v-btn>
         </div>
       </v-card-text>

@@ -18,8 +18,7 @@ const Home = () => import('@/pages/Home.vue');
 
 // Core
 const Dashboard = () => import('@/pages/Dashboard/Dashboard.vue');
-const ActiveAndInactiveEmployees = () =>
-  import('@/pages/ActiveInactive/ActiveAndInactiveEmployees.vue');
+
 const ActiveEmployeesIndex = () => import('../pages/ActiveInactive/ActiveEmployeesIndex.vue');
 const InactiveEmployeesIndex = () => import('../pages/ActiveInactive/InactiveEmployeesIndex.vue');
 
@@ -124,13 +123,6 @@ const NoAccess = () => import('@/pages/NoAccess.vue');
 const NotificationsPage = () => import('../components/NotificationsPage.vue');
 
 // Reports
-const FiftyFormatsReportPage = () => import('../pages/reports/FiftyFormatsReportPage.vue');
-const OfficeEmployeesActivityReport = () =>
-  import('../pages/reports/OfficeEmployeesActivityReport.vue');
-const OfficeEmployeeRelationPage = () => import('../pages/reports/OfficeEmployeeRelationPage.vue');
-const EventReport = () => import('../pages/reports/EventActivityReport.vue');
-const InformationActivityReport = () => import('../pages/reports/InformationActivityReport.vue');
-
 const DailyFoulReport = () => import('../pages/reports/DailyFoulReport.vue');
 const MonthlyFoulReport = () => import('../pages/reports/MonthlyFoulReport.vue');
 const YearlyFoulReport = () => import('../pages/reports/YearlyFoulReport.vue');
@@ -1442,32 +1434,7 @@ const router = createRouter({
           component: finincalIndex,
           meta: { requiresAuth: true, perm: permFor('finincalindex') },
         },
-        // reports
-        {
-          path: 'fiftyformatreports',
-          component: FiftyFormatsReportPage,
-          meta: { requiresAuth: true, perm: permFor('fiftyformatreports') },
-        },
-        {
-          path: 'officeemployeereports',
-          component: OfficeEmployeesActivityReport,
-          meta: { requiresAuth: true, perm: permFor('officeemployeereports') },
-        },
-        {
-          path: '/officeemployeerelations/:id/:relation',
-          component: OfficeEmployeeRelationPage,
-          name: 'office-employees-activity-report',
-        },
-        {
-          path: 'eventreports',
-          component: EventReport,
-          meta: { requiresAuth: true, perm: permFor('eventreports') },
-        },
-        {
-          path: 'informationreports',
-          component: InformationActivityReport,
-          meta: { requiresAuth: true, perm: permFor('informationreports') },
-        },
+
         // Map
         {
           path: 'map-afg',

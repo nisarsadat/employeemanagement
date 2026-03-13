@@ -1,7 +1,6 @@
 // src/utils/permissionsLabelsPashto.js
 // Keep English slugs for logic; show Pashto for UI.
 
-import LetryFormatsIndex from '../js/pages/Settings/LetryFormats/LetryFormatsIndex.vue';
 
 // ---- Actions (CRUD) ----
 export const ACTION_PASHTO = {
@@ -18,7 +17,6 @@ export const MODULE_PASHTO = {
   activeandinactiveemployees: 'فعاله/غیرفعاله کارکوونکي',
 
   users: 'کاروونکي',
-  attachmentDownload: 'د فایلونو ډانلوډ کول',
   officeemployee: 'د دفتر کارکوونکي',
   resources: 'منابع',
   events: 'واقعات',
@@ -177,6 +175,9 @@ export const MODULE_PASHTO = {
   // ✅ Missing (from UI screenshot)
   eventtab: 'د پېښو فورم',
   outgoingincomming: 'صادره/وارده مکتوبونه',
+  attachmentDownload: 'د فایلونو ډانلوډ کول',
+  attachmentdownload: 'د فایلونو ډانلوډ کول',
+
 };
 
 function beautify(s) {
