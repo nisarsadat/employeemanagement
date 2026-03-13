@@ -240,6 +240,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -301,6 +309,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
   import { useJawasiRepository } from '@/stores/JawasiRepository';
 
   const repo = useJawasiRepository();
@@ -519,7 +528,7 @@
 
   async function fetchAll() {
     try {
-      await repo.FetchJawasisData?.({ page: 1, itemsPerPage: 100000, search: repo.Search || '' });
+      await repo.FetchJawasisData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست جواسیس'));
@@ -528,6 +537,18 @@
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(p) {
+    repo.page = p;
+    fetchAll();
+  }
+
+  function handlePerPageChange(v) {
+    repo.itemsPerPage = v;
+    repo.page = 1;
     fetchAll();
   }
 

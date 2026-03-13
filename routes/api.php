@@ -151,6 +151,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\OilSummaryController;
 use App\Http\Controllers\Api\OrganController;
 use App\Http\Controllers\Api\OutgoingIncomingController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProvinceController;
 use App\Http\Controllers\Api\ReportNoteController;
 use App\Http\Controllers\Api\Reports\Foul\DailyFoulReportController;
@@ -246,6 +247,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::match(['put','patch'], 'users/{user}', [UserController::class, 'update']); // 👈 {user}
     Route::delete('users/{user}',    [UserController::class, 'destroy']); // 👈 {user}
 
+    Route::get('profile', [ProfileController::class, 'show']);
+    Route::put('profile', [ProfileController::class, 'update']);
+    Route::put('profile/change-password', [ProfileController::class, 'changePassword']);
     // ---------- Office Employees ----------
     // Special activity routes BEFORE the generic resource to avoid ambiguity
     Route::get('office-employees/activity-counts', [AE::class, 'counts']);

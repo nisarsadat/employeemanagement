@@ -160,7 +160,7 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    ><template #cell-picture="{ row }">
+      ><template #cell-picture="{ row }">
         <PictureCell
           :picture="row.picture"
           :alt="row.name"
@@ -243,6 +243,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -271,7 +279,8 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
-import PictureCell from '@/components/table/PictureCell.vue';
+  import PictureCell from '@/components/table/PictureCell.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
@@ -343,7 +352,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   /* TABLE HEADERS – highways fields + map */
   const headersFT = computed(() => [
-  { title: t('picture'), key: 'picture' },
+    { title: t('picture'), key: 'picture' },
 
     { title: t('نام شاهراه'), key: 'high_way_name' },
 
@@ -450,11 +459,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchHighwaysData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchHighwaysData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست شاهراه ها'));
@@ -463,6 +468,18 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(newPage) {
+    repo.page = newPage;
+    fetchAll();
+  }
+
+  function handlePerPageChange(newSize) {
+    repo.itemsPerPage = newSize;
+    repo.page = 1;
     fetchAll();
   }
 

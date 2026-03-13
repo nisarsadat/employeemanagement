@@ -21,7 +21,7 @@
             color="primary"
             rounded="lg"
             hide-details
-            @keyup.enter="fetchAll"
+            @keyup.enter="() => { repo.page = 1; fetchAll(); }"
             clearable
             @click:clear="clearSearch"
             class="bg-white"
@@ -246,6 +246,15 @@
         </div>
       </template>
     </FilterableTable>
+
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🖼 IMAGE PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520">
       <v-card>
@@ -302,6 +311,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useFasadRepository } from '@/stores/FasadRepository';
 
@@ -521,8 +531,8 @@
   async function fetchAll() {
     try {
       await repo.FetchSarafyanosData?.({
-        page: 1,
-        itemsPerPage: 100000,
+        page: repo.page,
+        perPage: repo.itemsPerPage,
         search: repo.Search || '',
       });
     } catch (e) {
@@ -531,8 +541,20 @@
     }
   }
 
+  function handlePageChange(page) {
+    repo.page = page;
+    fetchAll();
+  }
+
+  function handlePerPageChange(perPage) {
+    repo.itemsPerPage = perPage;
+    repo.page = 1;
+    fetchAll();
+  }
+
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
     fetchAll();
   }
 

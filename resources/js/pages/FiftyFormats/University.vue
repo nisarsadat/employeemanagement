@@ -248,6 +248,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🖼 IMAGE PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520">
       <v-card>
@@ -303,6 +311,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
@@ -525,11 +534,7 @@
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchUniversitiesData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchUniversitiesData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست دانشگاه‌ها'));
@@ -538,6 +543,18 @@
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(page) {
+    repo.page = page;
+    fetchAll();
+  }
+
+  function handlePerPageChange(itemsPerPage) {
+    repo.itemsPerPage = itemsPerPage;
+    repo.page = 1;
     fetchAll();
   }
 

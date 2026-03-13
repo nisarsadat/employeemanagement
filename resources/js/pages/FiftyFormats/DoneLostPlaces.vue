@@ -159,7 +159,8 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    > <template #cell-picture="{ row }">
+    >
+      <template #cell-picture="{ row }">
         <PictureCell
           :picture="row.picture"
           :alt="row.name"
@@ -241,6 +242,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -269,8 +278,9 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
-import PictureCell from '@/components/table/PictureCell.vue';
+  import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useWakilanoRepository();
   const router = useRouter();
@@ -329,7 +339,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   /* Headers (list view) */
   const headersFT = computed(() => [
-  { title: t('picture'), key: 'picture' },
+    { title: t('picture'), key: 'picture' },
 
     { title: t('ساحه که اختطاف صورت ګرفته'), key: 'place_name' },
 
@@ -360,7 +370,6 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('یادداشت'), key: 'note' },
-
   ]);
 
   const topGroups = computed(() => [
@@ -446,11 +455,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchDoneLostPlacesData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchDoneLostPlacesData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست محلات'));
@@ -459,12 +464,26 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
     fetchAll();
   }
+
+  function handlePageChange(page) {
+    repo.page = page;
+    fetchAll();
+  }
+
+  function handlePerPageChange(itemsPerPage) {
+    repo.itemsPerPage = itemsPerPage;
+    repo.page = 1;
+    fetchAll();
+  }
+
   function goToResource(row) {
     if (!row?.resource_code) return;
     router.push(`/app/resources/${row.resource_code}`);
   }
+
   onMounted(async () => {
     await Promise.allSettled([repo.GetResourceCode?.(), fetchAll()]);
   });

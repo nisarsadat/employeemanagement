@@ -60,7 +60,7 @@
     <v-row class="px-2 mt-1" :dir="isRtl ? 'rtl' : 'ltr'">
       <v-col cols="12" class="d-flex align-center justify-end">
         <div class="text-caption text-medium-emphasis">
-          {{ t('تعداد') }}: <b>{{ rowsFT.length }}</b>
+          {{ t('تعداد') }}: <b>{{ repo.totalItems }}</b>
         </div>
       </v-col>
     </v-row>
@@ -114,6 +114,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:itemsPerPage="handlePerPageChange"
+    />
+
     <!-- Create/Edit Dialog -->
     <JobTypeFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
 
@@ -144,6 +152,7 @@ import { useI18n } from 'vue-i18n';
 import AppBar from '@/components/AppBar.vue';
 import FilterableTable from '@/components/FilterableTable.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import JobTypeFormDialog from './JobTypeFormDialog.vue';
 import { useJobTypeRepository } from '@/stores/JobTypeRepository';
@@ -168,10 +177,9 @@ function showErrorMessage(msg) {
 }
 
 const search = ref('');
-const rows = ref([]);
 
 const headersFT = computed(() => [{ title: t('نام نوع وظیفه'), key: 'name', align: 'center' }]);
-const rowsFT = computed(() => rows.value || []);
+const rowsFT = computed(() => repo.JobTypes || []);
 
 function getRow(payload) {
   return payload?.raw ?? payload;
@@ -223,12 +231,8 @@ async function handleDeleteConfirmed(target) {
 
 async function fetchAll() {
   try {
-    const res = await repo.FetchJobTypesData({
-      page: 1,
-      perPage: 100000,
-      search: search.value,
-    });
-    rows.value = res?.data || [];
+    repo.Search = search.value;
+    await repo.FetchJobTypesData();
   } catch (e) {
     console.error('fetchAll job-types error', e);
     showErrorMessage(t('خطا در دریافت نوع‌های وظیفه'));
@@ -237,11 +241,32 @@ async function fetchAll() {
 
 function clearSearch() {
   search.value = '';
+  repo.Search = '';
+  repo.page = 1;
   fetchAll();
 }
 
-watch(search, () => fetchAll());
-onMounted(fetchAll);
+function handlePageChange(page) {
+  repo.page = page;
+  fetchAll();
+}
+
+function handlePerPageChange(perPage) {
+  repo.itemsPerPage = perPage;
+  repo.page = 1;
+  fetchAll();
+}
+
+watch(search, () => {
+  repo.Search = search.value;
+  repo.page = 1;
+  fetchAll();
+});
+
+onMounted(() => {
+  search.value = repo.Search || '';
+  fetchAll();
+});
 </script>
 
 <style scoped>

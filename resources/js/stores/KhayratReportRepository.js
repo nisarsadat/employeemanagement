@@ -3,6 +3,7 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
 
 axios.defaults.headers.common['Accept'] = 'application/json';
 
@@ -22,6 +23,12 @@ export const useKhayratReportRepository = defineStore('KhayratReportRepository',
   state() {
     return {
       router: useRouter(),
+
+      // pagination
+      page: 1,
+      itemsPerPage: 10,
+      perPage: 10,
+      totalItems: 0,
 
       // main list
       KhayratReports: reactive([]),
@@ -46,26 +53,38 @@ export const useKhayratReportRepository = defineStore('KhayratReportRepository',
      * CRUD
      * ========================== */
 
-    async FetchKhayratReportsData({ search } = {}) {
+    async FetchKhayratReportsData({ page, perPage, search } = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
 
+        if (page !== undefined) this.page = page;
+        if (perPage !== undefined) {
+          this.perPage = perPage;
+          this.itemsPerPage = perPage;
+        }
+
         const s = search ?? this.Search ?? '';
         this.Search = s;
 
-        // ✅ no page/perPage
-        const { data: res } = await axios.get(
-          `/khayrat-reports?search=${encodeURIComponent(s || '')}`
-        );
+        const queryParams = buildListParams(this, {
+          includeSearch: true,
+          includePagination: true,
+        });
 
-        const items = res?.data ?? res ?? [];
-        this.KhayratReports = Array.isArray(items) ? items : [];
+        const { data: res } = await axios.get(`/khayrat-reports`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, { data: res }, 'KhayratReports');
+        this.perPage = this.itemsPerPage;
+
         return res;
       } catch (e) {
         console.error(e);
         this.error = e;
         this.KhayratReports = [];
+        this.totalItems = 0;
         toast.error(errText(e, 'د راپورونو معلومات رانغلو'));
         throw e;
       } finally {
@@ -143,9 +162,7 @@ export const useKhayratReportRepository = defineStore('KhayratReportRepository',
         setContentType('application/json');
 
         const s = (search ?? '').trim();
-        const { data: res } = await axios.get(
-          `/resources?search=${encodeURIComponent(s)}`
-        );
+        const { data: res } = await axios.get(`/resources?search=${encodeURIComponent(s)}`);
 
         const items = res?.data ?? res ?? [];
         this.lookups.resources = Array.isArray(items) ? items : [];
@@ -166,9 +183,7 @@ export const useKhayratReportRepository = defineStore('KhayratReportRepository',
         setContentType('application/json');
 
         const s = (search ?? '').trim();
-        const { data: res } = await axios.get(
-          `/office-employees?search=${encodeURIComponent(s)}`
-        );
+        const { data: res } = await axios.get(`/office-employees?search=${encodeURIComponent(s)}`);
 
         const items = res?.data ?? res ?? [];
         this.lookups.employees = Array.isArray(items) ? items : [];

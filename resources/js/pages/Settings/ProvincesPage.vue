@@ -73,7 +73,7 @@
       :showIndex="true"
       :rtl="isRtl"
       :loading="repo.loading"
-      class="mb-20 mx-2"
+      class="mb-4 mx-2"
     >
       <!-- Province name -->
       <template #cell-name="{ row }">
@@ -120,6 +120,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- Create/Edit Dialog -->
     <ProvinceFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
 
@@ -150,6 +158,7 @@ import { useI18n } from 'vue-i18n';
 import AppBar from '@/components/AppBar.vue';
 import FilterableTable from '@/components/FilterableTable.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import ProvinceFormDialog from './ProvinceFormDialog.vue';
 import { useProvinceDistrictRepository } from '@/stores/ProvinceDistrictRepository';
@@ -234,8 +243,8 @@ async function handleDeleteConfirmed(target) {
 async function fetchAll() {
   try {
     const res = await repo.FetchProvincesData({
-      page: 1,
-      perPage: 100000,
+      page: repo.page,
+      perPage: repo.itemsPerPage,
       search: search.value,
     });
     rows.value = res?.data || [];
@@ -245,12 +254,27 @@ async function fetchAll() {
   }
 }
 
-function clearSearch() {
-  search.value = '';
+function handlePageChange(page) {
+  repo.page = page;
   fetchAll();
 }
 
-watch(search, () => fetchAll());
+function handlePerPageChange(perPage) {
+  repo.itemsPerPage = perPage;
+  repo.page = 1;
+  fetchAll();
+}
+
+function clearSearch() {
+  search.value = '';
+  repo.page = 1;
+  fetchAll();
+}
+
+watch(search, () => {
+  repo.page = 1;
+  fetchAll();
+});
 
 onMounted(fetchAll);
 </script>

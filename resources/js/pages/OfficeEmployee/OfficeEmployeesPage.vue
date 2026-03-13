@@ -225,7 +225,7 @@
       :dateKeys="['join_date', 'left_date']"
       @edit="startEdit"
       @peek="openPeek"
-      class="mb-20 mx-2"
+      class="mb-4 mx-2"
     >
       <!-- 🖼 Picture cell -->
       <template #cell-picture="{ row }">
@@ -442,7 +442,13 @@
         </div>
       </template>
     </FilterableTable>
-
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:itemsPerPage="handlePerPageChange"
+    />
     <!-- 🖼 BIG PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520" :dir="isRtl ? 'rtl' : 'ltr'">
       <v-card :dir="isRtl ? 'rtl' : 'ltr'">
@@ -499,7 +505,7 @@
 
   import { useEmployeOfficeRepository } from '../../stores/EmployeeRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
-
+  import GlobalPagination from '@/components/GlobalPagination.vue';
   const router = useRouter();
   const route = useRoute();
   const { t, locale } = useI18n();
@@ -633,6 +639,7 @@
 
   // ✅ Apply filter: reload from backend
   async function applyMonthYearFilter() {
+    repo.page = 1;
     await fetchAll();
   }
 
@@ -821,12 +828,15 @@
   // ✅ Cards filter (job_type) — ONLY change here for cards filtering
   function applyJobTypeFilter(val) {
     const next = { ...(filters.value || {}) };
+
     if (!val) {
       delete next.job_type;
     } else {
       next.job_type = val;
     }
+
     filters.value = next;
+    repo.page = 1;
   }
 
   /* ===== Error Snackbar ===== */
@@ -902,27 +912,29 @@
   /* ===== Fetch ALL ===== */
   async function fetchAll() {
     try {
-      if (typeof repo.FetchEmployeesData === 'function') {
-        await repo.FetchEmployeesData({
-          page: repo.page,
-          perPage: repo.itemsPerPage, // ✅ FIXED
-          search: repo.Search,
-
-          year: filterYear.value,
-          month: filterMonth.value,
-          date_field: 'join_date',
-        });
-      } else {
-        await repo.FetchEmployeesData({ page: 1, itemsPerPage: 100000 });
-      }
+      await repo.FetchEmployeesData({
+        year: filterYear.value,
+        month: filterMonth.value,
+        date_field: 'join_date',
+      });
     } catch (e) {
       console.error('fetchAll error', e);
       showErrorMessage(t('خطا در دریافت فهرست کارمندان'));
     }
   }
+  function handlePageChange(value) {
+    repo.page = value;
+    fetchAll();
+  }
 
+  function handlePerPageChange(value) {
+    repo.itemsPerPage = value;
+    repo.page = 1;
+    fetchAll();
+  }
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
     fetchAll();
   }
 

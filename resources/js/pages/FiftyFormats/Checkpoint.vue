@@ -259,6 +259,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -288,6 +296,7 @@
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
   import PictureCell from '@/components/table/PictureCell.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
@@ -383,10 +392,8 @@
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
-
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('یادداشت'), key: 'note'},
-
   ]);
 
   /* TOP GROUPS – grouped like Heist */
@@ -485,11 +492,7 @@
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchCheckpointsData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchCheckpointsData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست چک‌پوینت ها'));
@@ -498,6 +501,18 @@
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(page) {
+    repo.page = page;
+    fetchAll();
+  }
+
+  function handlePerPageChange(perPage) {
+    repo.itemsPerPage = perPage;
+    repo.page = 1;
     fetchAll();
   }
 

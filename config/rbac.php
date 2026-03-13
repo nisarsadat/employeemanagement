@@ -26,6 +26,7 @@ return [
         'managercomment',
         'direction',
 
+        'attachmentDownload',
         'inlineinfo',
         'resourceinfo',
         'resourcetab',

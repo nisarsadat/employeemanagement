@@ -401,6 +401,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:itemsPerPage="handlePerPageChange"
+    />
+
     <!-- 🖼 BIG PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520" :dir="isRtl ? 'rtl' : 'ltr'">
       <v-card :dir="isRtl ? 'rtl' : 'ltr'">
@@ -454,6 +462,7 @@
   import FilterableTable from '@/components/FilterableTable.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
@@ -607,13 +616,13 @@
   });
 
   async function applyMonthYearFilter() {
+    repo.page = 1;
     await fetchAll();
   }
 
   async function fetchAll() {
     try {
       await repo.FetchResourcesData({
-        search: repo.Search,
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'resource_saved_date',
@@ -622,6 +631,17 @@
       console.error('fetchAll error', e);
       showErrorMessage(t('خطا در دریافت فهرست منابع'));
     }
+  }
+
+  function handlePageChange(value) {
+    repo.page = value;
+    fetchAll();
+  }
+
+  function handlePerPageChange(value) {
+    repo.itemsPerPage = value;
+    repo.page = 1;
+    fetchAll();
   }
 
   /* ===== Office employee ===== */
@@ -697,6 +717,7 @@
 
   function applyQuickFilter(mode) {
     quickFilter.value = mode;
+    repo.page = 1;
   }
 
   const routeResourceId = computed(() => {
@@ -874,6 +895,7 @@
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
     fetchAll();
   }
 

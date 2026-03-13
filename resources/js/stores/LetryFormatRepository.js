@@ -1,22 +1,44 @@
-    // src/stores/LetryFormatRepository.js
+// src/stores/LetryFormatRepository.js
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
 
 export const useLetryFormatRepository = defineStore('LetryFormatRepository', {
   state: () => ({
+    page: 1,
+    itemsPerPage: 10,
+    totalItems: 0,
+
+    Search: '',
+
+    LetryFormats: [],
+    LetryFormat: {},
+
     loading: false,
     error: null,
   }),
 
   actions: {
-    async FetchLetryFormats({ page = 1, perPage = 10000, search = '' } = {}) {
+    async FetchLetryFormats() {
       this.loading = true;
       try {
-        const { data } = await axios.get(
-          `/letry-formats?page=${page}&perPage=${perPage}&search=${encodeURIComponent(search)}`
-        );
-        return data;
+        const queryParams = buildListParams(this, {
+          includeSearch: true,
+          includePagination: true,
+        });
+
+        const res = await axios.get('/letry-formats', {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'LetryFormats');
+        return res.data;
+      } catch (e) {
+        this.error = e;
+        this.LetryFormats = [];
+        this.totalItems = 0;
+        throw e;
       } finally {
         this.loading = false;
       }
@@ -24,6 +46,7 @@ export const useLetryFormatRepository = defineStore('LetryFormatRepository', {
 
     async FetchLetryFormat(id) {
       const { data } = await axios.get(`/letry-formats/${id}`);
+      this.LetryFormat = data?.data ?? data ?? {};
       return data;
     },
 
@@ -42,6 +65,7 @@ export const useLetryFormatRepository = defineStore('LetryFormatRepository', {
     async DeleteLetryFormat(id) {
       await axios.delete(`/letry-formats/${id}`);
       toast.success('فورمت لتری حذف شد');
+      await this.FetchLetryFormats();
     },
   },
 });

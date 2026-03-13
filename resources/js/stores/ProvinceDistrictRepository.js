@@ -64,16 +64,19 @@ export const useProvinceDistrictRepository = defineStore('ProvinceDistrictReposi
     },
 
     /* ============================ PROVINCES ============================ */
-    async FetchProvincesData({ page, itemsPerPage } = {}) {
+    async FetchProvincesData({ page, perPage, itemsPerPage, search } = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
 
-        const p = page ?? this.page ?? 1;
-        const per = itemsPerPage ?? this.itemsPerPage ?? 10;
+        this.page = page ?? this.page ?? 1;
+        this.itemsPerPage = perPage ?? itemsPerPage ?? this.itemsPerPage ?? 10;
+        this.Search = search ?? this.Search ?? '';
 
         const { data: res } = await axios.get(
-          `provinces?page=${p}&perPage=${per}&search=${encodeURIComponent(this.Search || '')}`
+          `provinces?page=${this.page}&perPage=${this.itemsPerPage}&search=${encodeURIComponent(
+            this.Search || ''
+          )}`
         );
 
         const items = res?.data ?? res ?? [];
@@ -146,7 +149,11 @@ export const useProvinceDistrictRepository = defineStore('ProvinceDistrictReposi
         toast.success('ولایت بریالیتوب سره حذف شو', { autoClose: 1200 });
 
         // refresh list
-        await this.FetchProvincesData({ page: this.page, itemsPerPage: this.itemsPerPage });
+        await this.FetchProvincesData({
+          page: this.page,
+          perPage: this.itemsPerPage,
+          search: this.Search,
+        });
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -156,13 +163,14 @@ export const useProvinceDistrictRepository = defineStore('ProvinceDistrictReposi
     },
 
     /* ============================ DISTRICTS ============================ */
-    async FetchDistrictsData({ page, itemsPerPage, province_id = null } = {}) {
+    async FetchDistrictsData({ page, perPage, itemsPerPage, search, province_id = null } = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
 
-        const p = page ?? this.page ?? 1;
-        const per = itemsPerPage ?? this.itemsPerPage ?? 10;
+        this.page = page ?? this.page ?? 1;
+        this.itemsPerPage = perPage ?? itemsPerPage ?? this.itemsPerPage ?? 10;
+        this.Search = search ?? this.Search ?? '';
 
         const provinceQuery =
           province_id !== null && province_id !== undefined && province_id !== ''
@@ -170,7 +178,9 @@ export const useProvinceDistrictRepository = defineStore('ProvinceDistrictReposi
             : '';
 
         const { data: res } = await axios.get(
-          `districts?page=${p}&perPage=${per}&search=${encodeURIComponent(this.Search || '')}${provinceQuery}`
+          `districts?page=${this.page}&perPage=${this.itemsPerPage}&search=${encodeURIComponent(
+            this.Search || ''
+          )}${provinceQuery}`
         );
 
         const items = res?.data ?? res ?? [];
@@ -243,7 +253,11 @@ export const useProvinceDistrictRepository = defineStore('ProvinceDistrictReposi
         toast.success('ولسوالی بریالیتوب سره حذف شو', { autoClose: 1200 });
 
         // refresh list
-        await this.FetchDistrictsData({ page: this.page, itemsPerPage: this.itemsPerPage });
+        await this.FetchDistrictsData({
+          page: this.page,
+          perPage: this.itemsPerPage,
+          search: this.Search,
+        });
       } catch (e) {
         console.error(e);
         this.error = e;

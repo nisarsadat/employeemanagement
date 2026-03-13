@@ -161,7 +161,7 @@
       @edit="goEdit"
       @peek="openPeek"
     >
-     <template #cell-picture="{ row }">
+      <template #cell-picture="{ row }">
         <PictureCell
           :picture="row.picture"
           :alt="row.name"
@@ -244,6 +244,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🖼 IMAGE PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520">
       <v-card>
@@ -299,9 +307,10 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository'; // or your Emarat repo
-import PictureCell from '@/components/table/PictureCell.vue';
+  import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useBadmashanoRepository();
   const router = useRouter();
@@ -373,7 +382,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   /* TABLE HEADERS – ALL INPUTS + map */
   const headersFT = computed(() => [
-  { title: t('picture'), key: 'picture' },
+    { title: t('picture'), key: 'picture' },
 
     { title: t('ولایت'), key: 'province' },
     { title: t('زون'), key: 'zone' },
@@ -489,11 +498,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchEmaratOfficesData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchEmaratOfficesData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست امارت دفاتر'));
@@ -502,6 +507,18 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(newPage) {
+    repo.page = newPage;
+    fetchAll();
+  }
+
+  function handlePerPageChange(newSize) {
+    repo.itemsPerPage = newSize;
+    repo.page = 1;
     fetchAll();
   }
 

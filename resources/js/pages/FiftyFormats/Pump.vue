@@ -164,7 +164,7 @@
       @edit="goEdit"
       @peek="openPeek"
     >
-     <template #cell-picture="{ row }">
+      <template #cell-picture="{ row }">
         <PictureCell
           :picture="row.picture"
           :alt="row.name"
@@ -248,6 +248,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🖼 IMAGE PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520">
       <v-card>
@@ -303,9 +311,10 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
-import PictureCell from '@/components/table/PictureCell.vue';
+  import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useWakilanoRepository();
   const router = useRouter();
@@ -386,7 +395,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   /* TABLE HEADERS – ALL INPUTS + map */
   const headersFT = computed(() => [
-  { title: t('picture'), key: 'picture' },
+    { title: t('picture'), key: 'picture' },
 
     { title: t('نام پمپ'), key: 'pump_name' },
     { title: t('نوع پمپ'), key: 'pump_type' },
@@ -512,11 +521,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchPumpsData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchPumpsData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست پمپ‌ها'));
@@ -525,6 +530,18 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(newPage) {
+    repo.page = newPage;
+    fetchAll();
+  }
+
+  function handlePerPageChange(newSize) {
+    repo.itemsPerPage = newSize;
+    repo.page = 1;
     fetchAll();
   }
 

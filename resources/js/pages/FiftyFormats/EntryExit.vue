@@ -171,6 +171,7 @@
           </v-avatar>
         </div>
       </template>
+
       <!-- 📡 RESOURCE CODE CLICKABLE -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -183,7 +184,7 @@
               append-icon="mdi-account"
               size="default"
               class="text-none"
-              @click.stop="goToResource(row)"
+              @click.stop="goToResource(row.resource_code)"
             >
               {{ row.resource_code }}
             </v-btn>
@@ -246,6 +247,16 @@
         </div>
       </template>
     </FilterableTable>
+
+    <!-- ✅ GLOBAL PAGINATION -->
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🖼 IMAGE PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520">
       <v-card>
@@ -272,6 +283,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -293,303 +305,312 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-  import AppBar from '@/components/AppBar.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import PeekButton from '@/components/PeekButton.vue';
-  import FlyToMapButton from '@/components/FlyToMapButton.vue';
-  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import AppBar from '@/components/AppBar.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import FlyToMapButton from '@/components/FlyToMapButton.vue';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
-  import { useFasadRepository } from '@/stores/FasadRepository';
+import { useFasadRepository } from '@/stores/FasadRepository';
 
-  const repo = useFasadRepository();
-  const router = useRouter();
+const repo = useFasadRepository();
+const router = useRouter();
 
-  /* i18n / RTL */
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+/* i18n / RTL */
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-  /* Snackbar */
-  const showError = ref(false);
-  const errorMessage = ref('');
-  const showErrorMessage = (m) => {
-    errorMessage.value = m;
-    showError.value = true;
-  };
-  function goToResource(code) {
-    if (!code) return;
-    router.push(`/app/resources?search=${encodeURIComponent(code)}`);
+/* Snackbar */
+const showError = ref(false);
+const errorMessage = ref('');
+const showErrorMessage = (m) => {
+  errorMessage.value = m;
+  showError.value = true;
+};
+
+function goToResource(code) {
+  if (!code) return;
+  router.push(`/app/resources?search=${encodeURIComponent(code)}`);
+}
+
+/* Helpers */
+const getRow = (s) => (s && s.raw ? s.raw : s);
+
+/* rows from store */
+const rowsFT = computed(() => {
+  const list = repo.EntryExits || [];
+  if (Array.isArray(list)) return list;
+  if (Array.isArray(list.data)) return list.data;
+  return [];
+});
+
+/* 🔢 Filter cards state */
+const cardFilter = ref('all');
+
+const stats = computed(() => {
+  const rows = rowsFT.value || [];
+  const total = rows.length;
+  const withCoordinates = rows.filter(
+    (r) => r && r.cordinate && String(r.cordinate).trim() !== ''
+  ).length;
+  const withPost = rows.filter(
+    (r) => r && r.amnayaty_poste && String(r.amnayaty_poste).trim() !== ''
+  ).length;
+  const withResource = rows.filter(
+    (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
+  ).length;
+
+  return { total, withCoordinates, withPost, withResource };
+});
+
+/* IMAGE PREVIEW */
+const previewOpen = ref(false);
+const previewSrc = ref(null);
+
+function normalizePicture(src) {
+  if (!src) return null;
+  let clean = String(src).trim();
+
+  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+  clean = clean.replace(/\\\//g, '/');
+
+  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+  if (clean.startsWith('/')) return clean;
+
+  return '/' + clean.replace(/^\/+/, '');
+}
+
+function openPreview(src) {
+  const normalized = normalizePicture(src);
+  if (!normalized) return;
+  previewSrc.value = normalized;
+  previewOpen.value = true;
+}
+
+const filteredRowsFT = computed(() => {
+  const base = rowsFT.value || [];
+  switch (cardFilter.value) {
+    case 'withCoordinates':
+      return base.filter((r) => r && r.cordinate && String(r.cordinate).trim() !== '');
+    case 'withPost':
+      return base.filter((r) => r && r.amnayaty_poste && String(r.amnayaty_poste).trim() !== '');
+    case 'withResource':
+      return base.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '');
+    default:
+      return base;
   }
+});
 
-  /* Helpers */
-  const getRow = (s) => (s && s.raw ? s.raw : s);
+/* TABLE HEADERS – list view */
+const headersFT = computed(() => [
+  { title: t('تصویر'), key: 'picture', sortable: false },
+  { title: t('طریق ورود/خروج'), key: 'entry_way' },
+  { title: t('نوعه طریق'), key: 'way_type' },
 
-  /* rows from store */
-  const rowsFT = computed(() => {
-    const list = repo.EntryExits || [];
-    if (Array.isArray(list)) return list;
-    if (Array.isArray(list.data)) return list.data;
-    return [];
-  });
+  { title: t('ولایت'), key: 'province' },
+  { title: t('زون'), key: 'zone' },
+  { title: t('ولسوالی'), key: 'district' },
+  { title: t('قریه/ناحیه'), key: 'village' },
+  { title: t('موقعیت مشخص'), key: 'specific_place' },
 
-  /* 🔢 Filter cards state */
-  const cardFilter = ref('all');
+  { title: t('مختصات'), key: 'cordinate' },
 
-  const stats = computed(() => {
-    const rows = rowsFT.value || [];
-    const total = rows.length;
-    const withCoordinates = rows.filter(
-      (r) => r && r.cordinate && String(r.cordinate).trim() !== ''
-    ).length;
-    const withPost = rows.filter(
-      (r) => r && r.amnayaty_poste && String(r.amnayaty_poste).trim() !== ''
-    ).length;
-    const withResource = rows.filter(
-      (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
-    ).length;
+  { title: t('پُسته امنیتی'), key: 'amnayaty_poste' },
+  { title: t('اشاره امنیتی'), key: 'amnayaty_ishala' },
 
-    return { total, withCoordinates, withPost, withResource };
-  });
+  { title: t('به کجا رفت'), key: 'where_went' },
+  { title: t('از کجا آمد'), key: 'where_come' },
 
-  // the picture part
-  /* IMAGE PREVIEW */
-  const previewOpen = ref(false);
-  const previewSrc = ref(null);
+  { title: t('کود منبع'), key: 'resource_code' },
+  { title: t('شماره منبع'), key: 'resource_phone_number' },
 
-  function normalizePicture(src) {
-    if (!src) return null;
-    let clean = String(src).trim();
+  { title: t('نقشه'), key: 'map', sortable: false },
+  { title: t('ملاحظات'), key: 'notes' },
+]);
 
-    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+/* TOP GROUPS */
+const topGroups = computed(() => [
+  { title: t('مشخصات'), keys: ['name', 'entry_way', 'way_type'] },
+  {
+    title: t('موقعیت'),
+    keys: ['province', 'zone', 'district', 'village', 'specific_place', 'cordinate'],
+  },
+  { title: t('امنیتی'), keys: ['amnayaty_poste', 'amnayaty_ishala'] },
+  { title: t('رفت و آمد'), keys: ['where_went', 'where_come'] },
+  { title: t('منبع'), keys: ['resource_code', 'resource_phone_number'] },
+  { title: t('دیگر'), keys: ['Province_addr', 'notes'] },
+]);
 
-    clean = clean.replace(/\\\//g, '/');
+const filters = ref({});
 
-    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-    if (clean.startsWith('/')) return clean;
+/* Peek */
+const expanded = ref(false);
+const selectedId = ref(null);
+const loadingOne = ref(false);
+const detail = ref(null);
 
-    return '/' + clean.replace(/^\/+/, '');
+async function fetchOne(id) {
+  loadingOne.value = true;
+  try {
+    await repo.FetchEntryExitData?.(id);
+    const single =
+      repo.EntryExit && Array.isArray(repo.EntryExit) ? repo.EntryExit[0] : repo.EntryExit || {};
+    detail.value = single || {};
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت معلومات ورود/خروج'));
+  } finally {
+    loadingOne.value = false;
   }
+}
 
-  function openPreview(src) {
-    const normalized = normalizePicture(src);
-    if (!normalized) return;
-    previewSrc.value = normalized;
-    previewOpen.value = true;
-  }
-  const filteredRowsFT = computed(() => {
-    const base = rowsFT.value || [];
-    switch (cardFilter.value) {
-      case 'withCoordinates':
-        return base.filter((r) => r && r.cordinate && String(r.cordinate).trim() !== '');
-      case 'withPost':
-        return base.filter((r) => r && r.amnayaty_poste && String(r.amnayaty_poste).trim() !== '');
-      case 'withResource':
-        return base.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '');
-      default:
-        return base;
-    }
-  });
+function openPeek(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  selectedId.value = row.id;
+  expanded.value = true;
+  fetchOne(row.id);
+}
 
-  /* TABLE HEADERS – list view */
-  const headersFT = computed(() => [
-    // { title: t('نام'), key: 'name' },
-    { title: t('تصویر'), key: 'picture', sortable: false },
-    { title: t('طریق ورود/خروج'), key: 'entry_way' },
-    { title: t('نوعه طریق'), key: 'way_type' },
+/* navigation */
+function goCreate() {
+  router.push('/app/entryexitform');
+}
 
-    { title: t('ولایت'), key: 'province' },
-    { title: t('زون'), key: 'zone' },
-    { title: t('ولسوالی'), key: 'district' },
-    { title: t('قریه/ناحیه'), key: 'village' },
-    { title: t('موقعیت مشخص'), key: 'specific_place' },
+function goEdit(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push(`/app/entryexitform/${row.id}`);
+}
 
-    { title: t('مختصات'), key: 'cordinate' },
+/* delete with dialog */
+const deleteDialog = ref(false);
+const deleteTarget = ref(null);
 
-    { title: t('پُسته امنیتی'), key: 'amnayaty_poste' },
-    { title: t('اشاره امنیتی'), key: 'amnayaty_ishala' },
+function openDeleteDialog(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  deleteTarget.value = row;
+  deleteDialog.value = true;
+}
 
-    { title: t('به کجا رفت'), key: 'where_went' },
-    { title: t('از کجا آمد'), key: 'where_come' },
-
-    { title: t('کود منبع'), key: 'resource_code' },
-    { title: t('شماره منبع'), key: 'resource_phone_number' },
-
-    { title: t('نقشه'), key: 'map', sortable: false },
-    { title: t('ملاحظات'), key: 'notes' },
-  ]);
-
-  /* TOP GROUPS */
-  const topGroups = computed(() => [
-    { title: t('مشخصات'), keys: ['name', 'entry_way', 'way_type'] },
-    {
-      title: t('موقعیت'),
-      keys: ['province', 'zone', 'district', 'village', 'specific_place', 'cordinate'],
-    },
-    { title: t('امنیتی'), keys: ['amnayaty_poste', 'amnayaty_ishala'] },
-    { title: t('رفت و آمد'), keys: ['where_went', 'where_come'] },
-    { title: t('منبع'), keys: ['resource_code', 'resource_phone_number'] },
-    { title: t('دیگر'), keys: ['Province_addr', 'notes'] },
-  ]);
-
-  const filters = ref({});
-
-  /* Peek */
-  const expanded = ref(false);
-  const selectedId = ref(null);
-  const loadingOne = ref(false);
-  const detail = ref(null);
-
-  async function fetchOne(id) {
-    loadingOne.value = true;
-    try {
-      await repo.FetchEntryExitData?.(id);
-      const single =
-        repo.EntryExit && Array.isArray(repo.EntryExit) ? repo.EntryExit[0] : repo.EntryExit || {};
-      detail.value = single || {};
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در دریافت معلومات ورود/خروج'));
-    } finally {
-      loadingOne.value = false;
-    }
-  }
-
-  function openPeek(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    selectedId.value = row.id;
-    expanded.value = true;
-    fetchOne(row.id);
-  }
-
-  /* navigation */
-  function goCreate() {
-    router.push('/app/entryexitform');
-  }
-
-  function goEdit(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    router.push(`/app/entryexitform/${row.id}`);
-  }
-
-  /* delete with dialog */
-  const deleteDialog = ref(false);
-  const deleteTarget = ref(null);
-
-  function openDeleteDialog(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    deleteTarget.value = row;
-    deleteDialog.value = true;
-  }
-
-  async function handleDeleteConfirmed(target) {
-    const row = target || deleteTarget.value;
-    deleteDialog.value = false;
-    if (!row?.id) return;
-    try {
-      await repo.DeleteEntryExit?.(row.id);
-      await fetchAll();
-      showErrorMessage(t('حذف شد'));
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در حذف'));
-    } finally {
-      deleteTarget.value = null;
-    }
-  }
-
-  /* fetch all */
-  async function fetchAll() {
-    try {
-      await repo.FetchEntryExitsData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در دریافت فهرست ورود/خروج'));
-    }
-  }
-
-  function clearSearch() {
-    repo.Search = '';
-    fetchAll();
-  }
-
-  /* init */
-  onMounted(async () => {
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value;
+  deleteDialog.value = false;
+  if (!row?.id) return;
+  try {
+    await repo.DeleteEntryExit?.(row.id);
     await fetchAll();
-  });
+    showErrorMessage(t('حذف شد'));
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در حذف'));
+  } finally {
+    deleteTarget.value = null;
+  }
+}
+
+/* fetch all */
+async function fetchAll() {
+  try {
+    await repo.FetchEntryExitsData?.();
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت فهرست ورود/خروج'));
+  }
+}
+
+function clearSearch() {
+  repo.Search = '';
+  repo.page = 1;
+  fetchAll();
+}
+
+function handlePageChange(newPage) {
+  repo.page = newPage;
+  fetchAll();
+}
+
+function handlePerPageChange(newSize) {
+  repo.itemsPerPage = newSize;
+  repo.page = 1;
+  fetchAll();
+}
+
+/* init */
+onMounted(async () => {
+  await fetchAll();
+});
 </script>
 
 <style scoped>
-  .ga-2 {
-    gap: 8px;
-  }
+.ga-2 {
+  gap: 8px;
+}
 
-  /* Background similar to other index pages */
-  .page-bg {
-    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-    font-family: inherit;
-  }
+/* Background similar to other index pages */
+.page-bg {
+  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+  font-family: inherit;
+}
 
-  /* Stats cards */
-  .stat-card {
-    cursor: pointer;
-    border-radius: 14px;
-    border: 1px solid rgba(33, 150, 243, 0.08);
-    background: #ffffff;
-    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
-      background-color 0.2s ease;
-  }
+/* Stats cards */
+.stat-card {
+  cursor: pointer;
+  border-radius: 14px;
+  border: 1px solid rgba(33, 150, 243, 0.08);
+  background: #ffffff;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+    background-color 0.2s ease;
+}
 
-  .stat-card:hover {
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-    transform: translateY(-1px);
-    border-color: rgba(33, 150, 243, 0.35);
-  }
+.stat-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  border-color: rgba(33, 150, 243, 0.35);
+}
 
-  .stat-card--active {
-    border-color: rgba(25, 118, 210, 0.9);
-    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
-  }
+.stat-card--active {
+  border-color: rgba(25, 118, 210, 0.9);
+  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+}
 
-  .stat-card-body {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-  }
+.stat-card-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
 
-  .stat-card-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #e3f2fd;
-  }
+.stat-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e3f2fd;
+}
 
-  .stat-card-text {
-    display: flex;
-    flex-direction: column;
-  }
+.stat-card-text {
+  display: flex;
+  flex-direction: column;
+}
 
-  .stat-card-title {
-    font-size: 13px;
-    font-weight: 700;
-  }
+.stat-card-title {
+  font-size: 13px;
+  font-weight: 700;
+}
 
-  .stat-card-subtitle {
-    font-size: 11px;
-    color: #666;
-  }
+.stat-card-subtitle {
+  font-size: 11px;
+  color: #666;
+}
 </style>

@@ -62,7 +62,7 @@ class AuthController extends Controller
         ]);
 
         if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Invalid credentials'], 422);
+            return response()->json(['message' => 'پاسورډ یا کارن نوم مو غلط دی'], 422);
         }
 
         /** @var \App\Models\User $user */
@@ -92,6 +92,6 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'Logged out']);
+        return response()->json(['message' => 'سیستم نه خارج شوی']);
     }
 }

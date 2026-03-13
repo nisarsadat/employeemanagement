@@ -6,3 +6,6 @@ dist/
 build/
 public/build/
 resources/js/plugins/reverb.js
+resources/js/axios.js
+resources/js/app.js
+App/Providers/AppServiceProvider.php

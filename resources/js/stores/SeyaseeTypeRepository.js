@@ -57,14 +57,12 @@ export const useSeyaseeTypeRepository = defineStore('SeyaseeTypeRepository', {
       try {
         setContentType('application/json');
 
-        const p = page ?? this.page ?? 1;
-        const per = perPage ?? this.itemsPerPage ?? 10;
-
-        const s = search ?? this.Search ?? '';
-        this.Search = s;
+        this.page = page ?? this.page ?? 1;
+        this.itemsPerPage = perPage ?? this.itemsPerPage ?? 10;
+        this.Search = search ?? this.Search ?? '';
 
         const { data: res } = await axios.get(
-          `seyasee-types?page=${p}&perPage=${per}&search=${encodeURIComponent(s || '')}`
+          `seyasee-types?page=${this.page}&perPage=${this.itemsPerPage}&search=${encodeURIComponent(this.Search || '')}`
         );
 
         const items = res?.data ?? res ?? [];
@@ -136,7 +134,11 @@ export const useSeyaseeTypeRepository = defineStore('SeyaseeTypeRepository', {
         await axios.delete(`/seyasee-types/${id}`);
         toast.success('نوع سیاسي بریالیتوب سره حذف شو', { autoClose: 1200 });
 
-        await this.FetchSeyaseeTypesData({ page: this.page, perPage: this.itemsPerPage, search: this.Search });
+        await this.FetchSeyaseeTypesData({
+          page: this.page,
+          perPage: this.itemsPerPage,
+          search: this.Search,
+        });
       } catch (e) {
         console.error(e);
         this.error = e;

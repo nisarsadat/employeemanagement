@@ -58,7 +58,8 @@
       :rows="filteredRows"
       :showIndex="true"
       :rtl="isRtl"
-      class="mb-20 mx-2"
+      :loading="repo.loading"
+      class="mb-4 mx-2"
       @edit="startEdit"
     >
       <!-- Actions -->
@@ -95,6 +96,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- Dialog -->
     <ZoneFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
 
@@ -125,6 +134,7 @@ import { useI18n } from 'vue-i18n';
 import AppBar from '@/components/AppBar.vue';
 import FilterableTable from '@/components/FilterableTable.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import ZoneFormDialog from './ZoneFormDialog.vue';
 import { useZoneHawzaRepository } from '@/stores/ZoneHawzaRepository';
@@ -146,14 +156,7 @@ const headersFT = computed(() => [
   { title: t('تعداد حوزه‌ها'), key: 'hawzas_count' },
 ]);
 
-const filteredRows = computed(() => {
-  let out = rows.value || [];
-  const q = (search.value || '').toLowerCase().trim();
-  if (q) {
-    out = out.filter((r) => (r?.name || '').toLowerCase().includes(q));
-  }
-  return out;
-});
+const filteredRows = computed(() => rows.value || []);
 
 function showErrorMessage(msg) {
   errorMessage.value = msg;
@@ -162,6 +165,7 @@ function showErrorMessage(msg) {
 
 function clearSearch() {
   search.value = '';
+  repo.page = 1;
   fetchAll();
 }
 
@@ -218,7 +222,11 @@ async function handleDeleteConfirmed(target) {
 /* api */
 async function fetchAll() {
   try {
-    const res = await repo.FetchZonesData({ page: 1, perPage: 100000, search: search.value });
+    const res = await repo.FetchZonesData({
+      page: repo.page,
+      perPage: repo.itemsPerPage,
+      search: search.value,
+    });
     rows.value = res?.data || [];
   } catch (e) {
     console.error(e);
@@ -226,7 +234,21 @@ async function fetchAll() {
   }
 }
 
-watch(search, () => fetchAll());
+function handlePageChange(page) {
+  repo.page = page;
+  fetchAll();
+}
+
+function handlePerPageChange(perPage) {
+  repo.itemsPerPage = perPage;
+  repo.page = 1;
+  fetchAll();
+}
+
+watch(search, () => {
+  repo.page = 1;
+  fetchAll();
+});
 
 onMounted(fetchAll);
 </script>

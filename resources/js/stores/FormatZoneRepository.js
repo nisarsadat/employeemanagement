@@ -1,21 +1,46 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
+
+function errText(e, fallback = 'بعضی مشکل پیش آمد') {
+  return e?.response?.data?.message || e?.message || (typeof e === 'string' ? e : fallback);
+}
 
 export const useFormatZoneRepository = defineStore('FormatZoneRepository', {
   state: () => ({
     loading: false,
     error: null,
+
+    FormatZones: [],
+
+    page: 1,
+    itemsPerPage: 10,
+    totalItems: 0,
+    Search: '',
   }),
 
   actions: {
-    async FetchFormatZones({ page = 1, perPage = 10000, search = '' } = {}) {
+    async FetchFormatZones() {
       this.loading = true;
+      this.error = null;
+
       try {
-        const { data } = await axios.get(
-          `/format-zones?page=${page}&perPage=${perPage}&search=${encodeURIComponent(search)}`
-        );
-        return data;
+        const queryParams = buildListParams(this, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const res = await axios.get('/format-zones', {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'FormatZones');
+        return res.data;
+      } catch (e) {
+        this.error = errText(e);
+        throw e;
       } finally {
         this.loading = false;
       }
@@ -27,7 +52,7 @@ export const useFormatZoneRepository = defineStore('FormatZoneRepository', {
     },
 
     async CreateFormatZone(payload) {
-      const { data } = await axios.post(`/format-zones`, payload);
+      const { data } = await axios.post('/format-zones', payload);
       toast.success('فارمت زون اضافه شو');
       return data;
     },

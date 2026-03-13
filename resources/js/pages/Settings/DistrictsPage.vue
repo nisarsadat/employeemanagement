@@ -74,7 +74,8 @@
       :rows="filteredRows"
       :showIndex="true"
       :rtl="isRtl"
-      class="mb-20 mx-2"
+      :loading="repo.loading"
+      class="mb-4 mx-2"
     >
       <template #cell-province_name="{ row }">
         <div class="">
@@ -114,6 +115,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- Create/Edit Dialog -->
     <DistrictFormDialog
       v-model="dialog"
@@ -149,6 +158,7 @@ import { useI18n } from 'vue-i18n';
 import AppBar from '@/components/AppBar.vue';
 import FilterableTable from '@/components/FilterableTable.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import DistrictFormDialog from './DistrictFormDialog.vue';
 import { useProvinceDistrictRepository } from '@/stores/ProvinceDistrictRepository';
@@ -189,27 +199,9 @@ const headersFT = computed(() => [
     key: 'name',
     align: 'center',
   },
-])
+]);
 
-
-const filteredRows = computed(() => {
-  let out = rows.value || [];
-
-  if (listProvinceId.value) {
-    out = out.filter((r) => Number(r?.province_id) === Number(listProvinceId.value));
-  }
-
-  const q = (search.value || '').toString().trim().toLowerCase();
-  if (q) {
-    out = out.filter((r) => {
-      const name = (r?.name || '').toString().toLowerCase();
-      const p = (r?.province_name || '').toString().toLowerCase();
-      return name.includes(q) || p.includes(q);
-    });
-  }
-
-  return out;
-});
+const filteredRows = computed(() => rows.value || []);
 
 const dialog = ref(false);
 const editId = ref(null);
@@ -263,7 +255,11 @@ async function handleDeleteConfirmed(target) {
 
 async function fetchProvinces() {
   try {
-    const res = await repo.FetchProvincesData({ page: 1, perPage: 500, search: '' });
+    const res = await repo.FetchProvincesData({
+      page: 1,
+      perPage: 500,
+      search: '',
+    });
     provinces.value = res?.data || [];
   } catch (e) {
     console.error('fetchProvinces error', e);
@@ -274,8 +270,8 @@ async function fetchProvinces() {
 async function fetchAll() {
   try {
     const res = await repo.FetchDistrictsData({
-      page: 1,
-      perPage: 100000,
+      page: repo.page,
+      perPage: repo.itemsPerPage,
       search: search.value,
       province_id: listProvinceId.value,
     });
@@ -286,12 +282,27 @@ async function fetchAll() {
   }
 }
 
-function clearSearch() {
-  search.value = '';
+function handlePageChange(page) {
+  repo.page = page;
   fetchAll();
 }
 
-watch([search, listProvinceId], () => fetchAll());
+function handlePerPageChange(perPage) {
+  repo.itemsPerPage = perPage;
+  repo.page = 1;
+  fetchAll();
+}
+
+function clearSearch() {
+  search.value = '';
+  repo.page = 1;
+  fetchAll();
+}
+
+watch([search, listProvinceId], () => {
+  repo.page = 1;
+  fetchAll();
+});
 
 onMounted(async () => {
   await fetchProvinces();

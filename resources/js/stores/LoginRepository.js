@@ -11,7 +11,14 @@ function setAuthHeader(token) {
   if (token) axios.defaults.headers.common.Authorization = `Bearer ${token}`;
   else delete axios.defaults.headers.common.Authorization;
 }
-
+// keep your function name; make it actually work
+function setContentType(type) {
+  if (!type) {
+    delete axios.defaults.headers.common['Content-Type'];
+    return;
+  }
+  axios.defaults.headers.common['Content-Type'] = type;
+}
 // Normalize roles/permissions whether backend sends flat arrays
 // or nested user.roles[].permissions[] objects
 function normalizeRbac(payload) {
@@ -86,7 +93,10 @@ export const useLoginRepository = defineStore('LoginRepository', () => {
       setAuthHeader(token.value);
       isLoggedIn.value = true;
 
-      toast.success('Login successful!', { position: 'top-right', autoClose: 1500 });
+      toast.success('تاسو سیستم ته په موفقانه ډول دننه شوی', {
+        position: 'top-right',
+        autoClose: 1500,
+      });
 
       // redirect to first permitted page
       // src/stores/LoginRepository.js (inside Login)
@@ -150,7 +160,69 @@ export const useLoginRepository = defineStore('LoginRepository', () => {
       await Logout();
     }
   };
+  const fetchProfile = async () => {
+    try {
+      const { data } = await axios.get('/profile');
 
+      const payload = data?.data ?? data;
+      user.value = payload || null;
+
+      const { roles: r, permissions: p } = normalizeRbac({
+        user: payload,
+        roles: payload?.roles ?? [],
+        permissions: payload?.permissions ?? [],
+      });
+
+      roles.value = r;
+      permissions.value = p;
+
+      sessionStorage.setItem('user', JSON.stringify(user.value));
+      sessionStorage.setItem('roles', JSON.stringify(roles.value));
+      sessionStorage.setItem('permissions', JSON.stringify(permissions.value));
+
+      return payload;
+    } catch (err) {
+      console.error('fetchProfile error:', err);
+      throw err;
+    }
+  };
+  const updateProfile = async (formData) => {
+    try {
+      loading.value = true;
+      setContentType(null);
+
+      formData.append('_method', 'PUT');
+
+      const { data } = await axios.post('/profile', formData);
+
+      const payload = data?.data?.data ?? data?.data ?? null;
+      if (payload) {
+        user.value = payload;
+        sessionStorage.setItem('user', JSON.stringify(user.value));
+      }
+
+      toast.success(data?.message || 'Profile updated successfully.');
+      return data;
+    } catch (err) {
+      console.error('updateProfile error:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+  const changePassword = async (payload) => {
+    try {
+      loading.value = true;
+      const { data } = await axios.put('/profile/change-password', payload);
+      toast.success(data?.message || 'Password changed successfully.');
+      return data;
+    } catch (err) {
+      console.error('changePassword error:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
   const toggleRail = () => (rail.value = !rail.value);
 
   return {
@@ -170,5 +242,8 @@ export const useLoginRepository = defineStore('LoginRepository', () => {
     hasAnyRole,
     can,
     canAny,
+    fetchProfile,
+    updateProfile,
+    changePassword,
   };
 });

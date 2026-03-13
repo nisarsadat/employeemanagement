@@ -4,6 +4,7 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
 
 // ---- sane defaults
 axios.defaults.headers.common['Accept'] = 'application/json';
@@ -32,34 +33,43 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       itemsPerPage: 10,
       totalItems: 0,
 
-      // collections
+      // collections //
       Badmashanos: reactive([]),
       Badmashano: reactive({}),
 
+      // 
       Sarayanos: reactive([]),
       Sarayano: reactive({}),
 
+      // 
       Hotels: reactive([]),
       Hotel: reactive({}),
 
+      // 
       Hostels: reactive([]),
       Hostel: reactive({}),
 
+      // 
       Tujarans: reactive([]),
       Tujaran: reactive({}),
 
+      // 
       Mujahedinos: reactive([]),
       Mujahedino: reactive({}),
 
+      // 
       EmaratOffices: reactive([]),
       EmaratOffice: reactive({}),
 
+      // 
       OldJahadis: reactive([]),
       OldJahadi: reactive({}),
 
+      // 
       MashkokPeoples: reactive([]),
       MashkokPeople: reactive({}),
 
+      // 
       Madrasas: reactive([]),
       Madrasa: reactive([]),
 
@@ -117,18 +127,19 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     },
 
     /* ============================ Badmashanos ============================ */
-    async FetchBadmashanosData({ page, itemsPerPage }) {
+    async FetchBadmashanosData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `badmashanos?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Badmashanos = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Badmashanos.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`badmashanos`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Badmashanos');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -206,19 +217,21 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         toast.error(errText(e, 'ریکارډ فساد حذف نشو'));
       }
     },
+
     /* ============================ Sarayanos ============================ */
-    async FetchSarayanosData({ page, itemsPerPage }) {
+    async FetchSarayanosData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `sarayanos?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Sarayanos = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Sarayanos.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`sarayanos`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Sarayanos');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -296,19 +309,21 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Hotels ============================ */
-    async FetchHotelsData({ page, itemsPerPage }) {
+    async FetchHotelsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `hotels?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Hotels = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Hotels.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`hotels`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Hotels');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -386,19 +401,21 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Hostels ============================ */
-    async FetchHostelsData({ page, itemsPerPage }) {
+    async FetchHostelsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `hostels?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Hostels = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Hostels.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`hostels`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Hostels');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -476,19 +493,21 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Tujarans ============================ */
-    async FetchTujaransData({ page, itemsPerPage }) {
+    async FetchTujaransData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `tujarans?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Tujarans = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Tujarans.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`tujarans`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Tujarans');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -566,19 +585,21 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Mujahedinos ============================ */
-    async FetchMujahedinosData({ page, itemsPerPage }) {
+    async FetchMujahedinosData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `mujahedinos?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Mujahedinos = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Mujahedinos.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`mujahedinos`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Mujahedinos');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -656,19 +677,21 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ EmaratOffices ============================ */
-    async FetchEmaratOfficesData({ page, itemsPerPage }) {
+    async FetchEmaratOfficesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `emarat-offices?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.EmaratOffices = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.EmaratOffices.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`emarat-offices`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'EmaratOffices');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -746,19 +769,21 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ OldJahadis ============================ */
-    async FetchOldJahadisData({ page, itemsPerPage }) {
+    async FetchOldJahadisData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `old-jahadis?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.OldJahadis = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.OldJahadis.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`old-jahadis`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'OldJahadis');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -838,18 +863,19 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     },
 
     /* ============================ MashkokPeoples ============================ */
-    async FetchMashkokPeoplesData({ page, itemsPerPage }) {
+    async FetchMashkokPeoplesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `mashkok-people?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.MashkokPeoples = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.MashkokPeoples.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`mashkok-people`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'MashkokPeoples');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -927,19 +953,21 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Madrasas ============================ */
-    async FetchMadrasasData({ page, itemsPerPage }) {
+    async FetchMadrasasData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `madrasas?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Madrasas = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Madrasas.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`madrasas`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Madrasas');
       } catch (e) {
         console.error(e);
         this.error = e;

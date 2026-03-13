@@ -4,6 +4,7 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
 
 // ---- sane defaults
 axios.defaults.headers.common['Accept'] = 'application/json';
@@ -33,51 +34,68 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       totalItems: 0,
 
       // ===== collections (reactive like your format) =====
+      // 
       Wakilanos: reactive([]),
       Wakilano: reactive({}),
 
+      // 
       Universities: reactive([]),
       University: reactive({}),
 
+      // 
       Masjids: reactive([]),
       Masjid: reactive({}),
 
+      // 
       Companies: reactive([]),
       Company: reactive({}),
 
+      // 
       Highways: reactive([]),
       Highway: reactive({}),
 
+      // 
       DoneLostPlaces: reactive([]),
       DoneLostPlace: reactive({}),
 
+      // 
       EconemyProjects: reactive([]),
       EconemyProject: reactive({}),
 
+      // 
       CriminalCapturePlaces: reactive([]),
       CriminalCapturePlace: reactive({}),
 
+      // 
       Pumps: reactive([]),
       Pump: reactive({}),
 
+      // 
       Shoras: reactive([]),
       Shora: reactive({}),
 
+      // 
       DeplomaticPlaces: reactive([]),
       DeplomaticPlace: reactive({}),
 
+      // 
       Checkpoints: reactive([]),
       Checkpoint: reactive({}),
-
+      
+      
+      // 
       Parks: reactive([]),
       Park: reactive({}),
 
+      // 
       GovernmentPlaces: reactive([]),
       GovernmentPlace: reactive({}),
 
+      // 
       SuperMarkets: reactive([]),
       SuperMarket: reactive({}),
 
+      // 
       Complexes: reactive([]),
       Complex: reactive({}),
 
@@ -135,18 +153,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ Wakilanos ============================ */
-    async FetchWakilanosData({ page, itemsPerPage }) {
+    async FetchWakilanosData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `wakilanos?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Wakilanos = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Wakilanos.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`wakilanos`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Wakilanos');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -213,18 +232,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ Universities ============================ */
-    async FetchUniversitiesData({ page, itemsPerPage }) {
+    async FetchUniversitiesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `universities?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Universities = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Universities.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`universities`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Universities');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -291,18 +311,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ Masjids ============================ */
-    async FetchMasjidsData({ page, itemsPerPage }) {
+    async FetchMasjidsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `masjids?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Masjids = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Masjids.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`masjids`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Masjids');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -369,18 +390,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ Companies ============================ */
-    async FetchCompaniesData({ page, itemsPerPage }) {
+    async FetchCompaniesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `companies?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Companies = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Companies.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`companies`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Companies');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -447,18 +469,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ Highways ============================ */
-    async FetchHighwaysData({ page, itemsPerPage }) {
+    async FetchHighwaysData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `highways?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Highways = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Highways.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`highways`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Highways');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -525,18 +548,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ DoneLostPlaces ============================ */
-    async FetchDoneLostPlacesData({ page, itemsPerPage }) {
+    async FetchDoneLostPlacesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `done-lost-places?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.DoneLostPlaces = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.DoneLostPlaces.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`done-lost-places`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'DoneLostPlaces');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -603,18 +627,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ EconemyProjects ============================ */
-    async FetchEconemyProjectsData({ page, itemsPerPage }) {
+    async FetchEconemyProjectsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `econemy-projects?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.EconemyProjects = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.EconemyProjects.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`econemy-projects`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'EconemyProjects');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -681,18 +706,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ CriminalCapturePlaces ============================ */
-    async FetchCriminalCapturePlacesData({ page, itemsPerPage }) {
+    async FetchCriminalCapturePlacesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `criminal-capture-places?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.CriminalCapturePlaces = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.CriminalCapturePlaces.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`criminal-capture-places`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'CriminalCapturePlaces');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -759,18 +785,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ Pumps ============================ */
-    async FetchPumpsData({ page, itemsPerPage }) {
+    async FetchPumpsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `pumps?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Pumps = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Pumps.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`pumps`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Pumps');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -837,18 +864,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ Shoras ============================ */
-    async FetchShorasData({ page, itemsPerPage }) {
+    async FetchShorasData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `shoras?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Shoras = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Shoras.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`shoras`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Shoras');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -915,18 +943,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ DeplomaticPlaces ============================ */
-    async FetchDeplomaticPlacesData({ page, itemsPerPage }) {
+    async FetchDeplomaticPlacesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `deplomaticplaces?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.DeplomaticPlaces = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.DeplomaticPlaces.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`deplomaticplaces`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'DeplomaticPlaces');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -993,18 +1022,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ Checkpoints ============================ */
-    async FetchCheckpointsData({ page, itemsPerPage }) {
+    async FetchCheckpointsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `checkpoints?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Checkpoints = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Checkpoints.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`checkpoints`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Checkpoints');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -1071,18 +1101,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ Parks ============================ */
-    async FetchParksData({ page, itemsPerPage }) {
+    async FetchParksData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `parks?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Parks = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Parks.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`parks`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Parks');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -1149,18 +1180,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ GovernmentPlaces ============================ */
-    async FetchGovernmentPlacesData({ page, itemsPerPage }) {
+    async FetchGovernmentPlacesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `governmentplaces?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.GovernmentPlaces = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.GovernmentPlaces.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`governmentplaces`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'GovernmentPlaces');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -1227,18 +1259,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ SuperMarkets ============================ */
-    async FetchSuperMarketsData({ page, itemsPerPage }) {
+    async FetchSuperMarketsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `supermarkets?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.SuperMarkets = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.SuperMarkets.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`supermarkets`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'SuperMarkets');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -1305,18 +1338,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
     },
 
     /* ============================ Complexes ============================ */
-    async FetchComplexesData({ page, itemsPerPage }) {
+    async FetchComplexesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `complexes?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Complexes = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Complexes.length;
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+        const { data: res } = await axios.get(`complexes`, {
+          params: queryParams,
+        });
+        applyPaginatedResponse(this, res, 'Complexes');
       } catch (e) {
         console.error(e);
         this.error = e;

@@ -61,6 +61,8 @@ export const useOrganRepository = defineStore('OrganRepository', {
 
         const s = search ?? this.Search ?? '';
         this.Search = s;
+        this.page = p;
+        this.itemsPerPage = per;
 
         const { data: res } = await axios.get(
           `organs?page=${p}&perPage=${per}&search=${encodeURIComponent(s || '')}`
@@ -69,6 +71,8 @@ export const useOrganRepository = defineStore('OrganRepository', {
         const items = res?.data ?? res ?? [];
         this.Organs = Array.isArray(items) ? items : [];
         this.totalItems = res?.meta?.total ?? res?.total ?? this.Organs.length;
+        this.page = res?.meta?.current_page ?? p;
+        this.itemsPerPage = res?.meta?.per_page ?? per;
 
         return res;
       } catch (e) {
@@ -135,7 +139,11 @@ export const useOrganRepository = defineStore('OrganRepository', {
         await axios.delete(`/organs/${id}`);
         toast.success('ارگان بریالیتوب سره حذف شو', { autoClose: 1200 });
 
-        await this.FetchOrgansData({ page: this.page, perPage: this.itemsPerPage, search: this.Search });
+        await this.FetchOrgansData({
+          page: this.page,
+          perPage: this.itemsPerPage,
+          search: this.Search,
+        });
       } catch (e) {
         console.error(e);
         this.error = e;

@@ -4,6 +4,7 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
 
 // ---- sane defaults
 axios.defaults.headers.common['Accept'] = 'application/json';
@@ -32,34 +33,43 @@ export const useFasadRepository = defineStore('FasadRepository', {
       itemsPerPage: 10,
       totalItems: 0,
 
-      // collections
+      // collections // done
       Fasads: reactive([]),
       Fasad: reactive({}),
 
+      // done
       SaeenFasads: reactive([]),
       SaeenFasad: reactive({}),
 
+      // done
       Heists: reactive([]),
       Heist: reactive({}),
 
+      //  done
       Captives: reactive([]),
       Captive: reactive({}),
 
+      // done
       Mulkanos: reactive([]),
       Mulkano: reactive({}),
 
+      // done
       EntryExits: reactive([]),
       EntryExit: reactive({}),
 
+      // done
       Sarafyanos: reactive([]),
       Sarafyano: reactive({}),
 
+      // done 
       Clubs: reactive([]),
       Club: reactive({}),
 
+      // done 
       Soldiers: reactive([]),
       Soldier: reactive({}),
 
+      // done
       Mahajerats: reactive([]),
       Mahajerat: reactive([]),
 
@@ -117,18 +127,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
     },
 
     /* ============================ FASADS ============================ */
-    async FetchFasadsData({ page, itemsPerPage }) {
+    async FetchFasadsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `fasads?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Fasads = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Fasads.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`fasads`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Fasads');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -160,8 +174,6 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.success('ریکارډ فساد بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -210,19 +222,24 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ فساد حذف نشو'));
       }
     },
+
     /* ============================ SAeen FASADS ============================ */
-    async FetchSaeenFasadsData({ page, itemsPerPage }) {
+    async FetchSaeenFasadsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `saeen-fasads?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.SaeenFasads = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.SaeenFasads.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`saeen-fasads`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'SaeenFasads');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -254,8 +271,6 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -304,19 +319,24 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Heist ============================ */
-    async FetchHeistsData({ page, itemsPerPage }) {
+    async FetchHeistsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `heists?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Heists = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Heists.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`heists`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Heists');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -348,8 +368,6 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -398,19 +416,24 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Captive ============================ */
-    async FetchCaptivesData({ page, itemsPerPage }) {
+    async FetchCaptivesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `captives?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Captives = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Captives.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`captives`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Captives');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -442,8 +465,6 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -492,18 +513,18 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     async DownloadCaptiveDocuments(id) {
       try {
         setContentType(null);
 
         const response = await axios.get(`/captives/${id}/documents/zip`, {
           responseType: 'blob',
-          withCredentials: true, // if you use Sanctum cookies
+          withCredentials: true,
         });
 
         const contentType = response.headers['content-type'] || '';
         if (!contentType.includes('zip')) {
-          // Not a real ZIP → probably error HTML/JSON
           const text =
             (await response.data.text?.()) ??
             (await new Promise((resolve) => {
@@ -531,19 +552,24 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'د اسنادو دانلود ناکام شو'));
       }
     },
+
     /* ============================ Mulkano ============================ */
-    async FetchMulkanosData({ page, itemsPerPage }) {
+    async FetchMulkanosData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `mulkanos?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Mulkanos = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Mulkanos.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`mulkanos`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Mulkanos');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -575,8 +601,6 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -611,7 +635,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
 
     async DeleteMulakno(id) {
       try {
-        await axios.delete(`/mulaknos/${id}`);
+        await axios.delete(`/mulkanos/${id}`);
         toast.success('ریکارډ  بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
@@ -625,19 +649,24 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Entry Exit ============================ */
-    async FetchEntryExitsData({ page, itemsPerPage }) {
+    async FetchEntryExitsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `entry-exits?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.EntryExits = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.EntryExits.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`entry-exits`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'EntryExits');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -669,8 +698,6 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -719,19 +746,24 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Sarafyano ============================ */
-    async FetchSarafyanosData({ page, itemsPerPage }) {
+    async FetchSarafyanosData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `sarafyanos?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Sarafyanos = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Sarafyanos.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`sarafyanos`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Sarafyanos');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -763,8 +795,6 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -813,19 +843,24 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Clubs ============================ */
-    async FetchClubsData({ page, itemsPerPage }) {
+    async FetchClubsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `clubs?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Clubs = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Clubs.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`clubs`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Clubs');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -857,8 +892,6 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -909,18 +942,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
     },
 
     /* ============================ Mahajerat ============================ */
-    async FetchMahajeratsData({ page, itemsPerPage }) {
+    async FetchMahajeratsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `mahajerats?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Mahajerats = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Mahajerats.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`mahajerats`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Mahajerats');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -952,8 +989,6 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -1002,19 +1037,24 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Soldiers ============================ */
-    async FetchSoldiersData({ page, itemsPerPage }) {
+    async FetchSoldiersData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `soldiers?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Soldiers = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Soldiers.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`soldiers`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Soldiers');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -1046,8 +1086,6 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -1096,16 +1134,16 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     async DownloadFasadZip(id, name = `fasad_${id}`) {
       try {
         setContentType(null);
 
         const response = await axios.get(`/fasads/${id}/download-zip`, {
           responseType: 'blob',
-          withCredentials: true, // keep if you use Sanctum cookies
+          withCredentials: true,
         });
 
-        // ✅ check it is a zip (avoid HTML/JSON error download)
         const contentType = response.headers['content-type'] || '';
         if (!contentType.includes('zip')) {
           const text =
@@ -1139,6 +1177,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         throw e;
       }
     },
+
     async DownloadSaeenFasadZip(id, name = `saeen_fasad_${id}`) {
       try {
         setContentType(null);
@@ -1181,16 +1220,16 @@ export const useFasadRepository = defineStore('FasadRepository', {
         throw e;
       }
     },
+
     async DownloadHeistZip(id, name = `heist_${id}`) {
       try {
         setContentType(null);
 
         const response = await axios.get(`/heists/${id}/documents-zip`, {
           responseType: 'blob',
-          withCredentials: true, // keep if you use Sanctum cookies
+          withCredentials: true,
         });
 
-        // ✅ check it is a zip (avoid HTML/JSON error download)
         const contentType = response.headers['content-type'] || '';
         if (!contentType.includes('zip')) {
           const text =

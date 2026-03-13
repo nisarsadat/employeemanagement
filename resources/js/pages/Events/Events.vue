@@ -189,6 +189,7 @@
           </v-card-text>
         </v-card>
       </v-col>
+
       <!-- Unpaid -->
       <v-col cols="12" md="3" lg="2">
         <v-card
@@ -243,7 +244,7 @@
       :dateKeys="['event_date']"
       @edit="goEdit"
       @peek="openPeek"
-      class="mb-20 mx-2"
+      class=" mx-2"
     >
       <!-- 🔗 Resource cell -->
       <template #cell-resource_display="{ row }">
@@ -382,6 +383,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:itemsPerPage="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -414,6 +423,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
@@ -561,6 +571,7 @@
   });
 
   async function applyMonthYearFilter() {
+    repo.page = 1;
     await fetchAll();
   }
 
@@ -623,6 +634,7 @@
     const today = new Date();
     return baseEvents.value.filter((r) => isSameDate(r.created_at, today)).length;
   });
+
   function isUnpaidStatus(v) {
     const s = String(v ?? '')
       .trim()
@@ -633,6 +645,7 @@
   const unpaidCount = computed(
     () => baseEvents.value.filter((r) => isUnpaidStatus(r.finance_status)).length
   );
+
   const filteredEvents = computed(() => {
     const all = baseEvents.value;
 
@@ -643,7 +656,6 @@
       return all.filter((r) => isSameDate(r.created_at, today));
     }
 
-    // ✅ NEW: unpaid
     if (activeCard.value === 'unpaid') {
       return all.filter((r) => isUnpaidStatus(r.finance_status));
     }
@@ -868,14 +880,21 @@
     }
   }
 
+  function handlePageChange(value) {
+    repo.page = value;
+    fetchAll();
+  }
+
+  function handlePerPageChange(value) {
+    repo.itemsPerPage = value;
+    repo.page = 1;
+    fetchAll();
+  }
+
   async function fetchAll() {
     try {
       await repo.FetchEventsData({
-        page: 1,
-        perPage: 100000, // ✅ match backend key
         search: repo.Search,
-
-        // ✅ NEW: Month/Year filter support
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'event_date',
@@ -888,6 +907,7 @@
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
     fetchAll();
   }
 

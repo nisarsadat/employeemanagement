@@ -4,6 +4,7 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
 
 axios.defaults.headers.common['Accept'] = 'application/json';
 
@@ -28,6 +29,7 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
       itemsPerPage: 10,
       totalItems: 0,
 
+      // done 
       Jawasis: reactive([]),
       Jawasi: reactive({}),
 
@@ -69,16 +71,22 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
       }
     },
 
-    async FetchJawasisData({ page, itemsPerPage }) {
+    async FetchJawasisData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `jawasis?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(this.Search || '')}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Jawasis = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Jawasis.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`jawasis`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Jawasis');
       } catch (e) {
         console.error(e);
         this.error = e;

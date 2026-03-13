@@ -3,6 +3,7 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
 
 axios.defaults.headers.common['Accept'] = 'application/json';
 
@@ -51,26 +52,22 @@ export const useJobTypeRepository = defineStore('JobTypeRepository', {
       this.drawerVisible = !!v;
     },
 
-    async FetchJobTypesData({ page, perPage, search } = {}) {
+    async FetchJobTypesData() {
       this.loading = true;
       try {
         setContentType('application/json');
 
-        const p = page ?? this.page ?? 1;
-        const per = perPage ?? this.itemsPerPage ?? 10;
+        const queryParams = buildListParams(this, {
+          includeSearch: true,
+          includePagination: true,
+        });
 
-        const s = search ?? this.Search ?? '';
-        this.Search = s;
+        const res = await axios.get('/job-types', {
+          params: queryParams,
+        });
 
-        const { data: res } = await axios.get(
-          `job-types?page=${p}&perPage=${per}&search=${encodeURIComponent(s || '')}`
-        );
-
-        const items = res?.data ?? res ?? [];
-        this.JobTypes = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.JobTypes.length;
-
-        return res;
+        applyPaginatedResponse(this, res, 'JobTypes');
+        return res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -135,7 +132,7 @@ export const useJobTypeRepository = defineStore('JobTypeRepository', {
         await axios.delete(`/job-types/${id}`);
         toast.success('نوع وظیفه بریالیتوب سره حذف شو', { autoClose: 1200 });
 
-        await this.FetchJobTypesData({ page: this.page, perPage: this.itemsPerPage, search: this.Search });
+        await this.FetchJobTypesData();
       } catch (e) {
         console.error(e);
         this.error = e;

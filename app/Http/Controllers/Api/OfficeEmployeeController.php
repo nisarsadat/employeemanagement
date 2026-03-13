@@ -239,10 +239,10 @@ class OfficeEmployeeController extends Controller
 
             NotificationService::recordForAllUsers(
                 actor: $user,
-                module: 'کارمند دفتر',
+                module: 'کارمند',
                 action: 'created',
-                title: 'کارمند دفتر جدید ثبت شد',
-                message: 'کد کارمند: ' . ($employee->code_number ?? ''),
+                title: 'کارمند ثبت',
+                message: 'کارمند: ' . ($employee->code_number ?? ''),
                 routeName: 'officeemployee',
                 routeParams: ['id' => $employee->id],
                 level: 'success',
@@ -348,10 +348,10 @@ class OfficeEmployeeController extends Controller
 
             NotificationService::recordForAllUsers(
                 actor: $user,
-                module: 'کارمند دفتر',
+                module: 'کارمند',
                 action: 'updated',
-                title: 'کارمند دفتر اصلاح شد',
-                message: 'کد کارمند: ' . ($officeEmployee->code_number ?? ''),
+                title: 'کارمند اصلاح',
+                message: 'کارمند: ' . ($officeEmployee->code_number ?? ''),
                 routeName: 'officeemployee',
                 routeParams: ['id' => $officeEmployee->id],
                 level: 'info',
@@ -419,10 +419,10 @@ class OfficeEmployeeController extends Controller
 
             NotificationService::recordForAllUsers(
                 actor: $user,
-                module: 'کارمند دفتر',
+                module: 'کارمند ',
                 action: 'deleted',
-                title: 'کارمند دفتر حذف شد',
-                message: 'کد کارمند: ' . ($officeEmployee->code_number ?? ''),
+                title: 'کارمند حذف',
+                message: ' کارمند: ' . ($officeEmployee->code_number ?? ''),
                 routeName: null,
                 routeParams: ['officeemployee'],
                 level: 'warning',

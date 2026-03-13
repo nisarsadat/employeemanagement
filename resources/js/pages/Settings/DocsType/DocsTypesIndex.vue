@@ -24,7 +24,7 @@
       <v-row class="align-center">
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
-            v-model.trim="search"
+            v-model.trim="repo.Search"
             :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
@@ -60,7 +60,7 @@
     <v-row class="px-2 mt-1">
       <v-col cols="12" class="d-flex justify-end">
         <div class="text-caption text-medium-emphasis">
-          {{ t('تعداد') }}: <b>{{ rowsFT.length }}</b>
+          {{ t('تعداد') }}: <b>{{ repo.totalItems }}</b>
         </div>
       </v-col>
     </v-row>
@@ -72,7 +72,7 @@
       :showIndex="true"
       :rtl="isRtl"
       :loading="repo.loading"
-      class="mb-20 mx-2"
+      class="mb-4 mx-2"
     >
       <template #cell-name="{ row }">
         <div class="d-flex align-center justify-center w-100">
@@ -94,6 +94,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- Dialog -->
     <DocsTypeFormDialog v-model="dialog" :editId="editId" @saved="fetchAll" />
 
@@ -114,6 +122,7 @@ import { useI18n } from 'vue-i18n';
 import AppBar from '@/components/AppBar.vue';
 import FilterableTable from '@/components/FilterableTable.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import DocsTypeFormDialog from './DocsTypeFormDialog.vue';
 import { useDocsTypeRepository } from '@/stores/DocsTypeRepository';
@@ -130,14 +139,9 @@ const editId = ref(null);
 const deleteDialog = ref(false);
 const deleteTarget = ref(null);
 
-const search = ref('');
-const rows = ref([]);
+const headersFT = computed(() => [{ title: t('نوعیت اسناد'), key: 'name', align: 'center' }]);
 
-const headersFT = computed(() => [
-  { title: t('نوعیت اسناد'), key: 'name', align: 'center' },
-]);
-
-const rowsFT = computed(() => rows.value || []);
+const rowsFT = computed(() => repo.DocsTypes || []);
 
 function openCreate() {
   editId.value = null;
@@ -170,19 +174,25 @@ async function confirmDelete(payload) {
 }
 
 async function fetchAll() {
-  const res = await repo.FetchDocsTypes({
-    page: 1,
-    perPage: 10000,
-    search: search.value,
-  });
-  rows.value = res?.data || [];
+  await repo.FetchDocsTypes();
 }
 
 function clearSearch() {
-  search.value = '';
+  repo.Search = '';
+  repo.page = 1;
   fetchAll();
 }
 
-watch(search, fetchAll);
+function handlePageChange(page) {
+  repo.page = page;
+  fetchAll();
+}
+
+function handlePerPageChange(perPage) {
+  repo.itemsPerPage = perPage;
+  repo.page = 1;
+  fetchAll();
+}
+
 onMounted(fetchAll);
 </script>

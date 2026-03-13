@@ -257,6 +257,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🖼 IMAGE PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520">
       <v-card>
@@ -312,6 +320,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
   const repo = useWakilanoRepository();
@@ -512,11 +521,7 @@
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchWakilanosData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchWakilanosData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست وکیلالو'));
@@ -525,6 +530,18 @@
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(newPage) {
+    repo.page = newPage;
+    fetchAll();
+  }
+
+  function handlePerPageChange(newSize) {
+    repo.itemsPerPage = newSize;
+    repo.page = 1;
     fetchAll();
   }
 

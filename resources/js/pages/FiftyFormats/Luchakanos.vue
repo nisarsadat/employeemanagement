@@ -239,6 +239,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -295,6 +303,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useMawadRepository } from '@/stores/MawadRepository';
 
@@ -318,7 +327,12 @@
   const getRow = (s) => (s && s.raw ? s.raw : s);
 
   /* rows from store */
-  const rowsFT = computed(() => repo.Luchakanos || []);
+  const rowsFT = computed(() => {
+    const list = repo.Luchakanos || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
+    return [];
+  });
 
   /* TABLE HEADERS (same as before, plus map) */
   const headersFT = computed(() => [
@@ -486,11 +500,7 @@
   /* Fetch ALL */
   async function fetchAll() {
     try {
-      await repo.FetchLuchakanosData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchLuchakanosData?.();
     } catch (e) {
       console.error('fetchAll error', e);
       showErrorMessage(t('خطا در دریافت فهرست لچکانو'));
@@ -499,6 +509,18 @@
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(p) {
+    repo.page = p;
+    fetchAll();
+  }
+
+  function handlePerPageChange(v) {
+    repo.itemsPerPage = v;
+    repo.page = 1;
     fetchAll();
   }
 

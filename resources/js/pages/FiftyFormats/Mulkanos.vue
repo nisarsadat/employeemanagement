@@ -1,10 +1,7 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
-    <AppBar
-      :title="t('ملکانُو')"
-      :subtitle="t('فهرست، جستجو و مدیریت مُلکانو')"
-    >
+    <AppBar :title="t('ملکانُو')" :subtitle="t('فهرست، جستجو و مدیریت مُلکانو')">
       <template #actions>
         <v-btn icon />
       </template>
@@ -24,7 +21,12 @@
             color="primary"
             rounded="lg"
             hide-details
-            @keyup.enter="fetchAll"
+            @keyup.enter="
+              () => {
+                repo.page = 1;
+                fetchAll();
+              }
+            "
             clearable
             @click:clear="clearSearch"
             class="bg-white"
@@ -63,9 +65,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('تمام مُلکانو') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('مجموع') }}: {{ stats.total }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
           </v-card>
@@ -84,9 +84,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -105,9 +103,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای شماره تماس') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withPhone }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withPhone }}</div>
               </div>
             </div>
           </v-card>
@@ -126,9 +122,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای منبع') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withResource }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withResource }}</div>
               </div>
             </div>
           </v-card>
@@ -180,7 +174,7 @@
           </v-avatar>
         </div>
       </template>
- <!-- 🗺 map -->
+      <!-- 🗺 map -->
       <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="row.coordinates"
@@ -229,12 +223,7 @@
           <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده مُلکانو')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -271,6 +260,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -292,328 +289,338 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FlyToMapButton from '@/components/FlyToMapButton.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
-import { useFasadRepository } from '@/stores/FasadRepository';
+  import { useFasadRepository } from '@/stores/FasadRepository';
 
-const repo = useFasadRepository();
-const router = useRouter();
+  const repo = useFasadRepository();
+  const router = useRouter();
 
-/* i18n / RTL */
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showErrorMessage = (m) => {
-  errorMessage.value = m;
-  showError.value = true;
-};
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
+  };
 
-/* Helpers */
-const getRow = (s) => (s && s.raw ? s.raw : s);
+  /* Helpers */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
 
-/* rows from store (Mulkano list) */
-const rowsFT = computed(() => {
-  const list = repo.Mulkanos || [];
-  if (Array.isArray(list)) return list;
-  if (Array.isArray(list.data)) return list.data;
-  return [];
-});
+  /* rows from store (Mulkano list) */
+  const rowsFT = computed(() => {
+    const list = repo.Mulkanos || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
+    return [];
+  });
 
-/* 🔢 Filter cards state */
-const cardFilter = ref('all');
+  /* 🔢 Filter cards state */
+  const cardFilter = ref('all');
 
-const stats = computed(() => {
-  const rows = rowsFT.value || [];
-  const total = rows.length;
-  const withCoordinates = rows.filter(
-    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
-  ).length;
-  const withPhone = rows.filter(
-    (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
-  ).length;
-  const withResource = rows.filter(
-    (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
-  ).length;
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
+    const withCoordinates = rows.filter(
+      (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
+    const withPhone = rows.filter(
+      (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
+    ).length;
+    const withResource = rows.filter(
+      (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
+    ).length;
 
-  return { total, withCoordinates, withPhone, withResource };
-});
+    return { total, withCoordinates, withPhone, withResource };
+  });
 
-const filteredRowsFT = computed(() => {
-  const base = rowsFT.value || [];
-  switch (cardFilter.value) {
-    case 'withCoordinates':
-      return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
-    case 'withPhone':
-      return base.filter((r) => r && r.phone_number && String(r.phone_number).trim() !== '');
-    case 'withResource':
-      return base.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '');
-    default:
-      return base;
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+    switch (cardFilter.value) {
+      case 'withCoordinates':
+        return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+      case 'withPhone':
+        return base.filter((r) => r && r.phone_number && String(r.phone_number).trim() !== '');
+      case 'withResource':
+        return base.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '');
+      default:
+        return base;
+    }
+  });
+
+  /* TABLE HEADERS – list view (with picture + map) */
+  const headersFT = computed(() => [
+    { title: t('تصویر'), key: 'picture', sortable: false },
+
+    { title: t('نام'), key: 'name' },
+    { title: t('نام پدر'), key: 'father_name' },
+    { title: t('نام پدرکلان'), key: 'grand_father_name' },
+
+    // { title: t('ولایت اصلی'), key: 'main_province' },
+    { title: t('ولسوالی اصلی'), key: 'main_district' },
+    { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+
+    { title: t('ولایت فعلی'), key: 'now_province' },
+    { title: t('زون فعلی'), key: 'now_zone' },
+    { title: t('ولسوالی فعلی'), key: 'now_district' },
+    { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
+
+    { title: t('موقعیت مشخص'), key: 'specific_place' },
+    { title: t('سرک #'), key: 'street_number' },
+    { title: t('خانه #'), key: 'home_number' },
+    { title: t('حوزه'), key: 'hawza' },
+    { title: t('ناحیه'), key: 'nahya' },
+    { title: t('کوڅه'), key: 'street' },
+    { title: t('گذر'), key: 'guzar' },
+    { title: t('coordinates'), key: 'coordinates' },
+    { title: t('تفصیل'), key: 'tafseel_sahi' },
+    // { title: t('مقدار سرک'), key: 'street_amount' },
+    { title: t('وظیفه قبلی'), key: 'old_job' },
+    { title: t('وظیفه جدید'), key: 'new_job' },
+
+    { title: t('تعداد عامل'), key: 'agent_quantity' },
+    { title: t('تعداد خانه'), key: 'home_quantity' },
+
+    { title: t('شماره تماس'), key: 'phone_number' },
+
+    { title: t('سابقه جرم'), key: 'jorm_history' },
+    { title: t('تنظیم/ وابستگی'), key: 'tanzim' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone_number' },
+
+    { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('ملاحظات'), key: 'notes' },
+  ]);
+
+  /* TOP GROUPS (same style as Fasad, with Mulkano keys) */
+  const topGroups = computed(() => [
+    { title: t('مشخصات'), keys: ['name', 'father_name', 'grand_father_name'] },
+    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+    { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
+    { title: t('موقعیت/خانه'), keys: ['specific_place', 'street_number', 'home_number', 'guzar'] },
+    {
+      title: t('توضیحات/وظایف/مقدار'),
+      keys: ['tafseel_sahi', 'street_amount', 'old_job', 'new_job'],
+    },
+    { title: t('کمیات'), keys: ['agent_quantity', 'home_quantity'] },
+    { title: t('تماس/سوابق'), keys: ['phone_number', 'jorm_history', 'tanzim'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone_number'] },
+    { title: t('دیگر'), keys: ['Province_addr', 'coordinates', 'notes'] },
+  ]);
+
+  const filters = ref({});
+
+  /* Peek */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      await repo.FetchMulkanoData?.(id);
+      const single =
+        repo.Mulkano && Array.isArray(repo.Mulkano) ? repo.Mulkano[0] : repo.Mulkano || {};
+      detail.value = single || {};
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات مُلکانو'));
+    } finally {
+      loadingOne.value = false;
+    }
   }
-});
 
-/* TABLE HEADERS – list view (with picture + map) */
-const headersFT = computed(() => [
-  { title: t('تصویر'), key: 'picture', sortable: false },
-
-  { title: t('نام'), key: 'name' },
-  { title: t('نام پدر'), key: 'father_name' },
-  { title: t('نام پدرکلان'), key: 'grand_father_name' },
-
-  // { title: t('ولایت اصلی'), key: 'main_province' },
-  { title: t('ولسوالی اصلی'), key: 'main_district' },
-  { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
-
-  { title: t('ولایت فعلی'), key: 'now_province' },
-  { title: t('زون فعلی'), key: 'now_zone' },
-  { title: t('ولسوالی فعلی'), key: 'now_district' },
-  { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
-
-  { title: t('موقعیت مشخص'), key: 'specific_place' },
-  { title: t('سرک #'), key: 'street_number' },
-  { title: t('خانه #'), key: 'home_number' },
-  { title: t('حوزه'), key: 'hawza' },
-  { title: t('ناحیه'), key: 'nahya' },
-  { title: t('کوڅه'), key: 'street' },
-  { title: t('گذر'), key: 'guzar' },
-  { title: t('coordinates'), key: 'coordinates' },
-  { title: t('تفصیل'), key: 'tafseel_sahi' },
-  // { title: t('مقدار سرک'), key: 'street_amount' },
-  { title: t('وظیفه قبلی'), key: 'old_job' },
-  { title: t('وظیفه جدید'), key: 'new_job' },
-
-  { title: t('تعداد عامل'), key: 'agent_quantity' },
-  { title: t('تعداد خانه'), key: 'home_quantity' },
-
-  { title: t('شماره تماس'), key: 'phone_number' },
-
-  { title: t('سابقه جرم'), key: 'jorm_history' },
-  { title: t('تنظیم/ وابستگی'), key: 'tanzim' },
-
-
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone_number' },
-
-  { title: t('نقشه'), key: 'map', sortable: false },
-  { title: t('ملاحظات'), key: 'notes' },
-
-]);
-
-/* TOP GROUPS (same style as Fasad, with Mulkano keys) */
-const topGroups = computed(() => [
-  { title: t('مشخصات'), keys: ['name', 'father_name', 'grand_father_name'] },
-  { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-  { title: t('آدرس فعلی'), keys: ['now_province', 'now_zone', 'now_district', 'now_village'] },
-  { title: t('موقعیت/خانه'), keys: ['specific_place', 'street_number', 'home_number', 'guzar'] },
-  {
-    title: t('توضیحات/وظایف/مقدار'),
-    keys: ['tafseel_sahi', 'street_amount', 'old_job', 'new_job'],
-  },
-  { title: t('کمیات'), keys: ['agent_quantity', 'home_quantity'] },
-  { title: t('تماس/سوابق'), keys: ['phone_number', 'jorm_history', 'tanzim'] },
-  { title: t('منبع'), keys: ['resource_code', 'resource_phone_number'] },
-  { title: t('دیگر'), keys: ['Province_addr', 'coordinates', 'notes'] },
-]);
-
-const filters = ref({});
-
-/* Peek */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loadingOne.value = true;
-  try {
-    await repo.FetchMulkanoData?.(id);
-    const single = repo.Mulkano && Array.isArray(repo.Mulkano)
-      ? repo.Mulkano[0]
-      : repo.Mulkano || {};
-    detail.value = single || {};
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات مُلکانو'));
-  } finally {
-    loadingOne.value = false;
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
   }
-}
 
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
+  /* navigation */
+  function goCreate() {
+    router.push('/app/mulkanoform');
+  }
 
-/* navigation */
-function goCreate() {
-  router.push('/app/mulkanoform');
-}
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/mulkanoform/${row.id}`);
+  }
 
-function goEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/mulkanoform/${row.id}`);
-}
+  /* go to resource page */
+  function goToResource(row) {
+    if (!row?.resource_code) return;
+    router.push(`/app/resources/${row.resource_code}`);
+  }
 
-/* go to resource page */
-function goToResource(row) {
-  if (!row?.resource_code) return;
-  router.push(`/app/resources/${row.resource_code}`);
-}
+  /* Open image in new tab */
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
+    clean = clean.replace(/\\\//g, '/');
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+    if (!clean.startsWith('/')) clean = '/' + clean.replace(/^\/+/, '');
+    return clean;
+  }
+  function openImage(row) {
+    const url = normalizePicture(row.picture);
+    if (url) window.open(url, '_blank');
+  }
 
-/* Open image in new tab */
-function normalizePicture(src) {
-  if (!src) return null;
-  let clean = String(src).trim();
-  clean = clean.replace(/\\\//g, '/');
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
-  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-  if (!clean.startsWith('/')) clean = '/' + clean.replace(/^\/+/, '');
-  return clean;
-}
-function openImage(row) {
-  const url = normalizePicture(row.picture);
-  if (url) window.open(url, '_blank');
-}
+  /* delete with dialog */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-/* delete with dialog */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
 
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    deleteDialog.value = false;
+    if (!row?.id) return;
+    try {
+      await repo.DeleteMulakno?.(row.id);
+      await fetchAll();
+      showErrorMessage(t('حذف شد'));
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteTarget.value = null;
+    }
+  }
 
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  deleteDialog.value = false;
-  if (!row?.id) return;
-  try {
-    await repo.DeleteMulkano?.(row.id);
+  /* fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchMulkanosData?.({
+        page: repo.page,
+        perPage: repo.itemsPerPage,
+        search: repo.Search || '',
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست مُلکانو'));
+    }
+  }
+
+  function handlePageChange(page) {
+    repo.page = page;
+    fetchAll();
+  }
+
+  function handlePerPageChange(perPage) {
+    repo.itemsPerPage = perPage;
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function clearSearch() {
+    repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  /* init */
+  onMounted(async () => {
     await fetchAll();
-    showErrorMessage(t('حذف شد'));
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در حذف'));
-  } finally {
-    deleteTarget.value = null;
-  }
-}
-
-/* fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchMulkanosData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت فهرست مُلکانو'));
-  }
-}
-
-function clearSearch() {
-  repo.Search = '';
-  fetchAll();
-}
-
-/* init */
-onMounted(async () => {
-  await fetchAll();
-});
+  });
 </script>
 
 <style scoped>
-.ga-2 {
-  gap: 8px;
-}
+  .ga-2 {
+    gap: 8px;
+  }
 
-/* Background (same as Fasad) */
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
+  /* Background (same as Fasad) */
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
+  }
 
-/* Stats cards (copied from Fasad) */
-.stat-card {
-  cursor: pointer;
-  border-radius: 14px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
-    background-color 0.2s ease;
-}
+  /* Stats cards (copied from Fasad) */
+  .stat-card {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
 
-.stat-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  border-color: rgba(33, 150, 243, 0.35);
-}
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
+  }
 
-.stat-card--active {
-  border-color: rgba(25, 118, 210, 0.9);
-  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
-}
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+  }
 
-.stat-card-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
 
-.stat-card-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e3f2fd;
-}
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
 
-.stat-card-text {
-  display: flex;
-  flex-direction: column;
-}
+  .stat-card-text {
+    display: flex;
+    flex-direction: column;
+  }
 
-.stat-card-title {
-  font-size: 13px;
-  font-weight: 700;
-}
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
 
-.stat-card-subtitle {
-  font-size: 11px;
-  color: #666;
-}
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
+  }
 
-/* picture */
-.pic-wrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.pic-avatar {
-  cursor: pointer;
-}
+  /* picture */
+  .pic-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pic-avatar {
+    cursor: pointer;
+  }
 </style>

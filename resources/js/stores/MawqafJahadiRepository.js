@@ -51,6 +51,8 @@ export const useMawqafJahadiRepository = defineStore('MawqafJahadiRepository', {
 
         const s = search ?? this.Search ?? '';
         this.Search = s;
+        this.page = p;
+        this.itemsPerPage = per;
 
         const { data: res } = await axios.get(
           `mawqaf-jahadis?page=${p}&perPage=${per}&search=${encodeURIComponent(s || '')}`
@@ -59,6 +61,8 @@ export const useMawqafJahadiRepository = defineStore('MawqafJahadiRepository', {
         const items = res?.data ?? res ?? [];
         this.MawqafJahadis = Array.isArray(items) ? items : [];
         this.totalItems = res?.meta?.total ?? res?.total ?? this.MawqafJahadis.length;
+        this.page = res?.meta?.current_page ?? p;
+        this.itemsPerPage = res?.meta?.per_page ?? per;
 
         return res;
       } catch (e) {

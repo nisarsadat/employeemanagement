@@ -111,8 +111,14 @@
             </v-list-item>
           </template>
 
-          <v-card min-width="220">
+          <v-card min-width="240">
             <v-list density="compact">
+              <v-list-item @click="goToProfile" prepend-icon="mdi-account-circle-outline">
+                <v-list-item-title>{{ t('Profile') }}</v-list-item-title>
+              </v-list-item>
+
+              <v-divider class="my-1" />
+
               <v-list-item @click="onLogout" prepend-icon="mdi-logout-variant">
                 <v-list-item-title>{{ t('Logout') }}</v-list-item-title>
               </v-list-item>
@@ -132,7 +138,9 @@
   // Stores
   import { useLoginRepository } from '@/stores/LoginRepository';
   import { useUsersRepository } from '@/stores/UsersRepository';
+  import { useRouter } from 'vue-router';
 
+  const router = useRouter();
   const props = defineProps({
     modelValue: { type: Boolean, default: false }, // open/close from parent
     location: { type: String, default: 'left' }, // left/right from parent
@@ -150,6 +158,10 @@
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (l) => (isRtl.value = l === 'fa'));
 
+  const goToProfile = async () => {
+    profileMenu.value = false;
+    await router.push('/app/profile');
+  };
   // repos
   const auth = useLoginRepository();
   const usersRepo = useUsersRepository(); // kept for future user actions if needed

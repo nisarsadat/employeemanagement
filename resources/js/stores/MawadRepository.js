@@ -4,6 +4,7 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
 
 // ---- sane defaults
 axios.defaults.headers.common['Accept'] = 'application/json';
@@ -32,34 +33,43 @@ export const useMawadRepository = defineStore('MawadRepository', {
       itemsPerPage: 10,
       totalItems: 0,
 
-      // collections
+      // collections // done
       Mawads: reactive([]),
       Mawad: reactive({}),
 
+      // done
       LostMujremeens: reactive([]),
       LostMujremeen: reactive({}),
 
+      // done
       OldSoldiersHomes: reactive([]),
       OldSoldiersHome: reactive({}),
 
+      //  done
       Robbers: reactive([]),
       Robber: reactive({}),
 
+      // done
       NonResponsablePeoples: reactive([]),
       NonResponsablePeople: reactive({}),
 
+      // done
       MashkokHomes: reactive([]),
       MashkokHome: reactive({}),
 
+      // done 
       DamagePLaces: reactive([]),
       DamagePlace: reactive({}),
 
+      // done 
       DamageRasanPlaces: reactive([]),
       DamageRasanPlace: reactive({}),
 
+      // done
       MashkokShops: reactive([]),
       MashkokShop: reactive({}),
 
+      // done
       Luchakanos: reactive([]),
       Luchakano: reactive({}),
 
@@ -117,18 +127,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
     },
 
     /* ============================ Mawads ============================ */
-    async FetchMawadsData({ page, itemsPerPage }) {
+    async FetchMawadsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `mawads?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Mawads = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Mawads.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`mawads`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Mawads');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -210,19 +224,24 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Lost Mujremeens ============================ */
-    async FetchLostMujremeensData({ page, itemsPerPage }) {
+    async FetchLostMujremeensData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `lost-mujremeens?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.LostMujremeens = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.LostMujremeens.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`lost-mujremeens`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'LostMujremeens');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -300,19 +319,24 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Old Soldiers Homes ============================ */
-    async FetchOldSoldiersHomesData({ page, itemsPerPage }) {
+    async FetchOldSoldiersHomesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `old-soldiers-homes?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.OldSoldiersHomes = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.OldSoldiersHomes.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`old-soldiers-homes`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'OldSoldiersHomes');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -394,19 +418,24 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Robbers ============================ */
-    async FetchRobbersData({ page, itemsPerPage }) {
+    async FetchRobbersData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `robbers?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Robbers = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Robbers.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`robbers`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Robbers');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -488,19 +517,24 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ NonResponsablePeoples ============================ */
-    async FetchNonResponsablePeoplesData({ page, itemsPerPage }) {
+    async FetchNonResponsablePeoplesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `non-responsable-people?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.NonResponsablePeoples = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.NonResponsablePeoples.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`non-responsable-people`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'NonResponsablePeoples');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -582,19 +616,24 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Mashkok Homes ============================ */
-    async FetchMashkokHomesData({ page, itemsPerPage }) {
+    async FetchMashkokHomesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `mashkok-homes?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.MashkokHomes = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.MashkokHomes.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`mashkok-homes`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'MashkokHomes');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -676,19 +715,24 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ DamagePlacses ============================ */
-    async FetchDamagePlacesData({ page, itemsPerPage }) {
+    async FetchDamagePlacesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `damage-places?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.DamagePlaces = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.DamagePlaces.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`damage-places`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'DamagePlaces');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -770,19 +814,24 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Damage Rasan PLaces ============================ */
-    async FetchDamageRasanPlacesData({ page, itemsPerPage }) {
+    async FetchDamageRasanPlacesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `damage-rasan-places?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.DamageRasanPlaces = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.DamageRasanPlaces.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`damage-rasan-places`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'DamageRasanPlaces');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -862,18 +911,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
     },
 
     /* ============================ Mashkok Shops ============================ */
-    async FetchMashkokShopsData({ page, itemsPerPage }) {
+    async FetchMashkokShopsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `mashkok-shops?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.MashkokShops = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.MashkokShops.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`mashkok-shops`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'MashkokShops');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -951,19 +1004,24 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Luchakano ============================ */
-    async FetchLuchakanosData({ page, itemsPerPage }) {
+    async FetchLuchakanosData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `luchakanos?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Luchakanos = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Luchakanos.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`luchakanos`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Luchakanos');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -1045,6 +1103,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     // ⬇️ Download ALL documents of Mashkok Home as ZIP
     // async DownloadMashkokHomeDocumentsZip(id) {
     //   try {
@@ -1126,6 +1185,7 @@ export const useMawadRepository = defineStore('MawadRepository', {
       a.remove();
       URL.revokeObjectURL(url);
     },
+
     async DownloadLostMujremeenZip(id) {
       const res = await axios.get(`/lost-mujremeens/${id}/documents-zip`, {
         responseType: 'blob',

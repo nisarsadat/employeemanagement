@@ -58,7 +58,7 @@
     <v-row class="px-2 mt-1">
       <v-col cols="12" class="d-flex justify-end">
         <div class="text-caption text-medium-emphasis">
-          {{ t('تعداد') }}: <b>{{ rowsFT.length }}</b>
+          {{ t('تعداد') }}: <b>{{ repo.totalItems }}</b>
         </div>
       </v-col>
     </v-row>
@@ -91,6 +91,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:itemsPerPage="handlePerPageChange"
+    />
+
     <LetryFormatFormDialog v-model="dialog" :editId="editId" @saved="fetchAll" />
 
     <DeleteConfirmDialog
@@ -109,6 +117,7 @@ import { useI18n } from 'vue-i18n';
 import AppBar from '@/components/AppBar.vue';
 import FilterableTable from '@/components/FilterableTable.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import LetryFormatFormDialog from './LetryFormatFormDialog.vue';
 import { useLetryFormatRepository } from '@/stores/LetryFormatRepository';
@@ -126,12 +135,11 @@ const deleteDialog = ref(false);
 const deleteTarget = ref(null);
 
 const search = ref('');
-const rows = ref([]);
 
 const headersFT = computed(() => [
   { title: t('نام فورمت'), key: 'letry_format_name', align: 'center' },
 ]);
-const rowsFT = computed(() => rows.value || []);
+const rowsFT = computed(() => repo.LetryFormats || []);
 
 function openCreate() {
   editId.value = null;
@@ -164,15 +172,36 @@ async function confirmDelete(payload) {
 }
 
 async function fetchAll() {
-  const res = await repo.FetchLetryFormats({ page: 1, perPage: 10000, search: search.value });
-  rows.value = res?.data || [];
+  repo.Search = search.value;
+  await repo.FetchLetryFormats();
 }
 
 function clearSearch() {
   search.value = '';
+  repo.Search = '';
+  repo.page = 1;
   fetchAll();
 }
 
-watch(search, fetchAll);
-onMounted(fetchAll);
+function handlePageChange(page) {
+  repo.page = page;
+  fetchAll();
+}
+
+function handlePerPageChange(perPage) {
+  repo.itemsPerPage = perPage;
+  repo.page = 1;
+  fetchAll();
+}
+
+watch(search, () => {
+  repo.Search = search.value;
+  repo.page = 1;
+  fetchAll();
+});
+
+onMounted(() => {
+  search.value = repo.Search || '';
+  fetchAll();
+});
 </script>

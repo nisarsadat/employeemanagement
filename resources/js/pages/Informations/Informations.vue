@@ -308,7 +308,7 @@
       :rtl="true"
       :autoDetectDates="false"
       :dateKeys="['information_saved_date', 'hamahangi_date']"
-      class="mb-20 mx-2"
+      class="mx-2"
     >
       <!-- RESOURCE -->
       <template #cell-resource_id="{ row }">
@@ -501,6 +501,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:itemsPerPage="handlePerPageChange"
+    />
+
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -530,6 +538,7 @@
   import FilterableTable from '@/components/FilterableTable.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
   import { useFinanceRepository } from '@/stores/FinanceRepository';
@@ -681,6 +690,7 @@
   });
 
   async function applyMonthYearFilter() {
+    repo.page = 1;
     await fetchAll();
   }
 
@@ -697,6 +707,7 @@
 
   function filterByStat(stat) {
     activeStat.value = activeStat.value === stat ? null : stat;
+    repo.page = 1;
   }
 
   /* ===== Data sources ===== */
@@ -1065,6 +1076,18 @@
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(value) {
+    repo.page = value;
+    fetchAll();
+  }
+
+  function handlePerPageChange(value) {
+    repo.itemsPerPage = value;
+    repo.page = 1;
     fetchAll();
   }
 
@@ -1072,8 +1095,6 @@
   async function fetchAll() {
     try {
       await repo.FetchInformationsData?.({
-        page: 1,
-        itemsPerPage: 100000,
         search: repo.Search,
 
         // ✅ NEW: filter payload

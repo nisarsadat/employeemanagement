@@ -243,6 +243,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -271,9 +279,10 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
-import PictureCell from '@/components/table/PictureCell.vue';
+  import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useWakilanoRepository();
   const router = useRouter();
@@ -345,7 +354,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   /* TABLE HEADERS */
   const headersFT = computed(() => [
-  { title: t('picture'), key: 'picture' },
+    { title: t('picture'), key: 'picture' },
 
     { title: t('نام پارک'), key: 'park_name' },
     { title: t('نوع پارک'), key: 'park_type' },
@@ -469,11 +478,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchParksData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchParksData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست پارک ها'));
@@ -482,6 +487,18 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(newPage) {
+    repo.page = newPage;
+    fetchAll();
+  }
+
+  function handlePerPageChange(newSize) {
+    repo.itemsPerPage = newSize;
+    repo.page = 1;
     fetchAll();
   }
 

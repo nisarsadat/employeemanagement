@@ -4,6 +4,7 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
 // === ZONE <-> HAWZA mapping (from your picture) ===
 const ZONE_HAWZA_MAP = {
   'لومړی زون': ['حوزه ۳', 'حوزه ۷', 'حوزه ۶', 'حوزه ۸', 'حوزه ۱۸'],
@@ -219,23 +220,21 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
       try {
         setContentType('application/json');
 
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: true,
+          defaultDateField: 'join_date',
+        });
+
         const res = await axios.get('/office-employees', {
           params: {
-            page: params.page ?? this.page,
-            perPage: params.perPage ?? this.itemsPerPage, // ✅ keep backend key: perPage
-            search: params.search ?? this.Search ?? '',
-
-            // ✅ NEW: filter support
-            year: params.year ?? null,
-            month: params.month ?? null,
-            date_field: params.date_field ?? 'join_date',
+            ...queryParams,
             status: params.status ?? 'all',
           },
         });
 
-        const items = res.data?.data ?? res.data ?? [];
-        this.Employees = Array.isArray(items) ? items : [];
-        this.totalItems = res.data?.meta?.total ?? res.data?.total ?? this.Employees.length;
+        applyPaginatedResponse(this, res, 'Employees');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -253,7 +252,7 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
         });
         this.FetchEmployeesData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
       } catch (e) {
         console.error(e);
@@ -284,6 +283,10 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
         });
         // you can also refresh the list if you like:
         // await this.FetchEmployeesData({ page: this.page, itemsPerPage: this.itemsPerPage });
+        this.FetchEmployeesData({
+          page: this.page,
+          perPage: this.itemsPerPage,
+        });
         return saved;
       } catch (e) {
         console.error(e);

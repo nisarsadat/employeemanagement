@@ -254,6 +254,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -283,6 +291,7 @@ import PeekButton from '@/components/PeekButton.vue';
 import FlyToMapButton from '@/components/FlyToMapButton.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 import PictureCell from '@/components/table/PictureCell.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 
@@ -550,19 +559,27 @@ async function handleDeleteConfirmed(target) {
 /* fetch all */
 async function fetchAll() {
   try {
-    await repo.FetchDeplomaticPlacesData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
+    await repo.FetchDeplomaticPlacesData?.();
   } catch (e) {
     console.error(e);
     showErrorMessage(t('خطا در دریافت فهرست محلات دیپلوماتیک'));
   }
 }
 
+function handlePageChange(p) {
+  repo.page = p;
+  fetchAll();
+}
+
+function handlePerPageChange(n) {
+  repo.itemsPerPage = n;
+  repo.page = 1;
+  fetchAll();
+}
+
 function clearSearch() {
   repo.Search = '';
+  repo.page = 1;
   fetchAll();
 }
 

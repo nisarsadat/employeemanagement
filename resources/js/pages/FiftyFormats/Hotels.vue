@@ -166,7 +166,8 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    ><template #cell-picture="{ row }">
+    >
+      <template #cell-picture="{ row }">
         <PictureCell
           :picture="row.picture"
           :alt="row.name"
@@ -174,6 +175,7 @@
           :close-text="t('بستن')"
         />
       </template>
+
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -253,6 +255,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -283,6 +293,7 @@ import FilterableTable from '@/components/FilterableTable.vue';
 import PeekButton from '@/components/PeekButton.vue';
 import FlyToMapButton from '@/components/FlyToMapButton.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 import PictureCell from '@/components/table/PictureCell.vue';
@@ -392,7 +403,6 @@ const headersFT = computed(() => [
 
   { title: t('نقشه'), key: 'map', sortable: false },
   { title: t('یادداشت'), key: 'note' },
-
 ]);
 
 /* TOP GROUPS */
@@ -485,11 +495,7 @@ async function handleDeleteConfirmed(target) {
 /* fetch all */
 async function fetchAll() {
   try {
-    await repo.FetchHotelsData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
+    await repo.FetchHotelsData?.();
   } catch (e) {
     console.error(e);
     showErrorMessage(t('خطا در دریافت فهرست هوتل‌ها'));
@@ -498,6 +504,18 @@ async function fetchAll() {
 
 function clearSearch() {
   repo.Search = '';
+  repo.page = 1;
+  fetchAll();
+}
+
+function handlePageChange(newPage) {
+  repo.page = newPage;
+  fetchAll();
+}
+
+function handlePerPageChange(newSize) {
+  repo.itemsPerPage = newSize;
+  repo.page = 1;
   fetchAll();
 }
 

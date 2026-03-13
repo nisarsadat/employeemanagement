@@ -20,7 +20,7 @@
             color="primary"
             rounded="lg"
             hide-details
-            @keyup.enter="fetchAll"
+            @keyup.enter="handleSearch"
             clearable
             @click:clear="clearSearch"
             class="bg-white"
@@ -140,7 +140,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class="mb-6 mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -242,6 +242,15 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      class="mx-2 mb-20"
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -256,6 +265,7 @@
       </template>
     </v-snackbar>
   </v-container>
+
   <!-- ✅ Picture Preview Dialog -->
   <v-dialog v-model="pictureDialog" max-width="900">
     <v-card rounded="lg">
@@ -304,6 +314,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
 
   const repo = useFasadRepository();
@@ -356,6 +367,7 @@
       return base.filter((r) => r?.resource_code && String(r.resource_code).trim() !== '');
     return base;
   });
+
   const pictureDialog = ref(false);
   const pictureSrc = ref('');
   const pictureTitle = ref('');
@@ -455,6 +467,7 @@
       loadingOne.value = false;
     }
   }
+
   function openPeek(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
@@ -467,16 +480,19 @@
   function goCreate() {
     router.push('/app/fasadform');
   }
+
   function goEdit(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
     router.push(`/app/fasadform/${row.id}`);
   }
+
   function goPrint(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
     router.push(`/app/fasads/print/${row.id}`);
   }
+
   function goToResource(row) {
     if (!row?.resource_id) return;
     router.push({ path: '/app/resources', query: { id: String(row.resource_id), open: 'peek' } });
@@ -488,6 +504,7 @@
     const docs = row?.documents;
     return Array.isArray(docs) && docs.length > 0;
   }
+
   async function downloadDocuments(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
@@ -514,12 +531,13 @@
     deleteTarget.value = row;
     deleteDialog.value = true;
   }
+
   async function handleDeleteConfirmed(target) {
     const row = target || deleteTarget.value;
     deleteDialog.value = false;
     if (!row?.id) return;
     try {
-      await repo.DeleteFasad?.(row.id); // ✅ backend should delete documents too
+      await repo.DeleteFasad?.(row.id);
       await fetchAll();
     } catch (e) {
       console.error(e);
@@ -532,14 +550,32 @@
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchFasadsData?.({ page: 1, itemsPerPage: 100000, search: repo.Search || '' });
+      await repo.FetchFasadsData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست فسادها'));
     }
   }
+
+  function handleSearch() {
+    repo.page = 1;
+    fetchAll();
+  }
+
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(val) {
+    repo.page = val;
+    fetchAll();
+  }
+
+  function handlePerPageChange(val) {
+    repo.itemsPerPage = val;
+    repo.page = 1;
     fetchAll();
   }
 

@@ -1,21 +1,46 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
+
+function errText(e, fallback = 'بعضی مشکل پیش آمد') {
+  return e?.response?.data?.message || e?.message || (typeof e === 'string' ? e : fallback);
+}
 
 export const useDocsTypeRepository = defineStore('DocsTypeRepository', {
   state: () => ({
     loading: false,
     error: null,
+
+    DocsTypes: [],
+
+    page: 1,
+    itemsPerPage: 10,
+    totalItems: 0,
+    Search: '',
   }),
 
   actions: {
-    async FetchDocsTypes({ page = 1, perPage = 10000, search = '' } = {}) {
+    async FetchDocsTypes() {
       this.loading = true;
+      this.error = null;
+
       try {
-        const { data } = await axios.get(
-          `/docs-types?page=${page}&perPage=${perPage}&search=${encodeURIComponent(search)}`
-        );
-        return data;
+        const queryParams = buildListParams(this, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const res = await axios.get('/docs-types', {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'DocsTypes');
+        return res.data;
+      } catch (e) {
+        this.error = errText(e);
+        throw e;
       } finally {
         this.loading = false;
       }
@@ -27,7 +52,7 @@ export const useDocsTypeRepository = defineStore('DocsTypeRepository', {
     },
 
     async CreateDocsType(payload) {
-      const { data } = await axios.post(`/docs-types`, payload);
+      const { data } = await axios.post('/docs-types', payload);
       toast.success('نوع سند اضافه شد');
       return data;
     },

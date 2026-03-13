@@ -3,7 +3,10 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 // RBAC helpers (keep as normal imports)
 import { firstAccessiblePath, canAccess, permFor } from '@/rbac';
-import InformationCategoriesIndex from '../pages/Settings/InformationCategory/InformationCategoriesIndex.vue';
+const InformationCategoriesIndex = () =>
+  import('../pages/Settings/InformationCategory/InformationCategoriesIndex.vue');
+
+const ProfilePage = () => import('../pages/profile/ProfilePage.vue');
 
 // ---------- Lazy-loaded Components ----------
 
@@ -1613,6 +1616,11 @@ const router = createRouter({
           path: '/app/infoCategory',
           name: 'inforCategory',
           component: InformationCategoriesIndex,
+        },
+        {
+          path: '/app/profile',
+          name: 'ProfilePage',
+          component: ProfilePage,
         },
       ],
     },

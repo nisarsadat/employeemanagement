@@ -2,21 +2,20 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import axios from 'axios';
+import { buildListParams } from '@/utils/listHelpers';
 
 export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingRepository', () => {
   const loading = ref(false);
   const error = ref(null);
 
-  // =========================
   // STATE
-  // =========================
   const Items = ref([]);
-  const total = ref(0);
   const Item = ref(null);
 
   const Search = ref('');
   const page = ref(1);
-  const perPage = ref(100000);
+  const itemsPerPage = ref(10);
+  const totalItems = ref(0);
 
   function getCurrentDate() {
     const d = new Date();
@@ -26,46 +25,43 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
     return `${y}-${m}-${day}`;
   }
 
-  // =========================
-  // HELPERS
-  // =========================
-  function unwrapListResponse(resp) {
-    const data = resp?.data?.data ?? resp?.data ?? [];
-    const metaTotal =
-      resp?.data?.meta?.total ??
-      resp?.data?.total ??
-      resp?.data?.totalItems ??
-      (Array.isArray(data) ? data.length : 0);
-
-    return {
-      data: Array.isArray(data) ? data : [],
-      total: metaTotal,
-    };
-  }
-
-  // =========================
-  // API METHODS
-  // =========================
-
   // LIST
-  async function FetchOutgoingIncomingData(params = {}) {
+  async function FetchOutgoingIncomingData(extraParams = {}) {
     loading.value = true;
     error.value = null;
+
     try {
-      const resp = await axios.get('/outgoing-incomings', {
-        params: {
-          page: params.page ?? page.value,
-          perPage: params.perPage ?? perPage.value,
-          search: params.search ?? Search.value,
+      const queryParams = buildListParams(
+        {
+          page: extraParams.page ?? page.value,
+          perPage: extraParams.perPage ?? itemsPerPage.value,
+          search: extraParams.search ?? Search.value,
         },
+        {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        }
+      );
+
+      const res = await axios.get('/outgoing-incomings', {
+        params: queryParams,
       });
 
-      const { data, total: t } = unwrapListResponse(resp);
-      Items.value = data;
-      total.value = t;
-      return data;
+      // direct mapping
+      Items.value = Array.isArray(res?.data?.data) ? res.data.data : [];
+      totalItems.value = Number(res?.data?.meta?.total ?? 0);
+      page.value = Number(res?.data?.meta?.current_page ?? 1);
+      itemsPerPage.value = Number(res?.data?.meta?.per_page ?? 10);
+
+      console.log('OutgoingIncoming list response =>', res.data);
+      console.log('OutgoingIncoming Items.value =>', Items.value);
+
+      return res?.data ?? {};
     } catch (e) {
       error.value = e;
+      Items.value = [];
+      totalItems.value = 0;
       throw e;
     } finally {
       loading.value = false;
@@ -75,11 +71,13 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
   // SINGLE
   async function FetchOutgoingIncomingItem(id) {
     if (!id) return null;
+
     loading.value = true;
     error.value = null;
+
     try {
-      const resp = await axios.get(`/outgoing-incomings/${id}`);
-      Item.value = resp?.data?.data ?? resp?.data ?? null;
+      const res = await axios.get(`/outgoing-incomings/${id}`);
+      Item.value = res?.data?.data ?? res?.data ?? null;
       return Item.value;
     } catch (e) {
       error.value = e;
@@ -90,14 +88,18 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
   }
 
   // CREATE
-  async function CreateOutgoingIncoming(formData) {
+  async function CreateOutgoingIncoming(payload) {
     loading.value = true;
     error.value = null;
+
     try {
-      const resp = await axios.post('/outgoing-incomings', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const isFormData = payload instanceof FormData;
+
+      const res = await axios.post('/outgoing-incomings', payload, {
+        headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
       });
-      return resp?.data?.data ?? resp?.data ?? null;
+
+      return res?.data?.data ?? res?.data ?? null;
     } catch (e) {
       error.value = e;
       throw e;
@@ -106,32 +108,30 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
     }
   }
 
-  // UPDATE (✅ supports Object OR FormData)
+  // UPDATE
   async function UpdateOutgoingIncoming(id, payload) {
     if (!id) throw new Error('UpdateOutgoingIncoming: id is required');
+
     loading.value = true;
     error.value = null;
 
     try {
-      // ✅ CASE 1: FormData (keep your old behavior)
       if (payload instanceof FormData) {
-        // IMPORTANT: avoid duplicate _method
         payload.delete('_method');
         payload.set('_method', 'PUT');
 
-        const resp = await axios.post(`/outgoing-incomings/${id}`, payload, {
+        const res = await axios.post(`/outgoing-incomings/${id}`, payload, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 
-        return resp?.data?.data ?? resp?.data ?? null;
+        return res?.data?.data ?? res?.data ?? null;
       }
 
-      // ✅ CASE 2: Plain Object (your current Vue update sends this)
       const clean = { ...(payload || {}) };
-      delete clean.id; // ✅ just in case
+      delete clean.id;
 
-      const resp = await axios.put(`/outgoing-incomings/${id}`, clean);
-      return resp?.data?.data ?? resp?.data ?? null;
+      const res = await axios.put(`/outgoing-incomings/${id}`, clean);
+      return res?.data?.data ?? res?.data ?? null;
     } catch (e) {
       error.value = e;
       throw e;
@@ -142,12 +142,14 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
 
   // DELETE
   async function DeleteOutgoingIncoming(id) {
-    if (!id) return;
+    if (!id) return null;
+
     loading.value = true;
     error.value = null;
+
     try {
-      const resp = await axios.delete(`/outgoing-incomings/${id}`);
-      return resp?.data ?? true;
+      const res = await axios.delete(`/outgoing-incomings/${id}`);
+      return res?.data ?? true;
     } catch (e) {
       error.value = e;
       throw e;
@@ -156,28 +158,24 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
     }
   }
 
-  // =========================
-  // ZIP DOWNLOAD (DOCUMENTS)
-  // =========================
+  // ZIP DOWNLOAD
   async function DownloadOutgoingIncomingZip(id) {
     if (!id) return;
 
     try {
-      const resp = await axios.get(`/outgoing-incomings/${id}/documents-zip`, {
-        responseType: 'arraybuffer', // IMPORTANT
+      const res = await axios.get(`/outgoing-incomings/${id}/documents-zip`, {
+        responseType: 'arraybuffer',
       });
 
-      // 🔍 ZIP VALIDATION (PK HEADER)
-      const bytes = new Uint8Array(resp.data);
-      const isZip = bytes[0] === 0x50 && bytes[1] === 0x4b; // PK
+      const bytes = new Uint8Array(res.data);
+      const isZip = bytes[0] === 0x50 && bytes[1] === 0x4b;
 
       if (!isZip) {
         console.error('Not a ZIP. First bytes:', bytes.slice(0, 20));
         throw new Error('Server did not return a valid ZIP file');
       }
 
-      // ✅ CREATE ZIP
-      const blob = new Blob([resp.data], { type: 'application/zip' });
+      const blob = new Blob([res.data], { type: 'application/zip' });
       const url = URL.createObjectURL(blob);
 
       const a = document.createElement('a');
@@ -185,8 +183,8 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
       a.download = `outgoing_incoming_${id}_documents.zip`;
       document.body.appendChild(a);
       a.click();
-
       a.remove();
+
       URL.revokeObjectURL(url);
     } catch (e) {
       console.error('ZIP download failed:', e);
@@ -194,20 +192,17 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
     }
   }
 
-  // =========================
-  // EXPORT
-  // =========================
   return {
     loading,
     error,
 
     Items,
-    total,
     Item,
 
     Search,
     page,
-    perPage,
+    itemsPerPage,
+    totalItems,
 
     FetchOutgoingIncomingData,
     FetchOutgoingIncomingItem,

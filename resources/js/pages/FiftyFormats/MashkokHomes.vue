@@ -21,7 +21,7 @@
             color="primary"
             rounded="lg"
             hide-details
-            @keyup.enter="fetchAll"
+            @keyup.enter="handleSearch"
             clearable
             @click:clear="clearSearch"
             class="bg-white"
@@ -154,10 +154,11 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class="mb-6 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    ><template #cell-picture="{ row }">
+    >
+      <template #cell-picture="{ row }">
         <PictureCell
           :picture="row.picture"
           :alt="row.name"
@@ -254,6 +255,15 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      class="mx-2 mb-20"
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -284,9 +294,10 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useMawadRepository } from '@/stores/MawadRepository';
-import PictureCell from '@/components/table/PictureCell.vue';
+  import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useMawadRepository();
   const router = useRouter();
@@ -359,7 +370,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   /* TABLE HEADERS – all inputs + map */
   const headersFT = computed(() => [
-  { title: t('picture'), key: 'picture' },
+    { title: t('picture'), key: 'picture' },
 
     { title: t('ولایت'), key: 'province' },
     { title: t('زون'), key: 'zone' },
@@ -499,19 +510,32 @@ import PictureCell from '@/components/table/PictureCell.vue';
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchMashkokHomesData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchMashkokHomesData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست خانه‌های مشکوک'));
     }
   }
 
+  function handleSearch() {
+    repo.page = 1;
+    fetchAll();
+  }
+
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(val) {
+    repo.page = val;
+    fetchAll();
+  }
+
+  function handlePerPageChange(val) {
+    repo.itemsPerPage = val;
+    repo.page = 1;
     fetchAll();
   }
 

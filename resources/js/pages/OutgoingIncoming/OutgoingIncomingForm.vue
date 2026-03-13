@@ -148,7 +148,14 @@
 
             <v-row class="pa-3">
               <v-col cols="12" md="12">
-                <DocsTypeAutocomplete v-model="form.docs_type" :label="t('نوع سند')" />
+                <DocsTypeAutocomplete
+                  v-model="form.docs_type"
+                  :label="t('نوع سند')"
+                  :rules="[rules.required]"
+                  :error="hasError('docs_type')"
+                  :error-messages="getErrorMessages('docs_type')"
+                  required
+                />
               </v-col>
 
               <v-col cols="12" md="12">
@@ -519,7 +526,14 @@
   function getErrorMessages(field) {
     return backendErrors.value?.[field] ?? [];
   }
-
+  const rules = {
+    required: (v) => {
+      if (v === null || v === undefined) return t('این فیلد الزامی است');
+      if (typeof v === 'object')
+        return !!v?.id || !!v?.value || !!v?.name || t('این فیلد الزامی است');
+      return !!String(v).trim() || t('این فیلد الزامی است');
+    },
+  };
   /* Blank form (✅ matches OutgoingIncoming model) */
   const blankForm = () => ({
     id: null,
@@ -564,10 +578,6 @@
 
   const form = ref(blankForm());
 
-  /* Rules */
-  const rules = {
-    required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
-  };
 
   /* Map API -> form */
   function mapFromApi(payload = {}) {
@@ -655,6 +665,18 @@
     if (!f) return;
 
     const { valid } = await f.validate();
+
+    if (!String(form.value.docs_type ?? '').trim()) {
+      setBackendErrors({
+        ...backendErrors.value,
+        docs_type: [t('نوع سند الزامی است')],
+      });
+      showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
+      await nextTick();
+      scrollToFirstInvalid();
+      return;
+    }
+
     if (!valid) {
       showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
       await nextTick();
@@ -680,12 +702,7 @@
         }
       } else {
         try {
-          const payload = buildPayload();
-
-          // ✅ use route id (safer)
           const res = await repo.UpdateOutgoingIncoming(idParam.value, payload);
-
-          // ✅ handle axios response shape
           const updatedRow = res?.data?.data ?? res?.data ?? res;
 
           if (updatedRow?.id) {
@@ -697,7 +714,6 @@
         } catch (e) {
           console.error('UPDATE ERROR =>', e);
 
-          // ✅ show backend validation errors (Laravel)
           if (e?.response?.data?.errors) {
             setBackendErrors(e.response.data.errors);
             showErrorMessage(t('لطفاً فیلدهای قرمز را درست کنید'));
@@ -706,7 +722,6 @@
             return;
           }
 
-          // ✅ show backend message if exists
           const msg = e?.response?.data?.message || e?.message || t('خطا در ذخیره اطلاعات');
           showErrorMessage(msg);
         }

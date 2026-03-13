@@ -57,14 +57,14 @@ export const useJenayeeTypeRepository = defineStore('JenayeeTypeRepository', {
       try {
         setContentType('application/json');
 
-        const p = page ?? this.page ?? 1;
-        const per = perPage ?? this.itemsPerPage ?? 10;
+        this.page = page ?? this.page ?? 1;
+        this.itemsPerPage = perPage ?? this.itemsPerPage ?? 10;
 
         const s = search ?? this.Search ?? '';
         this.Search = s;
 
         const { data: res } = await axios.get(
-          `jenayee-types?page=${p}&perPage=${per}&search=${encodeURIComponent(s || '')}`
+          `jenayee-types?page=${this.page}&perPage=${this.itemsPerPage}&search=${encodeURIComponent(s || '')}`
         );
 
         const items = res?.data ?? res ?? [];
@@ -136,7 +136,11 @@ export const useJenayeeTypeRepository = defineStore('JenayeeTypeRepository', {
         await axios.delete(`/jenayee-types/${id}`);
         toast.success('نوع جنایی بریالیتوب سره حذف شو', { autoClose: 1200 });
 
-        await this.FetchJenayeeTypesData({ page: this.page, perPage: this.itemsPerPage, search: this.Search });
+        await this.FetchJenayeeTypesData({
+          page: this.page,
+          perPage: this.itemsPerPage,
+          search: this.Search,
+        });
       } catch (e) {
         console.error(e);
         this.error = e;

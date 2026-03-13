@@ -4,6 +4,7 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
 
 // ---- sane defaults
 axios.defaults.headers.common['Accept'] = 'application/json';
@@ -32,34 +33,43 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       itemsPerPage: 10,
       totalItems: 0,
 
-      // collections
+      // collections  // done
       Schools: reactive([]),
       School: reactive({}),
-
+ 
+      // done 
       HadoBusStops: reactive([]),
       HadoBusStop: reactive({}),
 
+      // done 
       TransportCompanies: reactive([]),
       TransportCompany: reactive({}),
 
+      // done 
       CarSalesCompanies: reactive([]),
       CarSalesCompany: reactive({}),
 
+      // done 
       Parkings: reactive([]),
       Parking: reactive({}),
 
+      // done 
       Banks: reactive([]),
       Bank: reactive({}),
 
+      // done
       Apartments: reactive([]),
       Apartment: reactive({}),
 
+      // done
       RahnomaMamlats: reactive([]),
       RahnomaMamlat: reactive({}),
 
+      // done 
       Hosppitals: reactive([]),
       Hosppital: reactive({}),
 
+      // done
       WorkShops: reactive([]),
       WorkShop: reactive([]),
 
@@ -117,18 +127,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     },
 
     /* ============================ Schools ============================ */
-    async FetchSchoolsData({ page, itemsPerPage }) {
+    async FetchSchoolsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `schools?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Schools = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Schools.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`schools`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Schools');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -160,8 +174,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ فساد بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -206,19 +218,24 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.error(errText(e, 'ریکارډ فساد حذف نشو'));
       }
     },
+
     /* ============================ HadoBusStops ============================ */
-    async FetchHadoBusStopsData({ page, itemsPerPage }) {
+    async FetchHadoBusStopsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `hado-bus-stops?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.HadoBusStops = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.HadoBusStops.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`hado-bus-stops`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'HadoBusStops');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -250,8 +267,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -296,19 +311,24 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ TransportCompanies ============================ */
-    async FetchTransportCompaniesData({ page, itemsPerPage }) {
+    async FetchTransportCompaniesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `transport-companies?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.TransportCompanies = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.TransportCompanies.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`transport-companies`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'TransportCompanies');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -340,8 +360,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -386,19 +404,24 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ CarSalesCompanies ============================ */
-    async FetchCarSalesCompaniesData({ page, itemsPerPage }) {
+    async FetchCarSalesCompaniesData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `car-sales-companies?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.CarSalesCompanies = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.CarSalesCompanies.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`car-sales-companies`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'CarSalesCompanies');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -430,8 +453,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -476,19 +497,24 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Parkings ============================ */
-    async FetchParkingsData({ page, itemsPerPage }) {
+    async FetchParkingsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `parkings?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Parkings = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Parkings.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`parkings`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Parkings');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -520,8 +546,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -566,19 +590,24 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Banks ============================ */
-    async FetchBanksData({ page, itemsPerPage }) {
+    async FetchBanksData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `banks?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Banks = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Banks.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`banks`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Banks');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -610,8 +639,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -656,19 +683,24 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ Apartments ============================ */
-    async FetchApartmentsData({ page, itemsPerPage }) {
+    async FetchApartmentsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `apartments?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Apartments = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Apartments.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`apartments`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Apartments');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -700,8 +732,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -746,19 +776,24 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ RahnomaMamlats ============================ */
-    async FetchRahnomaMamlatsData({ page, itemsPerPage }) {
+    async FetchRahnomaMamlatsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `rahnoma-mamlats?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.RahnomaMamlats = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.RahnomaMamlats.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`rahnoma-mamlats`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'RahnomaMamlats');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -790,8 +825,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -830,7 +863,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ  بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
-
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -839,18 +871,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     },
 
     /* ============================ Hosppitals ============================ */
-    async FetchHosppitalsData({ page, itemsPerPage }) {
+    async FetchHosppitalsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `hosppitals?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.Hosppitals = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.Hosppitals.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`hosppitals`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Hosppitals');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -882,8 +918,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -928,19 +962,24 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
     /* ============================ WorkShops ============================ */
-    async FetchWorkShopsData({ page, itemsPerPage }) {
+    async FetchWorkShopsData(params = {}) {
       this.loading = true;
       try {
         setContentType('application/json');
-        const { data: res } = await axios.get(
-          `work-shops?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const items = res?.data ?? res ?? [];
-        this.WorkShops = Array.isArray(items) ? items : [];
-        this.totalItems = res?.meta?.total ?? res?.total ?? this.WorkShops.length;
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const { data: res } = await axios.get(`work-shops`, {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'WorkShops');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -972,8 +1011,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
@@ -1012,7 +1049,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.success('ریکارډ  بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
-
       } catch (e) {
         console.error(e);
         this.error = e;

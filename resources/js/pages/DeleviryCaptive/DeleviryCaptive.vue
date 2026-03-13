@@ -270,7 +270,13 @@
         </div>
       </template>
     </FilterableTable>
-
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:itemsPerPage="handlePerPageChange"
+    />
     <!-- 🖼 IMAGE PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520">
       <v-card>
@@ -331,7 +337,7 @@
 
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
-
+  import GlobalPagination from '@/components/GlobalPagination.vue';
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
   const router = useRouter();
@@ -616,19 +622,20 @@
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchCaptiveDeliveriesData({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search,
-      });
+      await repo.FetchCaptiveDeliveriesData();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست زندانی ها'));
     }
   }
+  function handlePageChange(value) {
+    repo.page = value;
+    fetchAll();
+  }
 
-  function clearSearch() {
-    repo.Search = '';
+  function handlePerPageChange(value) {
+    repo.itemsPerPage = value;
+    repo.page = 1;
     fetchAll();
   }
 
@@ -663,7 +670,14 @@
     previewSrc.value = normalized;
     previewOpen.value = true;
   }
-
+  function clearSearch() {
+    repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+  watch(cardFilter, () => {
+    repo.page = 1;
+  });
   /* init */
   onMounted(async () => {
     await fetchAll();

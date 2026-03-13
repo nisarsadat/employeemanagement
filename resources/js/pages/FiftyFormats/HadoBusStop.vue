@@ -161,7 +161,8 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    ><template #cell-picture="{ row }">
+    >
+      <template #cell-picture="{ row }">
         <PictureCell
           :picture="row.picture"
           :alt="row.name"
@@ -169,6 +170,7 @@
           :close-text="t('بستن')"
         />
       </template>
+
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP (same behavior as Heist) -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -244,6 +246,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -272,9 +282,10 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useSchoolRepository } from '@/stores/SchoolRepository';
-import PictureCell from '@/components/table/PictureCell.vue';
+  import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useSchoolRepository();
   const router = useRouter();
@@ -346,7 +357,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   /* TABLE HEADERS – all fields + map + actions */
   const headersFT = computed(() => [
-  { title: t('picture'), key: 'picture' },
+    { title: t('picture'), key: 'picture' },
 
     { title: t('نام ایستگاه'), key: 'name' },
     { title: t('نوع هدا'), key: 'hada_type' },
@@ -464,19 +475,27 @@ import PictureCell from '@/components/table/PictureCell.vue';
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchHadoBusStopsData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchHadoBusStopsData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست ایستگاه‌های هدا'));
     }
   }
 
+  function handlePageChange(page) {
+    repo.page = page;
+    fetchAll();
+  }
+
+  function handlePerPageChange(perPage) {
+    repo.itemsPerPage = perPage;
+    repo.page = 1;
+    fetchAll();
+  }
+
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
     fetchAll();
   }
 

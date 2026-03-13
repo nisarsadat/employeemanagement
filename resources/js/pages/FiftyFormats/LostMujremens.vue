@@ -21,7 +21,12 @@
             color="primary"
             rounded="lg"
             hide-details
-            @keyup.enter="fetchAll"
+            @keyup.enter="
+              () => {
+                repo.page = 1;
+                fetchAll();
+              }
+            "
             clearable
             @click:clear="clearSearch"
             class="bg-white"
@@ -159,15 +164,10 @@
       @edit="goEdit"
       @peek="openPeek"
     >
-    
       <!-- ✅ تصویر: now supports picture / photo / picture_url -->
       <template #cell-picture="{ row }">
         <div v-if="getPicture(row)" class="pic-wrap">
-          <v-avatar
-            size="32"
-            class="cursor-pointer"
-            @click.stop="openPreview(getPicture(row))"
-          >
+          <v-avatar size="32" class="cursor-pointer" @click.stop="openPreview(getPicture(row))">
             <v-img :src="normalizePicture(getPicture(row))" :alt="row.name" cover />
           </v-avatar>
         </div>
@@ -216,12 +216,7 @@
           <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده مجرم گم شده')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -240,20 +235,20 @@
               </v-icon>
             </template>
           </v-tooltip>
-<!-- دانلود اسناد -->
-<v-tooltip :text="t('دانلود اسناد مربوط به مجرم گم شده')" location="top">
-  <template #activator="{ props: tooltipProps }">
-    <v-icon
-      v-bind="tooltipProps"
-      size="small"
-      color="green-darken-2"
-      :disabled="!hasDocuments(item)"
-      @click.stop="downloadLostMujremeenDocs(item)"
-    >
-      mdi-paperclip
-    </v-icon>
-  </template>
-</v-tooltip>
+          <!-- دانلود اسناد -->
+          <v-tooltip :text="t('دانلود اسناد مربوط به مجرم گم شده')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="green-darken-2"
+                :disabled="!hasDocuments(item)"
+                @click.stop="downloadLostMujremeenDocs(item)"
+              >
+                mdi-paperclip
+              </v-icon>
+            </template>
+          </v-tooltip>
 
           <!-- حذف -->
           <v-tooltip :text="t('حذف مجرم گم شده')" location="top">
@@ -271,6 +266,14 @@
         </div>
       </template>
     </FilterableTable>
+
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
 
     <!-- 🖼 IMAGE PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520">
@@ -320,369 +323,380 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FlyToMapButton from '@/components/FlyToMapButton.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
-import { useMawadRepository } from '@/stores/MawadRepository';
+  import { useMawadRepository } from '@/stores/MawadRepository';
 
-const repo = useMawadRepository();
-const router = useRouter();
+  const repo = useMawadRepository();
+  const router = useRouter();
 
-/* i18n / RTL */
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showErrorMessage = (m) => {
-  errorMessage.value = m;
-  showError.value = true;
-};
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
+  };
 
-/* 🔗 go to Resources page for this resource_code */
-function goToResource(row) {
-  if (!row?.resource_code) return;
-  router.push(`/app/resources/${row.resource_code}`);
-}
+  /* 🔗 go to Resources page for this resource_code */
+  function goToResource(row) {
+    if (!row?.resource_code) return;
+    router.push(`/app/resources/${row.resource_code}`);
+  }
 
-/* Helpers */
-const getRow = (s) => (s && s.raw ? s.raw : s);
+  /* Helpers */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
 
-/* ✅ Picture resolver: supports multiple possible keys */
-function getPicture(row) {
-  if (!row) return null;
-  return row.picture || row.photo || row.picture_url || row.image || null;
-}
+  /* ✅ Picture resolver: supports multiple possible keys */
+  function getPicture(row) {
+    if (!row) return null;
+    return row.picture || row.photo || row.picture_url || row.image || null;
+  }
 
-/* rows from store */
-const rowsFT = computed(() => {
-  const list = repo.LostMujremeens || repo.items || [];
-  if (Array.isArray(list)) return list;
-  if (Array.isArray(list.data)) return list.data;
-  return [];
-});
-function hasDocuments(payload) {
-  const row = getRow(payload);
-  const docs = row?.documents;
-  return Array.isArray(docs) && docs.length > 0;
-}
-async function downloadLostMujremeenDocs(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
+  /* rows from store */
+  const rowsFT = computed(() => {
+    const list = repo.LostMujremeens || repo.items || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
+    return [];
+  });
+  function hasDocuments(payload) {
+    const row = getRow(payload);
+    const docs = row?.documents;
+    return Array.isArray(docs) && docs.length > 0;
+  }
+  async function downloadLostMujremeenDocs(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
 
-  try {
-    if (typeof repo.DownloadLostMujremeenZip === 'function') {
-      await repo.DownloadLostMujremeenZip(row.id);
-    } else {
-      console.warn('DownloadLostMujremeenZip not implemented on repo');
-      showErrorMessage(t('دانلود اسناد برای این مجرم هنوز تنظیم نشده است'));
+    try {
+      if (typeof repo.DownloadLostMujremeenZip === 'function') {
+        await repo.DownloadLostMujremeenZip(row.id);
+      } else {
+        console.warn('DownloadLostMujremeenZip not implemented on repo');
+        showErrorMessage(t('دانلود اسناد برای این مجرم هنوز تنظیم نشده است'));
+      }
+    } catch (e) {
+      console.error('downloadLostMujremeenDocs error', e);
+      showErrorMessage(t('خطا در دانلود اسناد مجرم گم شده'));
     }
-  } catch (e) {
-    console.error('downloadLostMujremeenDocs error', e);
-    showErrorMessage(t('خطا در دانلود اسناد مجرم گم شده'));
   }
-}
 
-/* 🔢 Filter cards state */
-const cardFilter = ref('all');
+  /* 🔢 Filter cards state */
+  const cardFilter = ref('all');
 
-const stats = computed(() => {
-  const rows = rowsFT.value || [];
-  const total = rows.length;
-  const withCoordinates = rows.filter(
-    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
-  ).length;
-  const withPhone = rows.filter(
-    (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
-  ).length;
-  const withJorm = rows.filter((r) => r && r.jorm && String(r.jorm).trim() !== '').length;
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
+    const withCoordinates = rows.filter(
+      (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
+    const withPhone = rows.filter(
+      (r) => r && r.phone_number && String(r.phone_number).trim() !== ''
+    ).length;
+    const withJorm = rows.filter((r) => r && r.jorm && String(r.jorm).trim() !== '').length;
 
-  return { total, withCoordinates, withPhone, withJorm };
-});
+    return { total, withCoordinates, withPhone, withJorm };
+  });
 
-const filteredRowsFT = computed(() => {
-  const base = rowsFT.value || [];
-  switch (cardFilter.value) {
-    case 'withCoordinates':
-      return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
-    case 'withPhone':
-      return base.filter((r) => r && r.phone_number && String(r.phone_number).trim() !== '');
-    case 'withJorm':
-      return base.filter((r) => r && r.jorm && String(r.jorm).trim() !== '');
-    default:
-      return base;
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+    switch (cardFilter.value) {
+      case 'withCoordinates':
+        return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+      case 'withPhone':
+        return base.filter((r) => r && r.phone_number && String(r.phone_number).trim() !== '');
+      case 'withJorm':
+        return base.filter((r) => r && r.jorm && String(r.jorm).trim() !== '');
+      default:
+        return base;
+    }
+  });
+
+  /* TABLE HEADERS */
+  const headersFT = computed(() => [
+    { title: t('تصویر'), key: 'picture', sortable: false },
+    { title: t('نام مستعار'), key: 'nickname' },
+    { title: t('نام'), key: 'name' },
+    { title: t('نام پدر'), key: 'father_name' },
+
+    { title: t('ولایت اصلی'), key: 'main_province' },
+    { title: t('ولسوالی اصلی'), key: 'main_district' },
+    { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+
+    { title: t('ولایت فعلی'), key: 'now_province' },
+    { title: t('ولسوالی فعلی'), key: 'now_district' },
+    { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
+    { title: t('موقعیت فعلی مشخص'), key: 'now_specific_place' },
+    { title: t('سرک فعلی'), key: 'now_street_number' },
+    { title: t('خانه فعلی'), key: 'now_home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
+
+    { title: t('ولایت احتمالی'), key: 'province' },
+    { title: t('زون احتمالی'), key: 'zone' },
+    { title: t('ولسوالی احتمالی'), key: 'district' },
+
+    { title: t('وظیفه قبلی'), key: 'old_job' },
+    { title: t('جرم'), key: 'jorm' },
+    { title: t('تاریخچه جرم'), key: 'history_jorm' },
+    { title: t('دلیل مفقودی'), key: 'lost_reason' },
+    { title: t('شماره تماس'), key: 'phone_number' },
+
+    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
+
+    { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note' },
+  ]);
+
+  /* TOP GROUPS */
+  const topGroups = computed(() => [
+    { title: t('مشخصات'), keys: ['name', 'nickname', 'father_name'] },
+    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+    {
+      title: t('آدرس فعلی'),
+      keys: [
+        'now_province',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+      ],
+    },
+    { title: t('موقعیت عمومی'), keys: ['province', 'zone', 'district'] },
+    {
+      title: t('اطلاعات'),
+      keys: ['old_job', 'jorm', 'history_jorm', 'lost_reason', 'phone_number', 'coordinates'],
+    },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+    { title: t('دیگر'), keys: ['note', 'Province_addr'] },
+  ]);
+
+  const filters = ref({});
+
+  /* Peek */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      if (typeof repo.FetchLostMujremeenData === 'function') {
+        await repo.FetchLostMujremeenData(id);
+        const single = Array.isArray(repo.LostMujremeen)
+          ? repo.LostMujremeen[0]
+          : repo.LostMujremeen;
+        detail.value = single || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات مجرم گم شده'));
+    } finally {
+      loadingOne.value = false;
+    }
   }
-});
 
-/* TABLE HEADERS */
-const headersFT = computed(() => [
-  { title: t('تصویر'), key: 'picture', sortable: false },
-  { title: t('نام مستعار'), key: 'nickname' },
-  { title: t('نام'), key: 'name' },
-  { title: t('نام پدر'), key: 'father_name' },
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
 
-  { title: t('ولایت اصلی'), key: 'main_province' },
-  { title: t('ولسوالی اصلی'), key: 'main_district' },
-  { title: t('قریه/ناحیه اصلی'), key: 'main_village' },
+  /* navigation */
+  function goCreate() {
+    router.push('/app/lost-mujremeen-form');
+  }
 
-  { title: t('ولایت فعلی'), key: 'now_province' },
-  { title: t('ولسوالی فعلی'), key: 'now_district' },
-  { title: t('قریه/ناحیه فعلی'), key: 'now_village' },
-  { title: t('موقعیت فعلی مشخص'), key: 'now_specific_place' },
-  { title: t('سرک فعلی'), key: 'now_street_number' },
-  { title: t('خانه فعلی'), key: 'now_home_number' },
-  { title: t('مختصات'), key: 'coordinates' },
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/lost-mujremeen-form/${row.id}`);
+  }
 
-  { title: t('ولایت احتمالی'), key: 'province' },
-  { title: t('زون احتمالی'), key: 'zone' },
-  { title: t('ولسوالی احتمالی'), key: 'district' },
+  /* delete with dialog */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-  { title: t('وظیفه قبلی'), key: 'old_job' },
-  { title: t('جرم'), key: 'jorm' },
-  { title: t('تاریخچه جرم'), key: 'history_jorm' },
-  { title: t('دلیل مفقودی'), key: 'lost_reason' },
-  { title: t('شماره تماس'), key: 'phone_number' },
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
 
-
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone' },
-
-  { title: t('نقشه'), key: 'map', sortable: false },
-  { title: t('یادداشت'), key: 'note' },
-
-]);
-
-/* TOP GROUPS */
-const topGroups = computed(() => [
-  { title: t('مشخصات'), keys: ['name', 'nickname', 'father_name'] },
-  { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-  {
-    title: t('آدرس فعلی'),
-    keys: [
-      'now_province',
-      'now_district',
-      'now_village',
-      'now_specific_place',
-      'now_street_number',
-      'now_home_number',
-    ],
-  },
-  { title: t('موقعیت عمومی'), keys: ['province', 'zone', 'district'] },
-  {
-    title: t('اطلاعات'),
-    keys: ['old_job', 'jorm', 'history_jorm', 'lost_reason', 'phone_number', 'coordinates'],
-  },
-  { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
-  { title: t('دیگر'), keys: ['note', 'Province_addr'] },
-]);
-
-const filters = ref({});
-
-/* Peek */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loadingOne.value = true;
-  try {
-    if (typeof repo.FetchLostMujremeenData === 'function') {
-      await repo.FetchLostMujremeenData(id);
-      const single = Array.isArray(repo.LostMujremeen)
-        ? repo.LostMujremeen[0]
-        : repo.LostMujremeen;
-      detail.value = single || {};
-    } else {
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    deleteDialog.value = false;
+    if (!row?.id) return;
+    try {
+      await repo.DeleteLostMujremeen?.(row.id);
       await fetchAll();
-      const list = rowsFT.value || [];
-      detail.value = list.find((r) => r.id === id) || {};
+      showErrorMessage(t('حذف شد'));
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteTarget.value = null;
     }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات مجرم گم شده'));
-  } finally {
-    loadingOne.value = false;
   }
-}
 
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
+  /* fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchLostMujremeensData?.({
+        page: repo.page,
+        perPage: repo.itemsPerPage,
+        search: repo.Search || '',
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست مجرمین گم شده'));
+    }
+  }
 
-/* navigation */
-function goCreate() {
-  router.push('/app/lost-mujremeen-form');
-}
+  function handlePageChange(page) {
+    repo.page = page;
+    fetchAll();
+  }
 
-function goEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/lost-mujremeen-form/${row.id}`);
-}
+  function handlePerPageChange(perPage) {
+    repo.itemsPerPage = perPage;
+    repo.page = 1;
+    fetchAll();
+  }
 
-/* delete with dialog */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
+  function clearSearch() {
+    repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
 
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
+  /* IMAGE PREVIEW helpers */
+  const previewOpen = ref(false);
+  const previewSrc = ref(null);
 
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  deleteDialog.value = false;
-  if (!row?.id) return;
-  try {
-    await repo.DeleteLostMujremeen?.(row.id);
+  function normalizePicture(src) {
+    if (!src) return null;
+    let clean = String(src).trim();
+
+    if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
+
+    clean = clean.replace(/\\\//g, '/');
+
+    if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+    if (clean.startsWith('/')) return clean;
+
+    return '/' + clean.replace(/^\/+/, '');
+  }
+
+  function openPreview(src) {
+    const normalized = normalizePicture(src);
+    if (!normalized) return;
+    previewSrc.value = normalized;
+    previewOpen.value = true;
+  }
+
+  /* init */
+  onMounted(async () => {
     await fetchAll();
-    showErrorMessage(t('حذف شد'));
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در حذف'));
-  } finally {
-    deleteTarget.value = null;
-  }
-}
-
-/* fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchLostMujremeensData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت فهرست مجرمین گم شده'));
-  }
-}
-
-function clearSearch() {
-  repo.Search = '';
-  fetchAll();
-}
-
-/* IMAGE PREVIEW helpers */
-const previewOpen = ref(false);
-const previewSrc = ref(null);
-
-function normalizePicture(src) {
-  if (!src) return null;
-  let clean = String(src).trim();
-
-  if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
-
-  clean = clean.replace(/\\\//g, '/');
-
-  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-  if (clean.startsWith('/')) return clean;
-
-  return '/' + clean.replace(/^\/+/, '');
-}
-
-function openPreview(src) {
-  const normalized = normalizePicture(src);
-  if (!normalized) return;
-  previewSrc.value = normalized;
-  previewOpen.value = true;
-}
-
-/* init */
-onMounted(async () => {
-  await fetchAll();
-});
+  });
 </script>
 
 <style scoped>
-.ga-2 {
-  gap: 8px;
-}
+  .ga-2 {
+    gap: 8px;
+  }
 
-/* Background similar to other index pages */
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
+  /* Background similar to other index pages */
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
+  }
 
-/* Stats cards */
-.stat-card {
-  cursor: pointer;
-  border-radius: 14px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
-    background-color 0.2s ease;
-}
+  /* Stats cards */
+  .stat-card {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
 
-.stat-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  border-color: rgba(33, 150, 243, 0.35);
-}
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
+  }
 
-.stat-card--active {
-  border-color: rgba(25, 118, 210, 0.9);
-  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
-}
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+  }
 
-.stat-card-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
 
-.stat-card-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e3f2fd;
-}
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
 
-.stat-card-text {
-  display: flex;
-  flex-direction: column;
-}
+  .stat-card-text {
+    display: flex;
+    flex-direction: column;
+  }
 
-.stat-card-title {
-  font-size: 13px;
-  font-weight: 700;
-}
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
 
-.stat-card-subtitle {
-  font-size: 11px;
-  color: #666;
-}
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
+  }
 
-/* picture */
-.pic-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
+  /* picture */
+  .pic-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
 
-.cursor-pointer {
-  cursor: pointer;
-}
+  .cursor-pointer {
+    cursor: pointer;
+  }
 </style>

@@ -73,7 +73,8 @@
       class="mb-20 mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    ><template #cell-picture="{ row }">
+    >
+      <template #cell-picture="{ row }">
         <PictureCell
           :picture="row.picture"
           :alt="row.name"
@@ -81,6 +82,7 @@
           :close-text="t('بستن')"
         />
       </template>
+
       <!-- 🔗 Resource code clickable -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به منبع')" location="top">
@@ -146,6 +148,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- DELETE DIALOG -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -166,9 +176,10 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
+  import PictureCell from '@/components/table/PictureCell.vue';
 
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
-import PictureCell from '@/components/table/PictureCell.vue';
 
   const repo = useBadmashanoRepository();
   const router = useRouter();
@@ -240,7 +251,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   /* TABLE HEADERS – WITH PICTURE + MAP */
   const headersFT = computed(() => [
-  { title: t('picture'), key: 'picture' },
+    { title: t('picture'), key: 'picture' },
 
     { title: t('نام خواب گاه'), key: 'hostel_name' },
     { title: t('نوع خواب گاه'), key: 'hostel_type' },
@@ -261,13 +272,11 @@ import PictureCell from '@/components/table/PictureCell.vue';
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('مختصات'), key: 'coordenates' },
 
-
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('یادداشت'), key: 'note' },
-
   ]);
 
   /* TOP GROUPS */
@@ -364,11 +373,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchHostelsData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchHostelsData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست خواب گاه ها'));
@@ -377,6 +382,18 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(page) {
+    repo.page = page;
+    fetchAll();
+  }
+
+  function handlePerPageChange(itemsPerPage) {
+    repo.itemsPerPage = itemsPerPage;
+    repo.page = 1;
     fetchAll();
   }
 

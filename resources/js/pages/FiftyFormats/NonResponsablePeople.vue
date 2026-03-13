@@ -22,7 +22,7 @@
             color="primary"
             rounded="lg"
             hide-details
-            @keyup.enter="fetchAll"
+            @keyup.enter="handleSearch"
             clearable
             @click:clear="clearSearch"
             class="bg-white"
@@ -155,7 +155,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class="mb-6 mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -256,6 +256,15 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      class="mx-2 mb-20"
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -309,6 +318,7 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useMawadRepository } from '@/stores/MawadRepository';
 
@@ -409,13 +419,11 @@
     { title: t('تنظیم'), key: 'tanzim' },
     { title: t('نوع تخلف'), key: 'takhalof_type' },
 
-
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
-    { title: t('یادداشت'), key: 'note'},
-
+    { title: t('یادداشت'), key: 'note' },
   ]);
 
   /* TOP GROUPS – like old component */
@@ -487,6 +495,7 @@
     if (!row?.id) return;
     router.push(`/app/non-responsable-people-form/${row.id}`);
   }
+
   const imgDialog = ref(false);
   const imgSrc = ref('');
 
@@ -511,7 +520,7 @@
     deleteDialog.value = false;
     if (!row?.id) return;
     try {
-      await repo.DeleteNonResponsable?.(row.id);
+      await repo.DeleteNonResponsablePeople?.(row.id);
       await fetchAll();
       showErrorMessage(t('حذف شد'));
     } catch (e) {
@@ -525,19 +534,32 @@
   /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchNonResponsablePeoplesData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchNonResponsablePeoplesData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست اشخاص غیرمسؤول'));
     }
   }
 
+  function handleSearch() {
+    repo.page = 1;
+    fetchAll();
+  }
+
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(val) {
+    repo.page = val;
+    fetchAll();
+  }
+
+  function handlePerPageChange(val) {
+    repo.itemsPerPage = val;
+    repo.page = 1;
     fetchAll();
   }
 

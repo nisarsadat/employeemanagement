@@ -151,6 +151,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- Create/Edit Dialog -->
     <KhayratReportFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
 
@@ -181,6 +189,7 @@
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import KhayratReportFormDialog from './KhayratReportFormDialog.vue';
   import { useKhayratReportRepository } from '@/stores/KhayratReportRepository';
@@ -269,12 +278,12 @@
 
   async function fetchAll() {
     try {
-      const res = await repo.FetchKhayratReportsData({
-        page: 1,
-        perPage: 100000,
+      await repo.FetchKhayratReportsData({
+        page: repo.page,
+        perPage: repo.itemsPerPage,
         search: search.value,
       });
-      rows.value = res?.data || [];
+      rows.value = repo.KhayratReports || [];
     } catch (e) {
       console.error('fetchAll khayrat reports error', e);
       showErrorMessage(t('خطا در دریافت گزارش‌ها'));
@@ -283,10 +292,27 @@
 
   function clearSearch() {
     search.value = '';
+    repo.page = 1;
     fetchAll();
   }
 
-  watch(search, () => fetchAll());
+  function handlePageChange(p) {
+    repo.page = p;
+    fetchAll();
+  }
+
+  function handlePerPageChange(n) {
+    repo.itemsPerPage = n;
+    repo.perPage = n;
+    repo.page = 1;
+    fetchAll();
+  }
+
+  watch(search, () => {
+    repo.page = 1;
+    fetchAll();
+  });
+
   onMounted(fetchAll);
 </script>
 

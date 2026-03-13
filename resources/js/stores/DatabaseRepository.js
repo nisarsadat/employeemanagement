@@ -4,6 +4,7 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
+import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
 // === ZONE <-> HAWZA mapping (from your picture) ===
 const ZONE_HAWZA_MAP = {
   'لومړی زون': ['حوزه ۳', 'حوزه ۷', 'حوزه ۶', 'حوزه ۸', 'حوزه ۱۸'],
@@ -265,23 +266,25 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     async FetchResourcesData(params = {}) {
       this.loading = true;
       try {
-        const res = await axios.get('/resources', {
-          params: {
-            page: params.page ?? 1,
-            perPage: params.itemsPerPage ?? 100,
-            search: params.search ?? this.Search ?? '',
+        setContentType('application/json');
 
-            // ✅ NEW FILTERS
-            year: params.year ?? null,
-            month: params.month ?? null,
-            date_field: params.date_field ?? 'resource_saved_date',
-          },
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: true,
+          defaultDateField: 'resource_saved_date',
         });
 
-        const items = res.data?.data ?? res.data ?? [];
-        this.Resources = Array.isArray(items) ? items : [];
+        const res = await axios.get('/resources', {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Resources');
       } catch (e) {
         console.error(e);
+        this.error = e;
+        this.Resources = [];
+        this.totalItems = 0;
       } finally {
         this.loading = false;
       }
@@ -312,7 +315,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         });
         await this.FetchResourcesData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
         return res?.data ?? res;
       } catch (e) {
@@ -339,7 +342,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         });
         await this.FetchResourcesData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
         return res?.data ?? res;
       } catch (e) {
@@ -358,7 +361,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         });
         await this.FetchResourcesData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
       } catch (e) {
         console.error(e);
@@ -378,22 +381,18 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       try {
         setContentType('application/json');
 
-        const res = await axios.get('/events', {
-          params: {
-            page: params.page ?? this.page,
-            perPage: params.perPage ?? params.itemsPerPage ?? this.itemsPerPage,
-            search: params.search ?? this.Search ?? '',
-
-            // ✅ NEW: filter support
-            year: params.year ?? null,
-            month: params.month ?? null,
-            date_field: params.date_field ?? 'event_date',
-          },
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: true,
+          defaultDateField: 'event_date',
         });
 
-        const items = res.data?.data ?? res.data ?? [];
-        this.Events = Array.isArray(items) ? items : [];
-        this.totalItems = res.data?.meta?.total ?? res.data?.total ?? this.Events.length;
+        const res = await axios.get('/events', {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Events');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -426,7 +425,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         });
         await this.FetchEventsData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
         return data?.data ?? data;
       } catch (e) {
@@ -453,7 +452,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         });
         await this.FetchEventsData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
         return res?.data ?? res;
       } catch (e) {
@@ -472,7 +471,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         });
         await this.FetchEventsData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
       } catch (e) {
         console.error(e);
@@ -533,22 +532,18 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       try {
         setContentType('application/json');
 
-        const res = await axios.get('/informations', {
-          params: {
-            page: params.page ?? 1,
-            perPage: params.itemsPerPage ?? params.perPage ?? 100,
-            search: params.search ?? this.Search ?? '',
-
-            // ✅ NEW: month/year filter support (same as officeemployees)
-            year: params.year ?? null,
-            month: params.month ?? null,
-            date_field: params.date_field ?? 'information_saved_date',
-          },
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: true,
+          defaultDateField: 'information_saved_date',
         });
 
-        const items = res.data?.data ?? res.data ?? [];
-        this.Informations = Array.isArray(items) ? items : [];
-        this.totalItems = res.data?.meta?.total ?? res.data?.total ?? this.Informations.length;
+        const res = await axios.get('/informations', {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'Informations');
       } catch (e) {
         console.error(e);
         this.error = e;
@@ -587,7 +582,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         toast.success('اطلاعات اضافه شو', { autoClose: 1000 });
         await this.FetchInformationsData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
         return data?.data ?? data;
       } catch (e) {
@@ -620,7 +615,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         toast.success('اطلاعات تغییر شو', { autoClose: 1000 });
         await this.FetchInformationsData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
         return res?.data ?? res;
       } catch (e) {
@@ -635,7 +630,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         toast.success('Information deleted', { autoClose: 1100 });
         await this.FetchInformationsData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
       } catch (e) {
         console.error(e);
@@ -689,17 +684,28 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     },
     // ====================== CAPTIVE DELIVERIES ======================
     // --- Captive Delivery list fetch (you already have this) ---
-    async FetchCaptiveDeliveriesData({ page, itemsPerPage }) {
+    async FetchCaptiveDeliveriesData(params = {}) {
       this.loading = true;
+
       try {
-        const { data } = await axios.get(
-          `captive-deliveries?page=${page}&perPage=${itemsPerPage}&search=${encodeURIComponent(
-            this.Search || ''
-          )}`
-        );
-        const list = Array.isArray(data) ? data : data.data ?? data.items ?? [];
-        this.CaptiveDeliveries = list;
-        this.totalItems = data?.meta?.total ?? data?.total ?? list.length;
+        setContentType('application/json');
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: false,
+        });
+
+        const res = await axios.get('/captive-deliveries', {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, res, 'CaptiveDeliveries');
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        this.CaptiveDeliveries = [];
+        this.totalItems = 0;
       } finally {
         this.loading = false;
       }
@@ -724,7 +730,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         toast.success('Delevery Captive deleted', { autoClose: 1100 });
         await this.FetchCaptiveDeliveriesData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
       } catch (e) {
         console.error(e);
@@ -750,7 +756,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         toast.success('تسلیم شوی بندي اضافه شوه', { autoClose: 1000 });
         await this.FetchCaptiveDeliveriesData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
         return data?.data ?? data;
       } catch (e) {
@@ -783,7 +789,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         toast.success('تسلیم شوی بندي تغییر شو', { autoClose: 1000 });
         await this.FetchCaptiveDeliveriesData({
           page: this.page,
-          itemsPerPage: this.itemsPerPage,
+          perPage: this.itemsPerPage,
         });
         return res?.data ?? res;
       } catch (e) {

@@ -24,7 +24,7 @@
       <v-row class="align-center">
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
-            v-model.trim="search"
+            v-model.trim="repo.Search"
             :label="t('جستجو...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
@@ -60,7 +60,7 @@
     <v-row class="px-2 mt-1">
       <v-col cols="12" class="d-flex justify-end">
         <div class="text-caption text-medium-emphasis">
-          {{ t('تعداد') }}: <b>{{ rowsFT.length }}</b>
+          {{ t('تعداد') }}: <b>{{ repo.totalItems }}</b>
         </div>
       </v-col>
     </v-row>
@@ -72,7 +72,7 @@
       :showIndex="true"
       :rtl="isRtl"
       :loading="repo.loading"
-      class="mb-20 mx-2"
+      class="mb-4 mx-2"
     >
       <template #cell-name="{ row }">
         <div class="d-flex align-center justify-center w-100">
@@ -94,6 +94,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- Dialog -->
     <FormatZoneFormDialog v-model="dialog" :editId="editId" @saved="fetchAll" />
 
@@ -108,79 +116,83 @@
 </template>
 
 <script setup>
-  import { ref, computed, watch, onMounted } from 'vue';
-  import { useI18n } from 'vue-i18n';
+import { ref, computed, watch, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-  import AppBar from '@/components/AppBar.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import AppBar from '@/components/AppBar.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
-  import FormatZoneFormDialog from './FormatZoneFormDialog.vue';
-  import { useFormatZoneRepository } from '@/stores/FormatZoneRepository';
+import FormatZoneFormDialog from './FormatZoneFormDialog.vue';
+import { useFormatZoneRepository } from '@/stores/FormatZoneRepository';
 
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (v) => (isRtl.value = v === 'fa'));
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (v) => (isRtl.value = v === 'fa'));
 
-  const repo = useFormatZoneRepository();
+const repo = useFormatZoneRepository();
 
-  const dialog = ref(false);
-  const editId = ref(null);
+const dialog = ref(false);
+const editId = ref(null);
 
-  const deleteDialog = ref(false);
-  const deleteTarget = ref(null);
+const deleteDialog = ref(false);
+const deleteTarget = ref(null);
 
-  const search = ref('');
-  const rows = ref([]);
+const headersFT = computed(() => [{ title: t('نام فارمت زون'), key: 'name', align: 'center' }]);
 
-  const headersFT = computed(() => [{ title: t('نام فارمت زون'), key: 'name', align: 'center' }]);
+const rowsFT = computed(() => repo.FormatZones || []);
 
-  const rowsFT = computed(() => rows.value || []);
+function openCreate() {
+  editId.value = null;
+  dialog.value = true;
+}
 
-  function openCreate() {
-    editId.value = null;
-    dialog.value = true;
-  }
+function startEdit(payload) {
+  const row = payload?.raw ?? payload;
+  if (!row?.id) return;
+  editId.value = row.id;
+  dialog.value = true;
+}
 
-  function startEdit(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-    editId.value = row.id;
-    dialog.value = true;
-  }
+function openDelete(payload) {
+  const row = payload?.raw ?? payload;
+  if (!row?.id) return;
+  deleteTarget.value = row;
+  deleteDialog.value = true;
+}
 
-  function openDelete(payload) {
-    const row = payload?.raw ?? payload;
-    if (!row?.id) return;
-    deleteTarget.value = row;
-    deleteDialog.value = true;
-  }
+async function confirmDelete(payload) {
+  const row = payload?.raw ?? payload ?? deleteTarget.value;
+  if (!row?.id) return;
 
-  async function confirmDelete(payload) {
-    const row = payload?.raw ?? payload ?? deleteTarget.value;
-    if (!row?.id) return;
+  await repo.DeleteFormatZone(row.id);
+  await fetchAll();
 
-    await repo.DeleteFormatZone(row.id);
-    await fetchAll();
+  deleteDialog.value = false;
+  deleteTarget.value = null;
+}
 
-    deleteDialog.value = false;
-    deleteTarget.value = null;
-  }
+async function fetchAll() {
+  await repo.FetchFormatZones();
+}
 
-  async function fetchAll() {
-    const res = await repo.FetchFormatZones({
-      page: 1,
-      perPage: 10000,
-      search: search.value,
-    });
-    rows.value = res?.data || [];
-  }
+function clearSearch() {
+  repo.Search = '';
+  repo.page = 1;
+  fetchAll();
+}
 
-  function clearSearch() {
-    search.value = '';
-    fetchAll();
-  }
+function handlePageChange(page) {
+  repo.page = page;
+  fetchAll();
+}
 
-  watch(search, fetchAll);
-  onMounted(fetchAll);
+function handlePerPageChange(perPage) {
+  repo.itemsPerPage = perPage;
+  repo.page = 1;
+  fetchAll();
+}
+
+onMounted(fetchAll);
 </script>

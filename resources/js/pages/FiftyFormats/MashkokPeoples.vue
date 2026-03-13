@@ -171,7 +171,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class="mb-4 mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -277,6 +277,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🖼 IMAGE PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520">
       <v-card>
@@ -334,6 +342,7 @@ import FilterableTable from '@/components/FilterableTable.vue';
 import PeekButton from '@/components/PeekButton.vue';
 import FlyToMapButton from '@/components/FlyToMapButton.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 
@@ -436,15 +445,13 @@ const headersFT = computed(() => [
   { title: t('نوعیت مشکوکیت'), key: 'mashkokyat_type' },
   { title: t('شماره تماس'), key: 'phone_number' },
 
-
   { title: t('کود منبع'), key: 'resource_code' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
-  { title: t('تفصیل'), key: 'tafseel'},
+  { title: t('تفصیل'), key: 'tafseel' },
 
   { title: t('نقشه'), key: 'map', sortable: false },
-  { title: t('یادداشت'), key: 'note'},
-
+  { title: t('یادداشت'), key: 'note' },
 ]);
 
 /* TOP GROUPS – group everything nicely */
@@ -560,19 +567,27 @@ async function handleDeleteConfirmed(target) {
 /* fetch all */
 async function fetchAll() {
   try {
-    await repo.FetchMashkokPeoplesData?.({
-      page: 1,
-      itemsPerPage: 100000,
-      search: repo.Search || '',
-    });
+    await repo.FetchMashkokPeoplesData?.();
   } catch (e) {
     console.error(e);
     showErrorMessage(t('خطا در دریافت فهرست افراد مشکوک'));
   }
 }
 
+function handlePageChange(p) {
+  repo.page = p;
+  fetchAll();
+}
+
+function handlePerPageChange(n) {
+  repo.itemsPerPage = n;
+  repo.page = 1;
+  fetchAll();
+}
+
 function clearSearch() {
   repo.Search = '';
+  repo.page = 1;
   fetchAll();
 }
 

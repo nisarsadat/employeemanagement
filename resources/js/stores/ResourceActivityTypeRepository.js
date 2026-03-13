@@ -46,14 +46,16 @@ export const useResourceActivityTypeRepository = defineStore('ResourceActivityTy
       try {
         setContentType('application/json');
 
-        const p = page ?? this.page ?? 1;
-        const per = perPage ?? this.itemsPerPage ?? 10;
+        this.page = page ?? this.page ?? 1;
+        this.itemsPerPage = perPage ?? this.itemsPerPage ?? 10;
 
         const s = search ?? this.Search ?? '';
         this.Search = s;
 
         const { data: res } = await axios.get(
-          `resource-activity-types?page=${p}&perPage=${per}&search=${encodeURIComponent(s || '')}`
+          `resource-activity-types?page=${this.page}&perPage=${
+            this.itemsPerPage
+          }&search=${encodeURIComponent(s || '')}`
         );
 
         const items = res?.data ?? res ?? [];

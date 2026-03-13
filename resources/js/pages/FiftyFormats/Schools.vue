@@ -161,7 +161,8 @@
       :enablePeek="true"
       @edit="goEdit"
       @peek="openPeek"
-    ><template #cell-picture="{ row }">
+    >
+      <template #cell-picture="{ row }">
         <PictureCell
           :picture="row.picture"
           :alt="row.name"
@@ -169,6 +170,7 @@
           :close-text="t('بستن')"
         />
       </template>
+
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
       <template #cell-resource_code="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
@@ -188,6 +190,7 @@
           </template>
         </v-tooltip>
       </template>
+
       <!-- 🗺 MAP COLUMN -->
       <template #cell-map="{ row }">
         <FlyToMapButton
@@ -243,6 +246,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
@@ -273,9 +284,10 @@
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import PeekButton from '@/components/PeekButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useSchoolRepository } from '@/stores/SchoolRepository';
-import PictureCell from '@/components/table/PictureCell.vue';
+  import PictureCell from '@/components/table/PictureCell.vue';
 
   const router = useRouter();
   const repo = useSchoolRepository();
@@ -303,11 +315,13 @@ import PictureCell from '@/components/table/PictureCell.vue';
     if (Array.isArray(list.data)) return list.data;
     return [];
   });
+
   /* 🔗 go to Resources page for this resource_code */
   function goToResource(row) {
     if (!row?.resource_code) return;
     router.push(`/app/resources/${row.resource_code}`);
   }
+
   /* Filter card state + stats */
   const cardFilter = ref('all');
 
@@ -343,7 +357,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   /* Headers */
   const headersFT = computed(() => [
-  { title: t('picture'), key: 'picture' },
+    { title: t('picture'), key: 'picture' },
 
     { title: t('نام مکتب'), key: 'school_name' },
     { title: t('نوع مکتب'), key: 'school_type' },
@@ -371,7 +385,6 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('یادداشت'), key: 'note' },
-
   ]);
 
   /* Top filter groups */
@@ -472,11 +485,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
   /* Fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchSchoolsData?.({
-        page: 1,
-        itemsPerPage: 100000,
-        search: repo.Search || '',
-      });
+      await repo.FetchSchoolsData?.();
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست مکتب ها'));
@@ -485,6 +494,18 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   function clearSearch() {
     repo.Search = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function handlePageChange(val) {
+    repo.page = val;
+    fetchAll();
+  }
+
+  function handlePerPageChange(val) {
+    repo.itemsPerPage = val;
+    repo.page = 1;
     fetchAll();
   }
 
