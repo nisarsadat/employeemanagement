@@ -257,7 +257,7 @@
     </FilterableTable>
 
     <GlobalPagination
-      class="mx-2 mb-20"
+      class="mx-2"
       :page="repo.page"
       :items-per-page="repo.itemsPerPage"
       :total-items="repo.totalItems"
@@ -321,7 +321,9 @@
   import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useMawadRepository } from '@/stores/MawadRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/nonresponsablepeople', fetchAll);
   const repo = useMawadRepository();
   const router = useRouter();
 

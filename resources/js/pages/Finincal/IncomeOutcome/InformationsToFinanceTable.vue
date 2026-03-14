@@ -69,7 +69,9 @@
 import { computed, ref } from 'vue';
 import { useDatabaseRepository } from '@/stores/DatabaseRepository';
 import FinanceFormDialog from './FinancesFormDialog.vue'; // adjust path if needed
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/finincalindex', fetch);
 const dbRepo = useDatabaseRepository();
 const financeDialog = ref(false);
 

@@ -250,7 +250,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import { useOutgoingIncomingRepository } from '@/stores/OutgoingIncomingRepository';
 import { useLoginRepository } from '@/stores/LoginRepository';
+      import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/officeemployee', fetchAll);
 const auth = useLoginRepository();
 const router = useRouter();
 const { t, locale } = useI18n();

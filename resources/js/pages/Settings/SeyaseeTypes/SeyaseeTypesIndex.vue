@@ -156,7 +156,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import SeyaseeTypeFormDialog from './SeyaseeTypeFormDialog.vue';
 import { useSeyaseeTypeRepository } from '@/stores/SeyaseeTypeRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/seyasee-type', fetchAll);
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
 watch(locale, (v) => (isRtl.value = v === 'fa'));

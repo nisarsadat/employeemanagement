@@ -163,7 +163,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-4 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
     ><template #cell-picture="{ row }">
@@ -294,7 +294,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 import PictureCell from '@/components/table/PictureCell.vue';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/masjids', fetchAll);
 const repo = useWakilanoRepository();
 const router = useRouter();
 

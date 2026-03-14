@@ -339,7 +339,7 @@ function scoreLabel(score) {
   if (p >= 80) return t('عالی');
   if (p >= 60) return t('خوب');
   if (p >= 40) return t('متوسط');
-  return t('نیازمند بهبود');
+  return t('د کاري فعالیت درجه');
 }
 
 /* ---------------------------

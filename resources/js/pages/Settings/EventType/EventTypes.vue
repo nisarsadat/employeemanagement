@@ -179,7 +179,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue'
 
 import EventTypeFormDialog from './EventTypeFormDialog.vue'
 import { useEventRepo } from '@/stores/eventRepo'
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/event-types', fetchAll);
 const { t, locale } = useI18n()
 const isRtl = ref(locale.value === 'fa')
 watch(locale, (v) => (isRtl.value = v === 'fa'))

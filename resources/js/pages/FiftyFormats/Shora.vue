@@ -159,7 +159,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -288,7 +288,9 @@
 
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import PictureCell from '@/components/table/PictureCell.vue';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/shoras', fetchAll);
   const repo = useWakilanoRepository();
   const router = useRouter();
 

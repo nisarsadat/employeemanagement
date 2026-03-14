@@ -156,7 +156,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import JobTypeFormDialog from './JobTypeFormDialog.vue';
 import { useJobTypeRepository } from '@/stores/JobTypeRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/jobs-type', fetchAll);
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
 watch(locale, (v) => (isRtl.value = v === 'fa'));

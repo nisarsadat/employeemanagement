@@ -215,11 +215,9 @@
               <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.name"
-                  :label="t('نام *')"
+                  :label="t('نام')"
                   density="compact"
                   variant="outlined"
-                  :error="hasError('name')"
-                  :error-messages="getErrorMessages('name')"
                 />
               </v-col>
 

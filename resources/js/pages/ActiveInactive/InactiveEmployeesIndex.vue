@@ -1,6 +1,6 @@
 <template>
   <div class="p-4 mt-12" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar :title="t('کارمندان غیر فعال')" :subtitle="t('فهرست و جستجو')"> </AppBar>
+    <AppBar :title="t('کارمندان غیر فعال')" :subtitle="t('فهرست و جستجو')" />
 
     <!-- Filters -->
     <div class="mb-3 grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -11,15 +11,18 @@
         class="w-full rounded border border-gray-300 focus:border-gray-500 focus:ring-2 focus:ring-gray-200 px-3 py-2 text-sm"
         @keyup.enter="reload"
       />
+
       <select
-        v-model="repo.perPage"
+        v-model="repo.itemsPerPage"
         class="w-full rounded border border-gray-300 focus:border-gray-500 focus:ring-2 focus:ring-gray-200 px-3 py-2 text-sm"
+        @change="handlePerPageChange(repo.itemsPerPage)"
       >
         <option value="all">{{ t('همه / بدون صفحه‌بندی') }}</option>
         <option :value="10">10</option>
         <option :value="25">25</option>
         <option :value="50">50</option>
       </select>
+
       <button
         type="button"
         class="px-3 py-2 text-sm rounded bg-gray-900 text-white hover:bg-gray-800"
@@ -29,12 +32,13 @@
         {{ repo.loading ? t('در حال بارگیری…') : t('بازخوانی') }}
       </button>
     </div>
+
     <v-col cols="12" md="4" class="d-flex justify-center">
       <v-alert type="info" variant="tonal" density="compact" rounded="lg" class="w-120">
         {{ t('معیار فعال نبودن: نداشتن ۱۰۰ عدد منابع فعال') }}
       </v-alert>
     </v-col>
-    <!-- Table -->
+
     <FilterablePrintTable
       :headers="headers"
       :rows="rowsInactive"
@@ -55,16 +59,16 @@
       :all-label="t('همه')"
       @peek="openDetails"
     >
-      <!-- picture cell with click preview -->
-      <template v-slot:cell-picture="{ row }">
+      <template #cell-picture="{ row }">
         <button
           class="inline-flex items-center justify-center w-9 h-9 rounded overflow-hidden ring-1 ring-gray-200 hover:ring-gray-300"
-          @click="openPic(toSrc(row?.picture))"
+          @click="openPic(toSrc((row?.raw ?? row?.row ?? row)?.picture))"
           :title="t('نمایش عکس')"
+          type="button"
         >
           <img
-            v-if="row?.picture"
-            :src="toSrc(row.picture)"
+            v-if="toSrc((row?.raw ?? row?.row ?? row)?.picture)"
+            :src="toSrc((row?.raw ?? row?.row ?? row)?.picture)"
             class="w-full h-full object-cover"
             @error="hideImgOnError"
           />
@@ -72,6 +76,15 @@
         </button>
       </template>
     </FilterablePrintTable>
+
+    <GlobalPagination
+      :page="repo.inactive.page"
+      :items-per-page="repo.itemsPerPage"
+      :total="repo.inactive.totalItems"
+      @update:page="handlePageChange"
+      @update:itemsPerPage="handlePerPageChange"
+    />
+
     <PeekButton
       v-model="peekOpen"
       :id="peekId"
@@ -85,12 +98,10 @@
       @fetch="fetchOne"
     />
 
-    <!-- Errors -->
     <p v-if="repo.error" class="mt-3 px-3 py-2 text-sm rounded bg-red-50 text-red-700">
       {{ repo.error }}
     </p>
 
-    <!-- Picture Modal -->
     <div
       v-if="picUrl"
       class="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm grid place-items-center p-4"
@@ -106,100 +117,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Details Modal -->
-    <div
-      v-if="selected"
-      class="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm overflow-y-auto"
-      @click.self="selected = null"
-    >
-      <div class="mx-auto my-10 w-[min(980px,92vw)] bg-white rounded-xl shadow-2xl">
-        <div class="flex items-center justify-between px-4 py-3 border-b">
-          <div class="flex items-center gap-3">
-            <button
-              class="inline-flex items-center justify-center w-12 h-12 rounded overflow-hidden ring-1 ring-gray-200"
-              @click="openPic(toSrc(selected?.picture))"
-              v-if="selected"
-            >
-              <img
-                v-if="selected?.picture"
-                :src="toSrc(selected.picture)"
-                class="w-full h-full object-cover"
-                @error="hideImgOnError"
-              />
-              <div v-else class="w-full h-full grid place-items-center text-gray-400">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                  />
-                </svg>
-              </div>
-            </button>
-            <div>
-              <div class="text-base font-semibold">{{ selected?.name ?? '—' }}</div>
-              <div class="text-xs text-gray-500">{{ selected?.code_number ?? '—' }}</div>
-            </div>
-          </div>
-          <button class="text-gray-600 hover:text-black" @click="selected = null">✕</button>
-        </div>
-
-        <div class="p-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            <template v-for="(grp, gi) in fieldGroups" :key="gi">
-              <div class="md:col-span-2 lg:col-span-3 text-[13px] font-semibold text-gray-700 mt-2">
-                {{ grp.title }}
-              </div>
-              <template v-for="(f, fi) in grp.fields" :key="`${gi}-${fi}`">
-                <div class="space-y-0.5">
-                  <div class="text-[11px] text-gray-500">{{ f.label }}</div>
-                  <div class="text-[13px]">
-                    <template v-if="f.type === 'date'">
-                      {{ displayDate(selected?.[f.key]) }}
-                    </template>
-                    <template v-else>
-                      {{ pretty(selected?.[f.key]) }}
-                    </template>
-                  </div>
-                </div>
-              </template>
-            </template>
-
-            <!-- counters -->
-            <div class="md:col-span-2 lg:col-span-3 mt-3">
-              <div class="text-[13px] font-semibold text-gray-700">{{ t('شمارنده‌ها') }}</div>
-              <div class="mt-2 flex flex-wrap gap-2 text-[12px]">
-                <span class="px-2 py-1 rounded bg-blue-50 text-blue-700">
-                  {{ t('پیښې') }}: {{ selected?.events_count ?? 0 }}
-                </span>
-                <span class="px-2 py-1 rounded bg-sky-50 text-sky-700">
-                  {{ t('منابع') }}: {{ selected?.resources_count ?? 0 }}
-                </span>
-                <span class="px-2 py-1 rounded bg-indigo-50 text-indigo-700">
-                  {{ t('مالومات') }}: {{ selected?.informations_count ?? 0 }}
-                </span>
-                <span class="px-2 py-1 rounded bg-violet-50 text-violet-700">
-                  {{ t('اسناد') }}: {{ selected?.documents_count ?? 0 }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="px-4 py-3 border-t flex justify-end">
-          <button
-            class="px-3 py-1.5 text-sm rounded bg-gray-900 text-white hover:bg-gray-800"
-            @click="selected = null"
-          >
-            {{ t('بستن') }}
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -211,23 +128,25 @@
   import { useCalendar } from '../../../composables/useCalendar';
   import PeekButton from '../../components/PeekButton.vue';
   import AppBar from '@/components/AppBar.vue';
-  import { useRouter } from 'vue-router';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  const router = useRouter();
+  const STATUS = 'inactive';
 
-  function goBack() {
-    router.back();
-  }
   const { t, locale } = useI18n();
   const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
   const repo = useOfficeEmployeeActivityRepository();
+
   const peekOpen = ref(false);
   const peekId = ref(null);
   const peekItem = ref(null);
   const peekLoading = ref(false);
 
-  /* ========= IMAGE URL NORMALIZER ========= */
+  const picUrl = ref(null);
+  const filters = ref({});
+
   const API_BASE = import.meta.env.VITE_BACKEND_URL?.replace(/\/+$/, '') || window.location.origin;
+
   function toSrc(p) {
     if (!p) return null;
     let s = String(p).trim().replace(/\\/g, '/');
@@ -236,57 +155,36 @@
     if (s.startsWith('/')) return API_BASE + s;
     return API_BASE + '/' + s;
   }
+
   function hideImgOnError(e) {
     if (e?.target) e.target.style.display = 'none';
   }
 
-  /* rows */
-  const rowsInactive = computed(() =>
-    (repo.inactive.items || []).map((r) => ({ ...r, picture_url: toSrc(r.picture) }))
-  );
+  const rowsInactive = computed(() => repo.inactive.items || []);
 
-  /* picture modal */
-  const picUrl = ref(null);
   function openPic(url) {
     picUrl.value = url || null;
   }
 
-  /* details modal */
-  const selected = ref(null);
-  // replace your openDetails(...)
   function openDetails(payload) {
-    // unwrap common shapes: { raw }, { row }, or plain row
     const row = payload && (payload.raw || payload.row) ? payload.raw || payload.row : payload;
-
     if (!row || !row.id) return;
 
-    // show something immediately
     peekItem.value = {
       ...row,
       picture: toSrc(row.picture),
     };
     peekId.value = row.id;
     peekOpen.value = true;
-
-    // then load fresh/full record if needed
     fetchOne(row.id);
   }
 
   async function fetchOne(id) {
     peekLoading.value = true;
     try {
-      // Prefer a dedicated method if you have it:
-      // await repo.fetchOne(id)
-      // const rec = repo.current || repo.one || repo.active.items.find(x => x.id === id)
-
-      // Fallback: try to find in the current list
-      let rec = (repo.active.items || []).find((x) => x.id === id);
-
-      // If not found and you have an endpoint, call it here and assign rec:
-      // rec = await repo.fetchById(id)
+      const rec = (repo.inactive.items || []).find((x) => x.id === id);
 
       if (rec) {
-        // (optional) format dates if PeekButton shows raw values
         const fmt = (v) => {
           if (!v) return '—';
           const s = String(v);
@@ -305,27 +203,18 @@
           left_date: fmt(rec.left_date),
         };
       }
-    } catch (e) {
-      console.error('peek fetchOne error', e);
     } finally {
       peekLoading.value = false;
     }
   }
 
-  function pretty(v) {
-    return v === null || v === undefined || v === '' ? '—' : String(v);
-  }
-
-  /* headers */
   const headers = computed(() => [
-    // Counts
     { title: t('اطلاعات'), key: 'informations_count', sortable: false },
-    { title: t('حوادث'), key: 'events_count', sortable: false },
+    { title: t('حوادث'), key: 'events_count | 0', sortable: false },
     { title: t('منابع'), key: 'resources_count', sortable: false },
     { title: t('منابع فعال'), key: 'resources_active_count', sortable: false },
     { title: t('منابع غیر فعال'), key: 'resources_inactive_count', sortable: false },
 
-    // Identity
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
@@ -334,7 +223,6 @@
     { title: t('شماره تذکره'), key: 'tazkira' },
     { title: t('سن'), key: 'age' },
 
-    // Job / Rank
     { title: t('نوعیت وظیفه'), key: 'job_type' },
     { title: t('وظیفه مشخص'), key: 'specific_job' },
     { title: t('قسم'), key: 'qisem' },
@@ -343,14 +231,12 @@
     { title: t('زون'), key: 'zone' },
     { title: t('حوزه'), key: 'hawza' },
 
-    // Jihad background
     { title: t('سابقه جهاد'), key: 'history_jahad' },
     { title: t('دلګی مشر'), key: 'dilgay_mesher' },
     { title: t('موقف جهادی'), key: 'jahadi_mawaqaf' },
     { title: t('مسئولیت جهاد'), key: 'jahad_time_responsibility' },
     { title: t('محل جهاد'), key: 'jahad_place' },
 
-    // Addresses
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_district' },
     { title: t('قریه اصلی'), key: 'main_village' },
@@ -362,14 +248,12 @@
     { title: t('نمبر سرک'), key: 'now_street_number' },
     { title: t('نمبر خانه'), key: 'now_home_number' },
 
-    // Education
     { title: t('تعلیمات دینی'), key: 'relegy_study' },
     { title: t('تعلیمات عصری'), key: 'new_study' },
     { title: t('پوهنحی/رشته'), key: 'faculty' },
     { title: t('نظامی'), key: 'nizami' },
     { title: t('معلومات سلاح'), key: 'gun_knowledge' },
 
-    // Contact & misc
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('زبان'), key: 'language' },
     { title: t('قوم/ملیت'), key: 'nation' },
@@ -379,14 +263,12 @@
     { title: t('مخافات'), key: 'makhafat' },
     { title: t('مکافات'), key: 'makafat' },
 
-    // Dates & finance
     { title: t('تاریخ آمدن'), key: 'join_date' },
     { title: t('تاریخ رفتن'), key: 'left_date' },
     { title: t('پول داده شده'), key: 'payed_money' },
     { title: t('ملاحظات'), key: 'note' },
   ]);
 
-  /* groups & filters */
   const topGroups = computed(() => [
     { title: t('رسانه'), keys: ['picture'] },
     {
@@ -416,130 +298,54 @@
       keys: ['events_count', 'resources_count', 'informations_count', 'documents_count'],
     },
   ]);
+
   const dropdownKeys = computed(() => headers.value.map((h) => h.key).filter(Boolean));
   const dateKeys = ['join_date', 'left_date'];
-  let filters = ref({});
 
-  /* details groups (same as active) */
-  const fieldGroups = computed(() => [
-    { title: t('رسانه'), fields: [{ key: 'picture', label: t('عکس') }] },
-    {
-      title: t('هویت / شناسایی'),
-      fields: [
-        { key: 'name', label: t('نام') },
-        { key: 'father_name', label: t('نام پدر') },
-        { key: 'grand_father_name', label: t('نام پدرکلان') },
-        { key: 'nick_name', label: t('نام مستعار') },
-        { key: 'Province_addr', label: t('آدرس ولایت') },
-        { key: 'code_number', label: t('کد') },
-      ],
-    },
-    {
-      title: t('مرتبه و سوابق'),
-      fields: [
-        { key: 'bast', label: t('بست') },
-        { key: 'level', label: t('سطح') },
-        { key: 'history_jahad', label: t('سابقه جهاد') },
-        { key: 'dilgay_mesher', label: t('دلګی مشران') },
-        { key: 'jahadi_mawaqaf', label: t('موقف جهادی') },
-        { key: 'jahad_time_responsibility', label: t('مسئولیت در زمان جهاد') },
-        { key: 'tazkira', label: t('تذکره') },
-      ],
-    },
-    { title: t('محل جهاد'), fields: [{ key: 'jahad_place', label: t('محل جهاد') }] },
-    {
-      title: t('محل اصلی'),
-      fields: [
-        { key: 'main_province', label: t('ولایت اصلی') },
-        { key: 'main_district', label: t('ولسوالی اصلی') },
-        { key: 'main_village', label: t('قریه اصلی') },
-      ],
-    },
-    {
-      title: t('محل فعلی'),
-      fields: [
-        { key: 'now_province', label: t('ولایت فعلی') },
-        { key: 'now_district', label: t('ولسوالی فعلی') },
-        { key: 'now_village', label: t('قریه فعلی') },
-        { key: 'now_specific_place', label: t('محل مشخص فعلی') },
-        { key: 'now_street_number', label: t('نمبر کوچه') },
-        { key: 'now_home_number', label: t('نمبر خانه') },
-      ],
-    },
-    {
-      title: t('وظیفه و اداره'),
-      fields: [
-        { key: 'specific_job', label: t('وظیفه مشخص') },
-        { key: 'qisem', label: t('قسم') },
-        { key: 'zone', label: t('زون') },
-        { key: 'hawza', label: t('حوزه') },
-      ],
-    },
-    {
-      title: t('وضعیت و تحصیل'),
-      fields: [
-        { key: 'madani_halat', label: t('حالت مدنی') },
-        { key: 'activity', label: t('وضعیت فعالیت') },
-        { key: 'relegy_study', label: t('تحصیلات دینی') },
-        { key: 'new_study', label: t('تحصیلات عصری') },
-        { key: 'faculty', label: t('فاکولته') },
-        { key: 'nizami', label: t('دروس نظامی') },
-        { key: 'gun_knowledge', label: t('مهارت سلاح') },
-      ],
-    },
-    {
-      title: t('مشخصات عمومی'),
-      fields: [
-        { key: 'age', label: t('عمر') },
-        { key: 'specific_skills', label: t('مهارت‌های خاص') },
-        { key: 'language', label: t('زبان') },
-        { key: 'nation', label: t('قوم') },
-      ],
-    },
-    {
-      title: t('تماس و متفرقه'),
-      fields: [
-        { key: 'phone_number', label: t('تلفن') },
-        { key: 'coordinates', label: t('مختصات') },
-        { key: 'join_date', label: t('تاریخ شروع'), type: 'date' },
-        { key: 'left_date', label: t('تاریخ ترک'), type: 'date' },
-        { key: 'note', label: t('یادداشت') },
-      ],
-    },
-  ]);
-  // Try to get the formatter from your composable; fall back if missing
   let formatForCalendarFn = null;
   try {
     const cal = typeof useCalendar === 'function' ? useCalendar() : null;
     formatForCalendarFn =
       (cal && (cal.formatForCalendar || cal.formatDateForCalendar || cal.formatDate)) || null;
-  } catch (e) {
+  } catch {
     formatForCalendarFn = null;
   }
 
-  // Plain-JS fallback (YYYY-MM-DD)
-  function fallbackFormat(v) {
-    if (!v) return '—';
-    const s = String(v);
-    const d = /^\d{4}-\d{2}-\d{2}/.test(s) ? new Date(s + 'T00:00:00') : new Date(v);
-    if (isNaN(d.getTime())) return s;
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+  function fetchAll() {
+    return repo.fetchList(STATUS);
   }
 
-  function displayDate(v) {
-    return formatForCalendarFn ? formatForCalendarFn(v) : fallbackFormat(v);
-  }
-  function reload() {
-    if (repo.perPage === 'all') repo.setPage(1);
-    repo.fetchCounts();
-    repo.fetchList('inactive');
-  }
+function normalizePerPage(value) {
+  if (value === 'all') return 'all';
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : 10;
+}
+
+function reload() {
+  repo.inactive.page = 1;
+  repo.fetchCounts();
+  fetchAll();
+}
+
+function handlePageChange(value) {
+  repo.inactive.page = Number(value) || 1;
+  fetchAll();
+}
+
+function handlePerPageChange(value) {
+  repo.itemsPerPage = normalizePerPage(value);
+  repo.inactive.page = 1;
+  fetchAll();
+}
+
+  usePageRefresh('/app/inactiveemployees', async () => {
+    repo.setPage(STATUS, 1);
+    await repo.fetchCounts();
+    await fetchAll();
+  });
 
   onMounted(async () => {
     await repo.fetchCounts();
-    await repo.fetchList('inactive');
+    await fetchAll();
   });
 </script>

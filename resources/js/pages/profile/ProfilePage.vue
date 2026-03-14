@@ -284,6 +284,7 @@
   import AppBar from '@/components/AppBar.vue';
   import { useLoginRepository } from '@/stores/LoginRepository';
   import { useTheme } from 'vuetify';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
   const { t, locale } = useI18n();
   const repo = useLoginRepository();
@@ -468,6 +469,7 @@
   onBeforeUnmount(() => {
     revokePreview();
   });
+  usePageRefresh('/app/profile', loadProfile);
 </script>
 
 <style scoped>

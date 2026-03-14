@@ -259,7 +259,7 @@
     </FilterableTable>
 
     <GlobalPagination
-      class="mx-2 mb-20"
+      class=""
       :page="repo.page"
       :items-per-page="repo.itemsPerPage"
       :total-items="repo.totalItems"
@@ -301,7 +301,9 @@ import PictureCell from '@/components/table/PictureCell.vue';
 import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import { useMawadRepository } from '@/stores/MawadRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/damageplaces', fetchAll);
 const repo = useMawadRepository();
 const router = useRouter();
 

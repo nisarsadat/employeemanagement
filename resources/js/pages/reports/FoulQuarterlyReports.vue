@@ -417,7 +417,9 @@
   import { useRouter } from 'vue-router';
 
   const { t, locale } = useI18n();
+      import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/quarterlyfoulreports', fetch);
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
 

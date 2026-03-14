@@ -138,7 +138,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import ZoneFormDialog from './ZoneFormDialog.vue';
 import { useZoneHawzaRepository } from '@/stores/ZoneHawzaRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/settings/zones/zones', fetchAll);
 const { t, locale } = useI18n();
 const repo = useZoneHawzaRepository();
 

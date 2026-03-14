@@ -156,7 +156,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import OrganFormDialog from './OrganFormDialog.vue';
 import { useOrganRepository } from '@/stores/OrganRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/organs', fetchAll);
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
 watch(locale, (v) => (isRtl.value = v === 'fa'));

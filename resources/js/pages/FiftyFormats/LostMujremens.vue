@@ -160,7 +160,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -337,6 +337,9 @@
 
   import { useMawadRepository } from '@/stores/MawadRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+    import { usePageRefresh } from '@/composables/usePageRefresh';
+
+  usePageRefresh('/app/lostmujremeens', fetchAll);
   const auth = useLoginRepository();
   const repo = useMawadRepository();
   const router = useRouter();

@@ -152,141 +152,143 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
+  import { ref, computed, watch, onMounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
-import GlobalPagination from '@/components/GlobalPagination.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
-import ProvinceFormDialog from './ProvinceFormDialog.vue';
-import { useProvinceDistrictRepository } from '@/stores/ProvinceDistrictRepository';
+  import ProvinceFormDialog from './ProvinceFormDialog.vue';
+  import { useProvinceDistrictRepository } from '@/stores/ProvinceDistrictRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (v) => (isRtl.value = v === 'fa'));
+  usePageRefresh('/app/settings/provinces', fetchAll);
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (v) => (isRtl.value = v === 'fa'));
 
-const repo = useProvinceDistrictRepository();
+  const repo = useProvinceDistrictRepository();
 
-const dialog = ref(false);
-const editId = ref(null);
+  const dialog = ref(false);
+  const editId = ref(null);
 
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-const showError = ref(false);
-const errorMessage = ref('');
-function showErrorMessage(msg) {
-  errorMessage.value = msg;
-  showError.value = true;
-}
-
-const search = ref('');
-const rows = ref([]);
-
-const headersFT = computed(() => [
-  { title: t('نام ولایت'), key: 'name' },
-  { title: t('تعداد ولسوالی‌ها'), key: 'districts_count' },
-]);
-
-const rowsFT = computed(() => rows.value || []);
-
-function getRow(payload) {
-  return payload?.raw ?? payload;
-}
-
-function openCreate() {
-  editId.value = null;
-  dialog.value = true;
-}
-
-function startEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  editId.value = row.id;
-  dialog.value = true;
-}
-
-function onSaved() {
-  fetchAll();
-}
-
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
-
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-
-  if (!row?.id) {
-    deleteDialog.value = false;
-    deleteTarget.value = null;
-    return;
+  const showError = ref(false);
+  const errorMessage = ref('');
+  function showErrorMessage(msg) {
+    errorMessage.value = msg;
+    showError.value = true;
   }
 
-  try {
-    await repo.DeleteProvince(row.id);
-    await fetchAll();
-  } catch (e) {
-    console.error('DeleteProvince error', e);
-    showErrorMessage(t('خطا در حذف ولایت'));
-  } finally {
-    deleteDialog.value = false;
-    deleteTarget.value = null;
+  const search = ref('');
+  const rows = ref([]);
+
+  const headersFT = computed(() => [
+    { title: t('نام ولایت'), key: 'name' },
+    { title: t('تعداد ولسوالی‌ها'), key: 'districts_count' },
+  ]);
+
+  const rowsFT = computed(() => rows.value || []);
+
+  function getRow(payload) {
+    return payload?.raw ?? payload;
   }
-}
 
-async function fetchAll() {
-  try {
-    const res = await repo.FetchProvincesData({
-      page: repo.page,
-      perPage: repo.itemsPerPage,
-      search: search.value,
-    });
-    rows.value = res?.data || [];
-  } catch (e) {
-    console.error('fetchAll provinces error', e);
-    showErrorMessage(t('خطا در دریافت ولایت‌ها'));
+  function openCreate() {
+    editId.value = null;
+    dialog.value = true;
   }
-}
 
-function handlePageChange(page) {
-  repo.page = page;
-  fetchAll();
-}
+  function startEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    editId.value = row.id;
+    dialog.value = true;
+  }
 
-function handlePerPageChange(perPage) {
-  repo.itemsPerPage = perPage;
-  repo.page = 1;
-  fetchAll();
-}
+  function onSaved() {
+    fetchAll();
+  }
 
-function clearSearch() {
-  search.value = '';
-  repo.page = 1;
-  fetchAll();
-}
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
 
-watch(search, () => {
-  repo.page = 1;
-  fetchAll();
-});
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
 
-onMounted(fetchAll);
+    if (!row?.id) {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
+    }
+
+    try {
+      await repo.DeleteProvince(row.id);
+      await fetchAll();
+    } catch (e) {
+      console.error('DeleteProvince error', e);
+      showErrorMessage(t('خطا در حذف ولایت'));
+    } finally {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+    }
+  }
+
+  async function fetchAll() {
+    try {
+      const res = await repo.FetchProvincesData({
+        page: repo.page,
+        perPage: repo.itemsPerPage,
+        search: search.value,
+      });
+      rows.value = res?.data || [];
+    } catch (e) {
+      console.error('fetchAll provinces error', e);
+      showErrorMessage(t('خطا در دریافت ولایت‌ها'));
+    }
+  }
+
+  function handlePageChange(page) {
+    repo.page = page;
+    fetchAll();
+  }
+
+  function handlePerPageChange(perPage) {
+    repo.itemsPerPage = perPage;
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function clearSearch() {
+    search.value = '';
+    repo.page = 1;
+    fetchAll();
+  }
+
+  watch(search, () => {
+    repo.page = 1;
+    fetchAll();
+  });
+
+  onMounted(fetchAll);
 </script>
 
 <style scoped>
-:deep(.v-data-table__tr:hover) {
-  background-color: rgba(33, 150, 243, 0.04) !important;
-}
-:deep(.v-btn--icon) {
-  transition: all 0.2s ease;
-}
-:deep(.v-btn--icon:hover) {
-  transform: scale(1.1);
-}
+  :deep(.v-data-table__tr:hover) {
+    background-color: rgba(33, 150, 243, 0.04) !important;
+  }
+  :deep(.v-btn--icon) {
+    transition: all 0.2s ease;
+  }
+  :deep(.v-btn--icon:hover) {
+    transform: scale(1.1);
+  }
 </style>

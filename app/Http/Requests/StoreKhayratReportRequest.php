@@ -48,7 +48,7 @@ class StoreKhayratReportRequest extends FormRequest
             if ($exists) {
                 $validator->errors()->add(
                     'saved_date',
-                    'برای این منبع در همین ماه قبلاً راپور ثبت شده است.'
+                    'دغه منبع په یاد میاشت کې یو د خیریت راپور لري، نشو کولای دوهم ځل ورته راپور ورکو'
                 );
             }
         });

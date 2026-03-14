@@ -80,11 +80,11 @@
 
       <template #item.is_online="{ item }">
         <v-chip
-          :color="(item?.is_online ?? item?.raw?.is_online) ? 'success' : 'grey'"
+          :color="item?.is_online ?? item?.raw?.is_online ? 'success' : 'grey'"
           variant="flat"
           size="small"
         >
-          {{ (item?.is_online ?? item?.raw?.is_online) ? 'Online' : 'Offline' }}
+          {{ item?.is_online ?? item?.raw?.is_online ? 'Online' : 'Offline' }}
         </v-chip>
       </template>
 
@@ -172,100 +172,102 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-import AppBar from '../../components/AppBar.vue';
-import CreateUser from './CreateUser.vue';
-import UpdateUser from './UpdateUser.vue';
-import { useUsersRepository } from '../../stores/UsersRepository';
-import { useLoginRepository } from '../../stores/LoginRepository';
+  import { ref, watch, computed, onMounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import AppBar from '../../components/AppBar.vue';
+  import CreateUser from './CreateUser.vue';
+  import UpdateUser from './UpdateUser.vue';
+  import { useUsersRepository } from '../../stores/UsersRepository';
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
-const auth = useLoginRepository();
-const UsersRepository = useUsersRepository();
+  const auth = useLoginRepository();
+  const UsersRepository = useUsersRepository();
 
-const drawer = ref(false);
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const drawer = ref(false);
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-onMounted(() => {
-  UsersRepository.FetchUsersData();
-  UsersRepository.FetchRolesAll();
-});
-
-const headers = computed(() => [
-  { title: t('انتخاب'), key: 'data-table-select', sortable: false, align: 'end' },
-  { title: t('تصویر'), key: 'image_url', sortable: false },
-  { title: t('نام کاربر'), key: 'username', sortable: true },
-  { title: t('نقش'), key: 'roles', sortable: false },
-  { title: t('حالت'), key: 'is_online', sortable: false },
-  { title: t('فعلی'), key: 'current_login_duration', sortable: false },
-  { title: t('آخرین سیشن'), key: 'last_session_duration', sortable: false },
-  { title: t('مجموعه'), key: 'total_login_duration', sortable: false },
-  { title: t('امروز'), key: 'today_login_duration', sortable: false },
-  { title: t('عملیات'), key: 'actions', sortable: false, align: 'end' },
-]);
-
-const search = computed({
-  get: () => UsersRepository.Search,
-  set: (val) => {
-    UsersRepository.Search = val || '';
-    UsersRepository.page = 1;
+  onMounted(() => {
     UsersRepository.FetchUsersData();
-  },
-});
+    UsersRepository.FetchRolesAll();
+  });
+  usePageRefresh('/app/users', UsersRepository.FetchUsersData);
 
-const rowId = (it) => it?.raw?.id ?? it?.id ?? null;
+  const headers = computed(() => [
+    { title: t('انتخاب'), key: 'data-table-select', sortable: false, align: 'end' },
+    { title: t('تصویر'), key: 'image_url', sortable: false },
+    { title: t('نام کاربر'), key: 'username', sortable: true },
+    { title: t('نقش'), key: 'roles', sortable: false },
+    { title: t('حالت'), key: 'is_online', sortable: false },
+    { title: t('فعلی'), key: 'current_login_duration', sortable: false },
+    { title: t('آخرین سیشن'), key: 'last_session_duration', sortable: false },
+    { title: t('مجموعه'), key: 'total_login_duration', sortable: false },
+    { title: t('امروز'), key: 'today_login_duration', sortable: false },
+    { title: t('عملیات'), key: 'actions', sortable: false, align: 'end' },
+  ]);
 
-const createPopUp = () => {
-  UsersRepository.createDialog = true;
-};
+  const search = computed({
+    get: () => UsersRepository.Search,
+    set: (val) => {
+      UsersRepository.Search = val || '';
+      UsersRepository.page = 1;
+      UsersRepository.FetchUsersData();
+    },
+  });
 
-const editItem = async (id) => {
-  await UsersRepository.startEdit(id);
-};
+  const rowId = (it) => it?.raw?.id ?? it?.id ?? null;
 
-const deleteItem = (id) => {
-  UsersRepository.DeleteUser(id);
-};
+  const createPopUp = () => {
+    UsersRepository.createDialog = true;
+  };
 
-function stringToColor(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  const editItem = async (id) => {
+    await UsersRepository.startEdit(id);
+  };
+
+  const deleteItem = (id) => {
+    UsersRepository.DeleteUser(id);
+  };
+
+  function stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    const sat = 65;
+    const light = 55;
+    return `hsl(${hue}, ${sat}%, ${light}%)`;
   }
-  const hue = Math.abs(hash) % 360;
-  const sat = 65;
-  const light = 55;
-  return `hsl(${hue}, ${sat}%, ${light}%)`;
-}
 
-const previewSrc = ref(null);
-const previewOpen = ref(false);
+  const previewSrc = ref(null);
+  const previewOpen = ref(false);
 
-const openPreview = (src) => {
-  if (!src) return;
-  previewSrc.value = src;
-  previewOpen.value = true;
-};
+  const openPreview = (src) => {
+    if (!src) return;
+    previewSrc.value = src;
+    previewOpen.value = true;
+  };
 </script>
 
 <style scoped>
-.v-data-table {
-  border-radius: 4px;
-  overflow: hidden;
-}
-.v-data-table-header {
-  background-color: rgba(0, 0, 0, 0.02);
-}
-.v-data-table-header th {
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-.clickable {
-  cursor: zoom-in;
-}
-.role-chip {
-  color: white;
-}
+  .v-data-table {
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .v-data-table-header {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  .v-data-table-header th {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .clickable {
+    cursor: zoom-in;
+  }
+  .role-chip {
+    color: white;
+  }
 </style>

@@ -67,7 +67,9 @@ import { useI18n } from 'vue-i18n';
 import AppBar from '@/components/AppBar.vue';
 import FinanceDialog from '@/components/FinanceDialog.vue'; // adjust if needed
 import { useFinanceRequestsRepository } from '@/stores/financeRequestsRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/finincalindex', fetchAll);
 const { t } = useI18n();
 const repo = useFinanceRequestsRepository();
 

@@ -159,7 +159,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -320,7 +320,9 @@
   import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/oldjahadis', fetchAll);
   const repo = useBadmashanoRepository();
   const router = useRouter();
 

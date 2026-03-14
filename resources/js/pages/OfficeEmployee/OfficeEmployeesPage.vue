@@ -508,6 +508,9 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
 
   import GlobalPagination from '@/components/GlobalPagination.vue';
+      import { usePageRefresh } from '@/composables/usePageRefresh';
+
+  usePageRefresh('/app/officeemployee', fetchAll);
   const router = useRouter();
   const route = useRoute();
   const { t, locale } = useI18n();
@@ -760,7 +763,7 @@
     { title: t('مهارت‌های خاص'), key: 'specific_skills' },
     { title: t('فعالیت'), key: 'activity' },
     { title: t('مختصات'), key: 'coordinates' },
-    { title: t('مخافات'), key: 'makhafat' },
+    { title: t('تخلفات'), key: 'makhafat' },
     { title: t('مکافات'), key: 'makafat' },
 
     // Dates & finance

@@ -499,7 +499,7 @@
               <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.makhafat"
-                  :label="t('مخافات')"
+                  :label="t('تخلفات')"
                   density="compact"
                   variant="outlined"
                 />

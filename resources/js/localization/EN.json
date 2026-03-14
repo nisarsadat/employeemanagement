@@ -15,7 +15,15 @@
   "Role": "Role",
   "Status": "Status",
   "Last seen column": "Last Seen",
-
+  "تأیید حذف": "Delete Confirmation",
+  "آیا مطمئن هستید که می‌خواهید این مورد را حذف کنید؟": "Are you sure you want to delete this item?",
+  "لغو": "Cancel",
+  "ادامه": "Continue",
+  "هشدار": "Warning",
+  "این اقدام ممکن است اطلاعات مهم را حذف کند. آیا همچنان ادامه می‌دهید؟": "This action may delete important information. Do you still want to continue?",
+  "حذف نهایی": "Final Deletion",
+  "این عمل غیرقابل بازگشت است. برای حذف نهایی تأیید کنید.": "This action cannot be undone. Please confirm the final deletion.",
+  "حذف": "Delete",
   "Edit": "Edit",
 
   "No users found please add one": "No users found, please add one!",

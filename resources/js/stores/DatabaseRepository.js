@@ -619,7 +619,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         });
         return res?.data ?? res;
       } catch (e) {
-        toast.error('اطلاعات اضافه نشړ');
+        toast.error('اطلاعات اضافه نشو');
         throw e;
       }
     },
@@ -627,7 +627,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     async DeleteInformation(id) {
       try {
         await axios.delete(`/informations/${id}`);
-        toast.success('Information deleted', { autoClose: 1100 });
+        toast.success('حذف شو', { autoClose: 1100 });
         await this.FetchInformationsData({
           page: this.page,
           perPage: this.itemsPerPage,
@@ -635,7 +635,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error('Delete information failed');
+        toast.error('حذف نشو');
       }
     },
 

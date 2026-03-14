@@ -463,7 +463,7 @@
           </v-tooltip>
 
           <!-- ✅ Analysis / Leadership Dialog -->
-          <v-tooltip text="تحلیل / رهنمود" location="top">
+          <v-tooltip text="تحلیل / رهنمایی" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-if="auth.can('direction.view')"
@@ -546,6 +546,9 @@
   import { useCalendar } from '../../../composables/useCalendar';
   import ManagerFinanceDialog from './ManagerFinanceDialog.vue';
   import AnalysisLeadershipDialog from './AnalysisLeadershipDialog.vue';
+    import { usePageRefresh } from '@/composables/usePageRefresh';
+
+  usePageRefresh('/app/informations', fetchAll);
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const repo = useDatabaseRepository();

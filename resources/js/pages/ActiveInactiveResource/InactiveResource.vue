@@ -2,7 +2,7 @@
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <AppBar :title="t('منابع غیر فعال')" :subtitle="t('فهرست و جستجو')"> </AppBar>
 
-    <!-- 🔍 Search + ➕ Create -->
+    <!-- Search + Create -->
     <v-container class="pa-0">
       <v-row class="align-center">
         <v-col cols="12" sm="8" md="9" lg="10">
@@ -40,12 +40,12 @@
       </v-row>
     </v-container>
 
-    <!-- Filters row (Vuetify, centered, no custom CSS) -->
+    <!-- Per page + reload -->
     <v-container class="px-2 pt-2 pb-2" fluid :dir="isRtl ? 'rtl' : 'ltr'">
       <v-row justify="center" align="center" class="ga-2">
         <v-col cols="12" md="4">
           <v-select
-            v-model="repo.perPage"
+            v-model="repo.itemsPerPage"
             :items="perPageItems"
             item-title="title"
             item-value="value"
@@ -54,6 +54,7 @@
             variant="outlined"
             rounded="lg"
             hide-details
+            @update:modelValue="handlePerPageChange"
           />
         </v-col>
 
@@ -97,7 +98,7 @@
       />
     </v-container>
 
-    <!-- TABLE -->
+    <!-- Table -->
     <FilterableTable
       :headers="headersFT"
       :rows="rowsFT"
@@ -112,7 +113,7 @@
       :dateKeys="['resource_saved_date']"
       @edit="startEdit"
       @peek="openPeek"
-      class="mb-20 mx-2"
+      class="mb-4 mx-2"
     >
       <template #cell-picture="{ row }">
         <v-avatar size="36" class="cursor-pointer" @click="openPreview(row)">
@@ -226,6 +227,15 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.inactive.page"
+      :items-per-page="repo.itemsPerPage"
+      :total="repo.inactive.totalItems"
+      @update:page="handlePageChange"
+      @update:itemsPerPage="handlePerPageChange"
+    />
+
+    <!-- Preview -->
     <v-dialog v-model="previewOpen" max-width="520" :dir="isRtl ? 'rtl' : 'ltr'">
       <v-card :dir="isRtl ? 'rtl' : 'ltr'">
         <v-toolbar
@@ -238,7 +248,9 @@
           <v-img :src="previewSrc" :alt="t('پیش نمایش')" max-width="480" max-height="420" cover />
         </v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn color="primary" variant="flat" @click="previewOpen = false">{{ t('بستن') }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="previewOpen = false">
+            {{ t('بستن') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -253,241 +265,265 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch } from 'vue';
-  import { useRouter } from 'vue-router';
-  import { useI18n } from 'vue-i18n';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
-  import AppBar from '@/components/AppBar.vue';
-  import PeekButton from '@/components/PeekButton.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+import AppBar from '@/components/AppBar.vue';
+import PeekButton from '@/components/PeekButton.vue';
+import FilterableTable from '@/components/FilterableTable.vue';
+import FlyToMapButton from '@/components/FlyToMapButton.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
-  import { useResourceActivityRepository } from '@/stores/ResourceActivityRepository';
-  import { useLoginRepository } from '@/stores/LoginRepository';
+import { useResourceActivityRepository } from '@/stores/ResourceActivityRepository';
+import { useLoginRepository } from '@/stores/LoginRepository';
+import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  const router = useRouter();
-  const { t, locale } = useI18n();
-  const repo = useResourceActivityRepository();
-  const auth = useLoginRepository();
+const STATUS = 'inactive';
 
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (n) => (isRtl.value = n === 'fa'));
+const router = useRouter();
+const { t, locale } = useI18n();
+const repo = useResourceActivityRepository();
+const auth = useLoginRepository();
 
-  function goBack() {
-    router.back();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (n) => (isRtl.value = n === 'fa'));
+
+function getRow(payload) {
+  return payload?.raw ?? payload;
+}
+
+const perPageItems = computed(() => [
+  { title: t('همه / بدون صفحه‌بندی'), value: 'all' },
+  { title: '10', value: 10 },
+  { title: '25', value: 25 },
+  { title: '50', value: 50 },
+]);
+
+function normalizeUrl(url) {
+  if (!url) return null;
+  return url.replace('/storage/storage/', '/storage/');
+}
+
+function getPhotoUrl(payload) {
+  const row = getRow(payload);
+  return normalizeUrl(row?.picture || row?.picture_url);
+}
+
+function getOfficeEmployee(payload) {
+  const row = getRow(payload);
+  return row?.office_employee || null;
+}
+
+const rowsFT = computed(() => repo.inactive.items || []);
+const filters = ref({});
+
+const previewOpen = ref(false);
+const previewSrc = ref(null);
+
+function openPreview(rowPayload) {
+  const url = getPhotoUrl(rowPayload);
+  if (!url) return;
+  previewSrc.value = url;
+  previewOpen.value = true;
+}
+
+const expanded = ref(false);
+const selectedId = ref(null);
+const loadingOne = ref(false);
+const detail = ref(null);
+
+const detailForPeek = computed(() => {
+  if (!detail.value) return null;
+  return { ...detail.value, picture: getPhotoUrl(detail.value) };
+});
+
+async function fetchOne(id) {
+  if (!id) return;
+  loadingOne.value = true;
+  try {
+    const data = await repo.fetchOne(id);
+    detail.value = data || {};
+  } finally {
+    loadingOne.value = false;
   }
+}
 
-  function getRow(payload) {
-    return payload?.raw ?? payload;
+function openPeek(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  selectedId.value = row.id;
+  expanded.value = true;
+  fetchOne(row.id);
+}
+
+function goCreate() {
+  router.push('/app/resourcesform');
+}
+
+function startEdit(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push(`/app/resourcesform/${row.id}`);
+}
+
+function goOfficeEmployee(payload) {
+  const row = getRow(payload);
+  const empId = row?.office_employee_id || row?.office_employee?.id;
+  if (!empId) return;
+  router.push(`/app/officeemployeeform/${empId}`);
+}
+
+function goResourceEvents(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push({ path: '/app/events', query: { resource_id: row.id } });
+}
+
+function goResourceInformations(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push({ path: '/app/informations', query: { resource_id: row.id } });
+}
+
+function goResourceFiftySixFormats(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push({ path: '/app/fifthyformatsroute', query: { resource_id: row.id } });
+}
+
+const showError = ref(false);
+const errorMessage = ref('');
+
+function showErrorMessage(msg) {
+  errorMessage.value = msg;
+  showError.value = true;
+}
+
+async function fetchAll() {
+  try {
+    await repo.fetchList(STATUS);
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('خطا در دریافت فهرست منابع غیر فعال'));
   }
+}
 
-  function normalizeUrl(url) {
-    if (!url) return null;
-    return url.replace('/storage/storage/', '/storage/');
-  }
+async function reload() {
+  repo.setPage(STATUS, 1);
+  await repo.fetchCounts();
+  await fetchAll();
+}
 
-  function getPhotoUrl(payload) {
-    const row = getRow(payload);
-    return normalizeUrl(row?.picture || row?.picture_url);
-  }
+function clearSearch() {
+  repo.search = '';
+  reload();
+}
 
-  function getOfficeEmployee(payload) {
-    const row = getRow(payload);
-    return row?.office_employee || null;
-  }
+function handlePageChange(value) {
+  repo.setPage(STATUS, value);
+  fetchAll();
+}
 
-  const rowsFT = computed(() => repo.inactive.items || []);
-  const filters = ref({});
+function handlePerPageChange(value) {
+  repo.setItemsPerPage(value);
+  repo.setPage(STATUS, 1);
+  fetchAll();
+}
 
-  const previewOpen = ref(false);
-  const previewSrc = ref(null);
-  function openPreview(rowPayload) {
-    const url = getPhotoUrl(rowPayload);
-    if (!url) return;
-    previewSrc.value = url;
-    previewOpen.value = true;
-  }
+const headersFT = computed(() => [
+  { title: t('تصویر'), key: 'picture', sortable: false },
+  { title: t('نام'), key: 'name' },
+  { title: t('نام پدر'), key: 'father_name' },
+  { title: t('نام پدرکلان'), key: 'grand_father_name' },
+  { title: t('نام مستعار'), key: 'nick_name' },
+  { title: t('کود نمبر'), key: 'code_number' },
+  { title: t('تذکره نمبر'), key: 'tazkira' },
 
-  const expanded = ref(false);
-  const selectedId = ref(null);
-  const loadingOne = ref(false);
-  const detail = ref(null);
+  { title: t('ولایت اصلی'), key: 'main_province' },
+  { title: t('ولسوالی'), key: 'main_district' },
+  { title: t('قریه'), key: 'main_village' },
 
-  const detailForPeek = computed(() => {
-    if (!detail.value) return null;
-    return { ...detail.value, picture: getPhotoUrl(detail.value) };
-  });
+  { title: t('ولایت فعلی'), key: 'now_province' },
+  { title: t('ولسوالی فعلی'), key: 'now_district' },
+  { title: t('قریه فعلی'), key: 'now_village' },
+  { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
+  { title: t('شماره سرک'), key: 'now_street_number' },
+  { title: t('شماره خانه'), key: 'now_home_number' },
 
-  async function fetchOne(id) {
-    if (!id) return;
-    loadingOne.value = true;
-    try {
-      const data = await repo.fetchOne(id);
-      detail.value = data || {};
-    } finally {
-      loadingOne.value = false;
-    }
-  }
+  { title: t('وظیفه سابقه'), key: 'old_job' },
+  { title: t('وظیفه فعلی'), key: 'now_job' },
+  { title: t('محل وظیفه'), key: 'job_place' },
 
-  function openPeek(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    selectedId.value = row.id;
-    expanded.value = true;
-    fetchOne(row.id);
-  }
+  { title: t('فعالیت'), key: 'activity' },
+  { title: t('حالت مدنی'), key: 'halat_madani' },
+  { title: t('عمر'), key: 'age' },
+  { title: t('رتبه علمی'), key: 'elmi_level' },
+  { title: t('فاکولته/دیپارتمنت'), key: 'faculty' },
+  { title: t('مهارت‌های خاص'), key: 'specific_skills' },
+  { title: t('دوره/آموزش'), key: 'train' },
 
-  function goCreate() {
-    router.push('/app/resourcesform');
-  }
-  // in <script setup>
-  const perPageItems = [
-    { title: t('همه / بدون صفحه‌بندی'), value: 'all' },
-    { title: '10', value: 10 },
-    { title: '25', value: 25 },
-    { title: '50', value: 50 },
-  ];
+  { title: t('تاریخ ثبت منبع'), key: 'resource_saved_date' },
+  { title: t('نوع فعالیت منبع'), key: 'resource_activity_type' },
 
-  function startEdit(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    router.push(`/app/resourcesform/${row.id}`);
-  }
+  { title: t('کارمند مربوطه'), key: 'office_employee_id' },
 
-  function goOfficeEmployee(payload) {
-    const row = getRow(payload);
-    const empId = row?.office_employee_id || row?.office_employee?.id;
-    if (!empId) return;
-    router.push(`/app/officeemployeeform/${empId}`);
-  }
+  { title: t('رزیدنت مربوطه'), key: 'resedint_code' },
+  { title: t('پوشش منبع'), key: 'resource_cover' },
+  { title: t('زبان'), key: 'language' },
+  { title: t('قوم'), key: 'nation' },
+  { title: t('شماره تماس'), key: 'phone_number' },
+  { title: t('کوردینات'), key: 'coordinates' },
+  { title: t('نوت'), key: 'note' },
+  { title: t('ولایت مربوطه'), key: 'Province_addr' },
 
-  function goResourceEvents(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    router.push({ path: '/app/events', query: { resource_id: row.id } });
-  }
+  { title: t('تعداد واقعات'), key: 'events_count' },
+  { title: t('تعداد اطلاعات'), key: 'informations_count' },
+  { title: t('تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
 
-  function goResourceInformations(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    router.push({ path: '/app/informations', query: { resource_id: row.id } });
-  }
+  { title: t('نقشه'), key: 'map', sortable: false },
+]);
 
-  function goResourceFiftySixFormats(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    router.push({ path: '/app/fifthyformatsroute', query: { resource_id: row.id } });
-  }
+const topGroups = computed(() => [
+  {
+    title: t('معرفت'),
+    keys: ['name', 'father_name', 'grand_father_name', 'nick_name', 'code_number', 'tazkira'],
+  },
+  { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
+  {
+    title: t('آدرس فعلی'),
+    keys: [
+      'now_province',
+      'now_district',
+      'now_village',
+      'now_specific_place',
+      'now_street_number',
+      'now_home_number',
+    ],
+  },
+  { title: t('وظایف'), keys: ['old_job', 'now_job', 'job_place'] },
+]);
 
-  const showError = ref(false);
-  const errorMessage = ref('');
-  function showErrorMessage(msg) {
-    errorMessage.value = msg;
-    showError.value = true;
-  }
+usePageRefresh('/app/inactiveresource', async () => {
+  repo.setPage(STATUS, 1);
+  await repo.fetchCounts();
+  await fetchAll();
+});
 
-  async function reload() {
-    try {
-      await repo.fetchCounts();
-      await repo.fetchList('inactive');
-    } catch (e) {
-      console.error(e);
-      showErrorMessage(t('خطا در دریافت فهرست منابع غیر فعال'));
-    }
-  }
-
-  function clearSearch() {
-    repo.search = '';
-    reload();
-  }
-
-  const headersFT = computed(() => [
-    { title: t('تصویر'), key: 'picture', sortable: false },
-    { title: t('نام'), key: 'name' },
-    { title: t('نام پدر'), key: 'father_name' },
-    { title: t('نام پدرکلان'), key: 'grand_father_name' },
-    { title: t('نام مستعار'), key: 'nick_name' },
-    { title: t('کود نمبر'), key: 'code_number' },
-    { title: t('تذکره نمبر'), key: 'tazkira' },
-
-    { title: t('ولایت اصلی'), key: 'main_province' },
-    { title: t('ولسوالی'), key: 'main_district' },
-    { title: t('قریه'), key: 'main_village' },
-
-    { title: t('ولایت فعلی'), key: 'now_province' },
-    { title: t('ولسوالی فعلی'), key: 'now_district' },
-    { title: t('قریه فعلی'), key: 'now_village' },
-    { title: t('موقعیت مشخص فعلی'), key: 'now_specific_place' },
-    { title: t('شماره سرک'), key: 'now_street_number' },
-    { title: t('شماره خانه'), key: 'now_home_number' },
-
-    { title: t('وظیفه سابقه'), key: 'old_job' },
-    { title: t('وظیفه فعلی'), key: 'now_job' },
-    { title: t('محل وظیفه'), key: 'job_place' },
-
-    { title: t('فعالیت'), key: 'activity' },
-    { title: t('حالت مدنی'), key: 'halat_madani' },
-    { title: t('عمر'), key: 'age' },
-    { title: t('رتبه علمی'), key: 'elmi_level' },
-    { title: t('فاکولته/دیپارتمنت'), key: 'faculty' },
-    { title: t('مهارت‌های خاص'), key: 'specific_skills' },
-    { title: t('دوره/آموزش'), key: 'train' },
-
-    { title: t('تاریخ ثبت منبع'), key: 'resource_saved_date' },
-    { title: t('نوع فعالیت منبع'), key: 'resource_activity_type' },
-
-    { title: t('کارمند مربوطه'), key: 'office_employee_id' },
-
-    { title: t('رزیدنت مربوطه'), key: 'resedint_code' },
-    { title: t('پوشش منبع'), key: 'resource_cover' },
-    { title: t('زبان'), key: 'language' },
-    { title: t('قوم'), key: 'nation' },
-    { title: t('شماره تماس'), key: 'phone_number' },
-    { title: t('کوردینات'), key: 'coordinates' },
-    { title: t('نوت'), key: 'note' },
-    { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
-    { title: t('تعداد واقعات'), key: 'events_count' },
-    { title: t('تعداد اطلاعات'), key: 'informations_count' },
-    { title: t('تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
-
-    { title: t('نقشه'), key: 'map', sortable: false },
-  ]);
-
-  const topGroups = computed(() => [
-    {
-      title: t('معرفت'),
-      keys: ['name', 'father_name', 'grand_father_name', 'nick_name', 'code_number', 'tazkira'],
-    },
-    { title: t('آدرس اصلی'), keys: ['main_province', 'main_district', 'main_village'] },
-    {
-      title: t('آدرس فعلی'),
-      keys: [
-        'now_province',
-        'now_district',
-        'now_village',
-        'now_specific_place',
-        'now_street_number',
-        'now_home_number',
-      ],
-    },
-    { title: t('وظایف'), keys: ['old_job', 'now_job', 'job_place'] },
-  ]);
-
-  onMounted(async () => {
-    repo.perPage = repo.perPage || 'all';
-    await reload();
-  });
+onMounted(async () => {
+  repo.itemsPerPage = repo.itemsPerPage || 'all';
+  await reload();
+});
 </script>
 
 <style scoped>
-  .search-field :deep(.v-field) {
-    min-height: 48px;
-  }
-  .cursor-pointer {
-    cursor: pointer;
-  }
-  .text-grey {
-    color: #9e9e9e;
-  }
+.search-field :deep(.v-field) {
+  min-height: 48px;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.text-grey {
+  color: #9e9e9e;
+}
 </style>

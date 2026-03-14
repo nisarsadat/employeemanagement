@@ -61,6 +61,7 @@
   import { useI18n } from 'vue-i18n';
   import AppBar from '@/components/AppBar.vue';
   import { useLoginRepository } from '@/stores/LoginRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
   const router = useRouter();
   const { locale, t } = useI18n();
@@ -209,6 +210,7 @@
       permission: 'InfoCategory.view',
     },
   ]);
+  usePageRefresh('/app/settings');
 
   // ✅ show only permitted items
   const visibleItems = computed(() =>

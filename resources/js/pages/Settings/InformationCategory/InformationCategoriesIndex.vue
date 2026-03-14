@@ -120,7 +120,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue'
 
 import InformationCategoryFormDialog from './InformationCategoryFormDialog.vue'
 import { useInformationCategoryRepository } from '@/stores/InformationCategoryRepository'
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/settings/docstypesindex', fetchAll);
 const { t, locale } = useI18n()
 const isRtl = ref(locale.value === 'fa')
 watch(locale, (v) => (isRtl.value = v === 'fa'))

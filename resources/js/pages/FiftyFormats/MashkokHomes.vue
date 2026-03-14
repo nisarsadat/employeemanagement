@@ -257,7 +257,7 @@
     </FilterableTable>
 
     <GlobalPagination
-      class="mx-2 mb-20"
+      class="mx-2"
       :page="repo.page"
       :items-per-page="repo.itemsPerPage"
       :total-items="repo.totalItems"
@@ -300,6 +300,9 @@
   import { useMawadRepository } from '@/stores/MawadRepository';
   import PictureCell from '@/components/table/PictureCell.vue';
   import { useLoginRepository } from '../../stores/LoginRepository';
+    import { usePageRefresh } from '@/composables/usePageRefresh';
+
+  usePageRefresh('/app/mashkokhomes', fetchAll);
   const auth = useLoginRepository();
   const repo = useMawadRepository();
   const router = useRouter();

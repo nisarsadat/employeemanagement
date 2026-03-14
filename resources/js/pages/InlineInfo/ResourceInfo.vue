@@ -335,7 +335,7 @@
   import { useRouter } from 'vue-router';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLookupRepository } from '@/stores/LookupRepository';
-
+import { usePageRefresh } from '@/composables/usePageRefresh';
   const repo = useDatabaseRepository();
   const lookupRepo = useLookupRepository();
   const router = useRouter();
@@ -477,6 +477,18 @@
       loading.value = false;
     }
   });
+  usePageRefresh('/app/inlineinfo', async () => {
+  selectedId.value = null;
+  selectedItemRaw.value = null;
+  searchText.value = '';
+
+  loading.value = true;
+  try {
+    await lookupRepo.FetchResourcesLookup({ search: '', perPage: 20 });
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <style scoped>

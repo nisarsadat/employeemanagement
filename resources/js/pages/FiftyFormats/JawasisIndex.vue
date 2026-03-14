@@ -139,7 +139,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -313,6 +313,9 @@
   import GlobalPagination from '@/components/GlobalPagination.vue';
   import { useJawasiRepository } from '@/stores/JawasiRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+    import { usePageRefresh } from '@/composables/usePageRefresh';
+
+  usePageRefresh('/app/jawasis', fetchAll);
   const auth = useLoginRepository();
   const repo = useJawasiRepository();
   const router = useRouter();

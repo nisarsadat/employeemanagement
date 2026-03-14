@@ -466,7 +466,9 @@
 
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+      import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/resources', fetchAll);
   const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();

@@ -238,6 +238,14 @@
       </v-card-text>
     </v-card>
 
+    <GlobalPagination
+      :page="repo.accountsPage"
+      :items-per-page="repo.accountsPerPage"
+      :total="repo.accountsTotalItems"
+      @update:page="onPage"
+      @update:itemsPerPage="onPerPage"
+    />
+
     <AccountFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
 
     <DeleteConfirmDialog
@@ -254,10 +262,13 @@
   import { useI18n } from 'vue-i18n';
   import FilterableTable from '@/components/FilterableTable.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
   import AccountFormDialog from './AccountsFormDialog.vue';
   import { useFinanceRepository } from '@/stores/FinanceRepository';
   import { useCalendar } from '../../../../composables/useCalendar';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/finincalindex', fetchAll);
   const { t } = useI18n();
 
   const rtl = ref(true);

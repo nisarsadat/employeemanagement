@@ -162,7 +162,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import HawzaFormDialog from './HawzaFormDialog.vue';
 import { useZoneHawzaRepository } from '@/stores/ZoneHawzaRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/settings/zones/hawzas', fetchAll);
 const { t, locale } = useI18n();
 const repo = useZoneHawzaRepository();
 

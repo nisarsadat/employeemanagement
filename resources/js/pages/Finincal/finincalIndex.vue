@@ -19,7 +19,7 @@
         >
           <v-tab value="accounts">{{ t('حسابونه') }}</v-tab>
           <v-tab value="messages">{{ t('پیغامونه') }}</v-tab>
-          <v-tab value="cashflow">{{ t('عاید او مصرف') }}</v-tab>
+          <v-tab value="cashflow">{{ t('بودیجه او مصرف') }}</v-tab>
           <v-tab value="oil">{{ t('تیل') }}</v-tab>
         </v-tabs>
 
@@ -82,7 +82,7 @@
                 density="comfortable"
               >
                 <v-tab value="expense">{{ t('مصارف') }}</v-tab>
-                <v-tab value="income">{{ t('عایدات') }}</v-tab>
+                <v-tab value="income">{{ t('بودیجه') }}</v-tab>
               </v-tabs>
 
               <v-window v-model="cashflowTab" v-if="auth.can('finincalindex.view')">

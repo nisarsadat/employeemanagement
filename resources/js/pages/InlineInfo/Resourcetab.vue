@@ -878,6 +878,7 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
   import LetryFormatSelect from '@/components/LetryFormatSelect.vue';
   import InformationCategorySelect from '@/components/InformationCategorySelect.vue';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   const auth = useLoginRepository();
   const repo = useDatabaseRepository();
@@ -1100,7 +1101,6 @@
 
   const reviewRows = computed(() => {
     // ✅ map IDs to readable labels (optional but nice)
-    const r = resourceItems.value.find((x) => x?.id === draft.resource_id);
     const emp = officeEmployeesItems.value.find((x) => x?.id === draft.office_employee_id);
     const infoEmp = officeEmployeesItems.value.find((x) => x?.id === draft.office_employee_info_id);
 
@@ -1310,7 +1310,13 @@
     draft.office_employee_id = null;
     draft.trust_percentage = '';
   }
- 
+ usePageRefresh('/app/inlineinfo', async () => {
+  onReset();
+
+  await Promise.all([
+    repo.GetOfficeEmployee?.(),
+  ]).catch(() => {});
+});
 </script>
 
 <style scoped>

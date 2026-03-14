@@ -126,7 +126,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import FormatZoneFormDialog from './FormatZoneFormDialog.vue';
 import { useFormatZoneRepository } from '@/stores/FormatZoneRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/formatzone', fetchAll);
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
 watch(locale, (v) => (isRtl.value = v === 'fa'));

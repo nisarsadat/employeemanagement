@@ -156,7 +156,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import ResourceActivityTypeFormDialog from './ResourceActivityTypeFormDialog.vue';
 import { useResourceActivityTypeRepository } from '@/stores/ResourceActivityTypeRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/resource-activity-types', fetchAll);
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
 watch(locale, (v) => (isRtl.value = v === 'fa'));

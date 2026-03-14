@@ -432,7 +432,9 @@
   import AppBar from '@/components/AppBar.vue';
   import DateInput from '@/components/DateInput.vue';
   import { useFoulReportsRepository } from '@/stores/FoulReportsRepository';
+      import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/monthlyfoulreports', fetch);
   const { t, locale } = useI18n();
 
   const isRtl = ref(locale.value === 'fa');

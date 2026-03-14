@@ -166,7 +166,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -294,7 +294,9 @@ import PictureCell from '@/components/table/PictureCell.vue';
 import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import { useWakilanoRepository } from '@/stores/WakilanoRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/deplomaticplaces', fetchAll);
 const repo = useWakilanoRepository();
 const router = useRouter();
 

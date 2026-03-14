@@ -6,8 +6,8 @@
   </AppBar>
 
   <!-- 🟩 Parent Row -->
-  <v-container fluid class="bg-bgproject split-wrapper ">
-    <v-row class="align-start ">
+  <v-container fluid class="bg-bgproject split-wrapper">
+    <v-row class="align-start">
       <!-- 🟩 Right Section (Resource Info) -->
       <v-col cols="12" md="4" lg="5" class="border-end" v-if="auth.can('inlineinfo.view')">
         <div class="column-scroll">
@@ -53,7 +53,9 @@
   import ResourceInfo from './ResourceInfo.vue';
   import khayratreport from './khayratreport.vue';
   import { useLoginRepository } from '../../stores/LoginRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/inlineinfo');
   const auth = useLoginRepository();
   const { t } = useI18n();
   const drawer = ref(false);

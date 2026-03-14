@@ -592,6 +592,8 @@
   import OrganSelect from '@/components/OrganSelect.vue';
   import { useLoginRepository } from '../../stores/LoginRepository';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
+
   const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
@@ -988,7 +990,17 @@
       repo.GetMaliTalafatOptions?.(),
     ]).catch(() => {});
   })();
+  usePageRefresh('/app/inlineinfo', async () => {
+    onReset();
 
+    await Promise.all([
+      repo.GetOfficeEmployeeCode?.(),
+      repo.GetOfficeEmployee?.(),
+      repo.GetZoneEmployees?.(),
+      repo.GetJaniTalafatOptions?.(),
+      repo.GetMaliTalafatOptions?.(),
+    ]).catch(() => {});
+  });
 </script>
 
 <style scoped>

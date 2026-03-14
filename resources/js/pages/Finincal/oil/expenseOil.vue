@@ -175,6 +175,14 @@
       </v-card-text>
     </v-card>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="onPage"
+      @update:items-per-page="onItemsPerPage"
+    />
+
     <ExpenseOilFormDialog
       v-model="dialog"
       :editMode="editMode"
@@ -201,7 +209,9 @@
   import ExpenseOilFormDialog from './ExpenseOilFormDialog.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
   import { useCalendar } from '../../../../composables/useCalendar';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
   const repo = useOilRepository();
   const { t, locale } = useI18n();
@@ -363,11 +373,10 @@
     { title: t('ملاحظات'), key: 'note', sortable: false },
   ]);
 
-  const litersRaw = (n) =>
-    Number(n ?? 0).toLocaleString(undefined, {
-      minimumFractionDigits: 3,
-      maximumFractionDigits: 3,
-    });
+const litersRaw = (n) =>
+  Number(n ?? 0).toLocaleString(undefined, {
+    maximumFractionDigits: 3,
+  });
 
   // ✅ IMPORTANT: keep date raw Gregorian (no formatDisplay)
   const rowsFT = computed(() => {
@@ -441,6 +450,7 @@
     repo.page = 1;
     await fetchAll();
   };
+  usePageRefresh('/app/finincalindex', fetchAll);
 
   const openCreate = () => {
     editMode.value = false;
@@ -526,12 +536,8 @@
       deleteTarget.value = null;
     }
   }
-
-  const liters = (n) =>
-    `${Number(n ?? 0).toLocaleString(undefined, {
-      minimumFractionDigits: 3,
-      maximumFractionDigits: 3,
-    })} L`;
+const liters = (n) =>
+  `${Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 3 })} L`
 
   /* ===== Init ===== */
   onMounted(async () => {

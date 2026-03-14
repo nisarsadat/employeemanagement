@@ -158,7 +158,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -286,7 +286,9 @@
 
   import { useSchoolRepository } from '@/stores/SchoolRepository';
   import PictureCell from '@/components/table/PictureCell.vue';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/hadobusstops', fetchAll);
   const repo = useSchoolRepository();
   const router = useRouter();
 

@@ -153,7 +153,7 @@
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
-      class="mb-20 mx-2"
+      class=" mx-2"
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
@@ -285,7 +285,9 @@
 import PictureCell from '@/components/table/PictureCell.vue';
 
   import { useSchoolRepository } from '@/stores/SchoolRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/hosppitals', fetchAll);
   const repo = useSchoolRepository();
   const router = useRouter();
 

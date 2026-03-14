@@ -339,6 +339,9 @@
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
   import GlobalPagination from '@/components/GlobalPagination.vue';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
+
+  usePageRefresh('/app/delevirycaptive', fetchAll);
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
   const router = useRouter();

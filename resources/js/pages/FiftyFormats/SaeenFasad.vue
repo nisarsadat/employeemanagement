@@ -264,7 +264,7 @@
     </FilterableTable>
 
     <GlobalPagination
-      class="mx-2 mb-20"
+      class="mx-2 "
       :page="repo.page"
       :items-per-page="repo.itemsPerPage"
       :total-items="repo.totalItems"
@@ -333,7 +333,9 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
   const auth = useLoginRepository();
   import { useFasadRepository } from '@/stores/FasadRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/saeenfasad', fetchAll);
   const repo = useFasadRepository();
   const router = useRouter();
 

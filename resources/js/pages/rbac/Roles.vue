@@ -105,8 +105,11 @@
           <v-spacer />
           <v-btn variant="text" @click="createDialog = false">{{ t('Cancel') }}</v-btn>
           <v-btn
-          v-if="auth.can('roles.create')"
-          color="primary" :loading="repo.loading" @click="createRole">
+            v-if="auth.can('roles.create')"
+            color="primary"
+            :loading="repo.loading"
+            @click="createRole"
+          >
             {{ t('Create') }}
           </v-btn>
         </v-card-actions>
@@ -131,99 +134,101 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import AppBar from '@/components/AppBar.vue'
-import { useRbacRepository } from '@/stores/RbacRepository'
-import { useLoginRepository } from '@/stores/LoginRepository'
+  import { ref, computed, watch } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
+  import AppBar from '@/components/AppBar.vue';
+  import { useRbacRepository } from '@/stores/RbacRepository';
+  import { useLoginRepository } from '@/stores/LoginRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
-// 🔤 Pashto—English mapping helpers
-import {
-  mapPermNamesToItemsBilingual as mapPermNamesToItems, // (kept, in case you use later)
-  labelForPermissionBilingual as labelForPermission,
-} from '../../../composables/usePermI18n'
+  // 🔤 Pashto—English mapping helpers
+  import {
+    mapPermNamesToItemsBilingual as mapPermNamesToItems, // (kept, in case you use later)
+    labelForPermissionBilingual as labelForPermission,
+  } from '../../../composables/usePermI18n';
 
-const auth = useLoginRepository()
-const repo = useRbacRepository()
-const router = useRouter()
-const { t, locale } = useI18n()
+  const auth = useLoginRepository();
+  const repo = useRbacRepository();
+  const router = useRouter();
+  const { t, locale } = useI18n();
 
-const isRtl = ref(locale.value === 'fa' || locale.value === 'ps')
-watch(locale, (l) => (isRtl.value = l === 'fa' || l === 'ps'))
+  const isRtl = ref(locale.value === 'fa' || locale.value === 'ps');
+  watch(locale, (l) => (isRtl.value = l === 'fa' || l === 'ps'));
 
-const drawer = ref(false)
+  const drawer = ref(false);
 
-const headers = computed(() => [
-  { title: t('ID'), key: 'id', sortable: true, width: 80 },
-  { title: t('Name'), key: 'name', sortable: true },
-  { title: t('Permissions'), key: 'permissions_count', sortable: false, width: 220 },
-  { title: t('Action'), key: 'actions', sortable: false, align: 'end', width: 120 },
-])
+  const headers = computed(() => [
+    { title: t('ID'), key: 'id', sortable: true, width: 80 },
+    { title: t('Name'), key: 'name', sortable: true },
+    { title: t('Permissions'), key: 'permissions_count', sortable: false, width: 220 },
+    { title: t('Action'), key: 'actions', sortable: false, align: 'end', width: 120 },
+  ]);
 
-// search binding
-const searchModel = computed({
-  get: () => repo.rolesSearch,
-  set: (val) => {
-    repo.rolesSearch = val || ''
-    repo.rolesPage = 1
-    repo.fetchRoles()
-  },
-})
+  // search binding
+  const searchModel = computed({
+    get: () => repo.rolesSearch,
+    set: (val) => {
+      repo.rolesSearch = val || '';
+      repo.rolesPage = 1;
+      repo.fetchRoles();
+    },
+  });
 
-const onTableChange = ({ page, itemsPerPage }) => {
-  repo.rolesPage = page
-  repo.rolesPerPage = itemsPerPage
-  repo.fetchRoles()
-}
+  const onTableChange = ({ page, itemsPerPage }) => {
+    repo.rolesPage = page;
+    repo.rolesPerPage = itemsPerPage;
+    repo.fetchRoles();
+  };
 
-// dialogs
-const createDialog = ref(false)
-const renameDialog = ref(false)
+  // dialogs
+  const createDialog = ref(false);
+  const renameDialog = ref(false);
 
-const createName = ref('')
-const renameName = ref('')
+  const createName = ref('');
+  const renameName = ref('');
 
-// expose in template
-const labelForPermissionBilingual = labelForPermission
+  // expose in template
+  const labelForPermissionBilingual = labelForPermission;
 
-const openCreate = () => {
-  createName.value = ''
-  createDialog.value = true
-}
-const createRole = async () => {
-  if (!createName.value?.trim()) return
-  await repo.createRole(createName.value.trim())
-  createDialog.value = false
-}
+  const openCreate = () => {
+    createName.value = '';
+    createDialog.value = true;
+  };
+  const createRole = async () => {
+    if (!createName.value?.trim()) return;
+    await repo.createRole(createName.value.trim());
+    createDialog.value = false;
+  };
 
-const openRename = (role) => {
-  repo.currentRole.id = role.id
-  repo.currentRole.name = role.name
-  renameName.value = role.name
-  renameDialog.value = true
-}
-const renameRole = async () => {
-  await repo.updateRole(repo.currentRole.id, renameName.value.trim())
-  renameDialog.value = false
-}
+  const openRename = (role) => {
+    repo.currentRole.id = role.id;
+    repo.currentRole.name = role.name;
+    renameName.value = role.name;
+    renameDialog.value = true;
+  };
+  const renameRole = async () => {
+    await repo.updateRole(repo.currentRole.id, renameName.value.trim());
+    renameDialog.value = false;
+  };
 
-/** ✅ route to assign page */
-const openAssign = (role) => {
-  router.push({ name: 'RolePermissions', params: { id: role.id } })
-}
+  /** ✅ route to assign page */
+  const openAssign = (role) => {
+    router.push({ name: 'RolePermissions', params: { id: role.id } });
+  };
 
-const removeRole = async (id) => {
-  await repo.deleteRole(id)
-}
+  const removeRole = async (id) => {
+    await repo.deleteRole(id);
+  };
 
-// initial load
-repo.fetchRoles()
-repo.fetchPermissions?.()
+  // initial load
+  repo.fetchRoles();
+  repo.fetchPermissions?.();
+  usePageRefresh('/app/roles', repo.fetchRoles);
 </script>
 
 <style scoped>
-.ga-1 {
-  gap: 4px;
-}
+  .ga-1 {
+    gap: 4px;
+  }
 </style>

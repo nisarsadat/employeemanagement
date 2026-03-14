@@ -157,6 +157,14 @@
       </v-card-text>
     </v-card>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="onPage"
+      @update:items-per-page="onItemsPerPage"
+    />
+
     <OilAccountFormDialog
       v-model="dialog"
       :editMode="editMode"
@@ -181,6 +189,8 @@ import { useOilRepository } from '@/stores/OilRepository'
 import OilAccountFormDialog from './OilAccountFormDialog.vue'
 import FilterableTable from '@/components/FilterableTable.vue'
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
+import GlobalPagination from '@/components/GlobalPagination.vue'
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
 const repo = useOilRepository()
 const { t, locale } = useI18n()
@@ -313,12 +323,14 @@ const qty = (n) =>
 
 const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })
 const liters = (n) =>
-  `${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} L`
+  `${Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 3 })} L`
 
 onMounted(async () => {
   if (repo.FetchYears) await repo.FetchYears('oil-accounts')
   await fetchAll()
 })
+  usePageRefresh('/app/finincalindex', fetchAll);
+
 </script>
 
 <style scoped>

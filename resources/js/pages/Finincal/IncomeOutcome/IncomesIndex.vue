@@ -204,11 +204,6 @@
           :rows="rowsFT"
           :filters="filters"
           :topGroups="topGroups"
-          :totalItems="repo.incomesTotalItems"
-          :page="repo.incomesPage"
-          :perPage="repo.incomesPerPage"
-          @update:page="onPage"
-          @update:perPage="onPerPage"
         >
           <template #actions="{ item }">
             <div class="d-flex align-center ga-2">
@@ -249,6 +244,14 @@
       </v-card-text>
     </v-card>
 
+    <GlobalPagination
+      :page="repo.incomesPage"
+      :items-per-page="repo.incomesPerPage"
+      :total-items="repo.incomesTotalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <IncomeFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
 
     <DeleteConfirmDialog
@@ -265,6 +268,7 @@
   import { useI18n } from 'vue-i18n';
   import FilterableTable from '@/components/FilterableTable.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
   import IncomeFormDialog from './IncomesFormDialog.vue';
   import { useFinanceRepository } from '@/stores/FinanceRepository';
   import { useCalendar } from '../../../../composables/useCalendar';
@@ -453,12 +457,12 @@
     }
   }
 
-  function onPage(p) {
+  function handlePageChange(p) {
     repo.incomesPage = p;
     fetchAll();
   }
 
-  function onPerPage(pp) {
+  function handlePerPageChange(pp) {
     repo.incomesPerPage = pp;
     repo.incomesPage = 1;
     fetchAll();

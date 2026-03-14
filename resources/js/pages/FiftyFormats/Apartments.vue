@@ -156,7 +156,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
       ><template #cell-picture="{ row }">
@@ -286,7 +286,9 @@
   import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useSchoolRepository } from '@/stores/SchoolRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/apartments', fetchAll);
   const repo = useSchoolRepository();
   const router = useRouter();
 

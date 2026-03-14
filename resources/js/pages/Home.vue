@@ -1,46 +1,6 @@
-<!-- <template>
-  <v-app flat fluid class="rounded-xl bg-white">
-    <v-layout
-      flat
-      fluid
-      class="no-scroll-layout"
-    >
-      <NavigationDrawer
-        v-if="employeerepository.drawerVisible"
-        :location="location"
-        :dir="isRtl ? 'rtl' : 'ltr'"
-        class="bg-bgproject"
-        flat
-        :rail="employeerepository.rail"
-        color="bgproject"
-      />
-
-      <v-main
-        class="thepage h-ful scrollabl-content-home rounded-xl bg-bgproject scroll-area scroll-hidden"
-      >
-        <router-view />
-      </v-main>
-    </v-layout>
-  </v-app>
-</template>
-
-<script setup>
-import { ref, watch, computed } from "vue";
-import { useI18n } from "vue-i18n";
-import NavigationDrawer from "@/components/NavigationDrawer.vue";
-import { useEmployeOfficeRepository } from "@/stores/EmployeeRepository";
-
-const employeerepository = useEmployeOfficeRepository();
-const { locale } = useI18n();
-
-const isRtl = ref(locale.value === "fa");
-watch(locale, (l) => (isRtl.value = l === "fa"));
-
-const location = computed(() => (locale.value === "fa" ? "right" : "left"));
-</script> -->
 <template>
-  <v-app flat fluid class="rounded-xl bg-white">
-    <v-layout flat fluid class="no-scroll-layout">
+  <v-app class="app-shell bg-white">
+    <v-layout class="app-layout">
       <NavigationDrawer
         v-model="drawerOpen"
         :location="location"
@@ -49,54 +9,103 @@ const location = computed(() => (locale.value === "fa" ? "right" : "left"));
         flat
         color="bgproject"
       />
+
       <div
         class="drawer-hover-zone"
         :class="isRtl ? 'right' : 'left'"
         @mouseenter="drawerOpen = true"
       ></div>
-      <v-main class="main-scroll rounded-xl bg-bgproject">
-        <router-view />
+
+      <v-main class="main-shell bg-bgproject">
+        <div class="main-shell__inner">
+          <router-view />
+        </div>
       </v-main>
     </v-layout>
   </v-app>
 </template>
 
 <script setup>
-  import { ref, watch, computed } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import { useRoute } from 'vue-router'; // ✅
-  import NavigationDrawer from '@/components/NavigationDrawer.vue';
-  import { useEmployeOfficeRepository } from '@/stores/EmployeeRepository';
-  const drawerOpen = ref(false);
-  const employeerepository = useEmployeOfficeRepository();
-  const { locale } = useI18n();
-  const route = useRoute(); // ✅
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import NavigationDrawer from '@/components/NavigationDrawer.vue';
 
-  const rtlLangs = ['fa', 'ps'];
-  const isRtl = computed(() => rtlLangs.includes(locale.value));
-  const location = computed(() => (rtlLangs.includes(locale.value) ? 'right' : 'left'));
+const drawerOpen = ref(false);
+const { locale } = useI18n();
+
+const rtlLangs = ['fa', 'ps'];
+const isRtl = computed(() => rtlLangs.includes(locale.value));
+const location = computed(() => (isRtl.value ? 'right' : 'left'));
 </script>
+
 <style>
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.app-shell {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-layout {
+  height: 100vh;
+}
+
+.drawer-hover-zone {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  z-index: 3000;
+  background: transparent;
+}
+
+.drawer-hover-zone.left {
+  left: 0;
+}
+
+.drawer-hover-zone.right {
+  right: 0;
+}
+
+.main-shell {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-shell__inner {
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  padding-inline: 12px;
+  padding-block: 10px;
+  box-sizing: border-box;
+}
+
+/* desktop */
+@media (min-width: 1280px) {
+  .main-shell__inner {
+    padding-inline: 18px;
+    padding-block: 14px;
+  }
+}
+
+/* smaller screens */
+@media (max-width: 600px) {
+  .main-shell__inner {
+    padding-inline: 8px;
+    padding-block: 8px;
+  }
+
   .drawer-hover-zone {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    width: 10px;
-    z-index: 3000;
-    background: transparent;
+    width: 6px;
   }
-  .drawer-hover-zone.left {
-    left: 0;
-  }
-  .drawer-hover-zone.right {
-    right: 0;
-  }
-  .main-scroll {
-    height: 100vh;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    padding-right: 12px;
-  }
+}
 </style>

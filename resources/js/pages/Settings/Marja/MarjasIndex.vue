@@ -111,7 +111,9 @@ import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 
 import MarjaFormDialog from './MarjaFormDialog.vue';
 import { useMarjaRepository } from '@/stores/MarjaRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/marjas', fetchAll);
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
 watch(locale, (v) => (isRtl.value = v === 'fa'));

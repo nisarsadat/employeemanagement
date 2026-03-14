@@ -181,12 +181,14 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     x.setDate(x.getDate() + diff);
     return x;
   }
+
   function endOfWeek(d) {
     const s = startOfWeek(d);
     const e = new Date(s);
     e.setDate(e.getDate() + 6);
     return e;
   }
+
   function quarterOfMonth(m0) {
     return Math.floor(m0 / 3) + 1;
   }
@@ -318,7 +320,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   // ✅ App font stack (same as app.css)
   // =========================
   function appFontStack() {
-    // ✅ keep simple & valid everywhere
     return (
       `'Amiri','Scheherazade New','Noto Naskh Arabic','Noto Sans Arabic','Tahoma',` +
       `ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif`
@@ -350,10 +351,12 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const fontStack = appFontStack();
 
     return `
-      /* ✅ ensure Arabic/Persian fonts also exist in the print window */
       @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
 
-      @page { size: A4 portrait; margin: 14mm; }
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
 
       :root{
         --app-font: ${fontStack};
@@ -369,26 +372,42 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       html, body {
         margin: 0;
         padding: 0;
+        width: 210mm;
+        min-height: 297mm;
         background: #fff !important;
         color: #000 !important;
         font-family: var(--app-font) !important;
-        font-size: 12px;
+        font-size: 11px;
+        line-height: 1.45;
         direction: rtl !important;
         text-align: right !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+        overflow: visible !important;
       }
 
-      .page { width: 100%; padding: 8mm; background: #fff !important; }
+      body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .page {
+        width: 190mm;
+        min-height: 277mm;
+        margin: 0 auto;
+        padding: 0;
+        background: #fff !important;
+      }
 
       .hero {
         border-radius: 16px;
-        padding: 18px 18px 14px;
+        padding: 14px 14px 12px;
         background: #547ca3;
         position: relative;
         overflow: hidden;
         box-shadow: 0 18px 40px rgba(79,70,229,.18);
       }
+
       .hero::before{
         content:"";
         position:absolute;
@@ -404,45 +423,64 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         display:flex;
         align-items:flex-start;
         justify-content:space-between;
-        gap:12px;
-        font-size: 18px;
+        gap:10px;
+        font-size:14px;
         position:relative;
         z-index:1;
         direction: rtl !important;
       }
 
-      /* ✅ HERO TEXT MUST BE BLACK */
       .hero, .hero * { color: #000 !important; }
 
       .hero-bismillah{
         font-weight: 900;
-        font-size: 18px;
-        margin: 0 0 6px;
+        font-size: 16px;
+        margin: 0 0 4px;
         line-height: 1.4;
-        margin-top: 24px;
+        margin-top: 18px;
       }
+
       .hero-system{
         font-weight: 900;
-        font-size: 12px;
+        font-size: 13px;
         margin: 0 0 6px;
         line-height: 1.4;
       }
 
-      .hero-title{ font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; }
-      .hero-sub{ margin:0; font-size:12px; line-height:1.55; font-weight:700; }
+      .hero-title{
+        font-weight:900;
+        font-size:16px;
+        margin:0 0 4px;
+        line-height:1.25;
+      }
 
-      .pills{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
+      .hero-sub{
+        margin:0;
+        font-size:11px;
+        line-height:1.55;
+        font-weight:700;
+      }
+
+      .pills{
+        margin-top:10px;
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        position:relative;
+        z-index:1;
+      }
+
       .pill{
         display:inline-block;
-        padding:6px 10px;
+        padding:5px 9px;
         border-radius:999px;
         font-weight:900;
-        font-size:11px;
+        font-size:10px;
         border:1px solid rgba(255,255,255,.28);
         background: rgba(255,255,255,.14);
       }
 
-      .section { margin-top: 12px; }
+      .section { margin-top: 10px; }
 
       .stats-grid{
         display:grid;
@@ -457,18 +495,32 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         border-radius:14px;
         overflow:hidden;
         box-shadow: 0 10px 22px rgba(17,24,39,.06);
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
 
       .stat-card{
-        padding:12px 12px;
-        min-height:90px;
+        padding:10px 10px;
+        min-height:84px;
         display:flex;
         align-items:center;
         justify-content:space-between;
         gap:10px;
       }
-      .stat-label{ font-size:11px; font-weight:900; margin-bottom:4px; color:#000 !important; }
-      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; color:#000 !important; }
+
+      .stat-label{
+        font-size:11px;
+        font-weight:900;
+        margin-bottom:4px;
+        color:#000 !important;
+      }
+
+      .stat-number{
+        font-size:20px;
+        font-weight:900;
+        line-height:1.1;
+        color:#000 !important;
+      }
 
       .badge{
         display:inline-flex;
@@ -483,6 +535,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         white-space:nowrap;
         color: inherit !important;
       }
+
       .b-primary{ background:#eef2ff; border-color:#c7d2fe; }
       .b-info{ background:#e0f2fe; border-color:#bae6fd; }
       .b-warning{ background:#fff7ed; border-color:#fed7aa; }
@@ -496,8 +549,20 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         gap:10px;
         direction: rtl !important;
       }
-      .strip-title{ font-weight:900; font-size:12px; margin:0; color:#000 !important; }
-      .strip-sub{ margin:2px 0 0; font-size:10px; font-weight:800; color:#000 !important; }
+
+      .strip-title{
+        font-weight:900;
+        font-size:12px;
+        margin:0;
+        color:#000 !important;
+      }
+
+      .strip-sub{
+        margin:2px 0 0;
+        font-size:10px;
+        font-weight:800;
+        color:#000 !important;
+      }
 
       .chip{
         padding:5px 10px;
@@ -517,26 +582,40 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       .chip-success{ background:#ecfdf5; border-color:#a7f3d0; }
       .chip-warning{ background:#fff7ed; border-color:#fed7aa; }
 
-      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; direction: rtl !important; }
+      table{
+        width:100%;
+        border-collapse:separate;
+        border-spacing:0;
+        table-layout:fixed;
+        direction: rtl !important;
+      }
 
       thead th{
         background:#f8fafc;
         font-weight:900;
         font-size:11px;
-        padding:9px 8px;
+        padding:8px 7px;
         border-bottom:1px solid #eef2f7;
-        text-align: start;
+        text-align:start;
         color:#000 !important;
+        word-break: break-word;
+        overflow-wrap: anywhere;
       }
+
       tbody td{
-        padding:9px 8px;
+        padding:8px 7px;
         border-bottom:1px solid #f0f4fa;
         font-size:11px;
         vertical-align:middle;
         text-align:start;
         color:#000 !important;
+        word-break: break-word;
+        overflow-wrap: anywhere;
       }
-      tbody tr:nth-child(even) td{ background: #fcfdff; }
+
+      tbody tr:nth-child(even) td{
+        background:#fcfdff;
+      }
 
       .td-end{ text-align:end; }
       .td-center{ text-align:center; }
@@ -550,6 +629,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         border:1px solid;
         color: inherit !important;
       }
+
       .count-primary{ border-color:#c7d2fe; background:#eef2ff; }
       .count-success{ border-color:#a7f3d0; background:#ecfdf5; }
 
@@ -557,14 +637,22 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         display:flex;
         align-items:center;
         justify-content:flex-start;
-        padding:10px 12px;
+        padding:8px 10px;
         border-radius:12px;
-        min-width: 150px;
+        min-width:120px;
       }
-      .hero-logo img{ height:82px; width:auto; object-fit:contain; display:block; }
 
-      .no-break { break-inside: avoid; page-break-inside: avoid; }
-      .card { break-inside: avoid; page-break-inside: avoid; }
+      .hero-logo img{
+        height:70px;
+        width:auto;
+        object-fit:contain;
+        display:block;
+      }
+
+      .no-break {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
 
       .etype{
         display:inline-block;
@@ -575,23 +663,48 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         border:1px solid rgba(17,24,39,.12);
         color:#000 !important;
       }
+
       .etype-red{ background:#fee2e2; border-color:#fecaca; }
       .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
       .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
       .etype-purple{ background:#ede9fe; border-color:#ddd6fe; }
       .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; }
 
-      .fontsizeb
-      {
-      font-size: 18px;
-      color: #0000;
+      .fontsizeb {
+        font-size: inherit;
+        color: #000 !important;
       }
-      .margintowline
-      {
-      margin-top:12px;
+
+      .margintowline {
+        margin-top:12px;
       }
-      @media print{
-        .stats-grid{ grid-template-columns: repeat(2, 1fr); }
+
+      @media print {
+        html, body {
+          width: 210mm !important;
+          min-height: 297mm !important;
+          overflow: hidden !important;
+        }
+
+        .page {
+          width: 190mm !important;
+          min-height: auto !important;
+        }
+
+        .hero,
+        .card,
+        .section,
+        table,
+        tr,
+        td,
+        th {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
     `;
   }
@@ -778,9 +891,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                           <tr>
                             <td>${province}</td>
                             <td>${hawza}</td>
-                            <td class="td-center"><span class="etype ${cls}">${
-                          etype || '-'
-                        }</span></td>
+                            <td class="td-center"><span class="etype ${cls}">${etype || '-'}</span></td>
                             <td class="td-center">${killed}</td>
                             <td class="td-center">${injured}</td>
                             <td class="td-end">${mali}</td>
@@ -808,13 +919,12 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
             <div class="hero no-break fontsizeb">
               <div class="hero-top fontsizeb">
                 <div class="hero-info fontsizeb">
-                  <div class="hero-system fontsizeb margintowline">${escapeHtml(systemName)}
-           ورځنی راپور
+                  <div class="hero-system fontsizeb margintowline">
+                    ${escapeHtml(systemName)} ورځنی راپور
                   </div>
-           
                   <div>
-                         
-                  <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ ورځنۍ عمومي کتنه</p></div>
+                    <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ ورځنۍ عمومي کتنه</p>
+                  </div>
                 </div>
 
                 <div class="hero-mid">
@@ -825,7 +935,6 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
               </div>
-
 
               <div class="pills fontsizeb">${heroDatePills || ''}</div>
             </div>
@@ -1022,6 +1131,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
               <div class="pills fontsizeb">${heroDatePills || ''}</div>
             </div>
+
             <div class="stats-grid section no-break">
               <div class="card"><div class="stat-card"><div>
                 <div class="stat-label">منابع</div>
@@ -1058,7 +1168,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   }
 
   // =========================
-  // ✅ Print helper (FIX BLANK PDF)
+  // ✅ Print helper (A4 + render stability)
   // =========================
   function printHtmlViaIframe(html) {
     const iframe = document.createElement('iframe');
@@ -1101,7 +1211,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
             }
           });
 
-          setTimeout(resolve, 2000); // fallback
+          setTimeout(resolve, 2500);
         } catch {
           resolve();
         }
@@ -1113,7 +1223,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
           const fonts = doc.fonts;
           if (fonts && typeof fonts.ready?.then === 'function') {
             fonts.ready.then(resolve).catch(resolve);
-          } else resolve();
+          } else {
+            resolve();
+          }
         } catch {
           resolve();
         }
@@ -1121,10 +1233,10 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
     const doPrint = async () => {
       try {
-        // allow render
-        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        await new Promise((r) => setTimeout(r, 400));
         await waitFonts();
         await waitImages();
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
         w.focus();
         w.print();
@@ -1133,12 +1245,12 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
           try {
             document.body.removeChild(iframe);
           } catch {}
-        }, 1200);
+        }, 1500);
       }
     };
 
-    iframe.onload = () => setTimeout(doPrint, 150);
-    setTimeout(doPrint, 600);
+    iframe.onload = () => setTimeout(doPrint, 250);
+    setTimeout(doPrint, 900);
 
     return true;
   }
@@ -1253,7 +1365,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     });
 
     const html = buildDailyDashboardHtml(report, dateText, notes);
-    printHtmlViaIframe(html); // ✅ FIX: no more blank PDF
+    printHtmlViaIframe(html);
   };
 
   const DownloadDailyFoulWord = async () => {
@@ -1289,7 +1401,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     });
 
     const html = buildMonthlyDashboardHtml(report, fromMonth, notes);
-    printHtmlViaIframe(html); // ✅ FIX: no more blank PDF
+    printHtmlViaIframe(html);
   };
 
   const DownloadMonthlyFoulWord = async () => {

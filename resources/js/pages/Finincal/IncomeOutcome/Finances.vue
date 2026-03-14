@@ -291,6 +291,14 @@
       </v-card-text>
     </v-card>
 
+    <GlobalPagination
+      :page="repo.financesPage"
+      :items-per-page="repo.financesPerPage"
+      :total="repo.financesTotalItems"
+      @update:page="onPage"
+      @update:itemsPerPage="onPerPage"
+    />
+
     <FinanceFormDialog v-model="dialog" :editId="editId" @saved="onSaved" />
 
     <DeleteConfirmDialog
@@ -309,10 +317,13 @@ import dayjs from 'dayjs';
 
 import FilterableTable from '@/components/FilterableTable.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 import FinanceFormDialog from './FinancesFormDialog.vue';
 import { useFinanceRepository } from '@/stores/FinanceRepository';
 import { useCalendar } from '../../../../composables/useCalendar';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/finincalindex', fetchAll);
 const { t, locale } = useI18n();
 const repo = useFinanceRepository();
 
@@ -364,13 +375,14 @@ function prettyExpenseInfo(it) {
 }
 
 const rowsFT = computed(() => {
+  const startIndex = (repo.financesPage - 1) * repo.financesPerPage;
   return (repo.finances || []).map((it, i) => {
     const amount = it?.money_amount_number ?? it?.amount ?? '';
     const exp = prettyExpenseInfo(it);
 
     return {
       ...it,
-      index: i + 1,
+      index: startIndex + i + 1,
 
       employee_name: it?.office_employee?.name ?? '',
       employee_code: it?.office_employee?.code_number ?? '',
@@ -519,6 +531,8 @@ const balanceCardValue = computed(() => {
 /* ===== Fetch / filters ===== */
 function fetchAll() {
   repo.FetchFinancesData({
+    page: repo.financesPage,
+    perPage: repo.financesPerPage,
     search: repo.financesSearch,
     account_id: repo.financesAccountId,
     office_employee_id: repo.financesOfficeEmployeeId,

@@ -203,24 +203,24 @@ private function formatCounts(Carbon $date): array
     $map = [
 
         // FifthyFormats
-        ['key' => 'fasads', 'name' => 'فسادونه', 'model' => Fasad::class],
+        ['key' => 'fasads', 'name' => 'شر او فساد', 'model' => Fasad::class],
         ['key' => 'saeenFasads', 'name' => 'ساعین بالفساد ', 'model' => SaeenFasad::class],
         ['key' => 'heists', 'name' => 'غلاوې', 'model' => Heist::class],
         ['key' => 'captives', 'name' => '
 خوشې شوي بندیان', 'model' => Captive::class],
         ['key' => 'mulkanos', 'name' => 'نمایندهگانو', 'model' => Mulkano::class],
-        ['key' => 'entryExits', 'name' => 'داخل او خارج', 'model' => EntryExit::class],
+        ['key' => 'entryExits', 'name' => 'دخولي ، خروجي او فرعي لارې', 'model' => EntryExit::class],
         ['key' => 'sarafyanos', 'name' => 'صرافان', 'model' => Sarafyano::class],
         ['key' => 'clubs', 'name' => 'کلبونه', 'model' => Clubs::class],
         ['key' => 'mahajerats', 'name' => 'مهاجرین', 'model' => Mahajerat::class],
         ['key' => 'soldiers', 'name' => 'سرتیري', 'model' => Soldier::class],
 
         // Format One
-        ['key' => 'mawads', 'name' => 'مواد', 'model' => Mawad::class],
-        ['key' => 'lostmujremeens', 'name' => 'ورک مجرمین', 'model' => LostMujremeen::class],
+        ['key' => 'mawads', 'name' => 'د مخدره مواد پلورونکي', 'model' => Mawad::class],
+        ['key' => 'lostmujremeens', 'name' => 'ورک شوي مجرمین', 'model' => LostMujremeen::class],
         ['key' => 'oldSoldiersHomes', 'name' => 'د پخوانیو عسکرو کورونه', 'model' => OldSoldiersHomes::class],
         ['key' => 'robbers', 'name' => 'غله', 'model' => Robbers::class],
-        ['key' => 'nonResponsablePeople', 'name' => 'بې مسؤله خلک', 'model' => NonResponsablePeople::class],
+        ['key' => 'nonResponsablePeople', 'name' => 'غیر مسوله وسله وال', 'model' => NonResponsablePeople::class],
         ['key' => 'mashkokHomes', 'name' => 'مشکوک کورونه', 'model' => MashkokHomes::class],
         ['key' => 'damagePlaces', 'name' => 'زیانمن ځایونه', 'model' => DamagePlaces::class],
         ['key' => 'damageRasanPlaces', 'name' => 'زیان رسونکي ځایونه', 'model' => DamageRasanPlaces::class],
@@ -234,18 +234,18 @@ private function formatCounts(Carbon $date): array
         ['key' => 'apartments', 'name' => 'اپارتمانونه', 'model' => Apartment::class],
         ['key' => 'banks', 'name' => 'بانکونه', 'model' => Bank::class],
         ['key' => 'transportCompanies', 'name' => 'ترانسپورتي شرکتونه', 'model' => TransportCompany::class],
-        ['key' => 'hadoBusStops', 'name' => 'بس تمځایونه', 'model' => HadoBusStop::class],
+        ['key' => 'hadoBusStops', 'name' => 'هډې', 'model' => HadoBusStop::class],
         ['key' => 'carSalesCompanies', 'name' => 'د موټر خرڅلاو شرکتونه', 'model' => CarSalesCompany::class],
-        ['key' => 'schools', 'name' => 'ښوونځي', 'model' => School::class],
+        ['key' => 'schools', 'name' => 'شونیز مراکز', 'model' => School::class],
         ['key' => 'parkings', 'name' => 'پارکینګونه', 'model' => Parking::class],
 
         // Format Four
-        ['key' => 'wakilanos', 'name' => 'وکیلان', 'model' => Wakilano::class],
+        ['key' => 'wakilanos', 'name' => 'وکیلان اوملکان', 'model' => Wakilano::class],
         ['key' => 'universities', 'name' => 'پوهنتونونه', 'model' => University::class],
         ['key' => 'masjids', 'name' => 'جوماتونه', 'model' => Masjid::class],
         ['key' => 'highways', 'name' => 'لویې لارې', 'model' => Highway::class],
-        ['key' => 'companies', 'name' => 'شرکتونه', 'model' => Company::class],
-        ['key' => 'donelostplaces', 'name' => 'ورک شوي ځایونه', 'model' => Donelostplace::class],
+        ['key' => 'companies', 'name' => 'شرکتونه او فابریکې', 'model' => Company::class],
+        ['key' => 'donelostplaces', 'name' => 'هغه ساحې چې غلا پکې ترسره شوي دي', 'model' => Donelostplace::class],
         ['key' => 'econemyProjects', 'name' => 'اقتصادي پروژې', 'model' => EconemyProject::class],
         ['key' => 'criminalCapturePlaces', 'name' => 'د مجرم نیولو ځایونه', 'model' => CriminalCapturePlace::class],
         ['key' => 'pumps', 'name' => 'پمپونه', 'model' => Pump::class],
@@ -259,7 +259,7 @@ private function formatCounts(Carbon $date): array
 
         // Format Three
         ['key' => 'badmashanos', 'name' => 'بدماشانو', 'model' => Badmashano::class],
-        ['key' => 'emaratOffices', 'name' => 'امارت دفترونه', 'model' => EmaratOffice::class],
+        ['key' => 'emaratOffices', 'name' => 'امارتي کورونه او میلمستونونه', 'model' => EmaratOffice::class],
         ['key' => 'hostels', 'name' => 'لیلي او کرایي اطاقونه', 'model' => Hostel::class],
         ['key' => 'hotels', 'name' => 'هوټلونه', 'model' => Hotel::class],
         ['key' => 'madrasas', 'name' => 'مدرسې', 'model' => Madrasa::class],

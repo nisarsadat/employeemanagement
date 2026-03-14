@@ -159,7 +159,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -286,7 +286,9 @@
 
   import { useSchoolRepository } from '@/stores/SchoolRepository'; // ✅ همان‌طور که خودت گذاشتی
   import PictureCell from '@/components/table/PictureCell.vue';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/transportcompanies', fetchAll);
   const repo = useSchoolRepository();
   const router = useRouter();
 

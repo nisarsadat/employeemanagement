@@ -400,7 +400,9 @@
   import { useRouter } from 'vue-router';
 
   const { t, locale } = useI18n();
+      import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/alltimefoulreports', fetch);
   // ✅ RTL/LTR exactly like your employee page
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));

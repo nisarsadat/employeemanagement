@@ -166,7 +166,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -300,7 +300,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import { useMawadRepository } from '@/stores/MawadRepository';
 import PictureCell from '@/components/table/PictureCell.vue';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/mashkokshops', fetchAll);
 const repo = useMawadRepository();
 const router = useRouter();
 

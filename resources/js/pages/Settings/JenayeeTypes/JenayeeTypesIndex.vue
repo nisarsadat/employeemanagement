@@ -156,7 +156,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import JenayeeTypeFormDialog from './JenayeeTypeFormDialog.vue';
 import { useJenayeeTypeRepository } from '@/stores/JenayeeTypeRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/jenayee-type', fetchAll);
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
 watch(locale, (v) => (isRtl.value = v === 'fa'));

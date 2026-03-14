@@ -121,7 +121,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import LetryFormatFormDialog from './LetryFormatFormDialog.vue';
 import { useLetryFormatRepository } from '@/stores/LetryFormatRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/letryformatindex', fetchAll);
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
 watch(locale, (v) => (isRtl.value = v === 'fa'));

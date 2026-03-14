@@ -122,11 +122,6 @@
           :rows="rowsFT"
           :filters="filters"
           :topGroups="topGroups"
-          :totalItems="repo.totalItems"
-          :page="repo.page"
-          :perPage="repo.itemsPerPage"
-          @update:page="onPage"
-          @update:perPage="onItemsPerPage"
         >
           <template #actions="{ item }">
             <div class="d-flex align-center ga-2">
@@ -167,6 +162,14 @@
       </v-card-text>
     </v-card>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <IncomeOilFormDialog
       v-model="dialog"
       :editMode="editMode"
@@ -193,7 +196,9 @@ import { useOilRepository } from '@/stores/OilRepository'
 import IncomeOilFormDialog from './IncomeOilFormDialog.vue'
 import FilterableTable from '@/components/FilterableTable.vue'
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
+import GlobalPagination from '@/components/GlobalPagination.vue'
 import { useCalendar } from '../../../../composables/useCalendar'
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
 const repo = useOilRepository()
 const { t, locale } = useI18n()
@@ -310,7 +315,7 @@ const headersFT = computed(() => [
 ])
 
 const qty = (n) =>
-  Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+  Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 3 })
 
 // ✅ IMPORTANT: add idOrTmp + keep date RAW (let FilterableTable format it)
 const rowsFT = computed(() => {
@@ -362,12 +367,12 @@ const applyFilters = async () => {
   await fetchAll()
 }
 
-const onPage = async (p) => {
+const handlePageChange = async (p) => {
   repo.page = p || 1
   await fetchAll()
 }
 
-const onItemsPerPage = async (pp) => {
+const handlePerPageChange = async (pp) => {
   repo.itemsPerPage = pp || 10
   repo.page = 1
   await fetchAll()
@@ -440,11 +445,12 @@ async function handleDeleteConfirmed(target) {
     deleteTarget.value = null
   }
 }
+  usePageRefresh('/app/finincalindex', fetchAll);
 
 /* ===== Formatters ===== */
 const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })
 const liters = (n) =>
-  `${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} L`
+  `${Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 3 })} L`
 
 /* ===== Init ===== */
 onMounted(async () => {

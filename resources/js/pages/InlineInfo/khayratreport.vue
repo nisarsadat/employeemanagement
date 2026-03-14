@@ -225,7 +225,7 @@
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   import { useLoginRepository } from '../../stores/LoginRepository';
   import { useKhayratReportRepository } from '@/stores/KhayratReportRepository';
-
+import { usePageRefresh } from '@/composables/usePageRefresh';
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const repo = useKhayratReportRepository();
@@ -393,7 +393,7 @@
       await repo.CreateKhayratReport(payload);
 
       onReset();
-      showSuccessMessage(t('گزارش با موفقیت ثبت شد'));
+      showSuccessMessage(t('بریالیتوب سره ثبت شوه'));
     } catch (e) {
       const errors = e?.response?.data?.errors;
       if (errors && typeof errors === 'object') {
@@ -406,7 +406,10 @@
       submitting.value = false;
     }
   }
-
+usePageRefresh('/app/inlineinfo', async () => {
+  onReset();
+  await preloadLookups();
+});
   onMounted(async () => {
     await preloadLookups();
   });

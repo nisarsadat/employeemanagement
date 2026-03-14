@@ -239,12 +239,7 @@
         it?._raw?.code_number
       );
 
-      const phoneList = [
-        d?.phone_number,
-        d?.phone_number_1,
-        d?.phone_number_2,
-        d?.phone_number_3,
-      ]
+      const phoneList = [d?.phone_number, d?.phone_number_1, d?.phone_number_2, d?.phone_number_3]
         .filter((v) => v !== null && v !== undefined)
         .map((v) => String(v).trim())
         .filter((v) => v && v !== '-' && v !== 'null' && v !== 'undefined');
@@ -325,13 +320,170 @@
   /* ---------------- ROUTING ---------------- */
   const typeRoute = computed(() => {
     const t = normalizeType(props.item?.type || props.item?.typeLabel);
-    if (t.includes('resource')) return { path: '/app/resources' };
-    if (t.includes('officeemployee') || t.includes('employee'))
-      return { path: '/app/officeemployee' };
-    if (t.includes('event')) return { path: '/app/events' };
-    if (t.includes('information')) return { path: '/app/informations' };
-    if (t.includes('highway')) return { path: '/app/highways' };
-    return null;
+    const id = props.item?.id;
+
+    if (!id) return null;
+
+    const routeMap = {
+      officeemployee: '/app/officeemployee',
+      resource: '/app/resources',
+      information: '/app/informations',
+      captivedelivery: '/app/delevirycaptive',
+      event: '/app/events',
+
+      fasad: '/app/fasads',
+      saeenfasad: '/app/saeenfasad',
+      heist: '/app/heist',
+      captive: '/app/captives',
+      mulkano: '/app/mulkanos',
+      entryexit: '/app/entry-exits',
+      sarafyano: '/app/sarafyanos',
+      clubs: '/app/clubs',
+      mahajerat: '/app/mahajerats',
+      soldier: '/app/soldiers',
+
+      mawad: '/app/mawads',
+      lostmujremeen: '/app/lostmujremeens',
+      oldsoldiershomes: '/app/oldsoldiershomes',
+      robbers: '/app/robbers',
+      nonresponsablepeople: '/app/nonresponsablepeople',
+      mashkokhomes: '/app/mashkokhomes',
+      damageplaces: '/app/damageplaces',
+      damagerasanplaces: '/app/damagerasanplaces',
+      mashkokshops: '/app/mashkokshops',
+      luchakanos: '/app/luchakanos',
+
+      schools: '/app/schools',
+      hadobusstops: '/app/hadobusstops',
+      transportcompanies: '/app/transportcompanies',
+      carsalescompanies: '/app/carsalescompanies',
+      parkings: '/app/parkings',
+      banks: '/app/banks',
+      apartments: '/app/apartments',
+      rahnomamamlats: '/app/rahnomamamlats',
+      hosppitals: '/app/hosppitals',
+      workshops: '/app/workshops',
+
+      badmashanos: '/app/badmashanos',
+      emaratoffices: '/app/emaratoffices',
+      hostels: '/app/hostels',
+      hotels: '/app/hotels',
+      madrasas: '/app/madrasas',
+      mashkokpeople: '/app/mashkokpeoples',
+      mujahedinos: '/app/mujahedinos',
+      oldjahadis: '/app/oldjahadis',
+      sarayanos: '/app/sarayanos',
+      tujarans: '/app/tujarans',
+
+      checkpoints: '/app/checkpoints',
+      masjids: '/app/masjids',
+      highways: '/app/highways',
+      companies: '/app/companies',
+      donelostplaces: '/app/donelostplaces',
+      econemyprojects: '/app/econemyprojects',
+      criminalcaptureplaces: '/app/criminalcaptureplaces',
+      pumps: '/app/pumps',
+      shoras: '/app/shoras',
+      governmentplaces: '/app/governmentplaces',
+      supermarkets: '/app/supermarkets',
+      parks: '/app/parks',
+      complexes: '/app/complexes',
+      deplomaticplaces: '/app/deplomaticplaces',
+      universities: '/app/universities',
+      wakilanos: '/app/wakilanos',
+
+      jawasis: '/app/jawasis',
+    };
+
+    const aliases = {
+      officeemployees: 'officeemployee',
+      employees: 'officeemployee',
+
+      resources: 'resource',
+      informations: 'information',
+      captivedeliveries: 'captivedelivery',
+      events: 'event',
+
+      saeenbalfasad: 'saeenfasad',
+      saeenfasads: 'saeenfasad',
+      captives: 'captive',
+      mulkanos: 'mulkano',
+      entryexits: 'entryexit',
+      sarafyanos: 'sarafyano',
+      club: 'clubs',
+      clubs: 'clubs',
+      mahajerats: 'mahajerat',
+      soldiers: 'soldier',
+
+      mawads: 'mawad',
+      lostmujremeens: 'lostmujremeen',
+      oldsoldierhomes: 'oldsoldiershomes',
+      nonresponsiblepeople: 'nonresponsablepeople',
+      nonresponsableperson: 'nonresponsablepeople',
+      mashkokhome: 'mashkokhomes',
+      damageplace: 'damageplaces',
+      damagerasanplace: 'damagerasanplaces',
+      mashkokshop: 'mashkokshops',
+      luchakano: 'luchakanos',
+
+      school: 'schools',
+      hadobusstop: 'hadobusstops',
+      hadobusstops: 'hadobusstops',
+      transportcompany: 'transportcompanies',
+      carsalescompany: 'carsalescompanies',
+      parking: 'parkings',
+      bank: 'banks',
+      apartment: 'apartments',
+      rahnomamamlat: 'rahnomamamlats',
+      hosppital: 'hosppitals',
+      hospital: 'hosppitals',
+      hospitals: 'hosppitals',
+      workshop: 'workshops',
+      workshops: 'workshops',
+
+      badmashano: 'badmashanos',
+      emaratoffice: 'emaratoffices',
+      hostel: 'hostels',
+      hotel: 'hotels',
+      madrasa: 'madrasas',
+      mashkokpeople: 'mashkokpeople',
+      mashkokperson: 'mashkokpeople',
+      mujahedino: 'mujahedinos',
+      oldjahadi: 'oldjahadis',
+      sarayano: 'sarayanos',
+      tujaran: 'tujarans',
+
+      checkpoint: 'checkpoints',
+      masjid: 'masjids',
+      highway: 'highways',
+      company: 'companies',
+      donelostplace: 'donelostplaces',
+      econemyproject: 'econemyprojects',
+      economyproject: 'econemyprojects',
+      criminalcaptureplace: 'criminalcaptureplaces',
+      pump: 'pumps',
+      shora: 'shoras',
+      governmentplace: 'governmentplaces',
+      supermarket: 'supermarkets',
+      park: 'parks',
+      complex: 'complexes',
+      deplomaticplace: 'deplomaticplaces',
+      diplomaticplace: 'deplomaticplaces',
+      university: 'universities',
+      wakilano: 'wakilanos',
+
+      jawasi: 'jawasis',
+    };
+
+    const normalized = aliases[t] || t;
+    const path = routeMap[normalized];
+
+    if (!path) return null;
+
+    return {
+      path,
+      query: { id },
+    };
   });
 
   function goTypeRoute() {

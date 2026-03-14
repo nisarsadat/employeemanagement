@@ -198,7 +198,7 @@
     },
     {
       type: 'event',
-      label: 'رویداد',
+      label: 'پیښې',
       list: '/api/events',
       show: (id) => `/api/events/${id}`,
       route: '/app/events',

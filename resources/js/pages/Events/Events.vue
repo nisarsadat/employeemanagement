@@ -244,7 +244,7 @@
       :dateKeys="['event_date']"
       @edit="goEdit"
       @peek="openPeek"
-      class=" mx-2"
+      class="mx-2"
     >
       <!-- 🔗 Resource cell -->
       <template #cell-resource_display="{ row }">
@@ -428,6 +428,9 @@
 
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
+
+  usePageRefresh('/app/events', fetchAll);
   const auth = useLoginRepository();
 
   const repo = useDatabaseRepository();

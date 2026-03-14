@@ -851,14 +851,14 @@
   import { useDisplay } from 'vuetify';
   import { useRouter } from 'vue-router';
   import ResourcesByHawzaBarChart from '@/components/charts/ResourcesByHawzaBarChart.vue';
-
+  import { usePageRefresh } from '@/composables/usePageRefresh';
   import AppBar from '@/components/AppBar.vue';
   import FormatsPieChart from '@/components/charts/FormatZonePieChart.vue';
   import { useDashboardRepository } from '@/stores/DashboardRepository';
   import EmployeeDetailsDialog from './EmployeeDetailsDialog.vue';
   import ZoneFormatsDialog from './ZoneFormatsDialog.vue';
   import MonthlyAmountBarChart from '@/components/charts/MonthlyAmountBarChart.vue';
-
+  usePageRefresh('/app/dashboards', refreshData);
   const { t, locale } = useI18n();
   const { mobile } = useDisplay();
   const router = useRouter();
@@ -1036,8 +1036,8 @@
   Sort options / headers
   =========================== */
   const sortOptions = computed(() => [
-    { title: t('امتیاز (زیاد → کم)'), value: 'score_desc' },
-    { title: t('امتیاز (کم → زیاد)'), value: 'score_asc' },
+    { title: t('فعالیت (زیاد → کم)'), value: 'score_desc' },
+    { title: t('فعالیت (کم → زیاد)'), value: 'score_asc' },
     { title: t('پیښې (زیاد → کم)'), value: 'events_desc' },
     { title: t('منابع (زیاد → کم)'), value: 'resources_desc' },
     { title: t('اطلاعات (زیاد → کم)'), value: 'informations_desc' },
@@ -1065,7 +1065,7 @@
       align: 'center',
     },
     { title: t('نمودار امتیاز'), key: 'score_bar', width: 150, sortable: false, align: 'center' },
-    { title: t('امتیاز'), key: 'score_value', width: 120, sortable: false, align: 'center' },
+    { title: t('مجموعه فعالیت'), key: 'score_value', width: 120, sortable: false, align: 'center' },
     { title: t('د معلواتو لیدنه'), key: 'actions', width: 70, sortable: false, align: 'center' },
   ]);
   function toggleSort(key) {
@@ -1422,7 +1422,7 @@
 
   /* Rest of the styles remain the same as your original... */
   .dashboard-container {
-    min-height: 100vh;
+    min-height: 100%;
     background: radial-gradient(
         1200px 600px at 0% 0%,
         rgba(var(--v-theme-primary), 0.06),

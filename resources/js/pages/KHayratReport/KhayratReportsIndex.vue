@@ -194,6 +194,9 @@
   import KhayratReportFormDialog from './KhayratReportFormDialog.vue';
   import { useKhayratReportRepository } from '@/stores/KhayratReportRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+    import { usePageRefresh } from '@/composables/usePageRefresh';
+
+  usePageRefresh('/app/khayratreports', fetchAll);
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');

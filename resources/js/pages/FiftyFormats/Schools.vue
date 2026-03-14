@@ -156,7 +156,7 @@
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
-      class="mb-20 mx-2"
+      class=" mx-2"
       :enableEdit="true"
       :enablePeek="true"
       @edit="goEdit"
@@ -288,7 +288,9 @@
 
   import { useSchoolRepository } from '@/stores/SchoolRepository';
   import PictureCell from '@/components/table/PictureCell.vue';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/schools', fetchAll);
   const router = useRouter();
   const repo = useSchoolRepository();
 

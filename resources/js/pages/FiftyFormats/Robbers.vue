@@ -166,7 +166,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class="mb-20 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -336,7 +336,9 @@ import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import { useMawadRepository } from '@/stores/MawadRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/robbers', fetchAll);
 const repo = useMawadRepository();
 const router = useRouter();
 

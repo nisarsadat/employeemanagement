@@ -162,7 +162,9 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import DistrictFormDialog from './DistrictFormDialog.vue';
 import { useProvinceDistrictRepository } from '@/stores/ProvinceDistrictRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  usePageRefresh('/app/settings/districts', fetchAll);
 const { t, locale } = useI18n();
 const repo = useProvinceDistrictRepository();
 
