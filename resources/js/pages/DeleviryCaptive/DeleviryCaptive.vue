@@ -242,6 +242,7 @@
           <v-tooltip :text="t('دانلود اسناد زندانی تسلیم شده')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
+                v-if="auth.can('attachmentDownload.create')"
                 v-bind="tooltipProps"
                 size="small"
                 color="green-darken-2"

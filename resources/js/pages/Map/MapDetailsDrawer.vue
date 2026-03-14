@@ -160,20 +160,25 @@
   }
 
   /* ---------------- ✅ Header meta rules ----------------
-   ✅ Pashto labels
-   ✅ Resource shows 3 numbers (phone_number + 1 + 2 + 3)
-   ✅ Formats show resource phones from ANY possible place:
-      - flattened: resource_phone, resource_phone_1, resource_phone_2, resource_phone_3
-      - embedded:  resource.phone_number, resource.phone_number_1, resource.phone_number_2, resource.phone_number_3
+   ✅ No ID anywhere
+   ✅ Resource shows: nick_name + resource code + phones
+   ✅ Office employee shows: nick_name + office employee code + phone
 -------------------------------------------------------- */
   const headerMeta = computed(() => {
     const d = props.data && typeof props.data === 'object' ? props.data : {};
     const it = props.item || {};
     const t = normalizeType(it?.type || it?.typeLabel);
 
-    // ========= OFFICE EMPLOYEE (ID + Code + Phone) =========
+    // ========= OFFICE EMPLOYEE (Nick Name + Code + Phone) =========
     if (t.includes('officeemployee') || t.includes('employee')) {
-      const id = pickFirst(d?.id, d?.uuid, it?.id, it?._raw?.id);
+      const nickName = pickFirst(
+        d?.nick_name,
+        d?.office_employee?.nick_name,
+        d?.officeEmployee?.nick_name,
+        it?.nick_name,
+        it?._raw?.nick_name
+      );
+
       const code = pickFirst(
         d?.code_number,
         d?.office_employee_code,
@@ -182,6 +187,7 @@
         it?.code_number,
         it?._raw?.code_number
       );
+
       const phone = pickFirst(
         d?.phone_number,
         d?.office_employee_phone,
@@ -192,17 +198,17 @@
       );
 
       const out = [];
-      if (id)
+      if (nickName)
         out.push({
-          key: 'id',
-          label: props.rtl ? 'آی ډي(نمبر)' : 'ID',
-          value: id,
-          icon: 'mdi-identifier',
+          key: 'nick_name',
+          label: props.rtl ? 'مستعار نوم' : 'Nick Name',
+          value: nickName,
+          icon: 'mdi-account-outline',
         });
       if (code)
         out.push({
           key: 'code',
-          label: props.rtl ? 'د کارمند کود' : 'Code',
+          label: props.rtl ? 'د کارمند کود' : 'Office Employee Code',
           value: code,
           icon: 'mdi-account-badge-outline',
         });
@@ -216,9 +222,15 @@
       return out;
     }
 
-    // ========= RESOURCE (ID + Code + 3 Phones) =========
+    // ========= RESOURCE (Nick Name + Code + Phones) =========
     if (t.includes('resource')) {
-      const id = pickFirst(d?.id, d?.uuid, it?.id, it?._raw?.id);
+      const nickName = pickFirst(
+        d?.nick_name,
+        d?.resource?.nick_name,
+        it?.nick_name,
+        it?._raw?.nick_name,
+        it?._raw?.resource?.nick_name
+      );
 
       const code = pickFirst(
         d?.code_number,
@@ -227,28 +239,26 @@
         it?._raw?.code_number
       );
 
-      // ✅ Collect ALL resource phones explicitly (3 numbers)
       const phoneList = [
         d?.phone_number,
         d?.phone_number_1,
         d?.phone_number_2,
-        // d?.phone_number_3, // ✅ uncomment if you want 4th too
+        d?.phone_number_3,
       ]
         .filter((v) => v !== null && v !== undefined)
         .map((v) => String(v).trim())
         .filter((v) => v && v !== '-' && v !== 'null' && v !== 'undefined');
 
-      // ✅ remove duplicates
-      const phones = phoneList.join(' / ');
+      const phones = [...new Set(phoneList)].join(' / ');
 
       const out = [];
 
-      if (id)
+      if (nickName)
         out.push({
-          key: 'id',
-          label: props.rtl ? 'آی ډي(نمبر)' : 'ID',
-          value: id,
-          icon: 'mdi-identifier',
+          key: 'nick_name',
+          label: props.rtl ? 'مستعار نوم' : 'Nick Name',
+          value: nickName,
+          icon: 'mdi-account-outline',
         });
 
       if (code)
@@ -271,8 +281,6 @@
     }
 
     // ========= ALL OTHER FORMATS =========
-    const id = pickFirst(d?.id, d?.uuid, it?.id, it?._raw?.id);
-
     const resourceCode = pickFirst(
       d?.resource_code,
       d?.resource?.code_number,
@@ -282,7 +290,6 @@
       it?._raw?.resource?.code_number
     );
 
-    // ✅ show ALL resource phones (not just one)
     const resourcePhones = joinPhones(
       d?.resource_phone,
       d?.resource_phone_1,
@@ -298,13 +305,6 @@
     );
 
     const out = [];
-    if (id)
-      out.push({
-        key: 'id',
-        label: props.rtl ? 'آی ډي(نمبر)' : 'ID',
-        value: id,
-        icon: 'mdi-identifier',
-      });
     if (resourceCode)
       out.push({
         key: 'resource_code',
@@ -430,7 +430,7 @@
 
 <style scoped>
   .details-card {
-    max-height: 70vh; /* ✅ small popup height */
+    max-height: 70vh;
   }
 
   .title-line {
@@ -449,12 +449,11 @@
     opacity: 0.7;
   }
 
-  /* ✅ compact chips row (like screenshot) */
   .header-meta-line {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex-wrap: wrap; /* ✅ allow wrap in small popup */
+    flex-wrap: wrap;
     padding-bottom: 2px;
   }
 

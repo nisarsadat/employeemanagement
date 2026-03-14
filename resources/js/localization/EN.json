@@ -1,4 +1,24 @@
 {
+  "avatar": "avatar",
+  "Online": "Online",
+  "Offline": "Offline",
+  "Last seen": "Last seen",
+  "Current": "Current",
+  "Last session": "Last session",
+  "Total": "Total",
+  "Today": "Today",
+  "Unknown": "Unknown",
+
+  "Select": "Select",
+  "Image": "Image",
+  "Username": "Username",
+  "Role": "Role",
+  "Status": "Status",
+  "Last seen column": "Last Seen",
+
+  "Edit": "Edit",
+
+  "No users found please add one": "No users found, please add one!",
   "پنجاه فورم‌ها": "50 Forms / Fifty Forms List",
   "لینک‌های سریع پنجاه فورم": "Quick/Fast links for Fifty Forms",
   "لینک‌های سریع برای مدیریت هر فورم. برای فیلتر کردن فورم‌های موجود از جستجو استفاده کنید": "Quick links to manage each form. Use search to filter the available forms.",

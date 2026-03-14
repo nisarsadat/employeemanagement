@@ -235,6 +235,7 @@
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-bind="tooltipProps"
+                v-if="auth.can('attachmentDownload.create')"
                 size="small"
                 color="green-darken-2"
                 :disabled="!hasDocuments(item)"
@@ -328,7 +329,8 @@
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
   import GlobalPagination from '@/components/GlobalPagination.vue';
-
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
   import { useFasadRepository } from '@/stores/FasadRepository';
 
   const repo = useFasadRepository();

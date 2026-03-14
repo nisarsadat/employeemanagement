@@ -13,6 +13,8 @@ class EmaratOffice extends Model
     use EnforceSingleFormatPerResource;
 
     protected $fillable = [
+        'type',
+        're_name',
         'province',
         'zone',
         'district',
@@ -24,6 +26,7 @@ class EmaratOffice extends Model
         'home_type',
         'Province_addr',
         'responsible_office',
+        'job',
         'tahdid_mutawajeh', // kept as provided
         'guard_quantity',
         'note',

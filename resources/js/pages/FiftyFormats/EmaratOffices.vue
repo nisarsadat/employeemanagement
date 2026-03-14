@@ -383,6 +383,9 @@
   /* TABLE HEADERS – ALL INPUTS + map */
   const headersFT = computed(() => [
     { title: t('picture'), key: 'picture' },
+    { title: t('نوع'), key: 'type' },
+    { title: t('نام باشنده'), key: 're_name' },
+    { title: t('وظیفه'), key: 'job' },
 
     { title: t('ولایت'), key: 'province' },
     { title: t('زون'), key: 'zone' },
@@ -395,7 +398,6 @@
     { title: t('مختصات'), key: 'coordenates' },
 
     { title: t('نوع خانه/اداره'), key: 'home_type' },
-    { title: t('اداره/مسؤول مربوطه'), key: 'responsible_office' },
     { title: t('تهدید متوجه'), key: 'tahdid_mutawajeh' },
     { title: t('تعداد محافظین'), key: 'guard_quantity' },
 

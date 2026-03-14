@@ -241,6 +241,7 @@
               <v-icon
                 v-bind="tooltipProps"
                 size="small"
+                v-if="auth.can('attachmentDownload.create')"
                 color="green-darken-2"
                 :disabled="!hasDocuments(item)"
                 @click.stop="downloadLostMujremeenDocs(item)"
@@ -335,7 +336,8 @@
   import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useMawadRepository } from '@/stores/MawadRepository';
-
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
   const repo = useMawadRepository();
   const router = useRouter();
 

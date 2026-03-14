@@ -18,7 +18,7 @@ class UserController extends Controller
     // GET /api/users
     public function index(Request $request)
     {
-        $q = User::query()->with('roles')->withoutTrashed(); // hide soft-deleted
+        $q = User::query()->with('roles')->withoutTrashed();
 
         if ($s = trim((string)$request->get('search', ''))) {
             $q->where(function ($x) use ($s) {
@@ -47,22 +47,19 @@ class UserController extends Controller
     }
 
     // POST /api/users
-    // Accepts: name, username, password, image, and either role (string) OR roles[] (first item used)
     public function store(Request $request)
     {
         $data = $request->validate([
             'name'     => ['required','string','max:255'],
-            // 👇 optional improvement: ignore soft-deleted rows for uniqueness
             'username' => ['required','string','max:255', Rule::unique('users','username')->whereNull('deleted_at')],
             'password' => ['required', Password::min(6)],
             'role'     => ['nullable','string','exists:roles,name'],
             'image'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:4096'],
         ]);
 
-        // ✅ normalize role input (support role or roles[])
         $normalizedRole = $request->input('role');
         if ($normalizedRole === null) {
-            $normalizedRole = data_get($request->input('roles'), '0'); // roles[0]
+            $normalizedRole = data_get($request->input('roles'), '0');
         }
 
         return DB::transaction(function () use ($request, $data, $normalizedRole) {
@@ -75,6 +72,15 @@ class UserController extends Controller
                 'username' => $data['username'],
                 'password' => Hash::make($data['password']),
                 'image'    => $path,
+                'is_online' => false,
+                'last_seen_at' => null,
+                'last_login_at' => null,
+                'last_logout_at' => null,
+                'current_session_started_at' => null,
+                'last_session_duration_seconds' => 0,
+                'total_login_duration_seconds' => 0,
+                'today_login_duration_seconds' => 0,
+                'today_login_duration_date' => now()->toDateString(),
             ]);
 
             if (!empty($normalizedRole)) {
@@ -93,7 +99,6 @@ class UserController extends Controller
     }
 
     // PUT/PATCH /api/users/{user}
-    // Accepts name, username, (optional) password, (optional) image, and either role (string) OR roles[]
     public function update(Request $request, User $user)
     {
         $data = $request->validate([
@@ -104,14 +109,14 @@ class UserController extends Controller
             'image'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:4096'],
         ]);
 
-        // ✅ normalize role input (support role or roles[])
         $normalizedRole = $request->input('role');
         if ($normalizedRole === null && $request->has('roles')) {
-            $normalizedRole = data_get($request->input('roles'), '0'); // roles[0]
+            $normalizedRole = data_get($request->input('roles'), '0');
         }
 
         return DB::transaction(function () use ($request, $user, $data, $normalizedRole) {
             $imagePath = $user->image;
+
             if ($request->hasFile('image')) {
                 $newPath = $request->file('image')->store('avatars', 'public');
                 if ($imagePath && Storage::disk('public')->exists($imagePath)) {
@@ -125,13 +130,13 @@ class UserController extends Controller
                 'username' => $data['username'],
                 'image'    => $imagePath,
             ];
+
             if (!empty($data['password'])) {
                 $payload['password'] = Hash::make($data['password']);
             }
 
             $user->update($payload);
 
-            // ✅ role sync if provided (role or roles[])
             if ($request->has('role') || $request->has('roles')) {
                 $roleName = trim((string)($normalizedRole ?? ''));
                 if ($roleName === '') {
@@ -145,20 +150,19 @@ class UserController extends Controller
         });
     }
 
-    // DELETE /api/users/{user}  -> HARD DELETE (DB row removed)
+    // DELETE /api/users/{user}
     public function destroy(User $user)
     {
-        // optional cleanups
         if (method_exists($user, 'tokens')) {
             $user->tokens()->delete();
         }
+
         $user->syncRoles([]);
 
         if ($user->image && Storage::disk('public')->exists($user->image)) {
             Storage::disk('public')->delete($user->image);
         }
 
-        // ✅ hard delete
         $user->forceDelete();
 
         return response()->json(['message' => 'Deleted']);

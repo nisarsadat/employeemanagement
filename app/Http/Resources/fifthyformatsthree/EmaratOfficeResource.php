@@ -12,6 +12,8 @@ class EmaratOfficeResource extends JsonResource
 
         return [
             'id'                => $this->id,
+            're_name'          => $this->re_name,
+            'type'          => $this->type,
             'province'          => $this->province,
             'zone'              => $this->zone,
             'district'          => $this->district,
@@ -22,6 +24,7 @@ class EmaratOfficeResource extends JsonResource
             'coordenates'       => $this->coordenates,
             'home_type'         => $this->home_type,
             'responsible_office'=> $this->responsible_office,
+            'job'=> $this->job,
             'tahdid_mutawajeh'  => $this->tahdid_mutawajeh,
             'guard_quantity'    => $this->guard_quantity,
             'note'              => $this->note,

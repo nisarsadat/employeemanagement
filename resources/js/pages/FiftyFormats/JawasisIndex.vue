@@ -216,6 +216,7 @@
                 v-bind="tooltipProps"
                 size="small"
                 color="green-darken-2"
+                v-if="auth.can('attachmentDownload.create')"
                 :disabled="!hasDocuments(item)"
                 @click.stop="downloadDocuments(item)"
               >
@@ -311,7 +312,8 @@
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
   import GlobalPagination from '@/components/GlobalPagination.vue';
   import { useJawasiRepository } from '@/stores/JawasiRepository';
-
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
   const repo = useJawasiRepository();
   const router = useRouter();
 

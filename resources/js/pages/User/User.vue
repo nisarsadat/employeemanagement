@@ -1,6 +1,4 @@
-<!-- src/views/users/Index.vue -->
 <template>
-  <!-- Dialogs -->
   <CreateUser v-if="UsersRepository.createDialog" />
   <UpdateUser v-if="UsersRepository.updateDialog" :key="UsersRepository.User.id || 'update-user'" />
 
@@ -9,7 +7,6 @@
       <template #actions><v-btn icon /></template>
     </AppBar>
 
-    <!-- Search + Create -->
     <v-row class="d-flex align-center py-4">
       <v-col cols="12" md="11">
         <v-text-field
@@ -31,7 +28,6 @@
       </v-col>
     </v-row>
 
-    <!-- Users table -->
     <v-data-table-server
       v-model:page="UsersRepository.page"
       v-model:items-per-page="UsersRepository.itemsPerPage"
@@ -53,7 +49,6 @@
         <v-skeleton-loader type="list-item, heading, divider, actions" />
       </template>
 
-      <!-- Avatar cell -->
       <template #item.image_url="{ item }">
         <v-avatar size="36" class="my-1">
           <v-img
@@ -68,7 +63,6 @@
         </v-avatar>
       </template>
 
-      <!-- Roles as pretty chips -->
       <template #item.roles="{ item }">
         <div class="d-flex flex-wrap gap-1">
           <v-chip
@@ -84,7 +78,32 @@
         </div>
       </template>
 
-      <!-- Actions -->
+      <template #item.is_online="{ item }">
+        <v-chip
+          :color="(item?.is_online ?? item?.raw?.is_online) ? 'success' : 'grey'"
+          variant="flat"
+          size="small"
+        >
+          {{ (item?.is_online ?? item?.raw?.is_online) ? 'Online' : 'Offline' }}
+        </v-chip>
+      </template>
+
+      <template #item.current_login_duration="{ item }">
+        {{ item?.current_login_duration ?? item?.raw?.current_login_duration ?? '-' }}
+      </template>
+
+      <template #item.last_session_duration="{ item }">
+        {{ item?.last_session_duration ?? item?.raw?.last_session_duration ?? 'Last session: 0m' }}
+      </template>
+
+      <template #item.total_login_duration="{ item }">
+        {{ item?.total_login_duration ?? item?.raw?.total_login_duration ?? 'Total: 0m' }}
+      </template>
+
+      <template #item.today_login_duration="{ item }">
+        {{ item?.today_login_duration ?? item?.raw?.today_login_duration ?? '0m' }}
+      </template>
+
       <template #item.actions="{ item }">
         <v-menu>
           <template #activator="{ props }">
@@ -137,7 +156,6 @@
     </v-data-table-server>
   </v-container>
 
-  <!-- Image Preview Dialog -->
   <v-dialog v-model="previewOpen" max-width="520">
     <v-card rounded="xl">
       <v-card-text class="pa-0">
@@ -154,95 +172,100 @@
 </template>
 
 <script setup>
-  import { ref, watch, computed, onMounted } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import AppBar from '../../components/AppBar.vue';
-  import CreateUser from './CreateUser.vue';
-  import UpdateUser from './UpdateUser.vue';
-  import { useUsersRepository } from '../../stores/UsersRepository';
-  import { useLoginRepository } from '../../stores/LoginRepository';
-  const auth = useLoginRepository();
+import { ref, watch, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import AppBar from '../../components/AppBar.vue';
+import CreateUser from './CreateUser.vue';
+import UpdateUser from './UpdateUser.vue';
+import { useUsersRepository } from '../../stores/UsersRepository';
+import { useLoginRepository } from '../../stores/LoginRepository';
 
-  const UsersRepository = useUsersRepository();
+const auth = useLoginRepository();
+const UsersRepository = useUsersRepository();
 
-  const drawer = ref(false);
-  const { t, locale } = useI18n();
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (l) => (isRtl.value = l === 'fa'));
+const drawer = ref(false);
+const { t, locale } = useI18n();
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-  onMounted(() => {
+onMounted(() => {
+  UsersRepository.FetchUsersData();
+  UsersRepository.FetchRolesAll();
+});
+
+const headers = computed(() => [
+  { title: t('انتخاب'), key: 'data-table-select', sortable: false, align: 'end' },
+  { title: t('تصویر'), key: 'image_url', sortable: false },
+  { title: t('نام کاربر'), key: 'username', sortable: true },
+  { title: t('نقش'), key: 'roles', sortable: false },
+  { title: t('حالت'), key: 'is_online', sortable: false },
+  { title: t('فعلی'), key: 'current_login_duration', sortable: false },
+  { title: t('آخرین سیشن'), key: 'last_session_duration', sortable: false },
+  { title: t('مجموعه'), key: 'total_login_duration', sortable: false },
+  { title: t('امروز'), key: 'today_login_duration', sortable: false },
+  { title: t('عملیات'), key: 'actions', sortable: false, align: 'end' },
+]);
+
+const search = computed({
+  get: () => UsersRepository.Search,
+  set: (val) => {
+    UsersRepository.Search = val || '';
+    UsersRepository.page = 1;
     UsersRepository.FetchUsersData();
-    UsersRepository.FetchRolesAll();
-  });
+  },
+});
 
-  const headers = computed(() => [
-    { title: t('انتخاب'), key: 'data-table-select', sortable: false, align: 'end' },
-    { title: t('تصویر'), key: 'image_url', sortable: false },
-    { title: t('نام کاربر'), key: 'username', sortable: true },
-    { title: t('نقش'), key: 'roles', sortable: false },
-    { title: t('عملیات'), key: 'actions', sortable: false, align: 'end' },
-  ]);
+const rowId = (it) => it?.raw?.id ?? it?.id ?? null;
 
-  const search = computed({
-    get: () => UsersRepository.Search,
-    set: (val) => {
-      UsersRepository.Search = val || '';
-      UsersRepository.page = 1;
-      UsersRepository.FetchUsersData();
-    },
-  });
+const createPopUp = () => {
+  UsersRepository.createDialog = true;
+};
 
-  /** ✅ Safely extract row id (datatable may wrap rows) */
-  const rowId = (it) => it?.raw?.id ?? it?.id ?? null;
+const editItem = async (id) => {
+  await UsersRepository.startEdit(id);
+};
 
-  const createPopUp = () => {
-    UsersRepository.createDialog = true;
-  };
-  const editItem = async (id) => {
-    await UsersRepository.startEdit(id);
-  };
-  const deleteItem = (id) => {
-    UsersRepository.DeleteUser(id);
-  };
+const deleteItem = (id) => {
+  UsersRepository.DeleteUser(id);
+};
 
-  /** 🔵 Unlimited role colors: deterministic HSL by role name */
-  function stringToColor(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const hue = Math.abs(hash) % 360; // 0..360
-    const sat = 65; // tweak if needed
-    const light = 55; // tweak if needed
-    return `hsl(${hue}, ${sat}%, ${light}%)`;
+function stringToColor(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
+  const hue = Math.abs(hash) % 360;
+  const sat = 65;
+  const light = 55;
+  return `hsl(${hue}, ${sat}%, ${light}%)`;
+}
 
-  /** 🖼️ Image preview state */
-  const previewSrc = ref(null);
-  const previewOpen = ref(false);
-  const openPreview = (src) => {
-    if (!src) return;
-    previewSrc.value = src;
-    previewOpen.value = true;
-  };
+const previewSrc = ref(null);
+const previewOpen = ref(false);
+
+const openPreview = (src) => {
+  if (!src) return;
+  previewSrc.value = src;
+  previewOpen.value = true;
+};
 </script>
 
 <style scoped>
-  .v-data-table {
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  .v-data-table-header {
-    background-color: rgba(0, 0, 0, 0.02);
-  }
-  .v-data-table-header th {
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
-  .clickable {
-    cursor: zoom-in;
-  }
-  .role-chip {
-    color: white; /* ensure readable text over vivid HSL */
-  }
+.v-data-table {
+  border-radius: 4px;
+  overflow: hidden;
+}
+.v-data-table-header {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+.v-data-table-header th {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.clickable {
+  cursor: zoom-in;
+}
+.role-chip {
+  color: white;
+}
 </style>

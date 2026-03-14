@@ -242,6 +242,7 @@
                 v-bind="tooltipProps"
                 size="small"
                 color="green-darken-2"
+                v-if="auth.can('attachmentDownload.create')"
                 :disabled="!hasDocuments(item)"
                 @click.stop="downloadDocs(item)"
               >
@@ -333,7 +334,8 @@
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
   import GlobalPagination from '@/components/GlobalPagination.vue';
-
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
   import { useFasadRepository } from '@/stores/FasadRepository';
 
   const repo = useFasadRepository();

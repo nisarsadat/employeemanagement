@@ -43,6 +43,37 @@
             <!-- Fields -->
             <v-col cols="12" md="12">
               <v-row>
+                 
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="form.job"
+                    :label="t('وظیفه')"
+                    variant="outlined"
+                    density="compact"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-select
+                    v-model="form.type"
+                    :items="typehome"
+                    :label="t('نوع')"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-select
+                    v-model="form.re_name"
+                    :items="typehome"
+                    :label="t('نام باشنده')"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                  />
+                </v-col>
+              </v-row>
+              <v-row>
                 <v-col cols="12" md="12">
                   <ProvinceDistrictNameSelect
                     v-model:province="form.province"
@@ -55,7 +86,11 @@
                 </v-col>
 
                 <v-col cols="12" md="3">
-                  <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
+                  <FormatZoneAutocomplete
+                    v-model="form.zone"
+                    :label="t('زون')"
+                    :disabled="saving"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="3">
@@ -130,17 +165,6 @@
 
                 <v-col cols="12" md="4">
                   <v-text-field
-                    v-model="form.responsible_office"
-                    :label="t('اداره/مسؤول مربوطه')"
-                    variant="outlined"
-                    density="compact"
-                    :error="hasError('responsible_office')"
-                    :error-messages="getErrorMessages('responsible_office')"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
                     v-model="form.tahdid_mutawajeh"
                     :label="t('تهدید متوجه')"
                     variant="outlined"
@@ -175,15 +199,15 @@
           <v-row>
             <v-col cols="12" md="4">
               <ResourceRemoteAutocomplete
-  v-model="form.resource_id"
-  :label="t('کود منبع')"
-  density="compact"
-  variant="outlined"
-  :rules="[rules.required]"
-  :item-title="resourceTitle"
-  @selected="onResourceSelected"
-  @cleared="onResourceCleared"
-/>
+                v-model="form.resource_id"
+                :label="t('کود منبع')"
+                density="compact"
+                variant="outlined"
+                :rules="[rules.required]"
+                :item-title="resourceTitle"
+                @selected="onResourceSelected"
+                @cleared="onResourceCleared"
+              />
             </v-col>
 
             <v-col cols="12" md="4">
@@ -339,6 +363,7 @@
   }
 
   const hometypefortheemaratoffice = computed(() => [t('کرایی'), t('ګروی'), t('خپل')]);
+  const typehome = computed(() => [t('کور'), t('میلمستون')]);
 
   /* FORM MODEL */
   const blankForm = () => ({
@@ -359,10 +384,14 @@
     // office / threat / coords
     home_type: '',
     responsible_office: '',
+    job: '',
+    type: '',
+    re_name: '',
     tahdid_mutawajeh: '',
     guard_quantity: '',
     Province_addr: '',
     coordenates: '',
+    type: '',
 
     // resource
     resource_code: '',
@@ -390,6 +419,10 @@
 
   function buildSimpleHtml() {
     const rows = [
+      [t('وظیفه'), form.value.job],
+      [t('نوعیت'), form.value.type],
+      [t('نام باشنده'), form.value.re_name],
+
       [t('ولایت'), form.value.province],
       [t('زون'), form.value.zone],
       [t('ولسوالی'), form.value.district],
@@ -399,7 +432,6 @@
       [t('شماره خانه'), form.value.home_number],
 
       [t('نوع خانه/اداره'), form.value.home_type],
-      [t('اداره/مسؤول مربوطه'), form.value.responsible_office],
       [t('تهدید متوجه'), form.value.tahdid_mutawajeh],
       [t('تعداد محافظین'), form.value.guard_quantity],
       [t('ولایت مربوطه'), form.value.Province_addr],
@@ -481,25 +513,25 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-function resourceTitle(r) {
-  if (!r) return '';
-  const code = r.code_number ?? '';
-  const name = r.name ?? '';
-  return [code, name].filter(Boolean).join(' - ');
-}
+  function resourceTitle(r) {
+    if (!r) return '';
+    const code = r.code_number ?? '';
+    const name = r.name ?? '';
+    return [code, name].filter(Boolean).join(' - ');
+  }
 
-function onResourceSelected(r) {
-  if (!r) return;
-  form.value.resource_id = r.id ?? null;
-  form.value.resource_code = r.code_number ?? '';
-  form.value.resource_phone = r.phone_number ?? '';
-}
+  function onResourceSelected(r) {
+    if (!r) return;
+    form.value.resource_id = r.id ?? null;
+    form.value.resource_code = r.code_number ?? '';
+    form.value.resource_phone = r.phone_number ?? '';
+  }
 
-function onResourceCleared() {
-  form.value.resource_id = null;
-  form.value.resource_code = '';
-  form.value.resource_phone = '';
-}
+  function onResourceCleared() {
+    form.value.resource_id = null;
+    form.value.resource_code = '';
+    form.value.resource_phone = '';
+  }
 
   /* MAP FROM API */
   function mapFromApi(payload = {}) {
@@ -521,6 +553,9 @@ function onResourceCleared() {
 
     b.home_type = x.home_type ?? '';
     b.responsible_office = x.responsible_office ?? '';
+    b.job = x.job ?? '';
+    b.type = x.type ?? '';
+    b.re_name = x.re_name ?? '';
     b.tahdid_mutawajeh = x.tahdid_mutawajeh ?? '';
     b.guard_quantity = x.guard_quantity ?? '';
     b.Province_addr = x.Province_addr ?? '';
@@ -548,7 +583,9 @@ function onResourceCleared() {
 
     try {
       await repo.FetchEmaratOfficeData?.(id);
-      const single = Array.isArray(repo.EmaratOffice) ? repo.EmaratOffice[0] : repo.EmaratOffice || {};
+      const single = Array.isArray(repo.EmaratOffice)
+        ? repo.EmaratOffice[0]
+        : repo.EmaratOffice || {};
       const mapped = mapFromApi(single);
 
       form.value = { ...mapped };

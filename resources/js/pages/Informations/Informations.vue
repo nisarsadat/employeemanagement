@@ -424,6 +424,7 @@
               <v-icon
                 size="small"
                 v-bind="tooltipProps"
+                v-if="auth.can('attachmentDownload.create')"
                 color="green-darken-2"
                 :disabled="!hasDocuments(item)"
                 @click.stop="downloadDocuments(item)"

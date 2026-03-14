@@ -229,6 +229,7 @@
               <v-icon
                 v-bind="tooltipProps"
                 size="small"
+                v-if="auth.can('attachmentDownload.create')"
                 color="green-darken-2"
                 :disabled="!hasDocuments(item)"
                 @click.stop="downloadDocuments(item)"
@@ -298,7 +299,8 @@
 
   import { useMawadRepository } from '@/stores/MawadRepository';
   import PictureCell from '@/components/table/PictureCell.vue';
-
+  import { useLoginRepository } from '../../stores/LoginRepository';
+  const auth = useLoginRepository();
   const repo = useMawadRepository();
   const router = useRouter();
 

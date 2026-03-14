@@ -1,4 +1,3 @@
-// stores/UsersRepository.js
 import { defineStore } from 'pinia';
 import { ref, reactive } from 'vue';
 import axios from '@/axios';
@@ -8,7 +7,7 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
   const loading = ref(false);
 
   // Table state
-  const Users = ref([]); // must be an array
+  const Users = ref([]);
   const totalItems = ref(0);
   const page = ref(1);
   const itemsPerPage = ref(10);
@@ -18,24 +17,28 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
   const createDialog = ref(false);
   const updateDialog = ref(false);
 
-  // Current user (for update dialog)
+  // Current user
   const User = reactive({
     id: null,
     name: '',
     username: '',
     image_url: null,
-    roles: [], // array of role names (['admin'])
+    roles: [],
+    is_online: false,
+    current_login_duration: '-',
+    last_session_duration: 'Last session: 0m',
+    total_login_duration: 'Total: 0m',
+    today_login_duration: '0m',
   });
 
-  // All roles for selects
+  // All roles
   const rolesAll = ref([]);
 
   /** ========================= ROLES ========================= **/
-  // Matches your earlier pattern (`roles` endpoint); component calls FetchRolesAll()
   const FetchRolesData = async () => {
     try {
       const { data } = await axios.get('/roles');
-      // accept data.data, data.roles, or flat array
+
       const raw = Array.isArray(data?.data)
         ? data.data
         : Array.isArray(data?.roles)
@@ -44,7 +47,6 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
         ? data
         : [];
 
-      // normalize to {name,id?} for v-select item-title="name"
       rolesAll.value = raw
         .map((r) => {
           if (typeof r === 'string') return { name: r };
@@ -56,13 +58,12 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
       rolesAll.value = [];
     }
   };
-  // alias so your components can keep using existing name
+
   const FetchRolesAll = async () => {
     await FetchRolesData();
   };
 
   /** ==================== LIST (SERVER) ====================== **/
-  // Accepts options from <v-data-table-server>
   const FetchUsersData = async (opts) => {
     try {
       loading.value = true;
@@ -85,6 +86,7 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
         : Array.isArray(data?.items)
         ? data.items
         : [];
+
       Users.value = items;
 
       const total = Number.isFinite(data?.total)
@@ -92,6 +94,7 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
         : Number.isFinite(data?.meta?.total)
         ? data.meta.total
         : 0;
+
       totalItems.value = total;
     } catch (e) {
       console.error(e);
@@ -104,14 +107,10 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
   };
 
   /** ======================== CREATE ========================= **/
-  // multipart/form-data; close dialog; refresh list
-  // stores/UsersRepository.js
-
-  // CREATE — let axios set headers automatically
   const CreateUser = async (formData) => {
     try {
       loading.value = true;
-      await axios.post('/users', formData); // no headers override
+      await axios.post('/users', formData);
       toast.success('User created');
       createDialog.value = false;
       await FetchUsersData();
@@ -120,21 +119,20 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
     }
   };
 
-  // UPDATE — POST + method override; don't set headers
+  /** ======================== UPDATE ========================= **/
   const UpdateUser = async (id, formData) => {
     try {
       loading.value = true;
 
-      // ensure role array fallback still works
       const keys = [...formData.keys()];
       const hasRoles = keys.includes('roles[]') || keys.includes('roles') || keys.includes('role');
+
       if (!hasRoles && Array.isArray(User.roles) && User.roles.length) {
         User.roles.forEach((r) => formData.append('roles[]', r));
       }
 
-      // method override instead of PUT
       formData.append('_method', 'PUT');
-      await axios.post(`/users/${id}`, formData); // no headers override
+      await axios.post(`/users/${id}`, formData);
 
       toast.success('User updated');
       updateDialog.value = false;
@@ -145,23 +143,20 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
   };
 
   /** ====================== READ ONE ========================= **/
-  // --- UsersRepository.js ---
   const FetchUserData = async (id) => {
     try {
       loading.value = true;
       const { data } = await axios.get(`/users/${id}`);
 
-      // Try multiple common Laravel/Resource shapes
       const candidates = [
-        data?.data, // { data: { id, ... } }
-        data?.user, // { user: { id, ... } }
-        data?.data?.user, // { data: { user: { id, ... } } }
-        data?.result, // { result: { id, ... } }
-        data?.data?.result, // { data: { result: { id, ... } } }
-        data, // raw
+        data?.data,
+        data?.user,
+        data?.data?.user,
+        data?.result,
+        data?.data?.result,
+        data,
       ];
 
-      // pick the first object-like candidate
       const payload =
         candidates.find(
           (c) => c && typeof c === 'object' && ('id' in c || 'username' in c || 'name' in c)
@@ -172,10 +167,14 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
         name: payload?.name ?? '',
         username: payload?.username ?? '',
         image_url: payload?.image_url ?? payload?.image ?? null,
-        // roles can be ["admin"] or [{name:"admin"}] or [{title:"admin"}]
         roles: (payload?.roles ?? [])
           .map((r) => (typeof r === 'string' ? r : r?.name ?? r?.title))
           .filter(Boolean),
+        is_online: !!payload?.is_online,
+        current_login_duration: payload?.current_login_duration ?? '-',
+        last_session_duration: payload?.last_session_duration ?? 'Last session: 0m',
+        total_login_duration: payload?.total_login_duration ?? 'Total: 0m',
+        today_login_duration: payload?.today_login_duration ?? '0m',
       });
     } catch (e) {
       console.error(e);
@@ -209,11 +208,21 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
   };
 
   const resetForm = () => {
-    Object.assign(User, { id: null, name: '', username: '', image_url: null, roles: [] });
+    Object.assign(User, {
+      id: null,
+      name: '',
+      username: '',
+      image_url: null,
+      roles: [],
+      is_online: false,
+      current_login_duration: '-',
+      last_session_duration: 'Last session: 0m',
+      total_login_duration: 'Total: 0m',
+      today_login_duration: '0m',
+    });
   };
 
   return {
-    // state
     loading,
     Users,
     totalItems,
@@ -224,9 +233,8 @@ export const useUsersRepository = defineStore('UsersRepository', () => {
     updateDialog,
     User,
     rolesAll,
-    // actions
     FetchRolesData,
-    FetchRolesAll, // alias for your components
+    FetchRolesAll,
     FetchUsersData,
     CreateUser,
     FetchUserData,

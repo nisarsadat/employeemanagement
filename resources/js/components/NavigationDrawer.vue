@@ -260,20 +260,6 @@
         to: toName('Dashboard'),
         perm: 'dashboards.view',
       },
-      {
-        key: 'map',
-        title: t('نقشه'),
-        icon: 'mdi-map-marker-radius-outline',
-        to: { path: '/app/map-afg' },
-        perm: 'map-afg.view',
-      },
-      {
-        key: 'inlineinfo',
-        title: t('ارتباطی مرکز'),
-        icon: 'mdi-chat-processing-outline',
-        to: { path: '/app/inlineinfo' },
-        perm: 'inlineinfo.view',
-      },
 
       {
         key: 'officeemployee',
@@ -330,13 +316,6 @@
         icon: 'mdi-swap-horizontal-bold',
         to: { path: '/app/outgoingincommings' },
         perm: 'outgoingincomming.view',
-      },
-      {
-        key: 'khayratreports',
-        title: t('راپور خیریت'),
-        icon: 'mdi-chart-donut-variant',
-        to: { path: '/app/khayratreports' },
-        perm: 'khayratreport.view',
       },
 
       // Reports Group
@@ -396,6 +375,27 @@
             perm: 'reports.view',
           },
         ],
+      },
+      {
+        key: 'khayratreports',
+        title: t('راپور خیریت'),
+        icon: 'mdi-chart-donut-variant',
+        to: { path: '/app/khayratreports' },
+        perm: 'khayratreport.view',
+      },
+      {
+        key: 'map',
+        title: t('نقشه'),
+        icon: 'mdi-map-marker-radius-outline',
+        to: { path: '/app/map-afg' },
+        perm: 'map-afg.view',
+      },
+      {
+        key: 'inlineinfo',
+        title: t('ارتباطی مرکز'),
+        icon: 'mdi-chat-processing-outline',
+        to: { path: '/app/inlineinfo' },
+        perm: 'inlineinfo.view',
       },
       {
         key: 'roles',

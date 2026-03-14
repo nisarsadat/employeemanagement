@@ -356,6 +356,7 @@
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 size="small"
+                v-if="auth.can('attachmentDownload.create')"
                 v-bind="tooltipProps"
                 color="green-darken-2"
                 :disabled="!hasDocuments(item)"

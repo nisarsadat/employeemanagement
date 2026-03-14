@@ -415,6 +415,7 @@
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 size="small"
+                v-if="auth.can('attachmentDownload.create')"
                 v-bind="tooltipProps"
                 :disabled="!hasDocuments(item)"
                 @click.stop="downloadEmployeeDocs(item)"
@@ -505,6 +506,7 @@
 
   import { useEmployeOfficeRepository } from '../../stores/EmployeeRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+
   import GlobalPagination from '@/components/GlobalPagination.vue';
   const router = useRouter();
   const route = useRoute();

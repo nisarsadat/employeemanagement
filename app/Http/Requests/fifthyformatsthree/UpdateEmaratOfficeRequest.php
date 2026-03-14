@@ -11,6 +11,8 @@ class UpdateEmaratOfficeRequest extends FormRequest
     public function rules(): array
     {
         return [
+            're_name'        => ['nullable','string'],
+            'type'        => ['nullable','string'],
             'province'        => ['nullable','string'],
             'zone'            => ['nullable','string'],
             'district'        => ['nullable','string'],
@@ -21,6 +23,7 @@ class UpdateEmaratOfficeRequest extends FormRequest
             'coordenates'     => ['nullable','string'],
             'home_type'       => ['nullable','string'],
             'responsible_office'=> ['nullable','string'],
+            'job'=> ['nullable','string'],
             'tahdid_mutawajeh'=> ['nullable','string'],
             'guard_quantity'  => ['nullable','string'],
             'note'            => ['nullable','string'],
