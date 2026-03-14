@@ -14,10 +14,10 @@ return new class extends Migration {
                 ->constrained('outgoing_incomings')
                 ->cascadeOnDelete(); // ✅ deletes DB rows automatically
 
-            $table->string('file_name');
-            $table->string('file_path'); // storage path like outgoing_incomings/1/abc.pdf
+            $table->string('file_name' , 2000);
+            $table->string('file_path' , 2000); // storage path like outgoing_incomings/1/abc.pdf
             $table->unsignedBigInteger('file_size')->nullable();
-            $table->string('mime_type')->nullable();
+            $table->string('mime_type' , 100)->nullable();
 
             $table->timestamps();
         });

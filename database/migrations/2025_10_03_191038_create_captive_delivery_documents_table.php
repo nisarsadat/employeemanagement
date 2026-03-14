@@ -10,9 +10,9 @@ return new class extends Migration {
         Schema::create('captive_delivery_documents', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('captive_delivery_id');
-            $table->string('file_name' , 500);  // original name
-            $table->string('file_path', 500);  // storage path
-            $table->string('mime_type' , 500)->nullable();
+            $table->string('file_name' , 2000);  // original name
+            $table->string('file_path', 2000);  // storage path
+            $table->string('mime_type' , 100)->nullable();
             $table->unsignedBigInteger('size_bytes')->nullable();
             $table->timestamps();
 

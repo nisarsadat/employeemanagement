@@ -163,29 +163,14 @@ export const useLoginRepository = defineStore('LoginRepository', () => {
   const fetchProfile = async () => {
     try {
       const { data } = await axios.get('/profile');
-
       const payload = data?.data ?? data;
-      user.value = payload || null;
-
-      const { roles: r, permissions: p } = normalizeRbac({
-        user: payload,
-        roles: payload?.roles ?? [],
-        permissions: payload?.permissions ?? [],
-      });
-
-      roles.value = r;
-      permissions.value = p;
-
-      sessionStorage.setItem('user', JSON.stringify(user.value));
-      sessionStorage.setItem('roles', JSON.stringify(roles.value));
-      sessionStorage.setItem('permissions', JSON.stringify(permissions.value));
-
       return payload;
     } catch (err) {
       console.error('fetchProfile error:', err);
       throw err;
     }
   };
+
   const updateProfile = async (formData) => {
     try {
       loading.value = true;

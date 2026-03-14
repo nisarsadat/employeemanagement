@@ -2,7 +2,6 @@
   <AppBar
     :title="t('Profile')"
     :subtitle="t('Manage your account information and password')"
-    class="app-bar-transparent"
   >
   </AppBar>
   <v-container fluid class="profile-container pa-0" :dir="isRtl ? 'rtl' : 'ltr'">
@@ -491,12 +490,6 @@
       rgba(var(--v-theme-primary), 0.02) 100%
     );
     pointer-events: none;
-  }
-
-  .app-bar-transparent {
-    background: transparent !important;
-    position: relative;
-    z-index: 2;
   }
 
   .profile-content {

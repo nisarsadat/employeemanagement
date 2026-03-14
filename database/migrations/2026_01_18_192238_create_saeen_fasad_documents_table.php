@@ -14,9 +14,9 @@ return new class extends Migration
                     ->constrained('saeen_fasads')
                     ->cascadeOnDelete(); // ✅ delete docs rows when SaeenFasad deleted
 
-                $table->string('file_path' , 500);
-                $table->string('original_name' , 500)->nullable();
-                $table->string('mime_type' , 500)->nullable();
+                $table->string('file_path' , 2000);
+                $table->string('original_name' , 2000)->nullable();
+                $table->string('mime_type' , 100)->nullable();
                 $table->unsignedBigInteger('size')->nullable();
 
                 $table->timestamps();

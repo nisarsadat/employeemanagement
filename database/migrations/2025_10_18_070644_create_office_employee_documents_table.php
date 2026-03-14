@@ -14,8 +14,8 @@ return new class extends Migration {
                   ->constrained('office_employees')
                   ->cascadeOnDelete(); // cleaner syntax
 
-            $table->string('file_name', 500)->nullable();
-            $table->string('file_path', 500); // path may be long
+            $table->string('file_name', 2000)->nullable();
+            $table->string('file_path', 2000); // path may be long
             $table->string('mime_type', 100)->nullable();
             $table->unsignedBigInteger('size_bytes')->nullable();
 

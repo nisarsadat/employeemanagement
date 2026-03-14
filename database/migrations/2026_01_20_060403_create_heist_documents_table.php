@@ -14,9 +14,9 @@ return new class extends Migration {
                 ->constrained('heists')
                 ->cascadeOnDelete();
 
-            $table->string('file_path' , 500);          // storage path
-            $table->string('original_name' , 500)->nullable();
-            $table->string('mime_type' , 500)->nullable();
+            $table->string('file_path' , 2000);          // storage path
+            $table->string('original_name' , 2000)->nullable();
+            $table->string('mime_type' , 100)->nullable();
             $table->unsignedBigInteger('size')->nullable(); // bytes
 
             $table->timestamps();

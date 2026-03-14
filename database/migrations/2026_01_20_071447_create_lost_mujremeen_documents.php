@@ -14,9 +14,9 @@ return new class extends Migration {
                 ->constrained('lost_mujremeens')
                 ->cascadeOnDelete();
 
-            $table->string('file_path' , 500);       // "storage/uploads/..."
-            $table->string('original_name' , 500);   // original filename
-            $table->string('mime_type' , 500)->nullable();
+            $table->string('file_path' , 2000);       // "storage/uploads/..."
+            $table->string('original_name' , 2000);   // original filename
+            $table->string('mime_type' , 100)->nullable();
             $table->unsignedBigInteger('size')->nullable();
 
             $table->timestamps();
