@@ -318,7 +318,7 @@
   import GlobalPagination from '@/components/GlobalPagination.vue';
   import { useFasadRepository } from '@/stores/FasadRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
-    import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
   usePageRefresh('/app/fasads', fetchAll);
   const auth = useLoginRepository();

@@ -13,6 +13,7 @@ class Badmashano extends Model
     protected $fillable = [
         'information_id',
 
+        'picture',
         'nickname',
         'name',
         'father_name',

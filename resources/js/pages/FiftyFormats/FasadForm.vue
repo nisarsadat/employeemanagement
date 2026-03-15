@@ -592,6 +592,7 @@
   import { useFasadRepository } from '@/stores/FasadRepository';
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
+  import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');

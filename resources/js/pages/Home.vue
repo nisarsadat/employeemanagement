@@ -49,11 +49,11 @@ body,
 
 .app-shell {
   height: 100vh;
-  overflow: hidden;
 }
 
 .app-layout {
   height: 100vh;
+  min-height: 0;
 }
 
 .drawer-hover-zone {
@@ -74,12 +74,13 @@ body,
 }
 
 .main-shell {
-  height: 100vh;
-  overflow: hidden;
+  height: 100%;
+  min-height: 0;
 }
 
 .main-shell__inner {
-  height: 100vh;
+  height: 100%;
+  min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
   scroll-behavior: smooth;
