@@ -205,7 +205,7 @@
       :dateKeys="['resource_saved_date']"
       @edit="startEdit"
       @peek="openPeek"
-      class="mb-20 mx-2"
+      class="mx-2"
     >
       <!-- 🖼 Picture cell -->
       <template #cell-picture="{ row }">
@@ -402,9 +402,9 @@
     </FilterableTable>
 
     <GlobalPagination
-      :page="repo.page"
-      :items-per-page="repo.itemsPerPage"
-      :total="repo.totalItems"
+      :page="Number(repo.page) || 1"
+      :items-per-page="Number(repo.itemsPerPage) || 10"
+      :total="Number(repo.totalItems) || 0"
       @update:page="handlePageChange"
       @update:itemsPerPage="handlePerPageChange"
     />
@@ -466,7 +466,7 @@
 
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
-      import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
   usePageRefresh('/app/resources', fetchAll);
   const route = useRoute();
@@ -690,7 +690,7 @@
   }
 
   /* ===== Stats ===== */
-  const totalCount = computed(() => rowsFT.value.length);
+  const totalCount = computed(() => Number(repo.totalItems) || 0);
 
   const todayAddedCount = computed(() => {
     const today = new Date();

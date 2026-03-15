@@ -280,6 +280,51 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         });
 
         applyPaginatedResponse(this, res, 'Resources');
+
+        const payload = res?.data ?? {};
+
+        // ✅ rows
+        const rows = Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload)
+          ? payload
+          : [];
+
+        this.Resources = rows;
+
+        // ✅ try all possible places
+        const total =
+          payload?.meta?.total ??
+          payload?.total ??
+          payload?.pagination?.total ??
+          payload?.data?.meta?.total ??
+          rows.length ??
+          0;
+
+        const currentPage =
+          payload?.meta?.current_page ??
+          payload?.current_page ??
+          payload?.pagination?.current_page ??
+          queryParams?.page ??
+          this.page ??
+          1;
+
+        const perPage =
+          payload?.meta?.per_page ??
+          payload?.per_page ??
+          payload?.pagination?.per_page ??
+          queryParams?.perPage ??
+          this.itemsPerPage ??
+          10;
+
+        this.totalItems = Number(total) || 0;
+        this.page = Number(currentPage) || 1;
+        this.itemsPerPage = Number(perPage) || 10;
+
+        console.log('RESOURCE RESPONSE:', payload);
+        console.log('RESOURCE totalItems:', this.totalItems);
+        console.log('RESOURCE page:', this.page);
+        console.log('RESOURCE itemsPerPage:', this.itemsPerPage);
       } catch (e) {
         console.error(e);
         this.error = e;

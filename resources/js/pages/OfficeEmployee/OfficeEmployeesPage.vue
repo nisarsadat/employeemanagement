@@ -508,7 +508,7 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
 
   import GlobalPagination from '@/components/GlobalPagination.vue';
-      import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
   usePageRefresh('/app/officeemployee', fetchAll);
   const router = useRouter();
@@ -680,7 +680,7 @@
 
   /* ===== Data & stats ===== */
   const rowsFT = computed(() => repo.Employees || []);
-  const totalCount = computed(() => rowsFT.value.length);
+  const totalCount = computed(() => Number(repo.totalItems) || 0);
 
   const edariCount = computed(
     () => rowsFT.value.filter((r) => String(r.job_type || '').trim() === 'اداری').length

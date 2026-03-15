@@ -86,12 +86,7 @@ class ResourceController extends Controller
         if ($perPage !== null && $perPage > 0) {
             $data = $q->paginate($perPage);
 
-            return ResourceResource::collection($data)
-                ->additional([
-                    'meta' => [
-                        'total' => $data->total(),
-                    ],
-                ]);
+            return ResourceResource::collection($data);
         }
 
         $rows = $q->get();
@@ -102,6 +97,7 @@ class ResourceController extends Controller
                     'total' => $rows->count(),
                 ],
             ]);
+
     }
 
     public function show($id)

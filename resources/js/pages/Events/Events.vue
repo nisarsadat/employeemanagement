@@ -632,7 +632,7 @@
     );
   }
 
-  const totalCount = computed(() => baseEvents.value.length);
+const totalCount = computed(() => Number(repo.totalItems) || 0);
 
   const todayAddedCount = computed(() => {
     const today = new Date();
