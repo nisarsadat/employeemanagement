@@ -1182,36 +1182,67 @@
       } catch (e) {
         console.warn('RTL plugin warning:', e);
       }
-      let styleJson = await fetch(STYLE_JSON).then((r) => r.json());
-
-      const layerSourceNames = [
-        ...new Set((styleJson.layers || []).filter((l) => l.source).map((l) => l.source)),
-      ];
-
-      if (!layerSourceNames.length) {
-        throw new Error('No layer sources found in bright-complete.json');
-      }
-
-      const vectorSourceKey = layerSourceNames[0];
-
-      styleJson.sources[vectorSourceKey] = {
-        type: 'vector',
-        url: `pmtiles://${pmtilesUrl}`,
-      };
-
-      styleJson.sprite = SPRITE_URL;
-      styleJson.glyphs = GLYPHS_URL;
-
-      // TEMP: disable label mutation
-      styleJson = applyBilingualLabels(styleJson);
-      console.log('STYLE_JSON', STYLE_JSON);
-      console.log('SPRITE_URL', SPRITE_URL);
-      console.log('GLYPHS_URL', GLYPHS_URL);
-      console.log('styleJson before map init', styleJson);
-
       map.value = new maplibregl.Map({
         container: mapEl.value,
-        style: styleJson,
+        style: {
+          version: 8,
+          sources: {
+            openmaptiles: {
+              type: 'vector',
+              url: 'pmtiles:///pmtiles-range/afghanistan.pmtiles',
+            },
+          },
+          layers: [
+            {
+              id: 'background',
+              type: 'background',
+              paint: {
+                'background-color': '#f8f4f0',
+              },
+            },
+            {
+              id: 'water',
+              type: 'fill',
+              source: 'openmaptiles',
+              'source-layer': 'water',
+              paint: {
+                'fill-color': '#a0c8f0',
+              },
+            },
+            {
+              id: 'landcover',
+              type: 'fill',
+              source: 'openmaptiles',
+              'source-layer': 'landcover',
+              paint: {
+                'fill-color': '#d8e8c8',
+              },
+            },
+            {
+              id: 'roads',
+              type: 'line',
+              source: 'openmaptiles',
+              'source-layer': 'transportation',
+              paint: {
+                'line-color': '#888',
+                'line-width': 1.5,
+              },
+            },
+            {
+              id: 'places',
+              type: 'symbol',
+              source: 'openmaptiles',
+              'source-layer': 'place',
+              layout: {
+                'text-field': ['coalesce', ['get', 'name'], ['get', 'name:en']],
+                'text-size': 12,
+              },
+              paint: {
+                'text-color': '#222',
+              },
+            },
+          ],
+        },
         center: [69.2, 34.5],
         zoom: 7,
         minZoom: 3,
