@@ -1,5 +1,3 @@
-// src/utils/listHelpers.js
-
 export function cleanParams(obj = {}) {
   const out = {};
 
@@ -50,19 +48,32 @@ export function buildListParams(store, params = {}, options = {}) {
 }
 
 export function applyPaginatedResponse(store, res, targetKey) {
-  const items = res?.data?.data ?? res?.data ?? [];
-  store[targetKey] = Array.isArray(items) ? items : [];
+  // supports BOTH:
+  // 1) full axios response
+  // 2) already-unwrapped response.data
+  const body =
+    res && typeof res === 'object' && 'data' in res && ('status' in res || 'headers' in res)
+      ? res.data
+      : res;
 
-  store.totalItems =
-    res?.data?.meta?.total ??
-    res?.meta?.total ??
-    res?.data?.totalItems ??
-    res?.data?.total_items ??
-    res?.data?.['total-items'] ??
-    res?.data?.total ??
-    res?.totalItems ??
-    res?.total_items ??
-    res?.['total-items'] ??
-    res?.total ??
-    store[targetKey].length;
+  const items = Array.isArray(body?.data) ? body.data : Array.isArray(body) ? body : [];
+
+  store[targetKey] = items;
+
+  store.totalItems = Number(
+    body?.meta?.total ??
+      body?.total ??
+      body?.totalItems ??
+      body?.total_items ??
+      body?.['total-items'] ??
+      items.length
+  );
+
+  if (body?.meta?.current_page) {
+    store.page = Number(body.meta.current_page);
+  }
+
+  if (body?.meta?.per_page) {
+    store.itemsPerPage = Number(body.meta.per_page);
+  }
 }

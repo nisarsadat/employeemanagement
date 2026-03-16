@@ -60,8 +60,7 @@
     perPageItems: { type: Array, default: () => [10, 20, 50, 100] },
   });
 
-  const emit = defineEmits(['update:page', 'update:itemsPerPage']);
-
+  const emit = defineEmits(['update:page', 'update:itemsPerPage', 'update:items-per-page']);
   const normalizedPerPageItems = computed(() =>
     (props.perPageItems || []).map((v) => ({
       title: String(v),
@@ -99,7 +98,9 @@
   );
 
   function onPerPageChange(value) {
-    emit('update:itemsPerPage', Number(value));
+    const num = Number(value);
+    emit('update:itemsPerPage', num);
+    emit('update:items-per-page', num);
   }
 </script>
 
