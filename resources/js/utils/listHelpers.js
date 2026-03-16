@@ -52,5 +52,17 @@ export function buildListParams(store, params = {}, options = {}) {
 export function applyPaginatedResponse(store, res, targetKey) {
   const items = res?.data?.data ?? res?.data ?? [];
   store[targetKey] = Array.isArray(items) ? items : [];
-  store.totalItems = res?.data?.meta?.total ?? res?.data?.total ?? store[targetKey].length;
+
+  store.totalItems =
+    res?.data?.meta?.total ??
+    res?.meta?.total ??
+    res?.data?.totalItems ??
+    res?.data?.total_items ??
+    res?.data?.['total-items'] ??
+    res?.data?.total ??
+    res?.totalItems ??
+    res?.total_items ??
+    res?.['total-items'] ??
+    res?.total ??
+    store[targetKey].length;
 }
