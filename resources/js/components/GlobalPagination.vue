@@ -6,7 +6,7 @@
         <div class="d-flex align-center ga-3 flex-wrap min-w-0">
           <div class="total-chip">
             <span class="total-label">{{ totalLabel }}</span>
-            <strong class="total-value">{{ total }}</strong>
+            <strong class="total-value">{{ resolvedTotal }}</strong>
           </div>
 
           <div class="text-caption text-medium-emphasis pagination-hint">
@@ -55,7 +55,8 @@
   const props = defineProps({
     page: { type: Number, required: true },
     itemsPerPage: { type: Number, required: true },
-    total: { type: Number, default: 0 },
+    total: { type: Number, default: undefined },
+    totalItems: { type: Number, default: undefined },
     perPageItems: { type: Array, default: () => [10, 20, 50, 100] },
   });
 
@@ -68,20 +69,22 @@
     }))
   );
 
+  const resolvedTotal = computed(() => Number(props.total ?? props.totalItems ?? 0));
+
   const pageCount = computed(() => {
     const per = Number(props.itemsPerPage || 10);
-    const total = Number(props.total || 0);
+    const total = Number(resolvedTotal.value || 0);
     return Math.max(1, Math.ceil(total / per));
   });
 
   const currentFrom = computed(() => {
-    if (!props.total) return 0;
+    if (!resolvedTotal.value) return 0;
     return (props.page - 1) * props.itemsPerPage + 1;
   });
 
   const currentTo = computed(() => {
-    if (!props.total) return 0;
-    return Math.min(props.page * props.itemsPerPage, props.total);
+    if (!resolvedTotal.value) return 0;
+    return Math.min(props.page * props.itemsPerPage, resolvedTotal.value);
   });
 
   const totalLabel = computed(() => t('pagination.total'));
@@ -91,7 +94,7 @@
     t('pagination.pageInfo', {
       from: currentFrom.value,
       to: currentTo.value,
-      total: props.total,
+      total: resolvedTotal.value,
     })
   );
 
