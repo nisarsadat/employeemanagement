@@ -13,6 +13,7 @@ class InformationResource extends JsonResource
 
         $resource  = $info ? $info->resource : null;
         $documents = $info ? $info->documents : collect();
+        $matchedInformation = $info ? $info->matchedInformation : null;
 
         // ✅ Pick the correct office employee (fallback to tadabiri/info)
         $officeEmployee = null;
@@ -36,10 +37,18 @@ class InformationResource extends JsonResource
             'office_employee_info_id' => $info ? $info->office_employee_info_id : null,
             'office_employee_info_code_number' => $info?->officeEmployeeInfo?->code_number,
 
+            'matched_information_id' => $info ? $info->matched_information_id : null,
+            'matched_information' => $matchedInformation ? [
+                'id' => $matchedInformation->id,
+                'name' => $matchedInformation->name,
+                'father_name' => $matchedInformation->father_name,
+                'main_province' => $matchedInformation->main_province,
+                'main_districts' => $matchedInformation->main_districts,
+                'main_village' => $matchedInformation->main_village,
+            ] : null,
 
             'resource_code_number'        => $resource ? $resource->code_number : null,
 
-            // ✅ This will now return the code_number of whichever employee is linked
             'office_employee_code_number' => $officeEmployee ? $officeEmployee->code_number : null,
 
             'resource' => $resource ? [
@@ -49,7 +58,6 @@ class InformationResource extends JsonResource
                 'father_name' => $resource->father_name,
             ] : null,
 
-            // ✅ Nested office_employee now also follows the same fallback
             'office_employee' => $officeEmployee ? [
                 'id'          => $officeEmployee->id,
                 'name'        => $officeEmployee->name,
@@ -90,24 +98,21 @@ class InformationResource extends JsonResource
             'hamahangi_date' => $this->hamahangi_date,
             'maktop_number'  => $this->maktop_number,
             'organ'          => $this->organ,
-            'message_to_finance'          => $this->message_to_finance,
+            'message_to_finance' => $this->message_to_finance,
             'money_amount_words' => $this->money_amount_words,
             'finance_status' => $this->finance_status ?? 'pending',
             'finance_paid_at' => optional($this->finance_paid_at)?->toISOString(),
             'finance_paid_amount' => $this->whenLoaded('finances', function () {
-                // sum of money_amount_number (cast to float)
                 return (float) $this->finances->sum(function ($f) {
                     return (float) ($f->money_amount_number ?? 0);
                 });
             }),
-
             'finance_paid_amount_number' => $this->whenLoaded('finances', function () {
                 $sum = (float) $this->finances->sum(function ($f) {
                     return (float) ($f->money_amount_number ?? 0);
                 });
                 return number_format($sum, 2, '.', '');
             }),
-
 
             'now_province' => $info ? $info->now_province : null,
             'now_district' => $info ? $info->now_district : null,
@@ -122,7 +127,7 @@ class InformationResource extends JsonResource
 
             'information_saved_hour' => $info ? $info->information_saved_hour : null,
             'information_degree'     => $info ? $info->information_degree : null,
-            'trust_percentage'     => $info ? $info->trust_percentage : null,
+            'trust_percentage'       => $info ? $info->trust_percentage : null,
 
             'tafseel'         => $info ? $info->tafseel : null,
             'manager_comment' => $info ? $info->manager_comment : null,

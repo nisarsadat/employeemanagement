@@ -103,6 +103,13 @@ return new class extends Migration {
             // Extra
             // ===============================
             $table->string('Province_addr')->nullable();
+             $table->unsignedBigInteger('matched_information_id')->nullable();
+
+            $table->foreign('matched_information_id')
+                ->references('id')
+                ->on('information')
+                ->nullOnDelete();
+
 
             $table->timestamps();
 

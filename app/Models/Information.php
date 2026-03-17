@@ -47,7 +47,7 @@ class Information extends Model
         'trust_percentage',
         'resource_lasrasy',
 
-        'specefic_plpace',
+        'specefic_place',
         'home_number',
         'street_number',
 
@@ -90,23 +90,54 @@ class Information extends Model
     {
         return $this->belongsTo(OfficeEmployee::class, 'office_employee_tadabiri_id', 'id');
     }
+
     public function documents(): HasMany
     {
         return $this->hasMany(InformationDocument::class, 'information_id', 'id');
     }
-    // Information.php
 
-    public function finances()
+    public function finances(): HasMany
     {
         return $this->hasMany(Finance::class, 'information_id');
     }
 
+    public function officeEmployeeInfo(): BelongsTo
+    {
+        return $this->belongsTo(OfficeEmployee::class, 'office_employee_info_id', 'id');
+    }
+
+    public function account(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'account_id');
+    }
+
+    /**
+     * The matched/original information record.
+     */
+    public function matchedInformation(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'matched_information_id', 'id');
+    }
+
+    /**
+     * All information rows that point to this row.
+     */
+    public function childMatchedInformations(): HasMany
+    {
+        return $this->hasMany(self::class, 'matched_information_id', 'id');
+    }
+
     /* =========================================================
      | AUTO-ACTIVATE EMPLOYEE ON CREATE
+     | AUTO-MATCH INFORMATION BEFORE SAVE
      ========================================================= */
 
     protected static function booted()
     {
+        static::saving(function (self $row) {
+            $row->matched_information_id = static::resolveMatchedInformationId($row);
+        });
+
         static::created(function ($row) {
             if ($row->office_employee_id) {
                 OfficeEmployee::whereKey($row->office_employee_id)
@@ -115,15 +146,51 @@ class Information extends Model
             }
         });
     }
-    public function officeEmployeeInfo(): BelongsTo
+
+    /**
+     * Find an older information row with the exact same:
+     * - name
+     * - father_name
+     * - main_province
+     * - main_districts
+     * - main_village
+     *
+     * If found, return its id. Otherwise return null.
+     */
+    protected static function resolveMatchedInformationId(self $row): ?int
     {
-        return $this->belongsTo(OfficeEmployee::class, 'office_employee_info_id', 'id');
+        $name = $row->name;
+        $fatherName = $row->father_name;
+        $mainProvince = $row->main_province;
+        $mainDistricts = $row->main_districts;
+        $mainVillage = $row->main_village;
+
+        // If any required matching field is empty, do not create relation
+        if (
+            is_null($name) || trim((string) $name) === '' ||
+            is_null($fatherName) || trim((string) $fatherName) === '' ||
+            is_null($mainProvince) || trim((string) $mainProvince) === '' ||
+            is_null($mainDistricts) || trim((string) $mainDistricts) === '' ||
+            is_null($mainVillage) || trim((string) $mainVillage) === ''
+        ) {
+            return null;
+        }
+
+        $query = static::query()
+            ->where('name', $name)
+            ->where('father_name', $fatherName)
+            ->where('main_province', $mainProvince)
+            ->where('main_districts', $mainDistricts)
+            ->where('main_village', $mainVillage);
+
+        // Exclude current row during update
+        if ($row->exists && $row->id) {
+            $query->where('id', '!=', $row->id);
+        }
+
+        // Pick the oldest matching row as the "original"
+        $matched = $query->orderBy('id', 'asc')->first();
+
+        return $matched?->id;
     }
-    public function account()
-    {
-        return $this->belongsTo(Account::class, 'account_id');
-    }
-
-
-
 }

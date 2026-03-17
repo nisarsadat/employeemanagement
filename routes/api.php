@@ -421,7 +421,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('charts/captive-deliveries-over-time',        [PeopleDashboardController::class, 'captiveDeliveriesOverTime']);
         Route::get('tables/employee-activity',                   [PeopleDashboardController::class, 'employeeActivity']);
     });
-
+    Route::post('/information/check-duplicate', [InformationController::class, 'checkDuplicate']);
     Route::prefix('dashboard/info-events')->group(function () {
         Route::get('/cards',                         [InfoEventDashboardController::class, 'cards']);
         Route::get('/charts/events-over-time',       [InfoEventDashboardController::class, 'eventsOverTime']);

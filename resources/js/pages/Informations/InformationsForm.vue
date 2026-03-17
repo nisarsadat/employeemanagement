@@ -6,7 +6,70 @@
       :subtitle="isEdit ? t('ویرایش جزئیات یک اطلاع موجود') : t('ثبت یک اطلاع جدید در سیستم')"
     >
     </AppBar>
+    <v-dialog v-model="duplicateDialog" max-width="760">
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="warning">mdi-alert-circle-outline</v-icon>
+          <span>{{ t('اطلاع مشابه پیدا شد') }}</span>
+        </v-card-title>
 
+        <v-card-text>
+          <div class="mb-3">
+            {{ t('در سیستم معلومات مشابه با همین فیلدها پیدا شد:') }}
+          </div>
+
+          <v-alert type="info" variant="tonal" class="mb-3">
+            <div>
+              <strong>{{ t('نام') }}:</strong> {{ duplicatePayload.name || '—' }}
+            </div>
+            <div>
+              <strong>{{ t('نام پدر') }}:</strong> {{ duplicatePayload.father_name || '—' }}
+            </div>
+            <div>
+              <strong>{{ t('ولایت اصلی') }}:</strong> {{ duplicatePayload.main_province || '—' }}
+            </div>
+            <div>
+              <strong>{{ t('ولسوالی اصلی') }}:</strong> {{ duplicatePayload.main_districts || '—' }}
+            </div>
+            <div>
+              <strong>{{ t('قریه اصلی') }}:</strong> {{ duplicatePayload.main_village || '—' }}
+            </div>
+          </v-alert>
+
+          <div class="mb-2 font-weight-medium">
+            {{ t('ریکاردهای مشابه:') }}
+          </div>
+
+          <div v-if="duplicateMatches.length" class="d-flex flex-wrap ga-2">
+            <v-chip
+              v-for="row in duplicateMatches"
+              :key="row.id"
+              color="warning"
+              variant="tonal"
+              class="cursor-pointer"
+              @click="goToDuplicateRow(row)"
+            >
+              #{{ row.id }} - {{ row.name || '—' }}
+            </v-chip>
+          </div>
+
+          <div v-else class="text-medium-emphasis">—</div>
+
+          <div class="mt-4">
+            {{ t('آیا با وجود این، می‌خواهید ثبت ادامه یابد؟') }}
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="justify-end">
+          <v-btn variant="text" @click="closeDuplicateDialog">
+            {{ t('بندول') }}
+          </v-btn>
+          <v-btn color="primary" :loading="saving" @click="confirmDuplicateAndSave">
+            {{ t('ثبت') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <!-- STEPPER (DYNAMIC) -->
     <section class="stepper-shell mx-auto" :dir="isRtl ? 'rtl' : 'ltr'">
       <v-card class="stepper-card py-4 pb-12" elevation="0">
@@ -326,7 +389,7 @@
               <v-col cols="12" md="12">
                 <ProvinceDistrictNameSelect
                   v-model:province="form.main_province"
-                  v-model:district="form.main_district"
+                  v-model:district="form.main_districts"
                   :province-label="t('ولایت اصلی')"
                   :district-label="t('ولسوالی اصلی')"
                   :mdProvince="6"
@@ -900,7 +963,10 @@
 
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
-
+  const duplicateDialog = ref(false);
+  const duplicateMatches = ref([]);
+  const duplicatePayload = ref({});
+  const allowDuplicateSave = ref(false);
   const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();
@@ -1141,6 +1207,65 @@
 
     return base;
   }
+  // the popup of the ids for the info
+  function buildDuplicateCheckPayload() {
+    return {
+      id: form.value.id ?? null,
+      name: form.value.name?.trim() || '',
+      father_name: form.value.father_name?.trim() || '',
+      main_province: form.value.main_province?.trim() || '',
+      main_districts: form.value.main_districts?.trim() || '',
+      main_village: form.value.main_village?.trim() || '',
+    };
+  }
+
+  async function checkDuplicateBeforeSave() {
+    const payload = buildDuplicateCheckPayload();
+
+    duplicatePayload.value = payload;
+    duplicateMatches.value = [];
+
+    if (
+      !payload.name ||
+      !payload.father_name ||
+      !payload.main_province ||
+      !payload.main_districts ||
+      !payload.main_village
+    ) {
+      return false;
+    }
+
+    try {
+      const res = await repo.CheckInformationDuplicate?.(payload);
+      const matches = res?.data?.matches || res?.matches || [];
+
+      if (Array.isArray(matches) && matches.length > 0) {
+        duplicateMatches.value = matches;
+        duplicateDialog.value = true;
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      console.error('checkDuplicateBeforeSave error', e);
+      return false;
+    }
+  }
+
+  function closeDuplicateDialog() {
+    duplicateDialog.value = false;
+  }
+
+  async function confirmDuplicateAndSave() {
+    allowDuplicateSave.value = true;
+    duplicateDialog.value = false;
+    await onSubmit();
+  }
+
+  function goToDuplicateRow(row) {
+    if (!row?.id) return;
+    router.push({ path: '/app/informations', query: { duplicate_of: String(row.id) } });
+  }
 
   async function loadForEdit() {
     if (!isEdit.value) {
@@ -1156,8 +1281,8 @@
         form.value = { ...mapped, _newDocs: [], removed_document_ids: [] };
       } else {
         await repo.FetchInformationsData?.({
-          page: 1,
-          itemsPerPage: 100000,
+          page: 10,
+          itemsPerPage: 10,
         });
         const list = toArray(repo.Informations);
         const found = list.find((r) => r.id == idParam.value) || {};
@@ -1233,6 +1358,13 @@
       return;
     }
 
+    if (!allowDuplicateSave.value) {
+      const hasDuplicate = await checkDuplicateBeforeSave();
+      if (hasDuplicate) {
+        return;
+      }
+    }
+
     saving.value = true;
 
     try {
@@ -1283,6 +1415,7 @@
       showErrorMessage(t('خطا در ذخیره اطلاعات'));
     } finally {
       saving.value = false;
+      allowDuplicateSave.value = false;
     }
   }
   function onInformationResourceSelected(r) {
@@ -1324,8 +1457,8 @@
     await Promise.allSettled([
       repo.GetOfficeEmployee?.(),
       repo.FetchInformationsData?.({
-        page: 1,
-        itemsPerPage: 1,
+        page: 10,
+        itemsPerPage: 10,
       }),
       financeRepo.FetchAccountsData(),
     ]);
@@ -1392,7 +1525,6 @@
       }
     }
   );
-
 
   // ✅ Freeze office employee field when resource selected
   const officeEmployeeLocked = computed(() => !!form.value.resource_id);

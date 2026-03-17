@@ -310,6 +310,42 @@
       :dateKeys="['information_saved_date', 'hamahangi_date']"
       class="mx-2"
     >
+      <template #cell-matched_links="{ row }">
+        <div class="d-flex flex-wrap ga-1 align-center">
+          <v-chip
+            v-if="getRow(row).matched_information_id"
+            size="small"
+            color="primary"
+            variant="tonal"
+            class="cursor-pointer"
+            @click.stop="filterByRelatedId(getRow(row).matched_information_id)"
+          >
+            {{ t('اصل') }} #{{ getRow(row).matched_information_id }}
+          </v-chip>
+
+          <v-chip
+            v-for="cid in getRow(row).child_matched_information_ids || []"
+            :key="cid"
+            size="small"
+            color="deep-purple"
+            variant="tonal"
+            class="cursor-pointer"
+            @click.stop="filterByRelatedId(cid)"
+          >
+            #{{ cid }}
+          </v-chip>
+
+          <span
+            v-if="
+              !getRow(row).matched_information_id &&
+              !(getRow(row).child_matched_information_ids || []).length
+            "
+            class="text-caption text-medium-emphasis"
+          >
+            —
+          </span>
+        </div>
+      </template>
       <!-- RESOURCE -->
       <template #cell-resource_id="{ row }">
         <div class="d-flex flex-column align-start">
@@ -546,7 +582,7 @@
   import { useCalendar } from '../../../composables/useCalendar';
   import ManagerFinanceDialog from './ManagerFinanceDialog.vue';
   import AnalysisLeadershipDialog from './AnalysisLeadershipDialog.vue';
-    import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
   usePageRefresh('/app/informations', fetchAll);
   const auth = useLoginRepository();
@@ -777,6 +813,23 @@
       rows = rows.filter((r) => Number(r.office_employee_id) === filterOfficeEmployeeId.value);
     }
 
+    // ✅ related-record filter
+    if (relatedIdFilter.value) {
+      rows = rows.filter((r) => {
+        const selfId = Number(r.id);
+        const parentId = Number(r.matched_information_id || 0);
+        const childIds = Array.isArray(r.child_matched_information_ids)
+          ? r.child_matched_information_ids.map(Number)
+          : [];
+
+        return (
+          selfId === relatedIdFilter.value ||
+          parentId === relatedIdFilter.value ||
+          childIds.includes(relatedIdFilter.value)
+        );
+      });
+    }
+
     // stat filters
     if (activeStat.value === 'today') {
       const today = new Date().toISOString().split('T')[0];
@@ -806,6 +859,7 @@
   /* ===== Headers / Groups (unchanged) ===== */
   const headersFT = computed(() => [
     { title: t('آی ډی'), key: 'id' },
+    { title: t('ارتباطات'), key: 'matched_links', sortable: false },
     { title: t('کود منبع'), key: 'resource_id' },
     { title: t('کارمند مربوط'), key: 'office_employee_code_number' },
     { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
@@ -817,9 +871,7 @@
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
     { title: t('حالت مدنی'), key: 'madani_halat' },
-    { title: t('موقعیت مشخص'), key: 'specefic_place' },
-    { title: t('شماره خانه'), key: 'home_number' },
-    { title: t('شماره سرک'), key: 'street_number' },
+
     { title: t('سن'), key: 'age' },
     { title: t('وظیفه'), key: 'job' },
 
@@ -830,6 +882,10 @@
     { title: t('ولایت فعلی'), key: 'now_province' },
     { title: t('ولسوالی فعلی'), key: 'now_district' },
     { title: t('قریه فعلی'), key: 'now_village' },
+    { title: t('موقعیت مشخص'), key: 'specefic_place' },
+    { title: t('شماره سرک'), key: 'street_number' },
+    { title: t('شماره خانه'), key: 'home_number' },
+    { title: t('مختصات'), key: 'coordinates' },
 
     { title: t('سیاسی'), key: 'syasi_info_type' },
     { title: t('جنایی'), key: 'jenayee_info_type' },
@@ -842,16 +898,16 @@
     { title: t('کارمند اطلاع گیرنده'), key: 'office_employee_info_code_number' },
     { title: t('د منبع لاسرسی'), key: 'resource_lasrasy' },
 
-    { title: t('تاریخ هم‌آهنگی'), key: 'hamahangi_date' },
-    { title: t('شماره مکتوب'), key: 'maktop_number' },
-    { title: t('ارگان'), key: 'organ' },
-    { title: t('مختصات'), key: 'coordinates' },
     { title: t('تفصیل'), key: 'tafseel' },
+    { title: t('نوت راجع به اسناد'), key: 'docs_note' },
+
     { title: t('نظر آمریت تعقیب اطلاع'), key: 'tahlil' },
     { title: t('نظر مدیر'), key: 'manager_comment' },
     { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
+    { title: t('تاریخ هم‌آهنگی'), key: 'hamahangi_date' },
+    { title: t('شماره مکتوب'), key: 'maktop_number' },
+    { title: t('ارگان'), key: 'organ' },
     { title: t('نتیجه'), key: 'result' },
-    { title: t('نوت راجع به اسناد'), key: 'docs_note' },
     { title: t('ملاحظات'), key: 'note' },
   ]);
 
@@ -877,6 +933,20 @@
     },
   ]);
 
+  const relatedIdFilter = computed(() => {
+    const v = route.query?.duplicate_of;
+    return v ? Number(v) : null;
+  });
+  function filterByRelatedId(id) {
+    if (!id) return;
+    router.push({
+      path: '/app/informations',
+      query: {
+        ...route.query,
+        duplicate_of: String(id),
+      },
+    });
+  }
   /* ===== Finance chip helpers ===== */
   function financeStatusLabel(v) {
     const s = String(v ?? '')
@@ -1077,11 +1147,21 @@
     if (!id) return;
     router.push({ path: '/app/officeemployee', query: { id: String(id), open: 'peek' } });
   }
-
+  function clearRelatedFilter() {
+    const query = { ...route.query };
+    delete query.duplicate_of;
+    router.push({ path: '/app/informations', query });
+  }
   function clearSearch() {
     repo.Search = '';
     repo.page = 1;
-    fetchAll();
+
+    const query = { ...route.query };
+    delete query.duplicate_of;
+
+    router.push({ path: '/app/informations', query }).finally(() => {
+      fetchAll();
+    });
   }
 
   function handlePageChange(value) {

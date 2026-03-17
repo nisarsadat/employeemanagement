@@ -52,6 +52,7 @@ class InformationController extends Controller
             'resource',
             'officeEmployee',
             'officeEmployeeInfo',
+            'matchedInformation',
             'documents',
             'account:id,name,price',
             'finances',
@@ -221,6 +222,7 @@ class InformationController extends Controller
                 'resource',
                 'officeEmployee',
                 'officeEmployeeInfo',
+                'matchedInformation',
                 'documents',
                 'finances',
             ]);
@@ -262,6 +264,7 @@ class InformationController extends Controller
                 'resource',
                 'officeEmployee',
                 'officeEmployeeInfo',
+                'matchedInformation',
                 'documents',
                 'finances',
             ])->findOrFail($id);
@@ -319,6 +322,7 @@ class InformationController extends Controller
                 'resource',
                 'officeEmployee',
                 'officeEmployeeInfo',
+                'matchedInformation',
                 'documents',
                 'finances',
             ]);
@@ -391,5 +395,60 @@ class InformationController extends Controller
                 'error'   => $e->getMessage(),
             ], 500);
         }
+    }
+    public function checkDuplicate(Request $request)
+    {
+        $data = $request->validate([
+            'id'             => 'nullable|integer',
+            'name'           => 'nullable|string',
+            'father_name'    => 'nullable|string',
+            'main_province'  => 'nullable|string',
+            'main_districts' => 'nullable|string',
+            'main_village'   => 'nullable|string',
+        ]);
+
+        $name = trim((string) ($data['name'] ?? ''));
+        $fatherName = trim((string) ($data['father_name'] ?? ''));
+        $mainProvince = trim((string) ($data['main_province'] ?? ''));
+        $mainDistricts = trim((string) ($data['main_districts'] ?? ''));
+        $mainVillage = trim((string) ($data['main_village'] ?? ''));
+        $currentId = $data['id'] ?? null;
+
+        if (
+            $name === '' ||
+            $fatherName === '' ||
+            $mainProvince === '' ||
+            $mainDistricts === '' ||
+            $mainVillage === ''
+        ) {
+            return response()->json([
+                'matches' => [],
+            ]);
+        }
+
+        $query = Information::query()
+            ->select([
+                'id',
+                'name',
+                'father_name',
+                'main_province',
+                'main_districts',
+                'main_village',
+                'matched_information_id',
+            ])
+            ->where('name', $name)
+            ->where('father_name', $fatherName)
+            ->where('main_province', $mainProvince)
+            ->where('main_districts', $mainDistricts)
+            ->where('main_village', $mainVillage)
+            ->orderBy('id', 'asc');
+
+        if ($currentId) {
+            $query->where('id', '!=', $currentId);
+        }
+
+        return response()->json([
+            'matches' => $query->get(),
+        ]);
     }
 }

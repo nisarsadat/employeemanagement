@@ -683,7 +683,10 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         toast.error('حذف نشو');
       }
     },
-
+    async CheckInformationDuplicate(payload) {
+      const res = await axios.post('/information/check-duplicate', payload);
+      return res.data;
+    },
     // Documents sub-routes
     async FetchInformationDocuments(infoId) {
       const { data } = await axios.get(`/informations/${infoId}/documents`);
