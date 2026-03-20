@@ -169,6 +169,7 @@ use App\Http\Controllers\DocsTypeController;
 use App\Http\Controllers\EmployeeManagementDashboardController;
 use App\Http\Controllers\InformationCategoryController;
 use App\Http\Controllers\LetryFormatController;
+use App\Http\Controllers\MapPointController as ControllersMapPointController;
 
 /*
 |--------------------------------------------------------------------------
@@ -643,3 +644,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('information-categories', InformationCategoryController::class);
 
 });
+
+Route::middleware('auth:sanctum')->get('/map/points', [ControllersMapPointController::class, 'index']);

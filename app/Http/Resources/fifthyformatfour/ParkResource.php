@@ -24,6 +24,7 @@ class ParkResource extends JsonResource
             'picture' => $this->picture ? url($this->picture) : null,
 
             'province'             => $model->province,
+            'district'             => $model->district,
             'zone'                 => $model->zone,
             'village'              => $model->village,
             'specefic_place'       => $model->specefic_place,

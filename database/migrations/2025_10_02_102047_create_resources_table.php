@@ -69,6 +69,9 @@ return new class extends Migration {
             $table->string('coordinates')->nullable();
             $table->text('note')->nullable();
 
+            $table->string('format_owner_type')->nullable();
+            $table->unsignedBigInteger('format_owner_id')->nullable();
+            $table->index(['format_owner_type', 'format_owner_id'], 'resources_format_owner_index');
             $table->timestamps();
 
             $table->unique([

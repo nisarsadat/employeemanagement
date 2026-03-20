@@ -22,6 +22,7 @@ class StoreParkRequest extends FormRequest
             'responsible_possition' => ['nullable','string'],
 
             'province'              => ['nullable','string'],
+            'district'              => ['nullable','string'],
             'zone'                  => ['nullable','string'],
             'village'               => ['nullable','string'],
             'specefic_place'        => ['nullable','string'],

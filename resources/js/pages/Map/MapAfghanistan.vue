@@ -4,11 +4,9 @@
   <div class="map-wrap" :dir="isRtl ? 'rtl' : 'ltr'">
     <div ref="mapEl" class="map"></div>
 
-    <!-- ✅ OFFLINE TOP TOOLS (NO ONLINE SEARCH) -->
     <div class="map-top-tools" @click.stop>
       <PmtilesSearchMap class="search-panel" @flyTo="flyTo" />
 
-      <!-- ✅ Points Menu Button -->
       <v-menu v-model="pointsMenuOpen" :close-on-content-click="false" location="bottom">
         <template #activator="{ props }">
           <v-btn
@@ -26,9 +24,7 @@
         <v-card class="points-menu-card" rounded="xl">
           <div class="points-menu-head">
             <div class="points-title">په نقشه کې نقطې</div>
-            <div class="points-sub">
-              ټول: {{ filteredMapItems.length }} / {{ allMapItems.length }}
-            </div>
+            <div class="points-sub">ټول: {{ filteredMapItems.length }} / {{ allMapItems.length }}</div>
           </div>
 
           <v-divider />
@@ -44,7 +40,7 @@
               label="لټون"
               class="mb-3"
             />
-            <!-- Types -->
+
             <div v-for="g in groupedPoints" :key="g.type" class="type-block">
               <div class="type-head">
                 <div class="type-name">
@@ -103,7 +99,6 @@
       </v-menu>
     </div>
 
-    <!-- ✅ Separate details menu drawer -->
     <MapDetailsDrawer
       v-model="detailsOpen"
       :rtl="isRtl"
@@ -124,7 +119,6 @@
   import PmtilesSearchMap from './PmtilesSearchMap.vue';
   import MapDetailsDrawer from './MapDetailsDrawer.vue';
   import { ICON_MAP } from '../../../constants/moduleIcons';
-
   import { useMapBusStore } from '../../stores/MapBusStore';
   import AppBar from '@/components/AppBar.vue';
 
@@ -142,546 +136,28 @@
   let protocol;
   const pmtilesUrl = '/pmtiles-range/afghanistan.pmtiles';
 
-  // highlighted marker from mapBus flyTarget (OFFLINE)
   let highlightMarker = null;
 
-  /* ---------- separate details drawer state ---------- */
   const detailsOpen = ref(false);
   const detailsLoading = ref(false);
   const selectedItem = ref(null);
   const detailsData = ref(null);
 
   const loadingAll = ref(false);
-
-  /* ---------- ✅ points menu ---------- */
   const pointsMenuOpen = ref(false);
+  const allMapItems = ref([]);
 
-  /* ============================================================
- ✅ MODULE SOURCES (your endpoints)
-============================================================ */
-  // ✅ MAP sources with BOTH API paths + Router paths (based on your src/router/index.js)
+  const MAP_POINTS_SOURCE_ID = 'module-points';
+  const MAP_POINTS_CLUSTER_LAYER_ID = 'module-points-clusters';
+  const MAP_POINTS_CLUSTER_COUNT_LAYER_ID = 'module-points-cluster-count';
+  const MAP_POINTS_UNCLUSTERED_LAYER_ID = 'module-points-unclustered';
+  const MAP_POINTS_LABEL_LAYER_ID = 'module-points-label';
 
-  const MAP_SOURCES = [
-    // ---------------- Core ----------------
-    {
-      type: 'office_employee',
-      label: 'کارمند',
-      list: '/api/office-employees',
-      show: (id) => `/api/office-employees/${id}`,
-      route: '/app/officeemployee',
-      routeForm: (id) => (id ? `/app/officeemployeeform/${id}` : `/app/officeemployeeform`),
-    },
-    {
-      type: 'resource',
-      label: 'منبع',
-      list: '/api/resources',
-      show: (id) => `/api/resources/${id}`,
-      route: '/app/resources',
-      routeForm: (id) => (id ? `/app/resourcesform/${id}` : `/app/resourcesform`),
-    },
-    {
-      type: 'information',
-      label: 'اطلاعات',
-      list: '/api/informations',
-      show: (id) => `/api/informations/${id}`,
-      route: '/app/informations',
-      routeForm: (id) => (id ? `/app/informationform/${id}` : `/app/informationform`),
-      routePrint: (id) => `/app/informations/print/${id}`,
-    },
-    {
-      type: 'captive_delivery',
-      label: 'تحویل اسیر',
-      list: '/api/captive-deliveries',
-      show: (id) => `/api/captive-deliveries/${id}`,
-      route: '/app/delevirycaptive',
-      routeForm: (id) => `/app/delevirycaptiveform/${id ?? ''}`.replace(/\/$/, ''),
-    },
-    {
-      type: 'event',
-      label: 'پیښې',
-      list: '/api/events',
-      show: (id) => `/api/events/${id}`,
-      route: '/app/events',
-      routeForm: (id) => (id ? `/app/eventsform/${id}` : `/app/eventsform`),
-    },
-
-    // ---------------- 56 Formats (Base) ----------------
-    {
-      type: 'fasad',
-      label: 'شر او فساد',
-      list: '/api/fasads',
-      show: (id) => `/api/fasads/${id}`,
-      route: '/app/fasads',
-      routeForm: (id) => (id ? `/app/fasadform/${id}` : `/app/fasadform`),
-    },
-    {
-      type: 'saeen_fasad',
-      label: 'ساعین بالفساد',
-      list: '/api/saeen-fasads',
-      show: (id) => `/api/saeen-fasads/${id}`,
-      route: '/app/saeenfasad',
-      routeForm: (id) => (id ? `/app/saeen-fasadform/${id}` : `/app/saeen-fasadform`),
-    },
-    {
-      type: 'heist',
-      label: 'سرقت کوونکي',
-      list: '/api/heists',
-      show: (id) => `/api/heists/${id}`,
-      route: '/app/heist',
-      routeForm: (id) => (id ? `/app/heistform/${id}` : `/app/heistform`),
-    },
-    {
-      type: 'captive',
-      label: 'راخوشي شوي بندیان',
-      list: '/api/captives',
-      show: (id) => `/api/captives/${id}`,
-      route: '/app/captives',
-      routeForm: (id) => (id ? `/app/captiveform/${id}` : `/app/captiveform`),
-    },
-    {
-      type: 'mulkano',
-      label: 'د کوڅو نمایندګان',
-      list: '/api/mulkanos',
-      show: (id) => `/api/mulkanos/${id}`,
-      route: '/app/mulkanos',
-      routeForm: (id) => (id ? `/app/mulkanoform/${id}` : `/app/mulkanoform`),
-    },
-    {
-      type: 'entry_exit',
-      label: 'د ښار اړوند دخولي/خروجي دروازې او فرعي لارې',
-      list: '/api/entry-exits',
-      show: (id) => `/api/entry-exits/${id}`,
-      route: '/app/entry-exits',
-      routeForm: (id) => (id ? `/app/entryexitform/${id}` : `/app/entryexitform`),
-    },
-    {
-      type: 'sarafyano',
-      label: 'صرافیانې',
-      list: '/api/sarafyanos',
-      show: (id) => `/api/sarafyanos/${id}`,
-      route: '/app/sarafyanos',
-      routeForm: (id) => (id ? `/app/sarafyanosform/${id}` : `/app/sarafyanosform`),
-    },
-    {
-      type: 'clubs',
-      label: 'ورزشي کلپونه',
-      list: '/api/clubs',
-      show: (id) => `/api/clubs/${id}`,
-      route: '/app/clubs',
-      routeForm: (id) => (id ? `/app/clubform/${id}` : `/app/clubform`),
-    },
-    {
-      type: 'mahajerat',
-      label: 'نوي راغلي کورونه',
-      list: '/api/mahajerats',
-      show: (id) => `/api/mahajerats/${id}`,
-      route: '/app/mahajerats',
-      routeForm: (id) => (id ? `/app/mahajeratform/${id}` : `/app/mahajeratform`),
-    },
-    {
-      type: 'soldier',
-      label: 'پخواني چارواکې',
-      list: '/api/soldiers',
-      show: (id) => `/api/soldiers/${id}`,
-      route: '/app/soldiers',
-      routeForm: (id) => `/app/soldierform/${id ?? ''}`.replace(/\/$/, ''),
-    },
-
-    // ---------------- Format One ----------------
-    {
-      type: 'mawad',
-      label: 'د نشه یی توکو پلورونکي',
-      list: '/api/mawads',
-      show: (id) => `/api/mawads/${id}`,
-      route: '/app/mawads',
-      routeForm: (id) => `/app/mawadform/${id ?? ''}`.replace(/\/$/, ''),
-    },
-    {
-      type: 'lost_mujremeen',
-      label: 'نادرکه شوي مجرمین',
-      list: '/api/lost-mujremeens',
-      show: (id) => `/api/lost-mujremeens/${id}`,
-      route: '/app/lostmujremeens',
-      routeForm: (id) => (id ? `/app/lost-mujremeen-form/${id}` : `/app/lost-mujremeen-form`),
-    },
-    {
-      type: 'old_soldiers_homes',
-      label: 'د پخواني چارواکو کورونه',
-      list: '/api/old-soldiers-homes',
-      show: (id) => `/api/old-soldiers-homes/${id}`,
-      route: '/app/oldsoldiershomes',
-      routeForm: (id) => (id ? `/app/old-soldiers-home-form/${id}` : `/app/old-soldiers-home-form`),
-    },
-    {
-      type: 'robbers',
-      label: 'اختطاف ګران',
-      list: '/api/robbers',
-      show: (id) => `/api/robbers/${id}`,
-      route: '/app/robbers',
-      routeForm: (id) => (id ? `/app/robbers/${id}` : `/app/robbers/create`),
-    },
-    {
-      type: 'non_responsable_people',
-      label: 'غیر مسؤوله وسله وال',
-      list: '/api/non-responsable-people',
-      show: (id) => `/api/non-responsable-people/${id}`,
-      route: '/app/nonresponsablepeople',
-      routeForm: (id) =>
-        id ? `/app/non-responsable-people-form/${id}` : `/app/non-responsable-people-form`,
-    },
-    {
-      type: 'mashkok_homes',
-      label: 'مشکوکو کورونه',
-      list: '/api/mashkok-homes',
-      show: (id) => `/api/mashkok-homes/${id}`,
-      route: '/app/mashkokhomes',
-      routeForm: (id) => `/app/mashkok-home/${id ?? ''}`.replace(/\/$/, ''),
-    },
-    {
-      type: 'damage_places',
-      label: 'آسیب پذیره ساحې',
-      list: '/api/damage-places',
-      show: (id) => `/api/damage-places/${id}`,
-      route: '/app/damageplaces',
-      routeForm: (id) => `/app/damage-places/form/${id ?? ''}`.replace(/\/$/, ''),
-    },
-    {
-      type: 'damage_rasan_places',
-      label: 'آسیب رسانه ساحې',
-      list: '/api/damage-rasan-places',
-      show: (id) => `/api/damage-rasan-places/${id}`,
-      route: '/app/damagerasanplaces',
-      routeForm: (id) => (id ? `/app/damage-rasan-placeform/${id}` : `/app/damage-rasan-placeform`),
-    },
-    {
-      type: 'mashkok_shops',
-      label: 'مشکوک دوکانونه',
-      list: '/api/mashkok-shops',
-      show: (id) => `/api/mashkok-shops/${id}`,
-      route: '/app/mashkokshops',
-      routeForm: (id) => `/app/mashkok-shops/form/${id ?? ''}`.replace(/\/$/, ''),
-    },
-    {
-      type: 'luchakanos',
-      label: 'لوچکان او بی بند و باره افراد',
-      list: '/api/luchakanos',
-      show: (id) => `/api/luchakanos/${id}`,
-      route: '/app/luchakanos',
-      routeForm: (id) => (id ? `/app/luchakanoform/${id}` : `/app/luchakanoform`),
-    },
-
-    // ---------------- Format Two ----------------
-    {
-      type: 'schools',
-      label: 'ښونځیو او روزنیز مرکزونو او روزنیز مراکز',
-      list: '/api/schools',
-      show: (id) => `/api/schools/${id}`,
-      route: '/app/schools',
-      routeForm: (id) => `/app/schools/form/${id ?? ''}`.replace(/\/$/, ''),
-    },
-    {
-      type: 'hado_bus_stops',
-      label: 'هډې',
-      list: '/api/hado-bus-stops',
-      show: (id) => `/api/hado-bus-stops/${id}`,
-      route: '/app/hadobusstops',
-      routeForm: (id) => (id ? `/app/hadabusstopform/${id}` : `/app/hadabusstopform`),
-    },
-    {
-      type: 'transport_companies',
-      label: 'ترانسپورتي شرکتونه',
-      list: '/api/transport-companies',
-      show: (id) => `/api/transport-companies/${id}`,
-      route: '/app/transportcompanies',
-      routeForm: (id) =>
-        id ? `/app/transport-companies/${id}/edit` : `/app/transport-companies/new`,
-    },
-    {
-      type: 'car_sales_companies',
-      label: 'موټر پلورونځی',
-      list: '/api/car-sales-companies',
-      show: (id) => `/api/car-sales-companies/${id}`,
-      route: '/app/carsalescompanies',
-      routeForm: (id) => (id ? `/app/car-sales-companies/${id}` : `/app/car-sales-companies/new`),
-    },
-    {
-      type: 'parkings',
-      label: 'موټرو تمځای(پارکینګ)',
-      list: '/api/parkings',
-      show: (id) => `/api/parkings/${id}`,
-      route: '/app/parkings',
-      routeForm: (id) => (id ? `/app/parkingform/${id}` : `/app/parkingform`),
-    },
-    {
-      type: 'banks',
-      label: 'بانکونه',
-      list: '/api/banks',
-      show: (id) => `/api/banks/${id}`,
-      route: '/app/banks',
-      routeForm: (id) => (id ? `/app/bankform/${id}` : `/app/bankform`),
-    },
-    {
-      type: 'apartments',
-      label: 'رهایشي بلاکونه',
-      list: '/api/apartments',
-      show: (id) => `/api/apartments/${id}`,
-      route: '/app/apartments',
-      routeForm: (id) => (id ? `/app/apartmentform/${id}` : `/app/apartmentform`),
-    },
-    {
-      type: 'rahnoma_mamlats',
-      label: 'د معاملاتو رهنما',
-      list: '/api/rahnoma-mamlats',
-      show: (id) => `/api/rahnoma-mamlats/${id}`,
-      route: '/app/rahnomamamlats',
-      routeForm: (id) => (id ? `/app/rahnoma-mamlats/${id}` : `/app/rahnoma-mamlats/create`),
-    },
-    {
-      type: 'hosppitals',
-      label: 'روغتوتونه او صحي مراکز',
-      list: '/api/hosppitals',
-      show: (id) => `/api/hosppitals/${id}`,
-      route: '/app/hosppitals',
-      routeForm: (id) => (id ? `/app/hospitalform/${id}` : `/app/hospitalform`),
-    },
-    {
-      type: 'work_shops',
-      label: 'مستري خانې او مستري خانې',
-      list: '/api/work-shops',
-      show: (id) => `/api/work-shops/${id}`,
-      route: '/app/workshops',
-      routeForm: (id) => (id ? `/app/workshops/${id}` : `/app/workshops/create`),
-    },
-
-    // ---------------- Format Three ----------------
-    {
-      type: 'badmashanos',
-      label: 'زورواکان او ولکه داران',
-      list: '/api/badmashanos',
-      show: (id) => `/api/badmashanos/${id}`,
-      route: '/app/badmashanos',
-      routeForm: (id) => (id ? `/app/badmashanoform/${id}` : `/app/badmashanoform`),
-    },
-    {
-      type: 'emarat_offices',
-      label: 'امارتي اداراتو،مسولینو کورونه او میلمسنونونه',
-      list: '/api/emarat-offices',
-      show: (id) => `/api/emarat-offices/${id}`,
-      route: '/app/emaratoffices',
-      routeForm: (id) => (id ? `/app/emarat-offices/form/${id}` : `/app/emarat-offices/form`),
-    },
-    {
-      type: 'hostels',
-      label: 'لیلې او کرایي اطاقونه',
-      list: '/api/hostels',
-      show: (id) => `/api/hostels/${id}`,
-      route: '/app/hostels',
-      routeForm: (id) => (id ? `/app/hostelform/${id}` : `/app/hostelform`),
-    },
-    {
-      type: 'hotels',
-      label: 'میلمستونونو،مسافرخانو،هوټلونه او رسټوردانټ',
-      list: '/api/hotels',
-      show: (id) => `/api/hotels/${id}`,
-      route: '/app/hotels',
-      routeForm: (id) => `/app/hotelform/${id ?? ''}`.replace(/\/$/, ''),
-    },
-    {
-      type: 'madrasas',
-      label: 'دینې مدارس',
-      list: '/api/madrasas',
-      show: (id) => `/api/madrasas/${id}`,
-      route: '/madrasas',
-      routeForm: (id) => `/app/madrasas/form/${id ?? ''}`.replace(/\/$/, ''),
-    },
-    {
-      type: 'mashkok_people',
-      label: 'مشکوک افراد',
-      list: '/api/mashkok-people',
-      show: (id) => `/api/mashkok-people/${id}`,
-      route: '/app/mashkokpeoples',
-      routeForm: (id) => (id ? `/app/mashkokpeopleform/${id}` : `/app/mashkokpeopleform`),
-    },
-    {
-      type: 'mujahedinos',
-      label: 'مجاهدین',
-      list: '/api/mujahedinos',
-      show: (id) => `/api/mujahedinos/${id}`,
-      route: '/app/mujahedinos',
-      routeForm: (id) => `/app/mujahedinoform/${id ?? ''}`.replace(/\/$/, ''),
-    },
-    {
-      type: 'old_jahadis',
-      label: 'پخواني جهادي قومندانان',
-      list: '/api/old-jahadis',
-      show: (id) => `/api/old-jahadis/${id}`,
-      route: '/app/oldjahadis',
-      routeForm: (id) => `/app/oldjahadisform/${id ?? ''}`.replace(/\/$/, ''),
-    },
-    {
-      type: 'sarayanos',
-      label: 'سرایونه',
-      list: '/api/sarayanos',
-      show: (id) => `/api/sarayanos/${id}`,
-      route: '/app/sarayanos',
-      routeForm: (id) => (id ? `/app/sarayanoform/${id}` : `/app/sarayanoform`),
-    },
-    {
-      type: 'tujarans',
-      label: 'علماوو ، متنفذینو ، تجارانو او عالي رتبه اشخاص اشخاص',
-      list: '/api/tujarans',
-      show: (id) => `/api/tujarans/${id}`,
-      route: '/app/tujarans',
-      routeForm: (id) => `/app/tujaransform/${id ?? ''}`.replace(/\/$/, ''),
-    },
-
-    // ---------------- Format Four ----------------
-    {
-      type: 'checkpoints',
-      label: 'چک پواینټونه او پوستې',
-      list: '/api/checkpoints',
-      show: (id) => `/api/checkpoints/${id}`,
-      route: '/app/checkpoints',
-      routeForm: (id) => (id ? `/app/checkpointform/${id}` : `/app/checkpointform`),
-    },
-    {
-      type: 'masjids',
-      label: 'مساجد خاناقاوې او تکیه خانې',
-      list: '/api/masjids',
-      show: (id) => `/api/masjids/${id}`,
-      route: '/app/masjids',
-      routeForm: (id) => `/app/masjidform/${id ?? ''}`.replace(/\/$/, ''),
-    },
-    {
-      type: 'highways',
-      label: 'څلور لارې او درې لارې',
-      list: '/api/highways',
-      show: (id) => `/api/highways/${id}`,
-      route: '/app/highways',
-      routeForm: (id) => (id ? `/app/highwayform/${id}` : `/app/highwayform`),
-    },
-    {
-      type: 'companies',
-      label: 'فابریکې او شرکتونه',
-      list: '/api/companies',
-      show: (id) => `/api/companies/${id}`,
-      route: '/app/companies',
-      routeForm: (id) => (id ? `/app/companyform/${id}` : `/app/companyform`),
-    },
-    {
-      type: 'done_lost_places',
-      label: 'هغه ساحې چې اختطاف پکې ترسره شوی',
-      list: '/api/done-lost-places',
-      show: (id) => `/api/done-lost-places/${id}`,
-      route: '/app/donelostplaces',
-      routeForm: (id) => (id ? `/app/done-lost-places/form/${id}` : `/app/done-lost-places/form`),
-    },
-    {
-      type: 'econemy_projects',
-      label: 'مهم تاسیسات او اقتصادي پروژې',
-      list: '/api/econemy-projects',
-      show: (id) => `/api/econemy-projects/${id}`,
-      route: '/app/econemyprojects',
-      routeForm: (id) => (id ? `/app/econemyprojectform/${id}` : `/app/econemyprojectform`),
-    },
-    {
-      type: 'criminal_capture_places',
-      label: 'هغې ساحې چې مجرمین پکې نیول شوی',
-      list: '/api/criminal-capture-places',
-      show: (id) => `/api/criminal-capture-places/${id}`,
-      route: '/app/criminalcaptureplaces',
-      routeForm: (id) =>
-        id ? `/app/criminal-capture-place-form/${id}` : `/app/criminal-capture-place-form`,
-    },
-    {
-      type: 'pumps',
-      label: 'پمپونه',
-      list: '/api/pumps',
-      show: (id) => `/api/pumps/${id}`,
-      route: '/app/pumps',
-      routeForm: (id) => (id ? `/app/pumpform/${id}` : `/app/pumpform`),
-    },
-    {
-      type: 'shoras',
-      label: 'محلي شوراګانې',
-      list: '/api/shoras',
-      show: (id) => `/api/shoras/${id}`,
-      route: '/app/shoras',
-      routeForm: (id) => (id ? `/app/shoraform/${id}` : `/app/shoraform`),
-    },
-    {
-      type: 'governmentplaces',
-      label: 'دولتي ځایونه',
-      list: '/api/governmentplaces',
-      show: (id) => `/api/governmentplaces/${id}`,
-      route: '/app/governmentplaces',
-      routeForm: (id) => (id ? `/app/governmentplaceform/${id}` : `/app/governmentplaceform`),
-    },
-    {
-      type: 'supermarkets',
-      label: 'تجارتي مراکز او سوپر مارکیټونه',
-      list: '/api/supermarkets',
-      show: (id) => `/api/supermarkets/${id}`,
-      route: '/app/supermarkets',
-      routeForm: (id) => (id ? `/app/supermarketform/${id}` : `/app/supermarketform`),
-    },
-    {
-      type: 'parks',
-      label: 'تفریحي پارکونه او سیاحتي سیمې',
-      list: '/api/parks',
-      show: (id) => `/api/parks/${id}`,
-      route: '/app/parks',
-      routeForm: (id) => (id ? `/app/parkform/${id}` : `/app/parkform`),
-    },
-    {
-      type: 'complexes',
-      label: 'داخلي موسسې او بنسټونه',
-      list: '/api/complexes',
-      show: (id) => `/api/complexes/${id}`,
-      route: '/app/complexes',
-      routeForm: (id) => (id ? `/app/complexform/${id}` : `/app/complexform`),
-    },
-    {
-      type: 'deplomaticplaces',
-      label: 'دیپلوماتیک ځایونه،خارجي موسسې،دبهرنیانو د اوسیدو او کار ځایونه',
-      list: '/api/deplomaticplaces',
-      show: (id) => `/api/deplomaticplaces/${id}`,
-      route: '/app/deplomaticplaces',
-      routeForm: (id) => (id ? `/app/deplomaticplaceform/${id}` : `/app/deplomaticplaceform`),
-    },
-    {
-      type: 'universities',
-      label: 'پوهنتونونو ، دلوړو زده کړو موسسو او انسټیټیوټونو',
-      list: '/api/universities',
-      show: (id) => `/api/universities/${id}`,
-      route: '/app/universities',
-      routeForm: (id) => (id ? `/app/universityform/${id}` : `/app/universityform`),
-    },
-    {
-      type: 'wakilanos',
-      label: 'وکیلان او ملکان',
-      list: '/api/wakilanos',
-      show: (id) => `/api/wakilanos/${id}`,
-      route: '/app/wakilanos',
-      routeForm: (id) => (id ? `/app/wakilanatform/${id}` : `/app/wakilanatform`),
-    },
-
-    // ---------------- Extra ----------------
-    {
-      type: 'jawasis',
-      label: 'جواسیس',
-      list: '/api/jawasis',
-      show: (id) => `/api/jawasis/${id}`,
-      route: '/app/jawasis',
-      routeForm: (id) => (id ? `/jawasis/edit/${id}` : `/jawasis/create`),
-    },
-  ];
-
-  /* ---------- session token helper ---------- */
   function getToken() {
     const t = sessionStorage.getItem('token');
     return t ? String(t) : '';
   }
+
   function authHeaders() {
     const token = getToken();
     return token
@@ -689,91 +165,61 @@
       : { Accept: 'application/json' };
   }
 
-  /* ---------- helpers ---------- */
   function parseCoordinates(str) {
     if (!str) return null;
+
     const m = String(str)
       .trim()
       .match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+
     if (!m) return null;
+
     const lng = parseFloat(m[1]);
     const lat = parseFloat(m[2]);
+
     if (!isFinite(lng) || !isFinite(lat)) return null;
+
     return [lng, lat];
   }
 
-  function buildTitle(row, src) {
-    return (
-      row?.name ||
-      row?.title ||
-      row?.block_name ||
-      row?.park_name ||
-      row?.responsible_name ||
-      row?.code_number ||
-      row?.id ||
-      src.label
-    );
+  function debounce(fn, wait = 250) {
+    let t = null;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn(...args), wait);
+    };
   }
 
-  function buildSubtitle(row) {
-    const parts = [];
-    if (row?.code_number) parts.push(`کد: ${row.code_number}`);
-    if (row?.phone_number) parts.push(`تماس: ${row.phone_number}`);
-    if (row?.phone) parts.push(`تماس: ${row.phone}`);
-    if (row?.responsible_phone) parts.push(`تماس: ${row.responsible_phone}`);
-    if (row?.note) parts.push(String(row.note).slice(0, 40));
-    return parts.join(' • ');
-  }
+  function getMapBbox() {
+    if (!map.value) return null;
 
-  function pickPicture(row) {
-    return (
-      row?.picture || row?.picture_url || row?.image_url || row?.photo_url || row?.photo || null
-    );
+    const b = map.value.getBounds();
+    return [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].join(',');
   }
-
-  /* ============================================================
- ✅ UNIFIED MODULE points loader
-============================================================ */
-  const allMapItems = ref([]);
 
   async function loadAllModulePoints() {
-    loadingAll.value = true;
-    try {
-      const requests = MAP_SOURCES.map(async (src) => {
-        const url = `${src.list}?perPage=all`;
-        const res = await fetch(url, { headers: authHeaders() }).then((r) => r.json());
-        const rows = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    if (!map.value) return;
 
-        return rows
-          .map((row) => ({
-            type: src.type,
-            typeLabel: src.label,
-            id: row.id,
-            coordinates:
-              row.coordinates ||
-              row.coordenates ||
-              row.masjid_coordinates ||
-              row.com_coordinates ||
-              row.cordinate ||
-              row.cordinates ||
-              row.cordenate ||
-              row.cordenates ||
-              row.coordinate,
-            title: buildTitle(row, src),
-            subtitle: buildSubtitle(row),
-            picture: pickPicture(row),
-            _showUrl: src.show(row.id),
-            _raw: row,
-            is_active: src.type === 'resource' ? isRowActive(row) : true,
-          }))
-          .filter((x) => parseCoordinates(x.coordinates));
+    loadingAll.value = true;
+
+    try {
+      const bbox = getMapBbox();
+      const url = `/api/map/points?bbox=${encodeURIComponent(bbox)}`;
+
+      const res = await fetch(url, { headers: authHeaders() }).then(async (r) => {
+        if (!r.ok) {
+          throw new Error(`Map points request failed: ${r.status}`);
+        }
+        return r.json();
       });
 
-      const results = await Promise.all(requests);
-      allMapItems.value = results.flat();
-      console.log('All module markers:', allMapItems.value.length);
+      allMapItems.value = Array.isArray(res?.data) ? res.data : [];
+      refreshGeoJsonSource();
+      console.log('Loaded map points:', allMapItems.value.length);
     } catch (e) {
       console.error('loadAllModulePoints failed', e);
+      allMapItems.value = [];
+      refreshGeoJsonSource();
     } finally {
       loadingAll.value = false;
     }
@@ -799,6 +245,7 @@
   function flyToItem(item) {
     const coords = parseCoordinates(item?.coordinates);
     if (!coords || !map.value) return;
+
     const [lng, lat] = coords;
 
     map.value.flyTo({
@@ -809,6 +256,7 @@
       curve: 1.3,
     });
   }
+
   const LOCAL_NAME_EXPR = [
     'coalesce',
     ['get', 'name:fa'],
@@ -839,7 +287,6 @@
           ['literal', FONT_STACK_Z_GE6],
         ];
 
-        // important for cleaner label rendering
         l.layout['text-anchor'] = l.layout['text-anchor'] || 'center';
         l.layout['text-justify'] = 'auto';
 
@@ -850,18 +297,9 @@
 
     return style;
   }
-  /* ============================================================
- ✅ MARKERS (OFFLINE + mdi font icons)
-============================================================ */
 
-  const LABEL_ZOOM = 11;
+  const MAP_RESOURCE_ICON = 'mdi-circle';
 
-  // ✅ mdi icon names (Vuetify font icons)
-  // ✅ All formats + proper icons (Material Design Icons / mdi-*)
-  // ✅ Keep resource icon behavior EXACTLY as you already have in map
-  const MAP_RESOURCE_ICON = 'mdi-circle'; // ✅ do not change resource part icon behavior
-
-  // 🔁 Fix singular/plural mismatches between MAP_SOURCES.type and ICON_MAP keys
   const ICON_ALIASES = {
     entry_exit: 'entry_exits',
     sarafyano: 'sarafyanos',
@@ -883,13 +321,12 @@
 
   function safeMdiFor(item) {
     const t = item?.type;
-
-    // ❗ DO NOT change resource logic
     if (t === 'resource') return MAP_RESOURCE_ICON;
 
     const k = iconKeyOfType(t);
     return ICON_MAP?.[k]?.mdi || 'mdi-map-marker';
   }
+
   function asText(v) {
     if (v === null || v === undefined) return '';
     if (typeof v === 'string') return v;
@@ -899,95 +336,12 @@
       return String(v);
     }
   }
-  function createMarkerEl(item, showLabel) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'mmi-marker';
-    wrapper.dir = isRtl.value ? 'rtl' : 'ltr';
 
-    const bubble = document.createElement('div');
-    bubble.className = 'mmi-bubble';
-
-    const iconWrap = document.createElement('div');
-    iconWrap.className = 'mmi-icon';
-
-    const i = document.createElement('i');
-    i.className = `mdi ${safeMdiFor(item)}`;
-    i.style.fontSize = '18px';
-    i.style.lineHeight = '1';
-
-    if (item.type === 'resource') {
-      i.style.color = item.is_active ? '#16a34a' : '#dc2626';
-    } else {
-      i.style.color = '#1f2937';
-    }
-
-    iconWrap.appendChild(i);
-
-    const label = document.createElement('div');
-    label.className = 'mmi-label';
-    label.textContent = safeLabelFor(item);
-    if (!showLabel) label.style.display = 'none';
-
-    if (isRtl.value) {
-      bubble.appendChild(label);
-      bubble.appendChild(iconWrap);
-    } else {
-      bubble.appendChild(iconWrap);
-      bubble.appendChild(label);
-    }
-
-    wrapper.appendChild(bubble);
-    return { wrapper, label };
-  }
-
-  const markers = ref([]);
-  let zoomHandler = null;
-
-  function clearMarkers() {
-    markers.value.forEach((m) => m.marker.remove());
-    markers.value = [];
-  }
-
-  function rebuildMarkers() {
-    const m = map.value;
-    if (!m) return;
-
-    clearMarkers();
-
-    const showLabel = m.getZoom() >= LABEL_ZOOM;
-
-    (allMapItems.value || []).forEach((item) => {
-      const coords = parseCoordinates(item?.coordinates);
-      if (!coords) return;
-
-      const { wrapper, label } = createMarkerEl(item, showLabel);
-
-      const mk = new maplibregl.Marker({ element: wrapper, anchor: 'bottom' })
-        .setLngLat(coords)
-        .addTo(m);
-
-      wrapper.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        openDetailsMenu(item);
-      });
-
-      markers.value.push({ marker: mk, label });
-    });
-
-    if (!zoomHandler) {
-      zoomHandler = () => {
-        const visible = m.getZoom() >= LABEL_ZOOM;
-        markers.value.forEach((mm) => {
-          if (mm?.label) mm.label.style.display = visible ? 'block' : 'none';
-        });
-      };
-      m.on('zoom', zoomHandler);
-    }
-  }
   const filteredMapItems = computed(() => {
     const q = String(pointsQ.value || '')
       .trim()
       .toLowerCase();
+
     const arr = Array.isArray(allMapItems.value) ? allMapItems.value : [];
     if (!q) return arr;
 
@@ -1000,15 +354,14 @@
       );
     });
   });
-  /* ============================================================
- ✅ Points menu data (group + count + items)
-============================================================ */
+
   const groupedPoints = computed(() => {
     const arr = filteredMapItems.value;
     const mapG = new Map();
 
     for (const it of arr) {
       const key = it.type || 'unknown';
+
       if (!mapG.has(key)) {
         mapG.set(key, {
           type: key,
@@ -1017,6 +370,7 @@
           count: 0,
         });
       }
+
       const g = mapG.get(key);
       g.items.push(it);
       g.count++;
@@ -1028,7 +382,6 @@
     });
   });
 
-  /* ---------- Highlight marker (optional, OFFLINE) ---------- */
   function createHighlightElement(feature) {
     const props = feature?.properties || {};
     const photoUrl = props.photoUrl || '';
@@ -1081,6 +434,7 @@
 
   function flyTo(payload) {
     if (!map.value) return;
+
     const { lng, lat, zoom, feature } = payload;
 
     map.value.flyTo({
@@ -1126,35 +480,219 @@
     });
   }
 
-  // for inactive active resource
-  function isRowActive(row) {
-    // support multiple possible back-end fields
-    const v =
-      row?.is_active ??
-      row?.active ??
-      row?.status ??
-      row?.isActive ??
-      row?.isActiveResource ??
-      null;
+  function itemsToGeoJson(items = []) {
+    return {
+      type: 'FeatureCollection',
+      features: items
+        .map((item) => {
+          const coords = parseCoordinates(item?.coordinates);
+          if (!coords) return null;
 
-    // boolean
-    if (typeof v === 'boolean') return v;
-
-    // numeric
-    if (typeof v === 'number') return v === 1;
-
-    // string
-    const s = String(v || '')
-      .trim()
-      .toLowerCase();
-    if (['1', 'true', 'yes', 'active', 'فعال'].includes(s)) return true;
-    if (['0', 'false', 'no', 'inactive', 'غیر فعال', 'غير فعال'].includes(s)) return false;
-
-    // default (treat unknown as active OR inactive; choose what you prefer)
-    return true;
+          return {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: coords,
+            },
+            properties: {
+              id: item.id,
+              type: item.type,
+              typeLabel: item.typeLabel || '',
+              title: item.title || '',
+              subtitle: item.subtitle || '',
+              picture: item.picture || '',
+              coordinates: item.coordinates || '',
+              is_active: item.is_active ? 1 : 0,
+              _showUrl: item._showUrl || '',
+            },
+          };
+        })
+        .filter(Boolean),
+    };
   }
 
-  /* ---------- Initialize map (local assets served from same origin) ---------- */
+  function ensureMapPointLayers() {
+    if (!map.value) return;
+
+    if (!map.value.getSource(MAP_POINTS_SOURCE_ID)) {
+      map.value.addSource(MAP_POINTS_SOURCE_ID, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+        cluster: true,
+        clusterMaxZoom: 13,
+        clusterRadius: 50,
+      });
+    }
+
+    if (!map.value.getLayer(MAP_POINTS_CLUSTER_LAYER_ID)) {
+      map.value.addLayer({
+        id: MAP_POINTS_CLUSTER_LAYER_ID,
+        type: 'circle',
+        source: MAP_POINTS_SOURCE_ID,
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': '#2563eb',
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            18,
+            20,
+            22,
+            100,
+            28,
+            500,
+            34,
+          ],
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 2,
+        },
+      });
+    }
+
+    if (!map.value.getLayer(MAP_POINTS_CLUSTER_COUNT_LAYER_ID)) {
+      map.value.addLayer({
+        id: MAP_POINTS_CLUSTER_COUNT_LAYER_ID,
+        type: 'symbol',
+        source: MAP_POINTS_SOURCE_ID,
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': ['get', 'point_count_abbreviated'],
+          'text-size': 12,
+        },
+        paint: {
+          'text-color': '#ffffff',
+        },
+      });
+    }
+
+    if (!map.value.getLayer(MAP_POINTS_UNCLUSTERED_LAYER_ID)) {
+      map.value.addLayer({
+        id: MAP_POINTS_UNCLUSTERED_LAYER_ID,
+        type: 'circle',
+        source: MAP_POINTS_SOURCE_ID,
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-radius': [
+            'case',
+            ['==', ['get', 'type'], 'resource'],
+            7,
+            6,
+          ],
+          'circle-color': [
+            'case',
+            ['==', ['get', 'type'], 'resource'],
+            [
+              'case',
+              ['==', ['get', 'is_active'], 1],
+              '#16a34a',
+              '#dc2626',
+            ],
+            '#2563eb',
+          ],
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 2,
+        },
+      });
+    }
+
+    if (!map.value.getLayer(MAP_POINTS_LABEL_LAYER_ID)) {
+      map.value.addLayer({
+        id: MAP_POINTS_LABEL_LAYER_ID,
+        type: 'symbol',
+        source: MAP_POINTS_SOURCE_ID,
+        filter: ['!', ['has', 'point_count']],
+        minzoom: 11,
+        layout: {
+          'text-field': ['coalesce', ['get', 'typeLabel'], ''],
+          'text-size': 12,
+          'text-offset': [0, 1.3],
+          'text-anchor': 'top',
+        },
+        paint: {
+          'text-color': '#111827',
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 1.2,
+        },
+      });
+    }
+  }
+
+  function refreshGeoJsonSource() {
+    if (!map.value) return;
+
+    const src = map.value.getSource(MAP_POINTS_SOURCE_ID);
+    if (!src) return;
+
+    src.setData(itemsToGeoJson(allMapItems.value));
+  }
+
+  function bindMapPointEvents() {
+    if (!map.value) return;
+
+    map.value.on('click', MAP_POINTS_CLUSTER_LAYER_ID, (e) => {
+      const features = map.value.queryRenderedFeatures(e.point, {
+        layers: [MAP_POINTS_CLUSTER_LAYER_ID],
+      });
+
+      const feature = features?.[0];
+      if (!feature) return;
+
+      const clusterId = feature.properties?.cluster_id;
+      const source = map.value.getSource(MAP_POINTS_SOURCE_ID);
+
+      source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+        if (err) return;
+
+        map.value.easeTo({
+          center: feature.geometry.coordinates,
+          zoom,
+          duration: 300,
+        });
+      });
+    });
+
+    map.value.on('click', MAP_POINTS_UNCLUSTERED_LAYER_ID, (e) => {
+      const feature = e.features?.[0];
+      if (!feature) return;
+
+      const p = feature.properties || {};
+
+      const item = {
+        id: Number(p.id),
+        type: p.type,
+        typeLabel: p.typeLabel,
+        title: p.title,
+        subtitle: p.subtitle,
+        picture: p.picture,
+        coordinates: p.coordinates,
+        is_active: Number(p.is_active) === 1,
+        _showUrl: p._showUrl,
+      };
+
+      openDetailsMenu(item);
+    });
+
+    map.value.on('mouseenter', MAP_POINTS_CLUSTER_LAYER_ID, () => {
+      map.value.getCanvas().style.cursor = 'pointer';
+    });
+
+    map.value.on('mouseleave', MAP_POINTS_CLUSTER_LAYER_ID, () => {
+      map.value.getCanvas().style.cursor = '';
+    });
+
+    map.value.on('mouseenter', MAP_POINTS_UNCLUSTERED_LAYER_ID, () => {
+      map.value.getCanvas().style.cursor = 'pointer';
+    });
+
+    map.value.on('mouseleave', MAP_POINTS_UNCLUSTERED_LAYER_ID, () => {
+      map.value.getCanvas().style.cursor = '';
+    });
+  }
+
+  const debouncedReloadPoints = debounce(async () => {
+    await loadAllModulePoints();
+  }, 250);
+
   onMounted(async () => {
     const ORIGIN = window.location.origin;
     const STYLE_JSON = `${ORIGIN}/styles/bright-complete.json`;
@@ -1175,13 +713,13 @@
       const pm = new PMTiles(archiveUrl);
       protocol.add(pm);
 
-      // TEMP: disable RTL plugin
       try {
         maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, false);
         console.log('RTL plugin requested:', RTL_PLUGIN_URL);
       } catch (e) {
         console.warn('RTL plugin warning:', e);
       }
+
       let styleJson = await fetch(STYLE_JSON).then((r) => r.json());
 
       const layerSourceNames = [
@@ -1201,9 +739,8 @@
 
       styleJson.sprite = SPRITE_URL;
       styleJson.glyphs = GLYPHS_URL;
-
-      // TEMP: disable label mutation
       styleJson = applyBilingualLabels(styleJson);
+
       console.log('STYLE_JSON', STYLE_JSON);
       console.log('SPRITE_URL', SPRITE_URL);
       console.log('GLYPHS_URL', GLYPHS_URL);
@@ -1225,9 +762,14 @@
 
       map.value.on('load', async () => {
         console.log('Map load event fired');
+
+        ensureMapPointLayers();
+        bindMapPointEvents();
+
         await loadAllModulePoints();
-        rebuildMarkers();
         applyFlyTarget(mapBus.flyTarget);
+
+        map.value.on('moveend', debouncedReloadPoints);
       });
 
       map.value.on('error', (e) => {
@@ -1239,13 +781,11 @@
     }
   });
 
-  /* reload */
   watch(
     () => mapBus.reloadTs,
     async (ts) => {
       if (!ts || !map.value) return;
       await loadAllModulePoints();
-      rebuildMarkers();
     }
   );
 
@@ -1294,35 +834,17 @@
     { deep: true }
   );
 
-  watch(
-    () => allMapItems.value,
-    () => {
-      if (!map.value) return;
-      rebuildMarkers();
-    },
-    { deep: true }
-  );
-
-  watch(
-    () => isRtl.value,
-    () => {
-      if (!map.value) return;
-      rebuildMarkers();
-    }
-  );
-
   onBeforeUnmount(() => {
     if (highlightMarker) {
       highlightMarker.remove();
       highlightMarker = null;
     }
+
     const m = map.value;
-    if (m && zoomHandler) {
-      m.off('zoom', zoomHandler);
+    if (m) {
+      m.off('moveend', debouncedReloadPoints);
+      m.remove();
     }
-    zoomHandler = null;
-    clearMarkers();
-    m?.remove();
   });
 </script>
 
@@ -1330,6 +852,7 @@
   .map-wrap {
     position: relative;
   }
+
   .map {
     width: 100%;
     height: 100vh;
@@ -1354,7 +877,6 @@
     right: 12px;
   }
 
-  /* ✅ points button */
   .points-btn {
     height: 40px;
     min-width: 140px;
@@ -1374,10 +896,12 @@
     justify-content: space-between;
     gap: 10px;
   }
+
   .points-title {
     font-weight: 900;
     font-size: 14px;
   }
+
   .points-sub {
     font-size: 12px;
     opacity: 0.75;
@@ -1436,6 +960,7 @@
     font-weight: 800;
     font-size: 12.5px;
   }
+
   .mini-sub {
     font-size: 11px;
     opacity: 0.8;
@@ -1452,45 +977,5 @@
     padding: 10px 12px;
     display: flex;
     justify-content: flex-end;
-  }
-
-  /* ===== markers styles (mdi font icons) ===== */
-  :deep(.mmi-marker) {
-    transform: translateY(-4px);
-    cursor: pointer;
-  }
-
-  :deep(.mmi-bubble) {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 8px;
-    border-radius: 999px;
-    background: #ffffff;
-    box-shadow: 0 0 0 2px #ffffff, 0 1px 6px rgba(0, 0, 0, 0.3);
-    white-space: nowrap;
-    direction: rtl;
-  }
-
-  :deep(.mmi-icon) {
-    width: 22px;
-    height: 22px;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(37, 99, 235, 0.08);
-    color: #1f2937;
-  }
-
-  :deep(.mmi-label) {
-    font-size: 12px;
-    font-weight: 700;
-    color: #111827;
-    opacity: 0.95;
-    line-height: 1;
-    direction: rtl;
-    text-align: right;
-    unicode-bidi: plaintext;
   }
 </style>

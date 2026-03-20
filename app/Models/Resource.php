@@ -122,6 +122,8 @@ class Resource extends Model
         'hawza',
         'specefic_place',
         'note',
+        'format_owner_type',
+        'format_owner_id',
     ];
 
     // ✅ Casts (helps if you filter by month on saved date)
@@ -129,6 +131,18 @@ class Resource extends Model
         'resource_saved_date' => 'date',
     ];
 
+    public function formatOwnerRecord()
+    {
+        if (!$this->format_owner_type || !$this->format_owner_id) {
+            return null;
+        }
+
+        if (!class_exists($this->format_owner_type)) {
+            return null;
+        }
+
+        return $this->format_owner_type::find($this->format_owner_id);
+    }
     // Relations (unchanged)
     public function officeEmployee()
     {
