@@ -115,10 +115,10 @@ class BankController extends Controller
                 if (class_exists(NotificationService::class)) {
                     NotificationService::record(
                         $user,
-                        module: 'بانک‌ها',
+                        module: 'بانکونه او نماینده ګیانې',
                         action: 'created',
-                        title: 'بانک جدید ثبت شد',
-                        message: 'نام بانک: ' . ($bank->bank_name ?? ''),
+                        title: 'بانک/نماینده ګي ثبت شوو',
+                        message: 'نوم: ' . ($bank->bank_name ?? ''),
                         routeName: 'banks', // ⚠️ adjust if needed
                         routeParams: ['id' => $bank->id],
                         level: 'success',
@@ -194,10 +194,10 @@ class BankController extends Controller
                 if (class_exists(NotificationService::class)) {
                     NotificationService::record(
                         $user,
-                        module: 'بانک‌ها',
+                        module: 'بانکونه او نماینده ګیانې',
                         action: 'updated',
-                        title: 'بانک اصلاح شد',
-                        message: 'نام بانک: ' . ($bank->bank_name ?? ''),
+                        title: 'بانک اصلاح شوو',
+                        message: 'نوم: ' . ($bank->bank_name ?? ''),
                         routeName: 'banks',
                         routeParams: ['id' => $bank->id],
                         level: 'info',
@@ -235,10 +235,10 @@ class BankController extends Controller
             if (class_exists(NotificationService::class)) {
                 NotificationService::record(
                     $user,
-                    module: 'بانک‌ها',
+                    module: 'بانکونه او نماینده ګیانې',
                     action: 'deleted',
-                    title: 'بانک حذف شد',
-                    message: 'نام بانک: ' . ($bankName ?? ''),
+                    title: 'بانک حذف شوو',
+                    message: 'نوم: ' . ($bankName ?? ''),
                     routeName: null,
                     routeParams: ['banks'],
                     level: 'warning',
@@ -277,9 +277,9 @@ class BankController extends Controller
             if (class_exists(NotificationService::class)) {
                 NotificationService::record(
                     $user,
-                    module: 'بانک‌ها',
+                    module: 'بانکونه او نماینده ګیانې',
                     action: 'deleted',
-                    title: 'بانکونه به‌صورت گروهی حذف شد',
+                    title: 'بانکونه به‌صورت گروهی حذف شوو',
                     message: 'تعداد: ' . count($ids),
                     routeName: null,
                     routeParams: ['banks'],

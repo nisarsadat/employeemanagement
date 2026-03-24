@@ -100,10 +100,10 @@ class DonelostplaceController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'گمشده/پیداشده',
+                    module: 'هغه ساحې چې غلا پکې ترسره شوي دي ',
                     action: 'created',
-                    title: 'ثبت جدید گمشده/پیداشده انجام شد',
-                    message: 'نام مکان: ' . ($row->place_name ?? ''),
+                    title: 'هغه ساحې چې غلا پکې ترسره شوي دي ثبت شوو',
+                    message: 'نوم: ' . ($row->place_name ?? ''),
                     routeName: 'done-lost-places',      // ✅ set your real route name
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -184,10 +184,10 @@ class DonelostplaceController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'گمشده/پیداشده',
+                    module: 'هغه ساحې چې غلا پکې ترسره شوي دي ',
                     action: 'updated',
-                    title: 'ثبت گمشده/پیداشده اصلاح شد',
-                    message: 'نام مکان: ' . ($done_lost_place->place_name ?? ''),
+                    title: ' هغه ساحې چې غلا پکې ترسره شوي دي  اصلاح شوو',
+                    message: 'نوم : ' . ($done_lost_place->place_name ?? ''),
                     routeName: 'done-lost-places',      // ✅ set your real route name
                     routeParams: ['id' => $done_lost_place->id],
                     level: 'info',
@@ -223,10 +223,10 @@ class DonelostplaceController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'گمشده/پیداشده',
+                module: 'هغه ساحې چې غلا پکې ترسره شوي دي ',
                 action: 'deleted',
-                title: 'ثبت گمشده/پیداشده حذف شد',
-                message: 'نام مکان: ' . ($place ?? ''),
+                title: ' هغه ساحې چې غلا پکې ترسره شوي دي  حذف شوو',
+                message: 'نوم: ' . ($place ?? ''),
                 routeName: null,
                 routeParams: ['done-lost-places'],
                 level: 'warning',

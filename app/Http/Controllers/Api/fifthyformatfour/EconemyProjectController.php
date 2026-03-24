@@ -25,7 +25,7 @@ class EconemyProjectController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این پروژه اقتصادی قبلاً ثبت شده است.',
+            'message' => 'این د اسلامي امارت مهم تاسیسات قبلاً ثبت شده است.',
             'errors' => [
                 'duplicate' => [
                     'پروژه با همین مشخصات (نام، نوع و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
@@ -99,10 +99,10 @@ class EconemyProjectController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'پروژه اقتصادی',
+                    module: 'د اسلامي امارت مهم تاسیسات',
                     action: 'created',
-                    title: 'پروژه اقتصادی جدید ثبت شد',
-                    message: 'نام پروژه: ' . ($row->name ?? ''),
+                    title: 'د اسلامي امارت مهم تاسیسات  ثبت شوو',
+                    message: 'نوم: ' . ($row->name ?? ''),
                     routeName: 'econemy-projects',        // ✅ set your real route name
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -180,10 +180,10 @@ class EconemyProjectController extends Controller
                 // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
                     $user,
-                    module: 'پروژه اقتصادی',
+                    module: 'د اسلامي امارت مهم تاسیسات',
                     action: 'updated',
-                    title: 'پروژه اقتصادی اصلاح شد',
-                    message: 'نام پروژه: ' . ($econemyProject->name ?? ''),
+                    title: 'د اسلامي امارت مهم تاسیسات اصلاح شوو',
+                    message: 'نوم: ' . ($econemyProject->name ?? ''),
                     routeName: 'econemy-projects',        // ✅ set your real route name
                     routeParams: ['id' => $econemyProject->id],
                     level: 'info',
@@ -216,10 +216,10 @@ class EconemyProjectController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'پروژه اقتصادی',
+                module: 'د اسلامي امارت مهم تاسیسات',
                 action: 'deleted',
-                title: 'پروژه اقتصادی حذف شد',
-                message: 'نام پروژه: ' . ($name ?? ''),
+                title: 'د اسلامي امارت مهم تاسیسات حذف شوو',
+                message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['econemy-projects'],
                 level: 'warning',

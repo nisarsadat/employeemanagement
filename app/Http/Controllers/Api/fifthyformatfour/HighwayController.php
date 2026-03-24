@@ -25,10 +25,10 @@ class HighwayController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این شاهراه قبلاً ثبت شده است.',
+            'message' => 'این لوې لارې قبلاً ثبت شده است.',
             'errors' => [
                 'duplicate' => [
-                    'شاهراه با همین مشخصات (نام شاهراه و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
+                    'لوې لارې با همین مشخصات (نوم و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
                 ],
             ],
         ], 422);
@@ -95,10 +95,10 @@ class HighwayController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'شاهراه',
+                    module: 'لوې لارې',
                     action: 'created',
-                    title: 'شاهراه جدید ثبت شد',
-                    message: 'نام شاهراه: ' . ($row->high_way_name ?? ''),
+                    title: 'لوې لارې  ثبت شوو',
+                    message: 'نوم: ' . ($row->high_way_name ?? ''),
                     routeName: 'highways',            // ✅ set your real route name
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -176,10 +176,10 @@ class HighwayController extends Controller
                 // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
                     $user,
-                    module: 'شاهراه',
+                    module: 'لوې لارې',
                     action: 'updated',
-                    title: 'شاهراه اصلاح شد',
-                    message: 'نام شاهراه: ' . ($highway->high_way_name ?? ''),
+                    title: 'لوې لارې اصلاح شوو',
+                    message: 'نوم: ' . ($highway->high_way_name ?? ''),
                     routeName: 'highways',            // ✅ set your real route name
                     routeParams: ['id' => $highway->id],
                     level: 'info',
@@ -212,10 +212,10 @@ class HighwayController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'شاهراه',
+                module: 'لوې لارې',
                 action: 'deleted',
-                title: 'شاهراه حذف شد',
-                message: 'نام شاهراه: ' . ($name ?? ''),
+                title: 'لوې لارې حذف شوو',
+                message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['highways'],
                 level: 'warning',

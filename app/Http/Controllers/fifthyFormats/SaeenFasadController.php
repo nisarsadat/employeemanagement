@@ -113,7 +113,7 @@ class SaeenFasadController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'سعین فساد',
+                    module: 'ساعین بالفساد',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($item->name ?? ''),
@@ -236,7 +236,7 @@ class SaeenFasadController extends Controller
                 // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
                     $user,
-                    module: 'سعین فساد',
+                    module: 'ساعین بالفساد',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . ($saeenFasad->name ?? ''),
@@ -297,7 +297,7 @@ class SaeenFasadController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'سعین فساد',
+                module: 'ساعین بالفساد',
                 action: 'deleted',
                 title: 'ریکارډ حذف شو',
                 message: 'نوم: ' . ($name ?? ''),

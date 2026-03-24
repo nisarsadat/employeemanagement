@@ -109,10 +109,10 @@ class SchoolController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'مکاتب',
+                    module: 'ښوونیژ او روزنیز مراکز',
                     action: 'created',
-                    title: 'مکتب جدید ثبت شد',
-                    message: 'نام مکتب: ' . ($school->school_name ?? ''),
+                    title: 'ښوونیز او روزنیز مرکز جدید ثبت شوو',
+                    message: 'نام ښوونیز او روزنیز مرکز: ' . ($school->school_name ?? ''),
                     routeName: 'schools', // ⚠️ set your real route name
                     routeParams: ['id' => $school->id],
                     level: 'success',
@@ -188,10 +188,10 @@ class SchoolController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'مکاتب',
+                    module: 'ښوونیژ او روزنیز مراکز',
                     action: 'updated',
-                    title: 'مکتب اصلاح شد',
-                    message: 'نام مکتب: ' . ($school->school_name ?? ''),
+                    title: 'ښوونیز او روزنیز مرکز اصلاح شوو',
+                    message: 'نام ښوونیز او روزنیز مرکز: ' . ($school->school_name ?? ''),
                     routeName: 'schools',
                     routeParams: ['id' => $school->id],
                     level: 'info',
@@ -222,10 +222,10 @@ class SchoolController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'مکاتب',
+                module: 'ښوونیژ او روزنیز مراکز',
                 action: 'deleted',
-                title: 'مکتب حذف شد',
-                message: 'نام مکتب: ' . ($name ?? ''),
+                title: 'ښوونیز او روزنیز مرکز حذف شوو',
+                message: 'نام ښوونیز او روزنیز مرکز: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['schools'],
                 level: 'warning',
@@ -258,9 +258,9 @@ class SchoolController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'مکاتب',
+                module: 'ښوونیژ او روزنیز مراکز',
                 action: 'deleted',
-                title: 'مکاتب به‌صورت گروهی حذف شد',
+                title: 'ښوونیژ او روزنیز مراکز به‌صورت گروهی حذف شوو',
                 message: 'تعداد: ' . count($ids),
                 routeName: null,
                 routeParams: ['schools'],

@@ -50,7 +50,7 @@
         </v-col>
 
         <!-- ✅ NEW: Year -->
-        <v-col cols="12" sm="7" md="7" lg="7">
+        <v-col cols="12" sm="6" md="6" lg="6">
           <v-select
             v-model="filterYear"
             :items="yearItems"
@@ -97,7 +97,18 @@
             {{ t('فلتر') }}
           </v-btn>
         </v-col>
-
+        <v-col cols="12" sm="4" md="1" lg="1">
+          <v-btn
+            color="orange"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter-remove"
+            @click="resetAllFilters"
+          >
+            {{ t('فلتر') }}
+          </v-btn>
+        </v-col>
         <!-- Create -->
         <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
           <v-btn
@@ -119,7 +130,7 @@
 
     <!-- STATS CARDS -->
     <v-row class="px-2 d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
-      <v-col cols="12" sm="2">
+      <v-col cols="12" sm="6" md>
         <v-card
           class="stat-card cursor-pointer"
           @click="filterByStat('resources')"
@@ -142,7 +153,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="2">
+      <v-col cols="12" sm="6" md>
         <v-card
           class="stat-card cursor-pointer"
           @click="filterByStat('saeen')"
@@ -165,7 +176,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="2">
+      <v-col cols="12" sm="6" md>
         <v-card
           class="stat-card cursor-pointer"
           @click="filterByStat('shar')"
@@ -188,7 +199,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="1">
+      <v-col cols="12" sm="6" md>
         <v-card
           class="stat-card cursor-pointer"
           @click="filterByStat('spy')"
@@ -211,7 +222,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="2">
+      <v-col cols="12" sm="6" md>
         <v-card
           class="stat-card cursor-pointer"
           @click="filterByStat('today')"
@@ -234,7 +245,7 @@
         </v-card>
       </v-col>
       <!-- ✅ NEW: Category Alef -->
-      <v-col cols="12" sm="2">
+      <v-col cols="12" sm="6" md>
         <v-card
           class="stat-card cursor-pointer"
           @click="filterByStat('cat_alef')"
@@ -257,7 +268,7 @@
         </v-card>
       </v-col>
       <!-- ✅ NEW: Unpaid records -->
-      <v-col cols="12" sm="1">
+      <v-col cols="12" sm="6" md>
         <v-card
           class="stat-card cursor-pointer"
           @click="filterByStat('unpaid')"
@@ -569,6 +580,7 @@
   import { useRouter, useRoute } from 'vue-router';
   import { useI18n } from 'vue-i18n';
   import dayjs from 'dayjs';
+  import axios from 'axios';
 
   import AppBar from '../../components/AppBar.vue';
   import PeekButton from '@/components/PeekButton.vue';
@@ -584,7 +596,6 @@
   import AnalysisLeadershipDialog from './AnalysisLeadershipDialog.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/informations', fetchAll);
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const repo = useDatabaseRepository();
@@ -594,12 +605,37 @@
 
   const { calendar, formatYearDisplay } = useCalendar();
 
+  async function fetchAll() {
+    try {
+      await repo.FetchInformationsData?.({
+        search: repo.Search,
+        year: filterYear.value,
+        month: filterMonth.value,
+        date_field: 'information_saved_date',
+
+        // ✅ backend-driven filter by stat
+        stat: activeStat.value,
+
+        // ✅ backend-driven related records filter
+        related_id: relatedIdFilter.value,
+      });
+
+      await fetchStats();
+    } catch (e) {
+      console.error('fetchAll error', e);
+      showErrorMessage(t('خطا در دریافت معلومات'));
+    }
+  }
+
+  usePageRefresh('/app/informations', fetchAll);
+
   const accountItems = computed(() =>
     (financeRepo.accounts || []).map((a) => ({
       ...a,
       display: a.name ? `${a.name} (${a.price ?? '0'})` : `${a.id}`,
     }))
   );
+
   /* ===== RTL ===== */
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (newLocale) => (isRtl.value = newLocale === 'fa'));
@@ -610,12 +646,12 @@
   }
 
   /* ==========================
-   * ✅ NEW: Month/Year Filters
+   * ✅ Month/Year Filters
    * ========================== */
-  const filterYear = ref(null); // gregorian year number
-  const filterMonth = ref(null); // 1..12
+  const filterYear = ref(null);
+  const filterMonth = ref(null);
 
-  const yearItems = ref([]); // [{value: 2026, title:'...'}]
+  const yearItems = ref([]);
   const yearNumbers = ref([]);
 
   async function fetchYearItemsFromDb() {
@@ -636,7 +672,6 @@
     }
   }
 
-  // auto-update year titles when calendar/locale changes (selected value stays same)
   watch(
     [calendar, locale],
     () => {
@@ -745,9 +780,10 @@
   /* ===== Active stat cards ===== */
   const activeStat = ref(null);
 
-  function filterByStat(stat) {
+  async function filterByStat(stat) {
     activeStat.value = activeStat.value === stat ? null : stat;
     repo.page = 1;
+    await fetchAll();
   }
 
   /* ===== Data sources ===== */
@@ -761,105 +797,74 @@
   };
 
   const allRows = computed(() => toArray(repo.Informations));
-  const totalResourcesCount = computed(() => allRows.value.length);
 
-  const todayCount = computed(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return allRows.value.filter((item) => item.information_saved_date === today).length;
-  });
+  /* ===== ✅ BACKEND STATS ===== */
+  const totalResourcesCount = ref(0);
+  const saeenFasadCount = ref(0);
+  const sharOFasadCount = ref(0);
+  const jasosiCount = ref(0);
+  const todayCount = ref(0);
+  const categoryAlefCount = ref(0);
+  const unpaidCount = ref(0);
 
-  function matchType(item, wanted) {
-    const a = (item?.syasi_info_type ?? '').toString().trim();
-    const b = (item?.jenayee_info_type ?? '').toString().trim();
-    const w = wanted.toString().trim();
-    return a === w || b === w;
+  async function fetchStats() {
+    try {
+      const { data } = await axios.get('/informations', {
+        params: {
+          search: repo.Search,
+          year: filterYear.value,
+          month: filterMonth.value,
+          date_field: 'information_saved_date',
+          related_id: relatedIdFilter.value,
+          stats_only: 1,
+        },
+      });
+
+      const stats = data?.stats || {};
+
+      totalResourcesCount.value = Number(stats.total ?? 0);
+      saeenFasadCount.value = Number(stats.saeen ?? 0);
+      sharOFasadCount.value = Number(stats.shar ?? 0);
+      jasosiCount.value = Number(stats.spy ?? 0);
+      todayCount.value = Number(stats.today ?? 0);
+      categoryAlefCount.value = Number(stats.cat_alef ?? 0);
+      unpaidCount.value = Number(stats.unpaid ?? 0);
+    } catch (e) {
+      console.error('fetchStats error', e);
+    }
   }
 
-  const saeenFasadCount = computed(
-    () => allRows.value.filter((item) => matchType(item, 'ساعین بالفساد')).length
-  );
-
-  const sharOFasadCount = computed(
-    () => allRows.value.filter((item) => matchType(item, 'شر و فساد')).length
-  );
-
-  const jasosiCount = computed(
-    () =>
-      allRows.value.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی')).length
-  );
-  const categoryAlefCount = computed(
-    () =>
-      allRows.value.filter((item) => String(item?.information_category ?? '').trim() === 'الف')
-        .length
-  );
   const filterOfficeEmployeeId = computed(() => {
     const v = route.query?.office_employee_id;
     return v ? Number(v) : null;
   });
-  const unpaidCount = computed(
-    () =>
-      allRows.value.filter((item) => {
-        const s = String(item?.finance_status ?? '')
-          .trim()
-          .toLowerCase();
-        return s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid';
-      }).length
-  );
+
+  const relatedIdFilter = ref(null);
+
   const filteredRows = computed(() => {
     let rows = allRows.value;
 
-    // URL filter from OfficeEmployee page
+    // keep this one exactly for OfficeEmployee page query
     if (filterOfficeEmployeeId.value) {
       rows = rows.filter((r) => Number(r.office_employee_id) === filterOfficeEmployeeId.value);
-    }
-
-    // ✅ related-record filter
-    if (relatedIdFilter.value) {
-      rows = rows.filter((r) => {
-        const selfId = Number(r.id);
-        const parentId = Number(r.matched_information_id || 0);
-        const childIds = Array.isArray(r.child_matched_information_ids)
-          ? r.child_matched_information_ids.map(Number)
-          : [];
-
-        return (
-          selfId === relatedIdFilter.value ||
-          parentId === relatedIdFilter.value ||
-          childIds.includes(relatedIdFilter.value)
-        );
-      });
-    }
-
-    // stat filters
-    if (activeStat.value === 'today') {
-      const today = new Date().toISOString().split('T')[0];
-      rows = rows.filter((item) => item.information_saved_date === today);
-    } else if (activeStat.value === 'saeen') {
-      rows = rows.filter((item) => matchType(item, 'ساعین بالفساد'));
-    } else if (activeStat.value === 'shar') {
-      rows = rows.filter((item) => matchType(item, 'شر و فساد'));
-    } else if (activeStat.value === 'spy') {
-      rows = rows.filter((item) => matchType(item, ' جاسوسی') || matchType(item, 'جاسوسی'));
-    } else if (activeStat.value === 'cat_alef') {
-      rows = rows.filter((item) => String(item?.information_category ?? '').trim() === 'الف');
-    } else if (activeStat.value === 'resources') {
-      rows = allRows.value;
-    } else if (activeStat.value === 'unpaid') {
-      rows = rows.filter((item) => {
-        const s = String(item?.finance_status ?? '')
-          .trim()
-          .toLowerCase();
-        return s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid';
-      });
     }
 
     return rows;
   });
 
+  async function filterByRelatedId(id) {
+    if (!id) return;
+
+    relatedIdFilter.value = Number(id);
+    repo.page = 1;
+
+    await fetchAll();
+  }
+
   /* ===== Headers / Groups (unchanged) ===== */
   const headersFT = computed(() => [
     { title: t('آی ډی'), key: 'id' },
-    { title: t('ارتباطات'), key: 'matched_links', sortable: false },
+    { title: t('تعقیبي'), key: 'matched_links', sortable: false },
     { title: t('کود منبع'), key: 'resource_id' },
     { title: t('کارمند مربوط'), key: 'office_employee_code_number' },
     { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
@@ -933,20 +938,6 @@
     },
   ]);
 
-  const relatedIdFilter = computed(() => {
-    const v = route.query?.duplicate_of;
-    return v ? Number(v) : null;
-  });
-  function filterByRelatedId(id) {
-    if (!id) return;
-    router.push({
-      path: '/app/informations',
-      query: {
-        ...route.query,
-        duplicate_of: String(id),
-      },
-    });
-  }
   /* ===== Finance chip helpers ===== */
   function financeStatusLabel(v) {
     const s = String(v ?? '')
@@ -992,10 +983,10 @@
       showErrorMessage(t('خطا در دانلود اسناد'));
     }
   }
+
   const managerFinanceDialogOpen = ref(false);
   const analysisLeadershipDialogOpen = ref(false);
   const dialogSaving = ref(false);
-
   const selectedRow = ref(null);
 
   function openManagerFinanceDialog(payload) {
@@ -1007,16 +998,11 @@
     selectedRow.value = getRow(payload);
     analysisLeadershipDialogOpen.value = true;
   }
+
   async function handleSaveManagerFinance(patch) {
     dialogSaving.value = true;
     try {
-      // ✅ if your UpdateInformation expects FormData, uncomment below and use fd
-      // const fd = new FormData()
-      // Object.entries(patch).forEach(([k, v]) => fd.append(k, v ?? ''))
-      // await repo.UpdateInformation(patch.id, fd)
-
       await repo.UpdateInformation(patch.id, patch);
-
       await fetchAll();
       managerFinanceDialogOpen.value = false;
     } catch (e) {
@@ -1030,7 +1016,6 @@
   async function handleSaveAnalysisLeadership(patch) {
     dialogSaving.value = true;
     try {
-      // ✅ force only the 2 fields you want
       const cleanPatch = {
         id: patch?.id,
         tahlil: patch?.tahlil ?? '',
@@ -1038,7 +1023,6 @@
       };
 
       await repo.UpdateInformation(cleanPatch.id, cleanPatch);
-
       await fetchAll();
       analysisLeadershipDialogOpen.value = false;
     } catch (e) {
@@ -1047,6 +1031,16 @@
     } finally {
       dialogSaving.value = false;
     }
+  }
+  async function resetAllFilters() {
+    repo.Search = '';
+    filterYear.value = null;
+    filterMonth.value = null;
+    activeStat.value = null;
+    relatedIdFilter.value = null;
+    repo.page = 1;
+
+    await fetchAll();
   }
   /* ===== Delete ===== */
   const deleteDialog = ref(false);
@@ -1147,21 +1141,18 @@
     if (!id) return;
     router.push({ path: '/app/officeemployee', query: { id: String(id), open: 'peek' } });
   }
-  function clearRelatedFilter() {
-    const query = { ...route.query };
-    delete query.duplicate_of;
-    router.push({ path: '/app/informations', query });
+
+  async function clearRelatedFilter() {
+    relatedIdFilter.value = null;
+    repo.page = 1;
+    await fetchAll();
   }
-  function clearSearch() {
+  async function clearSearch() {
     repo.Search = '';
+    relatedIdFilter.value = null;
     repo.page = 1;
 
-    const query = { ...route.query };
-    delete query.duplicate_of;
-
-    router.push({ path: '/app/informations', query }).finally(() => {
-      fetchAll();
-    });
+    await fetchAll();
   }
 
   function handlePageChange(value) {
@@ -1175,30 +1166,11 @@
     fetchAll();
   }
 
-  /* ===== Fetch list ===== */
-  async function fetchAll() {
-    try {
-      await repo.FetchInformationsData?.({
-        search: repo.Search,
-
-        // ✅ NEW: filter payload
-        year: filterYear.value,
-        month: filterMonth.value,
-        date_field: 'information_saved_date',
-      });
-    } catch (e) {
-      console.error('fetchAll error', e);
-      showErrorMessage(t('خطا در دریافت معلومات'));
-    }
-  }
-  onMounted(async () => {
-    await fetchAll();
-    await financeRepo.FetchAccountsData();
-  });
   /* ===== Init ===== */
   onMounted(async () => {
-    await fetchYearItemsFromDb(); // ✅ NEW
+    await fetchYearItemsFromDb();
     await fetchAll();
+    await financeRepo.FetchAccountsData();
   });
 </script>
 

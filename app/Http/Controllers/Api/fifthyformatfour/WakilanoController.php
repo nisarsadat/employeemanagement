@@ -107,7 +107,7 @@ class WakilanoController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'وکیلان',
+                    module: 'وکیلان او ملکان',
                     action: 'created',
                     title: 'نوی وکیل ثبت شو',
                     message: 'نوم: ' . ($row->name ?? ''),
@@ -179,7 +179,7 @@ class WakilanoController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'وکیلان',
+                    module: 'وکیلان او ملکان',
                     action: 'updated',
                     title: 'وکیل اصلاح شو',
                     message: 'نوم: ' . ($wakilano->name ?? ''),
@@ -216,7 +216,7 @@ class WakilanoController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'وکیلان',
+                module: 'وکیلان او ملکان',
                 action: 'deleted',
                 title: 'وکیل حذف شو',
                 message: 'نوم: ' . ($name ?? ''),

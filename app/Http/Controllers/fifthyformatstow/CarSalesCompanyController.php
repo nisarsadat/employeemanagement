@@ -110,10 +110,10 @@ class CarSalesCompanyController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'شرکت‌های فروش موتر',
+                    module: 'موټر پلورونکي',
                     action: 'created',
-                    title: 'شرکت جدید ثبت شد',
-                    message: 'نام شرکت: ' . ($company->car_sales_company_name ?? ''),
+                    title: 'شرکت ثبت شوو',
+                    message: 'نوم: ' . ($company->car_sales_company_name ?? ''),
                     routeName: 'car-sales-companies', // ⚠️ adjust to your real route name
                     routeParams: ['id' => $company->id],
                     level: 'success',
@@ -190,10 +190,10 @@ class CarSalesCompanyController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'شرکت‌های فروش موتر',
+                    module: 'موټر پلورونکي',
                     action: 'updated',
-                    title: 'شرکت اصلاح شد',
-                    message: 'نام شرکت: ' . ($carSalesCompany->car_sales_company_name ?? ''),
+                    title: 'شرکت اصلاح شوو',
+                    message: 'نوم: ' . ($carSalesCompany->car_sales_company_name ?? ''),
                     routeName: 'car-sales-companies',
                     routeParams: ['id' => $carSalesCompany->id],
                     level: 'info',
@@ -224,10 +224,10 @@ class CarSalesCompanyController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'شرکت‌های فروش موتر',
+                module: 'موټر پلورونکي',
                 action: 'deleted',
-                title: 'شرکت حذف شد',
-                message: 'نام شرکت: ' . ($name ?? ''),
+                title: 'شرکت حذف شوو',
+                message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['car-sales-companies'],
                 level: 'warning',
@@ -259,9 +259,9 @@ class CarSalesCompanyController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'شرکت‌های فروش موتر',
+                module: 'موټر پلورونکي',
                 action: 'deleted',
-                title: 'شرکت‌ها به‌صورت گروهی حذف شد',
+                title: 'شرکت‌ها به‌صورت گروهی حذف شوو',
                 message: 'تعداد: ' . count($ids),
                 routeName: null,
                 routeParams: ['car-sales-companies'],

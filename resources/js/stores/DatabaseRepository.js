@@ -80,6 +80,12 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     // // inside state()
     financePrefill: null,
 
+    resourceStats: reactive({
+      total_count: 0,
+      active_count: 0,
+      inactive_count: 0,
+      today_added_count: 0,
+    }),
     // options
     activityOptions: ['فعال', 'غیر فعال'],
     halatMadaniOptions: ['مجرد', 'متاهل'],
@@ -268,12 +274,23 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
+        const baseParams = buildListParams(this, params, {
           includeSearch: true,
           includePagination: true,
           includeDateFilter: true,
           defaultDateField: 'resource_saved_date',
         });
+
+        const queryParams = {
+          ...baseParams,
+
+          // keep custom values too
+          ...(params?.stat !== undefined ? { stat: params.stat } : {}),
+          ...(params?.search !== undefined ? { search: params.search } : {}),
+          ...(params?.year !== undefined ? { year: params.year } : {}),
+          ...(params?.month !== undefined ? { month: params.month } : {}),
+          ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
+        };
 
         const res = await axios.get('/resources', {
           params: queryParams,
@@ -292,7 +309,16 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
 
         this.Resources = rows;
 
-        // ✅ try all possible places
+        // ✅ stats from backend
+        const stats = payload?.meta?.stats ?? {};
+        this.resourceStats = {
+          total_count: Number(stats?.total_count) || 0,
+          active_count: Number(stats?.active_count) || 0,
+          inactive_count: Number(stats?.inactive_count) || 0,
+          today_added_count: Number(stats?.today_added_count) || 0,
+        };
+
+        // ✅ totals / pagination
         const total =
           payload?.meta?.total ??
           payload?.total ??
@@ -325,11 +351,18 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         console.log('RESOURCE totalItems:', this.totalItems);
         console.log('RESOURCE page:', this.page);
         console.log('RESOURCE itemsPerPage:', this.itemsPerPage);
+        console.log('RESOURCE stats:', this.resourceStats);
       } catch (e) {
         console.error(e);
         this.error = e;
         this.Resources = [];
         this.totalItems = 0;
+        this.resourceStats = {
+          total_count: 0,
+          active_count: 0,
+          inactive_count: 0,
+          today_added_count: 0,
+        };
       } finally {
         this.loading = false;
       }
@@ -434,20 +467,37 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         });
 
         const res = await axios.get('/events', {
-          params: queryParams,
+          params: {
+            ...queryParams,
+            card_filter: params.card_filter ?? 'all',
+          },
         });
 
         applyPaginatedResponse(this, res, 'Events');
+
+        this.eventCardCounts = {
+          total: Number(res?.data?.card_counts?.total ?? 0),
+          syasi: Number(res?.data?.card_counts?.syasi ?? 0),
+          jenayee: Number(res?.data?.card_counts?.jenayee ?? 0),
+          today: Number(res?.data?.card_counts?.today ?? 0),
+          unpaid: Number(res?.data?.card_counts?.unpaid ?? 0),
+        };
       } catch (e) {
         console.error(e);
         this.error = e;
         this.Events = [];
         this.totalItems = 0;
+        this.eventCardCounts = {
+          total: 0,
+          syasi: 0,
+          jenayee: 0,
+          today: 0,
+          unpaid: 0,
+        };
       } finally {
         this.loading = false;
       }
     },
-
     async FetchEventData(id) {
       try {
         setContentType('application/json');
@@ -577,12 +627,28 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
+        const baseParams = buildListParams(this, params, {
           includeSearch: true,
           includePagination: true,
           includeDateFilter: true,
           defaultDateField: 'information_saved_date',
         });
+
+        const queryParams = {
+          ...baseParams,
+
+          // keep custom filters too
+          ...(params?.stat !== undefined ? { stat: params.stat } : {}),
+          ...(params?.related_id !== undefined && params?.related_id !== null
+            ? { related_id: params.related_id }
+            : {}),
+
+          // keep explicit values when passed
+          ...(params?.search !== undefined ? { search: params.search } : {}),
+          ...(params?.year !== undefined ? { year: params.year } : {}),
+          ...(params?.month !== undefined ? { month: params.month } : {}),
+          ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
+        };
 
         const res = await axios.get('/informations', {
           params: queryParams,

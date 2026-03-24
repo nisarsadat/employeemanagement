@@ -62,10 +62,10 @@ class ApartmentController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'اپارتمان',
+                    module: 'رهایشي بلاکونه او اپارټمنټونه',
                     action: 'created',
-                    title: 'اپارتمان جدید ثبت شد',
-                    message: 'نام بلاک: ' . ($apartment->block_name ?? ''),
+                    title: 'رهایشي بلاکونه او اپارټمنټونه ثبت شوو',
+                    message: 'د بلاک نوم: ' . ($apartment->block_name ?? ''),
                     routeName: 'apartments', // ⚠️ adjust if your route name differs
                     routeParams: ['id' => $apartment->id],
                     level: 'success',
@@ -146,10 +146,10 @@ class ApartmentController extends Controller
                 // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
                     $user,
-                    module: 'اپارتمان',
+                    module: 'رهایشي بلاکونه او اپارټمنټونه',
                     action: 'updated',
-                    title: 'اپارتمان اصلاح شد',
-                    message: 'نام بلاک: ' . ($apartment->block_name ?? ''),
+                    title: 'رهایشي بلاکونه او اپارټمنټونه اصلاح شوو',
+                    message: 'د بلاک نوم: ' . ($apartment->block_name ?? ''),
                     routeName: 'apartments', // ⚠️ adjust if needed
                     routeParams: ['id' => $apartment->id],
                     level: 'info',
@@ -192,10 +192,10 @@ class ApartmentController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'اپارتمان',
+                module: 'رهایشي بلاکونه او اپارټمنټونه',
                 action: 'deleted',
-                title: 'اپارتمان حذف شد',
-                message: 'نام بلاک: ' . ($blockName ?? ''),
+                title: 'رهایشي بلاکونه او اپارټمنټونه حذف شوو',
+                message: 'د بلاک نوم: ' . ($blockName ?? ''),
                 routeName: null,
                 routeParams: ['apartments'],
                 level: 'warning',

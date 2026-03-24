@@ -168,9 +168,9 @@ class LostMujremeenController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'مجرمین فراری',
+                    module: 'نادرکه شوي مجرمین',
                     action: 'created',
-                    title: 'مجرم فراری جدید ثبت شد',
+                    title: 'نادرکه شوی مجرم ثبت شوو',
                     message: 'نام: ' . ($item->name ?? ''),
                     routeName: 'lost-mujremeens',
                     routeParams: ['id' => $item->id],
@@ -271,9 +271,9 @@ class LostMujremeenController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'مجرمین فراری',
+                    module: 'نادرکه شوي مجرمین',
                     action: 'updated',
-                    title: 'مجرم فراری اصلاح شد',
+                    title: 'نادرکه شوی مجرم اصلاح شوو',
                     message: 'نام: ' . ($lostMujremeen->name ?? ''),
                     routeName: 'lost-mujremeens',
                     routeParams: ['id' => $lostMujremeen->id],
@@ -311,9 +311,9 @@ class LostMujremeenController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'مجرمین فراری',
+                module: 'نادرکه شوي مجرمین',
                 action: 'deleted',
-                title: 'مجرم فراری حذف شد',
+                title: 'نادرکه شوی مجرم حذف شوو',
                 message: 'نام: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: null,

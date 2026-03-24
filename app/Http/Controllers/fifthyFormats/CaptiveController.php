@@ -121,7 +121,7 @@ class CaptiveController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'اسیر',
+                    module: 'راخوشي شوي بندیان',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($captive->name ?? ''),
@@ -227,7 +227,7 @@ class CaptiveController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'اسیر',
+                    module: 'راخوشي شوي بندیان',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . ($captive->name ?? ''),
@@ -278,7 +278,7 @@ class CaptiveController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'اسیر',
+                module: 'راخوشي شوي بندیان',
                 action: 'deleted',
                 title: 'ریکارډ حذف شو',
                 message: 'نوم: ' . ($name ?? ''),

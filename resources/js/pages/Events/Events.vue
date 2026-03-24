@@ -29,7 +29,7 @@
         </v-col>
 
         <!-- ✅ NEW: Year -->
-        <v-col cols="12" sm="7" md="7" lg="7">
+        <v-col cols="12" sm="7" md="7" lg="6">
           <v-select
             v-model="filterYear"
             :items="yearItems"
@@ -76,7 +76,18 @@
             {{ t('فلتر') }}
           </v-btn>
         </v-col>
-
+        <v-col cols="12" sm="4" md="2" lg="1">
+          <v-btn
+            color="orange"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter-remove"
+            @click="clearAllFilters"
+          >
+            {{ t('فلترها') }}
+          </v-btn>
+        </v-col>
         <!-- Create Button -->
         <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
           <v-btn
@@ -96,7 +107,7 @@
       </v-row>
     </v-container>
 
-    <!-- 📊 STATS CARDS (clickable filters) -->
+    <!-- 📊 STATS CARDS (backend counts + backend filters) -->
     <v-row class="px-2 mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
       <!-- All -->
       <v-col cols="12" md="3" lg="3">
@@ -246,7 +257,6 @@
       @peek="openPeek"
       class="mx-2"
     >
-      <!-- 🔗 Resource cell -->
       <template #cell-resource_display="{ row }">
         <v-tooltip :text="t('برای رفتن به صفحه منبع کلیک کنید')" location="top">
           <template #activator="{ props: tooltipProps }">
@@ -265,7 +275,6 @@
         </v-tooltip>
       </template>
 
-      <!-- 🔗 Office employee cell -->
       <template #cell-office_employee_display="{ row }">
         <v-tooltip :text="t('برای رفتن به صفحه کارمند کلیک کنید')" location="top">
           <template #activator="{ props: tooltipProps }">
@@ -302,7 +311,6 @@
         </v-tooltip>
       </template>
 
-      <!-- 🗺 Map cell -->
       <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="getRow(row).coordinates"
@@ -313,7 +321,6 @@
         />
       </template>
 
-      <!-- ✅ Finance status chip -->
       <template #cell-finance_status="{ row }">
         <v-chip
           size="small"
@@ -327,7 +334,6 @@
         </v-chip>
       </template>
 
-      <!-- ⚙️ ACTIONS -->
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
           <v-tooltip :text="t('مشاهده واقعه')" location="top">
@@ -392,7 +398,6 @@
       @update:itemsPerPage="handlePerPageChange"
     />
 
-    <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -400,7 +405,6 @@
       @confirm="handleDeleteConfirmed"
     />
 
-    <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
@@ -430,20 +434,16 @@
   import { useLoginRepository } from '@/stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/events', fetchAll);
   const auth = useLoginRepository();
-
   const repo = useDatabaseRepository();
   const router = useRouter();
 
-  /* i18n / RTL */
   const { t, locale } = useI18n();
   const { calendar, formatYearDisplay } = useCalendar();
 
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (newLocale) => (isRtl.value = newLocale === 'fa'));
 
-  /* snackbar */
   const showError = ref(false);
   const errorMessage = ref('');
   const showErrorMessage = (m) => {
@@ -451,16 +451,15 @@
     showError.value = true;
   };
 
-  /* helpers */
   const getRow = (s) => (s && s.raw ? s.raw : s);
 
-  // ✅ selected values that will be SENT to backend (gregorian)
-  const filterYear = ref(null); // e.g. 2026
-  const filterMonth = ref(null); // 1..12
+  const filterYear = ref(null);
+  const filterMonth = ref(null);
 
-  // ✅ dynamic year items from backend (REAL DB years)
-  const yearItems = ref([]); // [{ value: 2026, title: '...' }, ...]
-  const yearNumbers = ref([]); // ✅ (only for auto-rebuilding titles)
+  const yearItems = ref([]);
+  const yearNumbers = ref([]);
+
+  const activeCard = ref('all');
 
   async function fetchYearItemsFromDb() {
     try {
@@ -478,7 +477,6 @@
     }
   }
 
-  // ✅ auto-update year titles when AppBar/calendar format changes (NO change to selected value)
   watch(
     [calendar, locale],
     () => {
@@ -490,9 +488,15 @@
     },
     { immediate: false }
   );
+  async function clearAllFilters() {
+    repo.Search = '';
+    filterYear.value = null;
+    filterMonth.value = null;
+    activeCard.value = 'all';
+    repo.page = 1;
 
-  // ✅ month names for UI (based on current calendar mode)
-  // BUT item.value stays gregorian 1..12 always.
+    await fetchAll();
+  }
   const JALALI_MONTHS_FA = [
     'حمل',
     'ثور',
@@ -579,93 +583,19 @@
     await fetchAll();
   }
 
-  /* === Card filter state === */
-  const activeCard = ref('all'); // 'syasi' | 'jenayee' | 'today' | 'all'
-  const setCardFilter = (type) => {
+  function setCardFilter(type) {
     activeCard.value = type;
-  };
+    repo.page = 1;
+    fetchAll();
+  }
 
-  /* === Base events from API === */
   const baseEvents = computed(() => repo.Events || []);
 
-  function normalizeText(v) {
-    return String(v || '')
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, ' ');
-  }
-
-  function isSyasiType(eventType) {
-    const s = normalizeText(eventType);
-    return s === 'سیاسی' || s === 'syasi' || s.includes('سیاسی') || s.includes('syasi');
-  }
-
-  function isJenayeeType(eventType) {
-    const s = normalizeText(eventType);
-    return (
-      s === 'جینایی' ||
-      s === 'جنایی' ||
-      s === 'jinayee' ||
-      s === 'jenayee' ||
-      s.includes('جینایی') ||
-      s.includes('جنایی') ||
-      s.includes('jinayee') ||
-      s.includes('jenayee')
-    );
-  }
-
-  const syasiCount = computed(
-    () => baseEvents.value.filter((r) => isSyasiType(r.event_type)).length
-  );
-  const jenayeeCount = computed(
-    () => baseEvents.value.filter((r) => isJenayeeType(r.event_type)).length
-  );
-
-  function isSameDate(dateValue, today) {
-    if (!dateValue) return false;
-    const d = new Date(dateValue);
-    if (Number.isNaN(d.getTime())) return false;
-    return (
-      d.getFullYear() === today.getFullYear() &&
-      d.getMonth() === today.getMonth() &&
-      d.getDate() === today.getDate()
-    );
-  }
-
-const totalCount = computed(() => Number(repo.totalItems) || 0);
-
-  const todayAddedCount = computed(() => {
-    const today = new Date();
-    return baseEvents.value.filter((r) => isSameDate(r.created_at, today)).length;
-  });
-
-  function isUnpaidStatus(v) {
-    const s = String(v ?? '')
-      .trim()
-      .toLowerCase();
-    return s === 'unpaid' || s === 'pending' || s === 'ناپرداخت' || s === 'not_paid';
-  }
-
-  const unpaidCount = computed(
-    () => baseEvents.value.filter((r) => isUnpaidStatus(r.finance_status)).length
-  );
-
-  const filteredEvents = computed(() => {
-    const all = baseEvents.value;
-
-    if (activeCard.value === 'syasi') return all.filter((r) => isSyasiType(r.event_type));
-    if (activeCard.value === 'jenayee') return all.filter((r) => isJenayeeType(r.event_type));
-    if (activeCard.value === 'today') {
-      const today = new Date();
-      return all.filter((r) => isSameDate(r.created_at, today));
-    }
-
-    if (activeCard.value === 'unpaid') {
-      return all.filter((r) => isUnpaidStatus(r.finance_status));
-    }
-
-    return all;
-  });
+  const totalCount = computed(() => Number(repo.eventCardCounts?.total ?? 0));
+  const syasiCount = computed(() => Number(repo.eventCardCounts?.syasi ?? 0));
+  const jenayeeCount = computed(() => Number(repo.eventCardCounts?.jenayee ?? 0));
+  const todayAddedCount = computed(() => Number(repo.eventCardCounts?.today ?? 0));
+  const unpaidCount = computed(() => Number(repo.eventCardCounts?.unpaid ?? 0));
 
   function formatDateYMD(value) {
     if (!value) return '';
@@ -681,7 +611,7 @@ const totalCount = computed(() => Number(repo.totalItems) || 0);
   }
 
   const rowsFT = computed(() =>
-    (filteredEvents.value || []).map((e) => ({
+    (baseEvents.value || []).map((e) => ({
       ...e,
       event_date: formatDateYMD(e.event_date),
       resource_display: e.resource?.code_number || e.resource_id || '',
@@ -697,29 +627,22 @@ const totalCount = computed(() => Number(repo.totalItems) || 0);
     { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
     { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
     { title: t('نقشه'), key: 'map', sortable: false },
-
     { title: t('نوعیت واقعه'), key: 'event_type' },
     { title: t('نوعیت مشخص واقعه'), key: 'event_specific_type' },
-
     { title: t('هدف کی بود؟/مکان بود؟'), key: 'target_person' },
     { title: t('کی جرم را انجام داده؟'), key: 'criminal' },
-
     { title: t('تاریخ واقعه'), key: 'event_date' },
     { title: t('ساعت واقعه'), key: 'event_hour' },
-
     { title: t('زون'), key: 'event_zone' },
     { title: t('حوزه'), key: 'event_hawza' },
     { title: t('محل مشخص'), key: 'event_specific_place' },
     { title: t('کوردینات'), key: 'coordinates' },
-
     { title: t('تلفات مالی'), key: 'talafat_mali' },
     { title: t('زخمی شده'), key: 'injured' },
     { title: t('کشته شده'), key: 'killed' },
     { title: t('کود کارمند واقعه گیرنده'), key: 'office_employee_akhistonky_code' },
     { title: t('تفصیل'), key: 'tafseel' },
-
     { title: t('وجه مصرف'), key: 'money_amount_words' },
-
     { title: t('ملاحظات'), key: 'note' },
     { title: t('نوت راجع به اسناد'), key: 'docs_note' },
   ]);
@@ -762,7 +685,6 @@ const totalCount = computed(() => Number(repo.totalItems) || 0);
 
   const filters = ref({});
 
-  /* Peek / single fetch */
   const expanded = ref(false);
   const selectedId = ref(null);
   const loadingOne = ref(false);
@@ -848,7 +770,6 @@ const totalCount = computed(() => Number(repo.totalItems) || 0);
     }
   }
 
-  /* Delete dialog */
   const deleteDialog = ref(false);
   const deleteTarget = ref(null);
 
@@ -902,6 +823,7 @@ const totalCount = computed(() => Number(repo.totalItems) || 0);
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'event_date',
+        card_filter: activeCard.value,
       });
     } catch (e) {
       console.error('fetchAll events error', e);
@@ -914,6 +836,8 @@ const totalCount = computed(() => Number(repo.totalItems) || 0);
     repo.page = 1;
     fetchAll();
   }
+
+  usePageRefresh('/app/events', fetchAll);
 
   onMounted(async () => {
     await fetchYearItemsFromDb();

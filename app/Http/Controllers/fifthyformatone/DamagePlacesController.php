@@ -109,9 +109,9 @@ class DamagePlacesController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'محلات آسیب‌پذیر',
+                    module: 'آسیب پذیره ساحې',
                     action: 'created',
-                    title: 'محل جدید ثبت شد',
+                    title: 'نوی ځای',
                     message: 'تهدید: ' . ($record->tahdid_type ?? '') . ' | ولایت: ' . ($record->province ?? ''),
                     routeName: 'damage-places', // ⚠️ set your real route name
                     routeParams: ['id' => $record->id],
@@ -192,9 +192,9 @@ class DamagePlacesController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'محلات آسیب‌پذیر',
+                    module: 'آسیب پذیره ساحې',
                     action: 'updated',
-                    title: 'محل اصلاح شد',
+                    title: 'ځای اصلاح شوو',
                     message: 'تهدید: ' . ($damage_place->tahdid_type ?? '') . ' | ولایت: ' . ($damage_place->province ?? ''),
                     routeName: 'damage-places', // ⚠️ set your real route name
                     routeParams: ['id' => $damage_place->id],
@@ -227,9 +227,9 @@ class DamagePlacesController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'محلات آسیب‌پذیر',
+                module: 'آسیب پذیره ساحې',
                 action: 'deleted',
-                title: 'محل حذف شد',
+                title: 'ځای حذف شوو',
                 message: 'تهدید: ' . ($tahdid ?? ''),
                 routeName: null,
                 routeParams: ['damage-places'],
@@ -264,7 +264,7 @@ class DamagePlacesController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'محلات آسیب‌پذیر',
+                module: 'آسیب پذیره ساحې',
                 action: 'deleted',
                 title: 'محلات به‌صورت گروهی حذف شد',
                 message: 'تعداد: ' . count($ids),

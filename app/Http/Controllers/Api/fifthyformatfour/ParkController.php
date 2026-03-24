@@ -24,10 +24,10 @@ class ParkController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این پارک قبلاً ثبت شده است.',
+            'message' => 'این تفریحي او سیاحتي پارکونه قبلاً ثبت شده است.',
             'errors' => [
                 'duplicate' => [
-                    'پارک با همین مشخصات (نام، نوع و ولایت/زون/قریه) قبلاً در سیستم موجود است.',
+                    'تفریحي او سیاحتي پارکونه با همین مشخصات (نام، نوع و ولایت/زون/قریه) قبلاً در سیستم موجود است.',
                 ],
             ],
         ], 422);
@@ -92,10 +92,10 @@ class ParkController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'پارک',
+                    module: 'تفریحي او سیاحتي پارکونه',
                     action: 'created',
-                    title: 'پارک جدید ثبت شد',
-                    message: 'نام پارک: ' . ($row->park_name ?? ''),
+                    title: 'تفریحي او سیاحتي پارکونه  ثبت شوو',
+                    message: 'نوم د تفریحي او سیاحتي پارک: ' . ($row->park_name ?? ''),
                     routeName: 'parks',
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -174,10 +174,10 @@ class ParkController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'پارک',
+                    module: 'تفریحي او سیاحتي پارکونه',
                     action: 'updated',
-                    title: 'پارک اصلاح شد',
-                    message: 'نام پارک: ' . ($park->park_name ?? ''),
+                    title: 'تفریحي او سیاحتي پارکونه اصلاح شوو',
+                    message: 'تفریحي او سیاحتي پارکونه: ' . ($park->park_name ?? ''),
                     routeName: 'parks',
                     routeParams: ['id' => $park->id],
                     level: 'info',
@@ -214,10 +214,10 @@ class ParkController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'پارک',
+                module: 'تفریحي او سیاحتي پارکونه',
                 action: 'deleted',
-                title: 'پارک حذف شد',
-                message: 'نام پارک: ' . ($name ?? ''),
+                title: 'تفریحي او سیاحتي پارکونه حذف شوو',
+                message: 'نوم تفریحي او سیاحتي پارکونه: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['parks'],
                 level: 'warning',

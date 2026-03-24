@@ -74,9 +74,9 @@ class EmaratOfficeController extends Controller
             // 🔔 Notification: CREATED
             NotificationService::record(
                 $user,
-                module: 'امارت دفتر',
+                module: 'امارتي کورونه او میلمستونونه',
                 action: 'created',
-                title: 'نوی امارت دفتر ثبت شو',
+                title: 'نوی امارتي کورونه او میلمستونونه ثبت شو',
                 message: 'ولایت: ' . ($item->province ?? ''),
                 routeName: 'emarat-offices',       // ⚠️ set to your real route name
                 routeParams: ['id' => $item->id],
@@ -147,9 +147,9 @@ class EmaratOfficeController extends Controller
             // 🔔 Notification: UPDATED
             NotificationService::record(
                 $user,
-                module: 'امارت دفتر',
+                module: 'امارتي کورونه او میلمستونونه',
                 action: 'updated',
-                title: 'امارت دفتر اصلاح شو',
+                title: 'امارتي کورونه او میلمستونونه اصلاح شو',
                 message: 'ولایت: ' . ($emaratOffice->province ?? ''),
                 routeName: 'emarat-offices',       // ⚠️ set to your real route name
                 routeParams: ['id' => $emaratOffice->id],
@@ -182,9 +182,9 @@ class EmaratOfficeController extends Controller
         // 🔔 Notification: DELETED
         NotificationService::record(
             $user,
-            module: 'امارت دفتر',
+            module: 'امارتي کورونه او میلمستونونه',
             action: 'deleted',
-            title: 'امارت دفتر حذف شو',
+            title: 'امارتي کورونه او میلمستونونه حذف شو',
             message: 'ولایت: ' . ($province ?? ''),
             routeName: null,
             routeParams: ['emarat-offices'],
@@ -206,7 +206,7 @@ class EmaratOfficeController extends Controller
         // 🔔 Notification: BULK DELETED
         NotificationService::record(
             $user,
-            module: 'امارت دفتر',
+            module: 'امارتي کورونه او میلمستونونه',
             action: 'bulk_deleted',
             title: 'ډله‌ییز حذف ترسره شو',
             message: 'حذف شوي ریکارډونه: ' . count($ids),

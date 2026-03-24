@@ -38,6 +38,7 @@
             density="comfortable"
             variant="outlined"
             rounded="lg"
+            class="bg-white"
             hide-details
             clearable
             :label="t('سال')"
@@ -53,6 +54,7 @@
             item-value="value"
             density="comfortable"
             variant="outlined"
+            class="bg-white"
             rounded="lg"
             hide-details
             clearable
@@ -60,12 +62,31 @@
           />
         </v-col>
 
-        <v-col cols="12" sm="4" md="2">
-          <v-btn color="primary" block @click="applyMonthYearFilter">
+        <v-col cols="12" sm="4" md="1" lg="1">
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter"
+            @click="applyMonthYearFilter"
+          >
             {{ t('فلتر') }}
           </v-btn>
         </v-col>
-
+        <v-col cols="12" sm="4" md="1" lg="1">
+          <v-btn
+            color="orange"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter-remove"
+            @click="clearAllFilters"
+          >
+            {{ t('فلتر') }}
+          </v-btn>
+        </v-col>
         <!-- Create Button -->
         <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
           <v-btn
@@ -628,13 +649,13 @@
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'resource_saved_date',
+        stat: quickFilter.value === 'all' ? null : quickFilter.value,
       });
     } catch (e) {
       console.error('fetchAll error', e);
       showErrorMessage(t('خطا در دریافت فهرست منابع'));
     }
   }
-
   function handlePageChange(value) {
     repo.page = value;
     fetchAll();
@@ -690,22 +711,10 @@
   }
 
   /* ===== Stats ===== */
-  const totalCount = computed(() => Number(repo.totalItems) || 0);
-
-  const todayAddedCount = computed(() => {
-    const today = new Date();
-    return rowsFT.value.filter((r) => isSameDate(r.resource_saved_date || r.created_at, today))
-      .length;
-  });
-
-  function isActiveResource(r) {
-    const v = (r?.activity ?? r?.status ?? r?.is_active ?? '').toString().trim().toLowerCase();
-    return v === 'فعال' || v === 'active' || v === '1' || v === 'true';
-  }
-
-  const activeCount = computed(() => rowsFT.value.filter((r) => isActiveResource(r)).length);
-  const inactiveCount = computed(() => rowsFT.value.filter((r) => !isActiveResource(r)).length);
-
+  const totalCount = computed(() => Number(repo.resourceStats?.total_count) || 0);
+  const activeCount = computed(() => Number(repo.resourceStats?.active_count) || 0);
+  const inactiveCount = computed(() => Number(repo.resourceStats?.inactive_count) || 0);
+  const todayAddedCount = computed(() => Number(repo.resourceStats?.today_added_count) || 0);
   function goActiveResources() {
     router.push('/app/activeresource');
   }
@@ -717,27 +726,32 @@
   /* ===== Quick filter for stats cards ===== */
   const quickFilter = ref('all'); // 'all' | 'today'
 
-  function applyQuickFilter(mode) {
+  async function applyQuickFilter(mode) {
     quickFilter.value = mode;
     repo.page = 1;
+    await fetchAll();
   }
 
   const routeResourceId = computed(() => {
     const v = route.query?.resource_id;
     return v ? Number(v) : null;
   });
+  async function clearAllFilters() {
+    repo.Search = '';
+    filterYear.value = null;
+    filterMonth.value = null;
+    quickFilter.value = 'all';
+    filters.value = {};
+    repo.page = 1;
 
+    await fetchAll();
+  }
   const displayedRowsFT = computed(() => {
     let data = rowsFT.value || [];
-    const today = new Date();
 
     // ✅ if we came here from Events by resource_id
     if (routeResourceId.value) {
       data = data.filter((r) => Number(r.id) === routeResourceId.value);
-    }
-
-    if (quickFilter.value === 'today') {
-      data = data.filter((r) => isSameDate(r.resource_saved_date || r.created_at, today));
     }
 
     return data;
@@ -895,10 +909,10 @@
     fetchOne(row.id);
   }
 
-  function clearSearch() {
+  async function clearSearch() {
     repo.Search = '';
     repo.page = 1;
-    fetchAll();
+    await fetchAll();
   }
 
   /* ===== Navigation ===== */

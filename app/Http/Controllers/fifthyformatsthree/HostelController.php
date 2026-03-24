@@ -26,7 +26,7 @@ class HostelController extends Controller
             'message' => 'دا ریکارډ مخکې ثبت شوی دی.',
             'errors'  => [
                 'duplicate' => [
-                    'د همدې معلوماتو سره (لیلیه نوم، ډول، د اوسېدونکو معلومات او ادرس) ریکارډ مخکې له مخکې موجود دی.',
+                    'د همدې معلوماتو سره (کرايي اطاقونه او لیلې نوم، ډول، د اوسېدونکو معلومات او ادرس) ریکارډ مخکې له مخکې موجود دی.',
                 ],
             ],
         ], 422);
@@ -74,9 +74,9 @@ class HostelController extends Controller
             // 🔔 Notification: CREATED
             NotificationService::record(
                 $user,
-                module: 'لیلیه',
+                module: 'کرايي اطاقونه او لیلې',
                 action: 'created',
-                title: 'نوې لیلیه ثبت شوه',
+                title: 'نوې کرايي اطاقونه او لیلې ثبت شوه',
                 message: 'نوم: ' . ($item->hostel_name ?? ''),
                 routeName: 'hostels',              // ⚠️ set to your real route name
                 routeParams: ['id' => $item->id],
@@ -147,9 +147,9 @@ class HostelController extends Controller
             // 🔔 Notification: UPDATED
             NotificationService::record(
                 $user,
-                module: 'لیلیه',
+                module: 'کرايي اطاقونه او لیلې',
                 action: 'updated',
-                title: 'لیلیه اصلاح شوه',
+                title: 'کرايي اطاقونه او لیلې اصلاح شوه',
                 message: 'نوم: ' . ($hostel->hostel_name ?? ''),
                 routeName: 'hostels',              // ⚠️ set to your real route name
                 routeParams: ['id' => $hostel->id],
@@ -182,9 +182,9 @@ class HostelController extends Controller
         // 🔔 Notification: DELETED
         NotificationService::record(
             $user,
-            module: 'لیلیه',
+            module: 'کرايي اطاقونه او لیلې',
             action: 'deleted',
-            title: 'لیلیه حذف شوه',
+            title: 'کرايي اطاقونه او لیلې حذف شوه',
             message: 'نوم: ' . ($name ?? ''),
             routeName: null,
             routeParams: ['hostels'],
@@ -206,7 +206,7 @@ class HostelController extends Controller
         // 🔔 Notification: BULK DELETED
         NotificationService::record(
             $user,
-            module: 'لیلیه',
+            module: 'کرايي اطاقونه او لیلې',
             action: 'bulk_deleted',
             title: 'ډله‌ییز حذف ترسره شو',
             message: 'حذف شوي ریکارډونه: ' . count($ids),

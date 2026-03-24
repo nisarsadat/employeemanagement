@@ -102,7 +102,7 @@ class MahajeratController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'مهاجرات',
+                    module: 'نوي راغلي کورونه',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($item->name ?? ''),
@@ -183,7 +183,7 @@ class MahajeratController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'مهاجرات',
+                    module: 'نوي راغلي کورونه',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . ($mahajerat->name ?? ''),
@@ -228,7 +228,7 @@ class MahajeratController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'مهاجرات',
+                module: 'نوي راغلي کورونه',
                 action: 'deleted',
                 title: 'ریکارډ حذف شو',
                 message: 'نوم: ' . ($name ?? ''),

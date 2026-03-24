@@ -24,10 +24,10 @@ class PumpController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این پمپ قبلاً ثبت شده است.',
+            'message' => 'این پمپونه قبلاً ثبت شده است.',
             'errors' => [
                 'duplicate' => [
-                    'پمپ با همین مشخصات (نام پمپ، نوع، مالک و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
+                    'پمپونه با همین مشخصات (نام پمپ، نوع، مالک و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
                 ],
             ],
         ], 422);
@@ -89,10 +89,10 @@ class PumpController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'پمپ',
+                    module: 'پمپونه',
                     action: 'created',
-                    title: 'پمپ جدید ثبت شد',
-                    message: 'نام پمپ: ' . ($row->pump_name ?? ''),
+                    title: 'پمپونه جدید ثبت شوو',
+                    message: 'نوم: ' . ($row->pump_name ?? ''),
                     routeName: 'pumps',               // ✅ set your real route name
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -170,10 +170,10 @@ class PumpController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'پمپ',
+                    module: 'پمپونه',
                     action: 'updated',
-                    title: 'پمپ اصلاح شد',
-                    message: 'نام پمپ: ' . ($pump->pump_name ?? ''),
+                    title: 'پمپونه اصلاح شوو',
+                    message: 'نوم : ' . ($pump->pump_name ?? ''),
                     routeName: 'pumps',               // ✅ set your real route name
                     routeParams: ['id' => $pump->id],
                     level: 'info',
@@ -206,10 +206,10 @@ class PumpController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'پمپ',
+                module: 'پمپونه',
                 action: 'deleted',
-                title: 'پمپ حذف شد',
-                message: 'نام پمپ: ' . ($name ?? ''),
+                title: 'پمپونه حذف شوو',
+                message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['pumps'],
                 level: 'warning',

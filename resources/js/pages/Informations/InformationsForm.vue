@@ -1264,7 +1264,15 @@
 
   function goToDuplicateRow(row) {
     if (!row?.id) return;
-    router.push({ path: '/app/informations', query: { duplicate_of: String(row.id) } });
+
+    repo.page = 1;
+
+    router.push({
+      path: '/app/informations',
+      query: {
+        duplicate_of: String(row.id),
+      },
+    });
   }
 
   async function loadForEdit() {
@@ -1281,8 +1289,8 @@
         form.value = { ...mapped, _newDocs: [], removed_document_ids: [] };
       } else {
         await repo.FetchInformationsData?.({
-          page: 10,
-          itemsPerPage: 10,
+          page: 1,
+          perPage: 10,
         });
         const list = toArray(repo.Informations);
         const found = list.find((r) => r.id == idParam.value) || {};
@@ -1457,15 +1465,14 @@
     await Promise.allSettled([
       repo.GetOfficeEmployee?.(),
       repo.FetchInformationsData?.({
-        page: 10,
-        itemsPerPage: 10,
+        page: 1,
+        perPage: 10,
       }),
       financeRepo.FetchAccountsData(),
     ]);
 
     await loadForEdit();
   });
-
   /* ===== DISPLAY HELPERS ===== */
   const formatResource = (r) => {
     if (!r) return '';

@@ -98,9 +98,9 @@ class OldJahadiController extends Controller
             // 🔔 Notification: CREATED
             NotificationService::record(
                 $user,
-                module: 'قدیم جهادیان',
+                module: 'پخواني جهادی',
                 action: 'created',
-                title: 'نوی قدیم جهادی ثبت شو',
+                title: 'نوی پخواني جهادی ثبت شو',
                 message: 'نوم: ' . ($item->name ?? ''),
                 routeName: 'old-jahadis',
                 routeParams: ['id' => $item->id],
@@ -154,7 +154,7 @@ class OldJahadiController extends Controller
             // 🔔 Notification: UPDATED
             NotificationService::record(
                 $user,
-                module: 'قدیم جهادیان',
+                module: 'پخواني جهادی',
                 action: 'updated',
                 title: 'قدیم جهادی اصلاح شو',
                 message: 'نوم: ' . ($oldJahadi->name ?? ''),
@@ -187,7 +187,7 @@ class OldJahadiController extends Controller
         // 🔔 Notification: DELETED
         NotificationService::record(
             $user,
-            module: 'قدیم جهادیان',
+            module: 'پخواني جهادی',
             action: 'deleted',
             title: 'قدیم جهادی حذف شو',
             message: 'نوم: ' . ($name ?? ''),
@@ -217,7 +217,7 @@ class OldJahadiController extends Controller
         // 🔔 Notification: BULK DELETED
         NotificationService::record(
             $user,
-            module: 'قدیم جهادیان',
+            module: 'پخواني جهادی',
             action: 'bulk_deleted',
             title: 'ډله‌ییز حذف ترسره شو',
             message: 'حذف شوي ریکارډونه: ' . count($ids),

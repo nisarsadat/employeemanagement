@@ -24,10 +24,10 @@ class UniversityController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'دا پوهنتون مخکې نه ثبت شوی دی.',
+            'message' => 'دا پوهنتونونه مخکې نه ثبت شوی دی.',
             'errors'  => [
                 'duplicate' => [
-                    'د همدې معلوماتو (پوهنتون نوم/ډول + ولایت/زون/ولسوالۍ/کلی/ځانګړی ځای/کوڅه/کور) سره پوهنتون مخکې موجود دی.',
+                    'د همدې معلوماتو (پوهنتونونه نوم/ډول + ولایت/زون/ولسوالۍ/کلی/ځانګړی ځای/کوڅه/کور) سره پوهنتونونه مخکې موجود دی.',
                 ],
             ],
         ], 422);
@@ -93,9 +93,9 @@ class UniversityController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'پوهنتون',
+                    module: 'پوهنتونونه',
                     action: 'created',
-                    title: 'نوی پوهنتون ثبت شو',
+                    title: 'نوی پوهنتونونه  شو',
                     message: 'نوم: ' . ($university->uni_name ?? ''),
                     routeName: 'universities',            // ⚠️ set to your real route name
                     routeParams: ['id' => $university->id],
@@ -176,9 +176,9 @@ class UniversityController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'پوهنتون',
+                    module: 'پوهنتونونه',
                     action: 'updated',
-                    title: 'پوهنتون اصلاح شو',
+                    title: 'پوهنتونونه اصلاح شو',
                     message: 'نوم: ' . ($university->uni_name ?? ''),
                     routeName: 'universities',            // ⚠️ set to your real route name
                     routeParams: ['id' => $university->id],
@@ -214,9 +214,9 @@ class UniversityController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'پوهنتون',
+                module: 'پوهنتونونه',
                 action: 'deleted',
-                title: 'پوهنتون حذف شو',
+                title: 'پوهنتونونه حذف شو',
                 message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['universities'],

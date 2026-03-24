@@ -3,6 +3,8 @@
 namespace App\Exceptions;
 
 use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ResourceAlreadyAssignedToFormatException extends Exception
 {
@@ -14,26 +16,36 @@ class ResourceAlreadyAssignedToFormatException extends Exception
         ?string $message = null
     ) {
         parent::__construct(
-            $message ?: 'This resource is already assigned to another single-format record.'
+            $message ?: 'دا منبع مخکې له مخکې په بل فورمټ کې استفاده شوی دی.'
         );
     }
-    public function register(): void
+
+    public function render(Request $request): JsonResponse
     {
-        $this->renderable(function (ResourceAlreadyAssignedToFormatException $e, $request) {
-            return response()->json([
-                'message' => 'این ریسورس قبلاً در فورمت دیگری ثبت شده است.',
-                'errors' => [
-                    'resource_id' => [
-                        'این ریسورس قبلاً در یک فورمت دیگر استفاده شده است.'
-                    ],
-                ],
-                'resource_id' => $e->resourceId,
-                'existing_record' => [
-                    'model' => $e->existingModel,
-                    'label' => $e->existingLabel,
-                    'id'    => $e->existingRecordId,
-                ],
-            ], 422);
-        });
+        $message = "دا منبع مخکې له مخکې په بل فورمټ کې استفاده شوی دی.|";
+
+        if ($this->existingLabel) {
+            $message .= "د فورمټ نوم: {$this->existingLabel}.|";
+        }
+
+        if ($this->existingRecordId) {
+            $message .= " د ثبت شوې فورمټ آی‌ډي: {$this->existingRecordId}.|";
+        }
+
+        if ($this->resourceId) {
+            $message .= " د منبع آی‌ډي: {$this->resourceId}.|";
+        }
+
+        return response()->json([
+            'message' => $message,
+            'errors' => [
+                'resource_id' => [$message],
+            ],
+            'resource_id' => $this->resourceId,
+            'existing_record' => [
+                'label' => $this->existingLabel,
+                'id'    => $this->existingRecordId,
+            ],
+        ], 422);
     }
 }

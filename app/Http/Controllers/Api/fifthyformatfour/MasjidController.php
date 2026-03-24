@@ -25,10 +25,10 @@ class MasjidController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این مسجد قبلاً ثبت شده است.',
+            'message' => 'این مساجد او خانقاوې قبلاً ثبت شده است.',
             'errors' => [
                 'duplicate' => [
-                    'مسجد با همین مشخصات (نام، نوع، ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
+                    'مساجد او خانقاوې با همین مشخصات (نام، نوع، ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
                 ],
             ],
         ], 422);
@@ -99,10 +99,10 @@ class MasjidController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'مسجد',
+                    module: 'مساجد او خانقاوې',
                     action: 'created',
-                    title: 'مسجد جدید ثبت شد',
-                    message: 'نام مسجد: ' . ($row->masjid_name ?? ''),
+                    title: 'مساجد او خانقاوې  ثبت شوو',
+                    message: 'نوم مساجد او خانقاوې: ' . ($row->masjid_name ?? ''),
                     routeName: 'masjids',              // ✅ set your real route name
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -205,10 +205,10 @@ class MasjidController extends Controller
                 // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
                     $user,
-                    module: 'مسجد',
+                    module: 'مساجد او خانقاوې',
                     action: 'updated',
-                    title: 'مسجد اصلاح شد',
-                    message: 'نام مسجد: ' . ($masjid->masjid_name ?? ''),
+                    title: 'مساجد او خانقاوې اصلاح شوو',
+                    message: 'نوم مساجد او خانقاوې: ' . ($masjid->masjid_name ?? ''),
                     routeName: 'masjids',              // ✅ set your real route name
                     routeParams: ['id' => $masjid->id],
                     level: 'info',
@@ -244,10 +244,10 @@ class MasjidController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'مسجد',
+                module: 'مساجد او خانقاوې',
                 action: 'deleted',
-                title: 'مسجد حذف شد',
-                message: 'نام مسجد: ' . ($name ?? ''),
+                title: 'مساجد او خانقاوې حذف شوو',
+                message: 'نوم مساجد او خانقاوې: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['masjids'],
                 level: 'warning',

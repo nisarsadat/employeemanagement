@@ -28,7 +28,7 @@ class CriminalCapturePlaceController extends Controller
             'message' => 'این ثبت قبلاً موجود است.',
             'errors' => [
                 'duplicate' => [
-                    'محل دستگیری با همین مشخصات (مشخصات فرد، نوع جرم و آدرس) قبلاً در سیستم ثبت شده است.',
+                    'هغه ساحې چې مجرمین پکې نیول شوي با همین مشخصات (مشخصات فرد، نوع جرم و آدرس) قبلاً در سیستم ثبت شده است.',
                 ],
             ],
         ], 422);
@@ -96,10 +96,10 @@ class CriminalCapturePlaceController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'محل دستگیری',
+                    module: 'هغه ساحې چې مجرمین پکې نیول شوي',
                     action: 'created',
-                    title: 'محل دستگیری جدید ثبت شد',
-                    message: 'نام فرد: ' . ($row->name ?? ''),
+                    title: 'هغه ساحې چې مجرمین پکې نیول شوي  ثبت شوو',
+                    message: 'نوم: ' . ($row->name ?? ''),
                     routeName: 'criminal-capture-places', // adjust if needed
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -176,10 +176,10 @@ class CriminalCapturePlaceController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'محل دستگیری',
+                    module: 'هغه ساحې چې مجرمین پکې نیول شوي',
                     action: 'updated',
-                    title: 'محل دستگیری اصلاح شد',
-                    message: 'نام فرد: ' . ($criminalCapturePlace->name ?? ''),
+                    title: 'هغه ساحې چې مجرمین پکې نیول شوي اصلاح شوو',
+                    message: 'نوم : ' . ($criminalCapturePlace->name ?? ''),
                     routeName: 'criminal-capture-places',
                     routeParams: ['id' => $criminalCapturePlace->id],
                     level: 'info',
@@ -212,10 +212,10 @@ class CriminalCapturePlaceController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'محل دستگیری',
+                module: 'هغه ساحې چې مجرمین پکې نیول شوي',
                 action: 'deleted',
-                title: 'محل دستگیری حذف شد',
-                message: 'نام فرد: ' . ($name ?? ''),
+                title: 'هغه ساحې چې مجرمین پکې نیول شوي حذف شوو',
+                message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['criminal-capture-places'],
                 level: 'warning',

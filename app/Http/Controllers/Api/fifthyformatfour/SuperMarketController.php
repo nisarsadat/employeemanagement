@@ -24,10 +24,10 @@ class SuperMarketController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این سوپرمارکت قبلاً ثبت شده است.',
+            'message' => 'این تجارتي مرکزونه او سوپرمارکیټونه قبلاً ثبت شده است.',
             'errors' => [
                 'duplicate' => [
-                    'سوپرمارکت با همین مشخصات (نام، نوع فعالیت، تعداد مراجعین/دکان‌ها و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
+                    'تجارتي مرکزونه او سوپرمارکیټونه با همین مشخصات (نام، نوع فعالیت، تعداد مراجعین/دکان‌ها و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
                 ],
             ],
         ], 422);
@@ -87,10 +87,10 @@ class SuperMarketController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'سوپرمارکت',
+                    module: 'تجارتي مرکزونه او سوپرمارکیټونه',
                     action: 'created',
-                    title: 'سوپرمارکت جدید ثبت شد',
-                    message: 'نام سوپرمارکت: ' . ($row->supermarket_name ?? ''),
+                    title: 'تجارتي مرکزونه او سوپرمارکیټونه  ثبت شوو',
+                    message: 'نوم: ' . ($row->supermarket_name ?? ''),
                     routeName: 'super-markets',         // ✅ set your real route name
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -168,10 +168,10 @@ class SuperMarketController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'سوپرمارکت',
+                    module: 'تجارتي مرکزونه او سوپرمارکیټونه',
                     action: 'updated',
-                    title: 'سوپرمارکت اصلاح شد',
-                    message: 'نام سوپرمارکت: ' . ($supermarket->supermarket_name ?? ''),
+                    title: 'تجارتي مرکزونه او سوپرمارکیټونه اصلاح شوو',
+                    message: 'نوم: ' . ($supermarket->supermarket_name ?? ''),
                     routeName: 'super-markets',         // ✅ set your real route name
                     routeParams: ['id' => $supermarket->id],
                     level: 'info',
@@ -204,10 +204,10 @@ class SuperMarketController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'سوپرمارکت',
+                module: 'تجارتي مرکزونه او سوپرمارکیټونه',
                 action: 'deleted',
-                title: 'سوپرمارکت حذف شد',
-                message: 'نام سوپرمارکت: ' . ($name ?? ''),
+                title: 'تجارتي مرکزونه او سوپرمارکیټونه حذف شوو',
+                message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['super-markets'],
                 level: 'warning',

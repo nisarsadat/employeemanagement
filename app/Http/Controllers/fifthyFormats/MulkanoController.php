@@ -89,7 +89,7 @@ class MulkanoController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'ملکانو',
+                    module: 'د کوڅو نماینده ګان',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($mulkano->name ?? ''),
@@ -163,7 +163,7 @@ class MulkanoController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'ملکانو',
+                    module: 'د کوڅو نماینده ګان',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . ($mulkano->name ?? ''),
@@ -204,7 +204,7 @@ class MulkanoController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'ملکانو',
+                module: 'د کوڅو نماینده ګان',
                 action: 'deleted',
                 title: 'ریکارډ حذف شو',
                 message: 'نوم: ' . ($name ?? ''),

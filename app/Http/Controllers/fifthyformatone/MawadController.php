@@ -24,7 +24,7 @@ class MawadController extends Controller
             'message' => 'دا ریکارډ مخکې ثبت شوی دی. مهرباني وکړئ تکراري معلومات مه داخلوی.',
             'errors'  => [
                 'duplicate' => [
-                    'دا مواد مخکې ثبت شوی دی (نوع، نوم، د پلار نوم او اصلي پته).',
+                    'دا مخدره مواد پلورونکي مخکې ثبت شوی دی (نوع، نوم، د پلار نوم او اصلي پته).',
                 ],
             ],
         ];
@@ -90,10 +90,10 @@ class MawadController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'مواد',
+                    module: 'مخدره مواد پلورونکي',
                     action: 'created',
-                    title: 'مواد جدید ثبت شد',
-                    message: 'نام مواد: ' . ($mawad->name ?? ''),
+                    title: 'مخدره مواد پلورونکي ثبت شوو',
+                    message: 'نوم مخدره مواد پلورونکي: ' . ($mawad->name ?? ''),
                     routeName: 'mawads',
                     routeParams: ['id' => $mawad->id],
                     level: 'success',
@@ -169,10 +169,10 @@ class MawadController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'مواد',
+                    module: 'مخدره مواد پلورونکي',
                     action: 'updated',
-                    title: 'مواد اصلاح شد',
-                    message: 'نام مواد: ' . ($mawad->name ?? ''),
+                    title: 'مخدره مواد پلورونکي اصلاح شوو',
+                    message: 'نوم مخدره مواد پلورونکي: ' . ($mawad->name ?? ''),
                     routeName: 'mawads',
                     routeParams: ['id' => $mawad->id],
                     level: 'info',
@@ -208,10 +208,10 @@ class MawadController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'مواد',
+                module: 'مخدره مواد پلورونکي',
                 action: 'deleted',
-                title: 'مواد حذف شد',
-                message: 'نام مواد: ' . ($name ?? ''),
+                title: 'مخدره مواد پلورونکي حذف شوو',
+                message: 'نوم مخدره مواد پلورونکي: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['mawads'],
                 level: 'warning',
@@ -248,9 +248,9 @@ class MawadController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'مواد',
+                module: 'مخدره مواد پلورونکي',
                 action: 'deleted',
-                title: 'مواد به‌صورت گروهی حذف شد',
+                title: 'مخدره مواد پلورونکي به‌صورت گروهی حذف شوو',
                 message: 'تعداد: ' . count($ids),
                 routeName: null,
                 routeParams: ['mawads'],

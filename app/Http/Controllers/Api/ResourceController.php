@@ -34,40 +34,92 @@ class ResourceController extends Controller
     }
 
     // =========================
-    // ✅ INDEX (with month/year filter)
+    // ✅ INDEX (with month/year filter + backend stats + stat filter)
     // =========================
     public function index(Request $req)
     {
         $search = trim((string) $req->get('search', ''));
 
-        // ✅ NEW: month/year filter inputs
+        // ✅ existing month/year filter inputs
         $year  = $req->filled('year') ? (int) $req->get('year') : null;
         $month = $req->filled('month') ? (int) $req->get('month') : null;
 
-        // ✅ NEW: safe date field
+        // ✅ NEW: stat filter from cards
+        // allowed: all | today | active | inactive
+        $stat = trim((string) $req->get('stat', 'all'));
+        $allowedStats = ['all', 'today', 'active', 'inactive'];
+        if (!in_array($stat, $allowedStats, true)) {
+            $stat = 'all';
+        }
+
+        // ✅ existing safe date field
         $dateField = $req->get('date_field', 'resource_saved_date');
         $allowedDateFields = ['resource_saved_date', 'created_at', 'updated_at'];
         if (!in_array($dateField, $allowedDateFields, true)) {
             $dateField = 'resource_saved_date';
         }
 
-        $q = Resource::query()
-            ->with(['officeEmployee:id,name,code_number,father_name'])
-            ->withSum('finances as payed_money', 'money_amount_number')
-
-            ->withCount([
-                'events',
-                'informations',
-                'khayratReports',
-            ])
-            // ✅ NEW: apply year/month filter
+        // =========================
+        // ✅ base query for all filters except stat
+        // =========================
+        $baseQuery = Resource::query()
             ->when($year !== null, function ($w) use ($dateField, $year) {
                 $w->whereNotNull($dateField)->whereYear($dateField, $year);
             })
             ->when($month !== null && $month >= 1 && $month <= 12, function ($w) use ($dateField, $month) {
                 $w->whereNotNull($dateField)->whereMonth($dateField, $month);
             })
+            ->when($search !== '', function ($w) use ($search) {
+                $w->where(function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%")
+                        ->orWhere('father_name', 'like', "%{$search}%")
+                        ->orWhere('grand_father_name', 'like', "%{$search}%")
+                        ->orWhere('nick_name', 'like', "%{$search}%")
+                        ->orWhere('code_number', 'like', "%{$search}%")
+                        ->orWhere('tazkira', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+            });
 
+        // =========================
+        // ✅ stats from backend
+        // these follow current search/year/month/date_field
+        // but do NOT follow stat filter itself
+        // =========================
+        $today = now()->toDateString();
+
+        $totalCount = (clone $baseQuery)->count();
+
+        $todayAddedCount = (clone $baseQuery)
+            ->whereNotNull($dateField)
+            ->whereDate($dateField, $today)
+            ->count();
+
+        $activeCount = (clone $baseQuery)
+            ->where('activity', 'فعال')
+            ->count();
+
+        $inactiveCount = (clone $baseQuery)
+            ->where('activity', 'غیر فعال')
+            ->count();
+
+        // =========================
+        // ✅ main list query (same as before)
+        // =========================
+        $q = Resource::query()
+            ->with(['officeEmployee:id,name,code_number,father_name'])
+            ->withSum('finances as payed_money', 'money_amount_number')
+            ->withCount([
+                'events',
+                'informations',
+                'khayratReports',
+            ])
+            ->when($year !== null, function ($w) use ($dateField, $year) {
+                $w->whereNotNull($dateField)->whereYear($dateField, $year);
+            })
+            ->when($month !== null && $month >= 1 && $month <= 12, function ($w) use ($dateField, $month) {
+                $w->whereNotNull($dateField)->whereMonth($dateField, $month);
+            })
             ->when($search !== '', function ($w) use ($search) {
                 $w->where(function ($q2) use ($search) {
                     $q2->where('name', 'like', "%{$search}%")
@@ -79,6 +131,17 @@ class ResourceController extends Controller
                         ->orWhere('phone_number', 'like', "%{$search}%");
                 });
             })
+
+            // ✅ backend stat filter to table rows
+            ->when($stat === 'today', function ($w) use ($dateField, $today) {
+                $w->whereNotNull($dateField)->whereDate($dateField, $today);
+            })
+            ->when($stat === 'active', function ($w) {
+                $w->where('activity', 'فعال');
+            })
+            ->when($stat === 'inactive', function ($w) {
+                $w->where('activity', 'غیر فعال');
+            })
             ->latest('id');
 
         $perPage = $req->filled('perPage') ? (int) $req->get('perPage') : null;
@@ -86,7 +149,16 @@ class ResourceController extends Controller
         if ($perPage !== null && $perPage > 0) {
             $data = $q->paginate($perPage);
 
-            return ResourceResource::collection($data);
+            return ResourceResource::collection($data)->additional([
+                'meta' => [
+                    'stats' => [
+                        'total_count'       => $totalCount,
+                        'active_count'      => $activeCount,
+                        'inactive_count'    => $inactiveCount,
+                        'today_added_count' => $todayAddedCount,
+                    ],
+                ],
+            ]);
         }
 
         $rows = $q->get();
@@ -95,9 +167,14 @@ class ResourceController extends Controller
             ->additional([
                 'meta' => [
                     'total' => $rows->count(),
+                    'stats' => [
+                        'total_count'       => $totalCount,
+                        'active_count'      => $activeCount,
+                        'inactive_count'    => $inactiveCount,
+                        'today_added_count' => $todayAddedCount,
+                    ],
                 ],
             ]);
-
     }
 
     public function show($id)
@@ -140,7 +217,7 @@ class ResourceController extends Controller
                 $user,
                 module: 'resources',
                 action: 'created',
-                title: 'نوی منبع ثبت ښو',
+                title: 'نوی منبع ثبت شوو',
                 message: 'د منبع کوډ' . ($row->code_number ?? ''),
                 routeName: 'resources.edit',
                 routeParams: ['id' => $row->id],
@@ -148,12 +225,11 @@ class ResourceController extends Controller
             );
 
             return (new ResourceResource(
-                $row->loadMissing('officeEmployee:id,name,code_number,father_name')->loadCount(['events','informations','khayratReports'])
+                $row->loadMissing('officeEmployee:id,name,code_number,father_name')->loadCount(['events', 'informations', 'khayratReports'])
             ))
                 ->additional(['message' => 'Created'])
                 ->response()
                 ->setStatusCode(201);
-
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) {
                 return $this->duplicateResponsePashto();
@@ -200,7 +276,7 @@ class ResourceController extends Controller
                 $user,
                 module: 'resources',
                 action: 'updated',
-                title: 'منبع اصلاح شو',
+                title: 'منبع اصلاح شوو',
                 message: 'د منبع کوډ' . ($row->code_number ?? ''),
                 routeName: 'resources',
                 routeParams: ['id' => $row->id],
@@ -208,9 +284,8 @@ class ResourceController extends Controller
             );
 
             return new ResourceResource(
-                $row->loadMissing('officeEmployee:id,name,code_number,father_name')->loadCount(['events','informations','khayratReports'])
+                $row->loadMissing('officeEmployee:id,name,code_number,father_name')->loadCount(['events', 'informations', 'khayratReports'])
             );
-
         } catch (QueryException $e) {
             if ($this->isDuplicateKey($e)) {
                 return $this->duplicateResponsePashto();
@@ -240,7 +315,7 @@ class ResourceController extends Controller
             $user,
             module: 'resources',
             action: 'deleted',
-            title: 'منبع حذف شو',
+            title: 'منبع حذف شوو',
             message: 'د منبع کوډ' . ($code ?? ''),
             routeName: null,
             routeParams: [],

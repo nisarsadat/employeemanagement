@@ -25,10 +25,10 @@ class GovernmentPlaceController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این مکان دولتی قبلاً ثبت شده است.',
+            'message' => 'این دولتي ځایونه قبلاً ثبت شده است.',
             'errors' => [
                 'duplicate' => [
-                    'مکان دولتی با همین مشخصات (نام، مسئول، آدرس و سایر مشخصات) قبلاً در سیستم موجود است.',
+                    'دولتي ځایونه با همین مشخصات (نام، مسئول، آدرس و سایر مشخصات) قبلاً در سیستم موجود است.',
                 ],
             ],
         ], 422);
@@ -99,10 +99,10 @@ class GovernmentPlaceController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'مکان دولتی',
+                    module: 'دولتي ځایونه',
                     action: 'created',
-                    title: 'مکان دولتی جدید ثبت شد',
-                    message: 'نام مکان: ' . ($row->government_place_name ?? ''),
+                    title: 'دولتي ځایونه ثبت شوو',
+                    message: 'نوم: ' . ($row->government_place_name ?? ''),
                     routeName: 'government-places',     // ✅ set your real route name
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -183,10 +183,10 @@ class GovernmentPlaceController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'مکان دولتی',
+                    module: 'دولتي ځایونه',
                     action: 'updated',
-                    title: 'مکان دولتی اصلاح شد',
-                    message: 'نام مکان: ' . ($governmentplace->government_place_name ?? ''),
+                    title: 'دولتي ځایونه اصلاح شوو',
+                    message: 'نوم: ' . ($governmentplace->government_place_name ?? ''),
                     routeName: 'government-places',     // ✅ set your real route name
                     routeParams: ['id' => $governmentplace->id],
                     level: 'info',
@@ -222,10 +222,10 @@ class GovernmentPlaceController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'مکان دولتی',
+                module: 'دولتي ځایونه',
                 action: 'deleted',
-                title: 'مکان دولتی حذف شد',
-                message: 'نام مکان: ' . ($name ?? ''),
+                title: 'دولتي ځایونه حذف شوو',
+                message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['government-places'],
                 level: 'warning',

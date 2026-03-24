@@ -110,10 +110,10 @@ class MashkokShopsController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'دوکان‌های مشکوک',
+                    module: 'مشکوک دوکانونه',
                     action: 'created',
-                    title: 'دوکان مشکوک جدید ثبت شد',
-                    message: 'نام: ' . ($record->name ?? '') . ' | بازار: ' . ($record->market_name ?? ''),
+                    title: 'دوکان مشکوک ثبت شوو',
+                    message: 'نوم: ' . ($record->name ?? '') . ' | مارکیټ نوم: ' . ($record->market_name ?? ''),
                     routeName: 'mashkok-shops', // ⚠️ set your real route name
                     routeParams: ['id' => $record->id],
                     level: 'success',
@@ -193,10 +193,10 @@ class MashkokShopsController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'دوکان‌های مشکوک',
+                    module: 'مشکوک دوکانونه',
                     action: 'updated',
-                    title: 'دوکان مشکوک اصلاح شد',
-                    message: 'نام: ' . ($mashkok_shop->name ?? '') . ' | بازار: ' . ($mashkok_shop->market_name ?? ''),
+                    title: 'دوکان مشکوک اصلاح شوو',
+                    message: 'نوم: ' . ($mashkok_shop->name ?? '') . ' | مارکیټ نوم: ' . ($mashkok_shop->market_name ?? ''),
                     routeName: 'mashkok-shops', // ⚠️ set your real route name
                     routeParams: ['id' => $mashkok_shop->id],
                     level: 'info',
@@ -228,10 +228,10 @@ class MashkokShopsController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'دوکان‌های مشکوک',
+                module: 'مشکوک دوکانونه',
                 action: 'deleted',
-                title: 'دوکان مشکوک حذف شد',
-                message: 'نام: ' . ($name ?? ''),
+                title: 'دوکان مشکوک حذف شوو',
+                message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['mashkok-shops'],
                 level: 'warning',
@@ -265,9 +265,9 @@ class MashkokShopsController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'دوکان‌های مشکوک',
+                module: 'مشکوک دوکانونه',
                 action: 'deleted',
-                title: 'دوکان‌ها به‌صورت گروهی حذف شد',
+                title: 'دوکان‌ها به‌صورت گروهی حذف شوو',
                 message: 'تعداد: ' . count($ids),
                 routeName: null,
                 routeParams: ['mashkok-shops'],

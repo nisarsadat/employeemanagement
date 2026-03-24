@@ -110,10 +110,10 @@ class TransportCompanyController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'شرکت‌های ترانسپورتی',
+                    module: 'ټرانسپورټي شرکتونه',
                     action: 'created',
-                    title: 'شرکت جدید ثبت شد',
-                    message: 'نام شرکت: ' . ($company->transport_company_name ?? ''),
+                    title: 'شرکت جدید ثبت شوو',
+                    message: 'نوم: ' . ($company->transport_company_name ?? ''),
                     routeName: 'transport-companies', // ⚠️ set your real route name
                     routeParams: ['id' => $company->id],
                     level: 'success',
@@ -193,10 +193,10 @@ class TransportCompanyController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'شرکت‌های ترانسپورتی',
+                    module: 'ټرانسپورټي شرکتونه',
                     action: 'updated',
-                    title: 'شرکت اصلاح شد',
-                    message: 'نام شرکت: ' . ($transportCompany->transport_company_name ?? ''),
+                    title: 'شرکت اصلاح شوو',
+                    message: 'نوم: ' . ($transportCompany->transport_company_name ?? ''),
                     routeName: 'transport-companies',
                     routeParams: ['id' => $transportCompany->id],
                     level: 'info',
@@ -227,10 +227,10 @@ class TransportCompanyController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'شرکت‌های ترانسپورتی',
+                module: 'ټرانسپورټي شرکتونه',
                 action: 'deleted',
-                title: 'شرکت حذف شد',
-                message: 'نام شرکت: ' . ($name ?? ''),
+                title: 'شرکت حذف شوو',
+                message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['transport-companies'],
                 level: 'warning',
@@ -263,9 +263,9 @@ class TransportCompanyController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'شرکت‌های ترانسپورتی',
+                module: 'ټرانسپورټي شرکتونه',
                 action: 'deleted',
-                title: 'شرکت‌ها به‌صورت گروهی حذف شد',
+                title: 'شرکت‌ها به‌صورت گروهی حذف شوو',
                 message: 'تعداد: ' . count($ids),
                 routeName: null,
                 routeParams: ['transport-companies'],

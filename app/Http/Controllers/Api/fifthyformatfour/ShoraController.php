@@ -24,10 +24,10 @@ class ShoraController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این شورا قبلاً ثبت شده است.',
+            'message' => 'این محلي شوراګانې قبلاً ثبت شده است.',
             'errors' => [
                 'duplicate' => [
-                    'شورا با همین مشخصات (قریه، نام، هدف، تعداد افراد/جلسات، ثبت و محل جلسه) قبلاً در سیستم موجود است.',
+                    'محلي شوراګانې با همین مشخصات (قریه، نام، هدف، تعداد افراد/جلسات، ثبت و محل جلسه) قبلاً در سیستم موجود است.',
                 ],
             ],
         ], 422);
@@ -91,10 +91,10 @@ class ShoraController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'شورا',
+                    module: 'محلي شوراګانې',
                     action: 'created',
-                    title: 'شورا جدید ثبت شد',
-                    message: 'نام شورا: ' . ($row->shora_name ?? ''),
+                    title: 'محلي شوراګانې  ثبت شوو',
+                    message: 'نوم: ' . ($row->shora_name ?? ''),
                     routeName: 'shoras',              // ✅ set your real route name
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -172,10 +172,10 @@ class ShoraController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'شورا',
+                    module: 'محلي شوراګانې',
                     action: 'updated',
-                    title: 'شورا اصلاح شد',
-                    message: 'نام شورا: ' . ($shora->shora_name ?? ''),
+                    title: 'محلي شوراګانې اصلاح شوو',
+                    message: ' نوم : ' . ($shora->shora_name ?? ''),
                     routeName: 'shoras',              // ✅ set your real route name
                     routeParams: ['id' => $shora->id],
                     level: 'info',
@@ -208,10 +208,10 @@ class ShoraController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'شورا',
+                module: 'محلي شوراګانې',
                 action: 'deleted',
-                title: 'شورا حذف شد',
-                message: 'نام شورا: ' . ($name ?? ''),
+                title: 'محلي شوراګانې حذف شوږ',
+                message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['shoras'],
                 level: 'warning',

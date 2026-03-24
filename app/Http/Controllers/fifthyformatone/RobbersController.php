@@ -96,10 +96,10 @@ class RobbersController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'دزدان',
+                    module: 'غله',
                     action: 'created',
-                    title: 'ریکارډ جدید ثبت شد',
-                    message: 'نام: ' . ($robber->name ?? ''),
+                    title: 'ریکارډ ثبت شوو',
+                    message: 'نوم: ' . ($robber->name ?? ''),
                     routeName: 'robbers', // ⚠️ set your real route name
                     routeParams: ['id' => $robber->id],
                     level: 'success',
@@ -184,10 +184,10 @@ class RobbersController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'دزدان',
+                    module: 'غله',
                     action: 'updated',
-                    title: 'ریکارډ اصلاح شد',
-                    message: 'نام: ' . ($robber->name ?? ''),
+                    title: 'ریکارډ اصلاح شوو',
+                    message: 'نوم: ' . ($robber->name ?? ''),
                     routeName: 'robbers', // ⚠️ set your real route name
                     routeParams: ['id' => $robber->id],
                     level: 'info',
@@ -223,10 +223,10 @@ class RobbersController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'دزدان',
+                module: 'غله',
                 action: 'deleted',
-                title: 'ریکارډ حذف شد',
-                message: 'نام: ' . ($name ?? ''),
+                title: 'ریکارډ حذف شوو',
+                message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['robbers'],
                 level: 'warning',

@@ -104,10 +104,10 @@ class SoldierController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'سرباز',
+                    module: 'سرتیری',
                     action: 'created',
-                    title: 'سرباز جدید ثبت شد',
-                    message: 'نام سرباز: ' . ($soldier->name ?? ''),
+                    title: 'سرتیری  ثبت شوو',
+                    message: 'نام سرتیری: ' . ($soldier->name ?? ''),
                     routeName: 'soldiers',              // ⚠️ set your real route name
                     routeParams: ['id' => $soldier->id],
                     level: 'success',
@@ -178,10 +178,10 @@ class SoldierController extends Controller
                 // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
                     $user,
-                    module: 'سرباز',
+                    module: 'سرتیری',
                     action: 'updated',
-                    title: 'سرباز اصلاح شد',
-                    message: 'نام سرباز: ' . ($soldier->name ?? ''),
+                    title: 'سرتیری اصلاح شوو',
+                    message: 'نام سرتیری: ' . ($soldier->name ?? ''),
                     routeName: 'soldiers',              // ⚠️ set your real route name
                     routeParams: ['id' => $soldier->id],
                     level: 'info',
@@ -215,10 +215,10 @@ class SoldierController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'سرباز',
+                module: 'سرتیری',
                 action: 'deleted',
-                title: 'سرباز حذف شد',
-                message: 'نام سرباز: ' . ($name ?? ''),
+                title: 'سرتیری حذف شوو',
+                message: 'نام سرتیری: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['soldiers'],
                 level: 'warning',

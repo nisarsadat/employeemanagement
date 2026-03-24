@@ -7,21 +7,19 @@ use App\Models\InformationDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\QueryException;
 
 use App\Http\Requests\StoreInformationRequest;
 use App\Http\Requests\UpdateInformationRequest;
 use App\Http\Resources\InformationResource;
-use App\Services\NotificationService; // 🔔 notifications
+use App\Services\NotificationService;
 
 class InformationController extends Controller
 {
     // =========================
-    // ✅ DATE FILTER HELPERS (same style as OfficeEmployee)
+    // ✅ DATE FILTER HELPERS
     // =========================
     private function resolveDateField(?string $dateField): string
     {
-        // ✅ allow only known date fields (adjust if you have more)
         $allowed = ['information_saved_date', 'hamahangi_date', 'created_at'];
 
         $field = trim((string) $dateField);
@@ -60,18 +58,171 @@ class InformationController extends Controller
     }
 
     /**
-     * ✅ NEW: Return available years/months based on REAL DB data.
-     *
-     * Query params:
-     * - date_field (information_saved_date|hamahangi_date|created_at) default information_saved_date
-     * - year (optional) if provided, returns available months for that year too
-     *
-     * Response:
-     * {
-     *   "date_field": "information_saved_date",
-     *   "years": [2026,2025,2024],
-     *   "months": [1,2,3] // only when year is given
-     * }
+     * ✅ backend related-record filter
+     * Shows:
+     * - selected record itself
+     * - its parent (if selected row is child)
+     * - its children
+     */
+    private function applyRelatedFilter($query, ?int $relatedId)
+    {
+        if (!$relatedId) {
+            return $query;
+        }
+
+        $selected = Information::query()
+            ->select(['id', 'matched_information_id'])
+            ->find($relatedId);
+
+        $ids = collect([$relatedId]);
+
+        if ($selected && $selected->matched_information_id) {
+            $ids->push((int) $selected->matched_information_id);
+        }
+
+        $ids = $ids->filter()->unique()->values();
+
+        $query->where(function ($q) use ($ids) {
+            $q->whereIn('id', $ids)
+              ->orWhereIn('matched_information_id', $ids);
+        });
+
+        return $query;
+    }
+
+    /**
+     * ✅ backend stat filter
+     */
+    private function applyStatFilter($query, ?string $stat)
+    {
+        $stat = trim((string) $stat);
+
+        if ($stat === '') {
+            return $query;
+        }
+
+        if ($stat === 'today') {
+            $query->whereDate('information_saved_date', now()->toDateString());
+            return $query;
+        }
+
+        if ($stat === 'saeen') {
+            $query->where(function ($q) {
+                $q->where('syasi_info_type', 'ساعین بالفساد')
+                  ->orWhere('jenayee_info_type', 'ساعین بالفساد');
+            });
+            return $query;
+        }
+
+        if ($stat === 'shar') {
+            $query->where(function ($q) {
+                $q->where('syasi_info_type', 'شر او فساد')
+                  ->orWhere('jenayee_info_type', 'شر او فساد');
+            });
+            return $query;
+        }
+
+        if ($stat === 'spy') {
+            $query->where(function ($q) {
+                $q->whereIn('syasi_info_type', ['جاسوسی', ' جاسوسي'])
+                  ->orWhereIn('jenayee_info_type', ['جاسوسی', ' جاسوسي']);
+            });
+            return $query;
+        }
+
+        if ($stat === 'cat_alef') {
+            $query->where('information_category', 'الف');
+            return $query;
+        }
+
+        if ($stat === 'unpaid') {
+            $query->where(function ($q) {
+                $q->whereIn(DB::raw('LOWER(TRIM(finance_status))'), [
+                    'unpaid',
+                    'pending',
+                    'ناپرداخت',
+                    'not_paid',
+                ]);
+            });
+            return $query;
+        }
+
+        if ($stat === 'resources') {
+            return $query;
+        }
+
+        return $query;
+    }
+
+    /**
+     * ✅ build backend stats based on current search/month/year/related filters
+     * but without current card stat filter
+     */
+    private function buildStats(Request $request, string $dateField, string $search, ?int $year, ?int $month, string $date, string $dateFrom, string $dateTo, ?int $relatedId): array
+    {
+        $base = Information::query();
+
+        if ($search !== '') {
+            $base->where(function ($qq) use ($search) {
+                $qq->where('name', 'like', "%{$search}%")
+                   ->orWhere('father_name', 'like', "%{$search}%")
+                   ->orWhere('nick_name', 'like', "%{$search}%");
+            });
+        }
+
+        $this->applyMonthYearFilter($base, $year, $month, $dateField);
+        $this->applyRelatedFilter($base, $relatedId);
+
+        $base
+            ->when($date !== '', function ($q) use ($date, $dateField) {
+                $q->whereDate($dateField, $date);
+            })
+            ->when($dateFrom !== '' && $dateTo !== '', function ($q) use ($dateFrom, $dateTo, $dateField) {
+                $q->whereDate($dateField, '>=', $dateFrom)
+                  ->whereDate($dateField, '<=', $dateTo);
+            })
+            ->when($dateFrom !== '' && $dateTo === '' && $date === '', function ($q) use ($dateFrom, $dateField) {
+                $q->whereDate($dateField, '>=', $dateFrom);
+            })
+            ->when($dateTo !== '' && $dateFrom === '' && $date === '', function ($q) use ($dateTo, $dateField) {
+                $q->whereDate($dateField, '<=', $dateTo);
+            });
+
+        return [
+            'total'    => (clone $base)->count(),
+
+            'saeen'    => (clone $base)->where(function ($q) {
+                $q->where('syasi_info_type', 'ساعین بالفساد')
+                  ->orWhere('jenayee_info_type', 'ساعین بالفساد');
+            })->count(),
+
+            'shar'     => (clone $base)->where(function ($q) {
+                $q->where('syasi_info_type', 'شر او فساد')
+                  ->orWhere('jenayee_info_type', 'شر او فساد');
+            })->count(),
+
+            'spy'      => (clone $base)->where(function ($q) {
+                $q->whereIn('syasi_info_type', ['جاسوسی', ' جاسوسي'])
+                  ->orWhereIn('jenayee_info_type', ['جاسوسی', ' جاسوسي']);
+            })->count(),
+
+            'today'    => (clone $base)->whereDate('information_saved_date', now()->toDateString())->count(),
+
+            'cat_alef' => (clone $base)->where('information_category', 'الف')->count(),
+
+            'unpaid'   => (clone $base)->where(function ($q) {
+                $q->whereIn(DB::raw('LOWER(TRIM(finance_status))'), [
+                    'unpaid',
+                    'pending',
+                    'ناپرداخت',
+                    'not_paid',
+                ]);
+            })->count(),
+        ];
+    }
+
+    /**
+     * ✅ Return available years/months based on REAL DB data.
      */
     public function dateOptions(Request $request)
     {
@@ -115,7 +266,7 @@ class InformationController extends Controller
     }
 
     /**
-     * List all informations with search + month/year filters.
+     * List all informations with search + month/year filters + backend card filter + related filter.
      */
     public function index(Request $request)
     {
@@ -129,12 +280,17 @@ class InformationController extends Controller
             'month'      => 'nullable|integer|min:1|max:12',
             'date_field' => 'nullable|string',
 
-            // ✅ optional: day or range filters (kept from your controller)
+            // ✅ optional: day or range filters
             'date'       => 'nullable|string',
             'date_from'  => 'nullable|string',
             'date_to'    => 'nullable|string',
             'from_date'  => 'nullable|string',
             'to_date'    => 'nullable|string',
+
+            // ✅ NEW
+            'stat'       => 'nullable|string',
+            'related_id' => 'nullable|integer',
+            'stats_only' => 'nullable',
         ]);
 
         $search     = trim((string) $request->input('search', ''));
@@ -145,10 +301,31 @@ class InformationController extends Controller
         $month     = $request->filled('month') ? (int) $request->input('month') : null;
         $dateField = $this->resolveDateField($request->input('date_field'));
 
-        // ✅ keep old date-range behavior but now use dateField (not only created_at)
-        $date     = trim((string) $request->input('date', ''));
-        $dateFrom = trim((string) $request->input('date_from', $request->input('from_date', '')));
-        $dateTo   = trim((string) $request->input('date_to', $request->input('to_date', '')));
+        $date      = trim((string) $request->input('date', ''));
+        $dateFrom  = trim((string) $request->input('date_from', $request->input('from_date', '')));
+        $dateTo    = trim((string) $request->input('date_to', $request->input('to_date', '')));
+        $stat      = trim((string) $request->input('stat', ''));
+        $relatedId = $request->filled('related_id') ? (int) $request->input('related_id') : null;
+        $statsOnly = $request->boolean('stats_only');
+
+        // ✅ backend stats
+        $stats = $this->buildStats(
+            $request,
+            $dateField,
+            $search,
+            $year,
+            $month,
+            $date,
+            $dateFrom,
+            $dateTo,
+            $relatedId
+        );
+
+        if ($statsOnly) {
+            return response()->json([
+                'stats' => $stats,
+            ]);
+        }
 
         $query = $this->baseListQuery()
             ->when($search !== '', function ($q) use ($search) {
@@ -159,10 +336,10 @@ class InformationController extends Controller
                 });
             });
 
-        // ✅ month/year filter (same behavior as office employee)
+        // ✅ existing month/year filter
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
 
-        // ✅ day or range filters (optional) — on same dateField
+        // ✅ existing day/range filter
         $query
             ->when($date !== '', function ($q) use ($date, $dateField) {
                 $q->whereDate($dateField, $date);
@@ -178,15 +355,39 @@ class InformationController extends Controller
                 $q->whereDate($dateField, '<=', $dateTo);
             });
 
+        // ✅ NEW: related info filter
+        $this->applyRelatedFilter($query, $relatedId);
+
+        // ✅ NEW: stat/card filter
+        $this->applyStatFilter($query, $stat);
+
         $query->orderByDesc('id');
 
-        if (is_null($rawPerPage) || $rawPerPage === '' || strtolower((string) $rawPerPage) === 'all' || (int) $rawPerPage === 0) {
-            return InformationResource::collection($query->get());
+        if (
+            is_null($rawPerPage) ||
+            $rawPerPage === '' ||
+            strtolower((string) $rawPerPage) === 'all' ||
+            (int) $rawPerPage === 0
+        ) {
+            return InformationResource::collection($query->get())->additional([
+                'meta' => [
+                    'stats' => $stats,
+                ],
+            ]);
         }
 
+        $perPage  = max(1, (int) $rawPerPage);
+        $total    = (clone $query)->count();
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        $safePage = min(max(1, $page), $lastPage);
+
         return InformationResource::collection(
-            $query->paginate(max(1, (int) $rawPerPage), ['*'], 'page', $page)
-        );
+            $query->paginate($perPage, ['*'], 'page', $safePage)
+        )->additional([
+            'meta' => [
+                'stats' => $stats,
+            ],
+        ]);
     }
 
     public function show($id)
@@ -197,14 +398,13 @@ class InformationController extends Controller
 
     public function store(StoreInformationRequest $request)
     {
-        $user = $request->user(); // 🔔 who did this
+        $user = $request->user();
 
         DB::beginTransaction();
 
         try {
             $info = Information::create($request->validated());
 
-            // 📎 documents
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("information_docs/{$info->id}", 'public');
@@ -231,8 +431,8 @@ class InformationController extends Controller
                 $user,
                 module: 'اطلاع',
                 action: 'created',
-                title: 'اطلاع جدید ثبت شد',
-                message: 'نام اطلاع: ' . ($info->name ?? ''),
+                title: 'نوی اطلاع ثبت شوو',
+                message: 'د متهم نوم: ' . ($info->name ?? ''),
                 routeName: 'informations',
                 routeParams: ['id' => $info->id],
                 level: 'success',
@@ -242,7 +442,6 @@ class InformationController extends Controller
             DB::commit();
 
             return new InformationResource($info);
-
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -255,7 +454,7 @@ class InformationController extends Controller
 
     public function update(UpdateInformationRequest $request, $id)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         DB::beginTransaction();
 
@@ -269,7 +468,6 @@ class InformationController extends Controller
                 'finances',
             ])->findOrFail($id);
 
-            // 🧮 build changes BEFORE update
             $original  = $information->getOriginal();
             $validated = $request->validated();
 
@@ -286,7 +484,6 @@ class InformationController extends Controller
 
             $information->save();
 
-            // 🔔 Reset missing-result notification tracking when result is provided
             if (
                 array_key_exists('result', $validated) &&
                 !is_null($validated['result']) &&
@@ -299,7 +496,6 @@ class InformationController extends Controller
                 ])->save();
             }
 
-            // 📎 new documents
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("information_docs/{$information->id}", 'public');
@@ -331,8 +527,8 @@ class InformationController extends Controller
                 $user,
                 module: 'اطلاع',
                 action: 'updated',
-                title: 'اطلاع اصلاح شد',
-                message: 'نام اطلاع: ' . ($information->name ?? ''),
+                title: 'اطلاع اصلاح شوو',
+                message: 'د متهم نوم: ' . ($information->name ?? ''),
                 routeName: 'informations',
                 routeParams: ['id' => $information->id],
                 level: 'info',
@@ -342,7 +538,6 @@ class InformationController extends Controller
             DB::commit();
 
             return new InformationResource($information);
-
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -355,7 +550,7 @@ class InformationController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         DB::beginTransaction();
 
@@ -363,7 +558,6 @@ class InformationController extends Controller
             $information = Information::with('documents')->findOrFail($id);
             $name = $information->name;
 
-            // 🗑 delete files + db rows
             foreach ($information->documents as $doc) {
                 Storage::disk('public')->delete($doc->file_path);
             }
@@ -375,8 +569,8 @@ class InformationController extends Controller
                 $user,
                 module: 'اطلاع',
                 action: 'deleted',
-                title: 'اطلاع حذف شد',
-                message: 'نام اطلاع: ' . ($name ?? ''),
+                title: 'اطلاع حذف شوو',
+                message: 'د متهم نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['informations'],
                 level: 'warning',
@@ -386,7 +580,6 @@ class InformationController extends Controller
             DB::commit();
 
             return response()->json(['message' => 'Deleted']);
-
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -396,6 +589,7 @@ class InformationController extends Controller
             ], 500);
         }
     }
+
     public function checkDuplicate(Request $request)
     {
         $data = $request->validate([

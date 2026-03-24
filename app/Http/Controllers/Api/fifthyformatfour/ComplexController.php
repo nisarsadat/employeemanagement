@@ -25,10 +25,10 @@ class ComplexController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'دا کمپلکس مخکې نه ثبت شوی دی.',
+            'message' => 'دا موسسی او خیریه بنسټونه مخکې نه ثبت شوی دی.',
             'errors'  => [
                 'duplicate' => [
-                    'د همدې ځای او معلوماتو (ولايت/زون/ولسوالۍ/کلی/ځانګړی ځای/کوڅه/کور + نوم/فعالیت ډول/د فعالیت ځای) سره کمپلکس مخکې موجود دی.',
+                    'د همدې ځای او معلوماتو (ولايت/زون/ولسوالۍ/کلی/ځانګړی ځای/کوڅه/کور + نوم/فعالیت ډول/د فعالیت ځای) سره موسسی او خیریه بنسټونه مخکې موجود دی.',
                 ],
             ],
         ], 422);
@@ -87,10 +87,10 @@ class ComplexController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'کمپلکس',
+                    module: 'موسسی او خیریه بنسټونه',
                     action: 'created',
-                    title: 'نوی کمپلکس ثبت شو',
-                    message: 'د کمپلکس نوم: ' . ($row->complex_name ?? ''),
+                    title: 'نوی موسسی او خیریه بنسټونه ثبت شو',
+                    message: 'د موسسی او خیریه بنسټونه نوم: ' . ($row->complex_name ?? ''),
                     routeName: 'complexes',               // ⚠️ set to your real route name
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -165,10 +165,10 @@ class ComplexController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'کمپلکس',
+                    module: 'موسسی او خیریه بنسټونه',
                     action: 'updated',
-                    title: 'کمپلکس اصلاح شو',
-                    message: 'د کمپلکس نوم: ' . ($complex->complex_name ?? ''),
+                    title: 'موسسی او خیریه بنسټونه اصلاح شو',
+                    message: 'د موسسی او خیریه بنسټونه نوم: ' . ($complex->complex_name ?? ''),
                     routeName: 'complexes',               // ⚠️ set to your real route name
                     routeParams: ['id' => $complex->id],
                     level: 'info',
@@ -203,10 +203,10 @@ class ComplexController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'کمپلکس',
+                module: 'موسسی او خیریه بنسټونه',
                 action: 'deleted',
-                title: 'کمپلکس حذف شو',
-                message: 'د کمپلکس نوم: ' . ($name ?? ''),
+                title: 'موسسی او خیریه بنسټونه حذف شو',
+                message: 'د موسسی او خیریه بنسټونه نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['complexes'],
                 level: 'warning',

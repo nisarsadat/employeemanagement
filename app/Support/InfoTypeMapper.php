@@ -18,7 +18,7 @@ class InfoTypeMapper
             'اختطافچیان' => 'robber',
             'د نشه یی توکو پلورونکي' => 'mawads',
             'غله' => 'heists',
-            'غیر مسوله وسلوال' => 'noneresposablepeole',
+            'غیر مسؤوله وسلوال' => 'noneresposablepeole',
             'زورواکان او ولکه داران' => 'badmashano',
             'لوچکان' => 'luchakano',
             'نوې راغلې کورونه' => 'mahajeerat',

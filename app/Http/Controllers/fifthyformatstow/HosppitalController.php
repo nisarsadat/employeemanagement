@@ -77,9 +77,9 @@ class HosppitalController extends Controller
             // 🔔 Notification: CREATED
             NotificationService::record(
                 $user,
-                module: 'شفاخانه',
+                module: 'شفاخانې او کلینیکونه',
                 action: 'created',
-                title: 'نوې شفاخانه ثبت شوه',
+                title: 'نوې شفاخانې او کلینیکونه ثبت شوه',
                 message: 'نوم: ' . ($hospital->name ?? ''),
                 routeName: 'hosppitals',           // ⚠️ set to your real route name
                 routeParams: ['id' => $hospital->id],
@@ -150,9 +150,9 @@ class HosppitalController extends Controller
             // 🔔 Notification: UPDATED
             NotificationService::record(
                 $user,
-                module: 'شفاخانه',
+                module: 'شفاخانې او کلینیکونه',
                 action: 'updated',
-                title: 'شفاخانه اصلاح شوه',
+                title: 'شفاخانې او کلینیکونه اصلاح شوه',
                 message: 'نوم: ' . ($hosppital->name ?? ''),
                 routeName: 'hosppitals',           // ⚠️ set to your real route name
                 routeParams: ['id' => $hosppital->id],
@@ -185,9 +185,9 @@ class HosppitalController extends Controller
         // 🔔 Notification: DELETED
         NotificationService::record(
             $user,
-            module: 'شفاخانه',
+            module: 'شفاخانې او کلینیکونه',
             action: 'deleted',
-            title: 'شفاخانه حذف شوه',
+            title: 'شفاخانې او کلینیکونه حذف شوه',
             message: 'نوم: ' . ($name ?? ''),
             routeName: null,
             routeParams: ['hosppitals'],
@@ -209,7 +209,7 @@ class HosppitalController extends Controller
         // 🔔 Notification: BULK DELETED
         NotificationService::record(
             $user,
-            module: 'شفاخانه',
+            module: 'شفاخانې او کلینیکونه',
             action: 'bulk_deleted',
             title: 'ډله‌ییز حذف ترسره شو',
             message: 'حذف شوي ریکارډونه: ' . count($ids),

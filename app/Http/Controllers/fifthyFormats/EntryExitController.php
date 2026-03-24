@@ -98,10 +98,10 @@ class EntryExitController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'داخل/خارج',
+                    module: 'دخولي خروجي او فرعي لارې',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
-                    message: 'لار: ' . ($entry_exit->entry_way ?? ''),
+                    message: 'لاره: ' . ($entry_exit->entry_way ?? ''),
                     routeName: 'entry-exits', // ⚠️ adjust if your route name differs
                     routeParams: ['id' => $entry_exit->id],
                     level: 'success',
@@ -180,10 +180,10 @@ class EntryExitController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'داخل/خارج',
+                    module: 'دخولي خروجي او فرعي لارې',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
-                    message: 'لار: ' . ($entry_exit->entry_way ?? ''),
+                    message: 'لاره: ' . ($entry_exit->entry_way ?? ''),
                     routeName: 'entry-exits',
                     routeParams: ['id' => $entry_exit->id],
                     level: 'info',
@@ -225,10 +225,10 @@ class EntryExitController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'داخل/خارج',
+                module: 'دخولي خروجي او فرعي لارې',
                 action: 'deleted',
                 title: 'ریکارډ حذف شو',
-                message: 'لار: ' . ($way ?? ''),
+                message: 'لاره: ' . ($way ?? ''),
                 routeName: null,
                 routeParams: [],
                 level: 'warning',

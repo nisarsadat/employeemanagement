@@ -87,9 +87,9 @@ class OldSoldiersHomesController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'خانه‌های نظامیان سابق',
+                    module: 'پخواني چارواکو کورونه',
                     action: 'created',
-                    title: 'خانه جدید ثبت شد',
+                    title: 'کور ثبت شوو',
                     message: 'نام: ' . ($record->name ?? ''),
                     routeName: 'old-soldiers-homes',
                     routeParams: ['id' => $record->id],
@@ -165,9 +165,9 @@ class OldSoldiersHomesController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'خانه‌های نظامیان سابق',
+                    module: 'پخواني چارواکو کورونه',
                     action: 'updated',
-                    title: 'خانه اصلاح شد',
+                    title: 'کور اصلاح شوو',
                     message: 'نام: ' . ($oldSoldiersHome->name ?? ''),
                     routeName: 'old-soldiers-homes',
                     routeParams: ['id' => $oldSoldiersHome->id],
@@ -202,9 +202,9 @@ class OldSoldiersHomesController extends Controller
         // 🔔 Notification: DELETED
         NotificationService::record(
             $user,
-            module: 'خانه‌های نظامیان سابق',
+            module: 'پخواني چارواکو کورونه',
             action: 'deleted',
-            title: 'خانه حذف شد',
+            title: 'کور حذف شوو',
             message: 'نام: ' . ($name ?? ''),
             routeName: null,
             routeParams: ['old-soldiers-homes'],
@@ -230,9 +230,9 @@ class OldSoldiersHomesController extends Controller
         // 🔔 Notification: BULK DELETE
         NotificationService::record(
             $user,
-            module: 'خانه‌های نظامیان سابق',
+            module: 'پخواني چارواکو کورونه',
             action: 'deleted',
-            title: 'خانه‌ها به‌صورت گروهی حذف شد',
+            title: 'خانه‌ها به‌صورت گروهی حذف شوو',
             message: 'تعداد: ' . count($ids),
             routeName: null,
             routeParams: ['old-soldiers-homes'],

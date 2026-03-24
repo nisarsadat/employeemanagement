@@ -294,7 +294,6 @@ function getRow(payload) {
 }
 
 const perPageItems = computed(() => [
-  { title: t('همه / بدون صفحه‌بندی'), value: 'all' },
   { title: '10', value: 10 },
   { title: '25', value: 25 },
   { title: '50', value: 50 },
@@ -511,7 +510,7 @@ usePageRefresh('/app/inactiveresource', async () => {
 });
 
 onMounted(async () => {
-  repo.itemsPerPage = repo.itemsPerPage || 'all';
+  repo.itemsPerPage = repo.itemsPerPage || 10;
   await reload();
 });
 </script>

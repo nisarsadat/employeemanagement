@@ -36,7 +36,7 @@ axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 // ✅ API base
-const API_BASE = import.meta.env.VITE_API_URL || 'https://200.100.100.1';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 axios.defaults.baseURL = `${API_BASE}/api`;
 
 // ✅ attach token for all API requests

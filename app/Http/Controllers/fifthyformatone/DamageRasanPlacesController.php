@@ -77,9 +77,9 @@ class DamageRasanPlacesController extends Controller
             // 🔔 Notification: CREATED
             NotificationService::record(
                 $user,
-                module: 'محلات آسیب‌رسان',
+                module: 'آسیب رسانې ساحې',
                 action: 'created',
-                title: 'ریکارډ ثبت شو',
+                title: 'ریکارډ ثبت شوو',
                 message: 'ولایت: ' . ($record->province ?? '') . ' | ځای: ' . ($record->damage_place ?? ''),
                 routeName: 'damage-rasan-places',
                 routeParams: ['id' => $record->id],
@@ -145,7 +145,7 @@ class DamageRasanPlacesController extends Controller
             // 🔔 Notification: UPDATED
             NotificationService::record(
                 $user,
-                module: 'محلات آسیب‌رسان',
+                module: 'آسیب رسانې ساحې',
                 action: 'updated',
                 title: 'ریکارډ اصلاح شو',
                 message: 'ولایت: ' . ($damage_rasan_place->province ?? '') . ' | ځای: ' . ($damage_rasan_place->damage_place ?? ''),
@@ -174,7 +174,7 @@ class DamageRasanPlacesController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'محلات آسیب‌رسان',
+                module: 'آسیب رسانې ساحې',
                 action: 'deleted',
                 title: 'ریکارډ حذف شو',
                 message: 'ID: ' . ($damage_rasan_place->id ?? ''),
@@ -212,10 +212,10 @@ class DamageRasanPlacesController extends Controller
             // 🔔 Notification: BULK DELETED
             NotificationService::record(
                 $user,
-                module: 'محلات آسیب‌رسان',
+                module: 'آسیب رسانې ساحې',
                 action: 'deleted',
                 title: 'حذف گروهی انجام شد',
-                message: 'تعداد: ' . count($ids),
+                message: 'شمیر: ' . count($ids),
                 routeName: null,
                 routeParams: ['damage-rasan-places'],
                 level: 'warning',

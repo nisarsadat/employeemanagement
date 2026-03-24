@@ -307,26 +307,58 @@ class DashboardController extends Controller
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
 
-        $eventsByType = Event::query()
-            ->select(DB::raw('COALESCE(event_type, event_specific_type) as type'), DB::raw('COUNT(*) as total'))
+       $eventsByType = Event::query()
+            ->select('event_type', 'event_specific_type')
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
-            ->groupBy(DB::raw('COALESCE(event_type, event_specific_type)'))
             ->get()
             ->map(function ($row) {
-                $type = trim((string) $row->type);
-                if ($type === '') $type = 'نامعلوم';
+                $type = trim((string) ($row->event_type ?: $row->event_specific_type));
+
+                if ($type === '') {
+                    $type = 'نامعلوم';
+                }
+
+                // normalize Arabic/Persian chars
+                $type = str_replace(['ي', 'ى'], 'ی', $type);
+                $type = str_replace('ك', 'ک', $type);
+                $type = preg_replace('/\s+/', ' ', $type);
+                $type = trim($type);
+
+                // normalize variants
+                if (in_array($type, ['سیاسی', 'سیاسي', 'syasi'], true)) {
+                    $type = 'سیاسي';
+                }
+
+                if (in_array($type, ['جنایی', 'جینایی', 'جنایي', 'jenayee', 'jinayee'], true)) {
+                    $type = 'جنایي';
+                } 
+                if (in_array($type, ['الهی', 'الهي'], true)) {
+                    $type = 'الهی';
+                } 
+                if (in_array($type, ['ترافیکي' , 'ترافیکي'], true)) {
+                    $type = 'ترافیکي';
+                }
+
                 return [
-                    'type'  => $type,
-                    'count' => (int) $row->total,
+                    'type' => $type,
+                    'count' => 1,
                 ];
             })
-            ->filter(fn ($item) => in_array($item['type'], ['سیاسي', 'جنایي', 'الهی', 'ترافیکي']))
+            ->filter(fn ($item) => in_array($item['type'], ['سیاسي', 'جنایي', 'الهی', 'ترافیکي'], true))
+            ->groupBy('type')
+            ->map(fn ($group, $type) => [
+                'type'  => $type,
+                'count' => (int) $group->sum('count'),
+            ])
+            ->values()
             ->sortByDesc('count')
             ->values();
 
         $allEventTypes = ['سیاسي', 'جنایي', 'الهی', 'ترافیکي'];
+
         $eventsByTypeFinal = collect($allEventTypes)->map(function ($type) use ($eventsByType) {
             $found = $eventsByType->firstWhere('type', $type);
+
             return [
                 'type'  => $type,
                 'count' => $found ? (int) $found['count'] : 0,

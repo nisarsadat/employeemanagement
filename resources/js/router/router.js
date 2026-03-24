@@ -1336,6 +1336,7 @@ const router = createRouter({
         },
         {
           path: 'checkpoints',
+          name: 'checkpoints',
           component: CheckPoints,
           meta: { requiresAuth: true, perm: permFor('checkpoints') },
         },

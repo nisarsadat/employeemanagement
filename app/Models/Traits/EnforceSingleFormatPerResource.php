@@ -56,7 +56,7 @@ trait EnforceSingleFormatPerResource
                     existingModel: $resource->format_owner_type,
                     existingRecordId: $resource->format_owner_id,
                     existingLabel: static::formatLabel($resource->format_owner_type),
-                    message: 'This resource already belongs to another single-format record.'
+                    message: 'دغه منبع په ۵۰ فارمټ کې یو فارمټ لري د دویم ځل لپاره اجازه نشته!'
                 );
             }
         }, 3);
@@ -93,7 +93,7 @@ trait EnforceSingleFormatPerResource
                     existingModel: $resource->format_owner_type,
                     existingRecordId: $resource->format_owner_id,
                     existingLabel: static::formatLabel($resource->format_owner_type),
-                    message: 'This resource already belongs to another single-format record.'
+                    message: 'دغه منبع په ۵۰ فارمټ کې یو فارمټ لري د دویم ځل لپاره اجازه نشته!'
                 );
             }
         }, 3);

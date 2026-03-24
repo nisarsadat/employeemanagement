@@ -70,9 +70,9 @@ class TujaranController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'تاجران',
+                    module: 'تاجران ، علما ، متنفذین او عالي رتبه اشخاص',
                     action: 'created',
-                    title: 'نوی تاجر ثبت شو',
+                    title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($item->name ?? ''),
                     routeName: 'tujarans',
                     routeParams: ['id' => $item->id],
@@ -132,9 +132,9 @@ class TujaranController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'تاجران',
+                    module: 'تاجران ، علما ، متنفذین او عالي رتبه اشخاص',
                     action: 'updated',
-                    title: 'تاجر اصلاح شو',
+                    title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . ($tujaran->name ?? ''),
                     routeName: 'tujarans',
                     routeParams: ['id' => $tujaran->id],
@@ -168,9 +168,9 @@ class TujaranController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'تاجران',
+                module: 'تاجران ، علما ، متنفذین او عالي رتبه اشخاص',
                 action: 'deleted',
-                title: 'تاجر حذف شو',
+                title: 'ریکارډ حذف شو',
                 message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['tujarans'],
@@ -204,7 +204,7 @@ class TujaranController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'تاجران',
+                module: 'تاجران ، علما ، متنفذین او عالي رتبه اشخاص',
                 action: 'bulk_deleted',
                 title: 'ډله‌ییز حذف ترسره شو',
                 message: 'حذف شوي ریکارډونه: ' . count($ids),

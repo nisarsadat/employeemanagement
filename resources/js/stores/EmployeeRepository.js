@@ -98,6 +98,13 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
       clearSearch: '',
       rail: false,
       drawerVisible: true,
+      employeeCardCounts: {
+        total: 0,
+        edari: 0,
+        operatifi: 0,
+        active: 0,
+        inactive: 0,
+      },
     };
   },
 
@@ -231,15 +238,31 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
           params: {
             ...queryParams,
             status: params.status ?? 'all',
+            job_type: params.job_type ?? undefined,
           },
         });
 
         applyPaginatedResponse(this, res, 'Employees');
+
+        this.employeeCardCounts = {
+          total: Number(res?.data?.card_counts?.total ?? 0),
+          edari: Number(res?.data?.card_counts?.edari ?? 0),
+          operatifi: Number(res?.data?.card_counts?.operatifi ?? 0),
+          active: Number(res?.data?.card_counts?.active ?? 0),
+          inactive: Number(res?.data?.card_counts?.inactive ?? 0),
+        };
       } catch (e) {
         console.error(e);
         this.error = e;
         this.Employees = [];
         this.totalItems = 0;
+        this.employeeCardCounts = {
+          total: 0,
+          edari: 0,
+          operatifi: 0,
+          active: 0,
+          inactive: 0,
+        };
       } finally {
         this.loading = false;
       }

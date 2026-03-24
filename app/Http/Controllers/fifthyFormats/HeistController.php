@@ -106,7 +106,7 @@ class HeistController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'سرقت',
+                    module: 'سرقت کوونکي',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($heist->name ?? ''),
@@ -232,7 +232,7 @@ class HeistController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'سرقت',
+                    module: 'سرقت کوونکي',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . ($heist->name ?? ''),
@@ -287,7 +287,7 @@ class HeistController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'سرقت',
+                module: 'سرقت کوونکي',
                 action: 'deleted',
                 title: 'ریکارډ حذف شو',
                 message: 'نوم: ' . ($name ?? ''),

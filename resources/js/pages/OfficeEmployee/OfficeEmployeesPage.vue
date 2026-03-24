@@ -29,7 +29,7 @@
         </v-col>
 
         <!-- ✅ NEW: Year -->
-        <v-col cols="12" sm="7" md="7" lg="7">
+        <v-col cols="12" sm="7" md="7" lg="6">
           <v-select
             v-model="filterYear"
             :items="yearItems"
@@ -76,7 +76,18 @@
             {{ t('فلتر') }}
           </v-btn>
         </v-col>
-
+        <v-col cols="12" sm="4" md="2" lg="1">
+          <v-btn
+            color="orange"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter-remove"
+            @click="clearAllFilters"
+          >
+            {{ t('فلترها') }}
+          </v-btn>
+        </v-col>
         <!-- Create Button -->
         <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
           <v-btn
@@ -100,7 +111,11 @@
     <v-row class="px-2 mt-2 d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
       <!-- 1) Total employees -->
       <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" rounded="xl" @click="applyJobTypeFilter(null)">
+        <v-card
+          class="stat-card"
+          rounded="xl"
+          @click="applyCardFilter({ status: 'all', job_type: null })"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-primary fontfamily">
@@ -119,7 +134,11 @@
 
       <!-- 2) اداری -->
       <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" rounded="xl" @click="applyJobTypeFilter('اداری')">
+        <v-card
+          class="stat-card"
+          rounded="xl"
+          @click="applyCardFilter({ status: 'all', job_type: 'اداری' })"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-indigo fontfamily">
@@ -138,7 +157,11 @@
 
       <!-- 3) اوپراتیفی -->
       <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" rounded="xl" @click="applyJobTypeFilter('اوپراتیفی')">
+        <v-card
+          class="stat-card"
+          rounded="xl"
+          @click="applyCardFilter({ status: 'all', job_type: 'اوپراتیفی' })"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-cyan fontfamily">
@@ -155,9 +178,13 @@
         </v-card>
       </v-col>
 
-      <!-- 4) Active employees (click -> /app/activeemployees) -->
+      <!-- 4) Active employees -->
       <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" rounded="xl" @click="goActiveEmployees">
+        <v-card
+          class="stat-card"
+          rounded="xl"
+          @click="applyCardFilter({ status: 'active', job_type: null })"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-green fontfamily">
@@ -174,9 +201,13 @@
         </v-card>
       </v-col>
 
-      <!-- 5) Inactive employees (click -> /app/inactiveemployees) -->
+      <!-- 5) Inactive employees -->
       <v-col cols="12" md="2" lg="2">
-        <v-card class="stat-card" rounded="xl" @click="goInactiveEmployees">
+        <v-card
+          class="stat-card"
+          rounded="xl"
+          @click="applyCardFilter({ status: 'inactive', job_type: null })"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-red fontfamily">
@@ -227,7 +258,6 @@
       @peek="openPeek"
       class="mb-4 mx-2"
     >
-      <!-- 🖼 Picture cell -->
       <template #cell-picture="{ row }">
         <v-avatar size="36" class="cursor-pointer" @click="openPreview(row)">
           <v-img v-if="getPhotoUrl(row)" :src="getPhotoUrl(row)" cover />
@@ -235,7 +265,6 @@
         </v-avatar>
       </template>
 
-      <!-- 🟢🔴 Activity dot (فعال/غیر فعال) -->
       <template #cell-activity="{ row }">
         <div class="d-flex align-center justify-center">
           <span
@@ -249,7 +278,6 @@
         </div>
       </template>
 
-      <!-- 🗺 Map cell -->
       <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="getRow(row).coordinates"
@@ -261,7 +289,6 @@
         />
       </template>
 
-      <!-- 🔢 Informations count -->
       <template #cell-informations_count="{ row }">
         <v-tooltip
           v-if="getRow(row).informations_count && getRow(row).informations_count > 0"
@@ -285,7 +312,6 @@
         <span v-else class="text-red">0</span>
       </template>
 
-      <!-- 🔢 Events count -->
       <template #cell-events_count="{ row }">
         <v-tooltip
           v-if="getRow(row).events_count && getRow(row).events_count > 0"
@@ -309,7 +335,6 @@
         <span v-else class="text-red">0</span>
       </template>
 
-      <!-- ✅ Active resources count -->
       <template #cell-resources_active_count="{ row }">
         <v-tooltip
           v-if="getRow(row).resources_active_count && getRow(row).resources_active_count > 0"
@@ -334,7 +359,6 @@
         <span v-else class="text-red">0</span>
       </template>
 
-      <!-- ✅ Inactive resources count -->
       <template #cell-resources_inactive_count="{ row }">
         <v-tooltip
           v-if="getRow(row).resources_inactive_count && getRow(row).resources_inactive_count > 0"
@@ -359,7 +383,6 @@
         <span v-else class="text-red">0</span>
       </template>
 
-      <!-- 🔢 Resources count -->
       <template #cell-resources_count="{ row }">
         <v-tooltip
           v-if="getRow(row).resources_count && getRow(row).resources_count > 0"
@@ -383,10 +406,8 @@
         <span v-else class="text-red">0</span>
       </template>
 
-      <!-- ⚙️ ACTIONS -->
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
-          <!-- مشاهده -->
           <v-tooltip text="مشاهده کارمند" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon size="small" v-bind="tooltipProps" @click.stop="openPeek(item)" color="blue">
@@ -395,7 +416,6 @@
             </template>
           </v-tooltip>
 
-          <!-- ویرایش -->
           <v-tooltip text="تغییر جزیات کارمند" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -410,7 +430,6 @@
             </template>
           </v-tooltip>
 
-          <!-- دانلود اسناد -->
           <v-tooltip text="دانلود اسناد مربوط به کارمند" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -426,7 +445,6 @@
             </template>
           </v-tooltip>
 
-          <!-- حذف -->
           <v-tooltip text="حذف کارمند" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -443,6 +461,7 @@
         </div>
       </template>
     </FilterableTable>
+
     <GlobalPagination
       :page="repo.page"
       :items-per-page="repo.itemsPerPage"
@@ -450,7 +469,7 @@
       @update:page="handlePageChange"
       @update:itemsPerPage="handlePerPageChange"
     />
-    <!-- 🖼 BIG PREVIEW DIALOG -->
+
     <v-dialog v-model="previewOpen" max-width="520" :dir="isRtl ? 'rtl' : 'ltr'">
       <v-card :dir="isRtl ? 'rtl' : 'ltr'">
         <v-toolbar
@@ -471,7 +490,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- 🔁 Reusable Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -479,7 +497,6 @@
       @confirm="handleDeleteConfirmed"
     />
 
-    <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
@@ -510,7 +527,6 @@
   import GlobalPagination from '@/components/GlobalPagination.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/officeemployee', fetchAll);
   const router = useRouter();
   const route = useRoute();
   const { t, locale } = useI18n();
@@ -519,23 +535,22 @@
   const repo = useEmployeOfficeRepository();
   const auth = useLoginRepository();
 
-  // ✅ selected values that will be SENT to backend (gregorian)
-  const filterYear = ref(null); // e.g. 2026
-  const filterMonth = ref(null); // 1..12
+  const filterYear = ref(null);
+  const filterMonth = ref(null);
 
-  // ✅ dynamic year items from backend (REAL DB years)
-  const yearItems = ref([]); // [{ value: 2026, title: '...' }, ...]
-  const yearNumbers = ref([]); // ✅ (only for auto-rebuilding titles)
+  const yearItems = ref([]);
+  const yearNumbers = ref([]);
+
+  const selectedCardStatus = ref('all');
+  const selectedCardJobType = ref(null);
 
   async function fetchYearItemsFromDb() {
     try {
       const res = await repo.FetchEmployeeDateOptions({ date_field: 'join_date' });
       const years = res?.data?.years || [];
 
-      // ✅ store numeric years once
       yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
 
-      // ✅ build titles based on current AppBar calendar format
       yearItems.value = yearNumbers.value.map((y) => ({
         value: y,
         title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
@@ -545,7 +560,6 @@
     }
   }
 
-  // ✅ auto-update year titles when AppBar/calendar format changes (NO change to selected value)
   watch(
     [calendar, locale],
     () => {
@@ -558,8 +572,6 @@
     { immediate: false }
   );
 
-  // ✅ month names for UI (based on current calendar mode)
-  // BUT item.value stays gregorian 1..12 always.
   const JALALI_MONTHS_FA = [
     'حمل',
     'ثور',
@@ -591,7 +603,6 @@
   ];
 
   function monthTitleFromGregorianMonth(gYear, gMonth) {
-    // Use the 15th to avoid edge conversion issues
     const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
 
     if (calendar.value === 'gregorian') {
@@ -642,10 +653,16 @@
     });
   });
 
-  // ✅ Apply filter: reload from backend
   async function applyMonthYearFilter() {
     repo.page = 1;
     await fetchAll();
+  }
+
+  function applyCardFilter({ status = 'all', job_type = null } = {}) {
+    selectedCardStatus.value = status;
+    selectedCardJobType.value = job_type;
+    repo.page = 1;
+    fetchAll();
   }
 
   const focusId = computed(() => {
@@ -653,16 +670,16 @@
     return id ? Number(id) : null;
   });
 
+  const rowsFT = computed(() => repo.Employees || []);
+
   const focusedRowsFT = computed(() => {
     if (!focusId.value) return rowsFT.value;
     return rowsFT.value.filter((r) => Number(r.id) === focusId.value);
   });
 
-  /* ===== RTL ===== */
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
 
-  /* ===== Helpers: unwrap + fix URL ===== */
   function getRow(payload) {
     return payload?.raw ?? payload;
   }
@@ -678,41 +695,22 @@
     return normalizeUrl(row.picture || row.picture_url);
   }
 
-  /* ===== Data & stats ===== */
-  const rowsFT = computed(() => repo.Employees || []);
-  const totalCount = computed(() => Number(repo.totalItems) || 0);
-
-  const edariCount = computed(
-    () => rowsFT.value.filter((r) => String(r.job_type || '').trim() === 'اداری').length
-  );
-
-  const operatifiCount = computed(
-    () => rowsFT.value.filter((r) => String(r.job_type || '').trim() === 'اوپراتیفی').length
-  );
-
-  const activeEmployeesCount = computed(
-    () => rowsFT.value.filter((r) => String(r.activity || '').trim() === 'فعال').length
-  );
-
-  const inactiveEmployeesCount = computed(
-    () => rowsFT.value.filter((r) => String(r.activity || '').trim() === 'غیر فعال').length
-  );
+  const totalCount = computed(() => Number(repo.employeeCardCounts?.total ?? 0));
+  const edariCount = computed(() => Number(repo.employeeCardCounts?.edari ?? 0));
+  const operatifiCount = computed(() => Number(repo.employeeCardCounts?.operatifi ?? 0));
+  const activeEmployeesCount = computed(() => Number(repo.employeeCardCounts?.active ?? 0));
+  const inactiveEmployeesCount = computed(() => Number(repo.employeeCardCounts?.inactive ?? 0));
 
   const headersFT = computed(() => [
-    // Media
     { title: t('تصویر'), key: 'picture', sortable: false },
-
     { title: t('منابع'), key: 'resources_count', sortable: false },
     { title: t('منابع فعال'), key: 'resources_active_count', sortable: false },
     { title: t('منابع غیر فعال'), key: 'resources_inactive_count', sortable: false },
     { title: t('تاریخ رفتن'), key: 'left_date' },
     { title: t('پول داده شده'), key: 'payed_money' },
     { title: t('نقشه'), key: 'map', sortable: false },
-    // Counts
     { title: t('اطلاعات'), key: 'informations_count', sortable: false },
     { title: t('حوادث'), key: 'events_count', sortable: false },
-
-    // Identity
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
@@ -720,8 +718,6 @@
     { title: t('کود نمبر'), key: 'code_number' },
     { title: t('شماره تذکره'), key: 'tazkira' },
     { title: t('سن'), key: 'age' },
-
-    // Job / Rank
     { title: t('نوعیت وظیفه'), key: 'job_type' },
     { title: t('وظیفه مشخص'), key: 'specific_job' },
     { title: t('قسم'), key: 'qisem' },
@@ -729,34 +725,25 @@
     { title: t('رتبه/سطح'), key: 'level' },
     { title: t('زون'), key: 'zone' },
     { title: t('حوزه'), key: 'hawza' },
-
-    // Jihad background
     { title: t('سابقه جهاد'), key: 'history_jahad' },
     { title: t('دلګی مشر'), key: 'dilgay_mesher' },
     { title: t('موقف جهادی'), key: 'jahadi_mawaqaf' },
     { title: t('مسئولیت جهاد'), key: 'jahad_time_responsibility' },
     { title: t('محل جهاد'), key: 'jahad_place' },
-
-    // Addresses
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_district' },
     { title: t('قریه اصلی'), key: 'main_village' },
-
     { title: t('ولایت فعلی'), key: 'now_province' },
     { title: t('ولسوالی فعلی'), key: 'now_district' },
     { title: t('قریه فعلی'), key: 'now_village' },
     { title: t('محل مشخص فعلی'), key: 'now_specific_place' },
     { title: t('نمبر سرک'), key: 'now_street_number' },
     { title: t('نمبر خانه'), key: 'now_home_number' },
-
-    // Education
     { title: t('تعلیمات دینی'), key: 'relegy_study' },
     { title: t('تعلیمات عصری'), key: 'new_study' },
     { title: t('پوهنحی/رشته'), key: 'faculty' },
     { title: t('نظامی'), key: 'nizami' },
     { title: t('معلومات سلاح'), key: 'gun_knowledge' },
-
-    // Contact & misc
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('زبان'), key: 'language' },
     { title: t('قوم/ملیت'), key: 'nation' },
@@ -765,13 +752,8 @@
     { title: t('مختصات'), key: 'coordinates' },
     { title: t('تخلفات'), key: 'makhafat' },
     { title: t('مکافات'), key: 'makafat' },
-
-    // Dates & finance
     { title: t('تاریخ آمدن'), key: 'join_date' },
-
     { title: t('ملاحظات'), key: 'note' },
-
-    // Map
   ]);
 
   const topGroups = computed(() => [
@@ -830,21 +812,6 @@
 
   const filters = ref({});
 
-  // ✅ Cards filter (job_type) — ONLY change here for cards filtering
-  function applyJobTypeFilter(val) {
-    const next = { ...(filters.value || {}) };
-
-    if (!val) {
-      delete next.job_type;
-    } else {
-      next.job_type = val;
-    }
-
-    filters.value = next;
-    repo.page = 1;
-  }
-
-  /* ===== Error Snackbar ===== */
   const showError = ref(false);
   const errorMessage = ref('');
 
@@ -853,7 +820,6 @@
     showError.value = true;
   }
 
-  /* ===== Preview dialog ===== */
   const previewOpen = ref(false);
   const previewSrc = ref(null);
 
@@ -870,7 +836,6 @@
     return Array.isArray(docs) && docs.length > 0;
   }
 
-  /* ===== Peek / single fetch ===== */
   const expanded = ref(false);
   const selectedId = ref(null);
   const loadingOne = ref(false);
@@ -914,19 +879,21 @@
     fetchOne(row.id);
   }
 
-  /* ===== Fetch ALL ===== */
   async function fetchAll() {
     try {
       await repo.FetchEmployeesData({
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'join_date',
+        status: selectedCardStatus.value,
+        job_type: selectedCardJobType.value,
       });
     } catch (e) {
       console.error('fetchAll error', e);
       showErrorMessage(t('خطا در دریافت فهرست کارمندان'));
     }
   }
+
   function handlePageChange(value) {
     repo.page = value;
     fetchAll();
@@ -937,13 +904,13 @@
     repo.page = 1;
     fetchAll();
   }
+
   function clearSearch() {
     repo.Search = '';
     repo.page = 1;
     fetchAll();
   }
 
-  /* ===== Navigation ===== */
   function goCreate() {
     router.push('/app/officeemployeeform');
   }
@@ -994,7 +961,16 @@
       query: { office_employee_id: row.id },
     });
   }
+  async function clearAllFilters() {
+    repo.Search = '';
+    filterYear.value = null;
+    filterMonth.value = null;
+    selectedCardStatus.value = 'all';
+    selectedCardJobType.value = null;
+    repo.page = 1;
 
+    await fetchAll();
+  }
   async function downloadEmployeeDocs(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
@@ -1012,7 +988,6 @@
     }
   }
 
-  /* ===== Delete using DeleteConfirmDialog ===== */
   const deleteDialog = ref(false);
   const deleteTarget = ref(null);
 
@@ -1050,15 +1025,8 @@
     }
   }
 
-  function goActiveEmployees() {
-    router.push('/app/activeemployees');
-  }
+  usePageRefresh('/app/officeemployee', fetchAll);
 
-  function goInactiveEmployees() {
-    router.push('/app/inactiveemployees');
-  }
-
-  // ✅ Init (ONLY ONCE)
   onMounted(async () => {
     await fetchYearItemsFromDb();
     await fetchAll();
@@ -1092,7 +1060,6 @@
     color: #9c27b0 !important;
   }
 
-  /* 🔹 make search field height similar to large button */
   .search-field :deep(.v-field) {
     min-height: 48px;
   }
@@ -1114,10 +1081,10 @@
   }
 
   .status-dot--active {
-    background: #4caf50; /* green */
+    background: #4caf50;
   }
 
   .status-dot--inactive {
-    background: #f44336; /* red */
+    background: #f44336;
   }
 </style>

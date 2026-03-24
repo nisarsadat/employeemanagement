@@ -17,7 +17,6 @@
         class="w-full rounded border border-gray-300 focus:border-gray-500 focus:ring-2 focus:ring-gray-200 px-3 py-2 text-sm"
         @change="handlePerPageChange(repo.itemsPerPage)"
       >
-        <option value="all">{{ t('همه / بدون صفحه‌بندی') }}</option>
         <option :value="10">10</option>
         <option :value="25">25</option>
         <option :value="50">50</option>
@@ -56,7 +55,6 @@
       :show-index="true"
       :options-map="null"
       :include-empty-option="true"
-      :all-label="t('همه')"
       @peek="openDetails"
     >
       <template #cell-picture="{ row }">
@@ -315,28 +313,28 @@
     return repo.fetchList(STATUS);
   }
 
-function normalizePerPage(value) {
-  if (value === 'all') return 'all';
-  const n = Number(value);
-  return Number.isFinite(n) && n > 0 ? n : 10;
-}
+  function normalizePerPage(value) {
+    if (value === 10) return 10;
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? n : 10;
+  }
 
-function reload() {
-  repo.inactive.page = 1;
-  repo.fetchCounts();
-  fetchAll();
-}
+  function reload() {
+    repo.inactive.page = 1;
+    repo.fetchCounts();
+    fetchAll();
+  }
 
-function handlePageChange(value) {
-  repo.inactive.page = Number(value) || 1;
-  fetchAll();
-}
+  function handlePageChange(value) {
+    repo.inactive.page = Number(value) || 1;
+    fetchAll();
+  }
 
-function handlePerPageChange(value) {
-  repo.itemsPerPage = normalizePerPage(value);
-  repo.inactive.page = 1;
-  fetchAll();
-}
+  function handlePerPageChange(value) {
+    repo.itemsPerPage = normalizePerPage(value);
+    repo.inactive.page = 1;
+    fetchAll();
+  }
 
   usePageRefresh('/app/inactiveemployees', async () => {
     repo.setPage(STATUS, 1);

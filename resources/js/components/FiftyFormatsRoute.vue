@@ -13,7 +13,7 @@
   <v-app dir="rtl" class="fontfamilyis">
     <div class="min-h-screen bg-grey-lighten-4">
       <!-- Container -->
-      <section class="mx-auto px-3 px-sm-4 py-6 py-md-8" style="max-width: 1400px">
+      <section class="mx-auto px-3 px-sm-4 py-6 py-md-8" style="max-width: 1800px">
         <!-- Header -->
         <header class="mb-4 mb-md-6">
           <v-card flat color="transparent">

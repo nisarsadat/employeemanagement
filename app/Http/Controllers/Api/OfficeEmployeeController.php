@@ -15,9 +15,6 @@ use Illuminate\Database\QueryException;
 
 class OfficeEmployeeController extends Controller
 {
-    // =========================
-    // ✅ DUPLICATE HELPERS
-    // =========================
     private function isDuplicateKey(QueryException $e): bool
     {
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
@@ -35,9 +32,6 @@ class OfficeEmployeeController extends Controller
         ], 422);
     }
 
-    // =========================
-    // ✅ DATE FILTER HELPERS
-    // =========================
     private function resolveDateField(?string $dateField): string
     {
         $allowed = ['join_date', 'left_date', 'created_at'];
@@ -63,7 +57,6 @@ class OfficeEmployeeController extends Controller
         return $query;
     }
 
-    // ✅ keep the main list query consistent everywhere
     private function baseListQuery()
     {
         return OfficeEmployee::query()
@@ -80,20 +73,55 @@ class OfficeEmployeeController extends Controller
             ]);
     }
 
-    /**
-     * ✅ NEW: Return available years/months based on REAL DB data.
-     *
-     * Query params:
-     * - date_field (join_date|left_date|created_at) default join_date
-     * - year (optional) if provided, returns available months for that year too
-     *
-     * Response:
-     * {
-     *   "date_field": "join_date",
-     *   "years": [2026,2025,2024],
-     *   "months": [1,2,3] // only when year is given
-     * }
-     */
+    private function applyCommonFilters($query, ?string $search, ?string $status, ?string $jobType)
+    {
+        $query
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('name', 'like', "%{$search}%")
+                        ->orWhere('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+            })
+            ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
+                $activeVals   = ['active', OfficeEmployee::ACTIVE];
+                $inactiveVals = ['inactive', OfficeEmployee::INACTIVE];
+
+                if (in_array($status, $activeVals, true)) {
+                    $q->active();
+                } elseif (in_array($status, $inactiveVals, true)) {
+                    $q->inactive();
+                }
+            })
+            ->when($jobType, function ($q) use ($jobType) {
+                if ($jobType === 'اداری') {
+                    $q->whereIn('job_type', ['اداری', 'اداري']);
+                } elseif ($jobType === 'اوپراتیفی') {
+                    $q->whereIn('job_type', ['اوپراتیفی', 'اوپراتیفي']);
+                } else {
+                    $q->where('job_type', $jobType);
+                }
+            });
+
+        return $query;
+    }
+
+    private function buildCardCounts(?string $search, ?string $status, ?string $jobType, ?int $year, ?int $month, string $dateField): array
+    {
+        $base = OfficeEmployee::query();
+
+        $this->applyCommonFilters($base, $search, $status, $jobType);
+        $this->applyMonthYearFilter($base, $year, $month, $dateField);
+
+        return [
+            'total'      => (clone $base)->count(),
+            'edari'      => (clone $base)->whereIn('job_type', ['اداری', 'اداري'])->count(),
+            'operatifi'  => (clone $base)->whereIn('job_type', ['اوپراتیفی', 'اوپراتیفي'])->count(),
+            'active'     => (clone $base)->where('activity', 'فعال')->count(),
+            'inactive'   => (clone $base)->where('activity', 'غیر فعال')->count(),
+        ];
+    }
+
     public function dateOptions(Request $request)
     {
         $request->validate([
@@ -135,9 +163,6 @@ class OfficeEmployeeController extends Controller
         ]);
     }
 
-    /**
-     * List all office employees with search + month/year filters.
-     */
     public function index(Request $request)
     {
         $request->validate([
@@ -145,6 +170,7 @@ class OfficeEmployeeController extends Controller
             'perPage'    => 'sometimes',
             'search'     => 'nullable|string',
             'status'     => 'nullable|string',
+            'job_type'   => 'nullable|string',
             'year'       => 'nullable|integer|min:1900|max:2500',
             'month'      => 'nullable|integer|min:1|max:12',
             'date_field' => 'nullable|string',
@@ -154,41 +180,33 @@ class OfficeEmployeeController extends Controller
         $rawPerPage = $request->input('perPage', null);
         $page       = (int) $request->input('page', 1);
         $status     = $request->input('status', 'all');
+        $jobType    = $request->input('job_type');
 
         $year      = $request->filled('year') ? (int) $request->input('year') : null;
         $month     = $request->filled('month') ? (int) $request->input('month') : null;
         $dateField = $this->resolveDateField($request->input('date_field'));
 
-        $query = $this->baseListQuery()
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($qq) use ($search) {
-                    $qq->where('name', 'like', "%{$search}%")
-                       ->orWhere('code_number', 'like', "%{$search}%")
-                       ->orWhere('phone_number', 'like', "%{$search}%");
-                });
-            })
-            ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
-                $activeVals   = ['active', OfficeEmployee::ACTIVE];
-                $inactiveVals = ['inactive', OfficeEmployee::INACTIVE];
+        $cardCounts = $this->buildCardCounts($search, $status, $jobType, $year, $month, $dateField);
 
-                if (in_array($status, $activeVals, true)) {
-                    $q->active();
-                } elseif (in_array($status, $inactiveVals, true)) {
-                    $q->inactive();
-                }
-            });
+        $query = $this->baseListQuery();
 
+        $this->applyCommonFilters($query, $search, $status, $jobType);
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
 
         $query->orderByDesc('id');
 
         if (is_null($rawPerPage) || $rawPerPage === '' || strtolower((string) $rawPerPage) === 'all' || (int) $rawPerPage === 0) {
-            return OfficeEmployeeResource::collection($query->get());
+            return OfficeEmployeeResource::collection($query->get())
+                ->additional([
+                    'card_counts' => $cardCounts,
+                ]);
         }
 
         return OfficeEmployeeResource::collection(
             $query->paginate(max(1, (int) $rawPerPage), ['*'], 'page', $page)
-        );
+        )->additional([
+            'card_counts' => $cardCounts,
+        ]);
     }
 
     public function show($id)
@@ -215,7 +233,6 @@ class OfficeEmployeeController extends Controller
 
             $employee = OfficeEmployee::create($request->validated());
 
-            // ✅ ONLY CHANGE: set code_number = id (after create)
             if (empty($employee->code_number)) {
                 $employee->update(['code_number' => (string) $employee->id]);
             }
@@ -264,7 +281,6 @@ class OfficeEmployeeController extends Controller
                         'documents',
                     ])
             );
-
         } catch (QueryException $e) {
             DB::rollBack();
 
@@ -276,7 +292,6 @@ class OfficeEmployeeController extends Controller
                 'message' => 'Office employee creation failed',
                 'error'   => $e->getMessage(),
             ], 500);
-
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -297,7 +312,6 @@ class OfficeEmployeeController extends Controller
 
             $original = $officeEmployee->getOriginal();
 
-            // ✅ ONLY CHANGE: never allow updating code_number
             $data = $request->validated();
             unset($data['code_number']);
 
@@ -374,7 +388,6 @@ class OfficeEmployeeController extends Controller
                         'documents',
                     ])
             );
-
         } catch (QueryException $e) {
             DB::rollBack();
 
@@ -386,7 +399,6 @@ class OfficeEmployeeController extends Controller
                 'message' => 'Office employee update failed',
                 'error'   => $e->getMessage(),
             ], 500);
-
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -432,7 +444,6 @@ class OfficeEmployeeController extends Controller
             DB::commit();
 
             return response()->json(['message' => 'Office employee deleted successfully']);
-
         } catch (\Throwable $e) {
             DB::rollBack();
 

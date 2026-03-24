@@ -126,10 +126,10 @@ class MashkokHomesController extends Controller
 
                 NotificationService::record(
                     $user,
-                    'خانه‌های مشکوک',
+                    'مشکوک کورونه',
                     'created',
-                    'خانه مشکوک جدید ثبت شد',
-                    'محل: ' . ($record->province ?? ''),
+                    'مشکوک کورونه ثبت شوو',
+                    'ځای: ' . ($record->province ?? ''),
                     'mashkok-homes',
                     ['id' => $record->id],
                     'success'
@@ -215,10 +215,10 @@ class MashkokHomesController extends Controller
 
                 NotificationService::record(
                     $user,
-                    'خانه‌های مشکوک',
+                    'مشکوک کورونه',
                     'updated',
-                    'خانه مشکوک اصلاح شد',
-                    'محل: ' . ($mashkok_home->province ?? ''),
+                    'مشکوک کورونه اصلاح شوو',
+                    'ځای: ' . ($mashkok_home->province ?? ''),
                     'mashkok-homes',
                     ['id' => $mashkok_home->id],
                     'info'
@@ -255,9 +255,9 @@ class MashkokHomesController extends Controller
 
             NotificationService::record(
                 $user,
-                'خانه‌های مشکوک',
+                'مشکوک کورونه',
                 'deleted',
-                'خانه مشکوک حذف شد',
+                'مشکوک کورونه حذف شوو',
                 'ID: ' . ($mashkok_home->id ?? ''),
                 'mashkok-homes',
                 null,

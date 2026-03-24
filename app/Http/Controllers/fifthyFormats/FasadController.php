@@ -87,7 +87,7 @@ class FasadController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'فساد',
+                    module: 'شر او فساد',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($fasad->name ?? ''),
@@ -217,7 +217,7 @@ class FasadController extends Controller
                 // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
                     $user,
-                    module: 'فساد',
+                    module: 'شر او فساد',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . ($fasad->name ?? ''),
@@ -269,7 +269,7 @@ class FasadController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'فساد',
+                module: 'شر او فساد',
                 action: 'deleted',
                 title: 'ریکارډ حذف شو',
                 message: 'نوم: ' . ($name ?? ''),
@@ -317,7 +317,7 @@ class FasadController extends Controller
             // 🔔 Notification: BULK DELETED
             NotificationService::record(
                 $user,
-                module: 'فساد',
+                module: 'شر او فساد',
                 action: 'bulk_deleted',
                 title: 'ډله ییز حذف ترسره شو',
                 message: 'ټول حذف شوي: ' . count($ids),
@@ -356,7 +356,7 @@ class FasadController extends Controller
 
         NotificationService::record(
             $user,
-            module: 'فساد',
+            module: 'شر او فساد',
             action: 'document_deleted',
             title: 'سند حذف شو',
             message: 'Document ID: ' . $docId,

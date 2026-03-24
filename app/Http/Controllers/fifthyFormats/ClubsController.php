@@ -99,7 +99,7 @@ class ClubsController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'کلبونه',
+                    module: 'ورزشي کلبونه',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($club->name ?? ''),
@@ -180,7 +180,7 @@ class ClubsController extends Controller
                 // 🔔 Notification: UPDATED
                 NotificationService::record(
                     $user,
-                    module: 'کلبونه',
+                    module: 'ورزشي کلبونه',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . ($club->name ?? ''),
@@ -225,7 +225,7 @@ class ClubsController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'کلبونه',
+                module: 'ورزشي کلبونه',
                 action: 'deleted',
                 title: 'ریکارډ حذف شو',
                 message: 'نوم: ' . ($name ?? ''),

@@ -80,9 +80,9 @@ class NonResponsablePeopleController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'اشخاص غیرمسؤول',
+                    module: 'غیر مسوله وسلوال',
                     action: 'created',
-                    title: 'شخص جدید ثبت شد',
+                    title: 'کس ثبت شوو',
                     message: 'نام: ' . ($record->name ?? ''),
                     routeName: 'non-responsable-people',
                     routeParams: ['id' => $record->id],
@@ -148,9 +148,9 @@ class NonResponsablePeopleController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'اشخاص غیرمسؤول',
+                    module: 'غیر مسوله وسلوال',
                     action: 'updated',
-                    title: 'شخص اصلاح شد',
+                    title: 'کس اصلاح شوو',
                     message: 'نام: ' . ($record->name ?? ''),
                     routeName: 'non-responsable-people',
                     routeParams: ['id' => $record->id],
@@ -184,9 +184,9 @@ class NonResponsablePeopleController extends Controller
 
         NotificationService::record(
             $user,
-            module: 'اشخاص غیرمسؤول',
+            module: 'غیر مسوله وسلوال',
             action: 'deleted',
-            title: 'شخص حذف شد',
+            title: 'کس حذف شوو',
             message: 'نام: ' . ($name ?? ''),
             routeName: null,
             routeParams: ['non-responsable-people'],

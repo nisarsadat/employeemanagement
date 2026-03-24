@@ -25,10 +25,10 @@ class CompanyController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این کمپنی قبلاً ثبت شده است.',
+            'message' => 'این شرکتونه او فابریکې قبلاً ثبت شده است.',
             'errors' => [
                 'duplicate' => [
-                    'کمپنی با همین مشخصات (نام، نوع، نوع محصول و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
+                    'شرکتونه او فابریکې با همین مشخصات (نام، نوع، نوع محصول و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
                 ],
             ],
         ], 422);
@@ -91,10 +91,10 @@ class CompanyController extends Controller
                 // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
-                    module: 'کمپنی',
+                    module: 'شرکتونه او فابریکې',
                     action: 'created',
-                    title: 'کمپنی جدید ثبت شد',
-                    message: 'نام کمپنی: ' . ($row->com_name ?? ''),
+                    title: 'شرکتونه او فابریکې  ثبت شوو',
+                    message: 'نام شرکتونه او فابریکې: ' . ($row->com_name ?? ''),
                     routeName: 'companies',           // ✅ set your real route name
                     routeParams: ['id' => $row->id],
                     level: 'success',
@@ -172,10 +172,10 @@ class CompanyController extends Controller
                 // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
                     $user,
-                    module: 'کمپنی',
+                    module: 'شرکتونه او فابریکې',
                     action: 'updated',
-                    title: 'کمپنی اصلاح شد',
-                    message: 'نام کمپنی: ' . ($company->com_name ?? ''),
+                    title: 'شرکتونه او فابریکې اصلاح شوو',
+                    message: 'شرکتونه او فابریکې: ' . ($company->com_name ?? ''),
                     routeName: 'companies',           // ✅ set your real route name
                     routeParams: ['id' => $company->id],
                     level: 'info',
@@ -208,10 +208,10 @@ class CompanyController extends Controller
             // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
-                module: 'کمپنی',
+                module: 'شرکتونه او فابریکې',
                 action: 'deleted',
-                title: 'کمپنی حذف شد',
-                message: 'نام کمپنی: ' . ($name ?? ''),
+                title: 'شرکتونه او فابریکې حذف شوو',
+                message: 'شرکتونه او فابریکې: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['companies'],
                 level: 'warning',

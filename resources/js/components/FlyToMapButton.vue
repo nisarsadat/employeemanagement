@@ -60,11 +60,6 @@
 </script>
 
 <template>
-  <v-btn
-    color="primary"
-    :disabled="!hasCoords"
-    @click="handleClick"
-  >
-    <v-icon start>mdi-map-marker</v-icon>
+  <v-btn icon="mdi-map-marker" variant="text" color="primary" :disabled="!hasCoords" @click="handleClick">
   </v-btn>
 </template>
