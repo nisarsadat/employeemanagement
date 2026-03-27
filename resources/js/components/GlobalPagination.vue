@@ -22,8 +22,8 @@
               :length="pageCount"
               density="comfortable"
               total-visible="7"
-              prev-icon="mdi-chevron-left-circle-outline"
-              next-icon="mdi-chevron-right-circle-outline"
+              prev-icon="mdi-chevron-right-circle-outline"
+              next-icon="mdi-chevron-left-circle-outline"
               @update:model-value="$emit('update:page', $event)"
             />
           </div>
