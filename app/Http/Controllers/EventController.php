@@ -43,6 +43,70 @@ class EventController extends Controller
         return $field;
     }
 
+    private function searchableColumns(): array
+    {
+        return [
+            'id',
+            'resource_id',
+            'office_employee_id',
+            'office_employee_akhistonky_id',
+            'talks',
+            'finance_paid_amount',
+            'finance_status',
+            'event_type',
+            'event_specific_type',
+            'target_person',
+            'criminal',
+            'event_date',
+            'event_hour',
+            'event_zone',
+            'event_hawza',
+            'event_specific_place',
+            'coordinates',
+            'talafat_mali',
+            'injured',
+            'killed',
+            'tafseel',
+            'money_amount_words',
+            'note',
+            'docs_note',
+        ];
+    }
+
+    private function resolveSearchField(?string $field): ?string
+    {
+        $field = trim((string) $field);
+
+        return in_array($field, $this->searchableColumns(), true) ? $field : null;
+    }
+
+    private function applySearchFilter($query, ?string $search, ?string $searchField = null)
+    {
+        $s = trim((string) $search);
+        if ($s === '') {
+            return $query;
+        }
+
+        $resolvedField = $this->resolveSearchField($searchField);
+
+        if ($resolvedField) {
+            $query->where($resolvedField, 'like', "%{$s}%");
+            return $query;
+        }
+
+        $query->where(function ($qq) use ($s) {
+            foreach ($this->searchableColumns() as $index => $column) {
+                if ($index === 0) {
+                    $qq->where($column, 'like', "%{$s}%");
+                } else {
+                    $qq->orWhere($column, 'like', "%{$s}%");
+                }
+            }
+        });
+
+        return $query;
+    }
+
     private function applyMonthYearFilter($query, ?int $year, ?int $month, string $dateField)
     {
         if ($year) {
@@ -68,36 +132,24 @@ class EventController extends Controller
         ]);
     }
 
-    private function applyCommonFilters($query, ?string $search, ?string $cardFilter)
+    private function applyCommonFilters($query, ?string $search, ?string $cardFilter, ?string $searchField = null)
     {
-        $query->when($search, function ($q) use ($search) {
-            $s = trim((string) $search);
-            $q->where(function ($qq) use ($s) {
-                $qq->where('event_type', 'like', "%{$s}%")
-                    ->orWhere('event_specific_type', 'like', "%{$s}%")
-                    ->orWhere('target_person', 'like', "%{$s}%")
-                    ->orWhere('criminal', 'like', "%{$s}%")
-                    ->orWhere('event_zone', 'like', "%{$s}%")
-                    ->orWhere('event_hawza', 'like', "%{$s}%")
-                    ->orWhere('event_specific_place', 'like', "%{$s}%");
-            });
-        });
+        $this->applySearchFilter($query, $search, $searchField);
 
         $query->when($cardFilter && $cardFilter !== 'all', function ($q) use ($cardFilter) {
             if ($cardFilter === 'syasi') {
                 $q->where(function ($qq) {
                     $qq->where('event_type', 'like', '%سیاسی%')
-                    ->orWhere('event_type', 'like', '%سیاسي%')
-                    ->orWhere('event_type', 'like', '%syasi%');
+                      ->orWhere('event_type', 'like', '%سیاسي%')
+                      ->orWhere('event_type', 'like', '%syasi%');
                 });
-
             } elseif ($cardFilter === 'jenayee') {
                 $q->where(function ($qq) {
                     $qq->where('event_type', 'like', '%جینایی%')
-                    ->orWhere('event_type', 'like', '%جنایی%')
-                    ->orWhere('event_type', 'like', '%جنایي%')
-                    ->orWhere('event_type', 'like', '%jinayee%')
-                    ->orWhere('event_type', 'like', '%jenayee%');
+                      ->orWhere('event_type', 'like', '%جنایی%')
+                      ->orWhere('event_type', 'like', '%جنایي%')
+                      ->orWhere('event_type', 'like', '%jinayee%')
+                      ->orWhere('event_type', 'like', '%jenayee%');
                 });
             } elseif ($cardFilter === 'today') {
                 $q->whereDate('created_at', now()->toDateString());
@@ -114,11 +166,11 @@ class EventController extends Controller
         return $query;
     }
 
-    private function buildCardCounts(?string $search, ?int $year, ?int $month, string $dateField): array
+    private function buildCardCounts(?string $search, ?string $searchField, ?int $year, ?int $month, string $dateField): array
     {
         $base = Event::query();
 
-        $this->applyCommonFilters($base, $search, null);
+        $this->applyCommonFilters($base, $search, null, $searchField);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
 
         return [
@@ -126,25 +178,25 @@ class EventController extends Controller
 
             'syasi'    => (clone $base)->where(function ($q) {
                 $q->where('event_type', 'like', '%سیاسی%')
-                ->orWhere('event_type', 'like', '%سیاسي%')
-                ->orWhere('event_type', 'like', '%syasi%');
+                  ->orWhere('event_type', 'like', '%سیاسي%')
+                  ->orWhere('event_type', 'like', '%syasi%');
             })->count(),
 
             'jenayee'  => (clone $base)->where(function ($q) {
                 $q->where('event_type', 'like', '%جینایی%')
-                ->orWhere('event_type', 'like', '%جنایی%')
-                ->orWhere('event_type', 'like', '%جنایي%')
-                ->orWhere('event_type', 'like', '%jinayee%')
-                ->orWhere('event_type', 'like', '%jenayee%');
+                  ->orWhere('event_type', 'like', '%جنایی%')
+                  ->orWhere('event_type', 'like', '%جنایي%')
+                  ->orWhere('event_type', 'like', '%jinayee%')
+                  ->orWhere('event_type', 'like', '%jenayee%');
             })->count(),
 
             'today'    => (clone $base)->whereDate('created_at', now()->toDateString())->count(),
 
             'unpaid'   => (clone $base)->where(function ($q) {
                 $q->where('finance_status', 'unpaid')
-                ->orWhere('finance_status', 'pending')
-                ->orWhere('finance_status', 'ناپرداخت')
-                ->orWhere('finance_status', 'not_paid');
+                  ->orWhere('finance_status', 'pending')
+                  ->orWhere('finance_status', 'ناپرداخت')
+                  ->orWhere('finance_status', 'not_paid');
             })->count(),
         ];
     }
@@ -193,29 +245,31 @@ class EventController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'page'        => 'sometimes|integer|min:1',
-            'perPage'     => 'sometimes',
-            'search'      => 'nullable|string',
-            'year'        => 'nullable|integer|min:1900|max:2500',
-            'month'       => 'nullable|integer|min:1|max:12',
-            'date_field'  => 'nullable|string',
-            'card_filter' => 'nullable|string',
+            'page'         => 'sometimes|integer|min:1',
+            'perPage'      => 'sometimes',
+            'search'       => 'nullable|string',
+            'search_field' => 'nullable|string',
+            'year'         => 'nullable|integer|min:1900|max:2500',
+            'month'        => 'nullable|integer|min:1|max:12',
+            'date_field'   => 'nullable|string',
+            'card_filter'  => 'nullable|string',
         ]);
 
-        $search     = $request->input('search');
-        $rawPerPage = $request->input('perPage', null);
-        $page       = (int) $request->input('page', 1);
-        $cardFilter = $request->input('card_filter', 'all');
+        $search      = $request->input('search');
+        $searchField = $this->resolveSearchField($request->input('search_field'));
+        $rawPerPage  = $request->input('perPage', null);
+        $page        = (int) $request->input('page', 1);
+        $cardFilter  = $request->input('card_filter', 'all');
 
         $year      = $request->filled('year') ? (int) $request->input('year') : null;
         $month     = $request->filled('month') ? (int) $request->input('month') : null;
         $dateField = $this->resolveDateField($request->input('date_field'));
 
-        $cardCounts = $this->buildCardCounts($search, $year, $month, $dateField);
+        $cardCounts = $this->buildCardCounts($search, $searchField, $year, $month, $dateField);
 
         $query = $this->baseListQuery();
 
-        $this->applyCommonFilters($query, $search, $cardFilter);
+        $this->applyCommonFilters($query, $search, $cardFilter, $searchField);
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
 
         $query->orderByDesc('id');

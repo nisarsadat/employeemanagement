@@ -239,6 +239,7 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
             ...queryParams,
             status: params.status ?? 'all',
             job_type: params.job_type ?? undefined,
+            search_field: params.search_field ?? undefined,
           },
         });
 

@@ -12,19 +12,24 @@
       <v-row class="align-center">
         <!-- Search Field -->
         <v-col cols="12" sm="12" md="12" lg="12">
-          <v-text-field
-            v-model.trim="repo.Search"
-            :label="t('جستجو در کارمندان...')"
-            density="comfortable"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            color="primary"
-            rounded="lg"
-            hide-details
-            @keyup.enter="fetchAll"
-            clearable
-            @click:clear="clearSearch"
-            class="bg-white search-field"
+          <SearchColumnFilter
+            v-model:modelSearch="repo.Search"
+            v-model:modelColumn="searchField"
+            :headers="headersFT"
+            :search-label="t('جستجو در کارمندان...')"
+            :column-label="t('ستون جستجو')"
+            :all-columns-label="t('همه ستون‌ها')"
+            :exclude-keys="[
+              'picture',
+              'map',
+              'resources_count',
+              'resources_active_count',
+              'resources_inactive_count',
+              'informations_count',
+              'events_count',
+            ]"
+            @search="fetchAll"
+            @clear="clearSearch"
           />
         </v-col>
 
@@ -526,7 +531,8 @@
 
   import GlobalPagination from '@/components/GlobalPagination.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
-
+  import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
+  const searchField = ref(null);
   const router = useRouter();
   const route = useRoute();
   const { t, locale } = useI18n();
@@ -666,7 +672,7 @@
   }
 
   const focusId = computed(() => {
-    const id = route.query?.id;
+    const id = route.query?.id || route.query?.office_employee_id;
     return id ? Number(id) : null;
   });
 
@@ -887,6 +893,7 @@
         date_field: 'join_date',
         status: selectedCardStatus.value,
         job_type: selectedCardJobType.value,
+        search_field: searchField.value,
       });
     } catch (e) {
       console.error('fetchAll error', e);
@@ -963,12 +970,19 @@
   }
   async function clearAllFilters() {
     repo.Search = '';
+    searchField.value = null;
     filterYear.value = null;
     filterMonth.value = null;
     selectedCardStatus.value = 'all';
     selectedCardJobType.value = null;
+    filters.value = {};
     repo.page = 1;
 
+    expanded.value = false;
+    selectedId.value = null;
+    detail.value = null;
+
+    await router.replace({ path: '/app/officeemployee', query: {} });
     await fetchAll();
   }
   async function downloadEmployeeDocs(payload) {

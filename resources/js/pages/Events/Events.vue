@@ -11,20 +11,18 @@
     <v-container class="pa-0">
       <v-row class="align-center">
         <!-- Search Field -->
+        <!-- Search Field -->
         <v-col cols="12" sm="12" md="12" lg="12">
-          <v-text-field
-            v-model.trim="repo.Search"
-            :label="t('جستجو در واقعات...')"
-            density="comfortable"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            color="primary"
-            rounded="lg"
-            hide-details
-            @keyup.enter="fetchAll"
-            clearable
-            @click:clear="clearSearch"
-            class="bg-white search-field"
+          <SearchColumnFilter
+            v-model:modelSearch="repo.Search"
+            v-model:modelColumn="searchField"
+            :headers="headersFT"
+            :search-label="t('جستجو در واقعات...')"
+            :column-label="t('ستون جستجو')"
+            :all-columns-label="t('همه ستون‌ها')"
+            :exclude-keys="['resource_display', 'office_employee_display', 'map']"
+            @search="fetchAll"
+            @clear="clearSearch"
           />
         </v-col>
 
@@ -433,11 +431,12 @@
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
+  import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
 
   const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const router = useRouter();
-
+  const searchField = ref(null);
   const { t, locale } = useI18n();
   const { calendar, formatYearDisplay } = useCalendar();
 
@@ -490,6 +489,7 @@
   );
   async function clearAllFilters() {
     repo.Search = '';
+    searchField.value = null;
     filterYear.value = null;
     filterMonth.value = null;
     activeCard.value = 'all';
@@ -820,6 +820,7 @@
     try {
       await repo.FetchEventsData({
         search: repo.Search,
+        search_field: searchField.value,
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'event_date',
@@ -830,9 +831,9 @@
       showErrorMessage(t('خطا در دریافت فهرست واقعات'));
     }
   }
-
   function clearSearch() {
     repo.Search = '';
+    searchField.value = null;
     repo.page = 1;
     fetchAll();
   }

@@ -44,6 +44,63 @@ class OfficeEmployeeController extends Controller
         return $field;
     }
 
+    private function searchableColumns(): array
+    {
+        return [
+            'name',
+            'father_name',
+            'grand_father_name',
+            'nick_name',
+            'code_number',
+            'tazkira',
+            'age',
+            'job_type',
+            'specific_job',
+            'qisem',
+            'bast',
+            'level',
+            'zone',
+            'hawza',
+            'history_jahad',
+            'dilgay_mesher',
+            'jahadi_mawaqaf',
+            'jahad_time_responsibility',
+            'jahad_place',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_district',
+            'now_village',
+            'now_specific_place',
+            'now_street_number',
+            'now_home_number',
+            'relegy_study',
+            'new_study',
+            'faculty',
+            'nizami',
+            'gun_knowledge',
+            'phone_number',
+            'language',
+            'nation',
+            'specific_skills',
+            'activity',
+            'coordinates',
+            'makhafat',
+            'makafat',
+            'join_date',
+            'left_date',
+            'note',
+        ];
+    }
+
+    private function resolveSearchField(?string $field): ?string
+    {
+        $field = trim((string) $field);
+
+        return in_array($field, $this->searchableColumns(), true) ? $field : null;
+    }
+
     private function applyMonthYearFilter($query, ?int $year, ?int $month, string $dateField)
     {
         if ($year) {
@@ -73,15 +130,25 @@ class OfficeEmployeeController extends Controller
             ]);
     }
 
-    private function applyCommonFilters($query, ?string $search, ?string $status, ?string $jobType)
+    private function applyCommonFilters($query, ?string $search, ?string $status, ?string $jobType, ?string $searchField = null)
     {
         $query
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($qq) use ($search) {
-                    $qq->where('name', 'like', "%{$search}%")
-                        ->orWhere('code_number', 'like', "%{$search}%")
-                        ->orWhere('phone_number', 'like', "%{$search}%");
-                });
+            ->when($search, function ($q) use ($search, $searchField) {
+                $resolvedField = $this->resolveSearchField($searchField);
+
+                if ($resolvedField) {
+                    $q->where($resolvedField, 'like', "%{$search}%");
+                } else {
+                    $q->where(function ($qq) use ($search) {
+                        foreach ($this->searchableColumns() as $index => $column) {
+                            if ($index === 0) {
+                                $qq->where($column, 'like', "%{$search}%");
+                            } else {
+                                $qq->orWhere($column, 'like', "%{$search}%");
+                            }
+                        }
+                    });
+                }
             })
             ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
                 $activeVals   = ['active', OfficeEmployee::ACTIVE];
@@ -106,11 +173,11 @@ class OfficeEmployeeController extends Controller
         return $query;
     }
 
-    private function buildCardCounts(?string $search, ?string $status, ?string $jobType, ?int $year, ?int $month, string $dateField): array
+    private function buildCardCounts(?string $search, ?string $status, ?string $jobType, ?int $year, ?int $month, string $dateField, ?string $searchField = null): array
     {
         $base = OfficeEmployee::query();
 
-        $this->applyCommonFilters($base, $search, $status, $jobType);
+        $this->applyCommonFilters($base, $search, $status, $jobType, $searchField);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
 
         return [
@@ -166,31 +233,33 @@ class OfficeEmployeeController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'page'       => 'sometimes|integer|min:1',
-            'perPage'    => 'sometimes',
-            'search'     => 'nullable|string',
-            'status'     => 'nullable|string',
-            'job_type'   => 'nullable|string',
-            'year'       => 'nullable|integer|min:1900|max:2500',
-            'month'      => 'nullable|integer|min:1|max:12',
-            'date_field' => 'nullable|string',
+            'page'         => 'sometimes|integer|min:1',
+            'perPage'      => 'sometimes',
+            'search'       => 'nullable|string',
+            'search_field' => 'nullable|string',
+            'status'       => 'nullable|string',
+            'job_type'     => 'nullable|string',
+            'year'         => 'nullable|integer|min:1900|max:2500',
+            'month'        => 'nullable|integer|min:1|max:12',
+            'date_field'   => 'nullable|string',
         ]);
 
-        $search     = $request->input('search');
-        $rawPerPage = $request->input('perPage', null);
-        $page       = (int) $request->input('page', 1);
-        $status     = $request->input('status', 'all');
-        $jobType    = $request->input('job_type');
+        $search      = $request->input('search');
+        $searchField = $this->resolveSearchField($request->input('search_field'));
+        $rawPerPage  = $request->input('perPage', null);
+        $page        = (int) $request->input('page', 1);
+        $status      = $request->input('status', 'all');
+        $jobType     = $request->input('job_type');
 
         $year      = $request->filled('year') ? (int) $request->input('year') : null;
         $month     = $request->filled('month') ? (int) $request->input('month') : null;
         $dateField = $this->resolveDateField($request->input('date_field'));
 
-        $cardCounts = $this->buildCardCounts($search, $status, $jobType, $year, $month, $dateField);
+        $cardCounts = $this->buildCardCounts($search, $status, $jobType, $year, $month, $dateField, $searchField);
 
         $query = $this->baseListQuery();
 
-        $this->applyCommonFilters($query, $search, $status, $jobType);
+        $this->applyCommonFilters($query, $search, $status, $jobType, $searchField);
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
 
         $query->orderByDesc('id');
@@ -457,25 +526,35 @@ class OfficeEmployeeController extends Controller
     public function inactive(Request $request)
     {
         $request->validate([
-            'search'     => 'nullable|string',
-            'perPage'    => 'sometimes',
-            'year'       => 'nullable|integer|min:1900|max:2500',
-            'month'      => 'nullable|integer|min:1|max:12',
-            'date_field' => 'nullable|string',
+            'search'       => 'nullable|string',
+            'search_field' => 'nullable|string',
+            'perPage'      => 'sometimes',
+            'year'         => 'nullable|integer|min:1900|max:2500',
+            'month'        => 'nullable|integer|min:1|max:12',
+            'date_field'   => 'nullable|string',
         ]);
 
-        $year      = $request->filled('year') ? (int) $request->input('year') : null;
-        $month     = $request->filled('month') ? (int) $request->input('month') : null;
-        $dateField = $this->resolveDateField($request->input('date_field'));
+        $year        = $request->filled('year') ? (int) $request->input('year') : null;
+        $month       = $request->filled('month') ? (int) $request->input('month') : null;
+        $dateField   = $this->resolveDateField($request->input('date_field'));
+        $searchField = $this->resolveSearchField($request->input('search_field'));
 
         $query = $this->baseListQuery()->inactive()->orderByDesc('id');
 
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code_number', 'like', "%{$search}%")
-                  ->orWhere('phone_number', 'like', "%{$search}%");
-            });
+            if ($searchField) {
+                $query->where($searchField, 'like', "%{$search}%");
+            } else {
+                $query->where(function ($q) use ($search) {
+                    foreach ($this->searchableColumns() as $index => $column) {
+                        if ($index === 0) {
+                            $q->where($column, 'like', "%{$search}%");
+                        } else {
+                            $q->orWhere($column, 'like', "%{$search}%");
+                        }
+                    }
+                });
+            }
         }
 
         $this->applyMonthYearFilter($query, $year, $month, $dateField);

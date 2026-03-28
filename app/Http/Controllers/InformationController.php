@@ -30,6 +30,86 @@ class InformationController extends Controller
         return $field;
     }
 
+    private function searchableColumns(): array
+    {
+        return [
+            'id',
+            'resource_id',
+            'office_employee_id',
+            'office_employee_info_id',
+            'finance_paid_amount',
+            'finance_status',
+            'name',
+            'nick_name',
+            'father_name',
+            'grand_father_name',
+            'madani_halat',
+            'age',
+            'job',
+            'main_province',
+            'main_districts',
+            'main_village',
+            'now_province',
+            'now_district',
+            'now_village',
+            'specefic_place',
+            'street_number',
+            'home_number',
+            'coordinates',
+            'syasi_info_type',
+            'jenayee_info_type',
+            'letry_format_name',
+            'information_saved_date',
+            'information_saved_hour',
+            'information_degree',
+            'information_category',
+            'resource_lasrasy',
+            'tafseel',
+            'docs_note',
+            'tahlil',
+            'manager_comment',
+            'lead_drirection',
+            'hamahangi_date',
+            'maktop_number',
+            'organ',
+            'result',
+            'note',
+        ];
+    }
+
+    private function resolveSearchField(?string $field): ?string
+    {
+        $field = trim((string) $field);
+
+        return in_array($field, $this->searchableColumns(), true) ? $field : null;
+    }
+
+    private function applySearchFilter($query, string $search, ?string $searchField = null)
+    {
+        if ($search === '') {
+            return $query;
+        }
+
+        $resolvedField = $this->resolveSearchField($searchField);
+
+        if ($resolvedField) {
+            $query->where($resolvedField, 'like', "%{$search}%");
+            return $query;
+        }
+
+        $query->where(function ($qq) use ($search) {
+            foreach ($this->searchableColumns() as $index => $column) {
+                if ($index === 0) {
+                    $qq->where($column, 'like', "%{$search}%");
+                } else {
+                    $qq->orWhere($column, 'like', "%{$search}%");
+                }
+            }
+        });
+
+        return $query;
+    }
+
     private function applyMonthYearFilter($query, ?int $year, ?int $month, string $dateField)
     {
         if ($year) {
@@ -158,18 +238,21 @@ class InformationController extends Controller
      * ✅ build backend stats based on current search/month/year/related filters
      * but without current card stat filter
      */
-    private function buildStats(Request $request, string $dateField, string $search, ?int $year, ?int $month, string $date, string $dateFrom, string $dateTo, ?int $relatedId): array
-    {
+    private function buildStats(
+        Request $request,
+        string $dateField,
+        string $search,
+        ?string $searchField,
+        ?int $year,
+        ?int $month,
+        string $date,
+        string $dateFrom,
+        string $dateTo,
+        ?int $relatedId
+    ): array {
         $base = Information::query();
 
-        if ($search !== '') {
-            $base->where(function ($qq) use ($search) {
-                $qq->where('name', 'like', "%{$search}%")
-                   ->orWhere('father_name', 'like', "%{$search}%")
-                   ->orWhere('nick_name', 'like', "%{$search}%");
-            });
-        }
-
+        $this->applySearchFilter($base, $search, $searchField);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
         $this->applyRelatedFilter($base, $relatedId);
 
@@ -271,31 +354,33 @@ class InformationController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'page'       => 'sometimes|integer|min:1',
-            'perPage'    => 'sometimes',
-            'search'     => 'nullable|string',
+            'page'         => 'sometimes|integer|min:1',
+            'perPage'      => 'sometimes',
+            'search'       => 'nullable|string',
+            'search_field' => 'nullable|string',
 
             // ✅ month/year filters
-            'year'       => 'nullable|integer|min:1900|max:2500',
-            'month'      => 'nullable|integer|min:1|max:12',
-            'date_field' => 'nullable|string',
+            'year'         => 'nullable|integer|min:1900|max:2500',
+            'month'        => 'nullable|integer|min:1|max:12',
+            'date_field'   => 'nullable|string',
 
             // ✅ optional: day or range filters
-            'date'       => 'nullable|string',
-            'date_from'  => 'nullable|string',
-            'date_to'    => 'nullable|string',
-            'from_date'  => 'nullable|string',
-            'to_date'    => 'nullable|string',
+            'date'         => 'nullable|string',
+            'date_from'    => 'nullable|string',
+            'date_to'      => 'nullable|string',
+            'from_date'    => 'nullable|string',
+            'to_date'      => 'nullable|string',
 
             // ✅ NEW
-            'stat'       => 'nullable|string',
-            'related_id' => 'nullable|integer',
-            'stats_only' => 'nullable',
+            'stat'         => 'nullable|string',
+            'related_id'   => 'nullable|integer',
+            'stats_only'   => 'nullable',
         ]);
 
-        $search     = trim((string) $request->input('search', ''));
-        $rawPerPage = $request->input('perPage', null);
-        $page       = (int) $request->input('page', 1);
+        $search      = trim((string) $request->input('search', ''));
+        $searchField = $this->resolveSearchField($request->input('search_field'));
+        $rawPerPage  = $request->input('perPage', null);
+        $page        = (int) $request->input('page', 1);
 
         $year      = $request->filled('year') ? (int) $request->input('year') : null;
         $month     = $request->filled('month') ? (int) $request->input('month') : null;
@@ -313,6 +398,7 @@ class InformationController extends Controller
             $request,
             $dateField,
             $search,
+            $searchField,
             $year,
             $month,
             $date,
@@ -327,14 +413,9 @@ class InformationController extends Controller
             ]);
         }
 
-        $query = $this->baseListQuery()
-            ->when($search !== '', function ($q) use ($search) {
-                $q->where(function ($qq) use ($search) {
-                    $qq->where('name', 'like', "%{$search}%")
-                       ->orWhere('father_name', 'like', "%{$search}%")
-                       ->orWhere('nick_name', 'like', "%{$search}%");
-                });
-            });
+        $query = $this->baseListQuery();
+
+        $this->applySearchFilter($query, $search, $searchField);
 
         // ✅ existing month/year filter
         $this->applyMonthYearFilter($query, $year, $month, $dateField);

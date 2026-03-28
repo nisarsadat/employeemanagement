@@ -1361,11 +1361,6 @@
       return;
     }
 
-    if (!form.value.name?.trim()) {
-      showErrorMessage(t('نام الزامی است'));
-      return;
-    }
-
     if (!allowDuplicateSave.value) {
       const hasDuplicate = await checkDuplicateBeforeSave();
       if (hasDuplicate) {

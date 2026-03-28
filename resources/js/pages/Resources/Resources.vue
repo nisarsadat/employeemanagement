@@ -10,8 +10,26 @@
     <!-- 🔍 Search + ➕ Create -->
     <v-container class="pa-0">
       <v-row class="align-center">
+        <!-- Search Column -->
+        <v-col cols="12" sm="12" md="4" lg="4">
+          <v-select
+            v-model="searchField"
+            :items="searchColumnItems"
+            item-title="title"
+            item-value="value"
+            density="comfortable"
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            hide-details
+            clearable
+            :label="t('ستون جستجو')"
+            class="bg-white"
+          />
+        </v-col>
+
         <!-- Search Field -->
-        <v-col cols="12" sm="12" md="12" lg="12">
+        <v-col cols="12" sm="12" md="8" lg="8">
           <v-text-field
             v-model.trim="repo.Search"
             :label="t('جستجو در منابع...')"
@@ -108,7 +126,6 @@
 
     <!-- 📊 STATS CARDS -->
     <v-row class="px-2 mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
-      <!-- Total resources (filters table: all) -->
       <v-col cols="12" md="3" lg="3">
         <v-card
           class="stat-card"
@@ -132,7 +149,6 @@
         </v-card>
       </v-col>
 
-      <!-- Active resources (ROUTE) -->
       <v-col cols="12" md="3" lg="3">
         <v-card class="stat-card" @click="goActiveResources" rounded="xl">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
@@ -151,7 +167,6 @@
         </v-card>
       </v-col>
 
-      <!-- Inactive resources (ROUTE) -->
       <v-col cols="12" md="3" lg="3">
         <v-card class="stat-card" @click="goInactiveResources" rounded="xl">
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
@@ -170,7 +185,6 @@
         </v-card>
       </v-col>
 
-      <!-- Today added (filters table: today) -->
       <v-col cols="12" md="3" lg="3">
         <v-card
           class="stat-card"
@@ -195,7 +209,6 @@
       </v-col>
     </v-row>
 
-    <!-- 👁 Peek (side/details) -->
     <v-container fluid>
       <PeekButton
         v-model="expanded"
@@ -211,7 +224,6 @@
       />
     </v-container>
 
-    <!-- 📋 MAIN TABLE -->
     <FilterableTable
       :headers="headersFT"
       :rows="displayedRowsFT"
@@ -228,7 +240,6 @@
       @peek="openPeek"
       class="mx-2"
     >
-      <!-- 🖼 Picture cell -->
       <template #cell-picture="{ row }">
         <v-avatar size="36" class="cursor-pointer" @click="openPreview(row)">
           <v-img v-if="getPhotoUrl(row)" :src="getPhotoUrl(row)" cover />
@@ -236,7 +247,6 @@
         </v-avatar>
       </template>
 
-      <!-- 🟢🔴 Activity dot (فعال/غیر فعال) -->
       <template #cell-activity="{ row }">
         <div class="d-flex align-center justify-center">
           <span
@@ -250,7 +260,6 @@
         </div>
       </template>
 
-      <!-- 👤 Office employee cell with route + tooltip -->
       <template #cell-office_employee_id="{ row }">
         <div v-if="getOfficeEmployee(row)" class="d-flex flex-column align-start">
           <v-tooltip :text="t('برای رفتن به صفحه کارمندان لطفا کلیک کنید')" location="top">
@@ -275,7 +284,6 @@
         <span v-else class="text-xs text-grey">-</span>
       </template>
 
-      <!-- 📌 Events count -->
       <template #cell-events_count="{ row }">
         <div v-if="getRow(row)?.events_count > 0" class="d-flex flex-column align-start">
           <v-tooltip :text="t('برای دیدن واقعات این منبع کلیک کنید')" location="top">
@@ -301,7 +309,6 @@
         <span v-else class="text-xs text-red"> 0 </span>
       </template>
 
-      <!-- 🧩 Informations count -->
       <template #cell-informations_count="{ row }">
         <div v-if="getRow(row)?.informations_count > 0" class="d-flex flex-column align-start">
           <v-tooltip :text="t('برای دیدن اطلاعات این منبع کلیک کنید')" location="top">
@@ -327,7 +334,6 @@
         <span v-else class="text-xs text-red">0</span>
       </template>
 
-      <!-- 📑 Fifty-six formats count -->
       <template #cell-fifty_six_formats_count="{ row }">
         <div v-if="getRow(row)?.fifty_six_formats_count > 0" class="d-flex flex-column align-start">
           <v-tooltip :text="t('برای دیدن ۵۶ فارمت های این منبع کلیک کنید')" location="top">
@@ -352,7 +358,7 @@
         </div>
         <span v-else class="text-xs text-red">0</span>
       </template>
-      <!-- 📑 Fifty-six formats count -->
+
       <template #cell-code_number="{ row }">
         <div class="d-flex flex-column align-start">
           <v-btn class="px-2 py-1 text-none" color="warning" size="default" variant="tonal">
@@ -365,7 +371,6 @@
         </div>
       </template>
 
-      <!-- 🗺 Map cell -->
       <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="getRow(row).coordinates"
@@ -377,10 +382,8 @@
         />
       </template>
 
-      <!-- ⚙️ ACTIONS -->
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
-          <!-- مشاهده -->
           <v-tooltip text="مشاهده منبع" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon size="small" v-bind="tooltipProps" @click.stop="openPeek(item)" color="blue">
@@ -389,7 +392,6 @@
             </template>
           </v-tooltip>
 
-          <!-- ویرایش -->
           <v-tooltip text="تغییر جزیات منبع" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -404,7 +406,6 @@
             </template>
           </v-tooltip>
 
-          <!-- حذف -->
           <v-tooltip text="حذف منبع" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -430,7 +431,6 @@
       @update:itemsPerPage="handlePerPageChange"
     />
 
-    <!-- 🖼 BIG PREVIEW DIALOG -->
     <v-dialog v-model="previewOpen" max-width="520" :dir="isRtl ? 'rtl' : 'ltr'">
       <v-card :dir="isRtl ? 'rtl' : 'ltr'">
         <v-toolbar
@@ -451,7 +451,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- 🔁 Reusable Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -459,7 +458,6 @@
       @confirm="handleDeleteConfirmed"
     />
 
-    <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
@@ -489,7 +487,6 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/resources', fetchAll);
   const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();
@@ -498,11 +495,12 @@
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
 
+  const searchField = ref(null);
+
   /* ===== RTL ===== */
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
 
-  /* ===== Helpers: unwrap + URL ===== */
   function getRow(payload) {
     return payload?.raw ?? payload;
   }
@@ -518,11 +516,9 @@
     return normalizeUrl(row.picture || row.picture_url);
   }
 
-  /* ===== Month/Year Filter ===== */
-  const filterYear = ref(null); // sent to backend (gregorian)
-  const filterMonth = ref(null); // sent to backend (gregorian 1..12)
+  const filterYear = ref(null);
+  const filterMonth = ref(null);
 
-  // ✅ year items from DB, but titles follow calendar mode
   const yearItems = ref([]);
   const yearNumbers = ref([]);
 
@@ -543,7 +539,6 @@
     }
   }
 
-  // ✅ update year titles when calendar/locale changes (selected value stays same)
   watch(
     [calendar, locale],
     () => {
@@ -556,7 +551,6 @@
     { immediate: false }
   );
 
-  // ✅ month titles follow calendar mode, but values stay gregorian 1..12
   const JALALI_MONTHS_FA = [
     'حمل',
     'ثور',
@@ -643,121 +637,8 @@
     await fetchAll();
   }
 
-  async function fetchAll() {
-    try {
-      await repo.FetchResourcesData({
-        year: filterYear.value,
-        month: filterMonth.value,
-        date_field: 'resource_saved_date',
-        stat: quickFilter.value === 'all' ? null : quickFilter.value,
-      });
-    } catch (e) {
-      console.error('fetchAll error', e);
-      showErrorMessage(t('خطا در دریافت فهرست منابع'));
-    }
-  }
-  function handlePageChange(value) {
-    repo.page = value;
-    fetchAll();
-  }
-
-  function handlePerPageChange(value) {
-    repo.itemsPerPage = value;
-    repo.page = 1;
-    fetchAll();
-  }
-
-  /* ===== Office employee ===== */
-  function getOfficeEmployee(payload) {
-    const row = getRow(payload);
-    if (!row) return null;
-    return row.office_employee || null;
-  }
-
-  // 🔗 Go to events of this resource
-  function goResourceEvents(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    router.push({ path: '/app/events', query: { resource_id: row.id } });
-  }
-
-  // 🔗 Go to informations of this resource
-  function goResourceInformations(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    router.push({ path: '/app/informations', query: { resource_id: row.id } });
-  }
-
-  // 🔗 Go to 56 formats of this resource
-  function goResourceFiftySixFormats(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    router.push({ path: '/app/fifthyformatsroute', query: { resource_id: row.id } });
-  }
-
-  /* ===== Data for table ===== */
   const rowsFT = computed(() => repo.Resources || []);
 
-  /* ===== Date helpers ===== */
-  function isSameDate(dateValue, today) {
-    if (!dateValue) return false;
-    const d = new Date(dateValue);
-    if (Number.isNaN(d.getTime())) return false;
-    return (
-      d.getFullYear() === today.getFullYear() &&
-      d.getMonth() === today.getMonth() &&
-      d.getDate() === today.getDate()
-    );
-  }
-
-  /* ===== Stats ===== */
-  const totalCount = computed(() => Number(repo.resourceStats?.total_count) || 0);
-  const activeCount = computed(() => Number(repo.resourceStats?.active_count) || 0);
-  const inactiveCount = computed(() => Number(repo.resourceStats?.inactive_count) || 0);
-  const todayAddedCount = computed(() => Number(repo.resourceStats?.today_added_count) || 0);
-  function goActiveResources() {
-    router.push('/app/activeresource');
-  }
-
-  function goInactiveResources() {
-    router.push('/app/inactiveresource');
-  }
-
-  /* ===== Quick filter for stats cards ===== */
-  const quickFilter = ref('all'); // 'all' | 'today'
-
-  async function applyQuickFilter(mode) {
-    quickFilter.value = mode;
-    repo.page = 1;
-    await fetchAll();
-  }
-
-  const routeResourceId = computed(() => {
-    const v = route.query?.resource_id;
-    return v ? Number(v) : null;
-  });
-  async function clearAllFilters() {
-    repo.Search = '';
-    filterYear.value = null;
-    filterMonth.value = null;
-    quickFilter.value = 'all';
-    filters.value = {};
-    repo.page = 1;
-
-    await fetchAll();
-  }
-  const displayedRowsFT = computed(() => {
-    let data = rowsFT.value || [];
-
-    // ✅ if we came here from Events by resource_id
-    if (routeResourceId.value) {
-      data = data.filter((r) => Number(r.id) === routeResourceId.value);
-    }
-
-    return data;
-  });
-
-  /* ===== Headers for FilterableTable ===== */
   const headersFT = computed(() => [
     { title: t('تصویر'), key: 'picture', sortable: false },
     { title: t('پول داده شده'), key: 'payed_money' },
@@ -816,7 +697,142 @@
     { title: t('نوت'), key: 'note' },
   ]);
 
-  /* ===== Top filter groups ===== */
+  const searchColumnItems = computed(() => {
+    const excluded = [
+      'picture',
+      'map',
+      'events_count',
+      'informations_count',
+      'khayrat_reports_count',
+      'fifty_six_formats_count',
+      'payed_money',
+      'office_employee_id',
+    ];
+
+    const items = headersFT.value
+      .filter((h) => h?.key && !excluded.includes(h.key))
+      .map((h) => ({
+        title: h.title,
+        value: h.key,
+      }));
+
+    return [{ title: t('همه ستون‌ها'), value: null }, ...items];
+  });
+
+  async function fetchAll() {
+    try {
+      await repo.FetchResourcesData({
+        year: filterYear.value,
+        month: filterMonth.value,
+        date_field: 'resource_saved_date',
+        stat: quickFilter.value === 'all' ? null : quickFilter.value,
+        search_field: searchField.value,
+      });
+    } catch (e) {
+      console.error('fetchAll error', e);
+      showErrorMessage(t('خطا در دریافت فهرست منابع'));
+    }
+  }
+
+  function handlePageChange(value) {
+    repo.page = value;
+    fetchAll();
+  }
+
+  function handlePerPageChange(value) {
+    repo.itemsPerPage = value;
+    repo.page = 1;
+    fetchAll();
+  }
+
+  function getOfficeEmployee(payload) {
+    const row = getRow(payload);
+    if (!row) return null;
+    return row.office_employee || null;
+  }
+
+  function goResourceEvents(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push({ path: '/app/events', query: { resource_id: row.id } });
+  }
+
+  function goResourceInformations(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push({ path: '/app/informations', query: { resource_id: row.id } });
+  }
+
+  function goResourceFiftySixFormats(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push({ path: '/app/fifthyformatsroute', query: { resource_id: row.id } });
+  }
+
+  const totalCount = computed(() => Number(repo.resourceStats?.total_count) || 0);
+  const activeCount = computed(() => Number(repo.resourceStats?.active_count) || 0);
+  const inactiveCount = computed(() => Number(repo.resourceStats?.inactive_count) || 0);
+  const todayAddedCount = computed(() => Number(repo.resourceStats?.today_added_count) || 0);
+
+  function goActiveResources() {
+    router.push('/app/activeresource');
+  }
+
+  function goInactiveResources() {
+    router.push('/app/inactiveresource');
+  }
+
+  const quickFilter = ref('all');
+
+  async function applyQuickFilter(mode) {
+    quickFilter.value = mode;
+    repo.page = 1;
+    await fetchAll();
+  }
+
+  const routeResourceKey = computed(() => {
+    return route.query?.id ?? route.query?.resource_id ?? route.params?.id ?? null;
+  });
+
+  const isNumericResourceKey = computed(() => {
+    return Number.isFinite(Number(routeResourceKey.value));
+  });
+
+  const shouldOpenPeek = computed(() => {
+    return String(route.query?.open || '').toLowerCase() === 'peek';
+  });
+  async function clearAllFilters() {
+    repo.Search = '';
+    searchField.value = null;
+    filterYear.value = null;
+    filterMonth.value = null;
+    quickFilter.value = 'all';
+    filters.value = {};
+    repo.page = 1;
+
+    expanded.value = false;
+    selectedId.value = null;
+    detail.value = null;
+
+    await router.replace({ path: '/app/resources', query: {} });
+    await fetchAll();
+  }
+
+  const displayedRowsFT = computed(() => {
+    let data = rowsFT.value || [];
+    const key = routeResourceKey.value;
+
+    if (!key) return data;
+
+    if (isNumericResourceKey.value) {
+      const id = Number(key);
+      return data.filter((r) => Number(r.id) === id);
+    }
+
+    const code = String(key).trim();
+    return data.filter((r) => String(r.code_number || '').trim() === code);
+  });
+
   const topGroups = computed(() => [
     {
       title: t('معرفت'),
@@ -839,7 +855,6 @@
 
   const filters = ref({});
 
-  /* ===== Error Snackbar ===== */
   const showError = ref(false);
   const errorMessage = ref('');
 
@@ -848,7 +863,6 @@
     showError.value = true;
   }
 
-  /* ===== Preview dialog ===== */
   const previewOpen = ref(false);
   const previewSrc = ref(null);
 
@@ -859,13 +873,6 @@
     previewOpen.value = true;
   }
 
-  function hasDocuments(payload) {
-    const row = getRow(payload);
-    const docs = row?.documents;
-    return Array.isArray(docs) && docs.length > 0;
-  }
-
-  /* ===== Peek / single fetch ===== */
   const expanded = ref(false);
   const selectedId = ref(null);
   const loadingOne = ref(false);
@@ -915,7 +922,6 @@
     await fetchAll();
   }
 
-  /* ===== Navigation ===== */
   function goCreate() {
     router.push('/app/resourcesform');
   }
@@ -927,7 +933,6 @@
     router.push(`/app/resourcesform/${id}`);
   }
 
-  // 🔗 Go to office employee page from resource
   function goOfficeEmployee(payload) {
     const row = getRow(payload);
     if (!row) return;
@@ -941,7 +946,6 @@
     });
   }
 
-  /* ===== Delete using DeleteConfirmDialog ===== */
   const deleteDialog = ref(false);
   const deleteTarget = ref(null);
 
@@ -978,8 +982,31 @@
       deleteTarget.value = null;
     }
   }
+  watch(
+    [routeResourceKey, rowsFT, shouldOpenPeek],
+    async ([key, rows, open]) => {
+      if (!key || !open) return;
 
-  /* ===== Init ===== */
+      let found = null;
+
+      if (Number.isFinite(Number(key))) {
+        const id = Number(key);
+        found = (rows || []).find((r) => Number(r.id) === id);
+      } else {
+        const code = String(key).trim();
+        found = (rows || []).find((r) => String(r.code_number || '').trim() === code);
+      }
+
+      if (!found) return;
+
+      selectedId.value = found.id;
+      expanded.value = true;
+      await fetchOne(found.id);
+    },
+    { immediate: true }
+  );
+  usePageRefresh('/app/resources', fetchAll);
+
   onMounted(async () => {
     await fetchYearItemsFromDb();
     await fetchAll();
@@ -1018,7 +1045,6 @@
     color: #9c27b0 !important;
   }
 
-  /* 🔹 make search field height similar to large button */
   .search-field :deep(.v-field) {
     min-height: 48px;
   }

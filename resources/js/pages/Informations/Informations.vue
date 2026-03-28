@@ -33,19 +33,17 @@
       <v-row class="align-center">
         <!-- Search -->
         <v-col cols="12" sm="12" md="12" lg="12">
-          <v-text-field
-            v-model.trim="repo.Search"
-            :label="t('جستجو در اطلاعات...')"
-            density="comfortable"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            color="primary"
-            rounded="lg"
-            hide-details
-            @keyup.enter="fetchAll"
-            clearable
-            @click:clear="clearSearch"
-            class="bg-white"
+          <!-- Search -->
+          <SearchColumnFilter
+            v-model:modelSearch="repo.Search"
+            v-model:modelColumn="searchField"
+            :headers="headersFT"
+            :search-label="t('جستجو در اطلاعات...')"
+            :column-label="t('ستون جستجو')"
+            :all-columns-label="t('همه ستون‌ها')"
+            :exclude-keys="['matched_links', 'map']"
+            @search="fetchAll"
+            @clear="clearSearch"
           />
         </v-col>
 
@@ -596,12 +594,15 @@
   import AnalysisLeadershipDialog from './AnalysisLeadershipDialog.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
+  import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
+
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const repo = useDatabaseRepository();
   const financeRepo = useFinanceRepository();
   const router = useRouter();
   const route = useRoute();
+  const searchField = ref(null);
 
   const { calendar, formatYearDisplay } = useCalendar();
 
@@ -609,6 +610,7 @@
     try {
       await repo.FetchInformationsData?.({
         search: repo.Search,
+        search_field: searchField.value,
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'information_saved_date',
@@ -812,6 +814,7 @@
       const { data } = await axios.get('/informations', {
         params: {
           search: repo.Search,
+          search_field: searchField.value,
           year: filterYear.value,
           month: filterMonth.value,
           date_field: 'information_saved_date',
@@ -1034,6 +1037,7 @@
   }
   async function resetAllFilters() {
     repo.Search = '';
+    searchField.value = null;
     filterYear.value = null;
     filterMonth.value = null;
     activeStat.value = null;
@@ -1149,6 +1153,7 @@
   }
   async function clearSearch() {
     repo.Search = '';
+    searchField.value = null;
     relatedIdFilter.value = null;
     repo.page = 1;
 

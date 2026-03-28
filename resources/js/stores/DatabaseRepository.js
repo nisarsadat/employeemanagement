@@ -284,9 +284,9 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         const queryParams = {
           ...baseParams,
 
-          // keep custom values too
           ...(params?.stat !== undefined ? { stat: params.stat } : {}),
           ...(params?.search !== undefined ? { search: params.search } : {}),
+          ...(params?.search_field !== undefined ? { search_field: params.search_field } : {}),
           ...(params?.year !== undefined ? { year: params.year } : {}),
           ...(params?.month !== undefined ? { month: params.month } : {}),
           ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
@@ -300,7 +300,6 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
 
         const payload = res?.data ?? {};
 
-        // ✅ rows
         const rows = Array.isArray(payload?.data)
           ? payload.data
           : Array.isArray(payload)
@@ -309,7 +308,6 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
 
         this.Resources = rows;
 
-        // ✅ stats from backend
         const stats = payload?.meta?.stats ?? {};
         this.resourceStats = {
           total_count: Number(stats?.total_count) || 0,
@@ -318,7 +316,6 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           today_added_count: Number(stats?.today_added_count) || 0,
         };
 
-        // ✅ totals / pagination
         const total =
           payload?.meta?.total ??
           payload?.total ??
@@ -367,10 +364,11 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         this.loading = false;
       }
     },
+
     async FetchResourceDateOptions(params = {}) {
-      // params: { date_field: 'resource_saved_date' }
       return await axios.get('/resources/date-options', { params });
     },
+
     async FetchResourceData(id) {
       try {
         setContentType('application/json');
@@ -459,18 +457,26 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
+        const baseParams = buildListParams(this, params, {
           includeSearch: true,
           includePagination: true,
           includeDateFilter: true,
           defaultDateField: 'event_date',
         });
 
+        const queryParams = {
+          ...baseParams,
+          card_filter: params.card_filter ?? 'all',
+
+          ...(params?.search !== undefined ? { search: params.search } : {}),
+          ...(params?.search_field !== undefined ? { search_field: params.search_field } : {}),
+          ...(params?.year !== undefined ? { year: params.year } : {}),
+          ...(params?.month !== undefined ? { month: params.month } : {}),
+          ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
+        };
+
         const res = await axios.get('/events', {
-          params: {
-            ...queryParams,
-            card_filter: params.card_filter ?? 'all',
-          },
+          params: queryParams,
         });
 
         applyPaginatedResponse(this, res, 'Events');
@@ -645,6 +651,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
 
           // keep explicit values when passed
           ...(params?.search !== undefined ? { search: params.search } : {}),
+          ...(params?.search_field !== undefined ? { search_field: params.search_field } : {}),
           ...(params?.year !== undefined ? { year: params.year } : {}),
           ...(params?.month !== undefined ? { month: params.month } : {}),
           ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
@@ -664,7 +671,6 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         this.loading = false;
       }
     },
-
     async FetchInformationData(id) {
       try {
         setContentType('application/json');
