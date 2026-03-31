@@ -183,7 +183,7 @@
           <v-tooltip text="ویرایش" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
-                v-if="auth.can('outgoingincomming.edit')"
+                v-if="auth.can('outgoingincomming.update')"
                 size="small"
                 v-bind="tooltipProps"
                 @click.stop="startEdit(item)"

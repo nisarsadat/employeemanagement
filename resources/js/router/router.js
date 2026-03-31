@@ -112,7 +112,6 @@ const Khayratreport = () => import('../pages/InlineInfo/khayratreport.vue');
 
 // Map
 const MapAfghanistan = () => import('@/pages/Map/MapAfghanistan.vue');
-const offlinemap = () => import('@/pages/Map/offlinemap.vue');
 
 // RBAC pages
 const Roles = () => import('@/pages/rbac/Roles.vue');
@@ -1442,11 +1441,6 @@ const router = createRouter({
           name: 'MapAfg',
           component: MapAfghanistan,
           meta: { requiresAuth: true, perm: permFor('map-afg') },
-        },
-        {
-          path: 'offlinemap',
-          component: offlinemap,
-          meta: { requiresAuth: true, perm: permFor('offlinemap') },
         },
 
         // RBAC pages

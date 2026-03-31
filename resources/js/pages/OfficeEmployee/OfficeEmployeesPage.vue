@@ -297,7 +297,7 @@
       <template #cell-informations_count="{ row }">
         <v-tooltip
           v-if="getRow(row).informations_count && getRow(row).informations_count > 0"
-          text="تعداد معلومات این کارمند، کلیک کنید تا به صفحه معلومات بروید"
+          text="اطلاعات"
           location="top"
         >
           <template #activator="{ props: tooltipProps }">
@@ -342,22 +342,23 @@
 
       <template #cell-resources_active_count="{ row }">
         <v-tooltip
-          v-if="getRow(row).resources_active_count && getRow(row).resources_active_count > 0"
+          v-if="getRow(row).resources_active_count > 0"
           text="منابع فعال این کارمند — کلیک کنید"
           location="top"
         >
-          <template #activator="{ props: tooltipProps }">
-            <div
-              v-bind="tooltipProps"
-              class="count-pill count-pill--active"
-              role="button"
-              tabindex="0"
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              color="teal"
+              variant="tonal"
+              size="default"
+              class="text-none"
               @click.stop="goActiveResources(row)"
               @keydown.enter.stop="goActiveResources(row)"
             >
-              <v-icon size="18" class="mr-1">mdi-check-decagram</v-icon>
-              <span class="count-pill__num">{{ getRow(row).resources_active_count }}</span>
-            </div>
+              <v-icon start size="16">mdi-check-decagram</v-icon>
+              {{ getRow(row).resources_active_count }}
+            </v-btn>
           </template>
         </v-tooltip>
 
@@ -366,22 +367,23 @@
 
       <template #cell-resources_inactive_count="{ row }">
         <v-tooltip
-          v-if="getRow(row).resources_inactive_count && getRow(row).resources_inactive_count > 0"
+          v-if="getRow(row).resources_inactive_count > 0"
           text="منابع غیر فعال این کارمند — کلیک کنید"
           location="top"
         >
-          <template #activator="{ props: tooltipProps }">
-            <div
-              v-bind="tooltipProps"
-              class="count-pill count-pill--inactive"
-              role="button"
-              tabindex="0"
+          <template #activator="{ props }">
+            <v-chip
+              v-bind="props"
+              color="teal"
+              variant="tonal"
+              size="default"
+              class="text-none"
               @click.stop="goInactiveResources(row)"
               @keydown.enter.stop="goInactiveResources(row)"
             >
-              <v-icon size="18" class="mr-1">mdi-close-octagon</v-icon>
-              <span class="count-pill__num">{{ getRow(row).resources_inactive_count }}</span>
-            </div>
+              <v-icon start size="16">mdi-close-octagon</v-icon>
+              {{ getRow(row).resources_inactive_count }}
+            </v-chip>
           </template>
         </v-tooltip>
 
@@ -391,7 +393,7 @@
       <template #cell-resources_count="{ row }">
         <v-tooltip
           v-if="getRow(row).resources_count && getRow(row).resources_count > 0"
-          text="تعداد منابع این کارمند، کلیک کنید تا به صفحه منابع بروید"
+          text="منابع"
           location="top"
         >
           <template #activator="{ props: tooltipProps }">
@@ -518,7 +520,6 @@
   import { useRouter, useRoute } from 'vue-router';
   import { useI18n } from 'vue-i18n';
   import dayjs from 'dayjs';
-  import { useCalendar } from '../../../composables/useCalendar';
 
   import AppBar from '@/components/AppBar.vue';
   import PeekButton from '@/components/PeekButton.vue';
@@ -536,7 +537,6 @@
   const router = useRouter();
   const route = useRoute();
   const { t, locale } = useI18n();
-  const { calendar, formatYearDisplay } = useCalendar();
 
   const repo = useEmployeOfficeRepository();
   const auth = useLoginRepository();
@@ -545,7 +545,7 @@
   const filterMonth = ref(null);
 
   const yearItems = ref([]);
-  const yearNumbers = ref([]);
+  const monthItems = ref([]);
 
   const selectedCardStatus = ref('all');
   const selectedCardJobType = ref(null);
@@ -555,110 +555,36 @@
       const res = await repo.FetchEmployeeDateOptions({ date_field: 'join_date' });
       const years = res?.data?.years || [];
 
-      yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
-
-      yearItems.value = yearNumbers.value.map((y) => ({
-        value: y,
-        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      yearItems.value = years.map((y) => ({
+        value: y.value,
+        title: y.label,
       }));
     } catch (e) {
       console.error('fetchYearItemsFromDb error', e);
     }
   }
+  async function fetchMonthItemsFromDb(year = null) {
+    try {
+      const res = await repo.FetchEmployeeDateOptions({
+        date_field: 'join_date',
+        year,
+      });
 
-  watch(
-    [calendar, locale],
-    () => {
-      if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
-      yearItems.value = yearNumbers.value.map((y) => ({
-        value: y,
-        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      const months = res?.data?.months || [];
+
+      monthItems.value = months.map((m) => ({
+        value: m.value,
+        title: m.label,
       }));
-    },
-    { immediate: false }
-  );
-
-  const JALALI_MONTHS_FA = [
-    'حمل',
-    'ثور',
-    'جوزا',
-    'سرطان',
-    'اسد',
-    'سنبله',
-    'میزان',
-    'عقرب',
-    'قوس',
-    'جدی',
-    'دلو',
-    'حوت',
-  ];
-
-  const HIJRI_QAMARI_MONTHS_FA = [
-    'محرم',
-    'صفر',
-    'ربیع‌الاول',
-    'ربیع‌الثانی',
-    'جمادی‌الاول',
-    'جمادی‌الثانی',
-    'رجب',
-    'شعبان',
-    'رمضان',
-    'شوال',
-    'ذوالقعده',
-    'ذوالحجه',
-  ];
-
-  function monthTitleFromGregorianMonth(gYear, gMonth) {
-    const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
-
-    if (calendar.value === 'gregorian') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
-      } catch {
-        return String(gMonth);
-      }
+    } catch (e) {
+      console.error('fetchMonthItemsFromDb error', e);
+      monthItems.value = [];
     }
-
-    if (calendar.value === 'jalali') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat(locale.value, {
-          calendar: 'persian',
-          month: 'numeric',
-        });
-        const parts = fmt.formatToParts(dt);
-        const m = Number(parts.find((p) => p.type === 'month')?.value);
-        if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
-      } catch {}
-      return JALALI_MONTHS_FA[(gMonth - 1) % 12];
-    }
-
-    if (calendar.value === 'hijri') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat('ar', {
-          calendar: 'islamic-umalqura',
-          month: 'numeric',
-        });
-        const parts = fmt.formatToParts(dt);
-        const m = Number(parts.find((p) => p.type === 'month')?.value);
-        if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
-      } catch {}
-      return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
-    }
-
-    return String(gMonth);
   }
-
-  const monthItems = computed(() => {
-    const y = filterYear.value || dayjs().year();
-    return Array.from({ length: 12 }).map((_, i) => {
-      const m = i + 1;
-      return { value: m, title: monthTitleFromGregorianMonth(y, m) };
-    });
+  watch(filterYear, async (newYear) => {
+    filterMonth.value = null;
+    await fetchMonthItemsFromDb(newYear);
   });
-
   async function applyMonthYearFilter() {
     repo.page = 1;
     await fetchAll();
@@ -1043,6 +969,7 @@
 
   onMounted(async () => {
     await fetchYearItemsFromDb();
+    await fetchMonthItemsFromDb(null);
     await fetchAll();
   });
 </script>

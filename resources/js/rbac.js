@@ -52,7 +52,6 @@ const CORE = [
 
   // map
   { slug: 'map-afg', path: '/app/map-afg', perm: 'map-afg.view' },
-  { slug: 'offlinemap', path: '/app/offlinemap', perm: 'offlinemap.view' },
 
   // rbac pages
   { slug: 'roles', path: '/app/roles', perm: 'roles.view' },

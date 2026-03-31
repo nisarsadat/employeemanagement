@@ -267,7 +267,7 @@ return [
         [
             'table' => 'schools',
             'type' => 'schools',
-            'typeLabel' => 'ښونځیو او روزنیز مرکزونو او روزنیز مراکز',
+            'typeLabel' => 'ښونځیو او روزنیز مراکز',
             'show_url' => '/api/schools/',
             'title_candidates' => ['school_name', 'name', 'title', 'code_number'],
             'join_resource' => true,

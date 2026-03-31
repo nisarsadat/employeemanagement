@@ -446,6 +446,37 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       }
     },
 
+    async DownloadResourcesExcel(params = {}) {
+      const response = await axios.get('/resources/export/excel', {
+        params,
+        responseType: 'blob',
+        withCredentials: true,
+      });
+
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+
+      const disposition = response.headers['content-disposition'];
+      let fileName = 'resources.xlsx';
+
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match && match[1]) {
+          fileName = match[1];
+        }
+      }
+
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    },
     // ====================== EVENTS  ======================
     async FetchEventDateOptions(params) {
       return axios.get('/events/date-options', { params });

@@ -6,7 +6,17 @@
         <v-btn icon></v-btn>
       </template>
     </AppBar>
-
+    <EventFinanceDialog
+      v-model="eventFinanceDialogOpen"
+      :id="selectedRow?.id"
+      :account_id="selectedRow?.account_id ?? null"
+      :message_to_finance="selectedRow?.message_to_finance ?? ''"
+      :money_amount_words="selectedRow?.money_amount_words ?? ''"
+      :account-items="accountItems"
+      :is-rtl="isRtl"
+      :loading="dialogSaving"
+      @save="handleSaveEventFinance"
+    />
     <!-- 🔍 Search + ➕ Create -->
     <v-container class="pa-0">
       <v-row class="align-center">
@@ -384,6 +394,18 @@
               </v-icon>
             </template>
           </v-tooltip>
+          <v-tooltip :text="t('مالی')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                size="small"
+                v-bind="tooltipProps"
+                color="indigo"
+                @click.stop="openEventFinanceDialog(item)"
+              >
+                mdi-cash-edit
+              </v-icon>
+            </template>
+          </v-tooltip>
         </div>
       </template>
     </FilterableTable>
@@ -418,8 +440,6 @@
   import { ref, onMounted, watch, computed } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
-  import dayjs from 'dayjs';
-  import { useCalendar } from '../../../composables/useCalendar';
 
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
@@ -432,13 +452,27 @@
   import { useLoginRepository } from '@/stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
   import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
-
+  import { useFinanceRepository } from '@/stores/FinanceRepository';
+  import EventFinanceDialog from './EventFinanceDialog.vue';
+  const financeRepo = useFinanceRepository();
+  const accountItems = computed(() =>
+    (financeRepo.accounts || []).map((a) => ({
+      ...a,
+      display: a.name ? `${a.name} (${a.price ?? '0'})` : `${a.id}`,
+    }))
+  );
+  const eventFinanceDialogOpen = ref(false);
+  const dialogSaving = ref(false);
+  const selectedRow = ref(null);
+  function openEventFinanceDialog(payload) {
+    selectedRow.value = getRow(payload);
+    eventFinanceDialogOpen.value = true;
+  }
   const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const router = useRouter();
   const searchField = ref(null);
   const { t, locale } = useI18n();
-  const { calendar, formatYearDisplay } = useCalendar();
 
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (newLocale) => (isRtl.value = newLocale === 'fa'));
@@ -456,37 +490,63 @@
   const filterMonth = ref(null);
 
   const yearItems = ref([]);
-  const yearNumbers = ref([]);
+  const monthItems = ref([]);
 
   const activeCard = ref('all');
 
+  // for the finance part
+  async function handleSaveEventFinance(patch) {
+    dialogSaving.value = true;
+    try {
+      const cleanPatch = {
+        id: patch?.id,
+        account_id: patch?.account_id ?? null,
+        message_to_finance: patch?.message_to_finance ?? '',
+        money_amount_words: patch?.money_amount_words ?? '',
+      };
+
+      await repo.UpdateEvent(cleanPatch.id, cleanPatch);
+      await fetchAll();
+      eventFinanceDialogOpen.value = false;
+    } catch (e) {
+      console.error('handleSaveEventFinance error', e);
+      showErrorMessage(t('خطا در ذخیره معلومات مالی واقعه'));
+    } finally {
+      dialogSaving.value = false;
+    }
+  }
   async function fetchYearItemsFromDb() {
     try {
       const res = await repo.FetchEventDateOptions({ date_field: 'event_date' });
       const years = res?.data?.years || [];
 
-      yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
-
-      yearItems.value = yearNumbers.value.map((y) => ({
-        value: y,
-        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      yearItems.value = years.map((y) => ({
+        value: y.value,
+        title: y.label,
       }));
     } catch (e) {
       console.error('fetchYearItemsFromDb error', e);
     }
   }
+  async function fetchMonthItemsFromDb(year = null) {
+    try {
+      const res = await repo.FetchEventDateOptions({
+        date_field: 'event_date',
+        year,
+      });
 
-  watch(
-    [calendar, locale],
-    () => {
-      if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
-      yearItems.value = yearNumbers.value.map((y) => ({
-        value: y,
-        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      const months = res?.data?.months || [];
+
+      monthItems.value = months.map((m) => ({
+        value: m.value,
+        title: m.label,
       }));
-    },
-    { immediate: false }
-  );
+    } catch (e) {
+      console.error('fetchMonthItemsFromDb error', e);
+      monthItems.value = [];
+    }
+  }
+
   async function clearAllFilters() {
     repo.Search = '';
     searchField.value = null;
@@ -497,86 +557,6 @@
 
     await fetchAll();
   }
-  const JALALI_MONTHS_FA = [
-    'حمل',
-    'ثور',
-    'جوزا',
-    'سرطان',
-    'اسد',
-    'سنبله',
-    'میزان',
-    'عقرب',
-    'قوس',
-    'جدی',
-    'دلو',
-    'حوت',
-  ];
-
-  const HIJRI_QAMARI_MONTHS_FA = [
-    'محرم',
-    'صفر',
-    'ربیع‌الاول',
-    'ربیع‌الثانی',
-    'جمادی‌الاول',
-    'جمادی‌الثانی',
-    'رجب',
-    'شعبان',
-    'رمضان',
-    'شوال',
-    'ذوالقعده',
-    'ذوالحجه',
-  ];
-
-  function monthTitleFromGregorianMonth(gYear, gMonth) {
-    const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
-
-    if (calendar.value === 'gregorian') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
-      } catch {
-        return String(gMonth);
-      }
-    }
-
-    if (calendar.value === 'jalali') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat(locale.value, {
-          calendar: 'persian',
-          month: 'numeric',
-        });
-        const parts = fmt.formatToParts(dt);
-        const m = Number(parts.find((p) => p.type === 'month')?.value);
-        if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
-      } catch {}
-      return JALALI_MONTHS_FA[(gMonth - 1) % 12];
-    }
-
-    if (calendar.value === 'hijri') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat('ar', {
-          calendar: 'islamic-umalqura',
-          month: 'numeric',
-        });
-        const parts = fmt.formatToParts(dt);
-        const m = Number(parts.find((p) => p.type === 'month')?.value);
-        if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
-      } catch {}
-      return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
-    }
-
-    return String(gMonth);
-  }
-
-  const monthItems = computed(() => {
-    const y = filterYear.value || dayjs().year();
-    return Array.from({ length: 12 }).map((_, i) => {
-      const m = i + 1;
-      return { value: m, title: monthTitleFromGregorianMonth(y, m) };
-    });
-  });
 
   async function applyMonthYearFilter() {
     repo.page = 1;
@@ -837,12 +817,17 @@
     repo.page = 1;
     fetchAll();
   }
-
+  watch(filterYear, async (newYear) => {
+    filterMonth.value = null;
+    await fetchMonthItemsFromDb(newYear || null);
+  });
   usePageRefresh('/app/events', fetchAll);
 
   onMounted(async () => {
     await fetchYearItemsFromDb();
+    await fetchMonthItemsFromDb(null);
     await fetchAll();
+    await financeRepo.FetchAccountsData();
   });
 </script>
 

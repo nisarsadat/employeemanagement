@@ -32,7 +32,6 @@ export const MODULE_PASHTO = {
   finincalindex: 'مالي بخش',
 
   'map-afg': 'د افغانستان نقشه',
-  offlinemap: 'افلاین نقشه',
 
   roles: 'رولونه/اجازې',
   rolepermissions: 'د رول صلاحیتونه',

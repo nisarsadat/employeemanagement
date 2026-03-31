@@ -24,7 +24,9 @@
         <v-card class="points-menu-card" rounded="xl">
           <div class="points-menu-head">
             <div class="points-title">په نقشه کې نقطې</div>
-            <div class="points-sub">ټول: {{ filteredMapItems.length }} / {{ allMapItems.length }}</div>
+            <div class="points-sub">
+              ټول: {{ filteredMapItems.length }} / {{ allMapItems.length }}
+            </div>
           </div>
 
           <v-divider />
@@ -122,6 +124,66 @@
   import { useMapBusStore } from '../../stores/MapBusStore';
   import AppBar from '@/components/AppBar.vue';
 
+  // MDI paths
+  import {
+    mdiSilverwareForkKnife,
+    mdiBed,
+    mdiAccountMultiplePlus,
+    mdiAccountCheck,
+    mdiAccountRemove,
+    mdiCarBack,
+    mdiBankTransfer,
+    mdiAccountMinus,
+    mdiWarehouse,
+    mdiHighway,
+    mdiAccountMultipleRemove,
+    mdiTrainCar,
+    mdiHomeGroupRemove,
+    mdiHomePlusOutline,
+    mdiAccountStar,
+    mdiAccountQuestion,
+    mdiTownHall,
+    mdiBookOpenBlankVariantOutline,
+    mdiCarMultiple,
+    mdiBusMultiple,
+    mdiCarHatchback,
+    mdiCarBrakeParking,
+    mdiBank,
+    mdiCity,
+    mdiStoreSearchOutline,
+    mdiHospitalBox,
+    mdiCarWrench,
+    mdiAccountEdit,
+    mdiAccountDetails,
+    mdiSchool,
+    mdiAccountBoxMinusOutline,
+    mdiMosque,
+    mdiFactory,
+    mdiGymnastics,
+    mdiSelectPlace,
+    mdiFireplaceOff,
+    mdiFireplace,
+    mdiHomeGroup,
+    mdiPoliceBadge,
+    mdiOfficeBuildingPlus,
+    mdiAccountLock,
+    mdiGreenhouse,
+    mdiAccountAlert,
+    mdiGasStation,
+    mdiRobber,
+    mdiAccountSwitch,
+    mdiTreeOutline,
+    mdiPistol,
+    mdiHomeAnalytics,
+    mdiCart,
+    mdiBriefcase,
+    mdiBriefcaseVariant,
+    mdiShieldLock,
+    mdiInformationOutline,
+    mdiAccountPlus,
+    mdiCircle,
+  } from '@mdi/js';
+
   const mapBus = useMapBusStore();
 
   const { locale } = useI18n();
@@ -152,6 +214,225 @@
   const MAP_POINTS_CLUSTER_COUNT_LAYER_ID = 'module-points-cluster-count';
   const MAP_POINTS_UNCLUSTERED_LAYER_ID = 'module-points-unclustered';
   const MAP_POINTS_LABEL_LAYER_ID = 'module-points-label';
+
+  // ========================================================================
+  // FAST ICON SYSTEM FOR MAP POINTS
+  // ========================================================================
+
+  const MAP_RESOURCE_ICON = 'mdi-circle';
+
+  const POINT_TYPE_ICONS = {
+    hotels: { label: 'مسافر خانی او میلمستون', path: mdiSilverwareForkKnife },
+    hostels: { label: 'لیلی او کرایی اطاقونه', path: mdiBed },
+
+    tujarans: { label: 'علماء او متنفذین', path: mdiAccountMultiplePlus },
+    mujahedinos: { label: 'مجاهدین', path: mdiAccountCheck },
+    saeen_fasad: { label: 'ساعین بالفساد', path: mdiAccountRemove },
+    fasad: { label: 'فساد', path: mdiAccountMinus },
+    highways: { label: 'څلور لارې او درې لارې', path: mdiHighway },
+    sarayanos: { label: 'سرایونه', path: mdiWarehouse },
+    sarafyano: { label: 'صرافیانې', path: mdiBankTransfer },
+    badmashanos: { label: 'زورواکان او ولکه داران', path: mdiAccountMultipleRemove },
+    car_sales_companies: { label: 'موټر پلورونځی', path: mdiCarBack },
+    transport_companies: { label: 'ترانسپورتي شرکتونه', path: mdiTrainCar },
+    mashkok_homes: { label: 'مشکوک کورونه', path: mdiHomeGroupRemove },
+    old_soldiers_homes: { label: 'د پخواني چارواکو کورونه', path: mdiHomePlusOutline },
+    old_jahadis: { label: 'پخوانی جهادی قومندانان', path: mdiAccountStar },
+    mashkok_people: { label: 'مشکوک افراد', path: mdiAccountBoxMinusOutline },
+
+    madrasas: { label: 'دینی مدرسی', path: mdiTownHall },
+    schools: { label: 'ښوونځی او روزنیز مرکزونه', path: mdiBookOpenBlankVariantOutline },
+
+    hado_bus_stops: { label: 'د هډو په اړه', path: mdiCarMultiple },
+    parkings: { label: 'د پارکینونو په اړه', path: mdiCarBrakeParking },
+
+    banks: { label: 'بانکونه او نماینده ګیانی', path: mdiBank },
+    apartments: { label: 'رهایشی بلاکونه', path: mdiCity },
+
+    rahnoma_mamlats: { label: 'رهنماء معاملات', path: mdiStoreSearchOutline },
+    hosppitals: { label: 'روغتونونه', path: mdiHospitalBox },
+    work_shops: { label: 'مستری خانی', path: mdiCarWrench },
+
+    wakilanos: { label: 'وکیلان او ملکان', path: mdiAccountEdit },
+    mulkano: { label: 'د کوڅو نماینده کان', path: mdiAccountDetails },
+
+    universities: { label: 'پوهنتونونو ، دلوړو زده کړو موسسو او انسټیټیوټونو', path: mdiSchool },
+    heist: { label: 'سرقت کوونکي', path: mdiAccountQuestion },
+    masjids: { label: 'مساجد، خانقاوی', path: mdiMosque },
+    companies: { label: 'فابریکې او شرکتونه', path: mdiFactory },
+    clubs: { label: 'ورزشي کلبونه', path: mdiGymnastics },
+    done_lost_places: { label: 'هغه ساحې چې اختطاف پکې ترسره شوی', path: mdiSelectPlace },
+    damage_places: { label: 'آسیب پذیره ساحې', path: mdiFireplace },
+    damage_rasan_places: { label: 'آسیب رسانه ساحې', path: mdiFireplaceOff },
+
+    mahajerat: { label: 'نوې راغلي کورونه', path: mdiHomeGroup },
+    soldier: { label: 'پخواني چارواکي', path: mdiPoliceBadge },
+    complexes: { label: 'داخلي موسسې او بنسټونه', path: mdiOfficeBuildingPlus },
+    captives: { label: 'راخوشي شوي بندیان', path: mdiAccountLock },
+    econemy_projects: { label: 'مهم تاسیسات', path: mdiGreenhouse },
+    criminal_capture_places: { label: 'هغه ساحی چې مجرمین پکې نیول شوی', path: mdiAccountAlert },
+    pumps: { label: 'پمپونه', path: mdiGasStation },
+    robbers: { label: 'اختطاف ګران', path: mdiRobber },
+    shoras: { label: 'محلی شورا ګانی', path: mdiAccountSwitch },
+    parks: { label: 'پارکونه', path: mdiTreeOutline },
+    non_responsable_people: { label: 'غیر مسوله وسله وال', path: mdiPistol },
+    governmentplaces: { label: 'دولتی ځایونه', path: mdiHomeAnalytics },
+    supermarkets: { label: 'تجارتي مراکز او سوپر مارکیټونه', path: mdiCart },
+    emarat_offices: { label: 'داخلی مؤسسه او بنسټونه', path: mdiBriefcase },
+    deplomaticplaces: {
+      label: 'دیپلوماتیک ځایونه،خارجي موسسې،دبهرنیانو د اوسیدو او کار ځایونه',
+      path: mdiBriefcaseVariant,
+    },
+    checkpoints: { label: 'پوستی او چیک پاینټونه', path: mdiShieldLock },
+    information: { label: 'اطلاعات', path: mdiInformationOutline },
+    office_employee: { label: 'اطلاعات', path: mdiAccountPlus },
+
+    resource: { label: 'منابع', path: mdiCircle },
+  };
+
+  const ICON_ALIASES = {
+    entry_exit: 'entry_exits',
+    sarafyano: 'sarafyano',
+    sarayanos: 'sarayanos',
+    mahajerat: 'mahajerat',
+    soldier: 'soldier',
+    mawad: 'mawads',
+    lost_mujremeen: 'lost_mujremeens',
+    mulkano: 'mulkano',
+  };
+
+  function iconKeyOfType(type) {
+    return ICON_ALIASES[type] || type;
+  }
+
+  function safeLabelFor(item) {
+    const k = iconKeyOfType(item?.type);
+    return POINT_TYPE_ICONS?.[k]?.label || ICON_MAP?.[k]?.label || item?.typeLabel || k || '';
+  }
+
+  function safeMdiFor(item) {
+    const t = item?.type;
+    if (t === 'resource') return MAP_RESOURCE_ICON;
+
+    const k = iconKeyOfType(t);
+    return ICON_MAP?.[k]?.mdi || 'mdi-map-marker';
+  }
+
+  function getPointIconPath(type) {
+    const k = iconKeyOfType(type);
+    return POINT_TYPE_ICONS?.[k]?.path || mdiCircle;
+  }
+
+  function pointImageName(type, isActive = null) {
+    if (type === 'resource') {
+      return isActive === 1 || isActive === true
+        ? 'point-icon-resource-active'
+        : 'point-icon-resource-inactive';
+    }
+    return `point-icon-${iconKeyOfType(type)}`;
+  }
+
+  function svgToImage(svgString) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+    });
+  }
+
+  function buildIconSvg({
+    pathD,
+    size = 56,
+    iconSize = 44,
+    bg = '#ffffff',
+    fg = '#1f2937',
+    ring = '#2563eb',
+    ringWidth = 2,
+  }) {
+    const center = size / 2;
+    const r = center - 1.5;
+    const viewBoxSize = 24;
+    const iconX = (size - iconSize) / 2;
+    const iconY = (size - iconSize) / 2;
+
+    return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${center}" cy="${center}" r="${r}" fill="${bg}" stroke="${ring}" stroke-width="${ringWidth}" />
+      <g transform="translate(${iconX}, ${iconY}) scale(${iconSize / viewBoxSize})">
+        <path d="${pathD}" fill="${fg}" />
+      </g>
+    </svg>
+  `.trim();
+  }
+
+  async function addMapImage(name, svgString) {
+    if (!map.value) return;
+    if (map.value.hasImage(name)) return;
+
+    const img = await svgToImage(svgString);
+    map.value.addImage(name, img, { pixelRatio: 2 });
+  }
+
+  async function registerPointImages() {
+    if (!map.value) return;
+
+    const usedTypes = new Set(
+      (Array.isArray(allMapItems.value) ? allMapItems.value : [])
+        .map((it) => it?.type)
+        .filter(Boolean)
+    );
+
+    usedTypes.add('resource');
+
+    const tasks = [];
+
+    for (const rawType of usedTypes) {
+      const type = iconKeyOfType(rawType);
+
+      if (type === 'resource') {
+        tasks.push(
+          addMapImage(
+            'point-icon-resource-active',
+            buildIconSvg({
+              pathD: mdiCircle,
+              bg: '#ffffff',
+              fg: '#16a34a',
+              ring: '#16a34a',
+            })
+          )
+        );
+
+        tasks.push(
+          addMapImage(
+            'point-icon-resource-inactive',
+            buildIconSvg({
+              pathD: mdiCircle,
+              bg: '#ffffff',
+              fg: '#dc2626',
+              ring: '#dc2626',
+            })
+          )
+        );
+
+        continue;
+      }
+
+      tasks.push(
+        addMapImage(
+          `point-icon-${type}`,
+          buildIconSvg({
+            pathD: getPointIconPath(type),
+            bg: '#ffffff',
+            fg: '#1f2937',
+            ring: '#2563eb',
+          })
+        )
+      );
+    }
+
+    await Promise.all(tasks);
+  }
 
   function getToken() {
     const t = sessionStorage.getItem('token');
@@ -214,7 +495,10 @@
       });
 
       allMapItems.value = Array.isArray(res?.data) ? res.data : [];
+
+      await registerPointImages();
       refreshGeoJsonSource();
+
       console.log('Loaded map points:', allMapItems.value.length);
     } catch (e) {
       console.error('loadAllModulePoints failed', e);
@@ -296,35 +580,6 @@
     }
 
     return style;
-  }
-
-  const MAP_RESOURCE_ICON = 'mdi-circle';
-
-  const ICON_ALIASES = {
-    entry_exit: 'entry_exits',
-    sarafyano: 'sarafyanos',
-    mahajerat: 'mahajerats',
-    soldier: 'soldiers',
-    mawad: 'mawads',
-    lost_mujremeen: 'lost_mujremeens',
-    mulkano: 'mulkanos',
-  };
-
-  function iconKeyOfType(type) {
-    return ICON_ALIASES[type] || type;
-  }
-
-  function safeLabelFor(item) {
-    const k = iconKeyOfType(item?.type);
-    return ICON_MAP?.[k]?.label || item?.typeLabel || k || '';
-  }
-
-  function safeMdiFor(item) {
-    const t = item?.type;
-    if (t === 'resource') return MAP_RESOURCE_ICON;
-
-    const k = iconKeyOfType(t);
-    return ICON_MAP?.[k]?.mdi || 'mdi-map-marker';
   }
 
   function asText(v) {
@@ -504,6 +759,7 @@
               coordinates: item.coordinates || '',
               is_active: item.is_active ? 1 : 0,
               _showUrl: item._showUrl || '',
+              iconName: pointImageName(item.type, item.is_active ? 1 : 0),
             },
           };
         })
@@ -532,17 +788,7 @@
         filter: ['has', 'point_count'],
         paint: {
           'circle-color': '#2563eb',
-          'circle-radius': [
-            'step',
-            ['get', 'point_count'],
-            18,
-            20,
-            22,
-            100,
-            28,
-            500,
-            34,
-          ],
+          'circle-radius': ['step', ['get', 'point_count'], 18, 20, 22, 100, 28, 500, 34],
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 2,
         },
@@ -565,32 +811,20 @@
       });
     }
 
+    // IMPORTANT:
+    // unclustered points are now SYMBOL icons instead of CIRCLE dots
     if (!map.value.getLayer(MAP_POINTS_UNCLUSTERED_LAYER_ID)) {
       map.value.addLayer({
         id: MAP_POINTS_UNCLUSTERED_LAYER_ID,
-        type: 'circle',
+        type: 'symbol',
         source: MAP_POINTS_SOURCE_ID,
         filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-radius': [
-            'case',
-            ['==', ['get', 'type'], 'resource'],
-            7,
-            6,
-          ],
-          'circle-color': [
-            'case',
-            ['==', ['get', 'type'], 'resource'],
-            [
-              'case',
-              ['==', ['get', 'is_active'], 1],
-              '#16a34a',
-              '#dc2626',
-            ],
-            '#2563eb',
-          ],
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 2,
+        layout: {
+          'icon-image': ['coalesce', ['get', 'iconName'], 'point-icon-resource-active'],
+          'icon-size': 1,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-anchor': 'center',
         },
       });
     }
@@ -605,8 +839,10 @@
         layout: {
           'text-field': ['coalesce', ['get', 'typeLabel'], ''],
           'text-size': 12,
-          'text-offset': [0, 1.3],
+          'text-offset': [0, 1.5],
           'text-anchor': 'top',
+          'text-allow-overlap': false,
+          'text-ignore-placement': false,
         },
         paint: {
           'text-color': '#111827',

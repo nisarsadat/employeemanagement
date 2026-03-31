@@ -577,7 +577,6 @@
   import { ref, onMounted, computed, watch } from 'vue';
   import { useRouter, useRoute } from 'vue-router';
   import { useI18n } from 'vue-i18n';
-  import dayjs from 'dayjs';
   import axios from 'axios';
 
   import AppBar from '../../components/AppBar.vue';
@@ -603,8 +602,6 @@
   const router = useRouter();
   const route = useRoute();
   const searchField = ref(null);
-
-  const { calendar, formatYearDisplay } = useCalendar();
 
   async function fetchAll() {
     try {
@@ -654,118 +651,47 @@
   const filterMonth = ref(null);
 
   const yearItems = ref([]);
-  const yearNumbers = ref([]);
+  const monthItems = ref([]);
 
   async function fetchYearItemsFromDb() {
     try {
       const res = await repo.FetchInformationDateOptions?.({
         date_field: 'information_saved_date',
       });
+
       const years = res?.data?.years || [];
 
-      yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
-
-      yearItems.value = yearNumbers.value.map((y) => ({
-        value: y,
-        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      yearItems.value = years.map((y) => ({
+        value: y.value,
+        title: y.label,
       }));
     } catch (e) {
       console.error('fetchYearItemsFromDb error', e);
     }
   }
+  async function fetchMonthItemsFromDb(year = null) {
+    try {
+      const res = await repo.FetchInformationDateOptions?.({
+        date_field: 'information_saved_date',
+        year,
+      });
 
-  watch(
-    [calendar, locale],
-    () => {
-      if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
-      yearItems.value = yearNumbers.value.map((y) => ({
-        value: y,
-        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      const months = res?.data?.months || [];
+
+      monthItems.value = months.map((m) => ({
+        value: m.value,
+        title: m.label,
       }));
-    },
-    { immediate: false }
-  );
-
-  const JALALI_MONTHS_FA = [
-    'حمل',
-    'ثور',
-    'جوزا',
-    'سرطان',
-    'اسد',
-    'سنبله',
-    'میزان',
-    'عقرب',
-    'قوس',
-    'جدی',
-    'دلو',
-    'حوت',
-  ];
-  const HIJRI_QAMARI_MONTHS_FA = [
-    'محرم',
-    'صفر',
-    'ربیع‌الاول',
-    'ربیع‌الثانی',
-    'جمادی‌الاول',
-    'جمادی‌الثانی',
-    'رجب',
-    'شعبان',
-    'رمضان',
-    'شوال',
-    'ذوالقعده',
-    'ذوالحجه',
-  ];
-
-  function monthTitleFromGregorianMonth(gYear, gMonth) {
-    const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
-
-    if (calendar.value === 'gregorian') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
-      } catch {
-        return String(gMonth);
-      }
+    } catch (e) {
+      console.error('fetchMonthItemsFromDb error', e);
+      monthItems.value = [];
     }
-
-    if (calendar.value === 'jalali') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat(locale.value, {
-          calendar: 'persian',
-          month: 'numeric',
-        });
-        const parts = fmt.formatToParts(dt);
-        const m = Number(parts.find((p) => p.type === 'month')?.value);
-        if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
-      } catch {}
-      return JALALI_MONTHS_FA[(gMonth - 1) % 12];
-    }
-
-    if (calendar.value === 'hijri') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat('ar', {
-          calendar: 'islamic-umalqura',
-          month: 'numeric',
-        });
-        const parts = fmt.formatToParts(dt);
-        const m = Number(parts.find((p) => p.type === 'month')?.value);
-        if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
-      } catch {}
-      return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
-    }
-
-    return String(gMonth);
   }
 
-  const monthItems = computed(() => {
-    const y = filterYear.value || dayjs().year();
-    return Array.from({ length: 12 }).map((_, i) => {
-      const m = i + 1;
-      return { value: m, title: monthTitleFromGregorianMonth(y, m) };
-    });
+  watch(filterYear, async (newYear) => {
+    filterMonth.value = null;
+    await fetchMonthItemsFromDb(newYear);
   });
-
   async function applyMonthYearFilter() {
     repo.page = 1;
     await fetchAll();
@@ -1174,6 +1100,7 @@
   /* ===== Init ===== */
   onMounted(async () => {
     await fetchYearItemsFromDb();
+    await fetchMonthItemsFromDb(null);
     await fetchAll();
     await financeRepo.FetchAccountsData();
   });

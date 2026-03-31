@@ -3,7 +3,7 @@
   <v-dialog v-model="model" max-width="980" scrollable>
     <v-card rounded="xl" class="dialog-card overflow-hidden">
       <!-- Header -->
-      <div class="dialog-header">
+      <v-sheet class="dialog-header" rounded="0">
         <div class="d-flex align-center justify-space-between">
           <div class="d-flex align-center gap-3">
             <div class="icon-badge">
@@ -22,16 +22,29 @@
             </div>
           </div>
 
-          <v-btn icon="mdi-close" variant="text" size="small" class="rounded-lg" @click="close" />
+          <v-btn icon="mdi-close" variant="tonal" size="small" class="rounded-lg" @click="close" />
         </div>
-      </div>
+      </v-sheet>
 
       <v-divider />
 
       <v-card-text class="pa-5">
         <v-form ref="formRef" @submit.prevent="onSubmit">
+          <!-- General backend error -->
+          <v-alert
+            v-if="hasError('general')"
+            type="error"
+            variant="tonal"
+            density="comfortable"
+            class="mb-4 rounded-lg"
+          >
+            <div v-for="(msg, i) in getErrorMessages('general')" :key="i">
+              {{ msg }}
+            </div>
+          </v-alert>
+
           <!-- Section: Main -->
-          <div class="section">
+          <v-sheet class="section" rounded="xl" border>
             <div class="section-title">
               <v-icon icon="mdi-information-outline" size="18" class="me-2" />
               {{ t('finances.form.sectionMain') }}
@@ -103,12 +116,12 @@
                 :readonly="wordsLocked"
               />
             </div>
-          </div>
+          </v-sheet>
 
           <v-divider class="my-4" />
 
           <!-- Section: People & Result -->
-          <div class="section">
+          <v-sheet class="section" rounded="xl" border>
             <div class="section-title">
               <v-icon icon="mdi-account-group-outline" size="18" class="me-2" />
               {{ t('finances.form.sectionExtra') }}
@@ -124,6 +137,7 @@
                 :error="hasError('employee_phone')"
                 :error-messages="getErrorMessages('employee_phone')"
                 class="field"
+                maxLength="10"
                 @update:model-value="onEmployeePhoneManualChange"
               />
 
@@ -136,6 +150,8 @@
                 :error="hasError('expense_result')"
                 :error-messages="getErrorMessages('expense_result')"
                 class="field"
+                :disabled="expenseResultLocked"
+                :readonly="expenseResultLocked"
               />
 
               <v-text-field
@@ -160,12 +176,12 @@
                 class="field"
               />
             </div>
-          </div>
+          </v-sheet>
 
           <v-divider class="my-4" />
 
           <!-- Section: Links -->
-          <div class="section">
+          <v-sheet class="section" rounded="xl" border>
             <div class="section-title">
               <v-icon icon="mdi-link-variant" size="18" class="me-2" />
               {{ t('finances.form.sectionLinks') }}
@@ -237,19 +253,21 @@
               />
             </div>
 
-            <!-- tiny hint when locked -->
-            <div
+            <v-alert
               v-if="accountLocked || amountLocked || wordsLocked"
-              class="mt-2 text-caption opacity-75"
+              type="info"
+              variant="tonal"
+              density="comfortable"
+              class="mt-3 rounded-lg"
             >
-              {{ t('finances.hints.amountLockedFromMessage') }}
-            </div>
-          </div>
+              {{ t('د حساب او مقدار برخه بند شوو') }}
+            </v-alert>
+          </v-sheet>
 
           <v-divider class="my-4" />
 
           <!-- Notes -->
-          <div class="section">
+          <v-sheet class="section" rounded="xl" border>
             <div class="section-title">
               <v-icon icon="mdi-note-text-outline" size="18" class="me-2" />
               {{ t('finances.form.sectionNotes') }}
@@ -267,22 +285,22 @@
               :error-messages="getErrorMessages('notes')"
               class="field"
             />
-          </div>
+          </v-sheet>
 
           <!-- Actions -->
           <div class="actions mt-6">
-            <v-btn variant="text" class="rounded-lg px-4" color="grey-darken-1" @click="close">
+            <v-btn variant="tonal" class="rounded-lg px-4" color="grey-darken-1" @click="close">
               {{ t('common.cancel') }}
             </v-btn>
 
             <v-btn
               color="error"
+              variant="tonal"
               :loading="saving"
               :disabled="disableSubmit"
               type="submit"
               class="rounded-lg px-6"
               prepend-icon="mdi-check"
-              elevation="1"
             >
               {{ isEdit ? t('common.saveChanges') : t('finances.actions.createExpense') }}
             </v-btn>
@@ -300,6 +318,7 @@
   import DateInput from '@/components/DateInput.vue';
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  const expenseResultLocked = computed(() => !!draft.event_id || !!draft.information_id);
   const dbRepo = useDatabaseRepository();
   const { t } = useI18n();
 
@@ -325,7 +344,6 @@
   const originalAccountId = ref(null);
   const originalAmount = ref(0);
 
-  // ✅ Lock flags (freeze/disabled)
   const accountLocked = ref(false);
   const amountLocked = ref(false);
   const wordsLocked = ref(false);
@@ -354,9 +372,11 @@
   function clearErrors() {
     Object.keys(backendErrors).forEach((k) => delete backendErrors[k]);
   }
+
   function hasError(key) {
     return Array.isArray(backendErrors[key]) && backendErrors[key].length > 0;
   }
+
   function getErrorMessages(key) {
     return backendErrors[key] || [];
   }
@@ -373,11 +393,9 @@
     return new Intl.NumberFormat('fa-IR').format(n);
   }
 
-  // ✅ parse number from message_to_finance safely
   function parseAmountFromMessage(msg) {
     const s = String(msg ?? '').trim();
     if (!s) return '';
-    // find first chunk like 12,000 or 12000 or 12.5
     const m = s.match(/(\d[\d,]*\.?\d*)/);
     if (!m) return '';
     const cleaned = String(m[1]).replace(/,/g, '');
@@ -386,7 +404,6 @@
     return String(n);
   }
 
-  // ✅ account resolve from linked row (event/info/resource/employee)
   function resolveAccountIdFromLinkedRow(row) {
     if (!row) return null;
 
@@ -411,21 +428,18 @@
   function applyLockedAmountsFromLinkedRow(row) {
     if (!row) return;
 
-    // ✅ account from linked row (freeze)
     const accId = resolveAccountIdFromLinkedRow(row);
     if (accId) {
       draft.account_id = accId;
       accountLocked.value = true;
     }
 
-    // ✅ amount number from message_to_finance
     const amountFromMsg = parseAmountFromMessage(row.message_to_finance);
     if (amountFromMsg !== '') {
       draft.money_amount_number = amountFromMsg;
       amountLocked.value = true;
     }
 
-    // ✅ words from money_amount_words
     const words = String(row.money_amount_words ?? '').trim();
     if (words) {
       draft.money_amount_words = words;
@@ -433,7 +447,6 @@
     }
   }
 
-  // ✅ beautify expense_result ONLY when it's empty (doesn't overwrite manual)
   function setExpenseResultLabelFromLink() {
     const eid = draft.event_id;
     const iid = draft.information_id;
@@ -481,6 +494,21 @@
   const accountOptions = computed(() => repo.accounts || []);
   const officeEmployeeOptions = computed(() => repo.officeEmployees || []);
 
+  // FIX: these were missing
+  const resourceOptions = computed(() => {
+    if (Array.isArray(dbRepo.Resources)) return dbRepo.Resources;
+    if (Array.isArray(dbRepo.resources)) return dbRepo.resources;
+    return [];
+  });
+
+  const resourceTitle = (item) => {
+    if (!item) return '';
+    const code = item.code_number ?? item.code ?? item.codeNumber ?? '';
+    const name = item.name ?? item.title ?? item.full_name ?? '';
+    if (code && name) return `${code} — ${name}`;
+    return name || code || `#${item.id ?? ''}`;
+  };
+
   const selectedEventsById = reactive({});
   const selectedInfosById = reactive({});
 
@@ -493,6 +521,7 @@
     }
     return base;
   });
+
   function onResourceSelected(r) {
     if (!r) return;
     draft.resource_id = r.id ?? null;
@@ -512,6 +541,7 @@
   function onResourceCleared() {
     draft.resource_id = null;
   }
+
   const informationOptions = computed(() => {
     const base = Array.isArray(repo.informations) ? [...repo.informations] : [];
     const id = draft.information_id;
@@ -533,8 +563,6 @@
     const code = item.code_number ?? item.code ?? item.codeNumber ?? '';
     return code ? `${code} — ${item.name}` : item.name;
   };
-
-
 
   const eventTitle = (item) => {
     if (!item) return '';
@@ -640,7 +668,6 @@
     originalAccountId.value = null;
     originalAmount.value = 0;
 
-    // ✅ reset locks every open
     accountLocked.value = false;
     amountLocked.value = false;
     wordsLocked.value = false;
@@ -650,11 +677,11 @@
     if (Array.isArray(repo.accounts) && repo.accounts.length) return;
     await repo.FetchAccountsData({ page: 1, perPage: 2000, search: '' });
   }
+
   async function ensureOfficeEmployeesLoaded() {
     if (Array.isArray(repo.officeEmployees) && repo.officeEmployees.length) return;
     await repo.FetchOfficeEmployeesOptions({ search: '' });
   }
-
 
   async function ensureEventsLoaded() {
     if (Array.isArray(repo.events) && repo.events.length) return;
@@ -700,9 +727,11 @@
   function onAccountChange() {
     formRef.value?.validate();
   }
+
   function validateAmount() {
     formRef.value?.validate();
   }
+
   function close() {
     model.value = false;
   }
@@ -777,7 +806,9 @@
   }
 
   const employeePhoneManuallyChanged = ref(false);
+
   function onEmployeeManualChange() {}
+
   function onEmployeePhoneManualChange() {
     employeePhoneManuallyChanged.value = true;
   }
@@ -787,6 +818,7 @@
     if (b === null || b === undefined || b === '') return false;
     return String(a) === String(b);
   }
+
   function normalizeSelectId(options, id) {
     if (id === null || id === undefined || id === '') return null;
     const sample = options?.[0]?.id;
@@ -794,6 +826,7 @@
     if (typeof sample === 'number') return Number(id);
     return String(id);
   }
+
   function setEmployeeAndPhone(empId) {
     if (!empId) return;
     draft.office_employee_id = normalizeSelectId(officeEmployeeOptions.value, empId);
@@ -817,13 +850,10 @@
     }
   );
 
-  // ✅ When selecting event manually -> auto fill + freeze account/amount/words
-  // ✅ ALSO: event/info are OPTIONAL and mutually exclusive (event picked => clear info)
   watch(
     () => draft.event_id,
     (eid) => {
       if (!eid) {
-        // unlock ONLY if no information selected too
         if (!draft.information_id) {
           accountLocked.value = false;
           amountLocked.value = false;
@@ -832,7 +862,6 @@
         return;
       }
 
-      // ✅ event picked => clear information (optional)
       if (draft.information_id) draft.information_id = null;
 
       const ev = eventOptions.value.find((x) => sameId(x.id, eid));
@@ -844,16 +873,12 @@
       if (rid) draft.resource_id = rid;
       setEmployeeAndPhone(empId);
 
-      // ✅ autofill from Event (freeze)
       if (ev) applyLockedAmountsFromLinkedRow(ev);
 
-      // ✅ optional label (doesn't overwrite manual)
       setExpenseResultLabelFromLink();
     }
   );
 
-  // ✅ When selecting information manually -> auto fill + freeze account/amount/words
-  // ✅ ALSO: event/info are OPTIONAL and mutually exclusive (info picked => clear event)
   watch(
     () => draft.information_id,
     (iid) => {
@@ -866,7 +891,6 @@
         return;
       }
 
-      // ✅ info picked => clear event (optional)
       if (draft.event_id) draft.event_id = null;
 
       const inf = informationOptions.value.find((x) => sameId(x.id, iid));
@@ -878,10 +902,8 @@
       if (rid) draft.resource_id = rid;
       setEmployeeAndPhone(empId);
 
-      // ✅ autofill from Information (freeze)
       if (inf) applyLockedAmountsFromLinkedRow(inf);
 
-      // ✅ optional label (doesn't overwrite manual)
       setExpenseResultLabelFromLink();
     }
   );
@@ -898,7 +920,6 @@
     }
   );
 
-  // ✅ helper: find event/info row from dbRepo lists if repo options are missing
   function findFromDbRepo(type, id) {
     const sid = String(id);
     if (type === 'event') {
@@ -921,7 +942,6 @@
   }
 
   async function fetchSingleIfPossible(type, id) {
-    // best effort (no breaking if missing)
     const fns =
       type === 'event'
         ? ['FetchEventData', 'FetchEvent', 'FetchEventById', 'GetEvent']
@@ -944,7 +964,6 @@
     return null;
   }
 
-  // ✅ on open: read prefill, set links, then auto fill & freeze account/amount/words
   watch(
     () => model.value,
     async (open) => {
@@ -961,7 +980,6 @@
 
       const pre = dbRepo.financePrefill;
 
-      // ✅ link priority: event > info
       if (pre?.event_id) {
         draft.event_id = pre.event_id;
         draft.information_id = null;
@@ -970,11 +988,9 @@
         draft.event_id = null;
       }
 
-      // ✅ direct links
       if (pre?.resource_id) draft.resource_id = pre.resource_id;
       if (pre?.office_employee_id) setEmployeeAndPhone(pre.office_employee_id);
 
-      // ✅ IMPORTANT: account/amount/words autofill from linked row + freeze (from prefill)
       if (pre?.event_id) {
         let ev =
           eventOptions.value.find((x) => sameId(x.id, pre.event_id)) ||
@@ -1003,7 +1019,6 @@
 
       dbRepo.clearFinancePrefill?.();
 
-      // ✅ edit mode (do NOT lock; edit should remain editable unless you want otherwise)
       if (props.editId) {
         clearErrors();
         const item = await repo.FetchFinanceData(props.editId);
@@ -1042,6 +1057,7 @@
       if (draft.money_amount_number !== '') validateAmount();
     }
   );
+
   watch(
     () => draft.account_id,
     () => {
@@ -1107,7 +1123,6 @@
 </script>
 
 <style scoped>
-  /* keep your unchanged styles exactly (same as your file) */
   .field :deep(.v-field) {
     border-radius: 12px;
     background: #ffffff;
@@ -1267,7 +1282,6 @@
   }
   .section {
     background: #fafafa;
-    border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 16px;
     padding: 14px;
   }

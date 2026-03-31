@@ -573,6 +573,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/resource-activity', [ResourceActivityController::class, 'index']);
     Route::get('/resource-activity/{id}', [ResourceActivityController::class, 'show']);
     Route::get('resources/date-options', [ResourceController::class, 'dateOptions']);
+    Route::get('/resources/export/excel', [ResourceController::class, 'exportExcel']);
 
     // daily report + monthly report + yearly report
 

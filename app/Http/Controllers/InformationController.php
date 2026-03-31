@@ -12,6 +12,7 @@ use App\Http\Requests\StoreInformationRequest;
 use App\Http\Requests\UpdateInformationRequest;
 use App\Http\Resources\InformationResource;
 use App\Services\NotificationService;
+use Carbon\Carbon;
 
 class InformationController extends Controller
 {
@@ -28,6 +29,133 @@ class InformationController extends Controller
         }
 
         return $field;
+    }
+
+    private function gregorianToJalali(int $gy, int $gm, int $gd): array
+    {
+        $g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+
+        if ($gy > 1600) {
+            $jy = 979;
+            $gy -= 1600;
+        } else {
+            $jy = 0;
+            $gy -= 621;
+        }
+
+        $gy2 = ($gm > 2) ? ($gy + 1) : $gy;
+        $days = (365 * $gy)
+            + intdiv(($gy2 + 3), 4)
+            - intdiv(($gy2 + 99), 100)
+            + intdiv(($gy2 + 399), 400)
+            - 80
+            + $gd
+            + $g_d_m[$gm - 1];
+
+        $jy += 33 * intdiv($days, 12053);
+        $days %= 12053;
+
+        $jy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $jy += intdiv(($days - 1), 365);
+            $days = ($days - 1) % 365;
+        }
+
+        if ($days < 186) {
+            $jm = 1 + intdiv($days, 31);
+            $jd = 1 + ($days % 31);
+        } else {
+            $jm = 7 + intdiv(($days - 186), 30);
+            $jd = 1 + (($days - 186) % 30);
+        }
+
+        return [$jy, $jm, $jd];
+    }
+
+    private function jalaliToGregorian(int $jy, int $jm, int $jd): array
+    {
+        if ($jy > 979) {
+            $gy = 1600;
+            $jy -= 979;
+        } else {
+            $gy = 621;
+        }
+
+        $days = (365 * $jy)
+            + intdiv($jy, 33) * 8
+            + intdiv((($jy % 33) + 3), 4)
+            + 78
+            + $jd
+            + (($jm < 7) ? (($jm - 1) * 31) : ((($jm - 7) * 30) + 186));
+
+        $gy += 400 * intdiv($days, 146097);
+        $days %= 146097;
+
+        if ($days > 36524) {
+            $gy += 100 * intdiv(--$days, 36524);
+            $days %= 36524;
+
+            if ($days >= 365) {
+                $days++;
+            }
+        }
+
+        $gy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $gy += intdiv(($days - 1), 365);
+            $days = ($days - 1) % 365;
+        }
+
+        $gd = $days + 1;
+
+        $sal_a = [
+            0,
+            31,
+            (($gy % 4 === 0 && $gy % 100 !== 0) || ($gy % 400 === 0)) ? 29 : 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        ];
+
+        for ($gm = 1; $gm <= 12; $gm++) {
+            if ($gd <= $sal_a[$gm]) {
+                break;
+            }
+            $gd -= $sal_a[$gm];
+        }
+
+        return [$gy, $gm, $gd];
+    }
+
+    private function shamsiMonthName(int $month): string
+    {
+        $months = [
+            1 => 'حمل',
+            2 => 'ثور',
+            3 => 'جوزا',
+            4 => 'سرطان',
+            5 => 'اسد',
+            6 => 'سنبله',
+            7 => 'میزان',
+            8 => 'عقرب',
+            9 => 'قوس',
+            10 => 'جدی',
+            11 => 'دلو',
+            12 => 'حوت',
+        ];
+
+        return $months[$month] ?? (string) $month;
     }
 
     private function searchableColumns(): array
@@ -112,8 +240,29 @@ class InformationController extends Controller
 
     private function applyMonthYearFilter($query, ?int $year, ?int $month, string $dateField)
     {
+        if ($year && $month) {
+            [$startGy, $startGm, $startGd] = $this->jalaliToGregorian($year, $month, 1);
+            $lastDay = $month <= 6 ? 31 : ($month <= 11 ? 30 : 29);
+            [$endGy, $endGm, $endGd] = $this->jalaliToGregorian($year, $month, $lastDay);
+
+            $startDate = Carbon::create($startGy, $startGm, $startGd)->startOfDay();
+            $endDate   = Carbon::create($endGy, $endGm, $endGd)->endOfDay();
+
+            $query->whereBetween($dateField, [$startDate, $endDate]);
+
+            return $query;
+        }
+
         if ($year) {
-            $query->whereYear($dateField, $year);
+            [$startGy, $startGm, $startGd] = $this->jalaliToGregorian($year, 1, 1);
+            [$endGy, $endGm, $endGd] = $this->jalaliToGregorian($year, 12, 29);
+
+            $startDate = Carbon::create($startGy, $startGm, $startGd)->startOfDay();
+            $endDate   = Carbon::create($endGy, $endGm, $endGd)->endOfDay();
+
+            $query->whereBetween($dateField, [$startDate, $endDate]);
+
+            return $query;
         }
 
         if ($month) {
@@ -311,35 +460,55 @@ class InformationController extends Controller
     {
         $request->validate([
             'date_field' => 'nullable|string',
-            'year'       => 'nullable|integer|min:1900|max:2500',
+            'year'       => 'nullable|integer|min:1|max:2500',
         ]);
 
-        $dateField = $this->resolveDateField($request->input('date_field'));
-        $year      = $request->filled('year') ? (int) $request->input('year') : null;
+        $dateField  = $this->resolveDateField($request->input('date_field'));
+        $shamsiYear = $request->filled('year') ? (int) $request->input('year') : null;
 
-        $base = Information::query()->whereNotNull($dateField);
+        $dates = Information::query()
+            ->whereNotNull($dateField)
+            ->pluck($dateField);
 
-        $years = (clone $base)
-            ->selectRaw("YEAR($dateField) as y")
-            ->distinct()
-            ->orderByDesc('y')
-            ->pluck('y')
-            ->filter()
+        $yearsMap = [];
+        $monthsMap = [];
+
+        foreach ($dates as $date) {
+            if (!$date) {
+                continue;
+            }
+
+            $carbon = Carbon::parse($date);
+
+            [$jy, $jm, $jd] = $this->gregorianToJalali(
+                (int) $carbon->format('Y'),
+                (int) $carbon->format('m'),
+                (int) $carbon->format('d')
+            );
+
+            $yearsMap[$jy] = $jy;
+
+            if ($shamsiYear && $jy === $shamsiYear) {
+                $monthsMap[$jm] = [
+                    'value' => $jm,
+                    'label' => $this->shamsiMonthName($jm),
+                ];
+            }
+        }
+
+        $years = collect($yearsMap)
+            ->sortDesc()
+            ->map(fn ($year) => [
+                'value' => $year,
+                'label' => (string) $year,
+            ])
             ->values()
             ->all();
 
-        $months = [];
-        if ($year) {
-            $months = (clone $base)
-                ->whereYear($dateField, $year)
-                ->selectRaw("MONTH($dateField) as m")
-                ->distinct()
-                ->orderBy('m')
-                ->pluck('m')
-                ->filter()
-                ->values()
-                ->all();
-        }
+        $months = collect($monthsMap)
+            ->sortBy('value')
+            ->values()
+            ->all();
 
         return response()->json([
             'date_field' => $dateField,
@@ -360,7 +529,7 @@ class InformationController extends Controller
             'search_field' => 'nullable|string',
 
             // ✅ month/year filters
-            'year'         => 'nullable|integer|min:1900|max:2500',
+            'year'         => 'nullable|integer|min:1|max:2500',
             'month'        => 'nullable|integer|min:1|max:12',
             'date_field'   => 'nullable|string',
 
@@ -687,6 +856,7 @@ class InformationController extends Controller
         $mainProvince = trim((string) ($data['main_province'] ?? ''));
         $mainDistricts = trim((string) ($data['main_districts'] ?? ''));
         $mainVillage = trim((string) ($data['main_village'] ?? ''));
+
         $currentId = $data['id'] ?? null;
 
         if (

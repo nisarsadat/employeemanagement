@@ -36,7 +36,6 @@ return [
         'finincalindex',
 
         'map-afg',
-        'offlinemap',
 
         'roles',
         'rolepermissions',

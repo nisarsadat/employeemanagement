@@ -551,7 +551,6 @@
                 <DateInput
                   v-model="form.resource_saved_date"
                   :label="t('تاریخ ثبت منبع *')"
-                  :rules="[rules.required]"
                 />
               </v-col>
               <v-col cols="12" md="3">

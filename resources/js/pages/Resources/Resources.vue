@@ -64,7 +64,7 @@
         </v-col>
 
         <!-- MONTH -->
-        <v-col cols="12" sm="4" md="3">
+        <v-col cols="12" sm="4" md="2">
           <v-select
             v-model="filterMonth"
             :items="monthItems"
@@ -79,7 +79,21 @@
             :label="t('ماه')"
           />
         </v-col>
-
+        <!-- Create Button -->
+        <v-col cols="12" sm="4" md="1">
+          <v-btn
+            color="success"
+            variant="flat"
+            size="large"
+            class="text-none"
+            rounded="lg"
+            block
+            prepend-icon="mdi-microsoft-excel"
+            @click="downloadExcel"
+          >
+            {{ t('اکسل') }}
+          </v-btn>
+        </v-col>
         <v-col cols="12" sm="4" md="1" lg="1">
           <v-btn
             color="primary"
@@ -473,8 +487,6 @@
   import { ref, computed, watch, onMounted } from 'vue';
   import { useRouter, useRoute } from 'vue-router';
   import { useI18n } from 'vue-i18n';
-  import dayjs from 'dayjs';
-  import { useCalendar } from '../../../composables/useCalendar';
 
   import AppBar from '@/components/AppBar.vue';
   import PeekButton from '@/components/PeekButton.vue';
@@ -490,7 +502,6 @@
   const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();
-  const { calendar, formatYearDisplay } = useCalendar();
 
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
@@ -520,118 +531,46 @@
   const filterMonth = ref(null);
 
   const yearItems = ref([]);
-  const yearNumbers = ref([]);
+  const monthItems = ref([]);
 
   async function fetchYearItemsFromDb() {
     try {
       const res = await repo.FetchResourceDateOptions({ date_field: 'resource_saved_date' });
       const years = res?.data?.years || [];
 
-      yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
-
-      yearItems.value = yearNumbers.value.map((y) => ({
-        value: y,
-        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      yearItems.value = years.map((y) => ({
+        value: y.value,
+        title: y.label,
       }));
     } catch (e) {
       console.error('fetchYearItemsFromDb error', e);
       showErrorMessage(t('خطا در دریافت سال‌ها'));
     }
   }
+  async function fetchMonthItemsFromDb(year = null) {
+    try {
+      const res = await repo.FetchResourceDateOptions({
+        date_field: 'resource_saved_date',
+        year,
+      });
 
-  watch(
-    [calendar, locale],
-    () => {
-      if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
-      yearItems.value = yearNumbers.value.map((y) => ({
-        value: y,
-        title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+      const months = res?.data?.months || [];
+
+      monthItems.value = months.map((m) => ({
+        value: m.value,
+        title: m.label,
       }));
-    },
-    { immediate: false }
-  );
-
-  const JALALI_MONTHS_FA = [
-    'حمل',
-    'ثور',
-    'جوزا',
-    'سرطان',
-    'اسد',
-    'سنبله',
-    'میزان',
-    'عقرب',
-    'قوس',
-    'جدی',
-    'دلو',
-    'حوت',
-  ];
-
-  const HIJRI_QAMARI_MONTHS_FA = [
-    'محرم',
-    'صفر',
-    'ربیع‌الاول',
-    'ربیع‌الثانی',
-    'جمادی‌الاول',
-    'جمادی‌الثانی',
-    'رجب',
-    'شعبان',
-    'رمضان',
-    'شوال',
-    'ذوالقعده',
-    'ذوالحجه',
-  ];
-
-  function monthTitleFromGregorianMonth(gYear, gMonth) {
-    const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
-
-    if (calendar.value === 'gregorian') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
-      } catch {
-        return String(gMonth);
-      }
+    } catch (e) {
+      console.error('fetchMonthItemsFromDb error', e);
+      monthItems.value = [];
+      showErrorMessage(t('خطا در دریافت ماه‌ها'));
     }
-
-    if (calendar.value === 'jalali') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat(locale.value, {
-          calendar: 'persian',
-          month: 'numeric',
-        });
-        const parts = fmt.formatToParts(dt);
-        const m = Number(parts.find((p) => p.type === 'month')?.value);
-        if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
-      } catch {}
-      return JALALI_MONTHS_FA[(gMonth - 1) % 12];
-    }
-
-    if (calendar.value === 'hijri') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat('ar', {
-          calendar: 'islamic-umalqura',
-          month: 'numeric',
-        });
-        const parts = fmt.formatToParts(dt);
-        const m = Number(parts.find((p) => p.type === 'month')?.value);
-        if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
-      } catch {}
-      return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
-    }
-
-    return String(gMonth);
   }
 
-  const monthItems = computed(() => {
-    const y = filterYear.value || dayjs().year();
-    return Array.from({ length: 12 }).map((_, i) => {
-      const m = i + 1;
-      return { value: m, title: monthTitleFromGregorianMonth(y, m) };
-    });
+  watch(filterYear, async (newYear) => {
+    filterMonth.value = null;
+    await fetchMonthItemsFromDb(newYear);
   });
-
   async function applyMonthYearFilter() {
     repo.page = 1;
     await fetchAll();
@@ -982,6 +921,21 @@
       deleteTarget.value = null;
     }
   }
+  async function downloadExcel() {
+    try {
+      await repo.DownloadResourcesExcel({
+        search: repo.Search || '',
+        search_field: searchField.value,
+        year: filterYear.value,
+        month: filterMonth.value,
+        date_field: 'resource_saved_date',
+        stat: quickFilter.value === 'all' ? 'all' : quickFilter.value,
+      });
+    } catch (e) {
+      console.error('downloadExcel error', e);
+      showErrorMessage(t('خطا در دانلود اکسل منابع'));
+    }
+  }
   watch(
     [routeResourceKey, rowsFT, shouldOpenPeek],
     async ([key, rows, open]) => {
@@ -1009,6 +963,7 @@
 
   onMounted(async () => {
     await fetchYearItemsFromDb();
+    await fetchMonthItemsFromDb(null);
     await fetchAll();
   });
 </script>

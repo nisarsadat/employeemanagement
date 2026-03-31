@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\NotificationService;
 use Illuminate\Database\QueryException;
+use App\Exports\ResourcesExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class ResourceController extends Controller
 {
@@ -84,6 +87,167 @@ class ResourceController extends Controller
         return in_array($field, $this->searchableColumns(), true) ? $field : null;
     }
 
+    private function gregorianToJalali(int $gy, int $gm, int $gd): array
+    {
+        $g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+
+        if ($gy > 1600) {
+            $jy = 979;
+            $gy -= 1600;
+        } else {
+            $jy = 0;
+            $gy -= 621;
+        }
+
+        $gy2 = ($gm > 2) ? ($gy + 1) : $gy;
+        $days = (365 * $gy)
+            + intdiv(($gy2 + 3), 4)
+            - intdiv(($gy2 + 99), 100)
+            + intdiv(($gy2 + 399), 400)
+            - 80
+            + $gd
+            + $g_d_m[$gm - 1];
+
+        $jy += 33 * intdiv($days, 12053);
+        $days %= 12053;
+
+        $jy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $jy += intdiv(($days - 1), 365);
+            $days = ($days - 1) % 365;
+        }
+
+        if ($days < 186) {
+            $jm = 1 + intdiv($days, 31);
+            $jd = 1 + ($days % 31);
+        } else {
+            $jm = 7 + intdiv(($days - 186), 30);
+            $jd = 1 + (($days - 186) % 30);
+        }
+
+        return [$jy, $jm, $jd];
+    }
+
+    private function jalaliToGregorian(int $jy, int $jm, int $jd): array
+    {
+        if ($jy > 979) {
+            $gy = 1600;
+            $jy -= 979;
+        } else {
+            $gy = 621;
+        }
+
+        $days = (365 * $jy)
+            + intdiv($jy, 33) * 8
+            + intdiv((($jy % 33) + 3), 4)
+            + 78
+            + $jd
+            + (($jm < 7) ? (($jm - 1) * 31) : ((($jm - 7) * 30) + 186));
+
+        $gy += 400 * intdiv($days, 146097);
+        $days %= 146097;
+
+        if ($days > 36524) {
+            $gy += 100 * intdiv(--$days, 36524);
+            $days %= 36524;
+
+            if ($days >= 365) {
+                $days++;
+            }
+        }
+
+        $gy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $gy += intdiv(($days - 1), 365);
+            $days = ($days - 1) % 365;
+        }
+
+        $gd = $days + 1;
+
+        $sal_a = [
+            0,
+            31,
+            (($gy % 4 === 0 && $gy % 100 !== 0) || ($gy % 400 === 0)) ? 29 : 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        ];
+
+        for ($gm = 1; $gm <= 12; $gm++) {
+            if ($gd <= $sal_a[$gm]) {
+                break;
+            }
+            $gd -= $sal_a[$gm];
+        }
+
+        return [$gy, $gm, $gd];
+    }
+
+    private function shamsiMonthName(int $month): string
+    {
+        $months = [
+            1 => 'حمل',
+            2 => 'ثور',
+            3 => 'جوزا',
+            4 => 'سرطان',
+            5 => 'اسد',
+            6 => 'سنبله',
+            7 => 'میزان',
+            8 => 'عقرب',
+            9 => 'قوس',
+            10 => 'جدی',
+            11 => 'دلو',
+            12 => 'حوت',
+        ];
+
+        return $months[$month] ?? (string) $month;
+    }
+
+    private function applyShamsiDateFilter($query, ?int $year, ?int $month, string $dateField)
+    {
+        if ($year && $month) {
+            [$startGy, $startGm, $startGd] = $this->jalaliToGregorian($year, $month, 1);
+            $lastDay = $month <= 6 ? 31 : ($month <= 11 ? 30 : 29);
+            [$endGy, $endGm, $endGd] = $this->jalaliToGregorian($year, $month, $lastDay);
+
+            $startDate = Carbon::create($startGy, $startGm, $startGd)->startOfDay();
+            $endDate   = Carbon::create($endGy, $endGm, $endGd)->endOfDay();
+
+            $query->whereNotNull($dateField)->whereBetween($dateField, [$startDate, $endDate]);
+
+            return $query;
+        }
+
+        if ($year) {
+            [$startGy, $startGm, $startGd] = $this->jalaliToGregorian($year, 1, 1);
+            [$endGy, $endGm, $endGd] = $this->jalaliToGregorian($year, 12, 29);
+
+            $startDate = Carbon::create($startGy, $startGm, $startGd)->startOfDay();
+            $endDate   = Carbon::create($endGy, $endGm, $endGd)->endOfDay();
+
+            $query->whereNotNull($dateField)->whereBetween($dateField, [$startDate, $endDate]);
+
+            return $query;
+        }
+
+        if ($month && $month >= 1 && $month <= 12) {
+            $query->whereMonth($dateField, $month);
+        }
+
+        return $query;
+    }
+
     public function index(Request $req)
     {
         $search = trim((string) $req->get('search', ''));
@@ -105,12 +269,6 @@ class ResourceController extends Controller
         }
 
         $baseQuery = Resource::query()
-            ->when($year !== null, function ($w) use ($dateField, $year) {
-                $w->whereNotNull($dateField)->whereYear($dateField, $year);
-            })
-            ->when($month !== null && $month >= 1 && $month <= 12, function ($w) use ($dateField, $month) {
-                $w->whereNotNull($dateField)->whereMonth($dateField, $month);
-            })
             ->when($search !== '', function ($w) use ($search, $searchField) {
                 if ($searchField) {
                     $w->where($searchField, 'like', "%{$search}%");
@@ -126,6 +284,8 @@ class ResourceController extends Controller
                     });
                 }
             });
+
+        $this->applyShamsiDateFilter($baseQuery, $year, $month, $dateField);
 
         $today = now()->toDateString();
 
@@ -152,12 +312,6 @@ class ResourceController extends Controller
                 'informations',
                 'khayratReports',
             ])
-            ->when($year !== null, function ($w) use ($dateField, $year) {
-                $w->whereNotNull($dateField)->whereYear($dateField, $year);
-            })
-            ->when($month !== null && $month >= 1 && $month <= 12, function ($w) use ($dateField, $month) {
-                $w->whereNotNull($dateField)->whereMonth($dateField, $month);
-            })
             ->when($search !== '', function ($w) use ($search, $searchField) {
                 if ($searchField) {
                     $w->where($searchField, 'like', "%{$search}%");
@@ -183,6 +337,8 @@ class ResourceController extends Controller
                 $w->where('activity', 'غیر فعال');
             })
             ->latest('id');
+
+        $this->applyShamsiDateFilter($q, $year, $month, $dateField);
 
         $perPage = $req->filled('perPage') ? (int) $req->get('perPage') : null;
 
@@ -359,6 +515,41 @@ class ResourceController extends Controller
         return response()->json(['message' => 'Deleted']);
     }
 
+    public function exportExcel(Request $req)
+    {
+        $search = trim((string) $req->get('search', ''));
+        $searchField = $this->resolveSearchField($req->get('search_field'));
+
+        $year  = $req->filled('year') ? (int) $req->get('year') : null;
+        $month = $req->filled('month') ? (int) $req->get('month') : null;
+
+        $stat = trim((string) $req->get('stat', 'all'));
+        $allowedStats = ['all', 'today', 'active', 'inactive'];
+        if (!in_array($stat, $allowedStats, true)) {
+            $stat = 'all';
+        }
+
+        $dateField = $req->get('date_field', 'resource_saved_date');
+        $allowedDateFields = ['resource_saved_date', 'created_at', 'updated_at'];
+        if (!in_array($dateField, $allowedDateFields, true)) {
+            $dateField = 'resource_saved_date';
+        }
+
+        $fileName = 'resources_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+        return Excel::download(
+            new ResourcesExport(
+                $search,
+                $searchField,
+                $year,
+                $month,
+                $stat,
+                $dateField
+            ),
+            $fileName
+        );
+    }
+
     public function dateOptions(Request $req)
     {
         $dateField = $req->get('date_field', 'resource_saved_date');
@@ -367,16 +558,56 @@ class ResourceController extends Controller
             $dateField = 'resource_saved_date';
         }
 
-        $years = Resource::query()
+        $shamsiYear = $req->filled('year') ? (int) $req->get('year') : null;
+
+        $dates = Resource::query()
             ->whereNotNull($dateField)
-            ->selectRaw("YEAR($dateField) as y")
-            ->groupBy('y')
-            ->orderBy('y', 'desc')
-            ->pluck('y')
-            ->values();
+            ->pluck($dateField);
+
+        $yearsMap = [];
+        $monthsMap = [];
+
+        foreach ($dates as $date) {
+            if (!$date) {
+                continue;
+            }
+
+            $carbon = Carbon::parse($date);
+
+            [$jy, $jm, $jd] = $this->gregorianToJalali(
+                (int) $carbon->format('Y'),
+                (int) $carbon->format('m'),
+                (int) $carbon->format('d')
+            );
+
+            $yearsMap[$jy] = $jy;
+
+            if ($shamsiYear && $jy === $shamsiYear) {
+                $monthsMap[$jm] = [
+                    'value' => $jm,
+                    'label' => $this->shamsiMonthName($jm),
+                ];
+            }
+        }
+
+        $years = collect($yearsMap)
+            ->sortDesc()
+            ->map(fn ($year) => [
+                'value' => $year,
+                'label' => (string) $year,
+            ])
+            ->values()
+            ->all();
+
+        $months = collect($monthsMap)
+            ->sortBy('value')
+            ->values()
+            ->all();
 
         return response()->json([
-            'years' => $years,
+            'date_field' => $dateField,
+            'years'      => $years,
+            'months'     => $months,
         ]);
     }
 }

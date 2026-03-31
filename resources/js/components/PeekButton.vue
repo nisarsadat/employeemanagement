@@ -352,6 +352,28 @@
 
     return t;
   }
+  function isMostlyRtlText(s) {
+    if (!s) return false;
+    const str = String(s);
+    const rtlMatches = str.match(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/g) || [];
+    return rtlMatches.length > 0;
+  }
+
+  function pdfRtlValue(s) {
+    if (s == null || s === '') return '—';
+
+    let t = String(s)
+      .replace(/\u00A0/g, ' ')
+      .trim();
+
+    // If it contains RTL chars, force RTL embedding
+    if (isMostlyRtlText(t)) {
+      t = `\u202B${t}\u202C`; // RLE ... PDF
+      t = t.replace(/\s+/g, `\u00A0\u061C`);
+    }
+
+    return t;
+  }
   /* ================= PDF Generation (OLD STYLE: Landscape, 4 columns + image on RIGHT) ================ */
   async function b64(path) {
     try {
@@ -398,7 +420,8 @@
         const idx = i + j;
         if (idx < fields.length) {
           const f = fields[idx];
-          const value = displayValue(f.key);
+          const value = pdfRtlValue(displayValue(f.key));
+
           row.push({
             stack: [
               {
@@ -406,9 +429,13 @@
                 style: 'fieldLabel',
                 margin: [0, 0, 0, 2],
                 alignment: 'right',
-                noWrap: true, // ✅ prevents pdfMake from re-breaking the label
+                noWrap: true,
               },
-              { text: value, style: 'fieldValue', alignment: 'right' },
+              {
+                text: value,
+                style: 'fieldValue',
+                alignment: 'right',
+              },
             ],
             margin: [6, 6, 6, 6],
           });
@@ -538,7 +565,7 @@
           },
 
           {
-            text: `شماره: ${props.id}`,
+            text: pdfRtlValue(`شماره: ${props.id}`),
             style: 'footer',
             alignment: 'right',
             margin: [0, 10, 0, 0],
