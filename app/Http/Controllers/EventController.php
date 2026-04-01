@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use App\Services\NotificationService;
 use Carbon\Carbon;
-
+use App\Exports\EventsExport;
+use Maatwebsite\Excel\Facades\Excel;
 class EventController extends Controller
 {
     private function isDuplicateKey(QueryException $e): bool
@@ -20,6 +21,22 @@ class EventController extends Controller
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
+    public function exportExcel(Request $request)
+    {
+        $fileName = 'events_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+        return Excel::download(
+            new EventsExport(
+                $request->input('search'),
+                $request->input('searchField'),
+                $request->filled('year') ? (int) $request->input('year') : null,
+                $request->filled('month') ? (int) $request->input('month') : null,
+                $request->input('stat', 'all'),
+                $request->input('dateField', 'event_date')
+            ),
+            $fileName
+        );
+    }
     private function duplicateResponse()
     {
         return response()->json([

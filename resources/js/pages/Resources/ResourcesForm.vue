@@ -548,10 +548,7 @@
                 />
               </v-col>
               <v-col cols="12" md="3">
-                <DateInput
-                  v-model="form.resource_saved_date"
-                  :label="t('تاریخ ثبت منبع *')"
-                />
+                <DateInput v-model="form.resource_saved_date" :label="t('تاریخ ثبت منبع *')" />
               </v-col>
               <v-col cols="12" md="3">
                 <ResourceActivityTypeSelect
@@ -651,6 +648,7 @@
                   density="compact"
                   variant="outlined"
                   :rules="[rules.phone10]"
+                  maxLenght="10"
                   :error="hasError('phone_number')"
                   :error-messages="getErrorMessages('phone_number')"
                 />
@@ -660,6 +658,7 @@
                   v-model="form.phone_number_1"
                   :label="t('شماره تماس ۱')"
                   density="compact"
+                  maxLenght="10"
                   variant="outlined"
                   :rules="[rules.phone10]"
                   :error="hasError('phone_number_1')"
@@ -672,6 +671,7 @@
                   v-model="form.phone_number_2"
                   :label="t('شماره تماس ۲')"
                   density="compact"
+                  maxLenght="10"
                   variant="outlined"
                   :rules="[rules.phone10]"
                   :error="hasError('phone_number_2')"

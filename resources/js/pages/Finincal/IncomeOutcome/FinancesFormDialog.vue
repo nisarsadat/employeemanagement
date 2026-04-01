@@ -112,6 +112,7 @@
                 :error="hasError('money_amount_words')"
                 :error-messages="getErrorMessages('money_amount_words')"
                 class="field"
+                :rules="[rules.required]"
                 :disabled="wordsLocked"
                 :readonly="wordsLocked"
               />

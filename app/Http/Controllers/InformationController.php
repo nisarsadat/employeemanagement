@@ -13,6 +13,8 @@ use App\Http\Requests\UpdateInformationRequest;
 use App\Http\Resources\InformationResource;
 use App\Services\NotificationService;
 use Carbon\Carbon;
+use App\Exports\InformationsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InformationController extends Controller
 {
@@ -31,6 +33,23 @@ class InformationController extends Controller
         return $field;
     }
 
+   public function exportExcel(Request $request)
+    {
+        $fileName = 'informations_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\InformationsExport(
+                $request->input('search'),
+                $request->input('searchField'),
+                $request->filled('year') ? (int) $request->input('year') : null,
+                $request->filled('month') ? (int) $request->input('month') : null,
+                $request->input('stat', 'all'),
+                $request->input('dateField', 'information_saved_date'),
+                $request->filled('related_id') ? (int) $request->input('related_id') : null
+            ),
+            $fileName
+        );
+    }
     private function gregorianToJalali(int $gy, int $gm, int $gd): array
     {
         $g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
@@ -275,15 +294,44 @@ class InformationController extends Controller
     // ✅ keep the main list query consistent everywhere
     private function baseListQuery()
     {
-        return Information::query()->with([
-            'resource',
-            'officeEmployee',
-            'officeEmployeeInfo',
-            'matchedInformation',
-            'documents',
-            'account:id,name,price',
-            'finances',
-        ]);
+        $table = (new Information())->getTable();
+        $resultPendingDaysSql = $this->resultPendingDaysSql($table);
+
+        return Information::query()
+            ->select("{$table}.*")
+            ->selectRaw("
+                CASE
+                    WHEN CHAR_LENGTH(TRIM(COALESCE({$table}.result, ''))) > 0 THEN NULL
+                    ELSE {$resultPendingDaysSql}
+                END AS result_pending_days
+            ")
+            ->selectRaw("
+                CASE
+                    WHEN CHAR_LENGTH(TRIM(COALESCE({$table}.result, ''))) > 0 THEN 'done'
+                    WHEN {$resultPendingDaysSql} >= 30 THEN 'month'
+                    WHEN {$resultPendingDaysSql} >= 14 THEN 'two_weeks'
+                    WHEN {$resultPendingDaysSql} >= 7 THEN 'week'
+                    ELSE 'pending'
+                END AS result_pending_bucket
+            ")
+            ->selectRaw("
+                CASE
+                    WHEN CHAR_LENGTH(TRIM(COALESCE({$table}.result, ''))) > 0 THEN 'Done'
+                    WHEN {$resultPendingDaysSql} >= 30 THEN '1 month or more'
+                    WHEN {$resultPendingDaysSql} >= 14 THEN '2 weeks'
+                    WHEN {$resultPendingDaysSql} >= 7 THEN '1 week'
+                    ELSE 'Pending'
+                END AS result_pending_message
+            ")
+            ->with([
+                'resource',
+                'officeEmployee',
+                'officeEmployeeInfo',
+                'matchedInformation',
+                'documents',
+                'account:id,name,price',
+                'finances',
+            ]);
     }
 
     /**
@@ -895,5 +943,9 @@ class InformationController extends Controller
         return response()->json([
             'matches' => $query->get(),
         ]);
+    }
+    private function resultPendingDaysSql(string $table): string
+    {
+        return "DATEDIFF(CURDATE(), DATE(COALESCE({$table}.information_saved_date, {$table}.created_at)))";
     }
 }

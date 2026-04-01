@@ -610,4 +610,5 @@ class ResourceController extends Controller
             'months'     => $months,
         ]);
     }
+    
 }

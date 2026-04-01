@@ -28,7 +28,7 @@ return new class extends Migration {
             $table->string('father_name')->nullable();
             $table->string('grand_father_name')->nullable();
             $table->string('age')->nullable();
-            $table->string('tahlil')->nullable();
+            $table->longText('tahlil')->nullable();
             $table->string('job')->nullable();
             $table->string('madani_halat')->nullable();
             $table->string('estijalyat_degree')->nullable();
@@ -82,12 +82,12 @@ return new class extends Migration {
             // Text areas
             // ===============================
             $table->longText('tafseel')->nullable();
-            $table->text('manager_comment')->nullable();
-            $table->text('lead_drirection')->nullable();
+            $table->longText('manager_comment')->nullable();
+            $table->longText('lead_drirection')->nullable();
             $table->text('talks')->nullable();
-            $table->text('note')->nullable();
-            $table->text('docs_note')->nullable();
-            $table->text('result')->nullable();
+            $table->longText('note')->nullable();
+            $table->longText('docs_note')->nullable();
+            $table->longText('result')->nullable();
 
             // ===============================
             // RESULT MISSING NOTIFICATION TRACKING 🔔

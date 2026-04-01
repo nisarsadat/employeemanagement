@@ -446,36 +446,60 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       }
     },
 
-    async DownloadResourcesExcel(params = {}) {
-      const response = await axios.get('/resources/export/excel', {
-        params,
-        responseType: 'blob',
-        withCredentials: true,
-      });
+    async DownloadResourcesExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          year = null,
+          month = null,
+          date_field = 'resource_saved_date',
+          stat = 'all',
+          onDownloadProgress = null,
+        } = payload;
 
-      const blob = new Blob([response.data], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
+        const response = await axios.get('/resources/export/excel', {
+          params: {
+            search,
+            search_field,
+            year,
+            month,
+            date_field,
+            stat,
+          },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
 
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
 
-      const disposition = response.headers['content-disposition'];
-      let fileName = 'resources.xlsx';
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
 
-      if (disposition) {
-        const match = disposition.match(/filename="?([^"]+)"?/);
-        if (match && match[1]) {
-          fileName = match[1];
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'resources.xlsx';
+
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) {
+            fileName = match[1].replace(/['"]/g, '');
+          }
         }
-      }
 
-      link.setAttribute('download', fileName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadResourcesExcel error:', error);
+        throw error;
+      }
     },
     // ====================== EVENTS  ======================
     async FetchEventDateOptions(params) {
@@ -611,7 +635,43 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         toast.error('پیښه حذف نشوه');
       }
     },
+    async DownloadEventsExcel({
+      search = '',
+      search_field = null,
+      year = null,
+      month = null,
+      date_field = 'event_date',
+      stat = 'all',
+      onDownloadProgress = null,
+    } = {}) {
+      const response = await axios.get('/events/export/excel', {
+        params: {
+          search,
+          searchField: search_field,
+          year,
+          month,
+          dateField: date_field,
+          stat,
+        },
+        responseType: 'blob',
+        onDownloadProgress,
+      });
 
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `events_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '_')}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      return response;
+    },
     // ===== Event Documents (parallel to Information docs) =====
     async FetchEventDocuments(eventId) {
       const { data } = await axios.get(`/events/${eventId}/documents`);
@@ -789,6 +849,48 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     async CheckInformationDuplicate(payload) {
       const res = await axios.post('/information/check-duplicate', payload);
       return res.data;
+    },
+    async DownloadInformationsExcel({
+      search = '',
+      search_field = null,
+      year = null,
+      month = null,
+      date_field = 'information_saved_date',
+      stat = null,
+      related_id = null,
+      onDownloadProgress = null,
+    } = {}) {
+      const response = await axios.get('/informations/export/excel', {
+        params: {
+          search,
+          searchField: search_field,
+          year,
+          month,
+          dateField: date_field,
+          stat,
+          related_id,
+        },
+        responseType: 'blob',
+        onDownloadProgress,
+      });
+
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `informations_${new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace(/[:T]/g, '_')}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      return response;
     },
     // Documents sub-routes
     async FetchInformationDocuments(infoId) {

@@ -80,20 +80,7 @@
           />
         </v-col>
         <!-- Create Button -->
-        <v-col cols="12" sm="4" md="1">
-          <v-btn
-            color="success"
-            variant="flat"
-            size="large"
-            class="text-none"
-            rounded="lg"
-            block
-            prepend-icon="mdi-microsoft-excel"
-            @click="downloadExcel"
-          >
-            {{ t('اکسل') }}
-          </v-btn>
-        </v-col>
+
         <v-col cols="12" sm="4" md="1" lg="1">
           <v-btn
             color="primary"
@@ -117,6 +104,21 @@
             @click="clearAllFilters"
           >
             {{ t('فلتر') }}
+          </v-btn>
+        </v-col>
+        <v-col cols="12" sm="4" md="1">
+          <v-btn
+            color="success"
+            variant="flat"
+            class="text-none"
+            rounded="lg"
+            block
+            prepend-icon="mdi-microsoft-excel"
+            :loading="excelDownloading"
+            :disabled="excelDownloading"
+            @click="downloadExcel"
+          >
+            {{ t('اکسل') }}
           </v-btn>
         </v-col>
         <!-- Create Button -->
@@ -464,7 +466,32 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="excelDownloadDialog" max-width="360" persistent>
+      <v-card rounded="xl">
+        <v-card-text class="pa-5">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div class="text-subtitle-1 font-weight-bold">
+              {{ t('در حال دانلود اکسل...') }}
+            </div>
+            <div class="text-body-2 text-primary font-weight-bold">
+              {{ excelDownloadProgress }}%
+            </div>
+          </div>
 
+          <v-progress-linear
+            :model-value="excelDownloadProgress"
+            color="success"
+            height="10"
+            rounded
+            striped
+          />
+
+          <div class="text-caption text-medium-emphasis mt-3">
+            {{ t('لطفاً منتظر بمانید') }}
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -507,7 +534,9 @@
   const auth = useLoginRepository();
 
   const searchField = ref(null);
-
+  const excelDownloadDialog = ref(false);
+  const excelDownloadProgress = ref(0);
+  const excelDownloading = ref(false);
   /* ===== RTL ===== */
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
@@ -923,6 +952,10 @@
   }
   async function downloadExcel() {
     try {
+      excelDownloading.value = true;
+      excelDownloadDialog.value = true;
+      excelDownloadProgress.value = 0;
+
       await repo.DownloadResourcesExcel({
         search: repo.Search || '',
         search_field: searchField.value,
@@ -930,10 +963,31 @@
         month: filterMonth.value,
         date_field: 'resource_saved_date',
         stat: quickFilter.value === 'all' ? 'all' : quickFilter.value,
+        onDownloadProgress: (progressEvent) => {
+          const total = progressEvent.total || 0;
+          const loaded = progressEvent.loaded || 0;
+
+          if (total > 0) {
+            excelDownloadProgress.value = Math.min(100, Math.round((loaded * 100) / total));
+          } else {
+            // fallback when total size is unknown
+            if (excelDownloadProgress.value < 90) {
+              excelDownloadProgress.value += 5;
+            }
+          }
+        },
       });
+
+      excelDownloadProgress.value = 100;
     } catch (e) {
       console.error('downloadExcel error', e);
-      showErrorMessage(t('خطا در دانلود اکسل منابع'));
+      showErrorMessage(t('خطا'));
+    } finally {
+      setTimeout(() => {
+        excelDownloadDialog.value = false;
+        excelDownloading.value = false;
+        excelDownloadProgress.value = 0;
+      }, 400);
     }
   }
   watch(

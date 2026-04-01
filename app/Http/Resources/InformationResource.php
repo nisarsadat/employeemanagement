@@ -3,14 +3,14 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-
+use Carbon\Carbon;
 class InformationResource extends JsonResource
 {
     public function toArray($request)
     {
         /** @var \App\Models\Information $info */
         $info = $this->resource;
-
+        $resultPending = $this->resolveResultPendingMeta();
         $resource  = $info ? $info->resource : null;
         $documents = $info ? $info->documents : collect();
         $matchedInformation = $info ? $info->matchedInformation : null;
@@ -136,11 +136,75 @@ class InformationResource extends JsonResource
             'note'            => $info ? $info->note : null,
             'docs_note'       => $info ? $info->docs_note : null,
             'result'          => $info ? $info->result : null,
-
+            'result_pending_days'    => $resultPending['days'],
+            'result_pending_bucket'  => $resultPending['bucket'],
+            'result_pending_message' => $resultPending['message'],
             'documents' => InformationDocumentResource::collection($documents),
 
             'created_at' => $info ? $info->created_at : null,
             'updated_at' => $info ? $info->updated_at : null,
+        ];
+    }
+    private function resolveResultPendingMeta(): array
+    {
+        $result = trim((string) ($this->result ?? ''));
+
+        if ($result !== '') {
+            return [
+                'days'    => null,
+                'bucket'  => 'done',
+                'message' => 'Done',
+            ];
+        }
+
+        $days = $this->result_pending_days;
+
+        if (is_null($days)) {
+            $baseDate = $this->information_saved_date ?? $this->created_at;
+
+            if (!$baseDate) {
+                return [
+                    'days'    => null,
+                    'bucket'  => 'pending',
+                    'message' => 'Pending',
+                ];
+            }
+
+            $days = \Carbon\Carbon::parse($baseDate)
+                ->startOfDay()
+                ->diffInDays(now()->startOfDay());
+        }
+
+        $days = (int) $days;
+
+        if ($days >= 30) {
+            return [
+                'days'    => $days,
+                'bucket'  => 'month',
+                'message' => '1 month or more',
+            ];
+        }
+
+        if ($days >= 14) {
+            return [
+                'days'    => $days,
+                'bucket'  => 'two_weeks',
+                'message' => '2 weeks',
+            ];
+        }
+
+        if ($days >= 7) {
+            return [
+                'days'    => $days,
+                'bucket'  => 'week',
+                'message' => '1 week',
+            ];
+        }
+
+        return [
+            'days'    => $days,
+            'bucket'  => 'pending',
+            'message' => 'Pending',
         ];
     }
 }

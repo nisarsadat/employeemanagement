@@ -868,7 +868,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                 <table>
                   <thead>
                     <tr>
-                      <th style="width:18%;">ولایت</th>
+                      <th style="width:18%;">زون</th>
                       <th style="width:18%;">حوزه</th>
                       <th style="width:20%;">د پېښې ډول</th>
                       <th class="td-center" style="width:11%;">وژلي</th>
@@ -879,7 +879,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                   <tbody>
                     ${eventRows
                       .map((r) => {
-                        const province = escapeHtml(r?.province ?? '');
+                        const zone = escapeHtml(r?.zone ?? '');
                         const hawza = escapeHtml(r?.hawza ?? '');
                         const etype = escapeHtml(r?.event_specific_type ?? r?.event_type ?? '');
                         const killed = safeNum(r?.killed);
@@ -889,7 +889,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
                         return `
                           <tr>
-                            <td>${province}</td>
+                            <td>${zone}</td>
                             <td>${hawza}</td>
                             <td class="td-center"><span class="etype ${cls}">${etype || '-'}</span></td>
                             <td class="td-center">${killed}</td>

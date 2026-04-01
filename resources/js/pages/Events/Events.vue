@@ -37,7 +37,7 @@
         </v-col>
 
         <!-- ✅ NEW: Year -->
-        <v-col cols="12" sm="7" md="7" lg="6">
+        <v-col cols="12" sm="7" md="7" lg="5">
           <v-select
             v-model="filterYear"
             :items="yearItems"
@@ -69,7 +69,21 @@
             class="bg-white"
           />
         </v-col>
-
+        <v-col cols="12" sm="4" md="2" lg="1">
+          <v-btn
+            color="success"
+            variant="flat"
+            class="text-none"
+            rounded="lg"
+            block
+            prepend-icon="mdi-microsoft-excel"
+            :loading="excelDownloading"
+            :disabled="excelDownloading"
+            @click="downloadExcel"
+          >
+            {{ t('اکسل') }}
+          </v-btn>
+        </v-col>
         <!-- ✅ NEW: Filter button -->
         <v-col cols="12" sm="4" md="1" lg="1">
           <v-btn
@@ -417,7 +431,32 @@
       @update:page="handlePageChange"
       @update:itemsPerPage="handlePerPageChange"
     />
+    <v-dialog v-model="excelDownloadDialog" max-width="360" persistent>
+      <v-card rounded="xl">
+        <v-card-text class="pa-5">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div class="text-subtitle-1 font-weight-bold">
+              {{ t('در حال دانلود اکسل...') }}
+            </div>
+            <div class="text-body-2 text-primary font-weight-bold">
+              {{ excelDownloadProgress }}%
+            </div>
+          </div>
 
+          <v-progress-linear
+            :model-value="excelDownloadProgress"
+            color="success"
+            height="10"
+            rounded
+            striped
+          />
+
+          <div class="text-caption text-medium-emphasis mt-3">
+            {{ t('لطفاً منتظر بمانید') }}
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -473,7 +512,9 @@
   const router = useRouter();
   const searchField = ref(null);
   const { t, locale } = useI18n();
-
+  const excelDownloadDialog = ref(false);
+  const excelDownloadProgress = ref(0);
+  const excelDownloading = ref(false);
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (newLocale) => (isRtl.value = newLocale === 'fa'));
 
@@ -557,7 +598,45 @@
 
     await fetchAll();
   }
+  async function downloadExcel() {
+    try {
+      excelDownloading.value = true;
+      excelDownloadDialog.value = true;
+      excelDownloadProgress.value = 0;
 
+      await repo.DownloadEventsExcel({
+        search: repo.Search || '',
+        search_field: searchField.value,
+        year: filterYear.value,
+        month: filterMonth.value,
+        date_field: 'event_date',
+        stat: activeCard.value === 'all' ? 'all' : activeCard.value,
+        onDownloadProgress: (progressEvent) => {
+          const total = progressEvent.total || 0;
+          const loaded = progressEvent.loaded || 0;
+
+          if (total > 0) {
+            excelDownloadProgress.value = Math.min(100, Math.round((loaded * 100) / total));
+          } else {
+            if (excelDownloadProgress.value < 90) {
+              excelDownloadProgress.value += 5;
+            }
+          }
+        },
+      });
+
+      excelDownloadProgress.value = 100;
+    } catch (e) {
+      console.error('downloadExcel error', e);
+      showErrorMessage(t('خطا در دانلود اکسل'));
+    } finally {
+      setTimeout(() => {
+        excelDownloadDialog.value = false;
+        excelDownloading.value = false;
+        excelDownloadProgress.value = 0;
+      }, 400);
+    }
+  }
   async function applyMonthYearFilter() {
     repo.page = 1;
     await fetchAll();
@@ -622,9 +701,8 @@
     { title: t('کشته شده'), key: 'killed' },
     { title: t('کود کارمند واقعه گیرنده'), key: 'office_employee_akhistonky_code' },
     { title: t('تفصیل'), key: 'tafseel' },
-    { title: t('وجه مصرف'), key: 'money_amount_words' },
-    { title: t('ملاحظات'), key: 'note' },
     { title: t('نوت راجع به اسناد'), key: 'docs_note' },
+    { title: t('ملاحظات'), key: 'note' },
   ]);
 
   const topGroups = computed(() => [

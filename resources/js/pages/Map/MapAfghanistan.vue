@@ -182,6 +182,7 @@
     mdiInformationOutline,
     mdiAccountPlus,
     mdiCircle,
+    mdiClosedCaption,
   } from '@mdi/js';
 
   const mapBus = useMapBusStore();
@@ -285,9 +286,11 @@
     },
     checkpoints: { label: 'پوستی او چیک پاینټونه', path: mdiShieldLock },
     information: { label: 'اطلاعات', path: mdiInformationOutline },
-    office_employee: { label: 'اطلاعات', path: mdiAccountPlus },
+    office_employee: { label: 'کارمند', path: mdiAccountPlus },
 
     resource: { label: 'منابع', path: mdiCircle },
+    captive_delivery: { label: 'راخوشي شوي بندیان', path: mdiClosedCaption },
+
   };
 
   const ICON_ALIASES = {

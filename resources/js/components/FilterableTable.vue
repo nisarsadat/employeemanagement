@@ -443,10 +443,13 @@
               <!-- Normal headers -->
               <template v-for="h in visibleHeaders" :key="'sub-' + colKey(h)">
                 <th
-                  class="px-2 py-2 text-center align-top"
+                  class="px-2 py-2 text-center align-top transition-all duration-200"
                   :class="[
                     { 'print-col-hidden': printOnlyCols && !isColKeySelected(hKey(h)) },
                     dropdownSet.has(hKey(h)) && showFilterFor(hKey(h)) ? 'cursor-pointer' : '',
+                    hKey(h) && isColumnFiltered(hKey(h))
+                      ? 'bg-amber-500/20 ring-1 ring-amber-300 filtered-column-header'
+                      : '',
                   ]"
                   :ref="(el) => hKey(h) && (triggerRefs[hKey(h)] = el)"
                   @click="
@@ -455,7 +458,20 @@
                 >
                   <div class="cell-wrap space-y-1">
                     <div class="flex items-center justify-center gap-1.5">
-                      <div class="whitespace-nowrap text-xs font-medium text-white">
+                      <span
+                        v-if="hKey(h) && isColumnFiltered(hKey(h))"
+                        class="inline-block w-2 h-2 rounded-full bg-amber-300 shadow-sm"
+                        :title="t('این ستون فیلتر شده است')"
+                      ></span>
+
+                      <div
+                        class="whitespace-nowrap text-xs font-medium"
+                        :class="
+                          hKey(h) && isColumnFiltered(hKey(h))
+                            ? 'text-yellow-100 font-bold'
+                            : 'text-white'
+                        "
+                      >
                         {{ h.title }}
                       </div>
 
@@ -757,7 +773,10 @@
                   v-for="h in visibleHeaders"
                   :key="'cell-' + colKey(h) + '-' + getRowId(row, i)"
                   class="px-2 py-3 align-top whitespace-pre-wrap break-words text-[11px] text-gray-800 text-center group-hover/row:text-gray-900 transition-colors duration-200 max-w-full overflow-hidden"
-                  :class="{ 'print-col-hidden': printOnlyCols && !isColKeySelected(hKey(h)) }"
+                  :class="[
+                    { 'print-col-hidden': printOnlyCols && !isColKeySelected(hKey(h)) },
+                    hKey(h) && isColumnFiltered(hKey(h)) ? 'filtered-column-cell' : '',
+                  ]"
                 >
                   <template v-if="$slots['cell-' + colKey(h)]">
                     <slot :name="'cell-' + colKey(h)" :row="row" />
@@ -1392,7 +1411,10 @@
     if (!hasActiveFilters.value) return `${t('تعداد کل ردیف‌ها:')} ${total}`;
     return `${t('تعداد کل ردیف‌ها:')} ${total} ${t('و  نتیجه بعد از فیلتر:')} ${filtered}`;
   });
-
+  function isColumnFiltered(key) {
+    const arr = localFilters.value?.[key];
+    return Array.isArray(arr) && arr.length > 0;
+  }
   function clearAllFilters() {
     const empty = initEmptyFilters();
     localFilters.value = empty;
@@ -2204,7 +2226,14 @@
     top: 0;
     z-index: 40;
   }
+  .filtered-column-header {
+    box-shadow: none;
+  }
 
+  .filtered-column-cell {
+    box-shadow: none;
+    background-color: none;
+  }
   td .cell-box {
     display: inline-block;
     width: fit-content;

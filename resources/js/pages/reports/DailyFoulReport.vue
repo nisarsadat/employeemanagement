@@ -367,7 +367,7 @@
                   size="small"
                   class="font-weight-bold fontfamily"
                 >
-                  <v-icon icon="mdi-heart-off" size="small" class="mr-1" />
+                  <v-icon  size="small" class="mr-1" />
                   {{ item.killed }}
                 </v-chip>
               </template>
@@ -379,22 +379,12 @@
                   size="small"
                   class="font-weight-bold fontfamily"
                 >
-                  <v-icon icon="mdi-heart-half-full" size="small" class="mr-1" />
+                  <v-icon  size="small" class="mr-1" />
                   {{ item.injured }}
                 </v-chip>
               </template>
 
-              <template #item.province="{ item }">
-                <div class="d-flex align-center">
-                  <v-icon
-                    icon="mdi-map-marker-outline"
-                    size="small"
-                    class="mr-2 text-medium-emphasis"
-                  />
-                  <span class="font-weight-medium fontfamily">{{ item.province }}</span>
-                </div>
-              </template>
-
+             
               <template #item.event_specific_type="{ item }">
                 <v-chip
                   :color="getEventTypeColor(item.event_specific_type)"
@@ -529,7 +519,7 @@
   ]);
 
   const eventHeaders = computed(() => [
-    { title: t('ولایت'), key: 'province', width: '20%' },
+    { title: t('زون'), key: 'zone', width: '20%' },
     { title: t('حوزه'), key: 'hawza', width: '20%' },
     { title: t('نوع رویداد'), key: 'event_specific_type', width: '20%' },
     { title: t('کشته'), key: 'killed', align: 'center', width: '13%' },

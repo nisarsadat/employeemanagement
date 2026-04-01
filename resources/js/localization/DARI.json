@@ -15,7 +15,11 @@
   "Role": "نقش",
   "Status": "حالت",
   "Last seen column": "آخرین حضور",
-
+  "done": "تکمیل شده",
+  "pending": "در انتظار",
+  "week": "۱ هفته",
+  "two_weeks": "۲ هفته",
+  "month": "۱ ماه یا بیشتر",
   "Edit": "ایدیت",
 
   "No users found please add one": "هیچ استفاده کننده یافت نشد، لطفاً یکی را اضافه کنید!",

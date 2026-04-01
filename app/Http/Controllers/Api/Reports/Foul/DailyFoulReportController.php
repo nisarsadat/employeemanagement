@@ -131,7 +131,7 @@ class DailyFoulReportController extends Controller
         $eventsTotal = (clone $eventBase)->count();
     $eventRows = (clone $eventBase)
         ->select([
-            'Province_addr',
+            'event_zone',
             'event_hawza',
             'event_specific_type',
             'killed',
@@ -142,7 +142,7 @@ class DailyFoulReportController extends Controller
         ->get()
         ->map(function ($row) {
             return [
-                'province' => $row->getRawOriginal('Province_addr') ?? $row->Province_addr,
+                'zone' => $row->getRawOriginal('event_zone') ?? $row->event_zone,
                 'hawza' => $row->getRawOriginal('event_hawza') ?? $row->event_hawza,
                 'event_specific_type' => $row->getRawOriginal('event_specific_type') ?? $row->event_specific_type,
 

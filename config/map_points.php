@@ -81,7 +81,7 @@ return [
         [
             'table' => 'captive_deliveries',
             'type' => 'captive_delivery',
-            'typeLabel' => 'تحویل اسیر',
+            'typeLabel' => 'راخوشي شوي بندیان',
             'show_url' => '/api/captive-deliveries/',
             'title_candidates' => ['name', 'title', 'code_number'],
             'code_candidates' => ['code_number'],

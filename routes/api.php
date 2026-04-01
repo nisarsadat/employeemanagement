@@ -277,8 +277,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('informations/{information}/documents/{document}',    [InformationDocumentController::class, 'destroy']);
     Route::get   ('informations/{information}/documents/zip',           [InformationDocumentController::class, 'downloadAll']);
     Route::get('informations/date-options', [InformationController::class, 'dateOptions']);
+    Route::get('informations/export/excel', [InformationController::class, 'exportExcel']);
     // events (API) => module: events_api
     protectResource('events', 'events_api', EventController::class);
+    Route::get('events/export/excel', [EventController::class, 'exportExcel']);
     Route::get('events/{event}/documents/zip', [EventDocumentController::class, 'downloadAll']);
     Route::get('events/date-options', [EventController::class, 'dateOptions']);
 

@@ -48,7 +48,7 @@
         </v-col>
 
         <!-- ✅ NEW: Year -->
-        <v-col cols="12" sm="6" md="6" lg="6">
+        <v-col cols="12" sm="6" md="6" lg="5">
           <v-select
             v-model="filterYear"
             :items="yearItems"
@@ -105,6 +105,21 @@
             @click="resetAllFilters"
           >
             {{ t('فلتر') }}
+          </v-btn>
+        </v-col>
+        <v-col cols="12" sm="4" md="1" lg="1">
+          <v-btn
+            color="success"
+            variant="flat"
+            class="text-none"
+            rounded="lg"
+            block
+            prepend-icon="mdi-microsoft-excel"
+            :loading="excelDownloading"
+            :disabled="excelDownloading"
+            @click="downloadExcel"
+          >
+            {{ t('اکسل') }}
           </v-btn>
         </v-col>
         <!-- Create -->
@@ -508,7 +523,7 @@
           </v-tooltip>
 
           <!-- ✅ Analysis / Leadership Dialog -->
-          <v-tooltip text="تحلیل / رهنمایی" location="top">
+          <v-tooltip text="تحلیل او تجزیه" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-if="auth.can('direction.view')"
@@ -533,6 +548,23 @@
               </v-icon>
             </template>
           </v-tooltip>
+        </div>
+      </template>
+      <template #cell-result_pending_message="{ row }">
+        <div class="d-flex align-center">
+          <v-chip
+            v-if="getRow(row).result_pending_bucket"
+            size="small"
+            label
+            class="fontfamily"
+            :color="resultPendingColor(getRow(row).result_pending_bucket)"
+            variant="tonal"
+          >
+            <v-icon start size="14">mdi-clock-alert-outline</v-icon>
+            {{ resultPendingLabel(getRow(row)) }}
+          </v-chip>
+
+          <span v-else class="text-caption text-medium-emphasis">—</span>
         </div>
       </template>
       <!-- 🗺 Map cell -->
@@ -561,7 +593,32 @@
       :is-rtl="isRtl"
       @confirm="handleDeleteConfirmed"
     />
+    <v-dialog v-model="excelDownloadDialog" max-width="360" persistent>
+      <v-card rounded="xl">
+        <v-card-text class="pa-5">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div class="text-subtitle-1 font-weight-bold">
+              {{ t('در حال دانلود اکسل...') }}
+            </div>
+            <div class="text-body-2 text-primary font-weight-bold">
+              {{ excelDownloadProgress }}%
+            </div>
+          </div>
 
+          <v-progress-linear
+            :model-value="excelDownloadProgress"
+            color="success"
+            height="10"
+            rounded
+            striped
+          />
+
+          <div class="text-caption text-medium-emphasis mt-3">
+            {{ t('لطفاً منتظر بمانید') }}
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
@@ -588,7 +645,6 @@
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
   import { useFinanceRepository } from '@/stores/FinanceRepository';
-  import { useCalendar } from '../../../composables/useCalendar';
   import ManagerFinanceDialog from './ManagerFinanceDialog.vue';
   import AnalysisLeadershipDialog from './AnalysisLeadershipDialog.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
@@ -602,7 +658,9 @@
   const router = useRouter();
   const route = useRoute();
   const searchField = ref(null);
-
+  const excelDownloadDialog = ref(false);
+  const excelDownloadProgress = ref(0);
+  const excelDownloading = ref(false);
   async function fetchAll() {
     try {
       await repo.FetchInformationsData?.({
@@ -697,12 +755,32 @@
     await fetchAll();
   }
 
-  /* ===== Error snackbar ===== */
-  const showError = ref(false);
-  const errorMessage = ref('');
-  function showErrorMessage(message) {
-    errorMessage.value = message;
-    showError.value = true;
+  const resultPendingLabels = computed(() => ({
+    done: t('done'),
+    pending: t('pending'),
+    week: t('week'),
+    two_weeks: t('two_weeks'),
+    month: t('month'),
+  }));
+
+  function resultPendingLabel(row) {
+    const item = getRow(row);
+    const bucket = item?.result_pending_bucket;
+
+    return resultPendingLabels.value[bucket] || item?.result_pending_message || '—';
+  }
+  function resultPendingColor(bucket) {
+    const v = String(bucket ?? '')
+      .trim()
+      .toLowerCase();
+
+    if (v === 'done') return 'green';
+    if (v === 'pending') return 'amber';
+    if (v === 'week') return 'orange';
+    if (v === 'two_weeks') return 'deep-orange';
+    if (v === 'month') return 'red-darken-2';
+
+    return 'grey';
   }
 
   /* ===== Active stat cards ===== */
@@ -799,7 +877,7 @@
     { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
     { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
     { title: t('نقشه'), key: 'map', sortable: false },
-
+    { title: t('د نتیجې ځنډ'), key: 'result_pending_message' },
     { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },
     { title: t('نام پدر'), key: 'father_name' },
@@ -1085,7 +1163,46 @@
 
     await fetchAll();
   }
+  async function downloadExcel() {
+    try {
+      excelDownloading.value = true;
+      excelDownloadDialog.value = true;
+      excelDownloadProgress.value = 0;
 
+      await repo.DownloadInformationsExcel({
+        search: repo.Search || '',
+        search_field: searchField.value,
+        year: filterYear.value,
+        month: filterMonth.value,
+        date_field: 'information_saved_date',
+        stat: activeStat.value,
+        related_id: relatedIdFilter.value,
+        onDownloadProgress: (progressEvent) => {
+          const total = progressEvent.total || 0;
+          const loaded = progressEvent.loaded || 0;
+
+          if (total > 0) {
+            excelDownloadProgress.value = Math.min(100, Math.round((loaded * 100) / total));
+          } else {
+            if (excelDownloadProgress.value < 90) {
+              excelDownloadProgress.value += 5;
+            }
+          }
+        },
+      });
+
+      excelDownloadProgress.value = 100;
+    } catch (e) {
+      console.error('downloadExcel error', e);
+      showErrorMessage(t('خطا در دانلود اکسل'));
+    } finally {
+      setTimeout(() => {
+        excelDownloadDialog.value = false;
+        excelDownloading.value = false;
+        excelDownloadProgress.value = 0;
+      }, 400);
+    }
+  }
   function handlePageChange(value) {
     repo.page = value;
     fetchAll();
