@@ -1,7 +1,7 @@
 <!-- src/pages/ProvinceDistricts/DistrictsIndex.vue -->
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar :title="t('ولسوالی‌ها')" :subtitle="t('مدیریت ولسوالی‌ها')">
+    <AppBar :title="t('والسوالی/حوزه')" :subtitle="t('مدیریت ولسوالی‌ها')">
       <template #actions>
         <v-btn icon></v-btn>
       </template>
@@ -197,7 +197,7 @@ const headersFT = computed(() => [
     align: 'center',
   },
   {
-    title: t('نام ولسوالی'),
+    title: t('والسوالی/حوزه'),
     key: 'name',
     align: 'center',
   },

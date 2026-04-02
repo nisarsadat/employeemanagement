@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\AppliesRelatedFilters;
 use App\Http\Requests\ResourceRequest;
 use App\Http\Resources\ResourceResource;
 use App\Models\Resource;
@@ -16,6 +17,39 @@ use Carbon\Carbon;
 
 class ResourceController extends Controller
 {
+    use AppliesRelatedFilters;
+
+    protected function relatedFilterRules(): array
+    {
+        return [
+            'resource_id' => [
+                'column' => 'id',
+            ],
+
+            'office_employee_id' => [
+                'column' => 'office_employee_id',
+            ],
+
+            'information_id' => [
+                'callback' => function ($query, $value) {
+                    $query->whereHas('informations', fn ($q) => $q->where('id', $value));
+                },
+            ],
+
+            'event_id' => [
+                'callback' => function ($query, $value) {
+                    $query->whereHas('events', fn ($q) => $q->where('id', $value));
+                },
+            ],
+
+            'fifty_six_format_id' => [
+                'callback' => function ($query, $value) {
+                    $query->whereHas('fiftySixFormats', fn ($q) => $q->where('id', $value));
+                },
+            ],
+        ];
+    }
+
     private function isDuplicateKey(QueryException $e): bool
     {
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
@@ -250,6 +284,21 @@ class ResourceController extends Controller
 
     public function index(Request $req)
     {
+        $req->validate([
+            'search'               => 'nullable|string',
+            'search_field'         => 'nullable|string',
+            'year'                 => 'nullable|integer|min:1|max:2500',
+            'month'                => 'nullable|integer|min:1|max:12',
+            'stat'                 => 'nullable|string',
+            'date_field'           => 'nullable|string',
+            'perPage'              => 'nullable',
+            'resource_id'          => 'nullable|integer',
+            'office_employee_id'   => 'nullable|integer',
+            'information_id'       => 'nullable|integer',
+            'event_id'             => 'nullable|integer',
+            'fifty_six_format_id'  => 'nullable|integer',
+        ]);
+
         $search = trim((string) $req->get('search', ''));
         $searchField = $this->resolveSearchField($req->get('search_field'));
 
@@ -286,6 +335,7 @@ class ResourceController extends Controller
             });
 
         $this->applyShamsiDateFilter($baseQuery, $year, $month, $dateField);
+        $this->applyRelatedFilters($baseQuery, $req);
 
         $today = now()->toDateString();
 
@@ -339,6 +389,7 @@ class ResourceController extends Controller
             ->latest('id');
 
         $this->applyShamsiDateFilter($q, $year, $month, $dateField);
+        $this->applyRelatedFilters($q, $req);
 
         $perPage = $req->filled('perPage') ? (int) $req->get('perPage') : null;
 
@@ -610,5 +661,4 @@ class ResourceController extends Controller
             'months'     => $months,
         ]);
     }
-    
 }

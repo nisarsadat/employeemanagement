@@ -478,8 +478,7 @@
 <script setup>
   import { ref, onMounted, watch, computed } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { useRouter } from 'vue-router';
-
+  import { useRouter, useRoute } from 'vue-router';
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
   import PeekButton from '@/components/PeekButton.vue';
@@ -493,6 +492,7 @@
   import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
   import { useFinanceRepository } from '@/stores/FinanceRepository';
   import EventFinanceDialog from './EventFinanceDialog.vue';
+  import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
   const financeRepo = useFinanceRepository();
   const accountItems = computed(() =>
     (financeRepo.accounts || []).map((a) => ({
@@ -510,8 +510,10 @@
   const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const router = useRouter();
+  const route = useRoute();
   const searchField = ref(null);
   const { t, locale } = useI18n();
+  const { relatedFilters } = useRelatedRouteFilters();
   const excelDownloadDialog = ref(false);
   const excelDownloadProgress = ref(0);
   const excelDownloading = ref(false);
@@ -596,6 +598,7 @@
     activeCard.value = 'all';
     repo.page = 1;
 
+    await router.replace({ path: '/app/events', query: {} });
     await fetchAll();
   }
   async function downloadExcel() {
@@ -611,6 +614,13 @@
         month: filterMonth.value,
         date_field: 'event_date',
         stat: activeCard.value === 'all' ? 'all' : activeCard.value,
+
+        event_id: relatedFilters.value.event_id,
+        resource_id: relatedFilters.value.resource_id,
+        office_employee_id: relatedFilters.value.office_employee_id,
+        information_id: relatedFilters.value.information_id,
+        fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
+
         onDownloadProgress: (progressEvent) => {
           const total = progressEvent.total || 0;
           const loaded = progressEvent.loaded || 0;
@@ -787,12 +797,15 @@
 
   function goOfficeEmployee(payload) {
     const row = getRow(payload);
-    const empId = row?.office_employee_id;
+    const empId = row?.office_employee_id || row?.office_employee_akhistonky_id;
     if (!empId) return;
 
     router.push({
       path: '/app/officeemployee',
-      query: { office_employee_id: empId },
+      query: {
+        office_employee_id: empId,
+        source: 'events',
+      },
     });
   }
 
@@ -803,7 +816,10 @@
 
     router.push({
       path: '/app/resources',
-      query: { resource_id: resId },
+      query: {
+        resource_id: resId,
+        source: 'events',
+      },
     });
   }
 
@@ -883,6 +899,12 @@
         month: filterMonth.value,
         date_field: 'event_date',
         card_filter: activeCard.value,
+
+        event_id: relatedFilters.value.event_id,
+        resource_id: relatedFilters.value.resource_id,
+        office_employee_id: relatedFilters.value.office_employee_id,
+        information_id: relatedFilters.value.information_id,
+        fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
       });
     } catch (e) {
       console.error('fetchAll events error', e);

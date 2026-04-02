@@ -20,7 +20,7 @@ class ExpenseOilController extends Controller
             'search'  => ['nullable', 'string', 'max:255'],
 
             // ✅ year/month filter (Gregorian)
-            'year'    => ['nullable', 'integer', 'min:2000', 'max:2100'],
+            'year'    => ['nullable', 'integer'],
             'month'   => ['nullable', 'integer', 'min:1', 'max:12'],
 
             'oil_account_id' => ['nullable', 'integer', 'exists:oil_accounts,id'],

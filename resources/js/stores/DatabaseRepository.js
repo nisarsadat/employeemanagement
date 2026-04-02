@@ -290,6 +290,19 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.year !== undefined ? { year: params.year } : {}),
           ...(params?.month !== undefined ? { month: params.month } : {}),
           ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
+
+          // related route filters
+          ...(params?.resource_id !== undefined ? { resource_id: params.resource_id } : {}),
+          ...(params?.office_employee_id !== undefined
+            ? { office_employee_id: params.office_employee_id }
+            : {}),
+          ...(params?.information_id !== undefined
+            ? { information_id: params.information_id }
+            : {}),
+          ...(params?.event_id !== undefined ? { event_id: params.event_id } : {}),
+          ...(params?.fifty_six_format_id !== undefined
+            ? { fifty_six_format_id: params.fifty_six_format_id }
+            : {}),
         };
 
         const res = await axios.get('/resources', {
@@ -364,7 +377,6 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         this.loading = false;
       }
     },
-
     async FetchResourceDateOptions(params = {}) {
       return await axios.get('/resources/date-options', { params });
     },
@@ -528,6 +540,19 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.year !== undefined ? { year: params.year } : {}),
           ...(params?.month !== undefined ? { month: params.month } : {}),
           ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
+
+          // related route filters
+          ...(params?.event_id !== undefined ? { event_id: params.event_id } : {}),
+          ...(params?.resource_id !== undefined ? { resource_id: params.resource_id } : {}),
+          ...(params?.office_employee_id !== undefined
+            ? { office_employee_id: params.office_employee_id }
+            : {}),
+          ...(params?.information_id !== undefined
+            ? { information_id: params.information_id }
+            : {}),
+          ...(params?.fifty_six_format_id !== undefined
+            ? { fifty_six_format_id: params.fifty_six_format_id }
+            : {}),
         };
 
         const res = await axios.get('/events', {
@@ -734,18 +759,26 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         const queryParams = {
           ...baseParams,
 
-          // keep custom filters too
           ...(params?.stat !== undefined ? { stat: params.stat } : {}),
-          ...(params?.related_id !== undefined && params?.related_id !== null
-            ? { related_id: params.related_id }
-            : {}),
 
-          // keep explicit values when passed
           ...(params?.search !== undefined ? { search: params.search } : {}),
           ...(params?.search_field !== undefined ? { search_field: params.search_field } : {}),
           ...(params?.year !== undefined ? { year: params.year } : {}),
           ...(params?.month !== undefined ? { month: params.month } : {}),
           ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
+
+          // related route filters
+          ...(params?.information_id !== undefined
+            ? { information_id: params.information_id }
+            : {}),
+          ...(params?.resource_id !== undefined ? { resource_id: params.resource_id } : {}),
+          ...(params?.office_employee_id !== undefined
+            ? { office_employee_id: params.office_employee_id }
+            : {}),
+          ...(params?.event_id !== undefined ? { event_id: params.event_id } : {}),
+          ...(params?.fifty_six_format_id !== undefined
+            ? { fifty_six_format_id: params.fifty_six_format_id }
+            : {}),
         };
 
         const res = await axios.get('/informations', {

@@ -519,8 +519,7 @@
   import { ref, computed, watch, onMounted } from 'vue';
   import { useRouter, useRoute } from 'vue-router';
   import { useI18n } from 'vue-i18n';
-  import dayjs from 'dayjs';
-
+  import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
   import AppBar from '@/components/AppBar.vue';
   import PeekButton from '@/components/PeekButton.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
@@ -537,7 +536,7 @@
   const router = useRouter();
   const route = useRoute();
   const { t, locale } = useI18n();
-
+  const { relatedFilters } = useRelatedRouteFilters();
   const repo = useEmployeOfficeRepository();
   const auth = useLoginRepository();
 
@@ -598,7 +597,7 @@
   }
 
   const focusId = computed(() => {
-    const id = route.query?.id || route.query?.office_employee_id;
+    const id = relatedFilters.value.office_employee_id || route.query?.id;
     return id ? Number(id) : null;
   });
 
@@ -820,6 +819,10 @@
         status: selectedCardStatus.value,
         job_type: selectedCardJobType.value,
         search_field: searchField.value,
+        office_employee_id: relatedFilters.value.office_employee_id,
+        resource_id: relatedFilters.value.resource_id,
+        information_id: relatedFilters.value.information_id,
+        event_id: relatedFilters.value.event_id,
       });
     } catch (e) {
       console.error('fetchAll error', e);
@@ -859,7 +862,10 @@
     const row = getRow(rowPayload);
     router.push({
       path: '/app/informations',
-      query: { office_employee_id: row.id },
+      query: {
+        office_employee_id: row.id,
+        source: 'officeemployee',
+      },
     });
   }
 
@@ -867,7 +873,10 @@
     const row = getRow(rowPayload);
     router.push({
       path: '/app/events',
-      query: { office_employee_id: row.id },
+      query: {
+        office_employee_id: row.id,
+        source: 'officeemployee',
+      },
     });
   }
 
@@ -875,7 +884,10 @@
     const row = getRow(rowPayload);
     router.push({
       path: '/app/resources',
-      query: { office_employee_id: row.id },
+      query: {
+        office_employee_id: row.id,
+        source: 'officeemployee',
+      },
     });
   }
 
@@ -883,7 +895,10 @@
     const row = getRow(rowPayload);
     router.push({
       path: '/app/activeresource',
-      query: { office_employee_id: row.id },
+      query: {
+        office_employee_id: row.id,
+        source: 'officeemployee',
+      },
     });
   }
 
@@ -891,7 +906,10 @@
     const row = getRow(rowPayload);
     router.push({
       path: '/app/inactiveresource',
-      query: { office_employee_id: row.id },
+      query: {
+        office_employee_id: row.id,
+        source: 'officeemployee',
+      },
     });
   }
   async function clearAllFilters() {

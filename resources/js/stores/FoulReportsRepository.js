@@ -800,7 +800,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               </div>
               <div style="padding:0;">
                 <table>
-                  <thead><tr><th style="width:70%;">ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
+                  <thead><tr><th style="width:70%;">نوعیت</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                   <tbody>
                     ${infoTypes
                       .map((x) => {
@@ -833,7 +833,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               </div>
               <div style="padding:0;">
                 <table>
-                  <thead><tr><th style="width:70%;">فورم</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
+                  <thead><tr><th style="width:70%;">د فورم نوم</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                   <tbody>
                     ${formats
                       .map((f) => {
@@ -891,7 +891,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                           <tr>
                             <td>${zone}</td>
                             <td>${hawza}</td>
-                            <td class="td-center"><span class="etype ${cls}">${etype || '-'}</span></td>
+                            <td class="td-center"><span class="etype ${cls}">${
+                          etype || '-'
+                        }</span></td>
                             <td class="td-center">${killed}</td>
                             <td class="td-center">${injured}</td>
                             <td class="td-end">${mali}</td>
@@ -1004,12 +1006,12 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-primary">
-                <div><div class="strip-title">د اطلاعاتو ډولونه</div><div class="strip-sub">د ډول له مخې وېش</div></div>
+                <div><div class="strip-title">د اطلاعاتو نوعیت</div><div class="strip-sub">د ډول له مخې وېش</div></div>
                 <span class="chip chip-primary">${informationsTotal}</span>
               </div>
               <div style="padding:0;">
                 <table>
-                  <thead><tr><th style="width:70%;">ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
+                  <thead><tr><th style="width:70%;">نوعیت</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                   <tbody>
                     ${infoTypes
                       .map((x) => {
@@ -1042,7 +1044,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               </div>
               <div style="padding:0;">
                 <table>
-                  <thead><tr><th style="width:70%;">فورم</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
+                  <thead><tr><th style="width:70%;">د فورم نوم</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                   <tbody>
                     ${formats
                       .map((f) => {
@@ -1075,7 +1077,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               </div>
               <div style="padding:0;">
                 <table>
-                  <thead><tr><th style="width:70%;">د پېښې ډول</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
+                  <thead><tr><th style="width:70%;">د پېښې نوعیت</th><th class="td-end" style="width:30%;">شمېر</th></tr></thead>
                   <tbody>
                     ${eventTypes
                       .map((t) => {

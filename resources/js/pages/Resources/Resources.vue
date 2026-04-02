@@ -525,11 +525,11 @@
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
-
+  import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
   const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();
-
+  const { relatedFilters } = useRelatedRouteFilters();
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
 
@@ -695,6 +695,12 @@
         date_field: 'resource_saved_date',
         stat: quickFilter.value === 'all' ? null : quickFilter.value,
         search_field: searchField.value,
+
+        resource_id: relatedFilters.value.resource_id,
+        office_employee_id: relatedFilters.value.office_employee_id,
+        information_id: relatedFilters.value.information_id,
+        event_id: relatedFilters.value.event_id,
+        fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
       });
     } catch (e) {
       console.error('fetchAll error', e);
@@ -722,15 +728,26 @@
   function goResourceEvents(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
-    router.push({ path: '/app/events', query: { resource_id: row.id } });
+    router.push({
+      path: '/app/events',
+      query: {
+        resource_id: row.id,
+        source: 'resources',
+      },
+    });
   }
 
   function goResourceInformations(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
-    router.push({ path: '/app/informations', query: { resource_id: row.id } });
+    router.push({
+      path: '/app/informations',
+      query: {
+        resource_id: row.id,
+        source: 'resources',
+      },
+    });
   }
-
   function goResourceFiftySixFormats(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
@@ -910,7 +927,10 @@
 
     router.push({
       path: '/app/officeemployee',
-      query: { office_employee_id: empId },
+      query: {
+        office_employee_id: empId,
+        source: 'resources',
+      },
     });
   }
 

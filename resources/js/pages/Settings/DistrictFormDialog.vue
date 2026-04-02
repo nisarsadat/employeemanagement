@@ -58,7 +58,7 @@
 
               <v-text-field
                 v-model="draft.name"
-                :label="t('نام ولسوالی') + ' *'"
+                :label="t('نام والسوالی/حوزه') + ' *'"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-format-title"
@@ -103,281 +103,283 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useProvinceDistrictRepository } from '@/stores/ProvinceDistrictRepository';
+  import { computed, reactive, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useProvinceDistrictRepository } from '@/stores/ProvinceDistrictRepository';
 
-const { t, locale } = useI18n();
-const rtl = computed(() => locale.value === 'fa');
+  const { t, locale } = useI18n();
+  const rtl = computed(() => locale.value === 'fa');
 
-const props = defineProps({
-  modelValue: { type: Boolean, default: false },
-  editId: { type: [Number, String, null], default: null },
-  provinces: { type: Array, default: () => [] },
-});
+  const props = defineProps({
+    modelValue: { type: Boolean, default: false },
+    editId: { type: [Number, String, null], default: null },
+    provinces: { type: Array, default: () => [] },
+  });
 
-const emit = defineEmits(['update:modelValue', 'saved']);
+  const emit = defineEmits(['update:modelValue', 'saved']);
 
-const repo = useProvinceDistrictRepository();
+  const repo = useProvinceDistrictRepository();
 
-const model = computed({
-  get: () => props.modelValue,
-  set: (v) => emit('update:modelValue', v),
-});
+  const model = computed({
+    get: () => props.modelValue,
+    set: (v) => emit('update:modelValue', v),
+  });
 
-const isEdit = computed(() => props.editId !== null && props.editId !== undefined && props.editId !== '');
+  const isEdit = computed(
+    () => props.editId !== null && props.editId !== undefined && props.editId !== ''
+  );
 
-const formRef = ref(null);
-const saving = ref(false);
-const loadingEdit = ref(false);
+  const formRef = ref(null);
+  const saving = ref(false);
+  const loadingEdit = ref(false);
 
-const provinceOptions = computed(() => props.provinces || []);
+  const provinceOptions = computed(() => props.provinces || []);
 
-const draft = reactive({
-  province_id: null,
-  name: '',
-});
+  const draft = reactive({
+    province_id: null,
+    name: '',
+  });
 
-const backendErrors = reactive({});
+  const backendErrors = reactive({});
 
-const rules = {
-  required: (v) => !!v || v === 0 || t('این فیلد ضروری است'),
-};
+  const rules = {
+    required: (v) => !!v || v === 0 || t('این فیلد ضروری است'),
+  };
 
-function clearErrors() {
-  Object.keys(backendErrors).forEach((k) => delete backendErrors[k]);
-}
-
-function hasError(key) {
-  return Array.isArray(backendErrors[key]) && backendErrors[key].length > 0;
-}
-
-function getErrorMessages(key) {
-  return backendErrors[key] || [];
-}
-
-function resetDraft() {
-  draft.province_id = null;
-  draft.name = '';
-}
-
-/** ✅ IMPORTANT: unwrap {data:{...}} */
-function unwrapData(res) {
-  return res?.data ?? res;
-}
-
-async function loadForEdit() {
-  if (!isEdit.value) return;
-
-  clearErrors();
-  loadingEdit.value = true;
-
-  try {
-    let item = null;
-
-    if (typeof repo.FetchDistrictData === 'function') {
-      const res = await repo.FetchDistrictData(props.editId);
-      item = unwrapData(res);
-    } else {
-      const res = await repo.FetchDistrictsData({
-        page: 1,
-        perPage: 2000,
-        search: '',
-        province_id: null,
-      });
-      item = (res?.data || []).find((x) => String(x?.id) === String(props.editId));
-    }
-
-    draft.province_id = item?.province_id ?? null;
-    draft.name = item?.name ?? '';
-  } catch (e) {
-    console.error('loadForEdit error', e);
-    backendErrors.general = [t('خطا در دریافت معلومات ولسوالی')];
-  } finally {
-    loadingEdit.value = false;
+  function clearErrors() {
+    Object.keys(backendErrors).forEach((k) => delete backendErrors[k]);
   }
-}
 
-/** ✅ When dialog opens: reset + load (if edit) */
-watch(
-  () => model.value,
-  async (open) => {
-    if (!open) return;
-    resetDraft();
+  function hasError(key) {
+    return Array.isArray(backendErrors[key]) && backendErrors[key].length > 0;
+  }
+
+  function getErrorMessages(key) {
+    return backendErrors[key] || [];
+  }
+
+  function resetDraft() {
+    draft.province_id = null;
+    draft.name = '';
+  }
+
+  /** ✅ IMPORTANT: unwrap {data:{...}} */
+  function unwrapData(res) {
+    return res?.data ?? res;
+  }
+
+  async function loadForEdit() {
+    if (!isEdit.value) return;
+
     clearErrors();
-    if (isEdit.value) await loadForEdit();
-  }
-);
+    loadingEdit.value = true;
 
-/** ✅ If editId changes while dialog is open, reload */
-watch(
-  () => props.editId,
-  async () => {
-    if (!model.value) return;
-    resetDraft();
+    try {
+      let item = null;
+
+      if (typeof repo.FetchDistrictData === 'function') {
+        const res = await repo.FetchDistrictData(props.editId);
+        item = unwrapData(res);
+      } else {
+        const res = await repo.FetchDistrictsData({
+          page: 1,
+          perPage: 2000,
+          search: '',
+          province_id: null,
+        });
+        item = (res?.data || []).find((x) => String(x?.id) === String(props.editId));
+      }
+
+      draft.province_id = item?.province_id ?? null;
+      draft.name = item?.name ?? '';
+    } catch (e) {
+      console.error('loadForEdit error', e);
+      backendErrors.general = [t('خطا در دریافت معلومات ولسوالی')];
+    } finally {
+      loadingEdit.value = false;
+    }
+  }
+
+  /** ✅ When dialog opens: reset + load (if edit) */
+  watch(
+    () => model.value,
+    async (open) => {
+      if (!open) return;
+      resetDraft();
+      clearErrors();
+      if (isEdit.value) await loadForEdit();
+    }
+  );
+
+  /** ✅ If editId changes while dialog is open, reload */
+  watch(
+    () => props.editId,
+    async () => {
+      if (!model.value) return;
+      resetDraft();
+      clearErrors();
+      if (isEdit.value) await loadForEdit();
+    }
+  );
+
+  function close() {
+    model.value = false;
+  }
+
+  async function onSubmit() {
     clearErrors();
-    if (isEdit.value) await loadForEdit();
-  }
-);
 
-function close() {
-  model.value = false;
-}
+    const res = await formRef.value?.validate?.();
+    if (!res?.valid) return;
 
-async function onSubmit() {
-  clearErrors();
+    saving.value = true;
+    try {
+      const payload = {
+        province_id: draft.province_id,
+        name: draft.name,
+      };
 
-  const res = await formRef.value?.validate?.();
-  if (!res?.valid) return;
+      if (isEdit.value) {
+        await repo.UpdateDistrict(props.editId, payload);
+      } else {
+        await repo.CreateDistrict(payload);
+      }
 
-  saving.value = true;
-  try {
-    const payload = {
-      province_id: draft.province_id,
-      name: draft.name,
-    };
-
-    if (isEdit.value) {
-      await repo.UpdateDistrict(props.editId, payload);
-    } else {
-      await repo.CreateDistrict(payload);
+      emit('saved');
+      close();
+    } catch (e) {
+      const errors = e?.response?.data?.errors;
+      if (errors && typeof errors === 'object') {
+        Object.assign(backendErrors, errors);
+      } else {
+        backendErrors.general = [t('خطا رخ داد. دوباره تلاش کنید.')];
+      }
+    } finally {
+      saving.value = false;
     }
-
-    emit('saved');
-    close();
-  } catch (e) {
-    const errors = e?.response?.data?.errors;
-    if (errors && typeof errors === 'object') {
-      Object.assign(backendErrors, errors);
-    } else {
-      backendErrors.general = [t('خطا رخ داد. دوباره تلاش کنید.')];
-    }
-  } finally {
-    saving.value = false;
   }
-}
 </script>
 
 <style scoped>
-.field :deep(.v-field) {
-  border-radius: 12px;
-  background: #ffffff;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid transparent;
-  overflow: hidden;
-}
-.field :deep(.v-field__outline) {
-  display: none;
-}
-.field :deep(.v-field)::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
-  border: 1.5px solid #e0e0e0;
-  pointer-events: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.field :deep(.v-field):hover::before {
-  border-color: #bdbdbd;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-.field :deep(.v-field--focused) {
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
-}
-.field :deep(.v-field--focused)::before {
-  border-color: #2196f3;
-  border-width: 2px;
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.1);
-}
-.field :deep(.v-field--error) {
-  background: #fff5f5;
-}
-.field :deep(.v-field--error)::before {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.02);
-}
-.field :deep(.v-label) {
-  font-weight: 500;
-  color: #6b7280;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-  padding-left: 2px;
-}
-.field :deep(.v-field--focused .v-label),
-.field :deep(.v-field--persistent .v-label) {
-  color: #2196f3;
-  font-weight: 600;
-}
-.field :deep(input),
-.field :deep(.v-select__selection-text) {
-  font-weight: 500;
-  color: #111827;
-  font-size: 0.9375rem;
-  padding-top: 2px;
-}
-.field :deep(.v-messages) {
-  margin-top: 4px;
-  padding: 0 4px;
-}
-.field :deep(.v-messages__message) {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #6b7280;
-  line-height: 1.2;
-}
-
-.dialog-card {
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: #fff;
-}
-.dialog-header {
-  padding: 18px 18px;
-  background: linear-gradient(135deg, rgba(33, 150, 243, 0.12), rgba(33, 150, 243, 0.06));
-}
-.icon-badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: rgba(33, 150, 243, 0.14);
-  color: #2196f3;
-  border: 1px solid rgba(33, 150, 243, 0.18);
-}
-.section {
-  background: #fafafa;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 16px;
-  padding: 14px;
-}
-.section-title {
-  display: flex;
-  align-items: center;
-  font-weight: 800;
-  font-size: 13px;
-  margin-bottom: 10px;
-  color: rgba(0, 0, 0, 0.7);
-}
-.grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-@media (max-width: 960px) {
-  .grid-2 {
-    grid-template-columns: 1fr;
+  .field :deep(.v-field) {
+    border-radius: 12px;
+    background: #ffffff;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    overflow: hidden;
   }
-}
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-.v-btn {
-  text-transform: none;
-  font-weight: 700;
-  letter-spacing: normal;
-}
+  .field :deep(.v-field__outline) {
+    display: none;
+  }
+  .field :deep(.v-field)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    border: 1.5px solid #e0e0e0;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .field :deep(.v-field):hover::before {
+    border-color: #bdbdbd;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  .field :deep(.v-field--focused) {
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
+  }
+  .field :deep(.v-field--focused)::before {
+    border-color: #2196f3;
+    border-width: 2px;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.1);
+  }
+  .field :deep(.v-field--error) {
+    background: #fff5f5;
+  }
+  .field :deep(.v-field--error)::before {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.02);
+  }
+  .field :deep(.v-label) {
+    font-weight: 500;
+    color: #6b7280;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    padding-left: 2px;
+  }
+  .field :deep(.v-field--focused .v-label),
+  .field :deep(.v-field--persistent .v-label) {
+    color: #2196f3;
+    font-weight: 600;
+  }
+  .field :deep(input),
+  .field :deep(.v-select__selection-text) {
+    font-weight: 500;
+    color: #111827;
+    font-size: 0.9375rem;
+    padding-top: 2px;
+  }
+  .field :deep(.v-messages) {
+    margin-top: 4px;
+    padding: 0 4px;
+  }
+  .field :deep(.v-messages__message) {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    line-height: 1.2;
+  }
+
+  .dialog-card {
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: #fff;
+  }
+  .dialog-header {
+    padding: 18px 18px;
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.12), rgba(33, 150, 243, 0.06));
+  }
+  .icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(33, 150, 243, 0.14);
+    color: #2196f3;
+    border: 1px solid rgba(33, 150, 243, 0.18);
+  }
+  .section {
+    background: #fafafa;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 16px;
+    padding: 14px;
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    font-weight: 800;
+    font-size: 13px;
+    margin-bottom: 10px;
+    color: rgba(0, 0, 0, 0.7);
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  @media (max-width: 960px) {
+    .grid-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .v-btn {
+    text-transform: none;
+    font-weight: 700;
+    letter-spacing: normal;
+  }
 </style>

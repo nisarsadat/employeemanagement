@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\AppliesRelatedFilters;
 use App\Http\Requests\OfficeEmployeeRequest;
 use App\Http\Requests\UpdateOfficeEmployeeRequest;
 use App\Http\Resources\OfficeEmployeeResource;
@@ -16,6 +17,35 @@ use Carbon\Carbon;
 
 class OfficeEmployeeController extends Controller
 {
+    use AppliesRelatedFilters;
+
+    protected function relatedFilterRules(): array
+    {
+        return [
+            'office_employee_id' => [
+                'column' => 'id',
+            ],
+
+            'resource_id' => [
+                'callback' => function ($query, $value) {
+                    $query->whereHas('resources', fn ($q) => $q->where('id', $value));
+                },
+            ],
+
+            'information_id' => [
+                'callback' => function ($query, $value) {
+                    $query->whereHas('informations', fn ($q) => $q->where('id', $value));
+                },
+            ],
+
+            'event_id' => [
+                'callback' => function ($query, $value) {
+                    $query->whereHas('events', fn ($q) => $q->where('id', $value));
+                },
+            ],
+        ];
+    }
+
     private function isDuplicateKey(QueryException $e): bool
     {
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
@@ -322,12 +352,21 @@ class OfficeEmployeeController extends Controller
         return $query;
     }
 
-    private function buildCardCounts(?string $search, ?string $status, ?string $jobType, ?int $year, ?int $month, string $dateField, ?string $searchField = null): array
-    {
+    private function buildCardCounts(
+        Request $request,
+        ?string $search,
+        ?string $status,
+        ?string $jobType,
+        ?int $year,
+        ?int $month,
+        string $dateField,
+        ?string $searchField = null
+    ): array {
         $base = OfficeEmployee::query();
 
         $this->applyCommonFilters($base, $search, $status, $jobType, $searchField);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
+        $this->applyRelatedFilters($base, $request);
 
         return [
             'total'      => (clone $base)->count(),
@@ -401,15 +440,19 @@ class OfficeEmployeeController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'page'         => 'sometimes|integer|min:1',
-            'perPage'      => 'sometimes',
-            'search'       => 'nullable|string',
-            'search_field' => 'nullable|string',
-            'status'       => 'nullable|string',
-            'job_type'     => 'nullable|string',
-            'year'         => 'nullable|integer|min:1|max:2500',
-            'month'        => 'nullable|integer|min:1|max:12',
-            'date_field'   => 'nullable|string',
+            'page'               => 'sometimes|integer|min:1',
+            'perPage'            => 'sometimes',
+            'search'             => 'nullable|string',
+            'search_field'       => 'nullable|string',
+            'status'             => 'nullable|string',
+            'job_type'           => 'nullable|string',
+            'year'               => 'nullable|integer|min:1|max:2500',
+            'month'              => 'nullable|integer|min:1|max:12',
+            'date_field'         => 'nullable|string',
+            'office_employee_id' => 'nullable|integer',
+            'resource_id'        => 'nullable|integer',
+            'information_id'     => 'nullable|integer',
+            'event_id'           => 'nullable|integer',
         ]);
 
         $search      = $request->input('search');
@@ -423,12 +466,22 @@ class OfficeEmployeeController extends Controller
         $month     = $request->filled('month') ? (int) $request->input('month') : null;
         $dateField = $this->resolveDateField($request->input('date_field'));
 
-        $cardCounts = $this->buildCardCounts($search, $status, $jobType, $year, $month, $dateField, $searchField);
+        $cardCounts = $this->buildCardCounts(
+            $request,
+            $search,
+            $status,
+            $jobType,
+            $year,
+            $month,
+            $dateField,
+            $searchField
+        );
 
         $query = $this->baseListQuery();
 
         $this->applyCommonFilters($query, $search, $status, $jobType, $searchField);
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
+        $this->applyRelatedFilters($query, $request);
 
         $query->orderByDesc('id');
 
@@ -694,12 +747,16 @@ class OfficeEmployeeController extends Controller
     public function inactive(Request $request)
     {
         $request->validate([
-            'search'       => 'nullable|string',
-            'search_field' => 'nullable|string',
-            'perPage'      => 'sometimes',
-            'year'         => 'nullable|integer|min:1900|max:2500',
-            'month'        => 'nullable|integer|min:1|max:12',
-            'date_field'   => 'nullable|string',
+            'search'             => 'nullable|string',
+            'search_field'       => 'nullable|string',
+            'perPage'            => 'sometimes',
+            'year'               => 'nullable|integer|min:1900|max:2500',
+            'month'              => 'nullable|integer|min:1|max:12',
+            'date_field'         => 'nullable|string',
+            'office_employee_id' => 'nullable|integer',
+            'resource_id'        => 'nullable|integer',
+            'information_id'     => 'nullable|integer',
+            'event_id'           => 'nullable|integer',
         ]);
 
         $year        = $request->filled('year') ? (int) $request->input('year') : null;
@@ -726,6 +783,7 @@ class OfficeEmployeeController extends Controller
         }
 
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
+        $this->applyRelatedFilters($query, $request);
 
         $perPage = $request->input('perPage', 0);
 

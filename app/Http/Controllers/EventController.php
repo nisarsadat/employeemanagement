@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\AppliesRelatedFilters;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreEventRequest;
@@ -14,8 +15,45 @@ use App\Services\NotificationService;
 use Carbon\Carbon;
 use App\Exports\EventsExport;
 use Maatwebsite\Excel\Facades\Excel;
+
 class EventController extends Controller
 {
+    use AppliesRelatedFilters;
+
+    protected function relatedFilterRules(): array
+    {
+        return [
+            'event_id' => [
+                'column' => 'id',
+            ],
+
+            'resource_id' => [
+                'column' => 'resource_id',
+            ],
+
+            'office_employee_id' => [
+                'callback' => function ($query, $value) {
+                    $query->where(function ($q) use ($value) {
+                        $q->where('office_employee_id', $value)
+                          ->orWhere('office_employee_akhistonky_id', $value);
+                    });
+                },
+            ],
+
+            'information_id' => [
+                'callback' => function ($query, $value) {
+                    $query->whereHas('informations', fn ($q) => $q->where('id', $value));
+                },
+            ],
+
+            'fifty_six_format_id' => [
+                'callback' => function ($query, $value) {
+                    $query->whereHas('fiftySixFormats', fn ($q) => $q->where('id', $value));
+                },
+            ],
+        ];
+    }
+
     private function isDuplicateKey(QueryException $e): bool
     {
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
@@ -28,15 +66,16 @@ class EventController extends Controller
         return Excel::download(
             new EventsExport(
                 $request->input('search'),
-                $request->input('searchField'),
+                $request->input('search_field'),
                 $request->filled('year') ? (int) $request->input('year') : null,
                 $request->filled('month') ? (int) $request->input('month') : null,
                 $request->input('stat', 'all'),
-                $request->input('dateField', 'event_date')
+                $request->input('date_field', 'event_date')
             ),
             $fileName
         );
     }
+
     private function duplicateResponse()
     {
         return response()->json([
@@ -332,12 +371,19 @@ class EventController extends Controller
         return $query;
     }
 
-    private function buildCardCounts(?string $search, ?string $searchField, ?int $year, ?int $month, string $dateField): array
-    {
+    private function buildCardCounts(
+        Request $request,
+        ?string $search,
+        ?string $searchField,
+        ?int $year,
+        ?int $month,
+        string $dateField
+    ): array {
         $base = Event::query();
 
         $this->applyCommonFilters($base, $search, null, $searchField);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
+        $this->applyRelatedFilters($base, $request);
 
         return [
             'total'    => (clone $base)->count(),
@@ -431,14 +477,19 @@ class EventController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'page'         => 'sometimes|integer|min:1',
-            'perPage'      => 'sometimes',
-            'search'       => 'nullable|string',
-            'search_field' => 'nullable|string',
-            'year'         => 'nullable|integer|min:1|max:2500',
-            'month'        => 'nullable|integer|min:1|max:12',
-            'date_field'   => 'nullable|string',
-            'card_filter'  => 'nullable|string',
+            'page'                 => 'sometimes|integer|min:1',
+            'perPage'              => 'sometimes',
+            'search'               => 'nullable|string',
+            'search_field'         => 'nullable|string',
+            'year'                 => 'nullable|integer|min:1|max:2500',
+            'month'                => 'nullable|integer|min:1|max:12',
+            'date_field'           => 'nullable|string',
+            'card_filter'          => 'nullable|string',
+            'event_id'             => 'nullable|integer',
+            'resource_id'          => 'nullable|integer',
+            'office_employee_id'   => 'nullable|integer',
+            'information_id'       => 'nullable|integer',
+            'fifty_six_format_id'  => 'nullable|integer',
         ]);
 
         $search      = $request->input('search');
@@ -451,12 +502,13 @@ class EventController extends Controller
         $month     = $request->filled('month') ? (int) $request->input('month') : null;
         $dateField = $this->resolveDateField($request->input('date_field'));
 
-        $cardCounts = $this->buildCardCounts($search, $searchField, $year, $month, $dateField);
+        $cardCounts = $this->buildCardCounts($request, $search, $searchField, $year, $month, $dateField);
 
         $query = $this->baseListQuery();
 
         $this->applyCommonFilters($query, $search, $cardFilter, $searchField);
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
+        $this->applyRelatedFilters($query, $request);
 
         $query->orderByDesc('id');
 

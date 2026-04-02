@@ -240,6 +240,12 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
             status: params.status ?? 'all',
             job_type: params.job_type ?? undefined,
             search_field: params.search_field ?? undefined,
+
+            // related route filters
+            office_employee_id: params.office_employee_id ?? undefined,
+            resource_id: params.resource_id ?? undefined,
+            information_id: params.information_id ?? undefined,
+            event_id: params.event_id ?? undefined,
           },
         });
 

@@ -648,11 +648,12 @@
   import ManagerFinanceDialog from './ManagerFinanceDialog.vue';
   import AnalysisLeadershipDialog from './AnalysisLeadershipDialog.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
-
+  import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
   import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
 
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
+  const { relatedFilters } = useRelatedRouteFilters();
   const repo = useDatabaseRepository();
   const financeRepo = useFinanceRepository();
   const router = useRouter();
@@ -661,6 +662,7 @@
   const excelDownloadDialog = ref(false);
   const excelDownloadProgress = ref(0);
   const excelDownloading = ref(false);
+
   async function fetchAll() {
     try {
       await repo.FetchInformationsData?.({
@@ -670,11 +672,15 @@
         month: filterMonth.value,
         date_field: 'information_saved_date',
 
-        // ✅ backend-driven filter by stat
+        // backend-driven stat filter
         stat: activeStat.value,
 
-        // ✅ backend-driven related records filter
-        related_id: relatedIdFilter.value,
+        // backend-driven relation filters
+        information_id: relatedFilters.value.information_id,
+        resource_id: relatedFilters.value.resource_id,
+        office_employee_id: relatedFilters.value.office_employee_id,
+        event_id: relatedFilters.value.event_id,
+        fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
       });
 
       await fetchStats();
@@ -683,7 +689,6 @@
       showErrorMessage(t('خطا در دریافت معلومات'));
     }
   }
-
   usePageRefresh('/app/informations', fetchAll);
 
   const accountItems = computed(() =>
@@ -822,8 +827,13 @@
           year: filterYear.value,
           month: filterMonth.value,
           date_field: 'information_saved_date',
-          related_id: relatedIdFilter.value,
           stats_only: 1,
+
+          information_id: relatedFilters.value.information_id,
+          resource_id: relatedFilters.value.resource_id,
+          office_employee_id: relatedFilters.value.office_employee_id,
+          event_id: relatedFilters.value.event_id,
+          fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
         },
       });
 
@@ -840,32 +850,21 @@
       console.error('fetchStats error', e);
     }
   }
-
-  const filterOfficeEmployeeId = computed(() => {
-    const v = route.query?.office_employee_id;
-    return v ? Number(v) : null;
-  });
-
-  const relatedIdFilter = ref(null);
-
-  const filteredRows = computed(() => {
-    let rows = allRows.value;
-
-    // keep this one exactly for OfficeEmployee page query
-    if (filterOfficeEmployeeId.value) {
-      rows = rows.filter((r) => Number(r.office_employee_id) === filterOfficeEmployeeId.value);
-    }
-
-    return rows;
-  });
+  const filteredRows = computed(() => allRows.value);
 
   async function filterByRelatedId(id) {
     if (!id) return;
 
-    relatedIdFilter.value = Number(id);
     repo.page = 1;
 
-    await fetchAll();
+    await router.push({
+      path: '/app/informations',
+      query: {
+        ...route.query,
+        information_id: String(id),
+        source: 'informations',
+      },
+    });
   }
 
   /* ===== Headers / Groups (unchanged) ===== */
@@ -1045,9 +1044,9 @@
     filterYear.value = null;
     filterMonth.value = null;
     activeStat.value = null;
-    relatedIdFilter.value = null;
     repo.page = 1;
 
+    await router.replace({ path: '/app/informations', query: {} });
     await fetchAll();
   }
   /* ===== Delete ===== */
@@ -1140,25 +1139,46 @@
     const row = getRow(payload);
     const id = row?.resource_id;
     if (!id) return;
-    router.push({ path: '/app/resources', query: { id: String(id), open: 'peek' } });
+
+    router.push({
+      path: '/app/resources',
+      query: {
+        resource_id: String(id),
+        open: 'peek',
+        source: 'informations',
+      },
+    });
   }
 
   function goToOfficeEmployee(payload) {
     const row = getRow(payload);
     const id = row?.office_employee_id || row?.office_employee_info_id;
     if (!id) return;
-    router.push({ path: '/app/officeemployee', query: { id: String(id), open: 'peek' } });
+
+    router.push({
+      path: '/app/officeemployee',
+      query: {
+        office_employee_id: String(id),
+        open: 'peek',
+        source: 'informations',
+      },
+    });
   }
 
   async function clearRelatedFilter() {
-    relatedIdFilter.value = null;
     repo.page = 1;
+    await router.replace({
+      path: '/app/informations',
+      query: {
+        ...route.query,
+        information_id: undefined,
+      },
+    });
     await fetchAll();
   }
   async function clearSearch() {
     repo.Search = '';
     searchField.value = null;
-    relatedIdFilter.value = null;
     repo.page = 1;
 
     await fetchAll();
@@ -1176,7 +1196,13 @@
         month: filterMonth.value,
         date_field: 'information_saved_date',
         stat: activeStat.value,
-        related_id: relatedIdFilter.value,
+
+        information_id: relatedFilters.value.information_id,
+        resource_id: relatedFilters.value.resource_id,
+        office_employee_id: relatedFilters.value.office_employee_id,
+        event_id: relatedFilters.value.event_id,
+        fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
+
         onDownloadProgress: (progressEvent) => {
           const total = progressEvent.total || 0;
           const loaded = progressEvent.loaded || 0;

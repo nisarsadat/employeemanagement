@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\AppliesRelatedFilters;
 use App\Models\Information;
 use App\Models\InformationDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-
 use App\Http\Requests\StoreInformationRequest;
 use App\Http\Requests\UpdateInformationRequest;
 use App\Http\Resources\InformationResource;
@@ -18,9 +18,44 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class InformationController extends Controller
 {
-    // =========================
-    // ✅ DATE FILTER HELPERS
-    // =========================
+    use AppliesRelatedFilters;
+
+    protected function relatedFilterRules(): array
+    {
+        return [
+            'information_id' => [
+                'callback' => function ($query, $value) {
+                    $this->applyRelatedFilter($query, (int) $value);
+                },
+            ],
+
+            'resource_id' => [
+                'column' => 'resource_id',
+            ],
+
+            'office_employee_id' => [
+                'callback' => function ($query, $value) {
+                    $query->where(function ($q) use ($value) {
+                        $q->where('office_employee_id', $value)
+                          ->orWhere('office_employee_info_id', $value);
+                    });
+                },
+            ],
+
+            'event_id' => [
+                'callback' => function ($query, $value) {
+                    $query->whereHas('events', fn ($q) => $q->where('id', $value));
+                },
+            ],
+
+            'fifty_six_format_id' => [
+                'callback' => function ($query, $value) {
+                    $query->whereHas('fiftySixFormats', fn ($q) => $q->where('id', $value));
+                },
+            ],
+        ];
+    }
+
     private function resolveDateField(?string $dateField): string
     {
         $allowed = ['information_saved_date', 'hamahangi_date', 'created_at'];
@@ -33,23 +68,24 @@ class InformationController extends Controller
         return $field;
     }
 
-   public function exportExcel(Request $request)
+    public function exportExcel(Request $request)
     {
         $fileName = 'informations_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
 
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\InformationsExport(
+        return Excel::download(
+            new InformationsExport(
                 $request->input('search'),
-                $request->input('searchField'),
+                $request->input('search_field'),
                 $request->filled('year') ? (int) $request->input('year') : null,
                 $request->filled('month') ? (int) $request->input('month') : null,
                 $request->input('stat', 'all'),
-                $request->input('dateField', 'information_saved_date'),
-                $request->filled('related_id') ? (int) $request->input('related_id') : null
+                $request->input('date_field', 'information_saved_date'),
+                $request->filled('information_id') ? (int) $request->input('information_id') : null
             ),
             $fileName
         );
     }
+
     private function gregorianToJalali(int $gy, int $gm, int $gd): array
     {
         $g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
@@ -291,7 +327,6 @@ class InformationController extends Controller
         return $query;
     }
 
-    // ✅ keep the main list query consistent everywhere
     private function baseListQuery()
     {
         $table = (new Information())->getTable();
@@ -334,13 +369,6 @@ class InformationController extends Controller
             ]);
     }
 
-    /**
-     * ✅ backend related-record filter
-     * Shows:
-     * - selected record itself
-     * - its parent (if selected row is child)
-     * - its children
-     */
     private function applyRelatedFilter($query, ?int $relatedId)
     {
         if (!$relatedId) {
@@ -367,9 +395,6 @@ class InformationController extends Controller
         return $query;
     }
 
-    /**
-     * ✅ backend stat filter
-     */
     private function applyStatFilter($query, ?string $stat)
     {
         $stat = trim((string) $stat);
@@ -431,10 +456,6 @@ class InformationController extends Controller
         return $query;
     }
 
-    /**
-     * ✅ build backend stats based on current search/month/year/related filters
-     * but without current card stat filter
-     */
     private function buildStats(
         Request $request,
         string $dateField,
@@ -444,14 +465,13 @@ class InformationController extends Controller
         ?int $month,
         string $date,
         string $dateFrom,
-        string $dateTo,
-        ?int $relatedId
+        string $dateTo
     ): array {
         $base = Information::query();
 
         $this->applySearchFilter($base, $search, $searchField);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
-        $this->applyRelatedFilter($base, $relatedId);
+        $this->applyRelatedFilters($base, $request);
 
         $base
             ->when($date !== '', function ($q) use ($date, $dateField) {
@@ -501,9 +521,6 @@ class InformationController extends Controller
         ];
     }
 
-    /**
-     * ✅ Return available years/months based on REAL DB data.
-     */
     public function dateOptions(Request $request)
     {
         $request->validate([
@@ -565,33 +582,28 @@ class InformationController extends Controller
         ]);
     }
 
-    /**
-     * List all informations with search + month/year filters + backend card filter + related filter.
-     */
     public function index(Request $request)
     {
         $request->validate([
-            'page'         => 'sometimes|integer|min:1',
-            'perPage'      => 'sometimes',
-            'search'       => 'nullable|string',
-            'search_field' => 'nullable|string',
-
-            // ✅ month/year filters
-            'year'         => 'nullable|integer|min:1|max:2500',
-            'month'        => 'nullable|integer|min:1|max:12',
-            'date_field'   => 'nullable|string',
-
-            // ✅ optional: day or range filters
-            'date'         => 'nullable|string',
-            'date_from'    => 'nullable|string',
-            'date_to'      => 'nullable|string',
-            'from_date'    => 'nullable|string',
-            'to_date'      => 'nullable|string',
-
-            // ✅ NEW
-            'stat'         => 'nullable|string',
-            'related_id'   => 'nullable|integer',
-            'stats_only'   => 'nullable',
+            'page'                 => 'sometimes|integer|min:1',
+            'perPage'              => 'sometimes',
+            'search'               => 'nullable|string',
+            'search_field'         => 'nullable|string',
+            'year'                 => 'nullable|integer|min:1|max:2500',
+            'month'                => 'nullable|integer|min:1|max:12',
+            'date_field'           => 'nullable|string',
+            'date'                 => 'nullable|string',
+            'date_from'            => 'nullable|string',
+            'date_to'              => 'nullable|string',
+            'from_date'            => 'nullable|string',
+            'to_date'              => 'nullable|string',
+            'stat'                 => 'nullable|string',
+            'stats_only'           => 'nullable',
+            'information_id'       => 'nullable|integer',
+            'resource_id'          => 'nullable|integer',
+            'office_employee_id'   => 'nullable|integer',
+            'event_id'             => 'nullable|integer',
+            'fifty_six_format_id'  => 'nullable|integer',
         ]);
 
         $search      = trim((string) $request->input('search', ''));
@@ -607,10 +619,8 @@ class InformationController extends Controller
         $dateFrom  = trim((string) $request->input('date_from', $request->input('from_date', '')));
         $dateTo    = trim((string) $request->input('date_to', $request->input('to_date', '')));
         $stat      = trim((string) $request->input('stat', ''));
-        $relatedId = $request->filled('related_id') ? (int) $request->input('related_id') : null;
         $statsOnly = $request->boolean('stats_only');
 
-        // ✅ backend stats
         $stats = $this->buildStats(
             $request,
             $dateField,
@@ -620,8 +630,7 @@ class InformationController extends Controller
             $month,
             $date,
             $dateFrom,
-            $dateTo,
-            $relatedId
+            $dateTo
         );
 
         if ($statsOnly) {
@@ -633,11 +642,9 @@ class InformationController extends Controller
         $query = $this->baseListQuery();
 
         $this->applySearchFilter($query, $search, $searchField);
-
-        // ✅ existing month/year filter
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
+        $this->applyRelatedFilters($query, $request);
 
-        // ✅ existing day/range filter
         $query
             ->when($date !== '', function ($q) use ($date, $dateField) {
                 $q->whereDate($dateField, $date);
@@ -653,10 +660,6 @@ class InformationController extends Controller
                 $q->whereDate($dateField, '<=', $dateTo);
             });
 
-        // ✅ NEW: related info filter
-        $this->applyRelatedFilter($query, $relatedId);
-
-        // ✅ NEW: stat/card filter
         $this->applyStatFilter($query, $stat);
 
         $query->orderByDesc('id');
@@ -944,6 +947,7 @@ class InformationController extends Controller
             'matches' => $query->get(),
         ]);
     }
+
     private function resultPendingDaysSql(string $table): string
     {
         return "DATEDIFF(CURDATE(), DATE(COALESCE({$table}.information_saved_date, {$table}.created_at)))";

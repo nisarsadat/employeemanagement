@@ -84,7 +84,7 @@
     },
     {
       key: 'districts',
-      title: t('والسوالی'),
+      title: t('والسوالی/حوزه'),
       // subtitle: t('مدیریت لیست والسوالی‌ها'),
       icon: 'mdi-map-marker-radius-outline',
       to: { path: '/app/settings/districts' },
