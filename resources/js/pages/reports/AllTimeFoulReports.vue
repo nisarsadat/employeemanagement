@@ -400,9 +400,8 @@
   import { useRouter } from 'vue-router';
 
   const { t, locale } = useI18n();
-      import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/alltimefoulreports', fetch);
   // ✅ RTL/LTR exactly like your employee page
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
@@ -413,20 +412,57 @@
   const router = useRouter();
 
   // main routes
-  const goResources = () => router.push('/app/resources');
-  const goEvents = () => router.push('/app/events');
-  const goInformations = () => router.push('/app/informations');
-  const goFiftyFormatsHub = () => router.push('/app/fifthyformatsroute');
+  const goResources = () =>
+    router.push({
+      path: '/app/resources',
+      query: {
+        source: 'alltimefoulreports',
+      },
+    });
 
-  // 56-format route from key (your API returns key like: "fasads", "robbers", "parks"...)
+  const goEvents = () =>
+    router.push({
+      path: '/app/events',
+      query: {
+        source: 'alltimefoulreports',
+      },
+    });
+
+  const goInformations = () =>
+    router.push({
+      path: '/app/informations',
+      query: {
+        source: 'alltimefoulreports',
+      },
+    });
+
+  const goFiftyFormatsHub = () =>
+    router.push({
+      path: '/app/fifthyformatsroute',
+      query: {
+        source: 'alltimefoulreports',
+      },
+    });
+
   function goFormatByKey(key) {
     if (!key) return;
-    router.push(`/app/${key}`);
+
+    router.push({
+      path: `/app/${key}`,
+      query: {
+        source: 'alltimefoulreports',
+      },
+    });
   }
 
-  // information types (we only route to informations list)
   function goInfoType(label) {
-    router.push('/app/informations');
+    router.push({
+      path: '/app/informations',
+      query: {
+        type: label || '',
+        source: 'alltimefoulreports',
+      },
+    });
   }
 
   const chipTitle = computed(() => t('ټول وخت'));
@@ -491,6 +527,7 @@
     repo.ResetAllTime();
     await fetch();
   }
+  usePageRefresh('/app/alltimefoulreports', fetch);
 
   onMounted(() => {
     fetch();

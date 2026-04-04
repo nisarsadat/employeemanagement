@@ -613,7 +613,14 @@
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'event_date',
-        stat: activeCard.value === 'all' ? 'all' : activeCard.value,
+        stat: relatedFilters.value.stat || activeCard.value,
+        type: relatedFilters.value.type,
+
+        date: relatedFilters.value.date,
+        date_from: relatedFilters.value.date_from,
+        date_to: relatedFilters.value.date_to,
+        from_date: relatedFilters.value.from_date,
+        to_date: relatedFilters.value.to_date,
 
         event_id: relatedFilters.value.event_id,
         resource_id: relatedFilters.value.resource_id,
@@ -898,7 +905,15 @@
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'event_date',
-        card_filter: activeCard.value,
+
+        card_filter: relatedFilters.value.stat || activeCard.value,
+        type: relatedFilters.value.type,
+
+        date: relatedFilters.value.date,
+        date_from: relatedFilters.value.date_from,
+        date_to: relatedFilters.value.date_to,
+        from_date: relatedFilters.value.from_date,
+        to_date: relatedFilters.value.to_date,
 
         event_id: relatedFilters.value.event_id,
         resource_id: relatedFilters.value.resource_id,
@@ -921,7 +936,14 @@
     filterMonth.value = null;
     await fetchMonthItemsFromDb(newYear || null);
   });
-  usePageRefresh('/app/events', fetchAll);
+  watch(
+    () => route.query,
+    async () => {
+      repo.page = 1;
+      await fetchAll();
+    },
+    { deep: true }
+  );
 
   onMounted(async () => {
     await fetchYearItemsFromDb();
@@ -929,6 +951,7 @@
     await fetchAll();
     await financeRepo.FetchAccountsData();
   });
+  usePageRefresh('/app/events', fetchAll);
 </script>
 
 <style scoped>

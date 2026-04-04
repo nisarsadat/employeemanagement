@@ -370,20 +370,28 @@ class EventController extends Controller
 
         return $query;
     }
-
     private function buildCardCounts(
-        Request $request,
-        ?string $search,
-        ?string $searchField,
-        ?int $year,
-        ?int $month,
-        string $dateField
-    ): array {
+    Request $request,
+    ?string $search,
+    ?string $searchField,
+    ?int $year,
+    ?int $month,
+    string $dateField,
+    ?string $type
+    ): array
+    {
         $base = Event::query();
 
         $this->applyCommonFilters($base, $search, null, $searchField);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
         $this->applyRelatedFilters($base, $request);
+        $this->applyDateRangeFilter($base, $request, $dateField);
+        $this->applyTypeFilter($base, $type);
+        if (!empty($exactDate)) {
+    $base->whereDate($dateField, $exactDate);
+        }
+
+        $this->applyTypeFilter($base, $type);
 
         return [
             'total'    => (clone $base)->count(),
@@ -474,6 +482,18 @@ class EventController extends Controller
         ]);
     }
 
+    private function applyTypeFilter($query, ?string $type)
+    {
+        $type = trim((string) $type);
+
+        if ($type === '') {
+            return $query;
+        }
+
+        $query->where('event_specific_type', $type);
+
+        return $query;
+    }
     public function index(Request $request)
     {
         $request->validate([
@@ -490,6 +510,12 @@ class EventController extends Controller
             'office_employee_id'   => 'nullable|integer',
             'information_id'       => 'nullable|integer',
             'fifty_six_format_id'  => 'nullable|integer',
+            'date'                 => 'nullable|string',
+            'date_from'            => 'nullable|string',
+            'date_to'              => 'nullable|string',
+            'from_date'            => 'nullable|string',
+            'to_date'              => 'nullable|string',
+            'type'                 => 'nullable|string',
         ]);
 
         $search      = $request->input('search');
@@ -501,14 +527,26 @@ class EventController extends Controller
         $year      = $request->filled('year') ? (int) $request->input('year') : null;
         $month     = $request->filled('month') ? (int) $request->input('month') : null;
         $dateField = $this->resolveDateField($request->input('date_field'));
+        $type = trim((string) $request->input('type', ''));
+        $exactDate = trim((string) $request->input('date', ''));
+        $type      = trim((string) $request->input('type', ''));
 
-        $cardCounts = $this->buildCardCounts($request, $search, $searchField, $year, $month, $dateField);
-
+        $cardCounts = $this->buildCardCounts(
+        $request,
+        $search,
+        $searchField,
+        $year,
+        $month,
+        $dateField,
+        $type
+    );
         $query = $this->baseListQuery();
 
         $this->applyCommonFilters($query, $search, $cardFilter, $searchField);
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
         $this->applyRelatedFilters($query, $request);
+        $this->applyDateRangeFilter($query, $request, $dateField);
+        $this->applyTypeFilter($query, $type);
 
         $query->orderByDesc('id');
 

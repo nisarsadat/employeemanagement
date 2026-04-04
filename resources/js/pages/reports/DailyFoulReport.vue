@@ -367,7 +367,7 @@
                   size="small"
                   class="font-weight-bold fontfamily"
                 >
-                  <v-icon  size="small" class="mr-1" />
+                  <v-icon size="small" class="mr-1" />
                   {{ item.killed }}
                 </v-chip>
               </template>
@@ -379,12 +379,11 @@
                   size="small"
                   class="font-weight-bold fontfamily"
                 >
-                  <v-icon  size="small" class="mr-1" />
+                  <v-icon size="small" class="mr-1" />
                   {{ item.injured }}
                 </v-chip>
               </template>
 
-             
               <template #item.event_specific_type="{ item }">
                 <v-chip
                   :color="getEventTypeColor(item.event_specific_type)"
@@ -415,21 +414,19 @@
               </div>
             </div>
           </div>
-
-         
         </v-card>
       </v-col>
-       <v-row class="mt-4">
-            <v-col cols="12">
-              <ReportNotesPeriodTable
-                type="daily"
-                :anchor-date="repo.selectedDate"
-                :rtl="isRtl"
-                :locale="locale"
-                :per-page="50"
-              />
-            </v-col>
-          </v-row>
+      <v-row class="mt-4">
+        <v-col cols="12">
+          <ReportNotesPeriodTable
+            type="daily"
+            :anchor-date="repo.selectedDate"
+            :rtl="isRtl"
+            :locale="locale"
+            :per-page="50"
+          />
+        </v-col>
+      </v-row>
     </v-row>
   </v-container>
 </template>
@@ -445,9 +442,8 @@
   import { useFoulReportsRepository } from '@/stores/FoulReportsRepository';
 
   const { t, locale } = useI18n();
-      import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/dailyfoulreports', fetch);
   // ✅ RTL/LTR exactly like your employee page
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
@@ -459,20 +455,64 @@
   const router = useRouter();
 
   // main routes
-  const goResources = () => router.push('/app/resources');
-  const goEvents = () => router.push('/app/events');
-  const goInformations = () => router.push('/app/informations');
-  const goFiftyFormatsHub = () => router.push('/app/fifthyformatsroute');
+  const goResources = () =>
+    router.push({
+      path: '/app/resources',
+      query: {
+        date: repo.selectedDate,
+        source: 'dailyfoulreports',
+      },
+    });
+
+  const goEvents = () =>
+    router.push({
+      path: '/app/events',
+      query: {
+        date: repo.selectedDate,
+        source: 'dailyfoulreports',
+      },
+    });
+
+  const goInformations = () =>
+    router.push({
+      path: '/app/informations',
+      query: {
+        date: repo.selectedDate,
+        source: 'dailyfoulreports',
+      },
+    });
+
+  const goFiftyFormatsHub = () =>
+    router.push({
+      path: '/app/fifthyformatsroute',
+      query: {
+        date: repo.selectedDate,
+        source: 'dailyfoulreports',
+      },
+    });
 
   // 56-format route from key (your API returns key like: "fasads", "robbers", "parks"...)
   function goFormatByKey(key) {
     if (!key) return;
-    router.push(`/app/${key}`);
-  }
 
+    router.push({
+      path: `/app/${key}`,
+      query: {
+        date: repo.selectedDate,
+        source: 'dailyfoulreports',
+      },
+    });
+  }
   // information types (we only route to informations list)
   function goInfoType(label) {
-    router.push('/app/informations');
+    router.push({
+      path: '/app/informations',
+      query: {
+        date: repo.selectedDate,
+        type: label || '',
+        source: 'dailyfoulreports',
+      },
+    });
   }
 
   const chipDate = computed(() => {
@@ -562,6 +602,7 @@
     repo.selectedDate = new Date().toISOString().slice(0, 10);
     await fetch();
   }
+  usePageRefresh('/app/dailyfoulreports', fetch);
 
   onMounted(() => {
     fetch();

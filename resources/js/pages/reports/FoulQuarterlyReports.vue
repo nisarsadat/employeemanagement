@@ -170,7 +170,12 @@
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card class="stat-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'" @click="goInformations">
+        <v-card
+          class="stat-card"
+          elevation="0"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+          @click="goInformations"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="stat-label fontfamily">{{ t('اطلاعات') }}</div>
@@ -208,7 +213,12 @@
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card class="stat-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'" @click="goFiftyFormatsHub">
+        <v-card
+          class="stat-card"
+          elevation="0"
+          :dir="isRtl ? 'rtl' : 'ltr'"
+          @click="goFiftyFormatsHub"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="stat-label fontfamily">{{ t('فورم‌های ۵۰ فارمت') }}</div>
@@ -355,7 +365,12 @@
               :no-data-text="t('هیچ رویدادی ثبت نشده')"
             >
               <template #item.count="{ item }">
-                <v-chip color="warning" variant="outlined" size="small" class="font-weight-bold fontfamily">
+                <v-chip
+                  color="warning"
+                  variant="outlined"
+                  size="small"
+                  class="font-weight-bold fontfamily"
+                >
                   {{ item.count }}
                 </v-chip>
               </template>
@@ -417,9 +432,8 @@
   import { useRouter } from 'vue-router';
 
   const { t, locale } = useI18n();
-      import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/quarterlyfoulreports', fetch);
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
 
@@ -427,18 +441,69 @@
   const report = computed(() => repo.quarterly);
 
   const router = useRouter();
-  const goResources = () => router.push('/app/resources');
-  const goEvents = () => router.push('/app/events');
-  const goInformations = () => router.push('/app/informations');
-  const goFiftyFormatsHub = () => router.push('/app/fifthyformatsroute');
+  const goResources = () =>
+    router.push({
+      path: '/app/resources',
+      query: {
+        date_from: fromDate.value,
+        date_to: toDate.value,
+        source: 'quarterlyfoulreports',
+      },
+    });
+
+  const goEvents = () =>
+    router.push({
+      path: '/app/events',
+      query: {
+        date_from: fromDate.value,
+        date_to: toDate.value,
+        source: 'quarterlyfoulreports',
+      },
+    });
+
+  const goInformations = () =>
+    router.push({
+      path: '/app/informations',
+      query: {
+        date_from: fromDate.value,
+        date_to: toDate.value,
+        source: 'quarterlyfoulreports',
+      },
+    });
+
+  const goFiftyFormatsHub = () =>
+    router.push({
+      path: '/app/fifthyformatsroute',
+      query: {
+        date_from: fromDate.value,
+        date_to: toDate.value,
+        source: 'quarterlyfoulreports',
+      },
+    });
 
   function goFormatByKey(key) {
     if (!key) return;
-    router.push(`/app/${key}`);
+
+    router.push({
+      path: `/app/${key}`,
+      query: {
+        date_from: fromDate.value,
+        date_to: toDate.value,
+        source: 'quarterlyfoulreports',
+      },
+    });
   }
 
-  function goInfoType() {
-    router.push('/app/informations');
+  function goInfoType(label) {
+    router.push({
+      path: '/app/informations',
+      query: {
+        date_from: fromDate.value,
+        date_to: toDate.value,
+        type: label || '',
+        source: 'quarterlyfoulreports',
+      },
+    });
   }
 
   // ✅ NEW: two inputs
@@ -532,6 +597,7 @@
     toDate.value = r.to;
     await fetch();
   }
+  usePageRefresh('/app/quarterlyfoulreports', fetch);
 
   onMounted(() => {
     // default: current quarter

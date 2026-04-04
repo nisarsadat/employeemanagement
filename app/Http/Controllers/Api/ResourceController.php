@@ -297,7 +297,12 @@ class ResourceController extends Controller
             'information_id'       => 'nullable|integer',
             'event_id'             => 'nullable|integer',
             'fifty_six_format_id'  => 'nullable|integer',
-        ]);
+            'date'                 => 'nullable|string',
+            'date_from'            => 'nullable|string',
+            'date_to'              => 'nullable|string',
+            'from_date'            => 'nullable|string',
+            'to_date'              => 'nullable|string',     
+            ]);
 
         $search = trim((string) $req->get('search', ''));
         $searchField = $this->resolveSearchField($req->get('search_field'));
@@ -336,6 +341,7 @@ class ResourceController extends Controller
 
         $this->applyShamsiDateFilter($baseQuery, $year, $month, $dateField);
         $this->applyRelatedFilters($baseQuery, $req);
+        $this->applyDateRangeFilter($baseQuery, $req, $dateField);
 
         $today = now()->toDateString();
 
@@ -388,8 +394,9 @@ class ResourceController extends Controller
             })
             ->latest('id');
 
-        $this->applyShamsiDateFilter($q, $year, $month, $dateField);
-        $this->applyRelatedFilters($q, $req);
+            $this->applyShamsiDateFilter($q, $year, $month, $dateField);
+            $this->applyRelatedFilters($q, $req);
+            $this->applyDateRangeFilter($q, $req, $dateField);
 
         $perPage = $req->filled('perPage') ? (int) $req->get('perPage') : null;
 

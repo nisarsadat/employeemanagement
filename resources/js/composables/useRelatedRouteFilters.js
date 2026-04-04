@@ -5,23 +5,35 @@ export function useRelatedRouteFilters() {
   const route = useRoute();
   const router = useRouter();
 
+  function asNumber(value) {
+    if (value === null || value === undefined || value === '') return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function asString(value) {
+    const v = String(value ?? '').trim();
+    return v || null;
+  }
+
   const relatedFilters = computed(() => ({
-    office_employee_id: route.query?.office_employee_id
-      ? Number(route.query.office_employee_id)
-      : null,
+    office_employee_id: asNumber(route.query?.office_employee_id),
+    resource_id: asNumber(route.query?.resource_id),
+    information_id: asNumber(route.query?.information_id),
+    event_id: asNumber(route.query?.event_id),
+    fifty_six_format_id: asNumber(route.query?.fifty_six_format_id),
 
-    resource_id: route.query?.resource_id ? Number(route.query.resource_id) : null,
+    date: asString(route.query?.date),
+    date_from: asString(route.query?.date_from || route.query?.from_date),
+    date_to: asString(route.query?.date_to || route.query?.to_date),
+    from_date: asString(route.query?.from_date || route.query?.date_from),
+    to_date: asString(route.query?.to_date || route.query?.date_to),
 
-    information_id: route.query?.information_id ? Number(route.query.information_id) : null,
+    type: asString(route.query?.type),
+    stat: asString(route.query?.stat),
 
-    event_id: route.query?.event_id ? Number(route.query.event_id) : null,
-
-    fifty_six_format_id: route.query?.fifty_six_format_id
-      ? Number(route.query.fifty_six_format_id)
-      : null,
-
-    open: route.query?.open || null,
-    source: route.query?.source || null,
+    open: asString(route.query?.open),
+    source: asString(route.query?.source),
   }));
 
   function pushWithRelation(path, query = {}) {
@@ -34,7 +46,9 @@ export function useRelatedRouteFilters() {
   function clearRelationQueries(extraKeepKeys = []) {
     const keep = {};
     for (const key of extraKeepKeys) {
-      if (route.query?.[key] != null) keep[key] = route.query[key];
+      if (route.query?.[key] != null && route.query?.[key] !== '') {
+        keep[key] = route.query[key];
+      }
     }
 
     return router.replace({
@@ -55,5 +69,6 @@ export function useRelatedRouteFilters() {
     relatedFilters,
     pushWithRelation,
     clearRelationQueries,
+    cleanQuery,
   };
 }

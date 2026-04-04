@@ -432,9 +432,8 @@
   import AppBar from '@/components/AppBar.vue';
   import DateInput from '@/components/DateInput.vue';
   import { useFoulReportsRepository } from '@/stores/FoulReportsRepository';
-      import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/monthlyfoulreports', fetch);
   const { t, locale } = useI18n();
 
   const isRtl = ref(locale.value === 'fa');
@@ -445,18 +444,69 @@
 
   const router = useRouter();
 
-  const goResources = () => router.push('/app/resources');
-  const goEvents = () => router.push('/app/events');
-  const goInformations = () => router.push('/app/informations');
-  const goFiftyFormatsHub = () => router.push('/app/fifthyformatsroute');
+  const goResources = () =>
+    router.push({
+      path: '/app/resources',
+      query: {
+        date_from: repo.selectedMonthFrom,
+        date_to: repo.selectedMonthTo,
+        source: 'monthlyfoulreports',
+      },
+    });
+
+  const goEvents = () =>
+    router.push({
+      path: '/app/events',
+      query: {
+        date_from: repo.selectedMonthFrom,
+        date_to: repo.selectedMonthTo,
+        source: 'monthlyfoulreports',
+      },
+    });
+
+  const goInformations = () =>
+    router.push({
+      path: '/app/informations',
+      query: {
+        date_from: repo.selectedMonthFrom,
+        date_to: repo.selectedMonthTo,
+        source: 'monthlyfoulreports',
+      },
+    });
+
+  const goFiftyFormatsHub = () =>
+    router.push({
+      path: '/app/fifthyformatsroute',
+      query: {
+        date_from: repo.selectedMonthFrom,
+        date_to: repo.selectedMonthTo,
+        source: 'monthlyfoulreports',
+      },
+    });
 
   function goFormatByKey(key) {
     if (!key) return;
-    router.push(`/app/${key}`);
+
+    router.push({
+      path: `/app/${key}`,
+      query: {
+        date_from: repo.selectedMonthFrom,
+        date_to: repo.selectedMonthTo,
+        source: 'monthlyfoulreports',
+      },
+    });
   }
 
-  function goInfoType() {
-    router.push('/app/informations');
+  function goInfoType(label) {
+    router.push({
+      path: '/app/informations',
+      query: {
+        date_from: repo.selectedMonthFrom,
+        date_to: repo.selectedMonthTo,
+        type: label || '',
+        source: 'monthlyfoulreports',
+      },
+    });
   }
 
   function pad2(n) {
@@ -584,6 +634,7 @@
     repo.selectedMonthTo = cur;
     await fetch();
   }
+  usePageRefresh('/app/monthlyfoulreports', fetch);
 
   onMounted(() => {
     const cur = todayIso();

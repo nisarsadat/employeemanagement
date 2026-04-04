@@ -693,8 +693,14 @@
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'resource_saved_date',
-        stat: quickFilter.value === 'all' ? null : quickFilter.value,
+        stat: relatedFilters.value.stat || (quickFilter.value === 'all' ? null : quickFilter.value),
         search_field: searchField.value,
+
+        date: relatedFilters.value.date,
+        date_from: relatedFilters.value.date_from,
+        date_to: relatedFilters.value.date_to,
+        from_date: relatedFilters.value.from_date,
+        to_date: relatedFilters.value.to_date,
 
         resource_id: relatedFilters.value.resource_id,
         office_employee_id: relatedFilters.value.office_employee_id,
@@ -982,7 +988,21 @@
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'resource_saved_date',
-        stat: quickFilter.value === 'all' ? 'all' : quickFilter.value,
+        stat:
+          relatedFilters.value.stat || (quickFilter.value === 'all' ? 'all' : quickFilter.value),
+
+        date: relatedFilters.value.date,
+        date_from: relatedFilters.value.date_from,
+        date_to: relatedFilters.value.date_to,
+        from_date: relatedFilters.value.from_date,
+        to_date: relatedFilters.value.to_date,
+
+        resource_id: relatedFilters.value.resource_id,
+        office_employee_id: relatedFilters.value.office_employee_id,
+        information_id: relatedFilters.value.information_id,
+        event_id: relatedFilters.value.event_id,
+        fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
+
         onDownloadProgress: (progressEvent) => {
           const total = progressEvent.total || 0;
           const loaded = progressEvent.loaded || 0;
@@ -990,7 +1010,6 @@
           if (total > 0) {
             excelDownloadProgress.value = Math.min(100, Math.round((loaded * 100) / total));
           } else {
-            // fallback when total size is unknown
             if (excelDownloadProgress.value < 90) {
               excelDownloadProgress.value += 5;
             }
@@ -1032,6 +1051,14 @@
       await fetchOne(found.id);
     },
     { immediate: true }
+  );
+  watch(
+    () => route.query,
+    async () => {
+      repo.page = 1;
+      await fetchAll();
+    },
+    { deep: true }
   );
   usePageRefresh('/app/resources', fetchAll);
 

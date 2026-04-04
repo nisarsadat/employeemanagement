@@ -672,10 +672,18 @@
         month: filterMonth.value,
         date_field: 'information_saved_date',
 
-        // backend-driven stat filter
-        stat: activeStat.value,
+        // route-driven stat/type first, local fallback after
+        stat: relatedFilters.value.stat || activeStat.value,
+        type: relatedFilters.value.type,
 
-        // backend-driven relation filters
+        // route date filters
+        date: relatedFilters.value.date,
+        date_from: relatedFilters.value.date_from,
+        date_to: relatedFilters.value.date_to,
+        from_date: relatedFilters.value.from_date,
+        to_date: relatedFilters.value.to_date,
+
+        // relation filters
         information_id: relatedFilters.value.information_id,
         resource_id: relatedFilters.value.resource_id,
         office_employee_id: relatedFilters.value.office_employee_id,
@@ -828,6 +836,15 @@
           month: filterMonth.value,
           date_field: 'information_saved_date',
           stats_only: 1,
+
+          stat: relatedFilters.value.stat || activeStat.value,
+          type: relatedFilters.value.type,
+
+          date: relatedFilters.value.date,
+          date_from: relatedFilters.value.date_from,
+          date_to: relatedFilters.value.date_to,
+          from_date: relatedFilters.value.from_date,
+          to_date: relatedFilters.value.to_date,
 
           information_id: relatedFilters.value.information_id,
           resource_id: relatedFilters.value.resource_id,
@@ -1195,7 +1212,15 @@
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'information_saved_date',
-        stat: activeStat.value,
+
+        stat: relatedFilters.value.stat || activeStat.value,
+        type: relatedFilters.value.type,
+
+        date: relatedFilters.value.date,
+        date_from: relatedFilters.value.date_from,
+        date_to: relatedFilters.value.date_to,
+        from_date: relatedFilters.value.from_date,
+        to_date: relatedFilters.value.to_date,
 
         information_id: relatedFilters.value.information_id,
         resource_id: relatedFilters.value.resource_id,
@@ -1239,6 +1264,14 @@
     repo.page = 1;
     fetchAll();
   }
+  watch(
+  () => route.query,
+  async () => {
+    repo.page = 1;
+    await fetchAll();
+  },
+  { deep: true }
+);
 
   /* ===== Init ===== */
   onMounted(async () => {

@@ -303,6 +303,12 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.fifty_six_format_id !== undefined
             ? { fifty_six_format_id: params.fifty_six_format_id }
             : {}),
+          ...(params?.date !== undefined ? { date: params.date } : {}),
+          ...(params?.date_from !== undefined ? { date_from: params.date_from } : {}),
+          ...(params?.date_to !== undefined ? { date_to: params.date_to } : {}),
+          ...(params?.from_date !== undefined ? { from_date: params.from_date } : {}),
+          ...(params?.to_date !== undefined ? { to_date: params.to_date } : {}),
+          ...(params?.stat !== undefined ? { stat: params.stat } : {}),
         };
 
         const res = await axios.get('/resources', {
@@ -467,6 +473,19 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           month = null,
           date_field = 'resource_saved_date',
           stat = 'all',
+
+          date = null,
+          date_from = null,
+          date_to = null,
+          from_date = null,
+          to_date = null,
+
+          resource_id = null,
+          office_employee_id = null,
+          information_id = null,
+          event_id = null,
+          fifty_six_format_id = null,
+
           onDownloadProgress = null,
         } = payload;
 
@@ -478,6 +497,18 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
             month,
             date_field,
             stat,
+
+            date,
+            date_from,
+            date_to,
+            from_date,
+            to_date,
+
+            resource_id,
+            office_employee_id,
+            information_id,
+            event_id,
+            fifty_six_format_id,
           },
           responseType: 'blob',
           onDownloadProgress,
@@ -540,6 +571,14 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.year !== undefined ? { year: params.year } : {}),
           ...(params?.month !== undefined ? { month: params.month } : {}),
           ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
+
+          // exact / range / type route filters
+          ...(params?.date !== undefined ? { date: params.date } : {}),
+          ...(params?.date_from !== undefined ? { date_from: params.date_from } : {}),
+          ...(params?.date_to !== undefined ? { date_to: params.date_to } : {}),
+          ...(params?.from_date !== undefined ? { from_date: params.from_date } : {}),
+          ...(params?.to_date !== undefined ? { to_date: params.to_date } : {}),
+          ...(params?.type !== undefined ? { type: params.type } : {}),
 
           // related route filters
           ...(params?.event_id !== undefined ? { event_id: params.event_id } : {}),
@@ -667,6 +706,17 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       month = null,
       date_field = 'event_date',
       stat = 'all',
+      type = null,
+      date = null,
+      date_from = null,
+      date_to = null,
+      from_date = null,
+      to_date = null,
+      event_id = null,
+      resource_id = null,
+      office_employee_id = null,
+      information_id = null,
+      fifty_six_format_id = null,
       onDownloadProgress = null,
     } = {}) {
       const response = await axios.get('/events/export/excel', {
@@ -677,6 +727,17 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           month,
           dateField: date_field,
           stat,
+          type,
+          date,
+          date_from,
+          date_to,
+          from_date,
+          to_date,
+          event_id,
+          resource_id,
+          office_employee_id,
+          information_id,
+          fifty_six_format_id,
         },
         responseType: 'blob',
         onDownloadProgress,
@@ -760,12 +821,20 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...baseParams,
 
           ...(params?.stat !== undefined ? { stat: params.stat } : {}),
+          ...(params?.type !== undefined ? { type: params.type } : {}),
 
           ...(params?.search !== undefined ? { search: params.search } : {}),
           ...(params?.search_field !== undefined ? { search_field: params.search_field } : {}),
           ...(params?.year !== undefined ? { year: params.year } : {}),
           ...(params?.month !== undefined ? { month: params.month } : {}),
           ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
+
+          // exact / range date filters
+          ...(params?.date !== undefined ? { date: params.date } : {}),
+          ...(params?.date_from !== undefined ? { date_from: params.date_from } : {}),
+          ...(params?.date_to !== undefined ? { date_to: params.date_to } : {}),
+          ...(params?.from_date !== undefined ? { from_date: params.from_date } : {}),
+          ...(params?.to_date !== undefined ? { to_date: params.to_date } : {}),
 
           // related route filters
           ...(params?.information_id !== undefined
@@ -890,18 +959,38 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       month = null,
       date_field = 'information_saved_date',
       stat = null,
-      related_id = null,
+      type = null,
+      date = null,
+      date_from = null,
+      date_to = null,
+      from_date = null,
+      to_date = null,
+      information_id = null,
+      resource_id = null,
+      office_employee_id = null,
+      event_id = null,
+      fifty_six_format_id = null,
       onDownloadProgress = null,
     } = {}) {
       const response = await axios.get('/informations/export/excel', {
         params: {
           search,
-          searchField: search_field,
+          search_field,
           year,
           month,
-          dateField: date_field,
+          date_field,
           stat,
-          related_id,
+          type,
+          date,
+          date_from,
+          date_to,
+          from_date,
+          to_date,
+          information_id,
+          resource_id,
+          office_employee_id,
+          event_id,
+          fifty_six_format_id,
         },
         responseType: 'blob',
         onDownloadProgress,

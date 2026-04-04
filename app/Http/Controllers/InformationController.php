@@ -465,13 +465,15 @@ class InformationController extends Controller
         ?int $month,
         string $date,
         string $dateFrom,
-        string $dateTo
+        string $dateTo,
+        ?string $type
     ): array {
         $base = Information::query();
 
         $this->applySearchFilter($base, $search, $searchField);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
         $this->applyRelatedFilters($base, $request);
+        $this->applyTypeFilter($base, $type);
 
         $base
             ->when($date !== '', function ($q) use ($date, $dateField) {
@@ -582,6 +584,21 @@ class InformationController extends Controller
         ]);
     }
 
+    private function applyTypeFilter($query, ?string $type)
+    {
+        $type = trim((string) $type);
+
+        if ($type === '') {
+            return $query;
+        }
+
+        $query->where(function ($q) use ($type) {
+            $q->where('syasi_info_type', $type)
+            ->orWhere('jenayee_info_type', $type);
+        });
+
+        return $query;
+    }
     public function index(Request $request)
     {
         $request->validate([
@@ -604,7 +621,8 @@ class InformationController extends Controller
             'office_employee_id'   => 'nullable|integer',
             'event_id'             => 'nullable|integer',
             'fifty_six_format_id'  => 'nullable|integer',
-        ]);
+            'type'                 => 'nullable|string',
+            ]);
 
         $search      = trim((string) $request->input('search', ''));
         $searchField = $this->resolveSearchField($request->input('search_field'));
@@ -620,6 +638,7 @@ class InformationController extends Controller
         $dateTo    = trim((string) $request->input('date_to', $request->input('to_date', '')));
         $stat      = trim((string) $request->input('stat', ''));
         $statsOnly = $request->boolean('stats_only');
+        $type = trim((string) $request->input('type', ''));
 
         $stats = $this->buildStats(
             $request,
@@ -630,7 +649,8 @@ class InformationController extends Controller
             $month,
             $date,
             $dateFrom,
-            $dateTo
+            $dateTo,
+            $type
         );
 
         if ($statsOnly) {
@@ -660,6 +680,7 @@ class InformationController extends Controller
                 $q->whereDate($dateField, '<=', $dateTo);
             });
 
+        $this->applyTypeFilter($query, $type);
         $this->applyStatFilter($query, $stat);
 
         $query->orderByDesc('id');
