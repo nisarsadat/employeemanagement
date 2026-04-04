@@ -259,7 +259,7 @@
                 <v-card-text>
                   <DateInput
                     v-model="draft.event_date"
-                    :rules="[rules.required]"
+                    :rules="[rules.required(t('تاریخ واقعه'))]"
                     :label="t('تاریخ واقعه')"
                   />
                 </v-card-text>
@@ -304,7 +304,7 @@
                   v-model:hawza="draft.event_hawza"
                   :zoneLabel="t('زون')"
                   :hawzaLabel="t('حوزه')"
-                  :disabled="saving"
+                  :disabled="submitting"
                   :mdZone="6"
                   :mdHawza="6"
                 />
@@ -393,9 +393,6 @@
             </v-card-item>
             <!-- Documents -->
             <v-card variant="outlined" class="docs-field-row">
-              <!-- <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('اسناد / ضمایم') }}</v-card-subtitle>
-              </v-card-item> -->
               <v-card-text>
                 <input
                   ref="fileInput"
@@ -593,11 +590,12 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { useCalendar } from '../../../composables/useCalendar';
 
   const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
-
+  const { formatDisplay } = useCalendar();
   const valid = ref(false);
   const submitting = ref(false);
   const progress = ref(0);
@@ -627,6 +625,7 @@
   const zoneEmployeesItems = computed(() => toArray(repo.ZoneEmployees));
   const janiTalafatItems = computed(() => toArray(repo.janiTalafatOptions));
   const maliTalafatItems = computed(() => toArray(repo.maliTalafatOptions));
+  const resourceCodeItems = computed(() => toArray(repo.resourcescode));
 
   /* fixed options — mirror the editor */
   const eventTypeOptions = ['سیاسی', 'جنایی', 'الهی'];
@@ -752,21 +751,13 @@
     return `${base}…${ext}`;
   }
   function fileKey(f) {
-    // stable enough for re-render + duplicates
     return `${f.name}__${f.size}__${f.lastModified}`;
   }
 
   function onFilesPicked(e) {
     const picked = Array.from(e.target?.files || []);
-    // choose ONE behavior:
-
-    // (A) replace:
     draft._newDocs = picked;
 
-    // (B) append (if you want):
-    // draft._newDocs = [...draft._newDocs, ...picked];
-
-    // IMPORTANT: allow picking same file again
     if (e?.target) e.target.value = '';
   }
 
@@ -774,7 +765,6 @@
     const key = fileKey(file);
     draft._newDocs = draft._newDocs.filter((x) => fileKey(x) !== key);
 
-    // IMPORTANT: allow reselecting same file after removal
     if (fileInput.value) fileInput.value.value = '';
   }
 
@@ -839,7 +829,24 @@
     if (typeof v === 'string') return v.trim();
     return String(v);
   }
+  function formatReviewDate(v) {
+    if (!v) return '';
+    return formatDisplay(String(v).trim(), locale.value) || String(v);
+  }
+  function formatReviewDateTime(v) {
+    if (!v) return '';
 
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return String(v);
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hour = String(d.getHours()).padStart(2, '0');
+    const minute = String(d.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hour}:${minute}`;
+  }
   const reviewRows = computed(() => {
     const r = resourceCodeItems.value.find((x) => x?.id === draft.resource_id);
     const emp = officeEmployeesCodeItems.value.find((x) => x?.id === draft.office_employee_id);
@@ -874,7 +881,7 @@
       },
       { key: 'criminal', label: t('کی جرم را انجام داده'), value: displayValue(draft.criminal) },
 
-      { key: 'event_date', label: t('تاریخ واقعه'), value: displayValue(draft.event_date) },
+      { key: 'event_date', label: t('تاریخ واقعه'), value: formatReviewDate(draft.event_date) },
       { key: 'event_hour', label: t('ساعت واقعه'), value: displayValue(draft.event_hour) },
 
       { key: 'event_zone', label: t('زون'), value: displayValue(draft.event_zone) },
@@ -922,13 +929,12 @@
 
   async function confirmSubmit() {
     reviewOpen.value = false;
-    await onCreate(); // reuse your existing submit logic
+    await onCreate();
   }
   const confirmSubmitOpen = ref(false);
   const confirmResetOpen = ref(false);
 
   function openSubmitConfirm() {
-    // close review first
     reviewOpen.value = false;
     confirmSubmitOpen.value = true;
   }
@@ -980,9 +986,11 @@
     draft.office_employee_id = null;
     draft.trust_percentage = '';
   }
+
   /* preload dropdowns (kept) */
   (async () => {
     await Promise.all([
+      repo.GetResourcesCode?.(),
       repo.GetOfficeEmployeeCode?.(),
       repo.GetOfficeEmployee?.(),
       repo.GetZoneEmployees?.(),
@@ -990,10 +998,12 @@
       repo.GetMaliTalafatOptions?.(),
     ]).catch(() => {});
   })();
+
   usePageRefresh('/app/inlineinfo', async () => {
     onReset();
 
     await Promise.all([
+      repo.GetResourcesCode?.(),
       repo.GetOfficeEmployeeCode?.(),
       repo.GetOfficeEmployee?.(),
       repo.GetZoneEmployees?.(),
@@ -1014,12 +1024,10 @@
     color: #1e293b;
   }
 
-  /* Inputs expand within their columns */
   .cell {
     width: 100%;
   }
 
-  /* Labels */
   .field-label {
     font-size: 0.9rem;
     font-weight: 600;
@@ -1033,7 +1041,6 @@
     opacity: 1;
   }
 
-  /* ✅ SHEETS (px/py already in template) */
   .sheet-card {
     border-radius: 14px;
   }
@@ -1047,7 +1054,6 @@
     opacity: 1;
   }
 
-  /* Docs row */
   .docs-field-row {
     display: flex;
     align-items: center;
@@ -1064,13 +1070,11 @@
     pointer-events: none;
   }
 
-  /* Tight gutters */
   .tight-grid {
     --v-gutter-x: 8px;
     --v-gutter-y: 8px;
   }
 
-  /* Compact paddings */
   :deep(.v-card-item) {
     padding: 4px 0 2px 0;
   }
@@ -1078,7 +1082,6 @@
     padding: 4px 0 0 0;
   }
 
-  /* RTL */
   :deep([dir='rtl'] .v-field__input) {
     direction: rtl;
     text-align: right;
@@ -1093,7 +1096,6 @@
     padding-inline-end: 10px !important;
   }
 
-  /* Ghost column to preserve 3-up rhythm when a row has only 2 items */
   .ghost-col {
     visibility: hidden;
     min-height: 0;
@@ -1109,22 +1111,19 @@
     }
   }
 
-  /* ✅ only vertical scroll */
   .max-h-form {
     max-height: calc(87.5vh - 220px);
     overflow-y: auto;
-    overflow-x: hidden; /* ❌ no horizontal scrollbar */
+    overflow-x: hidden;
     overscroll-behavior: contain;
     scroll-behavior: smooth;
-    padding-inline-end: 6px; /* RTL/LTR safe instead of padding-right */
+    padding-inline-end: 6px;
   }
 
-  /* ✅ extra safety: if something is wider, clip it */
   .pretty-scroll {
     overflow-x: hidden;
   }
 
-  /* ✅ prevent long content from forcing width */
   :deep(.v-field__input),
   :deep(.v-textarea .v-field__input),
   :deep(.v-autocomplete),
@@ -1133,41 +1132,37 @@
     max-width: 100%;
   }
 
-  /* ✅ chips can cause horizontal overflow sometimes */
   :deep(.v-chip-group) {
     max-width: 100%;
     overflow-x: hidden;
     flex-wrap: wrap;
   }
 
-  /* ✅ Pretty scrollbar (Chrome/Edge/Safari) */
   .pretty-scroll::-webkit-scrollbar {
     width: 18px;
     height: 18px;
   }
 
   .pretty-scroll::-webkit-scrollbar-track {
-    background: rgba(148, 163, 184, 0.18); /* soft slate */
+    background: rgba(148, 163, 184, 0.18);
     border-radius: 999px;
   }
 
   .pretty-scroll::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, rgba(59, 130, 246, 0.65), rgba(99, 102, 241, 0.65));
     border-radius: 999px;
-    border: 2px solid rgba(248, 250, 252, 0.8); /* makes it look "floating" */
+    border: 2px solid rgba(248, 250, 252, 0.8);
   }
 
   .pretty-scroll::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, rgba(59, 130, 246, 0.85), rgba(99, 102, 241, 0.85));
   }
 
-  /* ✅ Firefox */
   .pretty-scroll {
     scrollbar-width: thin;
     scrollbar-color: rgba(12, 111, 112, 0.54) rgba(148, 163, 184, 0.18);
   }
 
-  /* Optional: nicer feel on touchpads */
   .pretty-scroll {
     -webkit-overflow-scrolling: touch;
   }

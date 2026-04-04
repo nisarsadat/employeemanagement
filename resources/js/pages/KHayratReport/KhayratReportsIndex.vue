@@ -16,7 +16,7 @@
       closable
       @click:close="repo.error = null"
     >
-      {{ repo.error }}
+      {{ repo.error?.response?.data?.message || repo.error?.message || t('خطا') }}
     </v-alert>
 
     <!-- Search + Create -->
@@ -194,7 +194,7 @@
   import KhayratReportFormDialog from './KhayratReportFormDialog.vue';
   import { useKhayratReportRepository } from '@/stores/KhayratReportRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
-    import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
   usePageRefresh('/app/khayratreports', fetchAll);
   const auth = useLoginRepository();
@@ -219,10 +219,9 @@
 
   const search = ref('');
   const rows = ref([]);
-
   const headersFT = computed(() => [
-    { title: t('منبع'), key: 'resource_code', align: 'center' },
-    { title: t('کارمند'), key: 'office_employee_code', align: 'center' },
+    { title: t('منبع'), key: 'resource_name', align: 'center' },
+    { title: t('کارمند'), key: 'office_employee_name', align: 'center' },
     { title: t('زون'), key: 'zone', align: 'center' },
     { title: t('حوزه'), key: 'hawza', align: 'center' },
     { title: t('محل مشخص'), key: 'specefic_place', align: 'center' },

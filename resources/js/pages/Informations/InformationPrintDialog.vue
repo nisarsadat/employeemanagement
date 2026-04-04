@@ -18,6 +18,20 @@
     <div ref="printArea" class="paper" dir="rtl">
       <!-- Header -->
       <header class="hdr">
+        <!-- ✅ Brand must be on RIGHT -->
+        <div class="hdr-left">
+          <div class="brand">
+            <img :src="logoSrc" class="brand-logo" alt="Logo" />
+            <div class="brand-text">
+              <div class="brand-title">{{ systemName }}</div>
+              <div class="brand-sub">{{ t('اطلاع') }}</div>
+            </div>
+          </div>
+        </div>
+        <!-- ✅ بسم الله in exact center -->
+        <div class="hdr-center">
+          <div class="bismillah">بسم الله الرحمن الرحیم</div>
+        </div>
         <!-- ✅ Meta pills must be on LEFT -->
         <div class="hdr-right">
           <div class="meta-pill">
@@ -31,22 +45,6 @@
           <div class="meta-pill">
             <div class="meta-k">{{ t('مسلسل شمیره') }}</div>
             <div class="meta-v">{{ item.id || '—' }}</div>
-          </div>
-        </div>
-
-        <!-- ✅ بسم الله in exact center -->
-        <div class="hdr-center">
-          <div class="bismillah">بسم الله الرحمن الرحیم</div>
-        </div>
-
-        <!-- ✅ Brand must be on RIGHT -->
-        <div class="hdr-left ml-36 mr-12">
-          <div class="brand">
-            <img :src="logoSrc" class="brand-logo" alt="Logo" />
-            <div class="brand-text">
-              <div class="brand-title">{{ systemName }}</div>
-              <div class="brand-sub">{{ t('اطلاع') }}</div>
-            </div>
           </div>
         </div>
       </header>
@@ -289,22 +287,22 @@
     const projectFontFamily = getProjectFontFamily();
 
     return `
-    @page {
+   @page {
       size: A4 portrait;
-      margin: 9mm;
+      margin-top: 9mm;
+      margin-right: 4mm;
+      margin-bottom: 9mm;
+      margin-left: 4mm;
     }
 
     html, body {
       width: 100%;
       min-width: 0;
       max-width: 100%;
-      margin-top: 8 !important;
-      margin-right: 8 !important;
-      margin-left:  !important;
-      margin-bottom: 8 !important;
+      margin: 0 !important;
       padding: 0 !important;
       overflow: hidden !important;
-      background: #f8f6f4 !important;
+      background: white !important;
       color: #111827;
       direction: rtl !important;
       text-align: right !important;
@@ -314,26 +312,12 @@
       print-color-adjust: exact !important;
     }
 
-    *, *::before, *::after {
-      box-sizing: border-box;
-      font-family: ${projectFontFamily} !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-
-    .no-print {
-      display: none !important;
-    }
-
     .page-shell {
       min-height: auto !important;
       height: auto !important;
       padding: 0 !important;
-      margin-top: 8 !important;
-      margin-right: 8 !important;
-      margin-left: 8 !important;
-      margin-bottom: 8 !important;
-      background: #f8f6f4 !important;
+      margin: 0 !important;
+      background: transparent  !important;
       overflow: hidden !important;
       font-family: ${projectFontFamily} !important;
     }
@@ -343,11 +327,11 @@
       width: 100% !important;
       max-width: none !important;
       margin: 0 !important;
-      background: #f8f6f4 !important;
+      background: transparent  !important;
       border-radius: 14px;
       border: 1px solid rgba(0, 0, 0, 0.08);
       box-shadow: none !important;
-      padding: 10px !important;
+      padding: 6px !important;
       font-family: ${projectFontFamily} !important;
 
       display: flex !important;
@@ -376,7 +360,7 @@
     }
 
     .hdr-right {
-      grid-column: 1;
+      grid-column: 3;
       justify-self: start;
       display: flex;
       gap: 8px;
@@ -397,9 +381,11 @@
     }
 
     .hdr-left {
-      grid-column: 3;
+      grid-column: 1;
       justify-self: end;
       min-width: 0;
+      margin-left: 176px;
+
     }
 
     .brand {
@@ -708,7 +694,7 @@
       .page-shell {
         padding: 0 !important;
         margin: 0 !important;
-        background: #f8f6f4 !important;
+        background: transparent  !important;
         font-family: ${projectFontFamily} !important;
       }
 
@@ -802,7 +788,7 @@
   ================================ */
   .page-shell {
     min-height: calc(100vh - 64px);
-    background: #f8f6f4; /* F8F6F4 */
+    background: white; /* F8F6F4 */
     padding: 14px;
     font-family: inherit;
   }
@@ -851,7 +837,7 @@
     position: relative;
     max-width: 820px;
     margin: 0 auto;
-    background: #f8f6f4; /* F8F6F4 */
+    background: white; /* F8F6F4 */
     border-radius: 14px;
     border: 1px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
@@ -875,7 +861,7 @@
   }
 
   .hdr-right {
-    grid-column: 1;
+    grid-column: 3;
     justify-self: start;
     display: flex;
     gap: 8px;
@@ -895,9 +881,10 @@
   }
 
   .hdr-left {
-    grid-column: 3;
+    grid-column: 1;
     justify-self: end;
     min-width: 0;
+    margin-left: 176px;
   }
 
   .brand {
@@ -1123,15 +1110,6 @@
     overflow: hidden;
   }
 
-  @media (max-width: 900px) {
-    .paper {
-      max-width: 100%;
-    }
-    .grid.grid-5 {
-      grid-template-columns: 1fr;
-    }
-  }
-
   @media (max-width: 720px) {
     .hdr {
       grid-template-columns: 1fr;
@@ -1159,7 +1137,7 @@
     }
     .page-shell {
       padding: 0 !important;
-      background: #f8f6f4 !important;
+      background: white !important;
       min-height: auto !important;
     }
     .paper {
@@ -1170,7 +1148,7 @@
       border-radius: 0 !important;
       padding: 0 !important;
       min-height: auto !important;
-      background: #f8f6f4 !important;
+      background: white !important;
     }
   }
 </style>

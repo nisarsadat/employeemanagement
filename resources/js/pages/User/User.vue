@@ -132,12 +132,7 @@
             <v-list-item
               v-if="auth.can('users.delete')"
               :disabled="!rowId(item)"
-              @click="
-                () => {
-                  const id = rowId(item);
-                  if (id) deleteItem(id);
-                }
-              "
+              @click="openDeleteDialog(item)"
             >
               <template #prepend>
                 <v-icon color="grey-darken-1">mdi-delete-outline</v-icon>
@@ -169,6 +164,12 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <DeleteConfirmDialog
+    v-model="deleteDialog"
+    :target="deleteTarget"
+    :is-rtl="isRtl"
+    @confirm="handleDeleteConfirmed"
+  />
 </template>
 
 <script setup>
@@ -180,10 +181,11 @@
   import { useUsersRepository } from '../../stores/UsersRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
-
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
   const auth = useLoginRepository();
   const UsersRepository = useUsersRepository();
-
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
   const drawer = ref(false);
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -227,10 +229,30 @@
     await UsersRepository.startEdit(id);
   };
 
-  const deleteItem = (id) => {
-    UsersRepository.DeleteUser(id);
+  const openDeleteDialog = (payload) => {
+    const row = payload?.raw ?? payload;
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
   };
 
+  const handleDeleteConfirmed = async (target) => {
+    const row = target || deleteTarget.value;
+
+    if (!row?.id) {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
+    }
+
+    try {
+      await UsersRepository.DeleteUser(row.id);
+      await UsersRepository.FetchUsersData();
+    } finally {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+    }
+  };
   function stringToColor(str) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {

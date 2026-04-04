@@ -1265,13 +1265,13 @@
     fetchAll();
   }
   watch(
-  () => route.query,
-  async () => {
-    repo.page = 1;
-    await fetchAll();
-  },
-  { deep: true }
-);
+    () => route.query,
+    async () => {
+      repo.page = 1;
+      await fetchAll();
+    },
+    { deep: true }
+  );
 
   /* ===== Init ===== */
   onMounted(async () => {

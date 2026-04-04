@@ -24,26 +24,23 @@ export const useKhayratReportRepository = defineStore('KhayratReportRepository',
     return {
       router: useRouter(),
 
-      // pagination
       page: 1,
       itemsPerPage: 10,
       perPage: 10,
       totalItems: 0,
 
-      // main list
-      KhayratReports: reactive([]),
-      KhayratReport: reactive({}),
+      KhayratReports: [],
+      KhayratReport: {},
 
       loading: false,
       error: null,
       Search: '',
 
-      // ✅ lookups (resources + office employees)
       lookups: {
         loadingResources: false,
         loadingEmployees: false,
-        resources: reactive([]),
-        employees: reactive([]),
+        resources: [],
+        employees: [],
       },
     };
   },
@@ -76,7 +73,7 @@ export const useKhayratReportRepository = defineStore('KhayratReportRepository',
           params: queryParams,
         });
 
-        applyPaginatedResponse(this, { data: res }, 'KhayratReports');
+        applyPaginatedResponse(this, { data: res.data }, 'KhayratReports');
         this.perPage = this.itemsPerPage;
 
         return res;

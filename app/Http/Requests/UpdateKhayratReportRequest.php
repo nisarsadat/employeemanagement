@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\KhayratReport;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -29,31 +30,30 @@ class UpdateKhayratReportRequest extends FormRequest
     {
         $validator->after(function (Validator $validator) {
             $resourceId = (int) $this->input('resource_id');
-            $savedDate  = $this->input('saved_date');
+            $savedDate = $this->input('saved_date');
 
             if (!$resourceId || !$savedDate) {
                 return;
             }
 
-            $currentId = optional($this->route('khayrat_report'))->id
-                ?? optional($this->route('khayratReport'))->id
-                ?? optional($this->route('khayratReport'))->getKey();
+            $routeModel = $this->route('khayratReport') ?? $this->route('khayrat_report');
+            $currentId = $routeModel?->id ?? $routeModel?->getKey();
 
-            $d = \Carbon\Carbon::parse($savedDate);
-            $start = $d->copy()->startOfMonth()->toDateString();
-            $end   = $d->copy()->endOfMonth()->toDateString();
+            $date = Carbon::parse($savedDate);
+            $startOfMonth = $date->copy()->startOfMonth()->toDateString();
+            $endOfMonth = $date->copy()->endOfMonth()->toDateString();
 
             $exists = KhayratReport::query()
                 ->where('resource_id', $resourceId)
-                ->whereDate('saved_date', '>=', $start)
-                ->whereDate('saved_date', '<=', $end)
-                ->when($currentId, fn ($q) => $q->where('id', '!=', $currentId))
+                ->whereDate('saved_date', '>=', $startOfMonth)
+                ->whereDate('saved_date', '<=', $endOfMonth)
+                ->when($currentId, fn ($query) => $query->where('id', '!=', $currentId))
                 ->exists();
 
             if ($exists) {
                 $validator->errors()->add(
                     'saved_date',
-                    'برای این Resource در همین ماه قبلاً راپور ثبت شده است. (One report per month)'
+                    'د دې منبع لپاره په همدې میاشت کې مخکې راپور ثبت شوی دی.'
                 );
             }
         });

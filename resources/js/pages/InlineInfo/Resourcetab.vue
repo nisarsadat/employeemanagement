@@ -644,8 +644,10 @@
                     :md="12"
                     :disabled="!!draft.syasi_info_type"
                   />
-                </v-card-text> </v-col
-              ><v-col cols="12" md="4">
+                </v-card-text>
+              </v-col>
+
+              <v-col cols="12" md="4">
                 <v-card-item>
                   <v-card-subtitle class="field-label">{{ t('۵۶ فارمټ') }}</v-card-subtitle>
                 </v-card-item>
@@ -663,7 +665,7 @@
                   <div class="dateinput">
                     <DateInput
                       v-model="draft.information_saved_date"
-                      :rules="[rules.required]"
+                      :rules="[rules.required(t('تاریخ اطلاع'))]"
                       :label="t('تاریخ اطلاع')"
                     />
                   </div>
@@ -880,15 +882,18 @@
   import InformationCategorySelect from '@/components/InformationCategorySelect.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { useCalendar } from '../../../composables/useCalendar';
   const auth = useLoginRepository();
   const repo = useDatabaseRepository();
   const { t, locale } = useI18n();
+  const { formatDisplay } = useCalendar();
 
   const valid = ref(false);
   const submitting = ref(false);
   const progress = ref(0);
   const form = ref(null);
   const fileInput = ref(null);
+  const loadingEdit = ref(false);
 
   /* RTL handling */
   const RTL_LOCALES = ['fa', 'fa-AF', 'prs', 'ps', 'ar'];
@@ -926,13 +931,13 @@
     nick_name: '',
     father_name: '',
     grand_father_name: '',
-    age: '', // ✅ NEW
-    specefic_place: '', // ✅ NEW
-    home_number: '', // ✅ NEW
-    street_number: '', // ✅ NEW
-    coordinates: '', // ✅ NEW
-    madani_halat: '', // ✅ NEW (مجرد/متاحل)
-    job: '', // ✅ NEW
+    age: '',
+    specefic_place: '',
+    home_number: '',
+    street_number: '',
+    coordinates: '',
+    madani_halat: '',
+    job: '',
 
     // hamahangi
     hamahangi_date: '',
@@ -954,7 +959,8 @@
     letry_format_name: '',
     jenayee_info_type: '',
     information_saved_date: '',
-    information_saved_hour: new Date().toTimeString().slice(0, 5), // "HH:MM"    information_degree: '',
+    information_saved_hour: new Date().toTimeString().slice(0, 5),
+    information_degree: '',
     estijalyat_degree: '',
     information_category: '',
 
@@ -962,7 +968,6 @@
     tafseel: '',
     manager_comment: '',
     lead_drirection: '',
-    // talks: '',
     note: '',
     docs_note: '',
     Province_addr: '',
@@ -993,21 +998,13 @@
     return `${base}…${ext}`;
   }
   function fileKey(f) {
-    // stable enough for re-render + duplicates
     return `${f.name}__${f.size}__${f.lastModified}`;
   }
 
   function onFilesPicked(e) {
     const picked = Array.from(e.target?.files || []);
-    // choose ONE behavior:
-
-    // (A) replace:
     draft._newDocs = picked;
 
-    // (B) append (if you want):
-    // draft._newDocs = [...draft._newDocs, ...picked];
-
-    // IMPORTANT: allow picking same file again
     if (e?.target) e.target.value = '';
   }
 
@@ -1015,7 +1012,6 @@
     const key = fileKey(file);
     draft._newDocs = draft._newDocs.filter((x) => fileKey(x) !== key);
 
-    // IMPORTANT: allow reselecting same file after removal
     if (fileInput.value) fileInput.value.value = '';
   }
 
@@ -1082,8 +1078,9 @@
     if (fileInput.value) fileInput.value.value = '';
   }
   (async () => {
-    await Promise.all([repo.GetOfficeEmployee()]).catch(() => {});
+    await Promise.all([repo.GetOfficeEmployee?.()]).catch(() => {});
   })();
+
   /* pretty resource label */
   const formatResource = (r) => {
     if (!r) return '';
@@ -1091,6 +1088,7 @@
     const id = r.id != null ? `#${r.id}` : '';
     return [code, id].filter(Boolean).join(' — ');
   };
+
   const reviewOpen = ref(false);
 
   function displayValue(v) {
@@ -1098,9 +1096,25 @@
     if (typeof v === 'string') return v.trim();
     return String(v);
   }
+  function formatReviewDate(v) {
+    if (!v) return '';
+    return formatDisplay(String(v).trim(), locale.value) || String(v);
+  }
+  function formatReviewDateTime(v) {
+    if (!v) return '';
 
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return String(v);
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hour = String(d.getHours()).padStart(2, '0');
+    const minute = String(d.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hour}:${minute}`;
+  }
   const reviewRows = computed(() => {
-    // ✅ map IDs to readable labels (optional but nice)
     const emp = officeEmployeesItems.value.find((x) => x?.id === draft.office_employee_id);
     const infoEmp = officeEmployeesItems.value.find((x) => x?.id === draft.office_employee_info_id);
 
@@ -1108,7 +1122,7 @@
       {
         key: 'resource_id',
         label: t('کود منبع'),
-        value: r ? formatResource(r) : draft.resource_id,
+        value: displayValue(draft.resource_id),
       },
       {
         key: 'office_employee_id',
@@ -1169,7 +1183,7 @@
       {
         key: 'information_saved_date',
         label: t('تاریخ اطلاع'),
-        value: displayValue(draft.information_saved_date),
+        value: formatReviewDate(draft.information_saved_date),
       },
       {
         key: 'information_saved_hour',
@@ -1200,7 +1214,7 @@
       {
         key: 'hamahangi_date',
         label: t('تاریخ هم‌آهنگی'),
-        value: displayValue(draft.hamahangi_date),
+        value: formatReviewDate(draft.hamahangi_date),
       },
       { key: 'organ', label: t('ارگان'), value: displayValue(draft.organ) },
 
@@ -1227,11 +1241,11 @@
 
     reviewOpen.value = true;
   }
+
   const confirmSubmitOpen = ref(false);
   const confirmResetOpen = ref(false);
 
   function openSubmitConfirm() {
-    // close review first (optional)
     reviewOpen.value = false;
     confirmSubmitOpen.value = true;
   }
@@ -1249,10 +1263,12 @@
     confirmResetOpen.value = false;
     onReset();
   }
+
   async function confirmSubmit() {
     reviewOpen.value = false;
-    await onCreate(); // ✅ reuse your existing create logic
+    await onCreate();
   }
+
   watch(
     () => draft.syasi_info_type,
     (val) => {
@@ -1266,6 +1282,7 @@
       if (val) draft.syasi_info_type = '';
     }
   );
+
   watch(
     () => draft.estijalyat_degree,
     (val) => {
@@ -1276,6 +1293,7 @@
       }
     }
   );
+
   function resourceTitle(r) {
     if (!r) return '';
     const code = r.code_number ?? '';
@@ -1310,13 +1328,12 @@
     draft.office_employee_id = null;
     draft.trust_percentage = '';
   }
- usePageRefresh('/app/inlineinfo', async () => {
-  onReset();
 
-  await Promise.all([
-    repo.GetOfficeEmployee?.(),
-  ]).catch(() => {});
-});
+  usePageRefresh('/app/inlineinfo', async () => {
+    onReset();
+
+    await Promise.all([repo.GetOfficeEmployee?.()]).catch(() => {});
+  });
 </script>
 
 <style scoped>
@@ -1365,7 +1382,7 @@
 
   /* Docs row */
   .docs-field-row {
-    display: block; /* keep your doc layout stable inside sheet */
+    display: block;
     gap: 4px;
     border: 1px dashed #9e9e9e;
     border-radius: 8px;
@@ -1425,10 +1442,10 @@
   .max-h-form {
     max-height: calc(87.5vh - 220px);
     overflow-y: auto;
-    overflow-x: hidden; /* ❌ no horizontal scrollbar */
+    overflow-x: hidden;
     overscroll-behavior: contain;
     scroll-behavior: smooth;
-    padding-inline-end: 6px; /* RTL/LTR safe instead of padding-right */
+    padding-inline-end: 6px;
   }
 
   /* ✅ extra safety: if something is wider, clip it */
@@ -1462,14 +1479,14 @@
     color: #334155;
   }
   .pretty-scroll::-webkit-scrollbar-track {
-    background: rgba(148, 163, 184, 0.18); /* soft slate */
+    background: rgba(148, 163, 184, 0.18);
     border-radius: 999px;
   }
 
   .pretty-scroll::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, rgba(59, 130, 246, 0.65), rgba(99, 102, 241, 0.65));
     border-radius: 999px;
-    border: 2px solid rgba(248, 250, 252, 0.8); /* makes it look "floating" */
+    border: 2px solid rgba(248, 250, 252, 0.8);
   }
 
   .pretty-scroll::-webkit-scrollbar-thumb:hover {

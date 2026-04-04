@@ -1,14 +1,14 @@
 <!-- src/pages/ReportNotes/ReportNotesIndex.vue -->
 <template>
-  <AppBar
-    :title="t('Report Notes')"
-    :subtitle="t('Manage notes for reports')"
-    @toggle-drawer="drawer = !drawer"
-  >
-    <template #actions><v-btn icon /></template>
-  </AppBar>
+  <v-container fluid class="pt-6 page-bg" :dir="rtl ? 'rtl' : 'ltr'">
+    <AppBar
+      :title="t('Report Notes')"
+      :subtitle="t('Manage notes for reports')"
+      @toggle-drawer="drawer = !drawer"
+    >
+      <template #actions><v-btn icon /></template>
+    </AppBar>
 
-  <v-container fluid class="pt-6" :dir="rtl ? 'rtl' : 'ltr'">
     <!-- Header -->
     <div class="d-flex align-center justify-space-between mb-4">
       <div>
@@ -18,7 +18,7 @@
         </div>
       </div>
 
-      <div class="d-flex ga-2">
+      <div class="d-flex ga-2 flex-wrap">
         <v-btn color="primary" variant="flat" @click="openCreate">
           <v-icon class="mr-2">mdi-plus</v-icon>
           {{ t('Create') }}
@@ -37,17 +37,22 @@
     </div>
 
     <!-- Filters -->
-    <v-card rounded="xl" class="mb-4">
-      <v-card-text class="py-3">
-        <v-row dense>
+    <v-card rounded="xl" class="shadow-sm mb-4 filters-card">
+      <v-card-text class="pa-4">
+        <v-row dense class="align-center">
           <v-col cols="12" md="5">
             <v-text-field
               v-model="filters.search"
               :label="t('Search')"
+              density="comfortable"
               variant="outlined"
-              density="compact"
+              rounded="lg"
+              prepend-inner-icon="mdi-magnify"
               clearable
-              @keyup.enter="fetchData(1)"
+              hide-details="auto"
+              class="filter-input"
+              @keyup.enter="applyFilters"
+              @click:clear="clearSearch"
             />
           </v-col>
 
@@ -58,107 +63,145 @@
               item-title="label"
               item-value="value"
               :label="t('Type')"
+              density="comfortable"
               variant="outlined"
-              density="compact"
+              rounded="lg"
               clearable
-              @update:modelValue="fetchData(1)"
+              hide-details="auto"
+              class="filter-input"
+              @update:modelValue="applyFilters"
             />
           </v-col>
 
-          <v-col cols="12" md="3">
-            <v-select
-              v-model="filters.perPage"
-              :items="[10, 25, 50, 100, 250, 500, 1000]"
-              :label="t('Per Page')"
-              variant="outlined"
-              density="compact"
-              @update:modelValue="fetchData(1)"
-            />
+          <v-col cols="12" md="3" class="d-flex justify-end">
+            <div class="d-flex ga-2 flex-wrap justify-end w-100">
+              <v-btn variant="tonal" @click="resetFilters">
+                {{ t('Reset') }}
+              </v-btn>
+              <v-btn color="primary" variant="flat" @click="applyFilters">
+                {{ t('Apply') }}
+              </v-btn>
+            </div>
+          </v-col>
+
+          <!-- Active chips -->
+          <v-col cols="12" class="pt-2">
+            <div class="d-flex ga-2 flex-wrap">
+              <v-chip
+                v-if="filters.search"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-magnify"
+                closable
+                @click:close="clearSearch"
+              >
+                {{ filters.search }}
+              </v-chip>
+
+              <v-chip
+                v-if="filters.type"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-shape-outline"
+                closable
+                @click:close="clearType"
+              >
+                {{ typeLabel(filters.type) }}
+              </v-chip>
+            </div>
           </v-col>
         </v-row>
-
-        <div class="d-flex justify-end ga-2 mt-2">
-          <v-btn variant="tonal" @click="resetFilters">
-            {{ t('Reset') }}
-          </v-btn>
-          <v-btn color="primary" variant="flat" @click="fetchData(1)">
-            {{ t('Apply') }}
-          </v-btn>
-        </div>
       </v-card-text>
     </v-card>
 
     <!-- Table -->
-    <v-card rounded="xl">
+    <v-card rounded="xl" class="shadow-sm table-card">
       <v-card-text class="pa-0">
-        <v-data-table
-          :headers="headers"
-          :items="rows"
+        <FilterableTable
           :loading="loading"
-          item-value="id"
-          show-select
-          v-model="selectedIds"
-          class="elevation-0"
+          :headers="headersFT"
+          :rows="rowsFT"
+          :filters="tableFilters"
+          :topGroups="topGroups"
+          :totalItems="meta.total"
+          :page="meta.current_page"
+          :perPage="filters.perPage"
+          @update:page="onPage"
+          @update:perPage="onPerPage"
         >
-          <template #item.type="{ item }">
+          <template #select="{ item }">
+            <v-checkbox
+              :model-value="selectedIds.includes(item.id)"
+              hide-details
+              density="compact"
+              @update:modelValue="toggleSelection(item.id)"
+            />
+          </template>
+
+          <template #type="{ item }">
             <v-chip size="small" variant="tonal">
               {{ typeLabel(item.type) }}
             </v-chip>
           </template>
 
-          <template #item.report_note="{ item }">
-            <div class="text-body-2" style="white-space: pre-wrap">
+          <template #report_note="{ item }">
+            <div class="text-body-2 note-cell">
               {{ item.report_note }}
             </div>
           </template>
 
-          <template #item.actions="{ item }">
-            <div class="d-flex ga-2">
-              <v-btn size="small" variant="tonal" @click="openEdit(item)">
-                <v-icon size="18">mdi-pencil</v-icon>
-              </v-btn>
-
-              <v-btn size="small" variant="tonal" color="error" @click="confirmDelete(item)">
-                <v-icon size="18">mdi-delete</v-icon>
-              </v-btn>
+          <template #created_at="{ item }">
+            <div class="text-body-2">
+              {{ formatDate(item.created_at) }}
             </div>
           </template>
 
-          <template #no-data>
-            <div class="py-10 text-center text-medium-emphasis">
-              {{ t('No report notes found.') }}
+          <template #actions="{ item }">
+            <div class="d-flex align-center ga-2">
+              <v-tooltip :text="t('Edit')" location="top">
+                <template #activator="{ props: tooltipProps }">
+                  <v-btn
+                    v-bind="tooltipProps"
+                    icon
+                    size="x-small"
+                    variant="tonal"
+                    color="amber-darken-2"
+                    class="icon-btn"
+                    @click.stop="openEdit(item)"
+                  >
+                    <v-icon size="18">mdi-pencil</v-icon>
+                  </v-btn>
+                </template>
+              </v-tooltip>
+
+              <v-tooltip :text="t('Delete')" location="top">
+                <template #activator="{ props: tooltipProps }">
+                  <v-btn
+                    v-bind="tooltipProps"
+                    icon
+                    size="x-small"
+                    variant="tonal"
+                    color="red-darken-2"
+                    class="icon-btn"
+                    @click.stop="confirmDelete(item)"
+                  >
+                    <v-icon size="18">mdi-delete</v-icon>
+                  </v-btn>
+                </template>
+              </v-tooltip>
             </div>
           </template>
-        </v-data-table>
+        </FilterableTable>
       </v-card-text>
-
-      <!-- Pagination footer -->
-      <v-divider />
-      <v-card-actions class="py-3 d-flex justify-space-between">
-        <div class="text-caption text-medium-emphasis">
-          {{ t('Page') }} {{ meta.current_page || 1 }} {{ t('of') }} {{ meta.last_page || 1 }} —
-          {{ t('Total') }}: {{ meta.total || 0 }}
-        </div>
-
-        <div class="d-flex ga-2">
-          <v-btn
-            variant="tonal"
-            :disabled="(meta.current_page || 1) <= 1"
-            @click="fetchData((meta.current_page || 1) - 1)"
-          >
-            {{ t('Prev') }}
-          </v-btn>
-
-          <v-btn
-            variant="tonal"
-            :disabled="(meta.current_page || 1) >= (meta.last_page || 1)"
-            @click="fetchData((meta.current_page || 1) + 1)"
-          >
-            {{ t('Next') }}
-          </v-btn>
-        </div>
-      </v-card-actions>
     </v-card>
+
+    <GlobalPagination
+      :page="meta.current_page"
+      :items-per-page="filters.perPage"
+      :total="meta.total"
+      @update:page="onPage"
+      @update:itemsPerPage="onPerPage"
+    />
 
     <!-- Create/Edit Popup -->
     <v-dialog v-model="dialog.open" max-width="720">
@@ -177,7 +220,7 @@
         <v-card-text class="pt-4">
           <v-form ref="formRef" @submit.prevent="submitDialog">
             <v-row dense>
-              <v-col cols="12" md="12">
+              <v-col cols="12">
                 <v-select
                   v-model="dialog.form.type"
                   :items="typeOptions"
@@ -192,7 +235,7 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="12">
+              <v-col cols="12">
                 <v-textarea
                   v-model="dialog.form.report_note"
                   :label="t('Report Note')"
@@ -208,7 +251,9 @@
             </v-row>
 
             <div class="d-flex justify-end ga-2 mt-2">
-              <v-btn variant="tonal" @click="closeDialog">{{ t('Cancel') }}</v-btn>
+              <v-btn variant="tonal" @click="closeDialog">
+                {{ t('Cancel') }}
+              </v-btn>
               <v-btn color="primary" variant="flat" type="submit" :loading="dialog.saving">
                 {{ dialog.mode === 'create' ? t('Create') : t('Update') }}
               </v-btn>
@@ -229,7 +274,9 @@
           {{ t('Are you sure you want to delete this report note?') }}
         </v-card-text>
         <v-card-actions class="d-flex justify-end ga-2">
-          <v-btn variant="tonal" @click="deleteDialog.open = false">{{ t('Cancel') }}</v-btn>
+          <v-btn variant="tonal" @click="deleteDialog.open = false">
+            {{ t('Cancel') }}
+          </v-btn>
           <v-btn color="error" variant="flat" :loading="deleteDialog.loading" @click="doDelete">
             {{ t('Delete') }}
           </v-btn>
@@ -248,7 +295,9 @@
           {{ t('Delete') }} <b>{{ selectedIds.length }}</b> {{ t('selected report notes?') }}
         </v-card-text>
         <v-card-actions class="d-flex justify-end ga-2">
-          <v-btn variant="tonal" @click="bulkDeleteDialog.open = false">{{ t('Cancel') }}</v-btn>
+          <v-btn variant="tonal" @click="bulkDeleteDialog.open = false">
+            {{ t('Cancel') }}
+          </v-btn>
           <v-btn
             color="error"
             variant="flat"
@@ -272,6 +321,8 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppBar from '@/components/AppBar.vue'
+import FilterableTable from '@/components/FilterableTable.vue'
+import GlobalPagination from '@/components/GlobalPagination.vue'
 import { useReportNoteRepository } from '@/stores/ReportNoteRepository'
 
 const { t, locale } = useI18n()
@@ -301,12 +352,28 @@ function typeLabel(v) {
   return v
 }
 
-const headers = computed(() => [
-  { title: t('ID'), key: 'id', width: 80 },
-  { title: t('Type'), key: 'type', width: 140 },
-  { title: t('Report Note'), key: 'report_note' },
-  { title: t('Created'), key: 'created_at', width: 180 },
-  { title: t('Actions'), key: 'actions', sortable: false, width: 120 },
+function formatDate(value) {
+  if (!value) return '-'
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return value
+
+  return new Intl.DateTimeFormat(
+    rtl.value ? 'fa-IR' : 'en-US',
+    {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }
+  ).format(d)
+}
+
+const headersFT = computed(() => [
+    { title: t('ID'), key: 'id', sortable: true },
+  { title: t('Type'), key: 'type', sortable: true },
+  { title: t('Report Note'), key: 'report_note', sortable: false },
+  { title: t('Created'), key: 'created_at', sortable: true },
 ])
 
 const filters = reactive({
@@ -317,6 +384,15 @@ const filters = reactive({
 
 const loading = ref(false)
 const rows = ref([])
+
+const rowsFT = computed(() => {
+  const startIndex = ((meta.current_page || 1) - 1) * (filters.perPage || 50)
+  return (rows.value || []).map((it, i) => ({
+    ...it,
+    index: startIndex + i + 1,
+  }))
+})
+
 const meta = reactive({
   current_page: 1,
   last_page: 1,
@@ -325,10 +401,14 @@ const meta = reactive({
 
 const selectedIds = ref([])
 
+const tableFilters = []
+const topGroups = []
+
 const snackbar = reactive({
   open: false,
   text: '',
 })
+
 function toast(text) {
   snackbar.text = text
   snackbar.open = true
@@ -374,6 +454,7 @@ function setErrorsFromApi(err) {
 function hasError(field) {
   return Array.isArray(dialog.errors?.[field]) && dialog.errors[field].length > 0
 }
+
 function getErrorMessages(field) {
   return dialog.errors?.[field] || []
 }
@@ -401,11 +482,45 @@ async function fetchData(page = 1) {
   }
 }
 
+function applyFilters() {
+  fetchData(1)
+}
+
 function resetFilters() {
   filters.search = ''
   filters.type = null
   filters.perPage = 50
   fetchData(1)
+}
+
+function clearSearch() {
+  filters.search = ''
+  fetchData(1)
+}
+
+function clearType() {
+  filters.type = null
+  fetchData(1)
+}
+
+function onPage(page) {
+  fetchData(page)
+}
+
+function onPerPage(perPage) {
+  filters.perPage = perPage
+  fetchData(1)
+}
+
+function toggleSelection(id) {
+  const ids = [...selectedIds.value]
+  const index = ids.indexOf(id)
+  if (index >= 0) {
+    ids.splice(index, 1)
+  } else {
+    ids.push(id)
+  }
+  selectedIds.value = ids
 }
 
 function openCreate() {
@@ -459,7 +574,9 @@ async function submitDialog() {
     await fetchData(meta.current_page || 1)
   } catch (e) {
     setErrorsFromApi(e)
-    if (!Object.keys(dialog.errors).length) toast(t('Save failed.'))
+    if (!Object.keys(dialog.errors).length) {
+      toast(t('Save failed.'))
+    }
   } finally {
     dialog.saving = false
   }
@@ -508,5 +625,30 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* keep it clean + compatible with your project */
+.page-bg {
+  min-height: 100%;
+}
+
+.filters-card,
+.table-card {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.icon-btn {
+  border-radius: 10px;
+}
+
+.filter-input :deep(.v-field) {
+  border-radius: 16px !important;
+}
+
+.filter-input :deep(.v-field__prepend-inner) {
+  opacity: 0.85;
+}
+
+.note-cell {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+}
 </style>

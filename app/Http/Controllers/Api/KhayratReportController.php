@@ -7,7 +7,7 @@ use App\Http\Requests\StoreKhayratReportRequest;
 use App\Http\Requests\UpdateKhayratReportRequest;
 use App\Http\Resources\KhayratReportResource;
 use App\Models\KhayratReport;
-use App\Services\NotificationService; // 🔔 notifications
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -16,12 +16,11 @@ class KhayratReportController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 15);
-        $search  = trim((string) $request->input('search', ''));
+        $search = trim((string) $request->input('search', ''));
 
         $query = KhayratReport::query()
             ->search($search)
             ->with([
-                // ✅ normal eager load like OfficeEmployee
                 'resource:id,name,code_number,phone_number',
                 'officeEmployee:id,name,code_number',
             ])
@@ -34,7 +33,7 @@ class KhayratReportController extends Controller
 
     public function store(StoreKhayratReportRequest $request)
     {
-        $user = $request->user(); // 🔔 who did this
+        $user = $request->user();
 
         return DB::transaction(function () use ($request, $user) {
             $item = KhayratReport::create($request->validated());
@@ -44,14 +43,13 @@ class KhayratReportController extends Controller
                 'officeEmployee:id,name,code_number',
             ]);
 
-            // 🔔 Notification: CREATED
             NotificationService::record(
                 $user,
                 module: 'د خیریت راپور',
                 action: 'created',
                 title: 'د خیریت راپور ثبت شوو',
                 message: 'کوډ: ' . ($item->id ?? ''),
-                routeName: 'KhayratReportsIndex',          // ⚠️ set to your frontend route name
+                routeName: 'KhayratReportsIndex',
                 routeParams: ['id' => $item->id],
                 level: 'success',
                 changes: null
@@ -73,13 +71,12 @@ class KhayratReportController extends Controller
 
     public function update(UpdateKhayratReportRequest $request, KhayratReport $khayratReport)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         return DB::transaction(function () use ($request, $khayratReport, $user) {
-            // 🧮 build changes BEFORE update
-            $original  = $khayratReport->getOriginal();
+            $original = $khayratReport->getOriginal();
             $validated = $request->validated();
-            $changes   = [];
+            $changes = [];
 
             foreach ($validated as $field => $newValue) {
                 if (array_key_exists($field, $original)) {
@@ -94,7 +91,6 @@ class KhayratReportController extends Controller
                 }
             }
 
-            // 🔄 apply update
             $khayratReport->update($validated);
 
             $khayratReport->load([
@@ -102,14 +98,13 @@ class KhayratReportController extends Controller
                 'officeEmployee:id,name,code_number',
             ]);
 
-            // 🔔 Notification: UPDATED + changes
             NotificationService::record(
                 $user,
                 module: 'د خیریت راپور',
                 action: 'updated',
                 title: 'د خیریت راپور اصلاح شوو',
                 message: 'کوډ: ' . ($khayratReport->id ?? ''),
-                routeName: 'KhayratReportsIndex',          // ⚠️ set to your frontend route name
+                routeName: 'KhayratReportsIndex',
                 routeParams: ['id' => $khayratReport->id],
                 level: 'info',
                 changes: !empty($changes) ? $changes : null
@@ -121,14 +116,13 @@ class KhayratReportController extends Controller
 
     public function destroy(Request $request, KhayratReport $khayratReport)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         return DB::transaction(function () use ($khayratReport, $user) {
             $id = $khayratReport->id;
 
             $khayratReport->delete();
 
-            // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
                 module: 'د خیریت راپور',
@@ -136,12 +130,14 @@ class KhayratReportController extends Controller
                 title: 'د خیریت راپور حذف شوو',
                 message: 'کوډ: ' . ($id ?? ''),
                 routeName: null,
-                routeParams: ['KhayratReportsIndex'],
+                routeParams: [],
                 level: 'warning',
                 changes: null
             );
 
-            return response()->json(['message' => 'Deleted']);
+            return response()->json([
+                'message' => 'Deleted',
+            ]);
         });
     }
 }
