@@ -63,9 +63,8 @@
                   />
                 </v-col>
                 <v-col cols="12" md="4">
-                  <v-select
+                  <v-text-field
                     v-model="form.re_name"
-                    :items="typehome"
                     :label="t('نام باشنده')"
                     variant="outlined"
                     density="compact"

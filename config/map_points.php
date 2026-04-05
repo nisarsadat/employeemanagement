@@ -71,7 +71,7 @@ return [
         [
             'table' => 'informations',
             'type' => 'information',
-            'typeLabel' => 'اطلاعات',
+            'typeLabel' => 'اطلاع',
             'show_url' => '/api/informations/',
             'title_candidates' => ['name', 'title', 'code_number'],
             'code_candidates' => ['code_number'],
@@ -81,7 +81,7 @@ return [
         [
             'table' => 'captive_deliveries',
             'type' => 'captive_delivery',
-            'typeLabel' => 'راخوشي شوي بندیان',
+            'typeLabel' => 'تسلیم شوي بندي',
             'show_url' => '/api/captive-deliveries/',
             'title_candidates' => ['name', 'title', 'code_number'],
             'code_candidates' => ['code_number'],
@@ -91,7 +91,7 @@ return [
         [
             'table' => 'events',
             'type' => 'event',
-            'typeLabel' => 'پیښې',
+            'typeLabel' => 'پیښه',
             'show_url' => '/api/events/',
             'title_candidates' => ['name', 'title', 'event_name', 'code_number'],
             'code_candidates' => ['code_number'],
@@ -119,7 +119,7 @@ return [
         [
             'table' => 'heists',
             'type' => 'heist',
-            'typeLabel' => 'سرقت کوونکي',
+            'typeLabel' => 'سرقت کوونکی',
             'show_url' => '/api/heists/',
             'title_candidates' => ['name', 'title', 'responsible_name', 'code_number'],
             'join_resource' => true,
@@ -127,7 +127,7 @@ return [
         [
             'table' => 'captives',
             'type' => 'captive',
-            'typeLabel' => 'راخوشي شوي بندیان',
+            'typeLabel' => 'راخوشي شوي بندي',
             'show_url' => '/api/captives/',
             'title_candidates' => ['name', 'title', 'responsible_name', 'code_number'],
             'join_resource' => true,
@@ -135,7 +135,7 @@ return [
         [
             'table' => 'mulkanos',
             'type' => 'mulkano',
-            'typeLabel' => 'د کوڅو نمایندګان',
+            'typeLabel' => 'د کوڅو نماینده',
             'show_url' => '/api/mulkanos/',
             'title_candidates' => ['name', 'title', 'responsible_name', 'code_number'],
             'join_resource' => true,
@@ -143,7 +143,7 @@ return [
         [
             'table' => 'entry_exits',
             'type' => 'entry_exit',
-            'typeLabel' => 'د ښار اړوند دخولي/خروجي دروازې او فرعي لارې',
+            'typeLabel' => 'د ښار اړوند دخولي/خروجي دروازه او فرعي لاره',
             'show_url' => '/api/entry-exits/',
             'title_candidates' => ['name', 'title', 'gate_name', 'code_number'],
             'join_resource' => true,
@@ -151,7 +151,7 @@ return [
         [
             'table' => 'sarafyanos',
             'type' => 'sarafyano',
-            'typeLabel' => 'صرافیانې',
+            'typeLabel' => 'صرافي',
             'show_url' => '/api/sarafyanos/',
             'title_candidates' => ['name', 'title', 'sarafy_name', 'code_number'],
             'join_resource' => true,
@@ -159,7 +159,7 @@ return [
         [
             'table' => 'clubs',
             'type' => 'clubs',
-            'typeLabel' => 'ورزشي کلپونه',
+            'typeLabel' => 'ورزشي کلپ',
             'show_url' => '/api/clubs/',
             'title_candidates' => ['name', 'title', 'club_name', 'code_number'],
             'join_resource' => true,

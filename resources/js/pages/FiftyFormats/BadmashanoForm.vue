@@ -490,31 +490,31 @@
       if (!v) return true;
       const s = String(v).trim();
       if (!s) return true;
-      if (s.length < 7) return t('شماره باید حداقل ۷ رقم باشد');
-      if (s.length > 15) return t('شماره باید حداکثر ۱۵ رقم باشد');
+      if (s.length < 10) return t('شماره باید حداقل ۱۰ رقم باشد');
+      if (s.length > 10) return t('شماره باید حداکثر ۱۰ رقم باشد');
       return true;
     },
   };
 
-function resourceTitle(r) {
-  if (!r) return '';
-  const code = r.code_number ?? '';
-  const name = r.name ?? '';
-  return [code, name].filter(Boolean).join(' - ');
-}
+  function resourceTitle(r) {
+    if (!r) return '';
+    const code = r.code_number ?? '';
+    const name = r.name ?? '';
+    return [code, name].filter(Boolean).join(' - ');
+  }
 
-function onResourceSelected(r) {
-  if (!r) return;
-  form.value.resource_id = r.id ?? null;
-  form.value.resource_code = r.code_number ?? '';
-  form.value.resource_phone = r.phone_number ?? '';
-}
+  function onResourceSelected(r) {
+    if (!r) return;
+    form.value.resource_id = r.id ?? null;
+    form.value.resource_code = r.code_number ?? '';
+    form.value.resource_phone = r.phone_number ?? '';
+  }
 
-function onResourceCleared() {
-  form.value.resource_id = null;
-  form.value.resource_code = '';
-  form.value.resource_phone = '';
-}
+  function onResourceCleared() {
+    form.value.resource_id = null;
+    form.value.resource_code = '';
+    form.value.resource_phone = '';
+  }
   /* MAP FROM API */
   function mapFromApi(payload = {}) {
     const x = payload.data ?? payload;

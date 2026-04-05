@@ -389,7 +389,7 @@
 
     { title: t('نوع خانه'), key: 'home_type' },
     { title: t('علایم شک'), key: 'shak_symbols' },
-    { title: t('مشکوکیت نوعیت'), key: 'mashkok_type' },
+    { title: t('نوعیت مشکوکیت'), key: 'mashkok_type' },
 
     { title: t('تفصیل'), key: 'tafseel' },
 

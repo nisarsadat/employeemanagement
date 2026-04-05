@@ -228,7 +228,7 @@
           <button
             type="button"
             class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-rose-600 to-red-600 text-white hover:from-rose-500 hover:to-red-500 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-40 disabled:cursor-not-allowed"
-            :disabled="selectedCount === 0"
+            :disabled="selectedCount === 0 && selectedColsCount === 0"
             @click="clearSelectedRows"
           >
             {{ t('حذف انتخاب‌ها') }}

@@ -408,7 +408,7 @@
     { title: t('تصویر'), key: 'picture', sortable: false },
     { title: t('نام کلب'), key: 'club_name' },
     { title: t('نوع کلب'), key: 'club_type' },
-    { title: t('مسوولص'), key: 'name' },
+    { title: t('نام مسوول'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('وظیفه/موقعیت'), key: 'position' },
     { title: t('شماره تماس'), key: 'phone_number' },

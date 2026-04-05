@@ -139,7 +139,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class=" mx-2"
+      class="mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -313,7 +313,7 @@
   import GlobalPagination from '@/components/GlobalPagination.vue';
   import { useJawasiRepository } from '@/stores/JawasiRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
-    import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
 
   usePageRefresh('/app/jawasis', fetchAll);
   const auth = useLoginRepository();
@@ -344,10 +344,12 @@
   const stats = computed(() => {
     const rows = rowsFT.value || [];
     const total = rows.length;
-    const withCoordinates = rows.filter((r) => r?.coordinates && String(r.coordinates).trim() !== '')
-      .length;
-    const withPhone = rows.filter((r) => r?.phone_number && String(r.phone_number).trim() !== '')
-      .length;
+    const withCoordinates = rows.filter(
+      (r) => r?.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
+    const withPhone = rows.filter(
+      (r) => r?.phone_number && String(r.phone_number).trim() !== ''
+    ).length;
     const withResource = rows.filter(
       (r) => r?.resource_code && String(r.resource_code).trim() !== ''
     ).length;
@@ -381,7 +383,6 @@
     { title: t('نام'), key: 'name' },
     { title: t('نام مستعار'), key: 'nick_name' },
     { title: t('نام پدر'), key: 'father_name' },
-    { title: t('شماره تماس'), key: 'phone_number' },
 
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_district' },
@@ -408,6 +409,7 @@
     { title: t('وظیفه قبلی'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'now_job' },
     { title: t('تفصیل'), key: 'tafseel' },
+    { title: t('شماره تماس'), key: 'phone_number' },
 
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
@@ -451,8 +453,7 @@
     loadingOne.value = true;
     try {
       await repo.FetchJawasiData?.(id);
-      const single =
-        repo.Jawasi && Array.isArray(repo.Jawasi) ? repo.Jawasi[0] : repo.Jawasi || {};
+      const single = repo.Jawasi && Array.isArray(repo.Jawasi) ? repo.Jawasi[0] : repo.Jawasi || {};
       detail.value = single || {};
     } catch (e) {
       console.error(e);

@@ -153,13 +153,13 @@
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
-      class=" mx-2"
+      class="mx-2"
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
       @edit="goEdit"
       @peek="openPeek"
-    ><template #cell-picture="{ row }">
+      ><template #cell-picture="{ row }">
         <PictureCell
           :picture="row.picture"
           :alt="row.name"
@@ -282,7 +282,7 @@
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
   import GlobalPagination from '@/components/GlobalPagination.vue';
-import PictureCell from '@/components/table/PictureCell.vue';
+  import PictureCell from '@/components/table/PictureCell.vue';
 
   import { useSchoolRepository } from '@/stores/SchoolRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
@@ -370,24 +370,25 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
   /* HEADERS for FilterableTable */
   const headersFT = computed(() => [
-  { title: t('picture'), key: 'picture' },
+    { title: t('picture'), key: 'picture' },
 
     { title: t('نام'), key: 'name' },
     { title: t('بخش مشخص'), key: 'specific_past' },
     { title: t('نوع شفاخانه'), key: 'hospita_type' },
 
     { title: t('نام مسئول'), key: 'responsible_name' },
+    { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
+
     { title: t('وظیفه مسئول'), key: 'responsible_position' },
     { title: t('شماره مسئول'), key: 'responsible_phone' },
-    { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
-{ title: t('کارمندان مرد'), key: 'male_quantity' },
+    { title: t('کارمندان مرد'), key: 'male_quantity' },
     { title: t('کارمندان زن'), key: 'female_quantity' },
     { title: t('تعداد محافظین'), key: 'guard_quantity' },
     { title: t('ولایت'), key: 'province' },
     { title: t('زون'), key: 'zone' },
     { title: t('ولسوالی'), key: 'district' },
     { title: t('قریه'), key: 'village' },
-    
+
     { title: t('موقعیت مشخص'), key: 'specific_place' },
     { title: t('شماره سرک'), key: 'street_number' },
     { title: t('مختصات'), key: 'coordinates' },

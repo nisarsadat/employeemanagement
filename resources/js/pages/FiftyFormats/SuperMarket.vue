@@ -409,7 +409,7 @@ import PictureCell from '@/components/table/PictureCell.vue';
 
     { title: t('مسؤول'), key: 'responsible_name' },
     { title: t('نام پدر مسؤول'), key: 'responsible_f_name' },
-    { title: t(' موقف مسؤول'), key: 'responsible_job' },
+    { title: t('موقف مسؤول'), key: 'responsible_job' },
     { title: t('شماره تماس مسؤول'), key: 'responsible_phone' },
 
     { title: t('ولایت'), key: 'province' },
