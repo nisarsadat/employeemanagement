@@ -111,6 +111,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
   const financesPage = ref(1);
   const financesPerPage = ref(10);
   const financesSearch = ref('');
+  const financesSearchField = ref(null);
   const financesAccountId = ref(null);
   const financesOfficeEmployeeId = ref(null);
 
@@ -125,8 +126,6 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     total_income_all: '0.00',
     total_outcome_all: '0.00',
     filtered_outcome: '0.00',
-
-    // ✅ new optional fields
     filtered_income: null,
     filtered_balance: null,
     has_filters: false,
@@ -265,16 +264,19 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     page = financesPage.value,
     perPage = financesPerPage.value,
     search = financesSearch.value,
+    search_field = financesSearchField.value,
     account_id = financesAccountId.value,
     office_employee_id = financesOfficeEmployeeId.value,
     year = financesYear.value,
     month = financesMonth.value,
+    date_field = 'date',
   } = {}) {
     loading.value = true;
     try {
       financesPage.value = page;
       financesPerPage.value = perPage;
       financesSearch.value = search;
+      financesSearchField.value = search_field ?? null;
       financesAccountId.value = account_id ?? null;
       financesOfficeEmployeeId.value = office_employee_id ?? null;
       financesYear.value = year ?? null;
@@ -285,10 +287,12 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
           page,
           perPage,
           search,
+          search_field: search_field ?? undefined,
           account_id: account_id ?? undefined,
           office_employee_id: office_employee_id ?? undefined,
           year: year ?? undefined,
           month: month ?? undefined,
+          date_field,
         },
       });
 
@@ -308,6 +312,61 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     } finally {
       loading.value = false;
     }
+  }
+
+  async function FetchFinanceDateOptions(params = {}) {
+    return await axios.get('/finances/date-options', { params });
+  }
+
+  async function DownloadFinancesExcel({
+    search = '',
+    search_field = null,
+    account_id = null,
+    office_employee_id = null,
+    year = null,
+    month = null,
+    date_field = 'date',
+    onDownloadProgress = null,
+  } = {}) {
+    const response = await axios.get('/finances/export/excel', {
+      params: {
+        search,
+        search_field,
+        account_id,
+        office_employee_id,
+        year,
+        month,
+        date_field,
+      },
+      responseType: 'blob',
+      onDownloadProgress,
+    });
+
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+
+    const disposition = response.headers['content-disposition'];
+    let fileName = 'finances.xlsx';
+
+    if (disposition) {
+      const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match?.[1]) {
+        fileName = match[1].replace(/['"]/g, '');
+      }
+    }
+
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    return response;
   }
 
   async function FetchFinanceData(id) {
@@ -334,6 +393,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     financesPage.value = 1;
     financesPerPage.value = 10;
     financesSearch.value = '';
+    financesSearchField.value = null;
     financesAccountId.value = null;
     financesOfficeEmployeeId.value = null;
     financesYear.value = null;
@@ -421,11 +481,14 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     financesPage,
     financesPerPage,
     financesSearch,
+    financesSearchField,
     financesAccountId,
     financesOfficeEmployeeId,
     financesYear,
     financesMonth,
     FetchFinancesData,
+    FetchFinanceDateOptions,
+    DownloadFinancesExcel,
     FetchFinanceData,
     CreateFinance,
     UpdateFinance,

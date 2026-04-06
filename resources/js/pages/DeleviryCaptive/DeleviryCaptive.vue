@@ -1,6 +1,5 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
-    <!-- APP BAR -->
     <AppBar
       :title="t('زندانی های تسلیم شده')"
       :subtitle="t('فهرست، جستجو و مدیریت زندانی های تسلیم شده')"
@@ -10,29 +9,25 @@
       </template>
     </AppBar>
 
-    <!-- 🔍 Search + Cards + ➕ Create -->
     <v-container class="pa-0">
       <v-row class="align-center">
-        <!-- Search Field -->
-        <v-col cols="12" sm="8" md="9" lg="10">
-          <v-text-field
-            v-model.trim="repo.Search"
-            :label="t('جستجو در زندانی ها...')"
-            density="comfortable"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            color="primary"
-            rounded="lg"
-            hide-details
-            @keyup.enter="fetchAll"
-            clearable
-            @click:clear="clearSearch"
-            class="bg-white"
+        <!-- ✅ SearchColumnFilter -->
+        <v-col cols="12" sm="6" md="6" lg="8">
+          <SearchColumnFilter
+            v-model:modelSearch="repo.Search"
+            v-model:modelColumn="searchField"
+            :headers="headersFT"
+            :search-label="t('جستجو در زندانی ها...')"
+            :column-label="t('ستون جستجو')"
+            :all-columns-label="t('همه ستون‌ها')"
+            :exclude-keys="['picture', 'map']"
+            @search="fetchAll"
+            @clear="clearSearch"
           />
         </v-col>
 
-        <!-- Create Button -->
         <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <!-- Create -->
           <v-btn
             v-if="auth.can('delevirycaptive.create')"
             color="primary"
@@ -46,18 +41,33 @@
           >
             {{ t('اضافه کردن زندانی جدید') }}
           </v-btn>
+
+          <!-- ✅ Excel -->
+        </v-col>
+        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+          <v-btn
+            color="success"
+            variant="flat"
+            size="large"
+            class="text-none"
+            rounded="lg"
+            block
+            prepend-icon="mdi-microsoft-excel"
+            @click="downloadExcel"
+          >
+            {{ t('اکسل') }}
+          </v-btn>
         </v-col>
       </v-row>
 
-      <!-- 📊 Filter Cards -->
+      <!-- ✅ Cards now filter from backend -->
       <v-row class="mt-2 d-flex justify-between" :dir="isRtl ? 'rtl' : 'ltr'">
-        <!-- 1) All -->
         <v-col cols="12" sm="2" md="4">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'all' }"
             :elevation="cardFilter === 'all' ? 6 : 1"
-            @click="cardFilter = 'all'"
+            @click="applyCardFilter('all')"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
@@ -71,13 +81,12 @@
           </v-card>
         </v-col>
 
-        <!-- 3) ساعین بالفساد -->
         <v-col cols="12" sm="2">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'saeen' }"
             :elevation="cardFilter === 'saeen' ? 6 : 1"
-            @click="cardFilter = 'saeen'"
+            @click="applyCardFilter('saeen')"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
@@ -91,13 +100,12 @@
           </v-card>
         </v-col>
 
-        <!-- 4) شر او فساد -->
         <v-col cols="12" sm="2">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'sharFasad' }"
             :elevation="cardFilter === 'sharFasad' ? 6 : 1"
-            @click="cardFilter = 'sharFasad'"
+            @click="applyCardFilter('sharFasad')"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
@@ -110,13 +118,13 @@
             </div>
           </v-card>
         </v-col>
-        <!-- 2) جاسوسی -->
+
         <v-col cols="12" sm="2">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'spy' }"
             :elevation="cardFilter === 'spy' ? 6 : 1"
-            @click="cardFilter = 'spy'"
+            @click="applyCardFilter('spy')"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
@@ -130,13 +138,12 @@
           </v-card>
         </v-col>
 
-        <!-- 5) Today -->
         <v-col cols="12" sm="2">
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'today' }"
             :elevation="cardFilter === 'today' ? 6 : 1"
-            @click="cardFilter = 'today'"
+            @click="applyCardFilter('today')"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
@@ -152,7 +159,6 @@
       </v-row>
     </v-container>
 
-    <!-- 👁 Peek drawer -->
     <v-container fluid>
       <PeekButton
         v-model="expanded"
@@ -168,10 +174,9 @@
       />
     </v-container>
 
-    <!-- 📋 MAIN TABLE -->
     <FilterableTable
       :headers="headersFT"
-      :rows="filteredRowsFT"
+      :rows="rowsFT"
       :filters="filters"
       @update:filters="(v) => (filters = { ...v })"
       :top-groups="topGroups"
@@ -179,19 +184,17 @@
       :rtl="true"
       :enableEdit="true"
       :enablePeek="true"
-      class="mb-20 mx-2"
+      class=" mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
       <template #cell-picture="{ row }">
-        <!-- Has picture -->
         <div v-if="row.picture" class="pic-wrap">
           <v-avatar size="32" class="cursor-pointer" @click.stop="openPreview(row.picture)">
             <v-img :src="normalizePicture(row.picture)" :alt="row.name" cover />
           </v-avatar>
         </div>
 
-        <!-- No picture → mdi-account -->
         <div v-else class="pic-wrap">
           <v-avatar size="32">
             <v-icon size="20">mdi-account</v-icon>
@@ -199,7 +202,6 @@
         </div>
       </template>
 
-      <!-- 🗺 Map cell -->
       <template #cell-map="{ row }">
         <FlyToMapButton
           :coordinates="row.coordinates"
@@ -211,10 +213,8 @@
         />
       </template>
 
-      <!-- ⚙️ ACTIONS -->
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
-          <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده زندانی تسلیم شده')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
@@ -223,7 +223,6 @@
             </template>
           </v-tooltip>
 
-          <!-- ویرایش -->
           <v-tooltip :text="t('ویرایش زندانی تسلیم شده')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -238,7 +237,6 @@
             </template>
           </v-tooltip>
 
-          <!-- دانلود اسناد -->
           <v-tooltip :text="t('دانلود اسناد زندانی تسلیم شده')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -254,7 +252,6 @@
             </template>
           </v-tooltip>
 
-          <!-- حذف -->
           <v-tooltip :text="t('حذف زندانی تسلیم شده')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -271,6 +268,7 @@
         </div>
       </template>
     </FilterableTable>
+
     <GlobalPagination
       :page="repo.page"
       :items-per-page="repo.itemsPerPage"
@@ -278,7 +276,7 @@
       @update:page="handlePageChange"
       @update:itemsPerPage="handlePerPageChange"
     />
-    <!-- 🖼 IMAGE PREVIEW DIALOG -->
+
     <v-dialog v-model="previewOpen" max-width="520">
       <v-card>
         <v-toolbar
@@ -305,7 +303,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- 🗑 Delete Confirm Dialog -->
     <DeleteConfirmDialog
       v-model="deleteDialog"
       :target="deleteTarget"
@@ -313,7 +310,6 @@
       @confirm="handleDeleteConfirmed"
     />
 
-    <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
@@ -335,23 +331,23 @@
   import PeekButton from '@/components/PeekButton.vue';
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
 
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
-  import GlobalPagination from '@/components/GlobalPagination.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/delevirycaptive', fetchAll);
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
   const router = useRouter();
 
-  /* i18n / RTL */
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-  /* Snackbar */
+  const searchField = ref(null);
+
   const showError = ref(false);
   const errorMessage = ref('');
   const showErrorMessage = (m) => {
@@ -359,10 +355,8 @@
     showError.value = true;
   };
 
-  /* helpers */
   const getRow = (s) => (s && s.raw ? s.raw : s);
 
-  /* rows from store */
   const rowsFT = computed(() => {
     const list = repo.CaptiveDeliveries || repo.DeleviryCaptives || [];
     if (Array.isArray(list)) return list;
@@ -370,112 +364,39 @@
     return [];
   });
 
-  /* 🔢 Filter cards state */
   const cardFilter = ref('all');
-  const normalizeText = (v) =>
-    String(v ?? '')
-      .trim()
-      .toLowerCase();
 
-  function isTodayDate(value) {
-    if (!value) return false;
+  const stats = computed(() => ({
+    total: Number(repo.captiveCardCounts?.total ?? 0),
+    spy: Number(repo.captiveCardCounts?.spy ?? 0),
+    saeen: Number(repo.captiveCardCounts?.saeen ?? 0),
+    sharFasad: Number(repo.captiveCardCounts?.sharFasad ?? 0),
+    today: Number(repo.captiveCardCounts?.today ?? 0),
+  }));
 
-    const raw = String(value).trim();
-
-    // try: YYYY-MM-DD (or starts with it)
-    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (m) {
-      const y = Number(m[1]);
-      const mo = Number(m[2]) - 1;
-      const d = Number(m[3]);
-
-      const dt = new Date(y, mo, d);
-      const now = new Date();
-      return (
-        dt.getFullYear() === now.getFullYear() &&
-        dt.getMonth() === now.getMonth() &&
-        dt.getDate() === now.getDate()
-      );
-    }
-
-    // fallback: Date parse
-    const dt = new Date(raw);
-    if (Number.isNaN(dt.getTime())) return false;
-
-    const now = new Date();
-    return (
-      dt.getFullYear() === now.getFullYear() &&
-      dt.getMonth() === now.getMonth() &&
-      dt.getDate() === now.getDate()
-    );
+  function applyCardFilter(value) {
+    cardFilter.value = value;
+    repo.page = 1;
+    fetchAll();
   }
 
-  const stats = computed(() => {
-    const rows = rowsFT.value || [];
-    const total = rows.length;
-
-    const spy = rows.filter(
-      (r) => normalizeText(r?.maznonyat_type) === normalizeText('جاسوسی')
-    ).length;
-
-    const saeen = rows.filter(
-      (r) => normalizeText(r?.maznonyat_type) === normalizeText('ساعین بالفساد')
-    ).length;
-
-    const sharFasad = rows.filter(
-      (r) => normalizeText(r?.maznonyat_type) === normalizeText('شر او فساد')
-    ).length;
-
-    const today = rows.filter((r) => isTodayDate(r?.captive_date)).length;
-
-    return { total, spy, saeen, sharFasad, today };
-  });
-  const filteredRowsFT = computed(() => {
-    const base = rowsFT.value || [];
-
-    switch (cardFilter.value) {
-      case 'spy':
-        return base.filter((r) => normalizeText(r?.maznonyat_type) === normalizeText('جاسوسی'));
-
-      case 'saeen':
-        return base.filter(
-          (r) => normalizeText(r?.maznonyat_type) === normalizeText('ساعین بالفساد')
-        );
-
-      case 'sharFasad':
-        return base.filter((r) => normalizeText(r?.maznonyat_type) === normalizeText('شر او فساد'));
-
-      case 'today':
-        return base.filter((r) => isTodayDate(r?.captive_date));
-
-      default:
-        return base;
-    }
-  });
-
-  /* TABLE HEADERS (resource/employee codes removed) */
   const headersFT = computed(() => [
     { title: t('تصویر'), key: 'picture', sortable: false },
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدر کلان'), key: 'grand_father_name' },
     { title: t('نام مستعار'), key: 'nickname' },
-
     { title: t('نمبر تذکره'), key: 'tazkira' },
     { title: t('عمر'), key: 'age' },
     { title: t('حالت مدنی'), key: 'halat_madani' },
     { title: t('سابقه جرمی'), key: 'criminal_history' },
-
     { title: t('وظیفه سابقه'), key: 'old_job' },
     { title: t('وظیفه فعلی'), key: 'new_job' },
-
     { title: t('زبان'), key: 'language' },
     { title: t('سطح علمی'), key: 'scientific_level' },
-
     { title: t('ولایت اصلی'), key: 'main_province' },
     { title: t('ولسوالی اصلی'), key: 'main_district' },
     { title: t('قریه/گذر اصلی'), key: 'main_village' },
-
     { title: t('ولایت فعلی'), key: 'now_province' },
     { title: t('ولسوالی فعلی'), key: 'now_district' },
     { title: t('قریه/گذر فعلی'), key: 'now_village' },
@@ -484,24 +405,18 @@
     { title: t('تسلیمی ورکونکی شخص'), key: 'taslimi_warkawonky_person' },
     { title: t('تسلیمی اخیستونکی شخص'), key: 'taslimi_akhistonky_person' },
     { title: t('تسلیمی اخیستونکی ارگان'), key: 'taslimi_akhistonky_organ' },
-
     { title: t('محل دستگیری'), key: 'captive_place' },
     { title: t('کوردینات محل دستگیری'), key: 'coordinates' },
     { title: t('مرجع دستگیری'), key: 'captive_marja' },
     { title: t('تاریخ دستگیری'), key: 'captive_date' },
     { title: t('ساعت دستگیری'), key: 'captive_hour' },
-
     { title: t('شماره تماس'), key: 'phone_number' },
     { title: t('حالت دستگیری'), key: 'captive_halat' },
     { title: t('وسایل و شواهد گرفته شده'), key: 'suspect_tools' },
-
-    // { title: t('ولایت مربوطه'), key: 'Province_addr' },
-
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('ملاحظات'), key: 'notes' },
   ]);
 
-  /* TOP GROUPS (ارتباطی group removed) */
   const topGroups = computed(() => [
     { title: t('معرفت'), keys: ['name', 'father_name', 'grand_father_name', 'nickname'] },
     { title: t('اطلاعات شخصی'), keys: ['tazkira', 'age', 'halat_madani', 'criminal_history'] },
@@ -516,7 +431,6 @@
     {
       title: t('مظنون/تماس'),
       keys: [
-        ,
         'phone_number',
         'captive_halat',
         'suspect_tools',
@@ -528,10 +442,20 @@
       ],
     },
   ]);
-
+  async function downloadExcel() {
+    try {
+      await repo.DownloadCaptiveDeliveriesExcel({
+        stat: cardFilter.value,
+        search_field: searchField.value,
+        date_field: 'captive_date',
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دانلود اکسل'));
+    }
+  }
   const filters = ref({});
 
-  /* Peek */
   const expanded = ref(false);
   const selectedId = ref(null);
   const loadingOne = ref(false);
@@ -566,7 +490,6 @@
     fetchOne(row.id);
   }
 
-  /* navigation */
   function goCreate() {
     router.push('/app/delevirycaptiveform');
   }
@@ -577,7 +500,6 @@
     router.push(`/app/delevirycaptiveform/${row.id}`);
   }
 
-  /* documents */
   function hasDocuments(payload) {
     const row = getRow(payload);
     const docs = row?.documents;
@@ -596,7 +518,6 @@
     }
   }
 
-  /* delete with dialog */
   const deleteDialog = ref(false);
   const deleteTarget = ref(null);
 
@@ -623,15 +544,18 @@
     }
   }
 
-  /* fetch all */
   async function fetchAll() {
     try {
-      await repo.FetchCaptiveDeliveriesData();
+      await repo.FetchCaptiveDeliveriesData({
+        stat: cardFilter.value,
+        search_field: searchField.value,
+      });
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست زندانی ها'));
     }
   }
+
   function handlePageChange(value) {
     repo.page = value;
     fetchAll();
@@ -643,7 +567,6 @@
     fetchAll();
   }
 
-  /* IMAGE PREVIEW helpers */
   const previewOpen = ref(false);
   const previewSrc = ref(null);
 
@@ -652,19 +575,11 @@
 
     let clean = String(src).trim();
 
-    // keep blob/data
     if (clean.startsWith('blob:') || clean.startsWith('data:')) return clean;
-
-    // fix escaped slashes
     clean = clean.replace(/\\\//g, '/');
-
-    // absolute
     if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-
-    // root-relative
     if (clean.startsWith('/')) return clean;
 
-    // fallback
     return '/' + clean.replace(/^\/+/, '');
   }
 
@@ -674,15 +589,16 @@
     previewSrc.value = normalized;
     previewOpen.value = true;
   }
+
   function clearSearch() {
     repo.Search = '';
+    searchField.value = null;
     repo.page = 1;
     fetchAll();
   }
-  watch(cardFilter, () => {
-    repo.page = 1;
-  });
-  /* init */
+
+  usePageRefresh('/app/delevirycaptive', fetchAll);
+
   onMounted(async () => {
     await fetchAll();
   });
@@ -693,13 +609,11 @@
     gap: 8px;
   }
 
-  /* Background similar to index page */
   .page-bg {
     background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
     font-family: inherit;
   }
 
-  /* Stats cards */
   .stat-card {
     cursor: pointer;
     border-radius: 14px;
@@ -752,38 +666,13 @@
     color: #666;
   }
 
-  /* picture hover tools (same idea as index page) */
   .pic-wrap {
     position: relative;
     display: inline-flex;
     align-items: center;
   }
 
-  .pic-thumb {
-    display: inline-flex;
+  .cursor-pointer {
     cursor: pointer;
-    position: relative;
-  }
-
-  .pic-overlay {
-    position: absolute;
-    inset: -6px -16px auto auto;
-    display: none;
-    background: rgba(0, 0, 0, 0.55);
-    padding: 4px 6px;
-    border-radius: 8px;
-    transform: translateY(-20%);
-    white-space: nowrap;
-  }
-
-  .pic-thumb:hover .pic-overlay {
-    display: flex;
-  }
-
-  .pic-overlay :deep(.v-btn) {
-    color: #fff;
-    font-size: 11px;
-    min-height: 0;
-    padding-inline: 8px;
   }
 </style>

@@ -1,9 +1,7 @@
-<!-- src/pages/Finances/FinancesIndex.vue -->
 <template>
   <v-container fluid class="pt-6 page-bg" :dir="rtl ? 'rtl' : 'ltr'">
     <!-- ✅ SUMMARY CARDS -->
     <v-row class="mb-4" dense>
-      <!-- Balance -->
       <v-col cols="12" md="4">
         <v-card rounded="xl" class="shadow-sm stat-card">
           <v-card-text class="pa-4">
@@ -22,7 +20,6 @@
         </v-card>
       </v-col>
 
-      <!-- Income -->
       <v-col cols="12" md="4">
         <v-card rounded="xl" class="shadow-sm stat-card">
           <v-card-text class="pa-4">
@@ -41,7 +38,6 @@
         </v-card>
       </v-col>
 
-      <!-- Outcome -->
       <v-col cols="12" md="4">
         <v-card rounded="xl" class="shadow-sm stat-card">
           <v-card-text class="pa-4">
@@ -65,72 +61,119 @@
     <v-card rounded="xl" class="shadow-sm mb-4 filters-card">
       <v-card-text class="pa-4">
         <v-row dense class="align-center">
-          <!-- Search -->
-          <v-col cols="12" md="3">
-            <v-text-field
-              v-model="repo.financesSearch"
-              :label="t('common.search')"
+          <!-- Search Column -->
+          <v-col cols="12" sm="12" md="3">
+            <v-select
+              v-model="searchField"
+              :items="searchColumnItems"
+              item-title="title"
+              item-value="value"
               density="comfortable"
               variant="outlined"
+              color="primary"
               rounded="lg"
-              prepend-inner-icon="mdi-magnify"
+              hide-details
               clearable
-              hide-details="auto"
-              class="filter-input"
-              @keyup.enter="applyFilters"
-              @click:clear="clearSearch"
+              :label="t('ستون جستجو')"
+              class="bg-white"
             />
           </v-col>
 
-          <!-- Year / Month (✅ same calendar-aware logic as Resources) -->
-          <v-col cols="12" md="3">
-            <div class="d-flex ga-2 flex-wrap">
-              <v-select
-                v-model="selectedYear"
-                :items="yearItems"
-                item-title="title"
-                item-value="value"
-                :label="t('common.year')"
-                density="comfortable"
-                variant="outlined"
-                rounded="lg"
-                clearable
-                hide-details="auto"
-                class="filter-input"
-                prepend-inner-icon="mdi-calendar"
-                @update:modelValue="onYearMonthChanged"
-              />
+          <!-- Search -->
+          <v-col cols="12" sm="12" md="3">
+            <v-text-field
+              v-model.trim="repo.financesSearch"
+              :label="t('common.search')"
+              density="comfortable"
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              color="primary"
+              rounded="lg"
+              hide-details
+              clearable
+              @keyup.enter="applyFilters"
+              @click:clear="clearSearch"
+              class="bg-white search-field"
+            />
+          </v-col>
 
-              <v-select
-                v-model="selectedMonth"
-                :items="monthOptions"
-                item-title="title"
-                item-value="value"
-                :label="t('common.month')"
-                density="comfortable"
-                variant="outlined"
-                rounded="lg"
-                clearable
-                hide-details="auto"
-                class="filter-input"
-                prepend-inner-icon="mdi-calendar-month"
-                :disabled="!selectedYear"
-                @update:modelValue="onYearMonthChanged"
-              />
-            </div>
+          <!-- YEAR -->
+          <v-col cols="12" sm="6" md="2">
+            <v-select
+              v-model="selectedYear"
+              :items="yearItems"
+              item-title="title"
+              item-value="value"
+              density="comfortable"
+              variant="outlined"
+              rounded="lg"
+              class="bg-white"
+              hide-details
+              clearable
+              :label="t('common.year')"
+            />
+          </v-col>
+
+          <!-- MONTH -->
+          <v-col cols="12" sm="6" md="2">
+            <v-select
+              v-model="selectedMonth"
+              :items="monthItems"
+              item-title="title"
+              item-value="value"
+              density="comfortable"
+              variant="outlined"
+              class="bg-white"
+              rounded="lg"
+              hide-details
+              clearable
+              :label="t('common.month')"
+            />
+          </v-col>
+
+          <!-- Apply -->
+          <v-col cols="12" sm="4" md="1">
+            <v-btn
+              color="primary"
+              variant="flat"
+              rounded="lg"
+              block
+              class="text-none"
+              prepend-icon="mdi-filter"
+              @click="applyFilters"
+            >
+              {{ t('فلتر') }}
+            </v-btn>
+          </v-col>
+
+          <!-- Reset -->
+          <v-col cols="12" sm="4" md="1">
+            <v-btn
+              color="orange"
+              rounded="lg"
+              block
+              class="text-none"
+              prepend-icon="mdi-filter-remove"
+              @click="resetFilters"
+            >
+              {{ t('فلتر') }}
+            </v-btn>
           </v-col>
 
           <!-- Actions -->
-          <v-col cols="12" md="6" class="d-flex justify-end">
+          <v-col cols="12" class="d-flex justify-end mt-3">
             <div class="d-flex ga-2 flex-wrap justify-end w-100">
               <v-btn
-                variant="tonal"
-                color="grey-darken-1"
+                color="success"
+                variant="flat"
                 class="text-none"
-                prepend-icon="mdi-filter-remove"
-                @click="resetFilters"
+                rounded="lg"
+                prepend-icon="mdi-microsoft-excel"
+                :loading="excelDownloading"
+                :disabled="excelDownloading"
+                @click="downloadExcel"
               >
-                {{ t('common.resetFilters') }}
+                {{ t('اکسل') }}
               </v-btn>
 
               <v-btn color="error" class="text-none" prepend-icon="mdi-plus" @click="openCreate">
@@ -201,7 +244,7 @@
                 closable
                 @click:close="clearMonth"
               >
-                {{ monthOptions.find((m) => m.value === selectedMonth)?.title ?? selectedMonth }}
+                {{ monthItems.find((m) => m.value === selectedMonth)?.title ?? selectedMonth }}
               </v-chip>
             </div>
           </v-col>
@@ -307,32 +350,53 @@
       :is-rtl="rtl"
       @confirm="handleDeleteConfirmed"
     />
+
+    <v-dialog v-model="excelDownloadDialog" max-width="360" persistent>
+      <v-card rounded="xl">
+        <v-card-text class="pa-5">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div class="text-subtitle-1 font-weight-bold">
+              {{ t('در حال دانلود اکسل...') }}
+            </div>
+            <div class="text-body-2 text-primary font-weight-bold">
+              {{ excelDownloadProgress }}%
+            </div>
+          </div>
+
+          <v-progress-linear
+            :model-value="excelDownloadProgress"
+            color="success"
+            height="10"
+            rounded
+            striped
+          />
+
+          <div class="text-caption text-medium-emphasis mt-3">
+            {{ t('لطفاً منتظر بمانید') }}
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup>
 import { computed, ref, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import dayjs from 'dayjs';
 
 import FilterableTable from '@/components/FilterableTable.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 import GlobalPagination from '@/components/GlobalPagination.vue';
 import FinanceFormDialog from './FinancesFormDialog.vue';
 import { useFinanceRepository } from '@/stores/FinanceRepository';
-import { useCalendar } from '../../../../composables/useCalendar';
-  import { usePageRefresh } from '@/composables/usePageRefresh';
+import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/finincalindex', fetchAll);
 const { t, locale } = useI18n();
 const repo = useFinanceRepository();
 
-/* ===== RTL (same pattern as Resources) ===== */
+/* RTL */
 const rtl = ref(locale.value === 'fa');
 watch(locale, (n) => (rtl.value = n === 'fa'));
-
-/* ===== Calendar (same logic as Resources) ===== */
-const { calendar, formatYearDisplay } = useCalendar();
 
 const dialog = ref(false);
 const editId = ref(null);
@@ -340,11 +404,61 @@ const editId = ref(null);
 const deleteDialog = ref(false);
 const deleteTarget = ref(null);
 
+const excelDownloadDialog = ref(false);
+const excelDownloadProgress = ref(0);
+const excelDownloading = ref(false);
+
 function getRow(payload) {
   return payload?.raw ?? payload;
 }
 
-/* ===== Headers ===== */
+/* Filters */
+const selectedYear = ref(null);
+const selectedMonth = ref(null);
+const searchField = ref(null);
+
+const yearItems = ref([]);
+const monthItems = ref([]);
+
+async function fetchYearItemsFromDb() {
+  try {
+    const res = await repo.FetchFinanceDateOptions({ date_field: 'date' });
+    const years = res?.data?.years || [];
+
+    yearItems.value = years.map((y) => ({
+      value: y.value,
+      title: y.label,
+    }));
+  } catch (e) {
+    console.error('fetchYearItemsFromDb error', e);
+  }
+}
+
+async function fetchMonthItemsFromDb(year = null) {
+  try {
+    const res = await repo.FetchFinanceDateOptions({
+      date_field: 'date',
+      year,
+    });
+
+    const months = res?.data?.months || [];
+
+    monthItems.value = months.map((m) => ({
+      value: m.value,
+      title: m.label,
+    }));
+  } catch (e) {
+    console.error('fetchMonthItemsFromDb error', e);
+    monthItems.value = [];
+  }
+}
+
+watch(selectedYear, async (newYear) => {
+  selectedMonth.value = null;
+  await fetchMonthItemsFromDb(newYear);
+});
+
+/* Headers */
 const headersFT = computed(() => [
   { title: t('finances.table.employeeCode'), key: 'employee_code', sortable: true },
   { title: t('finances.table.employeeName'), key: 'employee_name', sortable: true },
@@ -358,6 +472,19 @@ const headersFT = computed(() => [
   { title: t('finances.table.payer'), key: 'payer', sortable: true },
   { title: t('finances.table.notes'), key: 'notes', sortable: true },
 ]);
+
+const searchColumnItems = computed(() => {
+  const excluded = ['expense_result'];
+
+  const items = headersFT.value
+    .filter((h) => h?.key && !excluded.includes(h.key))
+    .map((h) => ({
+      title: h.title,
+      value: h.key,
+    }));
+
+  return [{ title: t('همه ستون‌ها'), value: null }, ...items];
+});
 
 function toDate10(v) {
   return (v ?? '').toString().slice(0, 10);
@@ -376,6 +503,7 @@ function prettyExpenseInfo(it) {
 
 const rowsFT = computed(() => {
   const startIndex = (repo.financesPage - 1) * repo.financesPerPage;
+
   return (repo.finances || []).map((it, i) => {
     const amount = it?.money_amount_number ?? it?.amount ?? '';
     const exp = prettyExpenseInfo(it);
@@ -383,24 +511,18 @@ const rowsFT = computed(() => {
     return {
       ...it,
       index: startIndex + i + 1,
-
       employee_name: it?.office_employee?.name ?? '',
       employee_code: it?.office_employee?.code_number ?? '',
       resource_nick_name: it?.resource?.nick_name ?? '',
       payer: it?.payer ?? '',
-
       money_amount_number: amount,
       money_amount_words: it?.money_amount_words ?? '',
-
       source_code: it?.resource?.code_number ?? it?.source_code ?? '—',
       source_nick_name: it?.resource?.nick_name ?? it?.source_nick_name ?? '—',
-
       employee_phone: it?.office_employee?.phone_number ?? '—',
-
       expense_kind: exp.kind,
       expense_label: exp.label,
       expense_result: exp.label,
-
       notes: it?.notes ?? '',
       date: toDate10(it?.date),
       signature: it?.signature ?? '—',
@@ -411,7 +533,7 @@ const rowsFT = computed(() => {
 const filters = [];
 const topGroups = [];
 
-/* ===== Summary cards ===== */
+/* Summary cards */
 const summary = computed(() => repo.financesSummary || {});
 
 function fmtMoney(v) {
@@ -421,87 +543,6 @@ function fmtMoney(v) {
   return String(n).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
 }
 
-const selectedYear = ref(null);  // sent to backend (gregorian)
-const selectedMonth = ref(null); // sent to backend (gregorian 1..12)
-
-/* ===== ✅ Year items from backend, but titles follow calendar mode ===== */
-const yearItems = ref([]);
-const yearNumbers = ref([]);
-
-function rebuildYearItems() {
-  if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
-  yearItems.value = yearNumbers.value.map((y) => ({
-    value: y,
-    title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
-  }));
-}
-
-async function fetchYearItemsFromRepo() {
-  // you already call repo.FetchYears('finances'); we use repo.availableYears after that
-  const years = Array.isArray(repo.availableYears) ? repo.availableYears : [];
-  yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
-  rebuildYearItems();
-}
-
-/* update year titles when calendar/locale changes (selected value stays same) */
-watch([calendar, locale], () => rebuildYearItems());
-
-/* ===== ✅ Month titles follow calendar mode, values stay gregorian 1..12 ===== */
-const JALALI_MONTHS_FA = [
-  'حمل','ثور','جوزا','سرطان','اسد','سنبله','میزان','عقرب','قوس','جدی','دلو','حوت',
-];
-
-const HIJRI_QAMARI_MONTHS_FA = [
-  'محرم','صفر','ربیع‌الاول','ربیع‌الثانی','جمادی‌الاول','جمادی‌الثانی',
-  'رجب','شعبان','رمضان','شوال','ذوالقعده','ذوالحجه',
-];
-
-function monthTitleFromGregorianMonth(gYear, gMonth) {
-  const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
-
-  if (calendar.value === 'gregorian') {
-    try {
-      const dt = new Date(iso + 'T00:00:00');
-      return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
-    } catch {
-      return String(gMonth);
-    }
-  }
-
-  if (calendar.value === 'jalali') {
-    try {
-      const dt = new Date(iso + 'T00:00:00');
-      const fmt = new Intl.DateTimeFormat(locale.value, { calendar: 'persian', month: 'numeric' });
-      const parts = fmt.formatToParts(dt);
-      const m = Number(parts.find((p) => p.type === 'month')?.value);
-      if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
-    } catch {}
-    return JALALI_MONTHS_FA[(gMonth - 1) % 12];
-  }
-
-  if (calendar.value === 'hijri') {
-    try {
-      const dt = new Date(iso + 'T00:00:00');
-      const fmt = new Intl.DateTimeFormat('ar', { calendar: 'islamic-umalqura', month: 'numeric' });
-      const parts = fmt.formatToParts(dt);
-      const m = Number(parts.find((p) => p.type === 'month')?.value);
-      if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
-    } catch {}
-    return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
-  }
-
-  return String(gMonth);
-}
-
-const monthOptions = computed(() => {
-  const y = selectedYear.value || dayjs().year();
-  return Array.from({ length: 12 }).map((_, i) => {
-    const m = i + 1;
-    return { value: m, title: monthTitleFromGregorianMonth(y, m) };
-  });
-});
-
-/* ===== decide if we are in filtered mode (same logic as backend) ===== */
 const hasAnyFilter = computed(() => {
   return !!(
     repo.financesSearch ||
@@ -513,7 +554,6 @@ const hasAnyFilter = computed(() => {
   );
 });
 
-/* ===== card values ===== */
 const outcomeCardValue = computed(() =>
   hasAnyFilter.value ? summary.value?.filtered_outcome : summary.value?.total_outcome_all
 );
@@ -528,32 +568,32 @@ const balanceCardValue = computed(() => {
   return summary.value?.filtered_balance ?? summary.value?.total_balance_all_accounts;
 });
 
-/* ===== Fetch / filters ===== */
+/* Fetch */
 function fetchAll() {
   repo.FetchFinancesData({
     page: repo.financesPage,
     perPage: repo.financesPerPage,
     search: repo.financesSearch,
+    search_field: searchField.value,
     account_id: repo.financesAccountId,
     office_employee_id: repo.financesOfficeEmployeeId,
     year: selectedYear.value,
     month: selectedMonth.value,
+    date_field: 'date',
   });
 }
+
+usePageRefresh('/app/finincalindex', fetchAll);
 
 function applyFilters() {
   repo.financesPage = 1;
   fetchAll();
 }
 
-function onYearMonthChanged() {
-  if (!selectedYear.value) selectedMonth.value = null;
-  applyFilters();
-}
-
 function clearSearch() {
   repo.financesSearch = '';
-  applyFilters();
+  repo.financesPage = 1;
+  fetchAll();
 }
 
 function clearYear() {
@@ -592,7 +632,7 @@ function onSaved() {
   applyFilters();
 }
 
-/* ===== Delete ===== */
+/* Delete */
 function openDeleteDialog(payload) {
   const row = getRow(payload);
   if (!row?.id) return;
@@ -620,11 +660,13 @@ async function handleDeleteConfirmed(target) {
 function resetFilters() {
   selectedYear.value = null;
   selectedMonth.value = null;
+  searchField.value = null;
 
   if (typeof repo.ResetFinancesFilters === 'function') {
     repo.ResetFinancesFilters();
   } else {
     repo.financesSearch = '';
+    repo.financesSearchField = null;
     repo.financesAccountId = null;
     repo.financesOfficeEmployeeId = null;
     repo.financesPage = 1;
@@ -644,7 +686,47 @@ function onPerPage(pp) {
   fetchAll();
 }
 
-/* ===== Export (unchanged) ===== */
+async function downloadExcel() {
+  try {
+    excelDownloading.value = true;
+    excelDownloadDialog.value = true;
+    excelDownloadProgress.value = 0;
+
+    await repo.DownloadFinancesExcel({
+      search: repo.financesSearch || '',
+      search_field: searchField.value,
+      account_id: repo.financesAccountId,
+      office_employee_id: repo.financesOfficeEmployeeId,
+      year: selectedYear.value,
+      month: selectedMonth.value,
+      date_field: 'date',
+      onDownloadProgress: (progressEvent) => {
+        const total = progressEvent.total || 0;
+        const loaded = progressEvent.loaded || 0;
+
+        if (total > 0) {
+          excelDownloadProgress.value = Math.min(100, Math.round((loaded * 100) / total));
+        } else {
+          if (excelDownloadProgress.value < 90) {
+            excelDownloadProgress.value += 5;
+          }
+        }
+      },
+    });
+
+    excelDownloadProgress.value = 100;
+  } catch (e) {
+    console.error('downloadExcel error', e);
+  } finally {
+    setTimeout(() => {
+      excelDownloadDialog.value = false;
+      excelDownloading.value = false;
+      excelDownloadProgress.value = 0;
+    }, 400);
+  }
+}
+
+/* Export PDF/Word */
 function buildExportHtml(rows, title) {
   const year = new Date().getFullYear();
 
@@ -765,16 +847,11 @@ function exportWordAll() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/* ===== Init ===== */
+/* Init */
 onMounted(async () => {
   await ensureAccountsLoaded();
-
-  // keep your existing behavior
-  await repo.FetchYears('finances');
-
-  // ✅ now convert the available gregorian years to calendar-aware titles
-  await fetchYearItemsFromRepo();
-
+  await fetchYearItemsFromDb();
+  await fetchMonthItemsFromDb(null);
   applyFilters();
 });
 </script>
@@ -812,9 +889,11 @@ onMounted(async () => {
 .table-card {
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
+
 .icon-btn {
   border-radius: 10px;
 }
+
 :deep(.v-table) {
   border-radius: 16px;
 }
@@ -826,7 +905,12 @@ onMounted(async () => {
 .filter-input :deep(.v-field) {
   border-radius: 16px !important;
 }
+
 .filter-input :deep(.v-field__prepend-inner) {
   opacity: 0.85;
+}
+
+.search-field :deep(.v-field) {
+  min-height: 48px;
 }
 </style>

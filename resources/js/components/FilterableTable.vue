@@ -1845,7 +1845,6 @@
 </head>
 
 <body dir="${dir}">
-<h2>${t('گزارش جدول')}</h2>
   <table dir="${dir}">
     <thead><tr>${ths}</tr></thead>
     <tbody>
@@ -1974,7 +1973,6 @@
     <x:ExcelWorkbook>
       <x:ExcelWorksheets>
         <x:ExcelWorksheet>
-          <x:Name>${escapeHtml(t('گزارش جدول'))}</x:Name>
           <x:WorksheetOptions>
             <x:DisplayGridlines/>
             ${dir === 'rtl' ? '<x:DisplayRightToLeft/>' : ''}  <!-- ✅ THIS -->

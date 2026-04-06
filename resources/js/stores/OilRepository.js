@@ -1,9 +1,7 @@
-// src/stores/OilRepository.js
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
 import axios from 'axios'
 
-// tiny helper to match your pattern
 function setContentType(type) {
   if (!type) {
     delete axios.defaults.headers.common['Content-Type']
@@ -15,44 +13,35 @@ function setContentType(type) {
 export const useOilRepository = defineStore('OilRepository', {
   state() {
     return {
-      // shared pagination/meta
       page: 1,
       itemsPerPage: 10,
       totalItems: 0,
       loading: false,
 
-      // ---- ACCOUNTS ----
       OilAccounts: reactive([]),
       OilAccount: reactive({}),
 
-      // ---- INCOME OILS (comes) ----
       IncomeOils: reactive([]),
       IncomeOil: reactive({}),
 
-      // ---- EXPENSE OILS (goes) ----
       ExpenseOils: reactive([]),
       ExpenseOil: reactive({}),
 
-      // ui
       createDialog: false,
       updateDialog: false,
 
-      // filters
       Search: '',
+      searchField: null,
       from: null,
       to: null,
 
-      // ✅ YEARS dropdown loading
       yearsLoading: false,
 
-      // ✅ year/month filters (Gregorian values ONLY)
-      year: null, // 2026
-      month: null, // 1..12
+      year: null,
+      month: null,
 
-      // ✅ years dropdown (Gregorian years from backend)
       availableYears: reactive([]),
 
-      // summary (cards)
       summary: reactive({
         totalExpense: 0,
         totalIncome: 0,
@@ -60,25 +49,26 @@ export const useOilRepository = defineStore('OilRepository', {
         expenseCount: 0,
         incomeCount: 0,
         oilAccountsCount: 0,
-
-        // optional extra fields (safe)
         filteredExpense: 0,
         filteredIncome: 0,
+
+        total_quantity_all_accounts: 0,
+        total_income_quantity: 0,
+        total_expense_quantity: 0,
+        filtered_expense_quantity: 0,
+        filtered_balance: null,
+        has_filters: false,
       }),
     }
   },
 
   actions: {
-    // =========================
-    // YEARS
-    // =========================
     async FetchYears(type) {
       this.yearsLoading = true
       try {
         const resp = await axios.get(`/${type}/years`)
         const payload = resp.data
 
-        // ✅ ALWAYS force array
         this.availableYears =
           Array.isArray(payload) ? payload
           : Array.isArray(payload?.data) ? payload.data
@@ -89,7 +79,59 @@ export const useOilRepository = defineStore('OilRepository', {
       }
     },
 
-    // ------------------ ACCOUNTS ------------------
+    async FetchExpenseOilDateOptions(params = {}) {
+      return await axios.get('/expense-oils/date-options', { params })
+    },
+
+    async DownloadExpenseOilsExcel({
+      search = '',
+      search_field = null,
+      oil_account_id = null,
+      employee_id = null,
+      year = null,
+      month = null,
+      onDownloadProgress = null,
+    } = {}) {
+      const response = await axios.get('/expense-oils/export/excel', {
+        params: {
+          search,
+          search_field,
+          oil_account_id,
+          employee_id,
+          year,
+          month,
+        },
+        responseType: 'blob',
+        onDownloadProgress,
+      })
+
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+
+      const disposition = response.headers['content-disposition']
+      let fileName = 'expense_oils.xlsx'
+
+      if (disposition) {
+        const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+        if (match?.[1]) {
+          fileName = match[1].replace(/['"]/g, '')
+        }
+      }
+
+      link.setAttribute('download', fileName)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+
+      return response
+    },
+
     async FetchOilAccounts({ page, itemsPerPage } = {}) {
       this.loading = true
       setContentType('application/json')
@@ -167,7 +209,6 @@ export const useOilRepository = defineStore('OilRepository', {
       await this.FetchOilAccounts({ page: this.page, itemsPerPage: this.itemsPerPage })
     },
 
-    // ------------------ INCOME (comes) ------------------
     async FetchIncomeOils({ page, itemsPerPage } = {}) {
       this.loading = true
       setContentType('application/json')
@@ -222,8 +263,16 @@ export const useOilRepository = defineStore('OilRepository', {
       await this.FetchIncomeOils({ page: this.page, itemsPerPage: this.itemsPerPage })
     },
 
-    // ------------------ EXPENSE (goes) ------------------
-    async FetchExpenseOils({ page, itemsPerPage } = {}) {
+    async FetchExpenseOils({
+      page,
+      itemsPerPage,
+      search = this.Search,
+      search_field = this.searchField,
+      year = this.year,
+      month = this.month,
+      oil_account_id = null,
+      employee_id = null,
+    } = {}) {
       this.loading = true
       setContentType('application/json')
 
@@ -231,13 +280,23 @@ export const useOilRepository = defineStore('OilRepository', {
       const pp = itemsPerPage ?? this.itemsPerPage
 
       try {
+        this.page = p
+        this.itemsPerPage = pp
+        this.Search = search ?? ''
+        this.searchField = search_field ?? null
+        this.year = year ?? null
+        this.month = month ?? null
+
         const resp = await axios.get(`/expense-oils`, {
           params: {
             page: p,
             perPage: pp,
             search: this.Search || '',
+            search_field: this.searchField ?? undefined,
             year: this.year ?? undefined,
             month: this.month ?? undefined,
+            oil_account_id: oil_account_id ?? undefined,
+            employee_id: employee_id ?? undefined,
           },
         })
 
@@ -273,6 +332,32 @@ export const useOilRepository = defineStore('OilRepository', {
     async DeleteExpenseOil(id) {
       await axios.delete(`/expense-oils/${id}`)
       await this.FetchExpenseOils({ page: this.page, itemsPerPage: this.itemsPerPage })
+    },
+
+    ResetExpenseOilsFilters() {
+      this.page = 1
+      this.itemsPerPage = 10
+      this.Search = ''
+      this.searchField = null
+      this.year = null
+      this.month = null
+
+      this.summary = {
+        totalExpense: 0,
+        totalIncome: 0,
+        totalOilQuantity: 0,
+        expenseCount: 0,
+        incomeCount: 0,
+        oilAccountsCount: 0,
+        filteredExpense: 0,
+        filteredIncome: 0,
+        total_quantity_all_accounts: 0,
+        total_income_quantity: 0,
+        total_expense_quantity: 0,
+        filtered_expense_quantity: 0,
+        filtered_balance: null,
+        has_filters: false,
+      }
     },
   },
 })

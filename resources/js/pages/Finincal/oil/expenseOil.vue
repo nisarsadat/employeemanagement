@@ -1,126 +1,230 @@
-<!-- src/pages/Oil/ExpenseOils/ExpenseOilsIndex.vue -->
 <template>
-  <v-container fluid class="pt-4" :dir="isRtl ? 'rtl' : 'ltr'">
-    <!-- ✅ SUMMARY CARDS -->
-    <v-row class="mb-4" dense :dir="isRtl ? 'rtl' : 'ltr'">
-      <v-col cols="12" md="4">
-        <v-card elevation="2" rounded="xl" class="pa-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-caption text-medium-emphasis">{{ t('ټول مصرف') }}</div>
-              <div class="text-h6 font-weight-bold mt-1">
-                {{ liters(summaryView.totalExpense) }}
-              </div>
-              <div class="text-caption mt-1">
-                {{ t('ریکارډونه') }}: <strong>{{ repo.totalItems ?? 0 }}</strong>
-              </div>
-            </div>
-            <v-avatar size="44" class="elevation-1">
-              <v-icon size="24">mdi-cash-minus</v-icon>
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" md="4">
-        <v-card elevation="2" rounded="xl" class="pa-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-caption text-medium-emphasis">{{ t('ټول عاید') }}</div>
-              <div class="text-h6 font-weight-bold mt-1">
-                {{ liters(summaryView.totalIncome) }}
-              </div>
-              <div class="text-caption mt-1">
-                {{ t('ریکارډونه') }}: <strong>{{ summaryView.incomeCount }}</strong>
-              </div>
-            </div>
-            <v-avatar size="44" class="elevation-1">
-              <v-icon size="24">mdi-cash-plus</v-icon>
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" md="4">
-        <v-card elevation="2" rounded="xl" class="pa-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-caption text-medium-emphasis">{{ t('ټول تېل (موجود)') }}</div>
-              <div class="text-h6 font-weight-bold mt-1">
-                {{ liters(summaryView.totalOilQuantity) }}
-              </div>
-              <div class="text-caption mt-1">
-                {{ t('حسابونه') }}: <strong>{{ summaryView.oilAccountsCount }}</strong>
-              </div>
-            </div>
-            <v-avatar size="44" class="elevation-1">
-              <v-icon size="24">mdi-fuel</v-icon>
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- ✅ Top Bar -->
+  <v-container fluid class="pt-6 page-bg" :dir="isRtl ? 'rtl' : 'ltr'">
+    <!-- SUMMARY -->
     <v-row class="mb-4" dense>
       <v-col cols="12" md="4">
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('د تلونکو تېلو لټون')"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          density="compact"
-          clearable
-          @keyup.enter="applyFilters"
-          @click:clear="
-            () => {
-              repo.Search = '';
-              applyFilters();
-            }
-          "
-        />
+        <v-card rounded="xl" class="shadow-sm stat-card">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="min-w-0">
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('ټول مصرف') }}
+                </div>
+                <div class="text-h6 font-weight-bold stat-value">
+                  {{ liters(totalExpenseCardValue) }}
+                </div>
+              </div>
+              <div class="stat-icon-wrap"><v-icon size="26">mdi-cash-minus</v-icon></div>
+            </div>
+          </v-card-text>
+        </v-card>
       </v-col>
 
-      <!-- ✅ Year / Month (✅ same calendar-aware logic as Finances) -->
-      <v-col cols="12" md="3">
-        <v-select
-          v-model="selectedYear"
-          :items="yearItems"
-          item-title="title"
-          item-value="value"
-          :label="t('کال')"
-          variant="outlined"
-          density="compact"
-          clearable
-          :loading="repo.yearsLoading"
-          @update:modelValue="onYearMonthChanged"
-        />
+      <v-col cols="12" md="4">
+        <v-card rounded="xl" class="shadow-sm stat-card">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="min-w-0">
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('ټول عاید') }}
+                </div>
+                <div class="text-h6 font-weight-bold stat-value">
+                  {{ liters(totalIncomeCardValue) }}
+                </div>
+              </div>
+              <div class="stat-icon-wrap"><v-icon size="26">mdi-cash-plus</v-icon></div>
+            </div>
+          </v-card-text>
+        </v-card>
       </v-col>
 
-      <v-col cols="12" md="3">
-        <v-select
-          v-model="selectedMonth"
-          :items="monthOptions"
-          item-title="title"
-          item-value="value"
-          :label="t('میاشت')"
-          variant="outlined"
-          density="compact"
-          clearable
-          :disabled="!selectedYear"
-          @update:modelValue="onYearMonthChanged"
-        />
-      </v-col>
-
-      <v-col cols="12" md="2" class="text-md-right mt-2">
-        <v-btn color="primary" prepend-icon="mdi-plus" block @click="openCreate">
-          {{ t('نوی د تيلو مصرف') }}
-        </v-btn>
+      <v-col cols="12" md="4">
+        <v-card rounded="xl" class="shadow-sm stat-card">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="min-w-0">
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('ټول تېل (موجود)') }}
+                </div>
+                <div class="text-h6 font-weight-bold stat-value">
+                  {{ liters(balanceCardValue) }}
+                </div>
+              </div>
+              <div class="stat-icon-wrap"><v-icon size="26">mdi-fuel</v-icon></div>
+            </div>
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
 
-    <!-- TABLE -->
-    <v-card elevation="2" class="elevation-0">
+    <!-- Filters -->
+    <v-card rounded="xl" class="shadow-sm mb-4 filters-card">
+      <v-card-text class="pa-4">
+        <v-row dense class="align-center">
+          <v-col cols="12" sm="12" md="3">
+            <v-select
+              v-model="searchField"
+              :items="searchColumnItems"
+              item-title="title"
+              item-value="value"
+              density="comfortable"
+              variant="outlined"
+              color="primary"
+              rounded="lg"
+              hide-details
+              clearable
+              :label="t('ستون جستجو')"
+              class="bg-white"
+            />
+          </v-col>
+
+          <v-col cols="12" sm="12" md="3">
+            <v-text-field
+              v-model.trim="repo.Search"
+              :label="t('common.search')"
+              density="comfortable"
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              color="primary"
+              rounded="lg"
+              hide-details
+              clearable
+              @keyup.enter="applyFilters"
+              @click:clear="clearSearch"
+              class="bg-white search-field"
+            />
+          </v-col>
+
+          <v-col cols="12" sm="6" md="2">
+            <v-select
+              v-model="selectedYear"
+              :items="yearItems"
+              item-title="title"
+              item-value="value"
+              density="comfortable"
+              variant="outlined"
+              rounded="lg"
+              class="bg-white"
+              hide-details
+              clearable
+              :label="t('common.year')"
+            />
+          </v-col>
+
+          <v-col cols="12" sm="6" md="2">
+            <v-select
+              v-model="selectedMonth"
+              :items="monthItems"
+              item-title="title"
+              item-value="value"
+              density="comfortable"
+              variant="outlined"
+              class="bg-white"
+              rounded="lg"
+              hide-details
+              clearable
+              :label="t('common.month')"
+            />
+          </v-col>
+
+          <v-col cols="12" sm="4" md="1">
+            <v-btn
+              color="primary"
+              variant="flat"
+              rounded="lg"
+              block
+              class="text-none"
+              prepend-icon="mdi-filter"
+              @click="applyFilters"
+            >
+              {{ t('فلتر') }}
+            </v-btn>
+          </v-col>
+
+          <v-col cols="12" sm="4" md="1">
+            <v-btn
+              color="orange"
+              rounded="lg"
+              block
+              class="text-none"
+              prepend-icon="mdi-filter-remove"
+              @click="resetFilters"
+            >
+              {{ t('ریست') }}
+            </v-btn>
+          </v-col>
+
+          <v-col cols="12" class="d-flex justify-end mt-3">
+            <div class="d-flex ga-2 flex-wrap justify-end w-100">
+              <v-btn
+                color="success"
+                variant="flat"
+                class="text-none"
+                rounded="lg"
+                prepend-icon="mdi-microsoft-excel"
+                :loading="excelDownloading"
+                :disabled="excelDownloading"
+                @click="downloadExcel"
+              >
+                {{ t('اکسل') }}
+              </v-btn>
+
+              <v-btn color="error" class="text-none" prepend-icon="mdi-plus" @click="openCreate">
+                {{ t('نوی د تيلو مصرف') }}
+              </v-btn>
+
+              <v-btn
+                color="primary"
+                class="text-none"
+                prepend-icon="mdi-refresh"
+                @click="refreshTable"
+              >
+                {{ t('refresh') }}
+              </v-btn>
+            </div>
+          </v-col>
+
+          <v-col cols="12" class="pt-2">
+            <div class="d-flex ga-2 flex-wrap">
+              <v-chip
+                v-if="repo.Search"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-magnify"
+                closable
+                @click:close="clearSearch"
+              >
+                {{ repo.Search }}
+              </v-chip>
+
+              <v-chip
+                v-if="selectedYear"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-calendar"
+                closable
+                @click:close="clearYear"
+              >
+                {{ yearItems?.find((y) => y.value === selectedYear)?.title ?? selectedYear }}
+              </v-chip>
+
+              <v-chip
+                v-if="selectedYear && selectedMonth"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-calendar-month"
+                closable
+                @click:close="clearMonth"
+              >
+                {{ monthItems.find((m) => m.value === selectedMonth)?.title ?? selectedMonth }}
+              </v-chip>
+            </div>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+
+    <v-card elevation="2" class="elevation-0 table-card">
       <v-card-text class="pa-0">
         <FilterableTable
           :loading="repo.loading"
@@ -132,7 +236,6 @@
           :page="repo.page"
           :perPage="repo.itemsPerPage"
           :disableDateConvert="true"
-          @update:filters="(v) => (filters = v)"
           @update:page="onPage"
           @update:perPage="onItemsPerPage"
         >
@@ -197,358 +300,445 @@
       :is-rtl="isRtl"
       @confirm="handleDeleteConfirmed"
     />
+
+    <v-dialog v-model="excelDownloadDialog" max-width="360" persistent>
+      <v-card rounded="xl">
+        <v-card-text class="pa-5">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div class="text-subtitle-1 font-weight-bold">
+              {{ t('در حال دانلود اکسل...') }}
+            </div>
+            <div class="text-body-2 text-primary font-weight-bold">
+              {{ excelDownloadProgress }}%
+            </div>
+          </div>
+
+          <v-progress-linear
+            :model-value="excelDownloadProgress"
+            color="success"
+            height="10"
+            rounded
+            striped
+          />
+
+          <div class="text-caption text-medium-emphasis mt-3">
+            {{ t('لطفاً منتظر بمانید') }}
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, reactive, computed, onMounted, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import dayjs from 'dayjs';
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useOilRepository } from '@/stores/OilRepository'
+import ExpenseOilFormDialog from './ExpenseOilFormDialog.vue'
+import FilterableTable from '@/components/FilterableTable.vue'
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
+import GlobalPagination from '@/components/GlobalPagination.vue'
+import { usePageRefresh } from '@/composables/usePageRefresh'
+import { useCalendar } from '../../../../composables/useCalendar'
 
-  import { useOilRepository } from '@/stores/OilRepository';
-  import ExpenseOilFormDialog from './ExpenseOilFormDialog.vue';
-  import FilterableTable from '@/components/FilterableTable.vue';
-  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
-  import GlobalPagination from '@/components/GlobalPagination.vue';
-  import { useCalendar } from '../../../../composables/useCalendar';
-  import { usePageRefresh } from '@/composables/usePageRefresh';
+const repo = useOilRepository()
+const { t, locale } = useI18n()
 
-  const repo = useOilRepository();
-  const { t, locale } = useI18n();
+const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
 
-  /* ===== RTL ===== */
-  const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 
-  function getRow(payload) {
-    return payload?.raw ?? payload;
+const dialog = ref(false)
+const editMode = ref(false)
+
+const deleteDialog = ref(false)
+const deleteTarget = ref(null)
+
+const excelDownloadDialog = ref(false)
+const excelDownloadProgress = ref(0)
+const excelDownloading = ref(false)
+
+const selectedYear = ref(null)
+const selectedMonth = ref(null)
+const searchField = ref(null)
+
+const yearItems = ref([])
+const monthItems = ref([])
+
+
+function getRow(payload) {
+  return payload?.raw ?? payload
+}
+
+
+
+async function fetchYearItemsFromDb() {
+  try {
+    const res = await repo.FetchExpenseOilDateOptions()
+    const years = res?.data?.years || []
+
+    yearItems.value = years.map((y) => ({
+      value: y.value,
+      title: y.label,
+    }))
+  } catch (e) {
+    console.error('fetchYearItemsFromDb error', e)
+    yearItems.value = []
+  }
+}
+
+async function fetchMonthItemsFromDb(year = null) {
+  try {
+    const res = await repo.FetchExpenseOilDateOptions({ year })
+    const months = res?.data?.months || []
+
+    monthItems.value = months.map((m) => ({
+      value: m.value,
+      title: m.label,
+    }))
+  } catch (e) {
+    console.error('fetchMonthItemsFromDb error', e)
+    monthItems.value = []
+  }
+}
+
+watch(selectedYear, async (newYear) => {
+  selectedMonth.value = null;
+  await fetchMonthItemsFromDb(newYear);
+});
+
+const headersFT = computed(() => [
+  { title: t('کود کارمند'), key: 'officeemployee', sortable: false },
+  { title: t('نام'), key: 'name', sortable: false },
+  { title: t('نام پدر'), key: 'father_name', sortable: false },
+  { title: t('نیټه'), key: 'date', sortable: false },
+  { title: t('لیټر په عدد'), key: 'liter_in_number', sortable: false },
+  { title: t('لیټر په حروف'), key: 'liter_in_words', sortable: false },
+  { title: t('نوعیت'), key: 'account', sortable: false },
+  { title: t('تفصیل'), key: 'tafseel', sortable: false },
+  { title: t('پرداخت کننده'), key: 'payer', sortable: false },
+  { title: t('اخیستونکی لاسلیک'), key: '', sortable: false },
+  { title: t('ملاحظات'), key: 'note', sortable: false },
+])
+
+const searchColumnItems = computed(() => {
+  const items = headersFT.value
+    .filter((h) => h?.key)
+    .map((h) => ({
+      title: h.title,
+      value: h.key,
+    }))
+
+  return [{ title: t('همه ستون‌ها'), value: null }, ...items]
+})
+
+const rowsFT = computed(() => {
+  return (repo.ExpenseOils || []).map((it, i) => ({
+    ...it,
+    idOrTmp: it?.id ?? `tmp-${i}`,
+    index: i + 1,
+    account: it?.account?.name ?? it?.account ?? '—',
+    name: it?.name ?? '—',
+    father_name: it?.father_name ?? '—',
+    officeemployee: it?.employee?.code_number ?? it?.office_employee?.code_number ?? '—',
+    payer: it?.payer ?? '—',
+    liter_in_number: litersRaw(it?.liter_in_number ?? it?.oil_quantity ?? 0),
+    liter_in_words: it?.liter_in_words ?? '—',
+    date: it?.date ?? '',
+    note: it?.note ?? '',
+    tafseel: it?.tafseel ?? it?.destination ?? '',
+    raw: it,
+  }))
+})
+
+const filters = []
+const topGroups = []
+
+const summary = computed(() => repo.summary || {})
+
+const hasAnyFilter = computed(() => {
+  return !!(
+    repo.Search ||
+    selectedYear.value ||
+    selectedMonth.value ||
+    summary.value?.has_filters
+  )
+})
+
+const totalExpenseCardValue = computed(() =>
+  hasAnyFilter.value
+    ? summary.value?.filtered_expense_quantity
+    : summary.value?.total_expense_quantity
+)
+
+const totalIncomeCardValue = computed(() =>
+  hasAnyFilter.value
+    ? summary.value?.total_income_quantity
+    : summary.value?.total_income_quantity
+)
+
+const balanceCardValue = computed(() =>
+  hasAnyFilter.value
+    ? summary.value?.filtered_balance ?? summary.value?.total_quantity_all_accounts
+    : summary.value?.total_quantity_all_accounts
+)
+
+const draft = reactive({
+  id: null,
+  oil_account_id: null,
+  employee_id: null,
+  name: '',
+  father_name: '',
+  payer: '',
+  date: null,
+  liter_in_number: 0,
+  liter_in_words: '',
+  tafseel: '',
+  note: '',
+})
+
+const fetchAll = async () => {
+  await repo.FetchExpenseOils({
+    page: repo.page,
+    itemsPerPage: repo.itemsPerPage,
+    search: repo.Search,
+    search_field: searchField.value,
+    year: selectedYear.value,
+    month: selectedMonth.value,
+  })
+}
+
+usePageRefresh('/app/finincalindex', fetchAll)
+
+function applyFilters() {
+  repo.page = 1
+  fetchAll()
+}
+
+function clearSearch() {
+  repo.Search = ''
+  repo.page = 1
+  fetchAll()
+}
+
+function clearYear() {
+  selectedYear.value = null
+  selectedMonth.value = null
+  applyFilters()
+}
+
+function clearMonth() {
+  selectedMonth.value = null
+  applyFilters()
+}
+
+function resetFilters() {
+  selectedYear.value = null
+  selectedMonth.value = null
+  searchField.value = null
+
+  if (typeof repo.ResetExpenseOilsFilters === 'function') {
+    repo.ResetExpenseOilsFilters()
+  } else {
+    repo.page = 1
+    repo.itemsPerPage = 10
+    repo.Search = ''
+    repo.searchField = null
+    repo.year = null
+    repo.month = null
   }
 
-  /* ===== Calendar (same as Finances) ===== */
-  const { calendar, formatYearDisplay, toIso } = useCalendar();
+  applyFilters()
+}
 
-  /* ===== Year/Month filters (values stay Gregorian) ===== */
-  const selectedYear = ref(null); // sent to backend (gregorian)
-  const selectedMonth = ref(null); // sent to backend (gregorian 1..12)
+function refreshTable() {
+  fetchAll()
+}
 
-  /* ===== ✅ Year items from backend, titles follow calendar mode ===== */
-  const yearItems = ref([]);
-  const yearNumbers = ref([]);
-
-  function rebuildYearItems() {
-    if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
-    yearItems.value = yearNumbers.value.map((y) => ({
-      value: y,
-      title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
-    }));
-  }
-
-  async function fetchYearItemsFromRepo() {
-    const years = Array.isArray(repo.availableYears) ? repo.availableYears : [];
-    yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
-    rebuildYearItems();
-  }
-
-  /* update year titles when calendar/locale changes (selected value stays same) */
-  watch([calendar, locale], () => rebuildYearItems());
-
-  /* ===== ✅ Month titles follow calendar mode, values stay gregorian 1..12 ===== */
-  const JALALI_MONTHS_FA = [
-    'حمل',
-    'ثور',
-    'جوزا',
-    'سرطان',
-    'اسد',
-    'سنبله',
-    'میزان',
-    'عقرب',
-    'قوس',
-    'جدی',
-    'دلو',
-    'حوت',
-  ];
-
-  const HIJRI_QAMARI_MONTHS_FA = [
-    'محرم',
-    'صفر',
-    'ربیع‌الاول',
-    'ربیع‌الثانی',
-    'جمادی‌الاول',
-    'جمادی‌الثانی',
-    'رجب',
-    'شعبان',
-    'رمضان',
-    'شوال',
-    'ذوالقعده',
-    'ذوالحجه',
-  ];
-
-  function monthTitleFromGregorianMonth(gYear, gMonth) {
-    const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
-
-    if (calendar.value === 'gregorian') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
-      } catch {
-        return String(gMonth);
-      }
-    }
-
-    if (calendar.value === 'jalali') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat(locale.value, {
-          calendar: 'persian',
-          month: 'numeric',
-        });
-        const parts = fmt.formatToParts(dt);
-        const m = Number(parts.find((p) => p.type === 'month')?.value);
-        if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
-      } catch {}
-      return JALALI_MONTHS_FA[(gMonth - 1) % 12];
-    }
-
-    if (calendar.value === 'hijri') {
-      try {
-        const dt = new Date(iso + 'T00:00:00');
-        const fmt = new Intl.DateTimeFormat('ar', {
-          calendar: 'islamic-umalqura',
-          month: 'numeric',
-        });
-        const parts = fmt.formatToParts(dt);
-        const m = Number(parts.find((p) => p.type === 'month')?.value);
-        if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
-      } catch {}
-      return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
-    }
-
-    return String(gMonth);
-  }
-
-  const monthOptions = computed(() => {
-    const y = selectedYear.value || dayjs().year();
-    return Array.from({ length: 12 }).map((_, i) => {
-      const m = i + 1;
-      return { value: m, title: monthTitleFromGregorianMonth(y, m) };
-    });
-  });
-
-  function onYearMonthChanged() {
-    if (!selectedYear.value) selectedMonth.value = null;
-    applyFilters();
-  }
-
-  /* ===== Summary / Table ===== */
-  const summaryView = computed(() => {
-    const s = repo.summary || {};
-
-    const totalExpenseSnake = s.total_expense_quantity ?? s.filtered_expense_quantity;
-    const totalIncomeSnake = s.total_income_quantity;
-    const totalOilSnake = s.total_quantity_all_accounts;
-
-    const totalExpenseCamel = s.totalExpense ?? s.filteredExpense;
-    const totalIncomeCamel = s.totalIncome;
-    const totalOilCamel = s.totalOilQuantity;
-
-    return {
-      totalExpense: Number(totalExpenseSnake ?? totalExpenseCamel ?? 0),
-      totalIncome: Number(totalIncomeSnake ?? totalIncomeCamel ?? 0),
-      totalOilQuantity: Number(totalOilSnake ?? totalOilCamel ?? 0),
-      incomeCount: Number(s.incomeCount ?? 0),
-      oilAccountsCount: Number(s.oilAccountsCount ?? 0),
-    };
-  });
-
-  const headersFT = computed(() => [
-    { title: t('کود کارمند'), key: 'officeemployee', sortable: false },
-    { title: t('نام'), key: 'name', sortable: false },
-    { title: t('نام پدر'), key: 'father_name', sortable: false },
-    { title: t('نیټه'), key: 'date', sortable: false },
-    { title: t('لیټر په عدد'), key: 'liter_in_number', sortable: false },
-    { title: t('لیټر په حروف'), key: 'liter_in_words', sortable: false },
-    { title: t('نوعیت'), key: 'account', sortable: false },
-    { title: t('تفصیل'), key: 'tafseel', sortable: false },
-    { title: t('پرداخت کننده'), key: 'payer', sortable: false },
-    { title: t('اخیستونکی لاسلیک'), key: '', sortable: false },
-    { title: t('ملاحظات'), key: 'note', sortable: false },
-  ]);
-
-const litersRaw = (n) =>
-  Number(n ?? 0).toLocaleString(undefined, {
-    maximumFractionDigits: 3,
-  });
-
-  // ✅ IMPORTANT: keep date raw Gregorian (no formatDisplay)
-  const rowsFT = computed(() => {
-    return (repo.ExpenseOils || []).map((it, i) => ({
-      ...it,
-      idOrTmp: it?.id ?? `tmp-${i}`,
-      index: i + 1,
-      account: it?.account?.name ?? it?.account ?? '—',
-      name: it?.name ?? '—',
-      father_name: it?.father_name ?? '—',
-      officeemployee: it?.employee?.code_number ?? it?.office_employee?.code_number ?? '—',
-      payer: it?.payer ?? '—',
-      liter_in_number: litersRaw(it?.liter_in_number ?? it?.oil_quantity ?? 0),
-      date: it?.date ?? '', // ✅ raw
-      note: it?.note ?? '',
-      tafseel: it?.tafseel ?? it?.destination ?? '',
-      raw: it,
-    }));
-  });
-
-  // ✅ Finance-style filters object
-  let filters = ref({});
-  const topGroups = [];
-
-  const dialog = ref(false);
-  const editMode = ref(false);
-
-  const deleteDialog = ref(false);
-  const deleteTarget = ref(null);
-
-  const draft = reactive({
+const openCreate = () => {
+  editMode.value = false
+  Object.assign(draft, {
     id: null,
     oil_account_id: null,
     employee_id: null,
-
     name: '',
     father_name: '',
     payer: '',
     date: null,
-
     liter_in_number: 0,
     liter_in_words: '',
-
     tafseel: '',
     note: '',
-  });
+  })
+  dialog.value = true
+}
 
-  /* ===== Fetch / filters ===== */
-  const fetchAll = async () => {
-    await repo.FetchExpenseOils({
-      page: repo.page,
-      itemsPerPage: repo.itemsPerPage,
-      search: repo.Search,
-      year: selectedYear.value,
-      month: selectedMonth.value,
-    });
-  };
+const startEdit = async (payload) => {
+  const row = getRow(payload)
+  const id = row?.id
+  if (!id) return
 
-  const applyFilters = async () => {
-    repo.page = 1;
-    await fetchAll();
-  };
+  editMode.value = true
 
-  const onPage = async (p) => {
-    repo.page = p || 1;
-    await fetchAll();
-  };
+  await repo.FetchExpenseOil(id)
 
-  const onItemsPerPage = async (pp) => {
-    repo.itemsPerPage = pp || 10;
-    repo.page = 1;
-    await fetchAll();
-  };
-  usePageRefresh('/app/finincalindex', fetchAll);
-
-  const openCreate = () => {
-    editMode.value = false;
-    Object.assign(draft, {
-      id: null,
-      oil_account_id: null,
-      employee_id: null,
-
-      name: '',
-      father_name: '',
-      payer: '',
-      date: null,
-
-      liter_in_number: 0,
-      liter_in_words: '',
-
-      tafseel: '',
-      note: '',
-    });
-    dialog.value = true;
-  };
-  const startEdit = async (payload) => {
-  const row = getRow(payload);
-  const id = row?.id;
-  if (!id) return;
-
-  editMode.value = true;
-
-  await repo.FetchExpenseOil(id);
-
-  const d = repo.ExpenseOil || {};
+  const d = repo.ExpenseOil || {}
   Object.assign(draft, {
     id: d.id ?? null,
     oil_account_id: d.oil_account_id ?? d.account?.id ?? null,
     employee_id: d.employee_id ?? d.employee?.id ?? d.office_employee?.id ?? null,
-
     name: d.name ?? '',
     father_name: d.father_name ?? '',
     payer: d.payer ?? '',
     date: d.date ?? null,
-
     liter_in_number: d.liter_in_number ?? d.oil_quantity ?? 0,
     liter_in_words: d.liter_in_words ?? d.liter_in_word ?? '',
-
     tafseel: d.tafseel ?? d.destination ?? '',
     note: d.note ?? '',
-  });
+  })
 
-  dialog.value = true;
-};
+  dialog.value = true
+}
 
+const onSave = async (payload) => {
+  if (payload?.date) payload.date = toIso(payload.date)
 
-  const onSave = async (payload) => {
-    if (payload?.date) payload.date = toIso(payload.date);
+  if (editMode.value && payload.id) await repo.UpdateExpenseOil(payload.id, payload)
+  else await repo.CreateExpenseOil(payload)
 
-    if (editMode.value && payload.id) await repo.UpdateExpenseOil(payload.id, payload);
-    else await repo.CreateExpenseOil(payload);
+  dialog.value = false
+  await fetchAll()
+}
 
-    dialog.value = false;
-    await fetchAll();
-  };
+function openDeleteDialog(payload) {
+  const row = getRow(payload)
+  if (!row?.id) return
+  deleteTarget.value = row
+  deleteDialog.value = true
+}
 
-  function openDeleteDialog(payload) {
-    const row = getRow(payload);
-    if (!row?.id) return;
-    deleteTarget.value = row;
-    deleteDialog.value = true;
+async function handleDeleteConfirmed(target) {
+  const row = target || deleteTarget.value
+  if (!row?.id) {
+    deleteDialog.value = false
+    deleteTarget.value = null
+    return
   }
 
-  async function handleDeleteConfirmed(target) {
-    const row = target || deleteTarget.value;
-    if (!row?.id) {
-      deleteDialog.value = false;
-      deleteTarget.value = null;
-      return;
-    }
-
-    try {
-      await repo.DeleteExpenseOil(row.id);
-      await fetchAll();
-    } finally {
-      deleteDialog.value = false;
-      deleteTarget.value = null;
-    }
+  try {
+    await repo.DeleteExpenseOil(row.id)
+    await fetchAll()
+  } finally {
+    deleteDialog.value = false
+    deleteTarget.value = null
   }
+}
+
+const onPage = async (p) => {
+  repo.page = p || 1
+  await fetchAll()
+}
+
+const onItemsPerPage = async (pp) => {
+  repo.itemsPerPage = pp || 10
+  repo.page = 1
+  await fetchAll()
+}
+
+async function downloadExcel() {
+  try {
+    excelDownloading.value = true
+    excelDownloadDialog.value = true
+    excelDownloadProgress.value = 0
+
+    await repo.DownloadExpenseOilsExcel({
+      search: repo.Search || '',
+      search_field: searchField.value,
+      year: selectedYear.value,
+      month: selectedMonth.value,
+      onDownloadProgress: (progressEvent) => {
+        const total = progressEvent.total || 0
+        const loaded = progressEvent.loaded || 0
+
+        if (total > 0) {
+          excelDownloadProgress.value = Math.min(100, Math.round((loaded * 100) / total))
+        } else {
+          if (excelDownloadProgress.value < 90) {
+            excelDownloadProgress.value += 5
+          }
+        }
+      },
+    })
+
+    excelDownloadProgress.value = 100
+  } catch (e) {
+    console.error('downloadExcel error', e)
+  } finally {
+    setTimeout(() => {
+      excelDownloadDialog.value = false
+      excelDownloading.value = false
+      excelDownloadProgress.value = 0
+    }, 400)
+  }
+}
+
+const litersRaw = (n) =>
+  Number(n ?? 0).toLocaleString(undefined, {
+    maximumFractionDigits: 3,
+  })
+
 const liters = (n) =>
   `${Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 3 })} L`
 
-  /* ===== Init ===== */
-  onMounted(async () => {
-    await repo.FetchYears('expense-oils'); // fills repo.availableYears
-    await fetchYearItemsFromRepo();
-    await fetchAll();
-  });
+onMounted(async () => {
+  await fetchYearItemsFromDb()
+  await fetchMonthItemsFromDb(null)
+  await fetchAll()
+})
 </script>
 
 <style scoped>
-  .icon-btn {
-    border-radius: 10px;
-  }
+.page-bg {
+  min-height: 100%;
+}
+
+.stat-card {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  position: relative;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(25, 118, 210, 0.07), rgba(156, 39, 176, 0.05));
+  pointer-events: none;
+}
+.stat-value {
+  letter-spacing: 0.2px;
+}
+.stat-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(25, 118, 210, 0.08);
+}
+
+.filters-card,
+.table-card {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.icon-btn {
+  border-radius: 10px;
+}
+
+:deep(.v-table) {
+  border-radius: 16px;
+}
+
+.search-field :deep(.v-field) {
+  min-height: 48px;
+}
 </style>

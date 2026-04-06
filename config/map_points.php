@@ -135,7 +135,7 @@ return [
         [
             'table' => 'mulkanos',
             'type' => 'mulkano',
-            'typeLabel' => 'د کوڅو نماینده',
+            'typeLabel' => 'د کوڅې نماینده',
             'show_url' => '/api/mulkanos/',
             'title_candidates' => ['name', 'title', 'responsible_name', 'code_number'],
             'join_resource' => true,
@@ -167,7 +167,7 @@ return [
         [
             'table' => 'mahajerats',
             'type' => 'mahajerat',
-            'typeLabel' => 'نوي راغلي کورونه',
+            'typeLabel' => 'نوی راغلی کور',
             'show_url' => '/api/mahajerats/',
             'title_candidates' => ['name', 'title', 'house_name', 'code_number'],
             'join_resource' => true,
@@ -175,7 +175,7 @@ return [
         [
             'table' => 'soldiers',
             'type' => 'soldier',
-            'typeLabel' => 'پخواني چارواکې',
+            'typeLabel' => 'پخوانی چارواکی',
             'show_url' => '/api/soldiers/',
             'title_candidates' => ['name', 'title', 'responsible_name', 'code_number'],
             'join_resource' => true,
@@ -185,7 +185,7 @@ return [
         [
             'table' => 'mawads',
             'type' => 'mawad',
-            'typeLabel' => 'د نشه یی توکو پلورونکي',
+            'typeLabel' => 'د نشه یی توکو پلورونکی',
             'show_url' => '/api/mawads/',
             'title_candidates' => ['name', 'title', 'responsible_name', 'code_number'],
             'join_resource' => true,
@@ -193,7 +193,7 @@ return [
         [
             'table' => 'lost_mujremeens',
             'type' => 'lost_mujremeen',
-            'typeLabel' => 'نادرکه شوي مجرمین',
+            'typeLabel' => 'نادرکه شوي مجرم',
             'show_url' => '/api/lost-mujremeens/',
             'title_candidates' => ['name', 'title', 'person_name', 'code_number'],
             'join_resource' => true,
@@ -201,7 +201,7 @@ return [
         [
             'table' => 'old_soldiers_homes',
             'type' => 'old_soldiers_homes',
-            'typeLabel' => 'د پخواني چارواکو کورونه',
+            'typeLabel' => 'د پخوانی چارواکی کور',
             'show_url' => '/api/old-soldiers-homes/',
             'title_candidates' => ['name', 'title', 'house_name', 'code_number'],
             'join_resource' => true,
@@ -209,7 +209,7 @@ return [
         [
             'table' => 'robbers',
             'type' => 'robbers',
-            'typeLabel' => 'اختطاف ګران',
+            'typeLabel' => 'اختطاف ګر',
             'show_url' => '/api/robbers/',
             'title_candidates' => ['name', 'title', 'person_name', 'code_number'],
             'join_resource' => true,
@@ -225,7 +225,7 @@ return [
         [
             'table' => 'mashkok_homes',
             'type' => 'mashkok_homes',
-            'typeLabel' => 'مشکوکو کورونه',
+            'typeLabel' => 'مشکوک کور',
             'show_url' => '/api/mashkok-homes/',
             'title_candidates' => ['name', 'title', 'house_name', 'code_number'],
             'join_resource' => true,
@@ -241,7 +241,7 @@ return [
         [
             'table' => 'damage_rasan_places',
             'type' => 'damage_rasan_places',
-            'typeLabel' => 'آسیب رسانه ساحې',
+            'typeLabel' => 'آسیب رسانه ساحه',
             'show_url' => '/api/damage-rasan-places/',
             'title_candidates' => ['name', 'title', 'place_name', 'code_number'],
             'join_resource' => true,
@@ -249,7 +249,7 @@ return [
         [
             'table' => 'mashkok_shops',
             'type' => 'mashkok_shops',
-            'typeLabel' => 'مشکوک دوکانونه',
+            'typeLabel' => 'مشکوک دوکان',
             'show_url' => '/api/mashkok-shops/',
             'title_candidates' => ['name', 'title', 'shop_name', 'code_number'],
             'join_resource' => true,
@@ -257,7 +257,7 @@ return [
         [
             'table' => 'luchakanos',
             'type' => 'luchakanos',
-            'typeLabel' => 'لوچکان او بی بند و باره افراد',
+            'typeLabel' => 'لوچک او بی بند و باره فرد',
             'show_url' => '/api/luchakanos/',
             'title_candidates' => ['name', 'title', 'person_name', 'code_number'],
             'join_resource' => true,
@@ -267,7 +267,7 @@ return [
         [
             'table' => 'schools',
             'type' => 'schools',
-            'typeLabel' => 'ښونځیو او روزنیز مراکز',
+            'typeLabel' => 'ښونځی او روزنیز مرکز',
             'show_url' => '/api/schools/',
             'title_candidates' => ['school_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -275,7 +275,7 @@ return [
         [
             'table' => 'hado_bus_stops',
             'type' => 'hado_bus_stops',
-            'typeLabel' => 'هډې',
+            'typeLabel' => 'هډه',
             'show_url' => '/api/hado-bus-stops/',
             'title_candidates' => ['hado_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -283,7 +283,7 @@ return [
         [
             'table' => 'transport_companies',
             'type' => 'transport_companies',
-            'typeLabel' => 'ترانسپورتي شرکتونه',
+            'typeLabel' => 'ترانسپورتي شرکت',
             'show_url' => '/api/transport-companies/',
             'title_candidates' => ['company_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -307,7 +307,7 @@ return [
         [
             'table' => 'banks',
             'type' => 'banks',
-            'typeLabel' => 'بانکونه',
+            'typeLabel' => 'بانک',
             'show_url' => '/api/banks/',
             'title_candidates' => ['bank_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -315,7 +315,7 @@ return [
         [
             'table' => 'apartments',
             'type' => 'apartments',
-            'typeLabel' => 'رهایشي بلاکونه',
+            'typeLabel' => 'رهایشي بلاک',
             'show_url' => '/api/apartments/',
             'title_candidates' => ['block_name', 'apartment_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -331,7 +331,7 @@ return [
         [
             'table' => 'hosppitals',
             'type' => 'hosppitals',
-            'typeLabel' => 'روغتوتونه او صحي مراکز',
+            'typeLabel' => 'روغتون او صحي مرکز',
             'show_url' => '/api/hosppitals/',
             'title_candidates' => ['hosppital_name', 'hospital_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -339,7 +339,7 @@ return [
         [
             'table' => 'work_shops',
             'type' => 'work_shops',
-            'typeLabel' => 'مستري خانې او مستري خانې',
+            'typeLabel' => 'مستري خانه',
             'show_url' => '/api/work-shops/',
             'title_candidates' => ['work_shop_name', 'shop_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -349,7 +349,7 @@ return [
         [
             'table' => 'badmashanos',
             'type' => 'badmashanos',
-            'typeLabel' => 'زورواکان او ولکه داران',
+            'typeLabel' => 'زورواک او ولکه دار',
             'show_url' => '/api/badmashanos/',
             'title_candidates' => ['name', 'title', 'person_name', 'code_number'],
             'join_resource' => true,
@@ -357,7 +357,7 @@ return [
         [
             'table' => 'emarat_offices',
             'type' => 'emarat_offices',
-            'typeLabel' => 'امارتي اداراتو،مسولینو کورونه او میلمسنونونه',
+            'typeLabel' => 'امارتي مسوول کور او میلمستون',
             'show_url' => '/api/emarat-offices/',
             'title_candidates' => ['office_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -365,7 +365,7 @@ return [
         [
             'table' => 'hostels',
             'type' => 'hostels',
-            'typeLabel' => 'لیلې او کرایي اطاقونه',
+            'typeLabel' => 'لیله او کرایي اطاق',
             'show_url' => '/api/hostels/',
             'title_candidates' => ['hostel_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -373,7 +373,7 @@ return [
         [
             'table' => 'hotels',
             'type' => 'hotels',
-            'typeLabel' => 'میلمستونونو،مسافرخانو،هوټلونه او رسټوردانټ',
+            'typeLabel' => 'میلمستون ،مسافرخانه ،هوټل او رسټوردانټ',
             'show_url' => '/api/hotels/',
             'title_candidates' => ['hotel_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -381,7 +381,7 @@ return [
         [
             'table' => 'madrasas',
             'type' => 'madrasas',
-            'typeLabel' => 'دینې مدارس',
+            'typeLabel' => 'دینې مدرسه',
             'show_url' => '/api/madrasas/',
             'title_candidates' => ['madrasa_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -389,7 +389,7 @@ return [
         [
             'table' => 'mashkok_people',
             'type' => 'mashkok_people',
-            'typeLabel' => 'مشکوک افراد',
+            'typeLabel' => 'مشکوک فرد',
             'show_url' => '/api/mashkok-people/',
             'title_candidates' => ['name', 'title', 'person_name', 'code_number'],
             'join_resource' => true,
@@ -397,7 +397,7 @@ return [
         [
             'table' => 'mujahedinos',
             'type' => 'mujahedinos',
-            'typeLabel' => 'مجاهدین',
+            'typeLabel' => 'مجاهد',
             'show_url' => '/api/mujahedinos/',
             'title_candidates' => ['name', 'title', 'person_name', 'code_number'],
             'join_resource' => true,
@@ -405,7 +405,7 @@ return [
         [
             'table' => 'old_jahadis',
             'type' => 'old_jahadis',
-            'typeLabel' => 'پخواني جهادي قومندانان',
+            'typeLabel' => 'پخوانی جهادي قومندان',
             'show_url' => '/api/old-jahadis/',
             'title_candidates' => ['name', 'title', 'person_name', 'code_number'],
             'join_resource' => true,
@@ -413,7 +413,7 @@ return [
         [
             'table' => 'sarayanos',
             'type' => 'sarayanos',
-            'typeLabel' => 'سرایونه',
+            'typeLabel' => 'سرای',
             'show_url' => '/api/sarayanos/',
             'title_candidates' => ['saray_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -421,7 +421,7 @@ return [
         [
             'table' => 'tujarans',
             'type' => 'tujarans',
-            'typeLabel' => 'علماوو ، متنفذینو ، تجارانو او عالي رتبه اشخاص اشخاص',
+            'typeLabel' => 'عالم ، متنفذ ، تجار او عالي رتبه شخص',
             'show_url' => '/api/tujarans/',
             'title_candidates' => ['name', 'title', 'person_name', 'code_number'],
             'join_resource' => true,
@@ -431,7 +431,7 @@ return [
         [
             'table' => 'checkpoints',
             'type' => 'checkpoints',
-            'typeLabel' => 'چک پواینټونه او پوستې',
+            'typeLabel' => 'چک پواینټ او پوسته',
             'show_url' => '/api/checkpoints/',
             'title_candidates' => ['checkpoint_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -439,7 +439,7 @@ return [
         [
             'table' => 'masjids',
             'type' => 'masjids',
-            'typeLabel' => 'مساجد خاناقاوې او تکیه خانې',
+            'typeLabel' => 'مسجد، خاناقا او تکیه خانه',
             'show_url' => '/api/masjids/',
             'title_candidates' => ['masjid_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -455,7 +455,7 @@ return [
         [
             'table' => 'companies',
             'type' => 'companies',
-            'typeLabel' => 'فابریکې او شرکتونه',
+            'typeLabel' => 'فابریکه او شرکت',
             'show_url' => '/api/companies/',
             'title_candidates' => ['company_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -463,7 +463,7 @@ return [
         [
             'table' => 'done_lost_places',
             'type' => 'done_lost_places',
-            'typeLabel' => 'هغه ساحې چې اختطاف پکې ترسره شوی',
+            'typeLabel' => 'هغه ساحه چې اختطاف پکې ترسره شوی',
             'show_url' => '/api/done-lost-places/',
             'title_candidates' => ['place_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -471,7 +471,7 @@ return [
         [
             'table' => 'econemy_projects',
             'type' => 'econemy_projects',
-            'typeLabel' => 'مهم تاسیسات او اقتصادي پروژې',
+            'typeLabel' => 'مهم تاسیسات او اقتصادي پرو‌ژه',
             'show_url' => '/api/econemy-projects/',
             'title_candidates' => ['project_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -479,7 +479,7 @@ return [
         [
             'table' => 'criminal_capture_places',
             'type' => 'criminal_capture_places',
-            'typeLabel' => 'هغې ساحې چې مجرمین پکې نیول شوی',
+            'typeLabel' => 'هغې ساحه چې مجرم پکې نیول شوی',
             'show_url' => '/api/criminal-capture-places/',
             'title_candidates' => ['place_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -487,7 +487,7 @@ return [
         [
             'table' => 'pumps',
             'type' => 'pumps',
-            'typeLabel' => 'پمپونه',
+            'typeLabel' => 'پمپ',
             'show_url' => '/api/pumps/',
             'title_candidates' => ['pump_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -495,7 +495,7 @@ return [
         [
             'table' => 'shoras',
             'type' => 'shoras',
-            'typeLabel' => 'محلي شوراګانې',
+            'typeLabel' => 'محلي شورا',
             'show_url' => '/api/shoras/',
             'title_candidates' => ['shora_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -503,7 +503,7 @@ return [
         [
             'table' => 'governmentplaces',
             'type' => 'governmentplaces',
-            'typeLabel' => 'دولتي ځایونه',
+            'typeLabel' => 'دولت ځایونه',
             'show_url' => '/api/governmentplaces/',
             'title_candidates' => ['place_name', 'name', 'title', 'code_number'],
             'join_resource' => true,

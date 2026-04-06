@@ -76,7 +76,13 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     // Others you used elsewhere
     CaptiveDeliveries: reactive([]),
     CaptiveDelivery: reactive({}),
-
+    captiveCardCounts: {
+      total: 0,
+      spy: 0,
+      saeen: 0,
+      sharFasad: 0,
+      today: 0,
+    },
     // // inside state()
     financePrefill: null,
 
@@ -1072,15 +1078,34 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         });
 
         const res = await axios.get('/captive-deliveries', {
-          params: queryParams,
+          params: {
+            ...queryParams,
+            stat: params.stat ?? 'all',
+            search_field: params.search_field ?? undefined,
+          },
         });
 
         applyPaginatedResponse(this, res, 'CaptiveDeliveries');
+
+        this.captiveCardCounts = {
+          total: Number(res?.data?.card_counts?.total ?? 0),
+          spy: Number(res?.data?.card_counts?.spy ?? 0),
+          saeen: Number(res?.data?.card_counts?.saeen ?? 0),
+          sharFasad: Number(res?.data?.card_counts?.sharFasad ?? 0),
+          today: Number(res?.data?.card_counts?.today ?? 0),
+        };
       } catch (e) {
         console.error(e);
         this.error = e;
         this.CaptiveDeliveries = [];
         this.totalItems = 0;
+        this.captiveCardCounts = {
+          total: 0,
+          spy: 0,
+          saeen: 0,
+          sharFasad: 0,
+          today: 0,
+        };
       } finally {
         this.loading = false;
       }
@@ -1114,6 +1139,45 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       }
     },
 
+    async DownloadCaptiveDeliveriesExcel(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const queryParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: false,
+          includeDateFilter: false,
+        });
+
+        const res = await axios.get('/captive-deliveries/export/excel', {
+          params: {
+            ...queryParams,
+            stat: params.stat ?? 'all',
+            search_field: params.search_field ?? undefined,
+            date_field: params.date_field ?? 'captive_date',
+          },
+          responseType: 'blob',
+        });
+
+        const blob = new Blob([res.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'captive_deliveries.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'دانلود اکسل ناکام شد'));
+        throw e;
+      }
+    },
     // --- CREATE with progress ---
     async CreateCaptiveDelivery(formData, onProgress) {
       try {

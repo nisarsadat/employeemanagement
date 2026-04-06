@@ -286,6 +286,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // captive-deliveries => module: captive_deliveries
     protectResource('captive-deliveries', 'captive_deliveries', CaptiveDeliveryController::class);
+    Route::get('/captive-deliveries/export/excel', [CaptiveDeliveryController::class, 'exportExcel']);
     Route::get   ('captive-deliveries/{captiveDelivery}/documents',              [CaptiveDeliveryDocumentController::class, 'index']);
     Route::post  ('captive-deliveries/{captiveDelivery}/documents',              [CaptiveDeliveryDocumentController::class, 'store']);
     Route::delete('captive-deliveries/{captiveDelivery}/documents/{document}',   [CaptiveDeliveryDocumentController::class, 'destroy']);
@@ -387,13 +388,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('wakilanos', WakilanoController::class);
 
     // ---------------------- Finance ----------------------
-    protectResource('account-types', 'account_types', AccountTypeController::class);
+    Route::get('/accounts/date-options', [AccountController::class, 'dateOptions']);
     Route::get('/accounts/years', [AccountController::class, 'years']);
+
     Route::get('/incomes/years', [IncomeController::class, 'years']);
+
     Route::get('/finances/years', [FinanceController::class, 'years']);
-    Route::apiResource('finances', FinanceController::class);
-    Route::apiResource('incomes', IncomeController::class);
+    Route::get('/finances/date-options', [FinanceController::class, 'dateOptions']);
+    Route::get('/finances/export/excel', [FinanceController::class, 'exportExcel']);
+
     Route::apiResource('accounts', AccountController::class);
+    Route::apiResource('incomes', IncomeController::class);
+    Route::apiResource('finances', FinanceController::class);
 
 
     // Oil
@@ -403,8 +409,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/oil/summary', [OilSummaryController::class, 'index']);
 
-    // ✅ add only custom route(s) not included in resource
+    Route::get('/expense-oils/date-options', [ExpenseOilController::class, 'dateOptions']);
+    Route::get('/expense-oils/export/excel', [ExpenseOilController::class, 'exportExcel']);
     Route::get('/expense-oils/years', [ExpenseOilController::class, 'years']);
+    // ✅ add only custom route(s) not included in resource
 
     Route::get('oil-reports', [OilReportController::class, 'index']);
 

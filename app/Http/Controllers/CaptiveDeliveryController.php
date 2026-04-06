@@ -2,21 +2,69 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\CaptiveDeliveryRequest;
 use App\Http\Requests\StoreCaptiveDeliveryRequest;
 use App\Http\Requests\UpdateCaptiveDeliveryRequest;
 use App\Http\Resources\CaptiveDeliveryResource;
 use App\Models\CaptiveDelivery;
-use Illuminate\Database\QueryException;
+use App\Services\NotificationService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\Services\NotificationService; // 🔔 VERY IMPORTANT
-
+use Illuminate\Database\QueryException;
+use App\Exports\CaptiveDeliveriesExport;
+use Maatwebsite\Excel\Facades\Excel;
 class CaptiveDeliveryController extends Controller
 {
+    private function searchableColumns(): array
+    {
+        return [
+            'name',
+            'father_name',
+            'grand_father_name',
+            'nickname',
+            'tazkira',
+            'age',
+            'halat_madani',
+            'criminal_history',
+            'old_job',
+            'new_job',
+            'language',
+            'scientific_level',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_district',
+            'now_village',
+            'captive_reason',
+            'maznonyat_type',
+            'taslimi_warkawonky_person',
+            'taslimi_akhistonky_person',
+            'taslimi_akhistonky_organ',
+            'captive_place',
+            'coordinates',
+            'captive_marja',
+            'captive_date',
+            'captive_hour',
+            'phone_number',
+            'captive_halat',
+            'suspect_tools',
+            'notes',
+        ];
+    }
+
+    private function resolveSearchField(?string $field): ?string
+    {
+        $field = trim((string) $field);
+
+        return in_array($field, $this->searchableColumns(), true) ? $field : null;
+    }
+
     private function isDuplicateKey(QueryException $e): bool
     {
-        // MySQL duplicate key error code
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
@@ -26,275 +74,375 @@ class CaptiveDeliveryController extends Controller
             'message' => 'این زندانی قبلاً ثبت شده است.',
             'errors'  => [
                 'duplicate' => [
-                    'رکورد با همین مشخصات (نام، پدر، لقب، نام پدرکلان و آدرس اصلی) قبلاً در سیستم موجود است.',
+                    'زندانی با همین مشخصات قبلاً در سیستم موجود است.',
                 ],
             ],
         ], 422);
     }
 
-    public function index(Request $request)
+    private function baseListQuery(): Builder
     {
-        $perPage = (int) $request->query('perPage', $request->query('itemsPerPage', 10));
-        $search  = trim((string) $request->query('search', ''));
-
-        $q = CaptiveDelivery::query();
-
-        if ($search !== '') {
-            $q->where(function ($sub) use ($search) {
-                $sub->where('name', 'like', "%{$search}%")
-                    ->orWhere('father_name', 'like', "%{$search}%")
-                    ->orWhere('nickname', 'like', "%{$search}%")
-                    ->orWhere('tazkira', 'like', "%{$search}%");
-            });
-        }
-
-        $q->with('documents');
-
-        $data = $q->orderByDesc('id')->paginate($perPage);
-
-        return response()->json([
-            'data' => CaptiveDeliveryResource::collection($data->items()),
-            'meta' => [
-                'current_page' => $data->currentPage(),
-                'per_page'     => $data->perPage(),
-                'total'        => $data->total(),
-            ],
-        ]);
+        return CaptiveDelivery::query()->with(['documents']);
     }
 
-    public function store(StoreCaptiveDeliveryRequest $request)
-    {
-        $user = $request->user(); // 🔔 same as other controllers
+    private function applyCommonFilters(
+        Builder $query,
+        ?string $search,
+        ?string $searchField = null,
+        string $stat = 'all'
+    ): Builder {
+        $query->when($search, function (Builder $q) use ($search, $searchField) {
+            $resolvedField = $this->resolveSearchField($searchField);
 
-        try {
-            return DB::transaction(function () use ($request, $user) {
-                $payload = $request->validated();
+            if ($resolvedField) {
+                $q->where($resolvedField, 'like', "%{$search}%");
+                return;
+            }
 
-                // 📷 picture upload
-                if ($request->hasFile('picture')) {
-                    $payload['picture'] = $request->file('picture')
-                        ->store('captive_deliveries/pictures', 'public');
-                }
-
-                $capt = CaptiveDelivery::create($payload);
-
-                // 📎 new documents[]
-                if ($request->hasFile('documents')) {
-                    foreach ($request->file('documents', []) as $file) {
-                        $path = $file->store("captive_deliveries/{$capt->id}", 'public');
-
-                        $capt->documents()->create([
-                            'file_name'           => $file->getClientOriginalName(),
-                            'file_path'           => $path,
-                            'mime_type'           => $file->getMimeType(),
-                            'size_bytes'          => $file->getSize(),
-                            'captive_delivery_id' => $capt->id,
-                        ]);
+            $q->where(function (Builder $sub) use ($search) {
+                foreach ($this->searchableColumns() as $index => $column) {
+                    if ($index === 0) {
+                        $sub->where($column, 'like', "%{$search}%");
+                    } else {
+                        $sub->orWhere($column, 'like', "%{$search}%");
                     }
                 }
-
-                $capt->load('documents');
-
-                // 🔔 Notification: CREATED
-                if ($user) {
-                    NotificationService::record(
-                        $user,
-                        module: 'captive_delivery',
-                        action: 'created',
-                        title: 'نوی تسلیم شوی زنداني ثبت شو',
-                        message: 'د زنداني نوم: ' . ($capt->name ?? ''),
-                        routeName: 'delevirycaptiveform',
-                        routeParams: ['id' => $capt->id],
-                        level: 'success',
-                        changes: null
-                    );
-                }
-
-                return response()->json(['data' => new CaptiveDeliveryResource($capt)], 201);
             });
-        } catch (QueryException $e) {
-            if ($this->isDuplicateKey($e)) {
-                return $this->duplicateResponse();
+        });
+
+        $query->when($stat === 'spy', function (Builder $q) {
+            $q->where(function (Builder $sub) {
+                $sub->where('maznonyat_type', 'جاسوسی')
+                    ->orWhere('maznonyat_type', 'جاسوسي');
+            });
+        });
+
+        $query->when($stat === 'saeen', function (Builder $q) {
+            $q->where('maznonyat_type', 'ساعین بالفساد');
+        });
+
+        $query->when($stat === 'sharFasad', function (Builder $q) {
+            $q->where('maznonyat_type', 'شر او فساد');
+        });
+
+        $query->when($stat === 'today', function (Builder $q) {
+            $q->whereDate('captive_date', now()->toDateString());
+        });
+
+        return $query;
+    }
+
+    private function buildCardCounts(?string $search, ?string $searchField = null): array
+    {
+        $base = CaptiveDelivery::query();
+
+        if ($search) {
+            $resolvedField = $this->resolveSearchField($searchField);
+
+            if ($resolvedField) {
+                $base->where($resolvedField, 'like', "%{$search}%");
+            } else {
+                $base->where(function (Builder $sub) use ($search) {
+                    foreach ($this->searchableColumns() as $index => $column) {
+                        if ($index === 0) {
+                            $sub->where($column, 'like', "%{$search}%");
+                        } else {
+                            $sub->orWhere($column, 'like', "%{$search}%");
+                        }
+                    }
+                });
             }
-            throw $e;
         }
+
+        return [
+            'total' => (clone $base)->count(),
+            'spy' => (clone $base)
+                ->where(function (Builder $q) {
+                    $q->where('maznonyat_type', 'جاسوسی')
+                        ->orWhere('maznonyat_type', 'جاسوسي');
+                })
+                ->count(),
+            'saeen' => (clone $base)
+                ->where('maznonyat_type', 'ساعین بالفساد')
+                ->count(),
+            'sharFasad' => (clone $base)
+                ->where('maznonyat_type', 'شر او فساد')
+                ->count(),
+            'today' => (clone $base)
+                ->whereDate('captive_date', now()->toDateString())
+                ->count(),
+        ];
+    }
+
+    public function index(Request $request)
+    {
+        $request->validate([
+            'page' => 'sometimes|integer|min:1',
+            'perPage' => 'sometimes',
+            'search' => 'nullable|string',
+            'search_field' => 'nullable|string',
+            'stat' => 'nullable|string|in:all,spy,saeen,sharFasad,today',
+        ]);
+
+        $search = $request->input('search');
+        $searchField = $this->resolveSearchField($request->input('search_field'));
+        $stat = $request->input('stat', 'all');
+        $rawPerPage = $request->input('perPage', null);
+        $page = (int) $request->input('page', 1);
+
+        $cardCounts = $this->buildCardCounts($search, $searchField);
+
+        $query = $this->baseListQuery();
+        $this->applyCommonFilters($query, $search, $searchField, $stat);
+
+        $query->latest('id');
+
+        if (
+            is_null($rawPerPage) ||
+            $rawPerPage === '' ||
+            strtolower((string) $rawPerPage) === 'all' ||
+            (int) $rawPerPage === 0
+        ) {
+            return CaptiveDeliveryResource::collection($query->get())
+                ->additional([
+                    'card_counts' => $cardCounts,
+                ]);
+        }
+
+        return CaptiveDeliveryResource::collection(
+            $query->paginate(max(1, (int) $rawPerPage), ['*'], 'page', $page)
+        )->additional([
+            'card_counts' => $cardCounts,
+        ]);
     }
 
     public function show($id)
     {
-        $captiveDelivery = CaptiveDelivery::with('documents')->findOrFail($id);
+        $item = $this->baseListQuery()->findOrFail($id);
+        return new CaptiveDeliveryResource($item);
+    }
 
-        return response()->json([
-            'data' => new CaptiveDeliveryResource($captiveDelivery),
-        ]);
+    public function store(StoreCaptiveDeliveryRequest $request)
+    {
+        DB::beginTransaction();
+
+        try {
+            $user = $request->user();
+
+            $captive = CaptiveDelivery::create($request->validated());
+
+            if ($request->hasFile('picture')) {
+                $path = $request->file('picture')->store('uploads/captive-deliveries', 'public');
+                $captive->update(['picture' => $path]);
+            }
+
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $path = $file->store("captive_deliveries/{$captive->id}", 'public');
+                    $captive->documents()->create([
+                        'file_name'  => $file->getClientOriginalName(),
+                        'file_path'  => $path,
+                        'mime_type'  => $file->getClientMimeType(),
+                        'size_bytes' => $file->getSize(),
+                    ]);
+                }
+            }
+
+            NotificationService::recordForAllUsers(
+                actor: $user,
+                module: 'تسلیم شوی زنداني',
+                action: 'created',
+                title: 'تسلیم شوی زنداني ثبت شوو',
+                message: 'زندانی: ' . ($captive->name ?? ''),
+                routeName: 'delevirycaptive',
+                routeParams: ['id' => $captive->id],
+                level: 'success',
+                changes: null,
+            );
+
+            DB::commit();
+
+            return new CaptiveDeliveryResource(
+                $captive->load(['documents'])
+            );
+        } catch (QueryException $e) {
+            DB::rollBack();
+
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponse();
+            }
+
+            return response()->json([
+                'message' => 'Captive delivery creation failed',
+                'error'   => $e->getMessage(),
+            ], 500);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Captive delivery creation failed',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function update(UpdateCaptiveDeliveryRequest $request, $id)
     {
-        $user = $request->user(); // 🔔 who updated
+        DB::beginTransaction();
 
         try {
-            return DB::transaction(function () use ($request, $id, $user) {
-                $captiveDelivery = CaptiveDelivery::with('documents')->findOrFail($id);
+            $user = $request->user();
+            $captive = CaptiveDelivery::with(['documents'])->findOrFail($id);
 
-                $payload  = $request->validated();
-                $original = $captiveDelivery->getOriginal();
-                $changes  = [];
+            $original = $captive->getOriginal();
 
-                // 🧮 diff normal fields
-                foreach ($payload as $field => $newValue) {
-                    if (array_key_exists($field, $original)) {
-                        $oldValue = $original[$field];
+            $data = $request->validated();
+            $captive->fill($data);
 
-                        if ($oldValue != $newValue) {
-                            $changes[$field] = [
-                                'old' => $oldValue,
-                                'new' => $newValue,
-                            ];
-                        }
-                    }
+            $dirty = $captive->getDirty();
+            $changes = [];
+
+            foreach ($dirty as $field => $newValue) {
+                $changes[$field] = [
+                    'old' => $original[$field] ?? null,
+                    'new' => $newValue,
+                ];
+            }
+
+            $captive->save();
+
+            if ($request->hasFile('picture')) {
+                if ($captive->picture) {
+                    Storage::disk('public')->delete($captive->picture);
                 }
 
-                // 📷 picture diff
-                if ($request->hasFile('picture')) {
-                    $oldPicture = $captiveDelivery->picture;
+                $path = $request->file('picture')->store('uploads/captive-deliveries', 'public');
+                $captive->update(['picture' => $path]);
 
-                    if ($oldPicture) {
-                        Storage::disk('public')->delete($oldPicture);
-                    }
+                $changes['picture'] = [
+                    'old' => $original['picture'] ?? null,
+                    'new' => $path,
+                ];
+            }
 
-                    $newPath = $request
-                        ->file('picture')
-                        ->store('captive_deliveries/pictures', 'public');
-
-                    $payload['picture'] = $newPath;
-
-                    $changes['picture'] = [
-                        'old' => $oldPicture,
-                        'new' => $newPath,
-                    ];
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $path = $file->store("captive_deliveries/{$captive->id}", 'public');
+                    $captive->documents()->create([
+                        'file_name'  => $file->getClientOriginalName(),
+                        'file_path'  => $path,
+                        'mime_type'  => $file->getClientMimeType(),
+                        'size_bytes' => $file->getSize(),
+                    ]);
                 }
 
-                // 🔄 update main record
-                $captiveDelivery->update($payload);
+                $changes['documents'] = [
+                    'old' => null,
+                    'new' => 'updated',
+                ];
+            }
 
-                // ❌ removed documents
-                $removedIds = $request->input('removed_document_ids', []);
-                if (!empty($removedIds)) {
-                    $docsToDelete = $captiveDelivery->documents()
-                        ->whereIn('id', $removedIds)
-                        ->get();
+            NotificationService::recordForAllUsers(
+                actor: $user,
+                module: 'تسلیم شوی زنداني',
+                action: 'updated',
+                title: 'تسلیم شوی زنداني اصلاح شوو',
+                message: 'زندانی: ' . ($captive->name ?? ''),
+                routeName: 'delevirycaptive',
+                routeParams: ['id' => $captive->id],
+                level: 'info',
+                changes: $changes ?: null,
+            );
 
-                    foreach ($docsToDelete as $doc) {
-                        if ($doc->file_path) {
-                            Storage::disk('public')->delete($doc->file_path);
-                        }
-                        $doc->delete();
-                    }
+            DB::commit();
 
-                    $changes['removed_documents'] = [
-                        'old' => $removedIds,
-                        'new' => [],
-                    ];
-                }
-
-                // ➕ new documents
-                if ($request->hasFile('documents')) {
-                    $newDocsMeta = [];
-
-                    foreach ($request->file('documents', []) as $file) {
-                        $path = $file->store("captive_deliveries/{$captiveDelivery->id}", 'public');
-
-                        $doc = $captiveDelivery->documents()->create([
-                            'file_name'           => $file->getClientOriginalName(),
-                            'file_path'           => $path,
-                            'mime_type'           => $file->getMimeType(),
-                            'size_bytes'          => $file->getSize(),
-                            'captive_delivery_id' => $captiveDelivery->id,
-                        ]);
-
-                        $newDocsMeta[] = [
-                            'id'   => $doc->id,
-                            'name' => $doc->file_name,
-                        ];
-                    }
-
-                    if (!empty($newDocsMeta)) {
-                        $changes['added_documents'] = [
-                            'old' => [],
-                            'new' => $newDocsMeta,
-                        ];
-                    }
-                }
-
-                $captiveDelivery->load('documents');
-
-                // 🔔 Notification: UPDATED (with full changes)
-                if ($user) {
-                    NotificationService::record(
-                        $user,
-                        module: 'captive_delivery',
-                        action: 'updated',
-                        title: 'تسلیم شوی زنداني اصلاح شو',
-                        message: 'د زنداني‌ نوم: ' . ($captiveDelivery->name ?? ''),
-                        routeName: 'delevirycaptiveform',
-                        routeParams: ['id' => $captiveDelivery->id],
-                        level: 'info',
-                        changes: !empty($changes) ? $changes : null
-                    );
-                }
-
-                return response()->json([
-                    'data' => new CaptiveDeliveryResource($captiveDelivery),
-                ]);
-            });
+            return new CaptiveDeliveryResource(
+                $captive->load(['documents'])
+            );
         } catch (QueryException $e) {
+            DB::rollBack();
+
             if ($this->isDuplicateKey($e)) {
                 return $this->duplicateResponse();
             }
-            throw $e;
+
+            return response()->json([
+                'message' => 'Captive delivery update failed',
+                'error'   => $e->getMessage(),
+            ], 500);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Captive delivery update failed',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
     }
 
     public function destroy(Request $request, $id)
     {
-        $user = $request->user(); // 🔔 who deleted
+        DB::beginTransaction();
 
-        return DB::transaction(function () use ($id, $user) {
-            $captiveDelivery = CaptiveDelivery::with('documents')->findOrFail($id);
-            $name = $captiveDelivery->name;
+        try {
+            $captive = CaptiveDelivery::with('documents')->findOrFail($id);
+            $user = $request->user();
 
-            // delete main picture
-            if ($captiveDelivery->picture) {
-                Storage::disk('public')->delete($captiveDelivery->picture);
+            foreach ($captive->documents as $doc) {
+                Storage::disk('public')->delete($doc->file_path);
             }
 
-            // delete documents
-            foreach ($captiveDelivery->documents as $doc) {
-                if ($doc->file_path) {
-                    Storage::disk('public')->delete($doc->file_path);
-                }
-                $doc->delete();
+            $captive->documents()->delete();
+
+            if ($captive->picture) {
+                Storage::disk('public')->delete($captive->picture);
             }
 
-            $captiveDelivery->delete();
+            $captive->delete();
 
-            // 🔔 Notification: DELETED
-            if ($user) {
-                NotificationService::record(
-                    $user,
-                    module: 'captive_delivery',
-                    action: 'deleted',
-                    title: 'تسلیم شوی زنداني حذف شوو',
-                    message: 'د زنداني‌ نوم: ' . ($name ?? ''),
-                    routeName: null,
-                    routeParams: [],
-                    level: 'warning',
-                    changes: null
-                );
-            }
+            NotificationService::recordForAllUsers(
+                actor: $user,
+                module: 'تسلیم شوی زنداني',
+                action: 'deleted',
+                title: 'تسلیم شوی زنداني حذف شو',
+                message: 'زندانی: ' . ($captive->name ?? ''),
+                routeName: null,
+                routeParams: ['delevirycaptive'],
+                level: 'warning',
+                changes: null,
+            );
 
-            return response()->json(['message' => 'Deleted']);
-        });
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Captive delivery deleted successfully',
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Captive delivery delete failed',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
     }
+    public function exportExcel(Request $request)
+{
+    $request->validate([
+        'search' => 'nullable|string',
+        'search_field' => 'nullable|string',
+        'stat' => 'nullable|string|in:all,spy,saeen,sharFasad,today',
+        'date_field' => 'nullable|string|in:captive_date,created_at,updated_at',
+    ]);
+
+    return Excel::download(
+        new CaptiveDeliveriesExport(
+            search: $request->input('search'),
+            searchField: $request->input('search_field'),
+            stat: $request->input('stat', 'all'),
+            dateField: $request->input('date_field', 'captive_date'),
+        ),
+        'captive_deliveries.xlsx'
+    );
+}
 }
