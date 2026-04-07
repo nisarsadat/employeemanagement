@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EconemyProject extends Model
 {
+    
     use EnforceSingleFormatPerResource;
 
     protected $fillable = [

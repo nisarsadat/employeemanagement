@@ -145,8 +145,8 @@
         :item="detail"
         :loading="loadingOne"
         title-key="checkpoint_name"
-        image-key=""
         :fields="headersFT"
+        image-key="picture"
         :cols="3"
         :dir="isRtl ? 'rtl' : 'ltr'"
         :auto-detect-dates="false"
@@ -319,10 +319,18 @@
   };
 
   /* 🔗 go to Resources page for this resource_code */
-  function goToResource(row) {
-    if (!row?.resource_code) return;
-    router.push(`/app/resources/${row.resource_code}`);
-  }
+function goToResource(row) {
+  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+  if (!resourceId) return;
+
+  router.push({
+    path: '/app/resources',
+    query: {
+      resource_id: resourceId,
+      source: 'related',
+    },
+  });
+}
 
   /* Helpers */
   const getRow = (s) => (s && s.raw ? s.raw : s);

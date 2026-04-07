@@ -321,10 +321,17 @@ const showErrorMessage = (m) => {
 
 /* 🔗 go to Resources page for this resource_code */
 function goToResource(row) {
-  if (!row?.resource_code) return;
-  router.push(`/app/resources/${row.resource_code}`);
-}
+  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+  if (!resourceId) return;
 
+  router.push({
+    path: '/app/resources',
+    query: {
+      resource_id: resourceId,
+      source: 'related',
+    },
+  });
+}
 /* Helpers */
 const getRow = (s) => (s && s.raw ? s.raw : s);
 

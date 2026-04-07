@@ -135,6 +135,7 @@
         title-key="name"
         :fields="headersFT"
         :cols="3"
+        image-key="picture"
         :dir="isRtl ? 'rtl' : 'ltr'"
         :auto-detect-dates="false"
         :date-keys="[]"
@@ -519,10 +520,18 @@
   }
 
   /* go to resource page */
-  function goToResource(row) {
-    if (!row?.resource_code) return;
-    router.push(`/app/resources/${row.resource_code}`);
-  }
+function goToResource(row) {
+  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+  if (!resourceId) return;
+
+  router.push({
+    path: '/app/resources',
+    query: {
+      resource_id: resourceId,
+      source: 'related',
+    },
+  });
+}
 
   /* delete with dialog */
   const deleteDialog = ref(false);

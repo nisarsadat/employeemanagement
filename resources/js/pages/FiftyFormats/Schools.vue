@@ -140,6 +140,7 @@
         title-key="school_name"
         :fields="headersFT"
         :cols="3"
+        image-key="picture"
         :dir="isRtl ? 'rtl' : 'ltr'"
         :auto-detect-dates="false"
         :date-keys="[]"
@@ -156,7 +157,7 @@
       :top-groups="topGroups"
       :showIndex="true"
       :rtl="true"
-      class=" mx-2"
+      class="mx-2"
       :enableEdit="true"
       :enablePeek="true"
       @edit="goEdit"
@@ -318,12 +319,18 @@
     return [];
   });
 
-  /* 🔗 go to Resources page for this resource_code */
-  function goToResource(row) {
-    if (!row?.resource_code) return;
-    router.push(`/app/resources/${row.resource_code}`);
-  }
+function goToResource(row) {
+  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+  if (!resourceId) return;
 
+  router.push({
+    path: '/app/resources',
+    query: {
+      resource_id: resourceId,
+      source: 'related',
+    },
+  });
+}
   /* Filter card state + stats */
   const cardFilter = ref('all');
 

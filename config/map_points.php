@@ -503,7 +503,7 @@ return [
         [
             'table' => 'governmentplaces',
             'type' => 'governmentplaces',
-            'typeLabel' => 'دولت ځایونه',
+            'typeLabel' => 'امارتي ځاي',
             'show_url' => '/api/governmentplaces/',
             'title_candidates' => ['place_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -511,7 +511,7 @@ return [
         [
             'table' => 'supermarkets',
             'type' => 'supermarkets',
-            'typeLabel' => 'تجارتي مراکز او سوپر مارکیټونه',
+            'typeLabel' => 'تجارتي مرکز او سوپر مارکیټ',
             'show_url' => '/api/supermarkets/',
             'title_candidates' => ['supermarket_name', 'market_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -519,7 +519,7 @@ return [
         [
             'table' => 'parks',
             'type' => 'parks',
-            'typeLabel' => 'تفریحي پارکونه او سیاحتي سیمې',
+            'typeLabel' => 'تفریحي پارک او سیاحتي سیمه',
             'show_url' => '/api/parks/',
             'title_candidates' => ['park_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -527,7 +527,7 @@ return [
         [
             'table' => 'complexes',
             'type' => 'complexes',
-            'typeLabel' => 'داخلي موسسې او بنسټونه',
+            'typeLabel' => 'داخلي موسسه او بنسټ',
             'show_url' => '/api/complexes/',
             'title_candidates' => ['complex_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -535,7 +535,7 @@ return [
         [
             'table' => 'deplomaticplaces',
             'type' => 'deplomaticplaces',
-            'typeLabel' => 'دیپلوماتیک ځایونه،خارجي موسسې،دبهرنیانو د اوسیدو او کار ځایونه',
+            'typeLabel' => 'دیپلوماتیک ځای،خارجي موسسه،دبهرنیانو د اوسیدو او کار ځای',
             'show_url' => '/api/deplomaticplaces/',
             'title_candidates' => ['place_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -543,7 +543,7 @@ return [
         [
             'table' => 'universities',
             'type' => 'universities',
-            'typeLabel' => 'پوهنتونونو ، دلوړو زده کړو موسسو او انسټیټیوټونو',
+            'typeLabel' => 'پوهنتونون ، دلوړو زده کړو موسسه او انسټیټیوټ',
             'show_url' => '/api/universities/',
             'title_candidates' => ['university_name', 'name', 'title', 'code_number'],
             'join_resource' => true,
@@ -551,7 +551,7 @@ return [
         [
             'table' => 'wakilanos',
             'type' => 'wakilanos',
-            'typeLabel' => 'وکیلان او ملکان',
+            'typeLabel' => 'وکیل او ملک',
             'show_url' => '/api/wakilanos/',
             'title_candidates' => ['name', 'title', 'person_name', 'code_number'],
             'join_resource' => true,
@@ -561,7 +561,7 @@ return [
         [
             'table' => 'jawasis',
             'type' => 'jawasis',
-            'typeLabel' => 'جواسیس',
+            'typeLabel' => 'جاسوس',
             'show_url' => '/api/jawasis/',
             'title_candidates' => ['name', 'title', 'person_name', 'code_number'],
             'join_resource' => true,

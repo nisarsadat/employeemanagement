@@ -118,6 +118,7 @@
         :item="detail"
         :loading="loadingOne"
         title-key="name"
+        image-key="picture"
         :fields="headersFT"
         :cols="4"
         :dir="isRtl ? 'rtl' : 'ltr'"
@@ -480,10 +481,18 @@
     router.push(`/jawasis/edit/${row.id}`);
   }
 
-  function goToResource(row) {
-    if (!row?.resource_id) return;
-    router.push({ path: '/app/resources', query: { id: String(row.resource_id), open: 'peek' } });
-  }
+function goToResource(row) {
+  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+  if (!resourceId) return;
+
+  router.push({
+    path: '/app/resources',
+    query: {
+      resource_id: resourceId,
+      source: 'related',
+    },
+  });
+}
 
   function hasDocuments(payload) {
     const row = getRow(payload);

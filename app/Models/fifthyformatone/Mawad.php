@@ -3,14 +3,12 @@
 namespace App\Models\fifthyformatone;
 
 use App\Models\Resource;
-use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Mawad extends Model
 {
     use HasFactory;
-    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'information_id',

@@ -2,10 +2,13 @@
 
 namespace App\Models\fifthyformatfour;
 
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class Park extends Model
 {
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         'park_name','park_type','dayly_clientele', 
         'district',

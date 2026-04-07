@@ -133,6 +133,7 @@
         :item="detail"
         :loading="loadingOne"
         title-key="name"
+        image-key="picture"
         :fields="headersFT"
         :cols="3"
         :dir="isRtl ? 'rtl' : 'ltr'"
@@ -336,9 +337,17 @@ const showErrorMessage = (m) => {
   showError.value = true;
 };
 
-function goToResource(code) {
-  if (!code) return;
-  router.push(`/app/resources?search=${encodeURIComponent(code)}`);
+function goToResource(row) {
+  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+  if (!resourceId) return;
+
+  router.push({
+    path: '/app/resources',
+    query: {
+      resource_id: resourceId,
+      source: 'related',
+    },
+  });
 }
 
 /* Helpers */

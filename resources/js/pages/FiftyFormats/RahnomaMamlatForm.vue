@@ -3,7 +3,7 @@
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
     <AppBar
-      :title="isEdit ? t('ویرایش رهنما مملات') : t('ایجاد رهنما مملات جدید')"
+      :title="isEdit ? t('ایجاد رهنما مملات جدید') : t('ایجاد رهنما مملات جدید')"
       :subtitle="
         isEdit
           ? t('ویرایش جزئیات یک ریکارډ رهنما مملات موجود')
@@ -565,7 +565,7 @@ function onResourceCleared() {
       .join('');
 
     return `
-    <h3 class="title">فورم رهنما مملات</h3>
+    <h3 class="title"> رهنما معاملات</h3>
     <table class="simple-table">
       <tbody>
         ${rows}

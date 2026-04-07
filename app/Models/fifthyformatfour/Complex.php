@@ -2,10 +2,13 @@
 
 namespace App\Models\fifthyformatfour;
 
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class Complex extends Model
 {
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         'province','zone','district','village','specefic_place','street_number','home_number',
         'complex_name','activity_type','activity_place','supplier',

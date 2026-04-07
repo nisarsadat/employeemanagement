@@ -2,10 +2,13 @@
 
 namespace App\Models\fifthyformatfour;
 
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class Donelostplace extends Model
 {
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         'place_name',
         'lost_person_name','lost_person_f_name','lost_person_phone','lost_person_job',

@@ -3,7 +3,7 @@
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
     <AppBar
-      :title="isEdit ? t('ویرایش بدماش') : t('ایجاد بدماش جدید')"
+      :title="isEdit ? t('ایجاد بدماش جدید') : t('ایجاد بدماش جدید')"
       :subtitle="
         isEdit ? t('ویرایش جزئیات یک ریکارډ بدماش موجود') : t('ثبت یک ریکارډ بدماش جدید در سیستم')
       "

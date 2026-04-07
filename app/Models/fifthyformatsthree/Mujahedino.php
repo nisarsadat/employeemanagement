@@ -3,12 +3,15 @@
 namespace App\Models\fifthyformatsthree;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Mujahedino extends Model
 {
     use HasFactory;
+    use EnforceSingleFormatPerResource;
+
 
     protected $fillable = [
         'picture',

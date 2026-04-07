@@ -2,10 +2,14 @@
 
 namespace App\Models\fifthyformatfour;
 
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class Checkpoint extends Model
 {
+
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         'picture',
         'check_point_place',

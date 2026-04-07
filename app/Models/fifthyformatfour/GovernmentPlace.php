@@ -3,10 +3,13 @@
 namespace App\Models\fifthyformatfour;
 
 use App\Models\Resource;
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class GovernmentPlace extends Model
 {
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         'government_place_name','daily_clientele',
         'responsible_name','responsible_f_name','responsible_possition','responsible_phone',

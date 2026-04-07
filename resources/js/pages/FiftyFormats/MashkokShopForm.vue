@@ -3,7 +3,7 @@
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
     <AppBar
-      :title="isEdit ? t('ویرایش دکان مشکوک') : t('ایجاد دکان مشکوک جدید')"
+      :title="isEdit ? t('ایجاد دکان مشکوک جدید') : t('ایجاد دکان مشکوک جدید')"
       :subtitle="
         isEdit
           ? t('ویرایش جزئیات یک ریکارډ دکان مشکوک موجود')
@@ -208,16 +208,16 @@
           <v-row>
             <!-- Resource mapping (code autocomplete -> id + phone) -->
             <v-col cols="12" md="4">
-             <ResourceRemoteAutocomplete
-  v-model="form.resource_id"
-  :label="t('کود منبع')"
-  density="compact"
-  variant="outlined"
-  :rules="[rules.required]"
-  :item-title="resourceTitle"
-  @selected="onResourceSelected"
-  @cleared="onResourceCleared"
-/>
+              <ResourceRemoteAutocomplete
+                v-model="form.resource_id"
+                :label="t('کود منبع')"
+                density="compact"
+                variant="outlined"
+                :rules="[rules.required]"
+                :item-title="resourceTitle"
+                @selected="onResourceSelected"
+                @cleared="onResourceCleared"
+              />
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
@@ -230,18 +230,18 @@
             </v-col>
             <v-col cols="12">
               <v-text-field
+                v-model="form.tafseel"
+                :label="t('تفصیل')"
+                variant="outlined"
+                density="compact"
+              />
+              <v-text-field
                 v-model="form.note"
                 :label="t('یادداشت')"
                 variant="outlined"
                 density="compact"
                 :error="hasError('note')"
                 :error-messages="getErrorMessages('note')"
-              />
-              <v-text-field
-                v-model="form.tafseel"
-                :label="t('تفصیل')"
-                variant="outlined"
-                density="compact"
               />
             </v-col>
           </v-row>
@@ -421,24 +421,24 @@
     required: (v) => !!v || t('این فیلد الزامی است'),
   };
 
-function resourceTitle(r) {
-  if (!r) return '';
-  const code = r.code_number ?? '';
-  const name = r.name ?? '';
-  return [code, name].filter(Boolean).join(' - ');
-}
-function onResourceSelected(r) {
-  if (!r) return;
-  form.value.resource_id = r.id ?? null;
-  form.value.resource_code = r.code_number ?? '';
-  form.value.resource_phone = r.phone_number ?? '';
-}
+  function resourceTitle(r) {
+    if (!r) return '';
+    const code = r.code_number ?? '';
+    const name = r.name ?? '';
+    return [code, name].filter(Boolean).join(' - ');
+  }
+  function onResourceSelected(r) {
+    if (!r) return;
+    form.value.resource_id = r.id ?? null;
+    form.value.resource_code = r.code_number ?? '';
+    form.value.resource_phone = r.phone_number ?? '';
+  }
 
-function onResourceCleared() {
-  form.value.resource_id = null;
-  form.value.resource_code = '';
-  form.value.resource_phone = '';
-}
+  function onResourceCleared() {
+    form.value.resource_id = null;
+    form.value.resource_code = '';
+    form.value.resource_phone = '';
+  }
   /* MAP FROM API */
   function mapFromApi(payload = {}) {
     const x = payload.data ?? payload;

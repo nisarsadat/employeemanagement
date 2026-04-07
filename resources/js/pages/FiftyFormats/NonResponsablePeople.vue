@@ -164,7 +164,6 @@
         <div class="d-flex align-center ga-2">
           <v-avatar size="34" class="pic-thumb" @click.stop="openImg(row)">
             <v-img v-if="row.picture" :src="row.picture" cover />
-            <v-icon v-else size="18">mdi-image-off</v-icon>
           </v-avatar>
 
           <v-tooltip v-if="row.picture" :text="t('پیش‌نمایش عکس')" location="top">
@@ -172,7 +171,6 @@
               <v-btn
                 v-bind="props"
                 variant="text"
-                icon="mdi-eye"
                 size="small"
                 @click.stop="openImg(row)"
               />
@@ -341,10 +339,18 @@
   };
 
   /* 🔗 go to Resources page for this resource_code */
-  function goToResource(row) {
-    if (!row?.resource_code) return;
-    router.push(`/app/resources/${row.resource_code}`);
-  }
+function goToResource(row) {
+  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+  if (!resourceId) return;
+
+  router.push({
+    path: '/app/resources',
+    query: {
+      resource_id: resourceId,
+      source: 'related',
+    },
+  });
+}
 
   /* Helpers */
   const getRow = (s) => (s && s.raw ? s.raw : s);

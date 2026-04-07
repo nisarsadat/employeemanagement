@@ -122,6 +122,7 @@
         :fields="headersFT"
         :cols="3"
         :dir="isRtl ? 'rtl' : 'ltr'"
+        image-key="picture"
         :auto-detect-dates="false"
         :date-keys="[]"
         @fetch="fetchOne"
@@ -498,10 +499,18 @@
     router.push(`/app/fasads/print/${row.id}`);
   }
 
-  function goToResource(row) {
-    if (!row?.resource_id) return;
-    router.push({ path: '/app/resources', query: { id: String(row.resource_id), open: 'peek' } });
-  }
+function goToResource(row) {
+  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+  if (!resourceId) return;
+
+  router.push({
+    path: '/app/resources',
+    query: {
+      resource_id: resourceId,
+      source: 'related',
+    },
+  });
+}
 
   /* ✅ docs download like Informations */
   function hasDocuments(payload) {

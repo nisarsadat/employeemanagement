@@ -2,10 +2,13 @@
 
 namespace App\Models\fifthyformatfour;
 
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class SuperMarket extends Model
 {
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         'supermarket_name','market_activity_type','daily_clientele','shops_quantity',
         'responsible_name','responsible_f_name',

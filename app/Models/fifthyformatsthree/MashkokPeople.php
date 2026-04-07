@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class MashkokPeople extends Model
 {
     use HasFactory;
+    
 
     protected $fillable = [
         'information_id',

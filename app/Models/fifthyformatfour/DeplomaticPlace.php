@@ -2,10 +2,13 @@
 
 namespace App\Models\fifthyformatfour;
 
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class DeplomaticPlace extends Model
 {
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         'deplomatic_place_name','activity_type','activity_place',
         'enter_male_quantity','outer_male_quantity','enter_female_quantity','outer_female_quantity',

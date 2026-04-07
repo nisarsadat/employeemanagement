@@ -2,10 +2,13 @@
 
 namespace App\Models\fifthyformatfour;
 
+use App\Models\Traits\EnforceSingleFormatPerResource;
 use Illuminate\Database\Eloquent\Model;
 
 class CriminalCapturePlace extends Model
 {
+    use EnforceSingleFormatPerResource;
+
     protected $fillable = [
         'name','father_name','job',
         'jorm_type','criminals_quantity','office',

@@ -64,9 +64,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('تمام شرکت‌ها') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('مجموع') }}: {{ stats.total }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
           </v-card>
@@ -85,9 +83,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -106,9 +102,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای شماره مسئول') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withPhone }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withPhone }}</div>
               </div>
             </div>
           </v-card>
@@ -127,9 +121,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای منبع') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withResource }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withResource }}</div>
               </div>
             </div>
           </v-card>
@@ -148,6 +140,7 @@
         :fields="headersFT"
         :cols="3"
         :dir="isRtl ? 'rtl' : 'ltr'"
+        image-key="picture"
         :auto-detect-dates="false"
         :date-keys="[]"
         @fetch="fetchOne"
@@ -166,10 +159,10 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class=" mx-2"
+      class="mx-2"
       @edit="goEdit"
       @peek="openPeek"
-    ><template #cell-picture="{ row }">
+      ><template #cell-picture="{ row }">
         <PictureCell
           :picture="row.picture"
           :alt="row.name"
@@ -217,12 +210,7 @@
           <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده شرکت')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -319,10 +307,18 @@
   };
 
   /* 🔗 go to Resources page for this resource_code */
-  function goToResource(row) {
-    if (!row?.resource_code) return;
-    router.push(`/app/resources/${row.resource_code}`);
-  }
+function goToResource(row) {
+  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+  if (!resourceId) return;
+
+  router.push({
+    path: '/app/resources',
+    query: {
+      resource_id: resourceId,
+      source: 'related',
+    },
+  });
+}
 
   /* Helper for v-data-table / FilterableTable payload */
   const getRow = (s) => (s && s.raw ? s.raw : s);
@@ -364,9 +360,7 @@
           (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
         );
       case 'withResource':
-        return base.filter(
-          (r) => r && r.resource_code && String(r.resource_code).trim() !== ''
-        );
+        return base.filter((r) => r && r.resource_code && String(r.resource_code).trim() !== '');
       default:
         return base;
     }
@@ -389,7 +383,7 @@
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone' },
     { title: t('نقشه'), key: 'map', sortable: false },
-    { title: t('یادداشت'), key: 'note'},
+    { title: t('یادداشت'), key: 'note' },
   ]);
 
   /* TOP GROUPS – مثل Heist */
