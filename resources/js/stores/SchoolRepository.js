@@ -161,7 +161,7 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       } catch (e) {
         console.error(e);
         this.error = e;
-        this.Schools = {};
+        this.School = {};
       }
     },
 

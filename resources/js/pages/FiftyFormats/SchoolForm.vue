@@ -3,7 +3,7 @@
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
     <AppBar
-      :title="isEdit ? t('ویرایش مکتب') : t('ایجاد مکتب جدید')"
+      :title="isEdit ? t('ایجاد مکتب جدید') : t('ایجاد مکتب جدید')"
       :subtitle="
         isEdit ? t('ویرایش جزئیات یک ریکارډ مکتب موجود') : t('ثبت یک ریکارډ جدید مکتب در سیستم')
       "

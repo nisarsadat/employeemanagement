@@ -319,18 +319,18 @@
     return [];
   });
 
-function goToResource(row) {
-  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
-  if (!resourceId) return;
+  function goToResource(row) {
+    const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+    if (!resourceId) return;
 
-  router.push({
-    path: '/app/resources',
-    query: {
-      resource_id: resourceId,
-      source: 'related',
-    },
-  });
-}
+    router.push({
+      path: '/app/resources',
+      query: {
+        resource_id: resourceId,
+        source: 'related',
+      },
+    });
+  }
   /* Filter card state + stats */
   const cardFilter = ref('all');
 
