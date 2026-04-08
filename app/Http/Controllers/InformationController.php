@@ -426,8 +426,8 @@ class InformationController extends Controller
 
         if ($stat === 'spy') {
             $query->where(function ($q) {
-                $q->whereIn('syasi_info_type', ['جاسوسی', ' جاسوسي'])
-                  ->orWhereIn('jenayee_info_type', ['جاسوسی', ' جاسوسي']);
+                $q->whereIn('syasi_info_type', ['جاسوسی', ' جاسوسي' , 'جواسیس'])
+                  ->orWhereIn('jenayee_info_type', ['جاسوسی', ' جاسوسي' , 'جواسیس']);
             });
             return $query;
         }
@@ -504,8 +504,8 @@ class InformationController extends Controller
             })->count(),
 
             'spy'      => (clone $base)->where(function ($q) {
-                $q->whereIn('syasi_info_type', ['جاسوسی', ' جاسوسي'])
-                  ->orWhereIn('jenayee_info_type', ['جاسوسی', ' جاسوسي']);
+                $q->whereIn('syasi_info_type', ['جاسوسی', ' جاسوسي', 'جواسیس'])
+                  ->orWhereIn('jenayee_info_type', ['جاسوسی', ' جاسوسي', 'جواسیس']);
             })->count(),
 
             'today'    => (clone $base)->whereDate('information_saved_date', now()->toDateString())->count(),

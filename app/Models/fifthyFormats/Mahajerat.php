@@ -11,7 +11,6 @@ class Mahajerat extends Model
 {
     use HasFactory;
 
-    use EnforceSingleFormatPerResource;
 
     protected $fillable = [
         'information_id',
