@@ -648,7 +648,7 @@
 
                     <div class="min-w-0">
                       <div class="employee-name text-body-2 font-weight-bold text-truncate">
-                        {{ item.name || '—' }}
+                        {{ item.nick_name || '—' }}
                       </div>
 
                       <div class="d-flex align-center gap-2 mt-1">
@@ -1047,7 +1047,7 @@
 
   const employeeHeaders = computed(() => [
     { title: t('رتبه'), key: 'rank', width: 90, sortable: false, align: 'center' },
-    { title: t('کارمند'), key: 'name', sortable: false },
+    { title: t('کارمند'), key: 'nick_name', sortable: false },
     { title: t('منابع'), key: 'resources_count', width: 110, sortable: false, align: 'center' },
     {
       title: t('اطلاعات'),
