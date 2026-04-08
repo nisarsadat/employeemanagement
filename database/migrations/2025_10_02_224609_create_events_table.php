@@ -52,18 +52,18 @@ return new class extends Migration {
                  * event_type + event_specific_type + target_person + criminal
                  * + event_zone + event_hawza + event_specific_place
                  */
-                // $table->unique(
-                //     [
-                //         'event_type',
-                //         'event_specific_type',
-                //         'target_person',
-                //         'criminal',
-                //         'event_zone',
-                //         'event_hawza',
-                //         'event_specific_place',
-                //     ],
-                //     'events_core_unique'
-                // );
+                $table->unique(
+                    [
+                        'event_type',
+                        'event_specific_type',
+                        'target_person',
+                        'criminal',
+                        'event_zone',
+                        'event_hawza',
+                        'event_specific_place',
+                    ],
+                    'events_core_unique'
+                );
             });
         }
     }
