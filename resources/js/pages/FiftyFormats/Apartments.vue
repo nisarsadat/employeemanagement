@@ -23,7 +23,7 @@
             color="primary"
             rounded="lg"
             hide-details
-            @keyup.enter="fetchAll"
+            @keyup.enter="handleSearch"
             clearable
             @click:clear="clearSearch"
             class="bg-white"
@@ -157,7 +157,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class=" mx-2"
+      class="mx-2"
       @edit="goEdit"
       @peek="openPeek"
       ><template #cell-picture="{ row }">
@@ -311,18 +311,18 @@
   const getRow = (s) => (s && s.raw ? s.raw : s);
 
   /* Navigate to Resources by code */
-function goToResource(row) {
-  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
-  if (!resourceId) return;
+  function goToResource(row) {
+    const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+    if (!resourceId) return;
 
-  router.push({
-    path: '/app/resources',
-    query: {
-      resource_id: resourceId,
-      source: 'related',
-    },
-  });
-}
+    router.push({
+      path: '/app/resources',
+      query: {
+        resource_id: resourceId,
+        source: 'related',
+      },
+    });
+  }
 
   /* rows from store */
   const rowsFT = computed(() => {
@@ -521,7 +521,10 @@ function goToResource(row) {
     repo.page = 1;
     fetchAll();
   }
-
+  function handleSearch() {
+    repo.page = 1;
+    fetchAll();
+  }
   function handlePageChange(val) {
     repo.page = val;
     fetchAll();
