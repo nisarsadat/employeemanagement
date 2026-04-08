@@ -1,12 +1,10 @@
 <template>
   <v-container fluid class="page-bg pt-6 fontfamily" :dir="isRtl ? 'rtl' : 'ltr'">
-    <!-- APP BAR -->
     <AppBar
       :title="t('گزارش سالانه سیستم ')"
       :subtitle="t('نمای کلی سالانه منابع، اطلاعات، رویدادها و فورم‌ها')"
     />
 
-    <!-- HEADER / FILTER -->
     <div class="header-container mb-6 fontfamily" :dir="isRtl ? 'rtl' : 'ltr'">
       <div class="d-flex align-center justify-space-between mb-2">
         <div>
@@ -28,31 +26,19 @@
         <v-card-text class="pa-4">
           <div class="d-flex flex-wrap align-center justify-space-between ga-3">
             <div class="d-flex flex-wrap align-center ga-3">
-              <!-- ✅ NEW: calendar selector (gregorian / hijri shamsi / hijri qamari) -->
+              <!-- year select from backend -->
               <v-select
-                v-model="calendarType"
-                :items="calendarOptions"
-                item-title="title"
-                item-value="value"
-                :label="t('نوع تقویم')"
+                v-model="repo.selectedYear"
+                :items="repo.availableYears"
+                :label="t('سال هجری شمسی')"
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
                 hide-details="auto"
                 class="bg-white"
-                style="min-width: 200px"
+                style="min-width: 220px"
+                :loading="yearsLoading"
               />
-
-              <!-- ✅ NEW: DateInput (we use only YEAR from it) -->
-              <div class="date-input-container">
-                <DateInput
-                  v-model="pickedDate"
-                  :label="t('انتخاب تاریخ (برای سال)')"
-                  :rtl="isRtl"
-                  density="comfortable"
-                  :calendar="calendarType"
-                />
-              </div>
 
               <v-btn
                 color="primary"
@@ -84,7 +70,6 @@
                 {{ t('سال جاری') }}
               </v-btn>
 
-              <!-- ✅ PDF -->
               <v-btn
                 color="error"
                 variant="tonal"
@@ -100,7 +85,6 @@
                 PDF
               </v-btn>
 
-              <!-- ✅ Word -->
               <v-btn
                 color="primary"
                 variant="tonal"
@@ -121,7 +105,6 @@
       </v-card>
     </div>
 
-    <!-- ERROR / EMPTY -->
     <v-alert
       v-if="repo.error"
       type="error"
@@ -154,7 +137,6 @@
       </div>
     </v-alert>
 
-    <!-- STATS -->
     <v-row class="mb-5">
       <v-col cols="12" sm="6" lg="3">
         <v-card class="stat-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'" @click="goResources">
@@ -243,11 +225,8 @@
       </v-col>
     </v-row>
 
-    <!-- TABLES -->
     <v-row>
-      <!-- LEFT -->
       <v-col cols="12" lg="5">
-        <!-- Informations types -->
         <v-card class="data-card mb-4" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'">
           <div class="card-header primary-header">
             <div class="d-flex align-center">
@@ -294,7 +273,6 @@
           </v-card-text>
         </v-card>
 
-        <!-- Formats -->
         <v-card class="data-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'">
           <div class="card-header success-header">
             <div class="d-flex align-center">
@@ -336,7 +314,6 @@
         </v-card>
       </v-col>
 
-      <!-- RIGHT -->
       <v-col cols="12" lg="7" :dir="isRtl ? 'rtl' : 'ltr'">
         <v-card class="data-card events-table-card" elevation="0">
           <div class="card-header warning-header">
@@ -413,6 +390,7 @@
           </div>
         </v-card>
       </v-col>
+
       <v-col>
         <ReportNotesPeriodTable
           type="yearly"
@@ -427,373 +405,310 @@
 </template>
 
 <script setup>
-  import { computed, onMounted, ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import ReportNotesPeriodTable from './ReportNotesPeriodTable.vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import ReportNotesPeriodTable from './ReportNotesPeriodTable.vue';
 
-  import AppBar from '@/components/AppBar.vue';
-  import DateInput from '@/components/DateInput.vue';
-  import { useFoulYearlyReportsRepository } from '@/stores/FoulYearlyReportsRepository';
-  import { useRouter } from 'vue-router';
+import AppBar from '@/components/AppBar.vue';
+import { useFoulYearlyReportsRepository } from '@/stores/FoulYearlyReportsRepository';
+import { useRouter } from 'vue-router';
+import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  const { t, locale } = useI18n();
-      import { usePageRefresh } from '@/composables/usePageRefresh';
+const { t, locale } = useI18n();
 
-  usePageRefresh('/app/yearlyfoulreports', fetch);
-  // ✅ RTL/LTR exactly like your employee page
-  const isRtl = ref(locale.value === 'fa');
-  watch(locale, (n) => (isRtl.value = n === 'fa'));
+const repo = useFoulYearlyReportsRepository();
+const report = computed(() => repo.yearly);
+const router = useRouter();
 
-  const repo = useFoulYearlyReportsRepository();
-  const report = computed(() => repo.yearly);
+async function fetch() {
+  if (!repo.selectedYear) return;
+  await repo.FetchYearlyFoulReport(repo.selectedYear);
+}
 
-  const router = useRouter();
+usePageRefresh('/app/yearlyfoulreports', fetch);
 
-  // main routes
-  const goResources = () => router.push('/app/resources');
-  const goEvents = () => router.push('/app/events');
-  const goInformations = () => router.push('/app/informations');
-  const goFiftyFormatsHub = () => router.push('/app/fifthyformatsroute');
+const isRtl = ref(locale.value === 'fa');
+watch(locale, (n) => (isRtl.value = n === 'fa'));
 
-  // 56-format route from key (your API returns key like: "fasads", "robbers", "parks"...)
-  function goFormatByKey(key) {
-    if (!key) return;
-    router.push(`/app/${key}`);
+const yearsLoading = ref(false);
+
+const goResources = () => router.push('/app/resources');
+const goEvents = () => router.push('/app/events');
+const goInformations = () => router.push('/app/informations');
+const goFiftyFormatsHub = () => router.push('/app/fifthyformatsroute');
+
+function goFormatByKey(key) {
+  if (!key) return;
+  router.push(`/app/${key}`);
+}
+
+function goInfoType() {
+  router.push('/app/informations');
+}
+
+const chipYear = computed(() => {
+  return String(repo.selectedYear || report.value?.meta?.year || '').trim();
+});
+
+const eventTypes = computed(() => {
+  const types = report.value?.events?.types ?? [];
+  return Array.isArray(types) ? types : [];
+});
+
+const isAllZero = computed(() => {
+  const r = report.value;
+  if (!r) return false;
+  return (
+    (r.resources?.total ?? 0) === 0 &&
+    (r.informations?.total ?? 0) === 0 &&
+    (r.events?.total ?? 0) === 0 &&
+    (r.formats?.length ?? 0) === 0
+  );
+});
+
+const infoHeaders = computed(() => [
+  { title: t('نوعیت اطلاعات'), key: 'label', width: '70%' },
+  { title: t('تعداد'), key: 'count', align: 'end', width: '30%' },
+]);
+
+const formatHeaders = computed(() => [
+  { title: t('نام فورم'), key: 'name', width: '70%' },
+  { title: t('ورودی‌ها'), key: 'count', align: 'end', width: '30%' },
+]);
+
+const eventHeaders = computed(() => [
+  { title: t('نوع رویداد'), key: 'label', width: '70%' },
+  { title: t('تعداد'), key: 'count', align: 'end', width: '30%' },
+]);
+
+function getTypeColor(type) {
+  const colors = {
+    عمومی: 'type-general',
+    خصوصی: 'type-private',
+    محرمانه: 'type-confidential',
+    فوری: 'type-urgent',
+  };
+  return colors[type] || 'type-general';
+}
+
+function getEventTypeColor(type) {
+  const colors = {
+    حادثه: 'error',
+    تخریب: 'warning',
+    درگیری: 'deep-orange',
+    طبیعی: 'info',
+    سیاسی: 'purple',
+  };
+  return colors[type] || 'grey';
+}
+
+async function resetToCurrentYear() {
+  if (repo.currentYear) {
+    repo.selectedYear = String(repo.currentYear);
+  } else if (repo.availableYears.length > 0) {
+    repo.selectedYear = String(repo.availableYears[0]);
   }
+  await fetch();
+}
 
-  // information types (we only route to informations list)
-  function goInfoType(label) {
-    router.push('/app/informations');
-  }
+onMounted(async () => {
+  yearsLoading.value = true;
+  await repo.FetchYearlyFoulYears();
+  yearsLoading.value = false;
 
-  // ✅ NEW: calendar type + pickedDate (we use only YEAR)
-  const calendarType = ref('gregorian'); // 'gregorian' | 'jalali' | 'hijri'
-  const pickedDate = ref(''); // YYYY-MM-DD
-
-  const calendarOptions = computed(() => [
-    { title: t('میلادی'), value: 'gregorian' },
-    { title: t('هجری شمسی'), value: 'jalali' },
-    { title: t('هجری قمری'), value: 'hijri' },
-  ]);
-
-  function toLatinDigits(s) {
-    const str = String(s ?? '');
-    const fa = '۰۱۲۳۴۵۶۷۸۹';
-    const ar = '٠١٢٣٤٥٦٧٨٩';
-    return str
-      .split('')
-      .map((ch) => {
-        const i1 = fa.indexOf(ch);
-        if (i1 >= 0) return String(i1);
-        const i2 = ar.indexOf(ch);
-        if (i2 >= 0) return String(i2);
-        return ch;
-      })
-      .join('');
-  }
-
-  function extractYearFromPickedDate(iso, cal) {
-    if (!iso) return '';
-
-    const [y, m, d] = iso.split('-').map(Number);
-    if (!y || !m || !d) return '';
-
-    const dt = new Date(y, m - 1, d);
-
-    const fmtLocale =
-      cal === 'jalali' ? 'fa-IR-u-ca-persian' : cal === 'hijri' ? 'ar-SA-u-ca-islamic' : 'en-US';
-
-    const yearText = new Intl.DateTimeFormat(fmtLocale, { year: 'numeric' }).format(dt);
-    return toLatinDigits(yearText);
-  }
-
-  const selectedYearComputed = computed(() => {
-    const y = extractYearFromPickedDate(pickedDate.value, calendarType.value);
-    return y || String(new Date().getFullYear());
-  });
-
-  const chipYear = computed(() => {
-    return String(selectedYearComputed.value || report.value?.meta?.year || '').trim();
-  });
-
-  const eventTypes = computed(() => {
-    const types = report.value?.events?.types ?? [];
-    return Array.isArray(types) ? types : [];
-  });
-
-  const isAllZero = computed(() => {
-    const r = report.value;
-    if (!r) return false;
-    return (
-      (r.resources?.total ?? 0) === 0 &&
-      (r.informations?.total ?? 0) === 0 &&
-      (r.events?.total ?? 0) === 0 &&
-      (r.formats?.length ?? 0) === 0
-    );
-  });
-
-  const infoHeaders = computed(() => [
-    { title: t('نوعیت اطلاعات'), key: 'label', width: '70%' },
-    { title: t('تعداد'), key: 'count', align: 'end', width: '30%' },
-  ]);
-
-  const formatHeaders = computed(() => [
-    { title: t('نام فورم'), key: 'name', width: '70%' },
-    { title: t('ورودی‌ها'), key: 'count', align: 'end', width: '30%' },
-  ]);
-
-  const eventHeaders = computed(() => [
-    { title: t('نوع رویداد'), key: 'label', width: '70%' },
-    { title: t('تعداد'), key: 'count', align: 'end', width: '30%' },
-  ]);
-
-  function getTypeColor(type) {
-    const colors = {
-      عمومی: 'type-general',
-      خصوصی: 'type-private',
-      محرمانه: 'type-confidential',
-      فوری: 'type-urgent',
-    };
-    return colors[type] || 'type-general';
-  }
-
-  function getEventTypeColor(type) {
-    const colors = {
-      حادثه: 'error',
-      تخریب: 'warning',
-      درگیری: 'deep-orange',
-      طبیعی: 'info',
-      سیاسی: 'purple',
-    };
-    return colors[type] || 'grey';
-  }
-
-  async function fetch() {
-    // keep repo.selectedYear in sync for exports + API
-    repo.selectedYear = selectedYearComputed.value;
-    // If your API supports calendar param, your repo should accept it (year, calendar)
-    await repo.FetchYearlyFoulReport(repo.selectedYear, calendarType.value);
-  }
-
-  async function resetToCurrentYear() {
-    calendarType.value = 'gregorian';
-    pickedDate.value = new Date().toISOString().slice(0, 10);
+  if (repo.selectedYear) {
     await fetch();
   }
-
-  onMounted(() => {
-    // default to today
-    pickedDate.value = new Date().toISOString().slice(0, 10);
-    // keep selectedYear default too (for export filenames etc.)
-    repo.selectedYear = selectedYearComputed.value;
-    fetch();
-  });
+});
 </script>
 
 <style scoped>
-  /* ✅ enforce your app.css font everywhere */
-  .fontfamily,
-  .fontfamily * {
-    font-family: var(--app-font) !important;
-  }
+.fontfamily,
+.fontfamily * {
+  font-family: var(--app-font) !important;
+}
 
-  .page-bg {
-    background: #f6f7fb;
-    min-height: 100vh;
-  }
+.page-bg {
+  background: #f6f7fb;
+  min-height: 100vh;
+}
 
-  /* ===== Header: smaller + professional ===== */
-  .header-container {
-    background: linear-gradient(135deg, #5b6eea 0%, #6d42a6 100%);
-    border-radius: 14px;
-    padding: 18px;
-    position: relative;
-    overflow: hidden;
-  }
+.header-container {
+  background: linear-gradient(135deg, #5b6eea 0%, #6d42a6 100%);
+  border-radius: 14px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+}
 
-  /* offline-safe pattern (inline svg data URI) */
-  .header-container::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%23ffffff' fill-opacity='0.10' fill-rule='evenodd'/%3E%3C/svg%3E");
-    opacity: 0.35;
-    pointer-events: none;
-  }
+.header-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%23ffffff' fill-opacity='0.10' fill-rule='evenodd'/%3E%3C/svg%3E");
+  opacity: 0.35;
+  pointer-events: none;
+}
 
-  .title-text {
-    color: #fff;
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: 0.2px;
-    position: relative;
-    z-index: 1;
-  }
+.title-text {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  position: relative;
+  z-index: 1;
+}
 
-  .subtitle-text {
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 13px;
-    position: relative;
-    z-index: 1;
-  }
+.subtitle-text {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  position: relative;
+  z-index: 1;
+}
 
-  .date-display {
-    background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 10px;
-    padding: 8px 12px;
-    color: #fff;
-    font-size: 13px;
-    position: relative;
-    z-index: 1;
-    white-space: nowrap;
-  }
+.date-display {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 13px;
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+}
 
-  /* ===== Filter card ===== */
-  .filter-card {
-    margin-top: 12px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.95) !important;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    position: relative;
-    z-index: 1;
-  }
+.filter-card {
+  margin-top: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  position: relative;
+  z-index: 1;
+}
 
-  .action-btn {
-    height: 44px !important;
-    padding: 0 18px !important;
-    font-weight: 700;
-  }
+.action-btn {
+  height: 44px !important;
+  padding: 0 18px !important;
+  font-weight: 700;
+}
 
-  .date-input-container :deep(.v-field) {
-    min-height: 44px;
-  }
+.stat-card {
+  border-radius: 12px;
+  border: 1px solid #e9eef7;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  min-height: 92px;
+}
 
-  .date-input-container :deep(.v-input) {
-    background: #fff;
-    border-radius: 10px;
-  }
+:deep(.v-data-table tbody tr) {
+  cursor: pointer;
+}
 
-  /* ===== Stats: smaller cards ===== */
-  .stat-card {
-    border-radius: 12px;
-    border: 1px solid #e9eef7;
-    background: #ffffff;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    min-height: 92px;
-  }
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(16, 24, 40, 0.08) !important;
+}
 
-  :deep(.v-data-table tbody tr) {
-    cursor: pointer;
-  }
+.stat-label {
+  font-size: 12px;
+  color: rgba(17, 24, 39, 0.65);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
 
-  .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(16, 24, 40, 0.08) !important;
-  }
+.stat-number {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.1;
+}
 
-  .stat-label {
-    font-size: 12px;
-    color: rgba(17, 24, 39, 0.65);
-    margin-bottom: 4px;
-    font-weight: 600;
-  }
+.data-card {
+  border-radius: 12px;
+  border: 1px solid #e9eef7;
+  overflow: hidden;
+  background: #fff;
+}
 
-  .stat-number {
-    font-size: 26px;
-    font-weight: 900;
-    line-height: 1.1;
-  }
+.events-table-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
-  /* ===== Data cards ===== */
-  .data-card {
-    border-radius: 12px;
-    border: 1px solid #e9eef7;
-    overflow: hidden;
-    background: #fff;
-  }
+.card-header {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-  .events-table-card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
+.card-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(17, 24, 39, 0.9);
+}
 
-  .card-header {
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+.card-subtitle {
+  font-size: 12px;
+  color: rgba(17, 24, 39, 0.55);
+  margin-top: 2px;
+}
 
-  .card-title {
-    font-size: 14px;
-    font-weight: 800;
-    color: rgba(17, 24, 39, 0.9);
-  }
+.primary-header {
+  background: linear-gradient(135deg, #eef2ff 0%, #dde5ff 100%);
+}
 
-  .card-subtitle {
-    font-size: 12px;
-    color: rgba(17, 24, 39, 0.55);
-    margin-top: 2px;
-  }
+.success-header {
+  background: linear-gradient(135deg, #e8fbf2 0%, #d2f7e5 100%);
+}
 
-  .primary-header {
-    background: linear-gradient(135deg, #eef2ff 0%, #dde5ff 100%);
-  }
+.warning-header {
+  background: linear-gradient(135deg, #fff6df 0%, #ffeab6 100%);
+}
 
-  .success-header {
-    background: linear-gradient(135deg, #e8fbf2 0%, #d2f7e5 100%);
-  }
+.summary-footer {
+  background: #f8fafc;
+}
 
-  .warning-header {
-    background: linear-gradient(135deg, #fff6df 0%, #ffeab6 100%);
-  }
+.type-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
 
-  .summary-footer {
-    background: #f8fafc;
-  }
+.type-general {
+  background-color: #4f46e5;
+}
 
-  /* ===== type indicator ===== */
-  .type-indicator {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-  }
+.type-private {
+  background-color: #0ea5e9;
+}
 
-  .type-general {
-    background-color: #4f46e5;
-  }
+.type-confidential {
+  background-color: #8b5cf6;
+}
 
-  .type-private {
-    background-color: #0ea5e9;
-  }
+.type-urgent {
+  background-color: #ef4444;
+}
 
-  .type-confidential {
-    background-color: #8b5cf6;
-  }
+:deep(.v-data-table) {
+  font-size: 13px;
+}
 
-  .type-urgent {
-    background-color: #ef4444;
-  }
+:deep(.v-data-table-header) {
+  background: #f8fafc;
+}
 
-  /* ===== table look ===== */
-  :deep(.v-data-table) {
-    font-size: 13px;
-  }
+:deep(.v-data-table-header th) {
+  font-weight: 800 !important;
+  color: rgba(17, 24, 39, 0.7) !important;
+  font-size: 12px !important;
+}
 
-  :deep(.v-data-table-header) {
-    background: #f8fafc;
-  }
-
-  :deep(.v-data-table-header th) {
-    font-weight: 800 !important;
-    color: rgba(17, 24, 39, 0.7) !important;
-    font-size: 12px !important;
-  }
-
-  :deep(.v-data-table-row:hover) {
-    background: #f6f8ff;
-  }
+:deep(.v-data-table-row:hover) {
+  background: #f6f8ff;
+}
 </style>

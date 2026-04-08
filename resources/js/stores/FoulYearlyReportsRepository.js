@@ -1,4 +1,3 @@
-// stores/FoulYearlyReportsRepository.js
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import axios from '@/axios';
@@ -6,19 +5,17 @@ import { toast } from 'vue3-toastify';
 
 export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepository', () => {
   const loading = ref(false);
-
-  // ✅ IMPORTANT: keep error as STRING (never object)
   const error = ref('');
-
-  // Yearly report payload from backend
   const yearly = ref(null);
 
-  // Filters
-  const selectedYear = ref(''); // YYYY
+  // filter
+  const selectedYear = ref('');
+  const selectedDate = ref('');
 
-  // =========================
-  // Helpers
-  // =========================
+  // backend years
+  const availableYears = ref([]);
+  const currentYear = ref('');
+
   function pad2(n) {
     return String(n).padStart(2, '0');
   }
@@ -30,28 +27,13 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     return `${y}-${m}-${day}`;
   }
 
-  function currentYearIso() {
-    return String(new Date().getFullYear());
-  }
-
   function todayIso() {
     return isoDate(new Date());
-  }
-
-  function yearToIsoDate(yearText) {
-    // YYYY -> YYYY-01-01 (for header pills)
-    const y = String(yearText || '').trim();
-    if (/^\d{4}$/.test(y)) return `${y}-01-01`;
-    return todayIso();
   }
 
   function safeNum(val) {
     const n = Number(val ?? 0);
     return Number.isFinite(n) ? n : 0;
-  }
-
-  function formatMoney(val) {
-    return safeNum(val).toLocaleString();
   }
 
   function escapeHtml(s) {
@@ -101,9 +83,6 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     }
   }
 
-  // =========================
-  // Dates (Miladi + Hijri Shamsi + Hijri Qamari)
-  // =========================
   function formatMiladi(dateIso) {
     const d = String(dateIso || '').trim();
     return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : '';
@@ -150,8 +129,6 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     const qamari = formatHijriQamari(dateIso);
 
     const pills = [];
-
-    // ✅ same order as we used: Qamari, Shamsi, Miladi (or keep your order if you want)
     if (qamari) pills.push(`<span class="pill pill-qamari">هجري قمري: ${escapeHtml(qamari)}</span>`);
     if (shamsi) pills.push(`<span class="pill pill-shamsi">هجري شمسي: ${escapeHtml(shamsi)}</span>`);
     if (miladi) pills.push(`<span class="pill pill-miladi">میلادي: ${escapeHtml(miladi)}</span>`);
@@ -159,9 +136,6 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     return pills.join('');
   }
 
-  // =========================
-  // ✅ EMPTY / USEFUL ROW HELPERS (omit tables/sections if empty)
-  // =========================
   function hasUsefulRows(arr, countKey = 'count') {
     if (!Array.isArray(arr) || arr.length === 0) return false;
     return arr.some((x) => safeNum(x?.[countKey] ?? 0) > 0);
@@ -172,19 +146,26 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     return arr.some((n) => String(n?.report_note ?? n?.note ?? '').trim());
   }
 
-  // =========================
-  // ✅ NOTES: yearly range + fetch + html section
-  // =========================
   function rangeForYearlyNotes(yearText) {
-    const y = String(yearText || selectedYear.value || currentYearIso()).trim();
+    const y = String(yearText || selectedYear.value || currentYear.value || '').trim();
     if (!/^\d{4}$/.test(y)) {
-      const fallback = currentYearIso();
-      return { from: `${fallback}-01-01`, to: `${fallback}-12-31` };
+      return { from: todayIso(), to: todayIso() };
     }
-    return { from: `${y}-01-01`, to: `${y}-12-31` };
+
+    if (yearly.value?.meta?.range?.from && yearly.value?.meta?.range?.to_exclusive) {
+      const from = yearly.value.meta.range.from;
+      const toExclusive = yearly.value.meta.range.to_exclusive;
+
+      const toDate = new Date(`${toExclusive}T00:00:00`);
+      toDate.setDate(toDate.getDate() - 1);
+      const to = isoDate(toDate);
+
+      return { from, to };
+    }
+
+    return { from: todayIso(), to: todayIso() };
   }
 
-  // ✅ robust notes fetch (same as quarterly)
   async function fetchNotesForExport({ type, from, to }) {
     const endpoints = ['/report-notes', '/report_notes'];
 
@@ -204,7 +185,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
           if (Array.isArray(res?.data?.data)) return res.data.data;
           if (Array.isArray(res?.data)) return res.data;
         } catch {
-          // try next
+          // next
         }
       }
     }
@@ -259,9 +240,6 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     `;
   }
 
-  // =========================
-  // ✅ Format name localization (NOT English in PDF/Word)
-  // =========================
   function formatNameLocal(name) {
     const n = String(name ?? '').trim();
     if (!n) return '';
@@ -288,9 +266,6 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     return map[n] || n;
   }
 
-  // =========================
-  // ✅ App font stack (SAME AS WEEKLY)
-  // =========================
   function appFontStack() {
     return (
       `'Amiri','Scheherazade New','Noto Naskh Arabic','Noto Sans Arabic','Tahoma',` +
@@ -298,16 +273,12 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     );
   }
 
-  // =========================
-  // ✅ System name (same logic)
-  // =========================
   function getSystemName() {
     try {
       const a = window?.systemName;
       if (typeof a === 'string' && a.trim()) return a.trim();
     } catch {}
     try {
-      // eslint-disable-next-line no-undef
       const b = import.meta?.env?.VITE_SYSTEM_NAME;
       if (typeof b === 'string' && b.trim()) return b.trim();
     } catch {}
@@ -316,18 +287,11 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
 
   const BISMILLAH = 'بسم الله الرحمن الرحیم';
 
-  // =========================
-  // ✅ Export CSS (MATCH WEEKLY EXACT)
-  // - RTL + same hero + same pill styles
-  // - table align start
-  // - HERO TEXT BLACK (same as weekly)
-  // =========================
   function baseExportCss() {
     const fontStack = appFontStack();
 
     return `
       @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
-
       @page { size: A4 portrait; margin: 14mm; }
 
       :root{
@@ -385,7 +349,6 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         direction: rtl !important;
       }
 
-      /* ✅ HERO TEXT MUST BE BLACK (same as weekly) */
       .hero, .hero * { color: #000 !important; }
 
       .hero-system{
@@ -551,15 +514,8 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
         border:1px solid rgba(17,24,39,.12);
         color:#000 !important;
       }
-      .margintowline
-      {
-      margin-top:12px;
-      }
-      .fontsizeb
-      {
-      font-size: 18px;
-      color: #0000;
-      }
+      .margintowline { margin-top:12px; }
+      .fontsizeb { font-size: 18px; color: #0000; }
       .etype-red{ background:#fee2e2; border-color:#fecaca; }
       .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
       .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
@@ -589,15 +545,10 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     return map[t] || 'etype-gray';
   }
 
-  // =========================
-  // Yearly HTML (✅ EXACT HERO LAYOUT AS WEEKLY)
-  // - hero: left texts, middle bismillah, right logo
-  // - omit sections with no useful rows
-  // - notes included
-  // =========================
   function buildYearlyDashboardHtml(report, yearText, notes = []) {
-    const yearVal = String(yearText || selectedYear.value || currentYearIso()).trim();
-    const headerIso = yearToIsoDate(yearVal); // YYYY-01-01
+    const yearVal = String(yearText || selectedYear.value || currentYear.value || '').trim();
+
+    const headerIso = yearly.value?.meta?.range?.from || todayIso();
     const heroDatePills = buildDatePillsSameDay(headerIso);
 
     const systemName = getSystemName();
@@ -730,18 +681,15 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
           <div class="page">
             <div class="hero no-break fontsizeb">
               <div class="hero-top">
-                <!-- ✅ left texts (same structure as weekly) -->
                 <div class="hero-info margintowline">
                   <div class="hero-system fontsizeb">${escapeHtml(systemName)} کلنی راپور</div>
                   <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ کلنی عمومي کتنه</p>
                 </div>
 
-                <!-- ✅ middle bismillah (same as weekly “hero-mid”) -->
                 <div class="hero-mid">
                   <div class="hero-bismillah fontsizeb">${escapeHtml(BISMILLAH)}</div>
                 </div>
 
-                <!-- ✅ right logo -->
                 <div class="hero-logo">
                   <img src="${escapeHtml(getLogoUrl())}" alt="Logo" />
                 </div>
@@ -785,9 +733,6 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     `;
   }
 
-  // =========================
-  // ✅ Print helper (FIX BLANK PDF) — same as weekly
-  // =========================
   function printHtmlViaIframe(html) {
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
@@ -884,22 +829,40 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     URL.revokeObjectURL(url);
   }
 
-  // =========================
-  // API
-  // =========================
+  const FetchYearlyFoulYears = async () => {
+    try {
+      const { data } = await axios.get('/reports/foul/yearly/date-options');
+
+      availableYears.value = Array.isArray(data?.years) ? data.years.map((x) => String(x)) : [];
+      currentYear.value = String(data?.current_year ?? '');
+
+      if (!selectedYear.value) {
+        selectedYear.value = availableYears.value[0] || currentYear.value || '';
+      }
+
+      return data;
+    } catch (e) {
+      error.value = normalizeError(e);
+      toast.error(error.value);
+      return null;
+    }
+  };
+
   const FetchYearlyFoulReport = async (year) => {
     try {
       loading.value = true;
       error.value = '';
 
-      const finalYear = year || selectedYear.value || currentYearIso();
-      selectedYear.value = String(finalYear);
+      const finalYear = String(year || selectedYear.value || currentYear.value || '').trim();
+      selectedYear.value = finalYear;
 
       const { data } = await axios.get('/reports/foul/yearly', {
         params: { year: selectedYear.value },
       });
 
       yearly.value = data;
+      selectedDate.value = data?.meta?.range?.from || '';
+
       return data;
     } catch (e) {
       yearly.value = null;
@@ -911,23 +874,26 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     }
   };
 
-  const ResetYearly = () => {
+  const ResetYearly = async () => {
     yearly.value = null;
     error.value = '';
-    selectedYear.value = currentYearIso();
+
+    if (availableYears.value.length > 0) {
+      selectedYear.value = availableYears.value[0];
+    } else {
+      selectedYear.value = currentYear.value || '';
+    }
+
+    if (selectedYear.value) {
+      await FetchYearlyFoulReport(selectedYear.value);
+    }
   };
 
-  // Init defaults
-  if (!selectedYear.value) selectedYear.value = currentYearIso();
-
-  // =========================
-  // EXPORT ACTIONS (✅ with notes + ✅ fixed blank PDF)
-  // =========================
   const DownloadYearlyFoulPdf = async () => {
     const report = yearly.value;
     if (!report) return;
 
-    const yearText = selectedYear.value || currentYearIso();
+    const yearText = selectedYear.value || currentYear.value || '';
     const r = rangeForYearlyNotes(yearText);
 
     const notes = await fetchNotesForExport({
@@ -944,7 +910,7 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
     const report = yearly.value;
     if (!report) return;
 
-    const yearText = selectedYear.value || currentYearIso();
+    const yearText = selectedYear.value || currentYear.value || '';
     const r = rangeForYearlyNotes(yearText);
 
     const notes = await fetchNotesForExport({
@@ -958,21 +924,16 @@ export const useFoulYearlyReportsRepository = defineStore('FoulYearlyReportsRepo
   };
 
   return {
-    // state
     loading,
     error,
-
-    // payload
     yearly,
-
-    // filter
     selectedYear,
-
-    // actions
+    selectedDate,
+    availableYears,
+    currentYear,
+    FetchYearlyFoulYears,
     FetchYearlyFoulReport,
     ResetYearly,
-
-    // export
     DownloadYearlyFoulPdf,
     DownloadYearlyFoulWord,
   };

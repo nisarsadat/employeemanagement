@@ -589,12 +589,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // daily report + monthly report + yearly report
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/reports/foul/daily', DailyFoulReportController::class);
-        Route::get('/reports/foul/monthly', MonthlyFoulReportController::class);
-        Route::get('/reports/foul/yearly', YearlyFoulReportController::class);
-        Route::get('/reports/foul/weekly', WeeklyFoulReportController::class);
-        Route::get('/reports/foul/quarterly', QuarterlyFoulReportController::class);
-        Route::get('/reports/foul/all-time', AllTimeFoulReportController::class);
+    Route::get('/reports/foul/daily', DailyFoulReportController::class);
+    Route::get('/reports/foul/monthly', MonthlyFoulReportController::class);
+    Route::get('/reports/foul/yearly', YearlyFoulReportController::class);
+    Route::get('/reports/foul/yearly/date-options', [YearlyFoulReportController::class, 'dateOptions']);
+    Route::get('/reports/foul/weekly', WeeklyFoulReportController::class);
+    Route::get('/reports/foul/quarterly', QuarterlyFoulReportController::class);
+    Route::get('/reports/foul/all-time', YearlyFoulReportController::class);
     });
 
 
