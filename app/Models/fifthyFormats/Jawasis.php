@@ -11,7 +11,7 @@ class Jawasis extends Model
 {
     use HasFactory;
 
-
+    protected $table = 'jawasis';
 
     protected $fillable = [
         'information_id',
@@ -60,7 +60,8 @@ class Jawasis extends Model
     {
         return $this->hasMany(JawasisDocument::class);
     }
-            public function information()
+
+    public function information()
     {
         return $this->belongsTo(Information::class, 'information_id');
     }
