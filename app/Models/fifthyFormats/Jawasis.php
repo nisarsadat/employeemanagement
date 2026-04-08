@@ -2,6 +2,8 @@
 
 namespace App\Models\fifthyFormats;
 
+use App\Models\Information;
+use App\Models\Resource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,9 +11,7 @@ class Jawasis extends Model
 {
     use HasFactory;
 
-    // ✅ IMPORTANT: Laravel was guessing "jawases"
-    // We force the correct table name:
-    protected $table = 'jawasis';
+
 
     protected $fillable = [
         'information_id',
@@ -53,7 +53,7 @@ class Jawasis extends Model
 
     public function resource()
     {
-        return $this->belongsTo(\App\Models\Resource::class);
+        return $this->belongsTo(Resource::class);
     }
 
     public function documents()
@@ -62,6 +62,6 @@ class Jawasis extends Model
     }
             public function information()
     {
-        return $this->belongsTo(\App\Models\Information::class, 'information_id');
+        return $this->belongsTo(Information::class, 'information_id');
     }
 }

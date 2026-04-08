@@ -2,6 +2,7 @@
 
 namespace App\Models\fifthyFormats;
 
+use App\Models\Information;
 use App\Models\Resource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -52,6 +53,6 @@ class SaeenFasad extends Model
     }
     public function information()
     {
-        return $this->belongsTo(\App\Models\Information::class, 'information_id');
+        return $this->belongsTo(Information::class, 'information_id');
     }
 }

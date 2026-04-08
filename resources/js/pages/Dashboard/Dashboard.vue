@@ -638,11 +638,11 @@
                 </template>
 
                 <!-- Employee -->
-                <template #item.name="{ item }">
+                <template #item.nick_name="{ item }">
                   <div class="employee-cell" @click="openEmployeeDialog(item)">
                     <v-avatar size="40" class="avatar-glow mr-3">
                       <span class="text-white text-body-2 font-weight-bold">
-                        {{ getInitials(item.name) }}
+                        {{ getInitials(item.nick_name || item.name) }}
                       </span>
                     </v-avatar>
 
@@ -774,14 +774,19 @@
                 <div class="text-caption text-medium-emphasis">
                   {{ t('نمایش') }} {{ pageFrom }}-{{ pageTo }} {{ t('از') }}
                   {{ filteredEmployees.length }}
+                  {{ t('کارمند') }}
+                  •
+                  {{ t('صفحه') }} {{ currentPage }} {{ t('از') }} {{ pageCount }}
                 </div>
 
                 <v-pagination
                   v-model="currentPage"
                   :length="pageCount"
-                  total-visible="6"
+                  :total-visible="6"
                   rounded="circle"
                   density="compact"
+                  :prev-icon="isRtl ? 'mdi-chevron-right' : 'mdi-chevron-left'"
+                  :next-icon="isRtl ? 'mdi-chevron-left' : 'mdi-chevron-right'"
                 />
               </div>
             </div>
@@ -1106,9 +1111,9 @@
     return Number.isFinite(n) ? n.toLocaleString() : '0';
   }
 
-  function getInitials(name) {
-    if (!name) return '—';
-    return String(name)
+  function getInitials(value) {
+    if (!value) return '—';
+    return String(value)
       .split(' ')
       .filter(Boolean)
       .map((w) => w[0])
@@ -1239,10 +1244,14 @@
       return (Number(b?.khayrat_reports_count) || 0) - (Number(a?.khayrat_reports_count) || 0);
 
     if (key === 'name_asc')
-      return String(a?.name || '').localeCompare(String(b?.name || ''), undefined, {
-        sensitivity: 'base',
-        numeric: true,
-      });
+      return String(a?.nick_name || a?.name || '').localeCompare(
+        String(b?.nick_name || b?.name || ''),
+        undefined,
+        {
+          sensitivity: 'base',
+          numeric: true,
+        }
+      );
 
     return 0;
   }
@@ -1254,9 +1263,10 @@
     const filtered = !q
       ? arr
       : arr.filter((e) => {
+          const nickName = String(e?.nick_name || '').toLowerCase();
           const name = String(e?.name || '').toLowerCase();
           const code = String(e?.code_number || '').toLowerCase();
-          return name.includes(q) || code.includes(q);
+          return nickName.includes(q) || name.includes(q) || code.includes(q);
         });
 
     const keys =
@@ -1294,8 +1304,9 @@
     return 'error';
   }
 
-  const getTopEmployeeName = computed(() => filteredEmployees.value[0]?.name || '—');
-
+  const getTopEmployeeName = computed(
+    () => filteredEmployees.value[0]?.nick_name || filteredEmployees.value[0]?.name || '—'
+  );
   const pageCount = computed(() =>
     Math.max(1, Math.ceil(filteredEmployees.value.length / itemsPerPage))
   );
