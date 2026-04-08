@@ -317,7 +317,6 @@
   import PictureCell from '@/components/table/PictureCell.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/pumps', fetchAll);
   const repo = useWakilanoRepository();
   const router = useRouter();
 
@@ -579,6 +578,7 @@ function goToResource(row) {
     previewSrc.value = normalized;
     previewOpen.value = true;
   }
+  usePageRefresh('/app/pumps', fetchAll);
 
   /* init */
   onMounted(async () => {

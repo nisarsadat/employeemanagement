@@ -304,7 +304,6 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 import { useMawadRepository } from '@/stores/MawadRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/damageplaces', fetchAll);
 const repo = useMawadRepository();
 const router = useRouter();
 
@@ -539,6 +538,7 @@ function handlePerPageChange(val) {
   repo.page = 1;
   fetchAll();
 }
+  usePageRefresh('/app/damageplaces', fetchAll);
 
 /* init */
 onMounted(async () => {

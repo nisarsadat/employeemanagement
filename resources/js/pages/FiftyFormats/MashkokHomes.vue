@@ -303,7 +303,6 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
     import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/mashkokhomes', fetchAll);
   const auth = useLoginRepository();
   const repo = useMawadRepository();
   const router = useRouter();
@@ -552,6 +551,7 @@ function goToResource(row) {
     repo.page = 1;
     fetchAll();
   }
+  usePageRefresh('/app/mashkokhomes', fetchAll);
 
   /* init */
   onMounted(async () => {

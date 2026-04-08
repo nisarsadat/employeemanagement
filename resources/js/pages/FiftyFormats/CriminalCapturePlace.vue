@@ -289,7 +289,6 @@
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/criminalcaptureplaces', fetchAll);
   const repo = useWakilanoRepository();
   const router = useRouter();
 
@@ -504,6 +503,7 @@ function goToResource(row) {
     repo.page = 1;
     fetchAll();
   }
+  usePageRefresh('/app/criminalcaptureplaces', fetchAll);
 
   /* init */
   onMounted(async () => {

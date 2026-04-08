@@ -316,7 +316,6 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/jawasis', fetchAll);
   const auth = useLoginRepository();
   const repo = useJawasiRepository();
   const router = useRouter();
@@ -566,6 +565,7 @@ function goToResource(row) {
     repo.page = 1;
     fetchAll();
   }
+  usePageRefresh('/app/jawasis', fetchAll);
 
   onMounted(fetchAll);
 </script>

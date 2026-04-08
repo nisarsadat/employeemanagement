@@ -304,7 +304,6 @@ import { useSchoolRepository } from '@/stores/SchoolRepository';
 import PictureCell from '@/components/table/PictureCell.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/rahnomamamlats', fetchAll);
 const repo = useSchoolRepository();
 const router = useRouter();
 
@@ -525,6 +524,7 @@ function clearSearch() {
   repo.page = 1;
   fetchAll();
 }
+  usePageRefresh('/app/rahnomamamlats', fetchAll);
 
 /* init */
 onMounted(async () => {

@@ -337,7 +337,6 @@
   import { useFasadRepository } from '@/stores/FasadRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/soldiers', fetchAll);
   const repo = useFasadRepository();
   const router = useRouter();
 
@@ -566,6 +565,7 @@ function goToResource(row) {
     imgTitle.value = r?.name || '';
     imgDialog.value = true;
   }
+  usePageRefresh('/app/soldiers', fetchAll);
 
   /* init */
   onMounted(async () => {

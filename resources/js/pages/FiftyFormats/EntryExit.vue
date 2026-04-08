@@ -320,7 +320,6 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 import { useFasadRepository } from '@/stores/FasadRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/entry-exits', fetchAll);
 const repo = useFasadRepository();
 const router = useRouter();
 
@@ -554,6 +553,7 @@ function handlePerPageChange(newSize) {
   repo.page = 1;
   fetchAll();
 }
+  usePageRefresh('/app/entry-exits', fetchAll);
 
 /* init */
 onMounted(async () => {

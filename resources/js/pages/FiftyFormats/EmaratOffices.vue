@@ -313,7 +313,6 @@
   import PictureCell from '@/components/table/PictureCell.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/emaratoffices', fetchAll);
   const repo = useBadmashanoRepository();
   const router = useRouter();
 
@@ -558,6 +557,7 @@ function goToResource(row) {
     previewSrc.value = normalized;
     previewOpen.value = true;
   }
+  usePageRefresh('/app/emaratoffices', fetchAll);
 
   /* init */
   onMounted(async () => {

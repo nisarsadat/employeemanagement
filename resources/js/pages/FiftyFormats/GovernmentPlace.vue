@@ -316,7 +316,6 @@ import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 import PictureCell from '@/components/table/PictureCell.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/governmentplaces', fetchAll);
 const repo = useWakilanoRepository();
 const router = useRouter();
 
@@ -585,6 +584,7 @@ function openPreview(src) {
   previewSrc.value = normalized;
   previewOpen.value = true;
 }
+  usePageRefresh('/app/governmentplaces', fetchAll);
 
 /* init */
 onMounted(async () => {

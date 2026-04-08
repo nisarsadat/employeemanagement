@@ -317,7 +317,6 @@
   import { useFasadRepository } from '@/stores/FasadRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/sarafyanos', fetchAll);
   const repo = useFasadRepository();
   const router = useRouter();
 
@@ -568,6 +567,7 @@ function goToResource(row) {
     repo.page = 1;
     fetchAll();
   }
+  usePageRefresh('/app/sarafyanos', fetchAll);
 
   /* init */
   onMounted(async () => {

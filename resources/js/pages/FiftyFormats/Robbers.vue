@@ -338,7 +338,6 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 import { useMawadRepository } from '@/stores/MawadRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/robbers', fetchAll);
 const repo = useMawadRepository();
 const router = useRouter();
 
@@ -606,6 +605,7 @@ function openPreview(src) {
   previewSrc.value = normalized;
   previewOpen.value = true;
 }
+  usePageRefresh('/app/robbers', fetchAll);
 
 /* init */
 onMounted(async () => {

@@ -302,7 +302,6 @@ import { useMawadRepository } from '@/stores/MawadRepository';
 import PictureCell from '@/components/table/PictureCell.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/mashkokshops', fetchAll);
 const repo = useMawadRepository();
 const router = useRouter();
 
@@ -516,6 +515,7 @@ function handlePerPageChange(v) {
   repo.page = 1;
   fetchAll();
 }
+  usePageRefresh('/app/mashkokshops', fetchAll);
 
 /* init */
 onMounted(async () => {

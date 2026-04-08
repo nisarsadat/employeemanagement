@@ -288,7 +288,6 @@
   import { useSchoolRepository } from '@/stores/SchoolRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/hosppitals', fetchAll);
   const repo = useSchoolRepository();
   const router = useRouter();
 
@@ -522,6 +521,7 @@ function goToResource(row) {
     repo.page = 1;
     fetchAll();
   }
+  usePageRefresh('/app/hosppitals', fetchAll);
 
   /* init */
   onMounted(async () => {

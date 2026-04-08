@@ -284,7 +284,6 @@
   import PictureCell from '@/components/table/PictureCell.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/donelostplaces', fetchAll);
   const repo = useWakilanoRepository();
   const router = useRouter();
 
@@ -494,6 +493,7 @@ function goToResource(row) {
     },
   });
 }
+  usePageRefresh('/app/donelostplaces', fetchAll);
 
   onMounted(async () => {
     await Promise.allSettled([repo.GetResourceCode?.(), fetchAll()]);

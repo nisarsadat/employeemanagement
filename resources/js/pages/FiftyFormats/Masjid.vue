@@ -297,7 +297,6 @@ import { useWakilanoRepository } from '@/stores/WakilanoRepository';
 import PictureCell from '@/components/table/PictureCell.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/masjids', fetchAll);
 const repo = useWakilanoRepository();
 const router = useRouter();
 
@@ -570,6 +569,7 @@ function clearSearch() {
   repo.page = 1;
   fetchAll();
 }
+  usePageRefresh('/app/masjids', fetchAll);
 
 /* init */
 onMounted(async () => {

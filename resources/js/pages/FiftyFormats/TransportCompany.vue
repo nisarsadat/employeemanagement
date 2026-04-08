@@ -288,7 +288,6 @@
   import PictureCell from '@/components/table/PictureCell.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/transportcompanies', fetchAll);
   const repo = useSchoolRepository();
   const router = useRouter();
 
@@ -508,6 +507,7 @@ function goToResource(row) {
     repo.page = 1;
     fetchAll();
   }
+  usePageRefresh('/app/transportcompanies', fetchAll);
 
   /* INIT */
   onMounted(async () => {

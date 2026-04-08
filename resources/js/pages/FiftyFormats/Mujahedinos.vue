@@ -331,7 +331,6 @@
   import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/mujahedinos', fetchAll);
   const repo = useBadmashanoRepository();
   const router = useRouter();
 
@@ -563,6 +562,7 @@ function goToResource(row) {
     repo.page = 1;
     fetchAll();
   }
+  usePageRefresh('/app/mujahedinos', fetchAll);
 
   /* init */
   onMounted(async () => {

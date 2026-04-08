@@ -321,7 +321,6 @@
   import { useMawadRepository } from '@/stores/MawadRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/nonresponsablepeople', fetchAll);
   const repo = useMawadRepository();
   const router = useRouter();
 
@@ -570,6 +569,7 @@ function goToResource(row) {
     repo.page = 1;
     fetchAll();
   }
+  usePageRefresh('/app/nonresponsablepeople', fetchAll);
 
   /* init */
   onMounted(async () => {

@@ -309,7 +309,6 @@
   import { useMawadRepository } from '@/stores/MawadRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/luchakanos', fetchAll);
   const repo = useMawadRepository();
   const router = useRouter();
 
@@ -533,6 +532,7 @@ function goToResource(row) {
     repo.page = 1;
     fetchAll();
   }
+  usePageRefresh('/app/luchakanos', fetchAll);
 
   /* INIT */
   onMounted(async () => {

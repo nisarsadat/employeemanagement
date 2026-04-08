@@ -347,7 +347,6 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/mashkokpeoples', fetchAll);
 const repo = useBadmashanoRepository();
 const router = useRouter();
 
@@ -625,6 +624,7 @@ function openPreview(src) {
   previewSrc.value = normalized;
   previewOpen.value = true;
 }
+  usePageRefresh('/app/mashkokpeoples', fetchAll);
 
 /* init */
 onMounted(async () => {

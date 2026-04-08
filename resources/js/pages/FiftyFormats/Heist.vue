@@ -334,7 +334,6 @@
   import { useFasadRepository } from '@/stores/FasadRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/heist', fetchAll);
   const repo = useFasadRepository();
   const router = useRouter();
 
@@ -617,6 +616,7 @@ function goToResource(row) {
     previewSrc.value = normalized;
     previewOpen.value = true;
   }
+  usePageRefresh('/app/heist', fetchAll);
 
   /* init */
   onMounted(async () => {

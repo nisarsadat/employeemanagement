@@ -300,7 +300,6 @@ import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 import PictureCell from '@/components/table/PictureCell.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/hotels', fetchAll);
 const repo = useBadmashanoRepository();
 const router = useRouter();
 
@@ -529,6 +528,7 @@ function handlePerPageChange(newSize) {
   repo.page = 1;
   fetchAll();
 }
+  usePageRefresh('/app/hotels', fetchAll);
 
 /* init */
 onMounted(async () => {

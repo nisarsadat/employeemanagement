@@ -304,7 +304,6 @@
   import { useFasadRepository } from '@/stores/FasadRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/mulkanos', fetchAll);
   const repo = useFasadRepository();
   const router = useRouter();
 
@@ -553,6 +552,7 @@ function goToResource(row) {
     repo.page = 1;
     fetchAll();
   }
+  usePageRefresh('/app/mulkanos', fetchAll);
 
   /* init */
   onMounted(async () => {

@@ -291,7 +291,6 @@
   import PictureCell from '@/components/table/PictureCell.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/schools', fetchAll);
   const router = useRouter();
   const repo = useSchoolRepository();
 
@@ -517,6 +516,7 @@
     repo.page = 1;
     fetchAll();
   }
+  usePageRefresh('/app/schools', fetchAll);
 
   /* Init */
   onMounted(async () => {

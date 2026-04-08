@@ -339,7 +339,6 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
     import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/lostmujremeens', fetchAll);
   const auth = useLoginRepository();
   const repo = useMawadRepository();
   const router = useRouter();
@@ -630,6 +629,7 @@ function goToResource(row) {
     previewSrc.value = normalized;
     previewOpen.value = true;
   }
+  usePageRefresh('/app/lostmujremeens', fetchAll);
 
   /* init */
   onMounted(async () => {
