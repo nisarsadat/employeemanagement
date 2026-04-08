@@ -154,6 +154,7 @@ use App\Http\Controllers\Api\OutgoingIncomingController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProvinceController;
 use App\Http\Controllers\Api\ReportNoteController;
+use App\Http\Controllers\Api\Reports\Foul\AllTimeFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\DailyFoulReportController;
 use App\Http\Controllers\Api\Reports\Foul\FoulReportNotesController;
 use App\Http\Controllers\Api\Reports\Foul\MonthlyFoulReportController;
@@ -593,7 +594,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reports/foul/yearly', YearlyFoulReportController::class);
         Route::get('/reports/foul/weekly', WeeklyFoulReportController::class);
         Route::get('/reports/foul/quarterly', QuarterlyFoulReportController::class);
-        Route::get('/reports/foul/all-time', YearlyFoulReportController::class);
+        Route::get('/reports/foul/all-time', AllTimeFoulReportController::class);
     });
 
 
