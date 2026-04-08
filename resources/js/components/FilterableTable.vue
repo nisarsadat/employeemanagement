@@ -619,29 +619,28 @@
                             </svg>
                             {{ noResults }}
                           </div>
+
                           <label
                             v-for="opt in getFilteredOptions(openDropdown || '')"
-                            :key="`${opt.value}__${opt.label}`"
+                            :key="opt || '__EMPTY__'"
                             class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-blue-50 cursor-pointer select-none transition-colors duration-150 group/option"
                             @click.stop
                           >
                             <div class="relative">
                               <input
                                 type="checkbox"
-                                :value="opt.value"
+                                :value="opt"
                                 v-model="localFilters[openDropdown || '']"
                                 class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer transition group-hover/option:border-blue-400"
                               />
                             </div>
-
                             <span
                               class="text-sm text-gray-800 break-all group-hover/option:text-gray-900 font-medium"
                             >
-                              {{ opt.label }}
+                              {{ opt || placeholderEmpty }}
                             </span>
-
                             <span
-                              v-if="localFilters[openDropdown || '']?.includes(opt.value)"
+                              v-if="localFilters[openDropdown || '']?.includes(opt)"
                               class="ml-auto text-[11px] text-blue-600 font-semibold"
                             >
                               {{ t('انتخاب شده') }}
@@ -885,7 +884,7 @@
 </template>
 
 <script setup>
-  import { computed, ref, reactive, watch, onMounted, onUnmounted, nextTick, useSlots } from 'vue';
+  import { computed, ref, watch, onMounted, onUnmounted, nextTick, useSlots } from 'vue';
   import { useCalendar } from '../../composables/useCalendar';
   import dayjs from 'dayjs';
   import { useI18n } from 'vue-i18n';
@@ -1541,86 +1540,24 @@
     },
     { deep: true, flush: 'post' }
   );
-  function normalizeFilterText(val) {
-    return String(val ?? '')
-      .trim()
-      .toLowerCase();
-  }
 
-  function normalizeOption(option, key) {
-    // plain string / number / null
-    if (
-      option == null ||
-      typeof option === 'string' ||
-      typeof option === 'number' ||
-      typeof option === 'boolean'
-    ) {
-      const value = String(option ?? '');
-      return {
-        label: value || placeholderEmpty,
-        value,
-      };
-    }
-
-    // object support: { title, value } / { label, value } / any similar shape
-    if (typeof option === 'object') {
-      const rawValue =
-        option.value ??
-        option.id ??
-        option.key ??
-        option.code ??
-        option.name ??
-        option.title ??
-        option.label ??
-        '';
-
-      const rawLabel =
-        option.label ??
-        option.title ??
-        option.name ??
-        option.text ??
-        option.value ??
-        option.id ??
-        option.key ??
-        '';
-
-      const value = String(rawValue ?? '');
-      const label = String(rawLabel ?? value ?? '');
-
-      return {
-        label: label || placeholderEmpty,
-        value,
-      };
-    }
-
-    const value = String(option ?? '');
-    return {
-      label: value || placeholderEmpty,
-      value,
-    };
-  }
   function getOptions(key) {
     if (!key) return [];
-
     const custom = props.optionsMap?.[key];
-    const source = Array.isArray(custom) && custom.length ? custom : autoOptions.value[key] || [];
-
-    return source.map((opt) => normalizeOption(opt, key));
+    if (Array.isArray(custom) && custom.length) return custom;
+    return autoOptions.value[key] || [];
   }
 
   function getFilteredOptions(key) {
     if (!key) return [];
-
-    const q = normalizeFilterText(dropdownQuery[key]);
-    const list = getOptions(key);
-
+    const q = (dropdownQuery.value[key] || '').toLowerCase();
+    const list = getOptions(key) || [];
     if (!q) return list;
-
-    return list.filter((opt) => normalizeFilterText(opt.label).includes(q));
+    return list.filter((o) => ((o ?? '') + '').toLowerCase().includes(q));
   }
 
   function getFilteredOptionsCount(key) {
-    return getFilteredOptions(key).length;
+    return (getFilteredOptions(key) || []).length;
   }
 
   function clearAll(key) {
@@ -1630,8 +1567,9 @@
   function selectAllInDropdown(key) {
     if (!key) return;
 
-    const opts = getFilteredOptions(key).map((opt) => opt.value);
-    localFilters.value = { ...localFilters.value, [key]: opts };
+    // Select all options currently visible in the popup (after search)
+    const opts = getFilteredOptions(key) || [];
+    localFilters.value = { ...localFilters.value, [key]: opts.slice() };
   }
 
   function countLabel(sel, tot) {
@@ -1643,7 +1581,7 @@
 
   /* === Dropdown state === */
   const openDropdown = ref(null);
-  const dropdownQuery = reactive({});
+  const dropdownQuery = ref({});
   const triggerRefs = ref({});
   const panelEl = ref(null);
   const overlayEl = ref(null);

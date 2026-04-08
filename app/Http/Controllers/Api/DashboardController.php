@@ -107,7 +107,7 @@ class DashboardController extends Controller
         | ✅ EMPLOYEES TABLE (OLD) - FINANCE period (Shamsi-based range)
         |-------------------------------------------------*/
         $employeesOld = OfficeEmployee::query()
-            ->select('id', 'name', 'code_number')
+            ->select('id', 'name', 'nick_name', 'code_number')
             ->withCount([
                 'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
@@ -128,15 +128,16 @@ class DashboardController extends Controller
             $resources  = (int) $e->resources_count;
             $infos      = (int) $e->informations_count;
 
-            return [
-                'id'                 => $e->id,
-                'name'               => $e->name,
-                'code_number'        => $e->code_number,
-                'events_count'       => $events,
-                'resources_count'    => $resources,
-                'informations_count' => $infos,
-                'total'              => $events + $resources + $infos,
-            ];
+          return [
+            'id'                 => $e->id,
+            'name'               => $e->name,
+            'nick_name'          => $e->nick_name,
+            'code_number'        => $e->code_number,
+            'events_count'       => $events,
+            'resources_count'    => $resources,
+            'informations_count' => $infos,
+            'total'              => $events + $resources + $infos,
+        ];
         });
 
         $employeesSortedOld = $employeesScoredOld->sortByDesc('total')->values();
@@ -163,7 +164,7 @@ class DashboardController extends Controller
         | ✅ EMPLOYEES TABLE (NEW) - includes KHAYRAT - FINANCE period
         |-------------------------------------------------*/
         $employeesNew = OfficeEmployee::query()
-            ->select('id', 'name', 'code_number')
+            ->select('id', 'name', 'nick_name', 'code_number')
             ->withCount([
                 'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
@@ -195,15 +196,16 @@ class DashboardController extends Controller
             $khayrat   = (int) $e->khayrat_reports_count;
 
             return [
-                'id'                    => $e->id,
-                'name'                  => $e->name,
-                'code_number'           => $e->code_number,
-                'events_count'          => $events,
-                'resources_count'       => $resources,
-                'informations_count'    => $infos,
-                'khayrat_reports_count' => $khayrat,
-                'total'                 => $events + $resources + $infos + $khayrat,
-            ];
+            'id'                    => $e->id,
+            'name'                  => $e->name,
+            'nick_name'             => $e->nick_name,
+            'code_number'           => $e->code_number,
+            'events_count'          => $events,
+            'resources_count'       => $resources,
+            'informations_count'    => $infos,
+            'khayrat_reports_count' => $khayrat,
+            'total'                 => $events + $resources + $infos + $khayrat,
+        ];
         });
 
         $employeesSortedNew = $employeesScoredNew->sortByDesc('total')->values();
