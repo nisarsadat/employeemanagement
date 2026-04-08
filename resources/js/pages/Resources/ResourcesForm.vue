@@ -719,6 +719,7 @@
           </v-sheet>
 
           <!-- ACTIONS -->
+          <!-- ACTIONS -->
           <div class="form-actions d-flex justify-end gap-2 flex-wrap">
             <v-btn
               type="submit"
@@ -738,6 +739,28 @@
               @click="resetForm"
             >
               {{ t('پاک کردن ورودی‌ها') }}
+            </v-btn>
+
+            <!-- ✅ ADD THIS -->
+            <v-btn
+              color="red"
+              variant="outlined"
+              class="text-none"
+              prepend-icon="mdi-file-pdf-box"
+              @click="downloadPdf"
+            >
+              {{ t('PDF') }}
+            </v-btn>
+
+            <!-- ✅ ADD THIS -->
+            <v-btn
+              color="blue"
+              variant="outlined"
+              class="text-none"
+              prepend-icon="mdi-file-word-box"
+              @click="downloadWord"
+            >
+              {{ t('Word') }}
             </v-btn>
           </div>
         </v-card>
@@ -800,6 +823,7 @@
   import ResourceActivityTypeSelect from '../../components/ResourceActivityTypeSelect.vue';
   import ZoneHawzaPicker from '@/components/ZoneHawzaSelect.vue';
   import { useLookupsRepository } from '../../stores/LookupsRepository';
+  import { useCalendar } from '../../../composables/useCalendar';
   const lookups = useLookupsRepository();
 
   const repo = useDatabaseRepository();
@@ -807,8 +831,12 @@
   const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();
+  const { formatDisplay } = useCalendar();
   const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-
+  function formatExportDate(value) {
+    if (!value) return '';
+    return formatDisplay(String(value).slice(0, 10), locale.value);
+  }
   /* ===== Direction ===== */
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (newLocale) => {
@@ -1170,6 +1198,227 @@
       const input = first.querySelector('input, textarea, .v-field__input');
       if (input && typeof input.focus === 'function') input.focus();
     }
+  }
+  /* =========================
+   SIMPLE EXPORT (NO IMAGE, NO APP HEADERS)
+========================= */
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, (m) => {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;',
+      };
+      return map[m];
+    });
+  }
+
+  function safeFileName(s) {
+    return String(s ?? '')
+      .replace(/[\\/:*?"<>|]/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function v(x) {
+    return x && String(x).trim() ? x : '';
+  }
+
+  function exportRows() {
+    return [
+      { label: t('نام'), value: v(form.value.name) },
+      { label: t('نام پدر'), value: v(form.value.father_name) },
+      { label: t('نام پدرکلان'), value: v(form.value.grand_father_name) },
+      { label: t('نام مستعار'), value: v(form.value.nick_name) },
+      { label: t('کود نمبر'), value: v(form.value.code_number) },
+      { label: t('تذکره نمبر'), value: v(form.value.tazkira) },
+      { label: t('عمر'), value: v(form.value.age) },
+      { label: t('گروپ خون'), value: v(form.value.blood_group) },
+
+      { label: t('شماره تماس'), value: v(form.value.phone_number) },
+      { label: t('شماره تماس ۱'), value: v(form.value.phone_number_1) },
+      { label: t('شماره تماس ۲'), value: v(form.value.phone_number_2) },
+      { label: t('زبان'), value: v(form.value.language) },
+      { label: t('قوم/ملیت'), value: v(form.value.nation) },
+      { label: t('مهارت‌های خاص'), value: v(form.value.specific_skills) },
+      { label: t('۵۶ فارمټ'), value: v(form.value.letry_format_name) },
+
+      { label: t('ولایت اصلی'), value: v(form.value.main_province) },
+      { label: t('ولسوالی اصلی'), value: v(form.value.main_district) },
+      { label: t('قریه/گذر اصلی'), value: v(form.value.main_village) },
+
+      { label: t('ولایت فعلی'), value: v(form.value.now_province) },
+      { label: t('ولسوالی فعلی'), value: v(form.value.now_district) },
+      { label: t('قریه/گذر فعلی'), value: v(form.value.now_village) },
+      { label: t('محل مشخص فعلی'), value: v(form.value.now_specific_place) },
+      { label: t('نمبر سرک'), value: v(form.value.now_street_number) },
+      { label: t('نمبر خانه'), value: v(form.value.now_home_number) },
+
+      { label: t('زون'), value: v(form.value.zone) },
+      { label: t('حوزه'), value: v(form.value.hawza) },
+      { label: t('محل مشخص تدارک'), value: v(form.value.specefic_place) },
+      { label: t('کوردینات تدارک'), value: v(form.value.coordinates) },
+
+      { label: t('وظیفه سابقه'), value: v(form.value.old_job) },
+      { label: t('وظیفه فعلی'), value: v(form.value.now_job) },
+      { label: t('محل وظیفه'), value: v(form.value.job_place) },
+      { label: t('حالت مدنی'), value: v(form.value.halat_madani) },
+      { label: t('سطح علمی'), value: v(form.value.elmi_level) },
+      { label: t('دیپارتمنت/ فاکولته'), value: v(form.value.faculty) },
+      { label: t('دوره آموزش'), value: v(form.value.train) },
+      { label: t('نوع فعالیت منبع'), value: v(form.value.resource_activity_type) },
+      { label: t('پوشش منبع'), value: v(form.value.resource_cover) },
+      { label: t('کارمند مربوطه'), value: v(form.value.office_employee_id) },
+      { label: t('رزیدنت مربوطه'), value: v(form.value.resedint_code) },
+
+      { label: t('تاریخ ثبت منبع'), value: formatExportDate(form.value.resource_saved_date) },
+      { label: t('نوت'), value: v(form.value.note) },
+    ];
+  }
+
+  function buildSimpleTableHtml(rows) {
+    return `
+    <table class="export-table">
+      <tbody>
+        ${rows
+          .map(
+            (row) => `
+          <tr>
+            <td class="label-cell">${esc(row.label)}</td>
+            <td class="value-cell">${esc(row.value)}</td>
+          </tr>
+        `
+          )
+          .join('')}
+      </tbody>
+    </table>
+  `;
+  }
+
+  function buildDocumentHtml() {
+    const title = isEdit.value ? t('اضافه کردن منبع') : t('اضافه کردن منبع');
+    const rows = exportRows();
+
+    return `
+    <!DOCTYPE html>
+    <html lang="fa" dir="rtl">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${esc(title)}</title>
+        <style>
+          @page {
+            size: A4;
+            margin: 14mm;
+          }
+
+          body {
+            font-family: Arial, "Noto Naskh Arabic", "Tahoma", sans-serif;
+            direction: rtl;
+            unicode-bidi: embed;
+            color: #111;
+            background: #fff;
+            margin: 0;
+            padding: 0;
+            font-size: 13px;
+            line-height: 1.6;
+          }
+
+          .doc-wrap {
+            width: 100%;
+          }
+
+          .doc-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 14px;
+          }
+
+          .export-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+          }
+
+          .export-table td {
+            border: 1px solid #333;
+            padding: 8px 10px;
+            vertical-align: top;
+            word-break: break-word;
+            text-align: right;
+          }
+
+          .label-cell {
+            width: 32%;
+            font-weight: 700;
+            background: #f3f3f3;
+          }
+
+          .value-cell {
+            width: 68%;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="doc-wrap">
+          <div class="doc-title">${esc(title)}</div>
+          ${buildSimpleTableHtml(rows)}
+        </div>
+      </body>
+    </html>
+  `;
+  }
+
+  function downloadPdf() {
+    const html = buildDocumentHtml();
+    const win = window.open('', '_blank');
+
+    if (!win) {
+      showErrorMessage(t('باز کردن صفحه چاپ ممکن نشد'));
+      return;
+    }
+
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+
+    win.focus();
+
+    const doPrint = () => {
+      try {
+        win.print();
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    if (win.document.fonts?.ready) {
+      win.document.fonts.ready.then(doPrint).catch(doPrint);
+    } else {
+      setTimeout(doPrint, 400);
+    }
+  }
+
+  function downloadWord() {
+    const html = buildDocumentHtml();
+    const blob = new Blob(['\ufeff', html], {
+      type: 'application/msword;charset=utf-8',
+    });
+
+    const nameBase = safeFileName(form.value.name || t('منبع'));
+    const fileName = `${nameBase || 'resource-form'}.doc`;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   /* ===== RESET & NAVIGATION ===== */

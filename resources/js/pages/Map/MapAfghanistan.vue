@@ -7,6 +7,47 @@
     <div class="map-top-tools" @click.stop>
       <PmtilesSearchMap class="search-panel" @flyTo="flyTo" />
 
+      <v-card class="type-filter-card" rounded="xl" elevation="3">
+        <div class="type-filter-row">
+          <v-select
+            v-model="pendingSelectedTypes"
+            :items="typeOptions"
+            item-title="label"
+            item-value="value"
+            label="د نقشې فیلټر"
+            multiple
+            chips
+            closable-chips
+            clearable
+            hide-details
+            density="compact"
+            variant="outlined"
+            class="type-filter-select"
+          />
+
+          <v-btn
+            color="primary"
+            variant="elevated"
+            density="comfortable"
+            rounded="lg"
+            class="filter-btn"
+            @click="applyTypeFilter"
+          >
+            فیلتر
+          </v-btn>
+
+          <v-btn
+            variant="text"
+            density="comfortable"
+            rounded="lg"
+            class="clear-filter-btn"
+            @click="clearTypeFilter"
+          >
+            پاک
+          </v-btn>
+        </div>
+      </v-card>
+
       <v-menu v-model="pointsMenuOpen" :close-on-content-click="false" location="bottom">
         <template #activator="{ props }">
           <v-btn
@@ -209,6 +250,9 @@
   const loadingAll = ref(false);
   const pointsMenuOpen = ref(false);
   const allMapItems = ref([]);
+  const typeOptions = ref([]);
+  const selectedTypes = ref([]);
+  const pendingSelectedTypes = ref([]);
 
   const MAP_POINTS_SOURCE_ID = 'module-points';
   const MAP_POINTS_CLUSTER_LAYER_ID = 'module-points-clusters';
@@ -290,7 +334,6 @@
 
     resource: { label: 'منابع', path: mdiCircle },
     captive_delivery: { label: 'راخوشي شوي بندیان', path: mdiClosedCaption },
-
   };
 
   const ICON_ALIASES = {
@@ -480,7 +523,22 @@
     const b = map.value.getBounds();
     return [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].join(',');
   }
+  function buildTypesQuery() {
+    if (!selectedTypes.value.length) return '';
 
+    return selectedTypes.value.map((type) => `types[]=${encodeURIComponent(type)}`).join('&');
+  }
+
+  function applyTypeFilter() {
+    selectedTypes.value = [...pendingSelectedTypes.value];
+    loadAllModulePoints();
+  }
+
+  function clearTypeFilter() {
+    pendingSelectedTypes.value = [];
+    selectedTypes.value = [];
+    loadAllModulePoints();
+  }
   async function loadAllModulePoints() {
     if (!map.value) return;
 
@@ -488,7 +546,14 @@
 
     try {
       const bbox = getMapBbox();
-      const url = `/api/map/points?bbox=${encodeURIComponent(bbox)}`;
+      const params = [`bbox=${encodeURIComponent(bbox)}`];
+
+      const typesQuery = buildTypesQuery();
+      if (typesQuery) {
+        params.push(typesQuery);
+      }
+
+      const url = `/api/map/points?${params.join('&')}`;
 
       const res = await fetch(url, { headers: authHeaders() }).then(async (r) => {
         if (!r.ok) {
@@ -498,10 +563,10 @@
       });
 
       allMapItems.value = Array.isArray(res?.data) ? res.data : [];
+      typeOptions.value = Array.isArray(res?.meta?.available_types) ? res.meta.available_types : [];
 
       await registerPointImages();
       refreshGeoJsonSource();
-
       console.log('Loaded map points:', allMapItems.value.length);
     } catch (e) {
       console.error('loadAllModulePoints failed', e);
@@ -777,42 +842,39 @@
       map.value.addSource(MAP_POINTS_SOURCE_ID, {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
-        cluster: true,
-        clusterMaxZoom: 13,
-        clusterRadius: 50,
       });
     }
 
-    if (!map.value.getLayer(MAP_POINTS_CLUSTER_LAYER_ID)) {
-      map.value.addLayer({
-        id: MAP_POINTS_CLUSTER_LAYER_ID,
-        type: 'circle',
-        source: MAP_POINTS_SOURCE_ID,
-        filter: ['has', 'point_count'],
-        paint: {
-          'circle-color': '#2563eb',
-          'circle-radius': ['step', ['get', 'point_count'], 18, 20, 22, 100, 28, 500, 34],
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 2,
-        },
-      });
-    }
+    // if (!map.value.getLayer(MAP_POINTS_CLUSTER_LAYER_ID)) {
+    //   map.value.addLayer({
+    //     id: MAP_POINTS_CLUSTER_LAYER_ID,
+    //     type: 'circle',
+    //     source: MAP_POINTS_SOURCE_ID,
+    //     filter: ['has', 'point_count'],
+    //     paint: {
+    //       'circle-color': '#2563eb',
+    //       'circle-radius': ['step', ['get', 'point_count'], 18, 20, 22, 100, 28, 500, 34],
+    //       'circle-stroke-color': '#ffffff',
+    //       'circle-stroke-width': 2,
+    //     },
+    //   });
+    // }
 
-    if (!map.value.getLayer(MAP_POINTS_CLUSTER_COUNT_LAYER_ID)) {
-      map.value.addLayer({
-        id: MAP_POINTS_CLUSTER_COUNT_LAYER_ID,
-        type: 'symbol',
-        source: MAP_POINTS_SOURCE_ID,
-        filter: ['has', 'point_count'],
-        layout: {
-          'text-field': ['get', 'point_count_abbreviated'],
-          'text-size': 12,
-        },
-        paint: {
-          'text-color': '#ffffff',
-        },
-      });
-    }
+    // if (!map.value.getLayer(MAP_POINTS_CLUSTER_COUNT_LAYER_ID)) {
+    //   map.value.addLayer({
+    //     id: MAP_POINTS_CLUSTER_COUNT_LAYER_ID,
+    //     type: 'symbol',
+    //     source: MAP_POINTS_SOURCE_ID,
+    //     filter: ['has', 'point_count'],
+    //     layout: {
+    //       'text-field': ['get', 'point_count_abbreviated'],
+    //       'text-size': 12,
+    //     },
+    //     paint: {
+    //       'text-color': '#ffffff',
+    //     },
+    //   });
+    // }
 
     // IMPORTANT:
     // unclustered points are now SYMBOL icons instead of CIRCLE dots
@@ -821,7 +883,7 @@
         id: MAP_POINTS_UNCLUSTERED_LAYER_ID,
         type: 'symbol',
         source: MAP_POINTS_SOURCE_ID,
-        filter: ['!', ['has', 'point_count']],
+        filter: ['==', ['geometry-type'], 'Point'],
         layout: {
           'icon-image': ['coalesce', ['get', 'iconName'], 'point-icon-resource-active'],
           'icon-size': 1,
@@ -837,7 +899,7 @@
         id: MAP_POINTS_LABEL_LAYER_ID,
         type: 'symbol',
         source: MAP_POINTS_SOURCE_ID,
-        filter: ['!', ['has', 'point_count']],
+        filter: ['==', ['geometry-type'], 'Point'],
         minzoom: 11,
         layout: {
           'text-field': ['coalesce', ['get', 'typeLabel'], ''],
@@ -868,27 +930,27 @@
   function bindMapPointEvents() {
     if (!map.value) return;
 
-    map.value.on('click', MAP_POINTS_CLUSTER_LAYER_ID, (e) => {
-      const features = map.value.queryRenderedFeatures(e.point, {
-        layers: [MAP_POINTS_CLUSTER_LAYER_ID],
-      });
+    // map.value.on('click', MAP_POINTS_CLUSTER_LAYER_ID, (e) => {
+    //   const features = map.value.queryRenderedFeatures(e.point, {
+    //     layers: [MAP_POINTS_CLUSTER_LAYER_ID],
+    //   });
 
-      const feature = features?.[0];
-      if (!feature) return;
+    //   const feature = features?.[0];
+    //   if (!feature) return;
 
-      const clusterId = feature.properties?.cluster_id;
-      const source = map.value.getSource(MAP_POINTS_SOURCE_ID);
+    //   const clusterId = feature.properties?.cluster_id;
+    //   const source = map.value.getSource(MAP_POINTS_SOURCE_ID);
 
-      source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-        if (err) return;
+    //   source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+    //     if (err) return;
 
-        map.value.easeTo({
-          center: feature.geometry.coordinates,
-          zoom,
-          duration: 300,
-        });
-      });
-    });
+    //     map.value.easeTo({
+    //       center: feature.geometry.coordinates,
+    //       zoom,
+    //       duration: 300,
+    //     });
+    //   });
+    // });
 
     map.value.on('click', MAP_POINTS_UNCLUSTERED_LAYER_ID, (e) => {
       const feature = e.features?.[0];
@@ -911,13 +973,13 @@
       openDetailsMenu(item);
     });
 
-    map.value.on('mouseenter', MAP_POINTS_CLUSTER_LAYER_ID, () => {
-      map.value.getCanvas().style.cursor = 'pointer';
-    });
+    // map.value.on('mouseenter', MAP_POINTS_CLUSTER_LAYER_ID, () => {
+    //   map.value.getCanvas().style.cursor = 'pointer';
+    // });
 
-    map.value.on('mouseleave', MAP_POINTS_CLUSTER_LAYER_ID, () => {
-      map.value.getCanvas().style.cursor = '';
-    });
+    // map.value.on('mouseleave', MAP_POINTS_CLUSTER_LAYER_ID, () => {
+    //   map.value.getCanvas().style.cursor = '';
+    // });
 
     map.value.on('mouseenter', MAP_POINTS_UNCLUSTERED_LAYER_ID, () => {
       map.value.getCanvas().style.cursor = 'pointer';
@@ -1103,12 +1165,13 @@
     top: calc(var(--v-layout-top, 12px) - 52px);
     left: -42px !important;
     z-index: 1;
-    width: 520px;
+    width: min(980px, calc(100vw - 24px));
     margin-right: 34px;
     max-width: calc(100vw - 12px);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
+    flex-wrap: wrap;
   }
 
   :dir(rtl) .map-top-tools {
@@ -1168,7 +1231,28 @@
     justify-content: space-between;
     background: rgba(37, 99, 235, 0.04);
   }
+  .type-filter-card {
+    padding: 8px 10px;
+    min-width: 360px;
+    max-width: 460px;
+  }
 
+  .type-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .type-filter-select {
+    min-width: 220px;
+    flex: 1;
+  }
+
+  .filter-btn,
+  .clear-filter-btn {
+    height: 40px;
+    white-space: nowrap;
+  }
   .type-name {
     display: flex;
     align-items: center;

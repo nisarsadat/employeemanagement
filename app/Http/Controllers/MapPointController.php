@@ -13,15 +13,31 @@ class MapPointController extends Controller
     public function index(Request $request)
     {
         [$minLng, $minLat, $maxLng, $maxLat] = $this->parseBbox($request->query('bbox'));
+        $selectedTypes = $this->parseTypes($request);
 
         $defaultCoordinateCandidates = config('map_points.default_coordinate_candidates', ['coordinates']);
         $defaultPictureCandidates = config('map_points.default_picture_candidates', ['picture']);
         $sources = config('map_points.sources', []);
 
+        $availableTypes = collect($sources)
+            ->filter(fn ($src) => !empty($src['type']))
+            ->map(fn ($src) => [
+                'value' => (string) $src['type'],
+                'label' => (string) ($src['typeLabel'] ?? $src['type']),
+            ])
+            ->unique('value')
+            ->values();
+
         $points = collect();
 
         foreach ($sources as $src) {
             $table = $src['table'] ?? null;
+            $type = (string) ($src['type'] ?? '');
+
+            if (!empty($selectedTypes) && !in_array($type, $selectedTypes, true)) {
+                continue;
+            }
+
             if (!$table || !Schema::hasTable($table)) {
                 continue;
             }
@@ -157,6 +173,8 @@ class MapPointController extends Controller
             'data' => $points->values(),
             'meta' => [
                 'count' => $points->count(),
+                'selected_types' => $selectedTypes,
+                'available_types' => $availableTypes,
             ],
         ]);
     }
@@ -351,5 +369,22 @@ class MapPointController extends Controller
         }
 
         return $this->columnExistsCache[$key];
+    }
+    private function parseTypes(Request $request): array
+    {
+        $types = $request->query('types', []);
+
+        if (is_string($types)) {
+            $types = array_filter(array_map('trim', explode(',', $types)));
+        }
+
+        if (!is_array($types)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter(array_map(
+            fn ($value) => trim((string) $value),
+            $types
+        ))));
     }
 }
