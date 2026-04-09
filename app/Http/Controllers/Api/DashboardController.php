@@ -50,6 +50,11 @@ class DashboardController extends Controller
         // Finance filter (money + oil + employee tables) => Shamsi-based
         [$financeFrom, $financeTo] = $this->resolvePeriodRangeShamsi($financePeriod);
 
+        $resourceDateCol = $this->detectModelDateColumn(new Resource(), [
+            'resource_saved_date',
+            'saved_date',
+            'created_at',
+        ]);
         /* -------------------------------------------------
         | ✅ EMPLOYEES SUMMARY (MAIN period)
         |-------------------------------------------------*/
@@ -110,7 +115,6 @@ class DashboardController extends Controller
             ->select('id', 'name', 'nick_name', 'code_number')
             ->withCount([
             'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'resource_saved_date', $financeFrom, $financeTo),
-
             'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
             ])
@@ -167,7 +171,7 @@ class DashboardController extends Controller
         $employeesNew = OfficeEmployee::query()
             ->select('id', 'name', 'nick_name', 'code_number')
             ->withCount([
-            'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'resource_saved_date', $financeFrom, $financeTo),   
+            'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),
             'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'khayratReports as khayrat_reports_count' => fn ($q) => $this->applyDateRange($q, 'saved_date', $financeFrom, $financeTo),
@@ -222,24 +226,22 @@ class DashboardController extends Controller
         | RESOURCES (MAIN period)
         |-------------------------------------------------*/
         $resourcesTotal = Resource::query()
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $resourceDateCol, $from, $to))
             ->count();
 
         $resourcesActive = Resource::query()
             ->where('activity', 'فعال')
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $resourceDateCol, $from, $to))
             ->count();
 
         $resourcesInactive = Resource::query()
             ->where('activity', 'غیر فعال')
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $resourceDateCol, $from, $to))
             ->count();
-        /* -------------------------------------------------
-        | ✅ RESOURCES BY HAWZA (MAIN period)
-        |-------------------------------------------------*/
+
         $resourcesByHawza = Resource::query()
             ->select('hawza', DB::raw('COUNT(*) as total'))
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $resourceDateCol, $from, $to))
             ->groupBy('hawza')
             ->get()
             ->map(function ($row) {
