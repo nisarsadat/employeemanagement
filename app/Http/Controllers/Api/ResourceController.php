@@ -446,106 +446,212 @@ class ResourceController extends Controller
         return new ResourceResource($row);
     }
 
+    // public function store(ResourceRequest $req)
+    // {
+    //     try {
+    //         $data = $req->validated();
+    //         $user = $req->user();
+
+    //         unset($data['code_number']);
+
+    //         if ($req->hasFile('picture')) {
+    //             $path = $req->file('picture')->store('uploads/resources', 'public');
+    //             $data['picture'] = "storage/{$path}";
+    //         }
+
+    //         $row = Resource::create($data);
+
+    //         $row->code_number = $row->id;
+    //         $row->save();
+
+    //         NotificationService::record(
+    //             $user,
+    //             module: 'resources',
+    //             action: 'created',
+    //             title: 'نوی منبع ثبت شوو',
+    //             message: 'د منبع کوډ' . ($row->code_number ?? ''),
+    //             routeName: 'resources.edit',
+    //             routeParams: ['id' => $row->id],
+    //             level: 'success',
+    //         );
+
+    //         return (new ResourceResource(
+    //             $row->loadMissing('officeEmployee:id,name,code_number,father_name')->loadCount(['events', 'informations', 'khayratReports'])
+    //         ))
+    //             ->additional(['message' => 'Created'])
+    //             ->response()
+    //             ->setStatusCode(201);
+    //     } catch (QueryException $e) {
+    //         if ($this->isDuplicateKey($e)) {
+    //             return $this->duplicateResponsePashto();
+    //         }
+
+    //         return response()->json([
+    //             'message' => 'Resource creation failed',
+    //             'error'   => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
     public function store(ResourceRequest $req)
-    {
-        try {
-            $data = $req->validated();
-            $user = $req->user();
+{
+    try {
+        $data = $req->validated();
+        $user = $req->user();
 
-            unset($data['code_number']);
+        unset($data['code_number']);
 
-            if ($req->hasFile('picture')) {
-                $path = $req->file('picture')->store('uploads/resources', 'public');
-                $data['picture'] = "storage/{$path}";
-            }
+        // ✅ FORCE all resources active
+        $data['activity'] = 'فعال';
 
-            $row = Resource::create($data);
-
-            $row->code_number = $row->id;
-            $row->save();
-
-            NotificationService::record(
-                $user,
-                module: 'resources',
-                action: 'created',
-                title: 'نوی منبع ثبت شوو',
-                message: 'د منبع کوډ' . ($row->code_number ?? ''),
-                routeName: 'resources.edit',
-                routeParams: ['id' => $row->id],
-                level: 'success',
-            );
-
-            return (new ResourceResource(
-                $row->loadMissing('officeEmployee:id,name,code_number,father_name')->loadCount(['events', 'informations', 'khayratReports'])
-            ))
-                ->additional(['message' => 'Created'])
-                ->response()
-                ->setStatusCode(201);
-        } catch (QueryException $e) {
-            if ($this->isDuplicateKey($e)) {
-                return $this->duplicateResponsePashto();
-            }
-
-            return response()->json([
-                'message' => 'Resource creation failed',
-                'error'   => $e->getMessage(),
-            ], 500);
+        if ($req->hasFile('picture')) {
+            $path = $req->file('picture')->store('uploads/resources', 'public');
+            $data['picture'] = "storage/{$path}";
         }
+
+        $row = Resource::create($data);
+
+        $row->code_number = $row->id;
+        $row->save();
+
+        NotificationService::record(
+            $user,
+            module: 'resources',
+            action: 'created',
+            title: 'نوی منبع ثبت شوو',
+            message: 'د منبع کوډ' . ($row->code_number ?? ''),
+            routeName: 'resources.edit',
+            routeParams: ['id' => $row->id],
+            level: 'success',
+        );
+
+        return (new ResourceResource(
+            $row->loadMissing('officeEmployee:id,name,code_number,father_name')
+                ->loadCount(['events', 'informations', 'khayratReports'])
+        ))
+            ->additional(['message' => 'Created'])
+            ->response()
+            ->setStatusCode(201);
+    } catch (QueryException $e) {
+        if ($this->isDuplicateKey($e)) {
+            return $this->duplicateResponsePashto();
+        }
+
+        return response()->json([
+            'message' => 'Resource creation failed',
+            'error'   => $e->getMessage(),
+        ], 500);
     }
+}
+    // public function update(ResourceRequest $req, $id)
+    // {
+    //     try {
+    //         $row  = Resource::findOrFail($id);
+    //         $data = $req->validated();
+    //         $user = $req->user();
+
+    //         unset($data['code_number']);
+
+    //         if ($req->hasFile('picture')) {
+    //             if ($row->picture && str_starts_with($row->picture, 'storage/')) {
+    //                 Storage::disk('public')->delete(str_replace('storage/', '', $row->picture));
+    //             }
+
+    //             $path = $req->file('picture')->store('uploads/resources', 'public');
+    //             $data['picture'] = "storage/{$path}";
+    //         } else {
+    //             unset($data['picture']);
+    //         }
+
+    //         $row->fill($data)->save();
+
+    //         if ((string) $row->code_number !== (string) $row->id) {
+    //             $row->code_number = $row->id;
+    //             $row->save();
+    //         }
+
+    //         NotificationService::record(
+    //             $user,
+    //             module: 'resources',
+    //             action: 'updated',
+    //             title: 'منبع اصلاح شوو',
+    //             message: 'د منبع کوډ' . ($row->code_number ?? ''),
+    //             routeName: 'resources',
+    //             routeParams: ['id' => $row->id],
+    //             level: 'info',
+    //         );
+
+    //         return new ResourceResource(
+    //             $row->loadMissing('officeEmployee:id,name,code_number,father_name')->loadCount(['events', 'informations', 'khayratReports'])
+    //         );
+    //     } catch (QueryException $e) {
+    //         if ($this->isDuplicateKey($e)) {
+    //             return $this->duplicateResponsePashto();
+    //         }
+
+    //         return response()->json([
+    //             'message' => 'Resource update failed',
+    //             'error'   => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     public function update(ResourceRequest $req, $id)
-    {
-        try {
-            $row  = Resource::findOrFail($id);
-            $data = $req->validated();
-            $user = $req->user();
+{
+    try {
+        $row  = Resource::findOrFail($id);
+        $data = $req->validated();
+        $user = $req->user();
 
-            unset($data['code_number']);
+        unset($data['code_number']);
 
-            if ($req->hasFile('picture')) {
-                if ($row->picture && str_starts_with($row->picture, 'storage/')) {
-                    Storage::disk('public')->delete(str_replace('storage/', '', $row->picture));
-                }
+        // ✅ FORCE all resources active
+        $data['activity'] = 'فعال';
 
-                $path = $req->file('picture')->store('uploads/resources', 'public');
-                $data['picture'] = "storage/{$path}";
-            } else {
-                unset($data['picture']);
+        if ($req->hasFile('picture')) {
+            if ($row->picture && str_starts_with($row->picture, 'storage/')) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $row->picture));
             }
 
-            $row->fill($data)->save();
-
-            if ((string) $row->code_number !== (string) $row->id) {
-                $row->code_number = $row->id;
-                $row->save();
-            }
-
-            NotificationService::record(
-                $user,
-                module: 'resources',
-                action: 'updated',
-                title: 'منبع اصلاح شوو',
-                message: 'د منبع کوډ' . ($row->code_number ?? ''),
-                routeName: 'resources',
-                routeParams: ['id' => $row->id],
-                level: 'info',
-            );
-
-            return new ResourceResource(
-                $row->loadMissing('officeEmployee:id,name,code_number,father_name')->loadCount(['events', 'informations', 'khayratReports'])
-            );
-        } catch (QueryException $e) {
-            if ($this->isDuplicateKey($e)) {
-                return $this->duplicateResponsePashto();
-            }
-
-            return response()->json([
-                'message' => 'Resource update failed',
-                'error'   => $e->getMessage(),
-            ], 500);
+            $path = $req->file('picture')->store('uploads/resources', 'public');
+            $data['picture'] = "storage/{$path}";
+        } else {
+            unset($data['picture']);
         }
-    }
 
+        $row->fill($data)->save();
+
+        if ((string) $row->code_number !== (string) $row->id) {
+            $row->code_number = $row->id;
+            $row->save();
+        }
+
+        NotificationService::record(
+            $user,
+            module: 'resources',
+            action: 'updated',
+            title: 'منبع اصلاح شوو',
+            message: 'د منبع کوډ' . ($row->code_number ?? ''),
+            routeName: 'resources',
+            routeParams: ['id' => $row->id],
+            level: 'info',
+        );
+
+        return new ResourceResource(
+            $row->loadMissing('officeEmployee:id,name,code_number,father_name')
+                ->loadCount(['events', 'informations', 'khayratReports'])
+        );
+    } catch (QueryException $e) {
+        if ($this->isDuplicateKey($e)) {
+            return $this->duplicateResponsePashto();
+        }
+
+        return response()->json([
+            'message' => 'Resource update failed',
+            'error'   => $e->getMessage(),
+        ], 500);
+    }
+}
     public function destroy(Request $request, $id)
     {
         $row  = Resource::findOrFail($id);
