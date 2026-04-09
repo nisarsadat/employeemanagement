@@ -497,18 +497,19 @@
                     <div
                       v-show="openDropdown === hKey(h)"
                       ref="overlayEl"
-                      class="fixed inset-0 z-[9999] pointer-events-none"
+                      class="fixed inset-0 z-[9999]"
                       @keydown.esc.prevent.stop="closeDropdown"
                     >
-                      <!-- backdrop (click outside still works from your document click listener) -->
-                      <div class="absolute inset-0 bg-black/20 pointer-events-none"></div>
+                      <div class="absolute inset-0 bg-black/20" @click="closeDropdown"></div>
 
                       <div
                         ref="panelEl"
                         :style="panelStyle"
-                        class="pointer-events-auto bg-white border border-gray-200 shadow-2xl rounded-xl overflow-hidden backdrop-blur-sm"
+                        class="absolute bg-white border border-gray-200 shadow-2xl rounded-xl overflow-hidden backdrop-blur-sm"
                         role="dialog"
                         aria-modal="true"
+                        @click.stop
+                        @mousedown.stop
                       >
                         <div
                           class="sticky top-0 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 shadow-sm cursor-move select-none"
@@ -556,12 +557,16 @@
                               </svg>
                               <input
                                 :placeholder="searchPlaceholder"
-                                v-model.trim="dropdownQuery[openDropdown || '']"
+                                :value="dropdownQuery[openDropdown || ''] || ''"
+                                @input="setDropdownQuery(openDropdown || '', $event.target.value)"
                                 class="w-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-9 py-2.5 text-sm outline-none transition-all bg-white"
                                 type="text"
+                                @click.stop
+                                @mousedown.stop
                                 @keydown.stop
                               />
                             </div>
+
                             <div class="flex gap-2">
                               <button
                                 type="button"
@@ -604,19 +609,6 @@
                             v-if="getFilteredOptionsCount(openDropdown || '') === 0"
                             class="text-center text-sm text-gray-500 py-6"
                           >
-                            <svg
-                              class="w-10 h-10 mx-auto text-gray-300 mb-2"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
                             {{ noResults }}
                           </div>
 
@@ -1319,7 +1311,20 @@
   });
 
   const localFilters = ref({});
+  function normalizeSearchText(value) {
+    return String(value ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+  }
 
+  function setDropdownQuery(key, value) {
+    if (!key) return;
+    dropdownQuery.value = {
+      ...dropdownQuery.value,
+      [key]: value ?? '',
+    };
+  }
   const filteredRows = computed(() => {
     const f = localFilters.value || {};
     return rows.value.filter((row) => {
@@ -1437,13 +1442,13 @@
   }
 
   /* === Grouping === */
-  // const groupByKey = computed(() => {
-  //   const map = new Map();
-  //   (props.topGroups ?? []).forEach((g) => (g?.keys ?? []).forEach((k) => map.set(k, g)));
-  //   return map;
-  // });
+  const groupByKey = computed(() => {
+    const map = new Map();
+    (props.topGroups ?? []).forEach((g) => (g?.keys ?? []).forEach((k) => map.set(k, g)));
+    return map;
+  });
 
-  // const groupedKeys = computed(() => new Set([...groupByKey.value.keys()]));
+  const groupedKeys = computed(() => new Set([...groupByKey.value.keys()]));
 
   function isFirstKeyOfGroup(key) {
     if (!key) return false;
@@ -1550,26 +1555,44 @@
 
   function getFilteredOptions(key) {
     if (!key) return [];
-    const q = (dropdownQuery.value[key] || '').toLowerCase();
+
+    const q = normalizeSearchText(dropdownQuery.value[key] || '');
     const list = getOptions(key) || [];
+
     if (!q) return list;
-    return list.filter((o) => ((o ?? '') + '').toLowerCase().includes(q));
+
+    return list.filter((o) => {
+      const text = normalizeSearchText(o ?? '');
+      return text.includes(q);
+    });
   }
 
   function getFilteredOptionsCount(key) {
-    return (getFilteredOptions(key) || []).length;
+    return getFilteredOptions(key).length;
   }
 
   function clearAll(key) {
     if (!key) return;
-    localFilters.value = { ...localFilters.value, [key]: [] };
+
+    localFilters.value = {
+      ...localFilters.value,
+      [key]: [],
+    };
+
+    dropdownQuery.value = {
+      ...dropdownQuery.value,
+      [key]: '',
+    };
   }
   function selectAllInDropdown(key) {
     if (!key) return;
 
-    // Select all options currently visible in the popup (after search)
     const opts = getFilteredOptions(key) || [];
-    localFilters.value = { ...localFilters.value, [key]: opts.slice() };
+
+    localFilters.value = {
+      ...localFilters.value,
+      [key]: [...opts],
+    };
   }
 
   function countLabel(sel, tot) {
@@ -1589,20 +1612,36 @@
 
   function openDropdownAt(key) {
     if (!key) return;
+
     if (openDropdown.value === key) {
       closeDropdown();
       return;
     }
-    openDropdown.value = key;
-    if (dropdownQuery.value[key] == null) dropdownQuery.value[key] = '';
-    nextTick(() => positionPanelFor(key));
-  }
 
+    openDropdown.value = key;
+
+    dropdownQuery.value = {
+      ...dropdownQuery.value,
+      [key]: dropdownQuery.value[key] ?? '',
+    };
+
+    nextTick(() => {
+      positionPanelFor(key);
+    });
+  }
   function closeDropdown() {
+    const key = openDropdown.value;
+
+    if (key) {
+      dropdownQuery.value = {
+        ...dropdownQuery.value,
+        [key]: '',
+      };
+    }
+
     openDropdown.value = null;
     panelStyle.value = { display: 'none' };
   }
-
   function positionPanelFor(key) {
     if (!key) return;
 
