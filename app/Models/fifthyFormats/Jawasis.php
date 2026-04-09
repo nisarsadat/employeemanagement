@@ -15,16 +15,13 @@ class Jawasis extends Model
 
     protected $fillable = [
         'information_id',
-
         'picture',
         'name',
         'nick_name',
         'father_name',
-
         'main_province',
         'main_district',
         'main_village',
-
         'now_province',
         'now_zone',
         'now_district',
@@ -32,20 +29,15 @@ class Jawasis extends Model
         'now_specific_place',
         'now_street_number',
         'now_home_number',
-
         'coordinates',
         'country',
-
         'responsiability',
         'done_activities',
         'activity_place',
-
         'count_of_communication',
         'phone_number',
-
         'old_job',
         'now_job',
-
         'resource_id',
         'notes',
         'tafseel',

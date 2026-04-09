@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ResourceRequest extends FormRequest
 {
@@ -15,22 +16,38 @@ class ResourceRequest extends FormRequest
     {
         $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
 
-        $base = [
+        return [
             'picture' => ['nullable', 'image'],
 
             // intro
-            'name' => $isUpdate ? ['prohibited'] : ['required', 'string'],
-            'father_name' => $isUpdate ? ['prohibited'] : ['nullable', 'string'],
-            'grand_father_name' => $isUpdate ? ['prohibited'] : ['nullable', 'string'],
+            'name' => $isUpdate
+                ? [Rule::excludeIf(true)]
+                : ['required', 'string'],
+
+            'father_name' => $isUpdate
+                ? [Rule::excludeIf(true)]
+                : ['nullable', 'string'],
+
+            'grand_father_name' => $isUpdate
+                ? [Rule::excludeIf(true)]
+                : ['nullable', 'string'],
+
             'nick_name' => ['nullable', 'string'],
             'code_number' => ['nullable', 'string'],
             'tazkira' => ['nullable', 'string'],
-            'tazblood_groupkira' => ['nullable', 'string'],
 
             // main address
-            'main_province' => $isUpdate ? ['prohibited'] : ['nullable', 'string'],
-            'main_district' => $isUpdate ? ['prohibited'] : ['nullable', 'string'],
-            'main_village' => $isUpdate ? ['prohibited'] : ['nullable', 'string'],
+            'main_province' => $isUpdate
+                ? [Rule::excludeIf(true)]
+                : ['nullable', 'string'],
+
+            'main_district' => $isUpdate
+                ? [Rule::excludeIf(true)]
+                : ['nullable', 'string'],
+
+            'main_village' => $isUpdate
+                ? [Rule::excludeIf(true)]
+                : ['nullable', 'string'],
 
             // current address
             'now_province' => ['nullable', 'string'],
@@ -54,16 +71,21 @@ class ResourceRequest extends FormRequest
             'faculty' => ['nullable', 'string'],
             'specific_skills' => ['nullable', 'string'],
             'train' => ['nullable', 'string'],
-            'percentage' => ['nullable', 'string'],
+            'trust_percentage' => ['nullable', 'string'],
+            'blood_group' => ['nullable', 'string'],
 
             // misc
             'resource_saved_date' => ['nullable', 'string'],
             'resource_activity_type' => ['nullable', 'string'],
-            'office_employee_id' => $isUpdate ? ['prohibited'] : ['nullable', 'exists:office_employees,id'],
+
+            'office_employee_id' => $isUpdate
+                ? [Rule::excludeIf(true)]
+                : ['nullable', 'exists:office_employees,id'],
+
             'resource_cover' => ['nullable', 'string'],
             'language' => ['nullable', 'string'],
             'nation' => ['nullable', 'string'],
-            'phone_number' => ['nullable', 'string'],
+            'phone_number' => ['nullable', 'string', 'max:20'],
             'phone_number_1' => ['nullable', 'string', 'max:20'],
             'phone_number_2' => ['nullable', 'string', 'max:20'],
             'coordinates' => ['nullable', 'string'],
@@ -74,29 +96,16 @@ class ResourceRequest extends FormRequest
             'specefic_place' => ['nullable', 'string'],
             'project' => ['nullable', 'string'],
             'Province_addr' => ['nullable', 'string'],
+            'format_owner_type' => ['nullable', 'string'],
+            'format_owner_id' => ['nullable', 'integer'],
         ];
-
-        if ($isUpdate) {
-            foreach ($base as $k => &$rules) {
-                if (!in_array('prohibited', $rules, true)) {
-                    array_unshift($rules, 'sometimes');
-                }
-            }
-        }
-
-        return $base;
     }
 
     public function messages(): array
     {
         return [
-            'name.prohibited' => 'د نوم ساحه د ثبت وروسته نه شي بدلېدای.',
-            'father_name.prohibited' => 'د پلار نوم ساحه د ثبت وروسته نه شي بدلېدای.',
-            'grand_father_name.prohibited' => 'د نيکه نوم ساحه د ثبت وروسته نه شي بدلېدای.',
-            'main_province.prohibited' => 'د اصلي ولايت ساحه د ثبت وروسته نه شي بدلېدای.',
-            'main_district.prohibited' => 'د اصلي ولسوالۍ ساحه د ثبت وروسته نه شي بدلېدای.',
-            'main_village.prohibited' => 'د اصلي کلي ساحه د ثبت وروسته نه شي بدلېدای.',
-            'office_employee_id.prohibited' => 'د مربوط کارمند ساحه د ثبت وروسته نه شي بدلېدای.',
+            // no prohibited messages needed anymore,
+            // because these fields are silently ignored on update
         ];
     }
 }
