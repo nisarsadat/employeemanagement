@@ -267,56 +267,62 @@ class DashboardController extends Controller
             ->sortByDesc('count')
             ->values();
 
-        /* -------------------------------------------------
-        | INFORMATIONS (MAIN period)
-        |-------------------------------------------------*/
-        /* -------------------------------------------------
-        | INFORMATIONS (MAIN period) + dashboard stats from backend
-        |-------------------------------------------------*/
-        $informationDateCol = $this->detectModelDateColumn(new Information(), [
-            'information_saved_date',
-            'created_at',
-        ]);
+/* -------------------------------------------------
+| INFORMATIONS (MAIN period) + dashboard stats
+|-------------------------------------------------*/
+$informationDateCol = $this->detectModelDateColumn(new Information(), [
+    'information_saved_date',
+    'created_at',
+]);
 
-        $informationBase = Information::query()
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $informationDateCol, $from, $to));
+$informationBase = Information::query()
+    ->when($from && $to, fn ($q) => $this->applyDateRange($q, $informationDateCol, $from, $to));
 
-        $informationsTotal = (clone $informationBase)->count();
+$informationsTotal = (clone $informationBase)->count();
 
-        $infoCountSharOFasad = (clone $informationBase)
-            ->where(function ($q) {
-                $q->where('syasi_info_type', 'شر او فساد')
-                ->orWhere('jenayee_info_type', 'شر او فساد');
-            })
-            ->count();
+$infoCountSharOFasad = $this->informationTypeCount($informationBase, [
+    'شر او فساد',
+]);
 
-        $infoCountSaenBilFasad = (clone $informationBase)
-            ->where(function ($q) {
-                $q->where('syasi_info_type', 'ساعین بالفساد')
-                ->orWhere('jenayee_info_type', 'ساعین بالفساد');
-            })
-            ->count();
+$infoCountSaenBilFasad = $this->informationTypeCount($informationBase, [
+    'ساعین بالفساد',
+]);
 
-        $infoCountJasoosi = (clone $informationBase)
-            ->where(function ($q) {
-                $q->whereIn(DB::raw('TRIM(syasi_info_type)'), ['جاسوسی', 'جاسوسي', 'جواسیس'])
-                ->orWhereIn(DB::raw('TRIM(jenayee_info_type)'), ['جاسوسی', 'جاسوسي', 'جواسیس']);
-            })
-            ->count();
+$infoCountJasoosi = $this->informationTypeCount($informationBase, [
+    'جاسوسی',
+    'جاسوسي',
+    'جواسیس',
+]);
 
-        $informationsByJenayeeType = (clone $informationBase)
-            ->select('jenayee_info_type', DB::raw('COUNT(*) as total'))
-            ->groupBy('jenayee_info_type')
-            ->get()
-            ->map(function ($row) {
-                $name = is_string($row->jenayee_info_type) ? trim($row->jenayee_info_type) : '';
-                return [
-                    'type'  => $name !== '' ? $name : 'نامعلوم',
-                    'count' => (int) $row->total,
-                ];
-            })
-            ->sortByDesc('count')
-            ->values();
+$informationsByJenayeeType = (clone $informationBase)
+    ->select('jenayee_info_type', DB::raw('COUNT(*) as total'))
+    ->groupBy('jenayee_info_type')
+    ->get()
+    ->map(function ($row) {
+        $name = is_string($row->jenayee_info_type) ? trim($row->jenayee_info_type) : '';
+
+        return [
+            'type'  => $name !== '' ? $name : 'نامعلوم',
+            'count' => (int) $row->total,
+        ];
+    })
+    ->sortByDesc('count')
+    ->values();
+
+$informationsBySyasiType = (clone $informationBase)
+    ->select('syasi_info_type', DB::raw('COUNT(*) as total'))
+    ->groupBy('syasi_info_type')
+    ->get()
+    ->map(function ($row) {
+        $name = is_string($row->syasi_info_type) ? trim($row->syasi_info_type) : '';
+
+        return [
+            'type'  => $name !== '' ? $name : 'نامعلوم',
+            'count' => (int) $row->total,
+        ];
+    })
+    ->sortByDesc('count')
+    ->values();
 
         $informationsBySyasiType = (clone $informationBase)
             ->select('syasi_info_type', DB::raw('COUNT(*) as total'))
@@ -623,6 +629,36 @@ class DashboardController extends Controller
         ]);
     }
 
+    private function normalizeFaValue(string $value): string
+{
+    $value = trim($value);
+    $value = str_replace(['ي', 'ى'], 'ی', $value);
+    $value = str_replace('ك', 'ک', $value);
+    $value = preg_replace('/\s+/', ' ', $value);
+    return trim($value);
+}
+
+private function normalizedFaColumn(string $column): string
+{
+    return "TRIM(REPLACE(REPLACE(REPLACE($column,'ي','ی'),'ى','ی'),'ك','ک'))";
+}
+
+private function informationTypeCount($baseQuery, array $variants): int
+{
+    $normalizedVariants = collect($variants)
+        ->map(fn ($v) => $this->normalizeFaValue((string) $v))
+        ->filter()
+        ->unique()
+        ->values()
+        ->all();
+
+    return (clone $baseQuery)
+        ->where(function ($q) use ($normalizedVariants) {
+            $q->whereIn(DB::raw($this->normalizedFaColumn('syasi_info_type')), $normalizedVariants)
+              ->orWhereIn(DB::raw($this->normalizedFaColumn('jenayee_info_type')), $normalizedVariants);
+        })
+        ->count();
+}
     /* =====================================================
      | ✅ SHAMSI PERIOD RANGE (daily/weekly/monthly/yearly/all)
      |=====================================================*/
