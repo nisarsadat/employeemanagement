@@ -49,7 +49,7 @@ class DashboardController extends Controller
 
         // Finance filter (money + oil + employee tables) => Shamsi-based
         [$financeFrom, $financeTo] = $this->resolvePeriodRangeShamsi($financePeriod);
-
+        $resourceDateCol = 'created_at';
         $resourceDateCol = $this->detectModelDateColumn(new Resource(), [
             'resource_saved_date',
             'saved_date',
@@ -114,8 +114,7 @@ class DashboardController extends Controller
         $employeesOld = OfficeEmployee::query()
             ->select('id', 'name', 'nick_name', 'code_number')
             ->withCount([
-            'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'resource_saved_date', $financeFrom, $financeTo),
-            'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+                'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),            'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
             ])
             ->orderByDesc('events_count')
@@ -171,8 +170,7 @@ class DashboardController extends Controller
         $employeesNew = OfficeEmployee::query()
             ->select('id', 'name', 'nick_name', 'code_number')
             ->withCount([
-            'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),
-            'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+            'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),            'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'khayratReports as khayrat_reports_count' => fn ($q) => $this->applyDateRange($q, 'saved_date', $financeFrom, $financeTo),
             ])
@@ -248,7 +246,6 @@ class DashboardController extends Controller
                 $h = trim((string) $row->hawza);
                 if ($h === '') $h = 'نامعلوم';
 
-                // normalize Arabic/Persian chars like you did elsewhere
                 $h = str_replace(['ي', 'ى'], 'ی', $h);
                 $h = str_replace('ك', 'ک', $h);
                 $h = preg_replace('/\s+/', ' ', $h);
@@ -463,8 +460,7 @@ class DashboardController extends Controller
         |-------------------------------------------------*/
         $now = Carbon::now();
         $monthlyBuckets = $this->buildShamsiYearMonthBuckets($now);
-
-        $resourcesMonthlyCounts     = $this->monthlyCount(Resource::query(), 'created_at', $monthlyBuckets);
+        $resourcesMonthlyCounts = $this->monthlyCount(Resource::query(), $resourceDateCol, $monthlyBuckets);
         $eventsMonthlyCounts        = $this->monthlyCount(Event::query(), 'created_at', $monthlyBuckets);
         $informationsMonthlyCounts  = $this->monthlyCount(Information::query(), 'created_at', $monthlyBuckets);
         $khayratMonthlyCounts       = $this->monthlyCount(KhayratReport::query(), 'saved_date', $monthlyBuckets);
