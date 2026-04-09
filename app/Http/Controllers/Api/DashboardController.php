@@ -114,7 +114,8 @@ class DashboardController extends Controller
         $employeesOld = OfficeEmployee::query()
             ->select('id', 'name', 'nick_name', 'code_number')
             ->withCount([
-                'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),            'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+                'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),           
+                'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
             ])
             ->orderByDesc('events_count')
@@ -170,7 +171,8 @@ class DashboardController extends Controller
         $employeesNew = OfficeEmployee::query()
             ->select('id', 'name', 'nick_name', 'code_number')
             ->withCount([
-            'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),            'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+            'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),            
+            'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'khayratReports as khayrat_reports_count' => fn ($q) => $this->applyDateRange($q, 'saved_date', $financeFrom, $financeTo),
             ])
@@ -268,17 +270,60 @@ class DashboardController extends Controller
         /* -------------------------------------------------
         | INFORMATIONS (MAIN period)
         |-------------------------------------------------*/
-        $informationsTotal = Information::query()
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+        /* -------------------------------------------------
+        | INFORMATIONS (MAIN period) + dashboard stats from backend
+        |-------------------------------------------------*/
+        $informationDateCol = $this->detectModelDateColumn(new Information(), [
+            'information_saved_date',
+            'created_at',
+        ]);
+
+        $informationBase = Information::query()
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $informationDateCol, $from, $to));
+
+        $informationsTotal = (clone $informationBase)->count();
+
+        $infoCountSharOFasad = (clone $informationBase)
+            ->where(function ($q) {
+                $q->where('syasi_info_type', 'شر او فساد')
+                ->orWhere('jenayee_info_type', 'شر او فساد');
+            })
             ->count();
 
-        $informationsByJenayeeType = Information::query()
+        $infoCountSaenBilFasad = (clone $informationBase)
+            ->where(function ($q) {
+                $q->where('syasi_info_type', 'ساعین بالفساد')
+                ->orWhere('jenayee_info_type', 'ساعین بالفساد');
+            })
+            ->count();
+
+        $infoCountJasoosi = (clone $informationBase)
+            ->where(function ($q) {
+                $q->whereIn(DB::raw('TRIM(syasi_info_type)'), ['جاسوسی', 'جاسوسي', 'جواسیس'])
+                ->orWhereIn(DB::raw('TRIM(jenayee_info_type)'), ['جاسوسی', 'جاسوسي', 'جواسیس']);
+            })
+            ->count();
+
+        $informationsByJenayeeType = (clone $informationBase)
             ->select('jenayee_info_type', DB::raw('COUNT(*) as total'))
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->groupBy('jenayee_info_type')
             ->get()
             ->map(function ($row) {
                 $name = is_string($row->jenayee_info_type) ? trim($row->jenayee_info_type) : '';
+                return [
+                    'type'  => $name !== '' ? $name : 'نامعلوم',
+                    'count' => (int) $row->total,
+                ];
+            })
+            ->sortByDesc('count')
+            ->values();
+
+        $informationsBySyasiType = (clone $informationBase)
+            ->select('syasi_info_type', DB::raw('COUNT(*) as total'))
+            ->groupBy('syasi_info_type')
+            ->get()
+            ->map(function ($row) {
+                $name = is_string($row->syasi_info_type) ? trim($row->syasi_info_type) : '';
                 return [
                     'type'  => $name !== '' ? $name : 'نامعلوم',
                     'count' => (int) $row->total,
@@ -462,7 +507,7 @@ class DashboardController extends Controller
         $monthlyBuckets = $this->buildShamsiYearMonthBuckets($now);
         $resourcesMonthlyCounts = $this->monthlyCount(Resource::query(), $resourceDateCol, $monthlyBuckets);
         $eventsMonthlyCounts        = $this->monthlyCount(Event::query(), 'created_at', $monthlyBuckets);
-        $informationsMonthlyCounts  = $this->monthlyCount(Information::query(), 'created_at', $monthlyBuckets);
+        $informationsMonthlyCounts  = $this->monthlyCount(Information::query(), $informationDateCol, $monthlyBuckets);
         $khayratMonthlyCounts       = $this->monthlyCount(KhayratReport::query(), 'saved_date', $monthlyBuckets);
 
         $moneyIncomeMonthly  = $this->monthlySum(Income::query(), $incomeDateCol, 'amount', $monthlyBuckets);
@@ -514,11 +559,17 @@ class DashboardController extends Controller
 
             'resources_monthly_counts' => $resourcesMonthlyCounts,
 
+
             'informations' => [
-                'total' => $informationsTotal,
-                'jenayee_types' => $informationsByJenayeeType,
-                'syasi_types'   => $informationsBySyasiType,
-            ],
+                    'total' => $informationsTotal,
+                    'jenayee_types' => $informationsByJenayeeType,
+                    'syasi_types'   => $informationsBySyasiType,
+                    'stats' => [
+                        'shar'  => (int) $infoCountSharOFasad,
+                        'saeen' => (int) $infoCountSaenBilFasad,
+                        'spy'   => (int) $infoCountJasoosi,
+                    ],
+                ],
             'informations_monthly_counts' => $informationsMonthlyCounts,
 
             'events' => [

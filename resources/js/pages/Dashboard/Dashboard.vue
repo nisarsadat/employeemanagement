@@ -309,13 +309,33 @@
 
               <div class="stat-bottom">
                 <div class="chips-grid">
-                  <v-chip size="x-small" variant="tonal" color="error" class="chip-compact">
+                  <v-chip
+                    size="x-small"
+                    variant="tonal"
+                    color="error"
+                    class="chip-compact"
+                    @click.stop="goInformations('shar')"
+                  >
                     {{ t('شر او فساد') }}: {{ num(infoCountSharOFasad) }}
                   </v-chip>
-                  <v-chip size="x-small" variant="tonal" color="warning" class="chip-compact">
+
+                  <v-chip
+                    size="x-small"
+                    variant="tonal"
+                    color="warning"
+                    class="chip-compact"
+                    @click.stop="goInformations('saeen')"
+                  >
                     {{ t('ساعین بالفساد') }}: {{ num(infoCountSaenBilFasad) }}
                   </v-chip>
-                  <v-chip size="x-small" variant="tonal" color="primary" class="chip-compact">
+
+                  <v-chip
+                    size="x-small"
+                    variant="tonal"
+                    color="primary"
+                    class="chip-compact"
+                    @click.stop="goInformations('spy')"
+                  >
                     {{ t('جاسوسی') }}: {{ num(infoCountJasoosi) }}
                   </v-chip>
                 </div>
@@ -925,8 +945,8 @@
   function goInactiveResources() {
     go('/app/inactiveresource');
   }
-  function goInformations() {
-    go('/app/informations');
+  function goInformations(stat = null) {
+    go('/app/informations', stat ? { stat, source: 'dashboard' } : {});
   }
   function goEvents() {
     go('/app/events');
@@ -1175,30 +1195,11 @@
   const informationsTotal = computed(() => Number(repo.informations?.total ?? 0));
   const eventsTotal = computed(() => Number(repo.events?.total ?? 0));
 
-  const infoJenayeeTypes = computed(() => {
-    const arr = repo.informations?.jenayee_types;
-    return Array.isArray(arr) ? arr : [];
-  });
+  const infoStats = computed(() => repo.informations?.stats || {});
 
-  const infoSyasiTypes = computed(() => {
-    const arr = repo.informations?.syasi_types;
-    return Array.isArray(arr) ? arr : [];
-  });
-
-  function findTypeCount(list, names) {
-    if (!Array.isArray(list)) return 0;
-    const normalizedNames = (Array.isArray(names) ? names : [names]).map((x) =>
-      String(x || '').trim()
-    );
-    const row = list.find((x) => normalizedNames.includes(String(x?.type || '').trim()));
-    return Number(row?.count || 0);
-  }
-
-  const infoCountSharOFasad = computed(() => findTypeCount(infoJenayeeTypes.value, ['شر او فساد']));
-  const infoCountSaenBilFasad = computed(() =>
-    findTypeCount(infoJenayeeTypes.value, ['ساعین بالفساد'])
-  );
-  const infoCountJasoosi = computed(() => findTypeCount(infoSyasiTypes.value, ['جاسوسی']));
+  const infoCountSharOFasad = computed(() => Number(infoStats.value?.shar ?? 0));
+  const infoCountSaenBilFasad = computed(() => Number(infoStats.value?.saeen ?? 0));
+  const infoCountJasoosi = computed(() => Number(infoStats.value?.spy ?? 0));
 
   const resourcesActivePercentage = computed(() => {
     if (resourcesTotal.value === 0) return 0;
