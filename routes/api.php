@@ -87,7 +87,7 @@ use App\Http\Controllers\Api\fifthyformatfour\{
     MasjidController,
     HighwayController,
     CompanyController,
-    DonelostPlaceController,
+    DoneLostPlaceController,
     EconemyProjectController,
     CriminalCapturePlaceController,
     PumpController,
@@ -375,7 +375,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('masjids', MasjidController::class);
     Route::apiResource('highways', HighwayController::class);
     Route::apiResource('companies', CompanyController::class);
-    Route::apiResource('done-lost-places', DonelostPlaceController::class);
+    Route::apiResource('done-lost-places', DoneLostPlaceController::class);
     Route::apiResource('econemy-projects', EconemyProjectController::class);
     Route::apiResource('criminal-capture-places', CriminalCapturePlaceController::class);
     Route::apiResource('pumps', PumpController::class);

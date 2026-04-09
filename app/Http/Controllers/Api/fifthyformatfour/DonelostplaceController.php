@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-class DonelostPlaceController extends Controller
+    class DoneLostPlaceController extends Controller
 {
     private function isDuplicateKey(QueryException $e): bool
     {
