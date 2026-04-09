@@ -778,7 +778,18 @@
                   •
                   {{ t('صفحه') }} {{ currentPage }} {{ t('از') }} {{ pageCount }}
                 </div>
-
+                <div class="d-flex align-center ga-2">
+                  <span class="text-caption text-medium-emphasis">{{ t('تعداد در صفحه') }}</span>
+                  <v-select
+                    v-model="itemsPerPage"
+                    :items="[5, 10, 20, 50, 100]"
+                    density="compact"
+                    variant="outlined"
+                    hide-details
+                    style="max-width: 110px"
+                    @update:modelValue="currentPage = 1"
+                  />
+                </div>
                 <v-pagination
                   v-model="currentPage"
                   :length="pageCount"
@@ -870,7 +881,7 @@
 
   const isRtl = computed(() => String(locale.value).toLowerCase().startsWith('fa'));
   const repo = useDashboardRepository();
-
+  const itemsPerPage = ref(10);
   const search = ref('');
   const currentPage = ref(1);
   const itemsPerPage = 10;
@@ -1308,22 +1319,22 @@
     () => filteredEmployees.value[0]?.nick_name || filteredEmployees.value[0]?.name || '—'
   );
   const pageCount = computed(() =>
-    Math.max(1, Math.ceil(filteredEmployees.value.length / itemsPerPage))
+    Math.max(1, Math.ceil(filteredEmployees.value.length / itemsPerPage.value))
   );
 
   const pagedEmployees = computed(() => {
     const page = Math.min(Math.max(1, currentPage.value), pageCount.value);
-    const start = (page - 1) * itemsPerPage;
-    return filteredEmployees.value.slice(start, start + itemsPerPage);
+    const start = (page - 1) * itemsPerPage.value;
+    return filteredEmployees.value.slice(start, start + itemsPerPage.value);
   });
 
   const pageFrom = computed(() => {
     if (!filteredEmployees.value.length) return 0;
-    return (Math.min(currentPage.value, pageCount.value) - 1) * itemsPerPage + 1;
+    return (Math.min(currentPage.value, pageCount.value) - 1) * itemsPerPage.value + 1;
   });
 
   const pageTo = computed(() =>
-    Math.min(pageFrom.value + itemsPerPage - 1, filteredEmployees.value.length)
+    Math.min(pageFrom.value + itemsPerPage.value - 1, filteredEmployees.value.length)
   );
 
   /* ===========================

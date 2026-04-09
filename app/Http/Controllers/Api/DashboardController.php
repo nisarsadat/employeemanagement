@@ -109,8 +109,9 @@ class DashboardController extends Controller
         $employeesOld = OfficeEmployee::query()
             ->select('id', 'name', 'nick_name', 'code_number')
             ->withCount([
-                'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
-                'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+            'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'resource_saved_date', $financeFrom, $financeTo),
+
+            'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
             ])
             ->orderByDesc('events_count')
@@ -166,8 +167,8 @@ class DashboardController extends Controller
         $employeesNew = OfficeEmployee::query()
             ->select('id', 'name', 'nick_name', 'code_number')
             ->withCount([
-                'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
-                'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+            'resources as resources_count' => fn ($q) => $this->applyDateRange($q, 'resource_saved_date', $financeFrom, $financeTo),   
+            'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
                 'khayratReports as khayrat_reports_count' => fn ($q) => $this->applyDateRange($q, 'saved_date', $financeFrom, $financeTo),
             ])
