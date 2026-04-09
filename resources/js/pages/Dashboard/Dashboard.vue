@@ -884,7 +884,6 @@
   const itemsPerPage = ref(10);
   const search = ref('');
   const currentPage = ref(1);
-  const itemsPerPage = 10;
   const sortKeys = ref(['score_desc']);
 
   const period = ref('all'); // main filter
