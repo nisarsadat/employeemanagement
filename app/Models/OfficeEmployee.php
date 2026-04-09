@@ -170,25 +170,39 @@ class OfficeEmployee extends Model
      | INACTIVE if has < 100 active resources
      ========================================================= */
 
-    public function scopeActive(Builder $q): Builder
-    {
-        return $q->whereHas(
-            'resources',
-            fn ($rq) => $rq->where('activity', self::ACTIVE),
-            '>=',
-            100
-        );
-    }
+    // public function scopeActive(Builder $q): Builder
+    // {
+    //     return $q->whereHas(
+    //         'resources',
+    //         fn ($rq) => $rq->where('activity', self::ACTIVE),
+    //         '>=',
+    //         100
+    //     );
+    // }
 
-    public function scopeInactive(Builder $q): Builder
-    {
-        return $q->whereHas(
-            'resources',
-            fn ($rq) => $rq->where('activity', self::ACTIVE),
-            '<',
-            100
-        );
-    }
+    // public function scopeInactive(Builder $q): Builder
+    // {
+    //     return $q->whereHas(
+    //         'resources',
+    //         fn ($rq) => $rq->where('activity', self::ACTIVE),
+    //         '<',
+    //         100
+    //     );
+    // }
+    /* =========================================================
+ | ACTIVITY SCOPES (TEMPORARY)
+ | FOR NOW: use direct activity column only
+ ========================================================= */
+
+public function scopeActive(Builder $q): Builder
+{
+    return $q->where('activity', self::ACTIVE);
+}
+
+public function scopeInactive(Builder $q): Builder
+{
+    return $q->where('activity', self::INACTIVE);
+}
     public function khayratReports()
     {
         return $this->hasMany(KhayratReport::class, 'office_employee_id', 'id');

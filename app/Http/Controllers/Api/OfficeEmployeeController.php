@@ -514,84 +514,164 @@ class OfficeEmployeeController extends Controller
         ]);
     }
 
+    // public function store(OfficeEmployeeRequest $request)
+    // {
+    //     DB::beginTransaction();
+
+    //     try {
+    //         $user = $request->user();
+
+    //         $employee = OfficeEmployee::create($request->validated());
+
+    //         if (empty($employee->code_number)) {
+    //             $employee->update(['code_number' => (string) $employee->id]);
+    //         }
+
+    //         if ($request->hasFile('picture')) {
+    //             $path = $request->file('picture')->store('uploads/office-employees', 'public');
+    //             $employee->update(['picture' => $path]);
+    //         }
+
+    //         if ($request->hasFile('documents')) {
+    //             foreach ($request->file('documents') as $file) {
+    //                 $path = $file->store("office_employees/{$employee->id}", 'public');
+    //                 $employee->documents()->create([
+    //                     'file_name'  => $file->getClientOriginalName(),
+    //                     'file_path'  => $path,
+    //                     'mime_type'  => $file->getClientMimeType(),
+    //                     'size_bytes' => $file->getSize(),
+    //                 ]);
+    //             }
+    //         }
+
+    //         NotificationService::recordForAllUsers(
+    //             actor: $user,
+    //             module: 'کارمند',
+    //             action: 'created',
+    //             title: 'کارمند ثبت',
+    //             message: 'کارمند: ' . ($employee->code_number ?? ''),
+    //             routeName: 'officeemployee',
+    //             routeParams: ['id' => $employee->id],
+    //             level: 'success',
+    //             changes: null,
+    //         );
+
+    //         DB::commit();
+
+    //         return new OfficeEmployeeResource(
+    //             $employee->load(['documents'])
+    //                 ->loadSum('finances as payed_money', 'money_amount_number')
+    //                 ->loadCount([
+    //                     'events',
+    //                     'resources',
+    //                     'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
+    //                     'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
+    //                     'informations',
+    //                     'infoInformations',
+    //                     'documents',
+    //                 ])
+    //         );
+    //     } catch (QueryException $e) {
+    //         DB::rollBack();
+
+    //         if ($this->isDuplicateKey($e)) {
+    //             return $this->duplicateResponsePashto();
+    //         }
+
+    //         return response()->json([
+    //             'message' => 'Office employee creation failed',
+    //             'error'   => $e->getMessage(),
+    //         ], 500);
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+
+    //         return response()->json([
+    //             'message' => 'Office employee creation failed',
+    //             'error'   => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
     public function store(OfficeEmployeeRequest $request)
-    {
-        DB::beginTransaction();
+{
+    DB::beginTransaction();
 
-        try {
-            $user = $request->user();
+    try {
+        $user = $request->user();
 
-            $employee = OfficeEmployee::create($request->validated());
+        $data = $request->validated();
+        $data['activity'] = OfficeEmployee::ACTIVE;
 
-            if (empty($employee->code_number)) {
-                $employee->update(['code_number' => (string) $employee->id]);
-            }
+        $employee = OfficeEmployee::create($data);
 
-            if ($request->hasFile('picture')) {
-                $path = $request->file('picture')->store('uploads/office-employees', 'public');
-                $employee->update(['picture' => $path]);
-            }
-
-            if ($request->hasFile('documents')) {
-                foreach ($request->file('documents') as $file) {
-                    $path = $file->store("office_employees/{$employee->id}", 'public');
-                    $employee->documents()->create([
-                        'file_name'  => $file->getClientOriginalName(),
-                        'file_path'  => $path,
-                        'mime_type'  => $file->getClientMimeType(),
-                        'size_bytes' => $file->getSize(),
-                    ]);
-                }
-            }
-
-            NotificationService::recordForAllUsers(
-                actor: $user,
-                module: 'کارمند',
-                action: 'created',
-                title: 'کارمند ثبت',
-                message: 'کارمند: ' . ($employee->code_number ?? ''),
-                routeName: 'officeemployee',
-                routeParams: ['id' => $employee->id],
-                level: 'success',
-                changes: null,
-            );
-
-            DB::commit();
-
-            return new OfficeEmployeeResource(
-                $employee->load(['documents'])
-                    ->loadSum('finances as payed_money', 'money_amount_number')
-                    ->loadCount([
-                        'events',
-                        'resources',
-                        'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
-                        'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
-                        'informations',
-                        'infoInformations',
-                        'documents',
-                    ])
-            );
-        } catch (QueryException $e) {
-            DB::rollBack();
-
-            if ($this->isDuplicateKey($e)) {
-                return $this->duplicateResponsePashto();
-            }
-
-            return response()->json([
-                'message' => 'Office employee creation failed',
-                'error'   => $e->getMessage(),
-            ], 500);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'message' => 'Office employee creation failed',
-                'error'   => $e->getMessage(),
-            ], 500);
+        if (empty($employee->code_number)) {
+            $employee->update(['code_number' => (string) $employee->id]);
         }
-    }
 
+        if ($request->hasFile('picture')) {
+            $path = $request->file('picture')->store('uploads/office-employees', 'public');
+            $employee->update(['picture' => $path]);
+        }
+
+        if ($request->hasFile('documents')) {
+            foreach ($request->file('documents') as $file) {
+                $path = $file->store("office_employees/{$employee->id}", 'public');
+                $employee->documents()->create([
+                    'file_name'  => $file->getClientOriginalName(),
+                    'file_path'  => $path,
+                    'mime_type'  => $file->getClientMimeType(),
+                    'size_bytes' => $file->getSize(),
+                ]);
+            }
+        }
+
+        NotificationService::recordForAllUsers(
+            actor: $user,
+            module: 'کارمند',
+            action: 'created',
+            title: 'کارمند ثبت',
+            message: 'کارمند: ' . ($employee->code_number ?? ''),
+            routeName: 'officeemployee',
+            routeParams: ['id' => $employee->id],
+            level: 'success',
+            changes: null,
+        );
+
+        DB::commit();
+
+        return new OfficeEmployeeResource(
+            $employee->load(['documents'])
+                ->loadSum('finances as payed_money', 'money_amount_number')
+                ->loadCount([
+                    'events',
+                    'resources',
+                    'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
+                    'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
+                    'informations',
+                    'infoInformations',
+                    'documents',
+                ])
+        );
+    } catch (QueryException $e) {
+        DB::rollBack();
+
+        if ($this->isDuplicateKey($e)) {
+            return $this->duplicateResponsePashto();
+        }
+
+        return response()->json([
+            'message' => 'Office employee creation failed',
+            'error'   => $e->getMessage(),
+        ], 500);
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'message' => 'Office employee creation failed',
+            'error'   => $e->getMessage(),
+        ], 500);
+    }
+}
     public function update(UpdateOfficeEmployeeRequest $request, $id)
     {
         DB::beginTransaction();
@@ -604,6 +684,9 @@ class OfficeEmployeeController extends Controller
 
             $data = $request->validated();
             unset($data['code_number']);
+
+            // this temporary
+            $data['activity'] = OfficeEmployee::ACTIVE;
 
             $officeEmployee->fill($data);
 
