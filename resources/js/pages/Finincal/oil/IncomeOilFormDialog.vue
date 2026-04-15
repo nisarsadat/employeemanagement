@@ -58,7 +58,7 @@
             </v-col> -->
             <v-col cols="12" md="12">
               <DateInput v-model="localDraft.date" :label="t('نیټه')" />
-            </v-col>  
+            </v-col>
 
             <v-col cols="12">
               <v-textarea
@@ -88,7 +88,7 @@
   import { reactive, ref, watch, computed } from 'vue';
   import { useI18n } from 'vue-i18n';
   import axios from 'axios';
-import DateInput from '@/components/DateInput.vue';
+  import DateInput from '@/components/DateInput.vue';
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
     editMode: { type: Boolean, default: false },
@@ -137,18 +137,18 @@ import DateInput from '@/components/DateInput.vue';
       note: props.value?.note ?? '',
     });
   }
-  
-// normalize date to YYYY-MM-DD if needed
-function normalizeDate(val){
-  if (val == null) return null;
-  if (typeof val === 'string') return val;
-  if (typeof val === 'object' && val.year && val.month && val.day) {
-    const mm = String(val.month).padStart(2,'0');
-    const dd = String(val.day).padStart(2,'0');
-    return `${val.year}-${mm}-${dd}`;
+
+  // normalize date to YYYY-MM-DD if needed
+  function normalizeDate(val) {
+    if (val == null) return null;
+    if (typeof val === 'string') return val;
+    if (typeof val === 'object' && val.year && val.month && val.day) {
+      const mm = String(val.month).padStart(2, '0');
+      const dd = String(val.day).padStart(2, '0');
+      return `${val.year}-${mm}-${dd}`;
+    }
+    return String(val);
   }
-  return String(val);
-}
 
   // accounts dropdown (show balance)
   const accountItems = ref([]);

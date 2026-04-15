@@ -348,43 +348,71 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
   // Export CSS
   // =========================
   function baseExportCss() {
-    const fontStack = appFontStack();
-
     return `
-      @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
+    @font-face {
+      font-family: 'Amiri';
+      src: url('/fonts/Amiri-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      @page {
-        size: A4 portrait;
-        margin: 10mm;
-      }
+    @font-face {
+      font-family: 'Amiri';
+      src: url('/fonts/Amiri-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      :root{
-        --app-font: ${fontStack};
-        --v-font-family: var(--app-font);
-      }
+    @font-face {
+      font-family: 'Noto Naskh Arabic';
+      src: url('/fonts/NotoNaskhArabic-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      * {
-        box-sizing: border-box;
-        font-family: var(--app-font) !important;
-        color: #000 !important;
-      }
+    @font-face {
+      font-family: 'Noto Naskh Arabic';
+      src: url('/fonts/NotoNaskhArabic-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      html, body {
-        margin: 0;
-        padding: 0;
-        width: 210mm;
-        min-height: 297mm;
-        background: #fff !important;
-        color: #000 !important;
-        font-family: var(--app-font) !important;
-        font-size: 11px;
-        line-height: 1.45;
-        direction: rtl !important;
-        text-align: right !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        overflow: visible !important;
-      }
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+
+    :root{
+      --app-font: 'Amiri','Noto Naskh Arabic','Noto Sans Arabic','Tahoma',ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+      --v-font-family: var(--app-font);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: var(--app-font) !important;
+      color: #000 !important;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 210mm;
+      min-height: 297mm;
+      background: #fff !important;
+      color: #000 !important;
+      font-family: var(--app-font) !important;
+      font-size: 11px;
+      line-height: 1.45;
+      direction: rtl !important;
+      text-align: right !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      overflow: visible !important;
+    }
 
       body {
         -webkit-print-color-adjust: exact !important;
@@ -490,14 +518,12 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       }
 
       .card{
-        background:#fff;
-        border:1px solid #e9eef7;
-        border-radius:14px;
-        overflow:hidden;
-        box-shadow: 0 10px 22px rgba(17,24,39,.06);
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
+  background:#fff;
+  border:1px solid #e9eef7;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow: 0 10px 22px rgba(17,24,39,.06);
+}
 
       .stat-card{
         padding:10px 10px;
@@ -649,11 +675,10 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         display:block;
       }
 
-      .no-break {
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-
+.no-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
       .etype{
         display:inline-block;
         padding:3px 10px;
@@ -679,33 +704,52 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
         margin-top:12px;
       }
 
-      @media print {
-        html, body {
-          width: 210mm !important;
-          min-height: 297mm !important;
-          overflow: hidden !important;
-        }
+     @media print {
+  html, body {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    overflow: visible !important;
+  }
 
-        .page {
-          width: 190mm !important;
-          min-height: auto !important;
-        }
+  .page {
+    width: 190mm !important;
+    min-height: auto !important;
+  }
 
-        .hero,
-        .card,
-        .section,
-        table,
-        tr,
-        td,
-        th {
-          break-inside: avoid;
-          page-break-inside: avoid;
-        }
+  .hero,
+  .stats-grid,
+  .stat-card,
+  .header-strip {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
-        .stats-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
+  .section,
+  .card,
+  table,
+  tbody,
+  tr,
+  td {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
     `;
   }
 
@@ -1189,6 +1233,8 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const w = iframe.contentWindow;
     const doc = iframe.contentDocument || w.document;
 
+    let hasPrinted = false;
+
     doc.open();
     doc.write(html);
     doc.close();
@@ -1234,6 +1280,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       });
 
     const doPrint = async () => {
+      if (hasPrinted) return;
+      hasPrinted = true;
+
       try {
         await new Promise((r) => setTimeout(r, 400));
         await waitFonts();
@@ -1251,8 +1300,9 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       }
     };
 
-    iframe.onload = () => setTimeout(doPrint, 250);
-    setTimeout(doPrint, 900);
+    iframe.onload = () => {
+      setTimeout(doPrint, 300);
+    };
 
     return true;
   }

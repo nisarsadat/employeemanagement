@@ -400,7 +400,7 @@
       employees: 'officeemployee',
 
       resources: 'resource',
-      informations: 'information',
+      information: 'information',
       captivedeliveries: 'captivedelivery',
       events: 'event',
 

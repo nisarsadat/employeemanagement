@@ -274,7 +274,9 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         this.loading = false;
       }
     },
-
+    async FetchResourceFilterOptions(params = {}) {
+      return await axios.get('/resources/filter-options', { params });
+    },
     async FetchResourcesData(params = {}) {
       this.loading = true;
       try {
@@ -293,6 +295,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.stat !== undefined ? { stat: params.stat } : {}),
           ...(params?.search !== undefined ? { search: params.search } : {}),
           ...(params?.search_field !== undefined ? { search_field: params.search_field } : {}),
+          ...(params?.search_value !== undefined ? { search_value: params.search_value } : {}),
           ...(params?.year !== undefined ? { year: params.year } : {}),
           ...(params?.month !== undefined ? { month: params.month } : {}),
           ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
@@ -485,7 +488,6 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           date_to = null,
           from_date = null,
           to_date = null,
-
           resource_id = null,
           office_employee_id = null,
           information_id = null,
@@ -555,6 +557,9 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       return axios.get('/events/date-options', { params });
     },
 
+    async FetchEventFilterOptions(params = {}) {
+      return await axios.get('/events/filter-options', { params });
+    },
     async FetchEventsData(params = {}) {
       this.loading = true;
 
@@ -578,6 +583,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.month !== undefined ? { month: params.month } : {}),
           ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
 
+          ...(params?.search_value !== undefined ? { search_value: params.search_value } : {}),
           // exact / range / type route filters
           ...(params?.date !== undefined ? { date: params.date } : {}),
           ...(params?.date_from !== undefined ? { date_from: params.date_from } : {}),
@@ -708,6 +714,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     async DownloadEventsExcel({
       search = '',
       search_field = null,
+      search_value = null,
       year = null,
       month = null,
       date_field = 'event_date',
@@ -728,10 +735,11 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       const response = await axios.get('/events/export/excel', {
         params: {
           search,
-          searchField: search_field,
+          search_field,
+          search_value,
           year,
           month,
-          dateField: date_field,
+          date_field,
           stat,
           type,
           date,
@@ -810,6 +818,9 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       return await axios.get('/informations/date-options', { params });
     },
 
+    async FetchInformationFilterOptions(params = {}) {
+      return await axios.get('/informations/filter-options', { params });
+    },
     async FetchInformationsData(params = {}) {
       this.loading = true;
 
@@ -834,7 +845,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.year !== undefined ? { year: params.year } : {}),
           ...(params?.month !== undefined ? { month: params.month } : {}),
           ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
-
+          ...(params?.search_value !== undefined ? { search_value: params.search_value } : {}),
           // exact / range date filters
           ...(params?.date !== undefined ? { date: params.date } : {}),
           ...(params?.date_from !== undefined ? { date_from: params.date_from } : {}),
@@ -962,6 +973,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       search = '',
       search_field = null,
       year = null,
+      search_value = null,
       month = null,
       date_field = 'information_saved_date',
       stat = null,
@@ -987,6 +999,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           date_field,
           stat,
           type,
+          search_value,
           date,
           date_from,
           date_to,

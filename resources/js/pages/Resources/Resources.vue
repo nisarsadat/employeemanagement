@@ -11,41 +11,32 @@
     <v-container class="pa-0">
       <v-row class="align-center">
         <!-- Search Column -->
-        <v-col cols="12" sm="12" md="4" lg="4">
-          <v-select
-            v-model="searchField"
-            :items="searchColumnItems"
-            item-title="title"
-            item-value="value"
-            density="comfortable"
-            variant="outlined"
-            color="primary"
-            rounded="lg"
-            hide-details
-            clearable
-            :label="t('ستون جستجو')"
-            class="bg-white"
+        <v-col cols="12" sm="12" md="12" lg="12">
+          <SearchColumnFilter
+            v-model:modelSearch="repo.Search"
+            v-model:modelColumn="searchField"
+            v-model:modelSelectedValue="selectedColumnValue"
+            :headers="headersFT"
+            :search-label="t('جستجو در منابع...')"
+            :column-label="t('ستون جستجو')"
+            :all-columns-label="t('همه ستون‌ها')"
+            :value-label="t('ارزش ستون')"
+            :exclude-keys="[
+              'picture',
+              'map',
+              'events_count',
+              'informations_count',
+              'khayrat_reports_count',
+              'fifty_six_formats_count',
+              'payed_money',
+              'office_employee_id',
+            ]"
+            :fetch-column-values="fetchColumnValues"
+            @search="fetchAll"
+            @clearSearch="clearSearch"
+            @clearSelectedValue="clearSelectedValue"
           />
         </v-col>
-
-        <!-- Search Field -->
-        <v-col cols="12" sm="12" md="8" lg="8">
-          <v-text-field
-            v-model.trim="repo.Search"
-            :label="t('جستجو در منابع...')"
-            density="comfortable"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            color="primary"
-            rounded="lg"
-            hide-details
-            @keyup.enter="fetchAll"
-            clearable
-            @click:clear="clearSearch"
-            class="bg-white search-field"
-          />
-        </v-col>
-
         <!-- YEAR -->
         <v-col cols="12" sm="6" md="5">
           <v-select
@@ -526,13 +517,14 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
   import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
+  import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
   const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();
   const { relatedFilters } = useRelatedRouteFilters();
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
-
+  const selectedColumnValue = ref(null);
   const searchField = ref(null);
   const excelDownloadDialog = ref(false);
   const excelDownloadProgress = ref(0);
@@ -665,28 +657,6 @@
     { title: t('نوت'), key: 'note' },
   ]);
 
-  const searchColumnItems = computed(() => {
-    const excluded = [
-      'picture',
-      'map',
-      'events_count',
-      'informations_count',
-      'khayrat_reports_count',
-      'fifty_six_formats_count',
-      'payed_money',
-      'office_employee_id',
-    ];
-
-    const items = headersFT.value
-      .filter((h) => h?.key && !excluded.includes(h.key))
-      .map((h) => ({
-        title: h.title,
-        value: h.key,
-      }));
-
-    return [{ title: t('همه ستون‌ها'), value: null }, ...items];
-  });
-
   async function fetchAll() {
     try {
       await repo.FetchResourcesData({
@@ -695,6 +665,7 @@
         date_field: 'resource_saved_date',
         stat: relatedFilters.value.stat || (quickFilter.value === 'all' ? null : quickFilter.value),
         search_field: searchField.value,
+        search_value: selectedColumnValue.value,
 
         date: relatedFilters.value.date,
         date_from: relatedFilters.value.date_from,
@@ -713,7 +684,24 @@
       showErrorMessage(t('خطا در دریافت فهرست منابع'));
     }
   }
+  async function fetchColumnValues(field, q = '') {
+    try {
+      const res = await repo.FetchResourceFilterOptions({
+        field,
+        q,
+      });
 
+      return res?.data?.options || [];
+    } catch (e) {
+      console.error('fetchColumnValues error', e);
+      return [];
+    }
+  }
+  async function clearSelectedValue() {
+    selectedColumnValue.value = null;
+    repo.page = 1;
+    await fetchAll();
+  }
   function handlePageChange(value) {
     repo.page = value;
     fetchAll();
@@ -795,6 +783,7 @@
   async function clearAllFilters() {
     repo.Search = '';
     searchField.value = null;
+    selectedColumnValue.value = null;
     filterYear.value = null;
     filterMonth.value = null;
     quickFilter.value = 'all';
@@ -985,6 +974,7 @@
       await repo.DownloadResourcesExcel({
         search: repo.Search || '',
         search_field: searchField.value,
+        search_value: selectedColumnValue.value,
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'resource_saved_date',

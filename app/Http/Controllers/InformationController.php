@@ -76,6 +76,7 @@ class InformationController extends Controller
             new InformationsExport(
                 $request->input('search'),
                 $request->input('search_field'),
+                $request->input('search_value'),
                 $request->filled('year') ? (int) $request->input('year') : null,
                 $request->filled('month') ? (int) $request->input('month') : null,
                 $request->input('stat', 'all'),
@@ -213,13 +214,17 @@ class InformationController extends Controller
         return $months[$month] ?? (string) $month;
     }
 
+
     private function searchableColumns(): array
     {
         return [
             'id',
             'resource_id',
+            'resource_display',
             'office_employee_id',
+            'office_employee_display',
             'office_employee_info_id',
+            'office_employee_info_display',
             'finance_paid_amount',
             'finance_status',
             'name',
@@ -267,25 +272,76 @@ class InformationController extends Controller
         return in_array($field, $this->searchableColumns(), true) ? $field : null;
     }
 
-    private function applySearchFilter($query, string $search, ?string $searchField = null)
+    private function applySearchFilter($query, string $search, ?string $searchField = null, $searchValue = null)
     {
+        $resolvedField = $this->resolveSearchField($searchField);
+        $search = trim((string) $search);
+
+        if ($searchValue !== null && $searchValue !== '' && $resolvedField) {
+            if ($resolvedField === 'resource_display') {
+                $query->whereHas('resource', function ($q) use ($searchValue) {
+                    $q->where('code_number', $searchValue);
+                });
+            } elseif ($resolvedField === 'office_employee_display') {
+                $query->whereHas('officeEmployee', function ($q) use ($searchValue) {
+                    $q->where('code_number', $searchValue);
+                });
+            } elseif ($resolvedField === 'office_employee_info_display') {
+                $query->whereHas('officeEmployeeInfo', function ($q) use ($searchValue) {
+                    $q->where('code_number', $searchValue);
+                });
+            } else {
+                $query->where($resolvedField, $searchValue);
+            }
+        }
+
         if ($search === '') {
             return $query;
         }
 
-        $resolvedField = $this->resolveSearchField($searchField);
-
         if ($resolvedField) {
-            $query->where($resolvedField, 'like', "%{$search}%");
+            if ($resolvedField === 'resource_display') {
+                $query->whereHas('resource', function ($q) use ($search) {
+                    $q->where('code_number', 'like', "%{$search}%");
+                });
+            } elseif ($resolvedField === 'office_employee_display') {
+                $query->whereHas('officeEmployee', function ($q) use ($search) {
+                    $q->where('code_number', 'like', "%{$search}%");
+                });
+            } elseif ($resolvedField === 'office_employee_info_display') {
+                $query->whereHas('officeEmployeeInfo', function ($q) use ($search) {
+                    $q->where('code_number', 'like', "%{$search}%");
+                });
+            } else {
+                $query->where($resolvedField, 'like', "%{$search}%");
+            }
+
             return $query;
         }
 
         $query->where(function ($qq) use ($search) {
             foreach ($this->searchableColumns() as $index => $column) {
-                if ($index === 0) {
-                    $qq->where($column, 'like', "%{$search}%");
+                if ($column === 'resource_display') {
+                    $method = $index === 0 ? 'whereHas' : 'orWhereHas';
+                    $qq->{$method}('resource', function ($q) use ($search) {
+                        $q->where('code_number', 'like', "%{$search}%");
+                    });
+                } elseif ($column === 'office_employee_display') {
+                    $method = $index === 0 ? 'whereHas' : 'orWhereHas';
+                    $qq->{$method}('officeEmployee', function ($q) use ($search) {
+                        $q->where('code_number', 'like', "%{$search}%");
+                    });
+                } elseif ($column === 'office_employee_info_display') {
+                    $method = $index === 0 ? 'whereHas' : 'orWhereHas';
+                    $qq->{$method}('officeEmployeeInfo', function ($q) use ($search) {
+                        $q->where('code_number', 'like', "%{$search}%");
+                    });
                 } else {
-                    $qq->orWhere($column, 'like', "%{$search}%");
+                    if ($index === 0) {
+                        $qq->where($column, 'like', "%{$search}%");
+                    } else {
+                        $qq->orWhere($column, 'like', "%{$search}%");
+                    }
                 }
             }
         });
@@ -293,6 +349,11 @@ class InformationController extends Controller
         return $query;
     }
 
+    private function applyCommonFilters($query, string $search, ?string $searchField = null, $searchValue = null)
+    {
+        $this->applySearchFilter($query, $search, $searchField, $searchValue);
+        return $query;
+    }
     private function applyMonthYearFilter($query, ?int $year, ?int $month, string $dateField)
     {
         if ($year && $month) {
@@ -461,16 +522,17 @@ class InformationController extends Controller
         string $dateField,
         string $search,
         ?string $searchField,
+        $searchValue,
         ?int $year,
         ?int $month,
         string $date,
         string $dateFrom,
         string $dateTo,
         ?string $type
-    ): array {
+    ): array
+     {
         $base = Information::query();
-
-        $this->applySearchFilter($base, $search, $searchField);
+        $this->applyCommonFilters($base, $search, $searchField, $searchValue);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
         $this->applyRelatedFilters($base, $request);
         $this->applyTypeFilter($base, $type);
@@ -599,6 +661,134 @@ class InformationController extends Controller
 
         return $query;
     }
+    public function filterOptions(Request $request)
+    {
+        $request->validate([
+            'field' => 'required|string',
+            'q'     => 'nullable|string',
+        ]);
+
+        $field = $this->resolveSearchField($request->input('field'));
+
+        if (!$field) {
+            return response()->json([
+                'options' => [],
+            ]);
+        }
+
+        $q = trim((string) $request->input('q', ''));
+
+        if ($field === 'resource_display') {
+            $query = Information::query()
+                ->whereNotNull('resource_id')
+                ->whereHas('resource', function ($sub) use ($q) {
+                    $sub->whereNotNull('code_number')
+                        ->where('code_number', '!=', '');
+
+                    if ($q !== '') {
+                        $sub->where('code_number', 'like', "%{$q}%");
+                    }
+                })
+                ->with(['resource:id,code_number']);
+
+            $options = $query
+                ->get()
+                ->pluck('resource.code_number')
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values()
+                ->take(100)
+                ->map(fn ($value) => [
+                    'title' => (string) $value,
+                    'value' => $value,
+                ]);
+
+            return response()->json(['options' => $options]);
+        }
+
+        if ($field === 'office_employee_display') {
+            $query = Information::query()
+                ->whereNotNull('office_employee_id')
+                ->whereHas('officeEmployee', function ($sub) use ($q) {
+                    $sub->whereNotNull('code_number')
+                        ->where('code_number', '!=', '');
+
+                    if ($q !== '') {
+                        $sub->where('code_number', 'like', "%{$q}%");
+                    }
+                })
+                ->with(['officeEmployee:id,code_number']);
+
+            $options = $query
+                ->get()
+                ->pluck('officeEmployee.code_number')
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values()
+                ->take(100)
+                ->map(fn ($value) => [
+                    'title' => (string) $value,
+                    'value' => $value,
+                ]);
+
+            return response()->json(['options' => $options]);
+        }
+
+        if ($field === 'office_employee_info_display') {
+            $query = Information::query()
+                ->whereNotNull('office_employee_info_id')
+                ->whereHas('officeEmployeeInfo', function ($sub) use ($q) {
+                    $sub->whereNotNull('code_number')
+                        ->where('code_number', '!=', '');
+
+                    if ($q !== '') {
+                        $sub->where('code_number', 'like', "%{$q}%");
+                    }
+                })
+                ->with(['officeEmployeeInfo:id,code_number']);
+
+            $options = $query
+                ->get()
+                ->pluck('officeEmployeeInfo.code_number')
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values()
+                ->take(100)
+                ->map(fn ($value) => [
+                    'title' => (string) $value,
+                    'value' => $value,
+                ]);
+
+            return response()->json(['options' => $options]);
+        }
+
+        $query = Information::query()
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->select($field)
+            ->distinct()
+            ->orderBy($field)
+            ->limit(100)
+            ->pluck($field)
+            ->map(fn ($value) => [
+                'title' => (string) $value,
+                'value' => $value,
+            ])
+            ->values();
+
+        return response()->json([
+            'options' => $options,
+        ]);
+    }
     public function index(Request $request)
     {
         $request->validate([
@@ -606,6 +796,7 @@ class InformationController extends Controller
             'perPage'              => 'sometimes',
             'search'               => 'nullable|string',
             'search_field'         => 'nullable|string',
+            'search_value'         => 'nullable',
             'year'                 => 'nullable|integer|min:1|max:2500',
             'month'                => 'nullable|integer|min:1|max:12',
             'date_field'           => 'nullable|string',
@@ -626,6 +817,7 @@ class InformationController extends Controller
 
         $search      = trim((string) $request->input('search', ''));
         $searchField = $this->resolveSearchField($request->input('search_field'));
+        $searchValue = $request->input('search_value');
         $rawPerPage  = $request->input('perPage', null);
         $page        = (int) $request->input('page', 1);
 
@@ -645,6 +837,7 @@ class InformationController extends Controller
             $dateField,
             $search,
             $searchField,
+            $searchValue,
             $year,
             $month,
             $date,
@@ -661,7 +854,7 @@ class InformationController extends Controller
 
         $query = $this->baseListQuery();
 
-        $this->applySearchFilter($query, $search, $searchField);
+        $this->applyCommonFilters($query, $search, $searchField, $searchValue);
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
         $this->applyRelatedFilters($query, $request);
 

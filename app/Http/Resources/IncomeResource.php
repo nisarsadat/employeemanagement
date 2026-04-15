@@ -15,6 +15,7 @@ class IncomeResource extends JsonResource
             'id' => $this->id,
             'account_id' => $this->account_id,
             'amount' => $this->amount,
+            'amount_by_word' => $this->amount_by_word,
             'received_at' => optional($this->received_at)->toDateString(),
             'note' => $this->note,
 

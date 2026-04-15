@@ -26,13 +26,17 @@
           <SearchColumnFilter
             v-model:modelSearch="repo.Search"
             v-model:modelColumn="searchField"
+            v-model:modelSelectedValue="selectedColumnValue"
             :headers="headersFT"
             :search-label="t('جستجو در واقعات...')"
             :column-label="t('ستون جستجو')"
             :all-columns-label="t('همه ستون‌ها')"
-            :exclude-keys="['resource_display', 'office_employee_display', 'map']"
+            :value-label="t('ارزش ستون')"
+            :exclude-keys="['map']"
+            :fetch-column-values="fetchColumnValues"
             @search="fetchAll"
-            @clear="clearSearch"
+            @clearSearch="clearSearch"
+            @clearSelectedValue="clearSelectedValue"
           />
         </v-col>
 
@@ -512,6 +516,7 @@
   const router = useRouter();
   const route = useRoute();
   const searchField = ref(null);
+  const selectedColumnValue = ref(null);
   const { t, locale } = useI18n();
   const { relatedFilters } = useRelatedRouteFilters();
   const excelDownloadDialog = ref(false);
@@ -596,6 +601,7 @@
     filterYear.value = null;
     filterMonth.value = null;
     activeCard.value = 'all';
+    selectedColumnValue.value = null;
     repo.page = 1;
 
     await router.replace({ path: '/app/events', query: {} });
@@ -615,7 +621,7 @@
         date_field: 'event_date',
         stat: relatedFilters.value.stat || activeCard.value,
         type: relatedFilters.value.type,
-
+        search_value: selectedColumnValue.value,
         date: relatedFilters.value.date,
         date_from: relatedFilters.value.date_from,
         date_to: relatedFilters.value.date_to,
@@ -664,7 +670,24 @@
     repo.page = 1;
     fetchAll();
   }
+  async function fetchColumnValues(field, q = '') {
+    try {
+      const res = await repo.FetchEventFilterOptions({
+        field,
+        q,
+      });
 
+      return res?.data?.options || [];
+    } catch (e) {
+      console.error('fetchColumnValues error', e);
+      return [];
+    }
+  }
+  function clearSelectedValue() {
+    selectedColumnValue.value = null;
+    repo.page = 1;
+    fetchAll();
+  }
   const baseEvents = computed(() => repo.Events || []);
 
   const totalCount = computed(() => Number(repo.eventCardCounts?.total ?? 0));
@@ -902,6 +925,7 @@
       await repo.FetchEventsData({
         search: repo.Search,
         search_field: searchField.value,
+        search_value: selectedColumnValue.value,
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'event_date',
@@ -929,6 +953,7 @@
   function clearSearch() {
     repo.Search = '';
     searchField.value = null;
+    selectedColumnValue.value = null;
     repo.page = 1;
     fetchAll();
   }

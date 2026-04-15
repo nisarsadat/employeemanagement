@@ -284,15 +284,65 @@
   }
 
   function buildPrintCss() {
-    const projectFontFamily = getProjectFontFamily();
-
     return `
-   @page {
+    @font-face {
+      font-family: 'Amiri';
+      src: url('/fonts/Amiri-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Amiri';
+      src: url('/fonts/Amiri-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Noto Naskh Arabic';
+      src: url('/fonts/NotoNaskhArabic-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Noto Naskh Arabic';
+      src: url('/fonts/NotoNaskhArabic-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Noto Sans';
+      src: url('/fonts/NotoSans-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Noto Sans';
+      src: url('/fonts/NotoSans-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @page {
       size: A4 portrait;
       margin-top: 9mm;
       margin-right: 4mm;
       margin-bottom: 9mm;
       margin-left: 4mm;
+    }
+
+    :root {
+      --print-font: 'Amiri', 'Noto Naskh Arabic', 'Noto Sans', 'Tahoma', sans-serif;
     }
 
     html, body {
@@ -307,9 +357,14 @@
       direction: rtl !important;
       text-align: right !important;
       unicode-bidi: plaintext !important;
-      font-family: ${projectFontFamily} !important;
+      font-family: var(--print-font) !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
+    }
+
+    * {
+      font-family: var(--print-font) !important;
+      box-sizing: border-box;
     }
 
     .page-shell {
@@ -317,9 +372,9 @@
       height: auto !important;
       padding: 0 !important;
       margin: 0 !important;
-      background: transparent  !important;
+      background: transparent !important;
       overflow: hidden !important;
-      font-family: ${projectFontFamily} !important;
+      font-family: var(--print-font) !important;
     }
 
     .paper {
@@ -327,12 +382,12 @@
       width: 100% !important;
       max-width: none !important;
       margin: 0 !important;
-      background: transparent  !important;
+      background: transparent !important;
       border-radius: 14px;
       border: 1px solid rgba(0, 0, 0, 0.08);
       box-shadow: none !important;
       padding: 6px !important;
-      font-family: ${projectFontFamily} !important;
+      font-family: var(--print-font) !important;
 
       display: flex !important;
       flex-direction: column !important;
@@ -385,7 +440,6 @@
       justify-self: end;
       min-width: 0;
       margin-left: 176px;
-
     }
 
     .brand {
@@ -688,24 +742,24 @@
       html, body {
         overflow: hidden !important;
         height: auto !important;
-        font-family: ${projectFontFamily} !important;
+        font-family: var(--print-font) !important;
       }
 
       .page-shell {
         padding: 0 !important;
         margin: 0 !important;
-        background: transparent  !important;
-        font-family: ${projectFontFamily} !important;
+        background: transparent !important;
+        font-family: var(--print-font) !important;
       }
 
       .paper {
         margin: 0 !important;
         box-shadow: none !important;
         overflow: hidden !important;
-        font-family: ${projectFontFamily} !important;
+        font-family: var(--print-font) !important;
       }
     }
-    `;
+  `;
   }
 
   function buildDocumentHtml() {
@@ -738,6 +792,20 @@
       }
     } catch (e) {}
 
+    try {
+      const imgs = Array.from(w?.document?.images || []);
+      await Promise.all(
+        imgs.map(
+          (img) =>
+            new Promise((resolve) => {
+              if (img.complete) return resolve();
+              img.addEventListener('load', resolve, { once: true });
+              img.addEventListener('error', resolve, { once: true });
+            })
+        )
+      );
+    } catch (e) {}
+
     await new Promise((r) => setTimeout(r, 500));
   }
 
@@ -749,11 +817,17 @@
     w.document.write(html);
     w.document.close();
 
-    w.addEventListener('load', async () => {
-      await waitForPrintReady(w);
-      w.focus();
-      w.print();
-    });
+    const tryPrint = async () => {
+      try {
+        await waitForPrintReady(w);
+        w.focus();
+        w.print();
+      } catch (e) {
+        console.error('Print failed:', e);
+      }
+    };
+
+    setTimeout(tryPrint, 500);
   }
 
   function downloadPdf() {

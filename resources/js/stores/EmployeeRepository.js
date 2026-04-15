@@ -221,6 +221,9 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
     },
 
     // ====================== OFFICE EMPLOYEES ======================
+    async FetchEmployeeFilterOptions(params = {}) {
+      return await axios.get('/officeemployee/filter-options', { params });
+    },
     async FetchEmployeesData(params = {}) {
       this.loading = true;
 
@@ -240,7 +243,7 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
             status: params.status ?? 'all',
             job_type: params.job_type ?? undefined,
             search_field: params.search_field ?? undefined,
-
+            search_value: params.search_value ?? undefined,
             // related route filters
             office_employee_id: params.office_employee_id ?? undefined,
             resource_id: params.resource_id ?? undefined,

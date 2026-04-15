@@ -53,6 +53,14 @@
               :error="hasError('amount')"
               :error-messages="getErrorMessages('amount')"
             />
+            <v-text-field
+              v-model="draft.amount_by_word"
+              :label="t('incomes.form.amount_by_word')"
+              density="compact"
+              variant="outlined"
+              prepend-inner-icon="mdi-currency-usd"
+              :rules="[rules.requiredNumber]"
+            />
 
             <!-- Received at with DateInput -->
             <DateInput
@@ -130,6 +138,7 @@
   const draft = reactive({
     account_id: null,
     amount: '',
+    amount_by_word: '',
     received_at: '',
     note: '',
   });
@@ -137,9 +146,9 @@
   const backendErrors = reactive({});
 
   const rules = {
-    required: (v) => !!v || v === 0 || 'این فیلد ضروری است',
+    required: (v) => !!v || v === 0 || 'ضروري',
     requiredNumber: (v) => {
-      if (v === null || v === undefined || v === '') return 'این فیلد ضروری است';
+      if (v === null || v === undefined || v === '') return 'ضروري';
       const n = Number(v);
       return Number.isFinite(n) ? true : 'عدد معتبر وارد کنید';
     },
@@ -161,6 +170,7 @@
   function resetDraft() {
     draft.account_id = null;
     draft.amount = '';
+    draft.amount_by_word = '';
     draft.received_at = '';
     draft.note = '';
   }
@@ -183,6 +193,7 @@
 
     draft.account_id = item?.account_id ?? null;
     draft.amount = item?.amount ?? '';
+    draft.amount_by_word = item?.amount_by_word ?? '';
     // DateInput expects date string, no need to slice
     draft.received_at = item?.received_at ?? '';
     draft.note = item?.note ?? '';
@@ -216,6 +227,7 @@
       const payload = {
         account_id: draft.account_id,
         amount: draft.amount,
+        amount_by_word: draft.amount_by_word,
         received_at: draft.received_at,
         note: draft.note,
       };

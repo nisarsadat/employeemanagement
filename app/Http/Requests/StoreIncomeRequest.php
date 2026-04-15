@@ -13,6 +13,7 @@ class StoreIncomeRequest extends FormRequest
         return [
             'account_id'  => ['required','exists:accounts,id'],
             'amount'      => ['required','numeric','min:0.01'],
+            'amount_by_word'      => ['required','string'],
             'received_at' => ['required','date'],
             'note'        => ['nullable','string'],
         ];

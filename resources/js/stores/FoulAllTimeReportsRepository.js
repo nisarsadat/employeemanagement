@@ -184,12 +184,12 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
   // =========================
   // ✅ System name + Bismillah (same style as quarterly/yearly)
   // =========================
-  function appFontStack() {
-    return (
-      `'Amiri','Scheherazade New','Noto Naskh Arabic','Noto Sans Arabic','Tahoma',` +
-      `ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif`
-    );
-  }
+function appFontStack() {
+  return (
+    `'Amiri','Noto Naskh Arabic','Noto Sans','Tahoma',` +
+    `ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif`
+  );
+}
 
   function getSystemName() {
     try {
@@ -209,260 +209,430 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
   // =========================
   // ✅ Export CSS — SAME as quarterly/yearly (white bg + hero #547ca3 + RTL + start-align)
   // =========================
-  function baseExportCss() {
-    const fontStack = appFontStack();
+function baseExportCss() {
+  const fontStack = appFontStack();
 
-    return `
-      @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
+  return `
+    @font-face {
+      font-family: 'Amiri';
+      src: url('/fonts/Amiri-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      @page { size: A4 portrait; margin: 14mm; }
+    @font-face {
+      font-family: 'Amiri';
+      src: url('/fonts/Amiri-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      :root{
-        --app-font: ${fontStack};
-        --v-font-family: var(--app-font);
-      }
+    @font-face {
+      font-family: 'Noto Naskh Arabic';
+      src: url('/fonts/NotoNaskhArabic-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      * {
-        box-sizing: border-box;
-        font-family: var(--app-font) !important;
-        color: #000 !important;
-      }
+    @font-face {
+      font-family: 'Noto Naskh Arabic';
+      src: url('/fonts/NotoNaskhArabic-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
 
+    @font-face {
+      font-family: 'Noto Sans';
+      src: url('/fonts/NotoSans-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Noto Sans';
+      src: url('/fonts/NotoSans-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+
+    :root{
+      --app-font: ${fontStack};
+      --v-font-family: var(--app-font);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: var(--app-font) !important;
+      color: #000 !important;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 210mm;
+      min-height: 297mm;
+      background: #fff !important;
+      color: #000 !important;
+      font-family: var(--app-font) !important;
+      font-size: 11px;
+      line-height: 1.45;
+      direction: rtl !important;
+      text-align: right !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      overflow: visible !important;
+    }
+
+    .page {
+      width: 190mm;
+      min-height: auto;
+      margin: 0 auto;
+      padding: 0;
+      background: #fff !important;
+    }
+
+    .hero {
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      background: #547ca3;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(79,70,229,.18);
+    }
+
+    .hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      opacity:.42;
+      background:
+        radial-gradient(circle at 16% 26%, rgba(255,255,255,.20) 0 2px, transparent 3px) 0 0/26px 26px,
+        radial-gradient(circle at 70% 40%, rgba(255,255,255,.14) 0 2px, transparent 3px) 0 0/34px 34px;
+      pointer-events:none;
+    }
+
+    .hero-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      position:relative;
+      z-index:1;
+      direction: rtl !important;
+    }
+
+    .hero, .hero * {
+      color: #000 !important;
+    }
+
+    .hero-bismillah,
+    .hero-bismillah-mid{
+      font-weight: 900;
+      font-size: 16px;
+      margin: 0 0 4px;
+      line-height: 1.4;
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .hero-system{
+      font-weight: 900;
+      font-size: 13px;
+      margin: 0 0 6px;
+      line-height: 1.4;
+    }
+
+    .hero-title{
+      font-weight:900;
+      font-size:16px;
+      margin:0 0 4px;
+      line-height:1.25;
+    }
+
+    .hero-sub{
+      margin:0;
+      font-size:11px;
+      line-height:1.55;
+      font-weight:700;
+    }
+
+    .pills{
+      margin-top:10px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      position:relative;
+      z-index:1;
+    }
+
+    .pill{
+      display:inline-block;
+      padding:5px 9px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:10px;
+      border:1px solid rgba(255,255,255,.28);
+      background: rgba(255,255,255,.14);
+    }
+
+    .section {
+      margin-top: 10px;
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .card{
+      background:#fff;
+      border:1px solid #e9eef7;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow: 0 10px 22px rgba(17,24,39,.06);
+    }
+
+    .stat-card{
+      padding:10px 10px;
+      min-height:84px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .stat-label{
+      font-size:11px;
+      font-weight:900;
+      margin-bottom:4px;
+      color:#000 !important;
+    }
+
+    .stat-number{
+      font-size:20px;
+      font-weight:900;
+      line-height:1.1;
+      color:#000 !important;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:900;
+      margin-top:6px;
+      border:1px solid;
+      white-space:nowrap;
+      color: inherit !important;
+    }
+
+    .b-primary{ background:#eef2ff; border-color:#c7d2fe; }
+    .b-info{ background:#e0f2fe; border-color:#bae6fd; }
+    .b-warning{ background:#fff7ed; border-color:#fed7aa; }
+    .b-success{ background:#ecfdf5; border-color:#a7f3d0; }
+
+    .header-strip{
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      direction: rtl !important;
+    }
+
+    .strip-title{
+      font-weight:900;
+      font-size:12px;
+      margin:0;
+      color:#000 !important;
+    }
+
+    .strip-sub{
+      margin:2px 0 0;
+      font-size:10px;
+      font-weight:800;
+      color:#000 !important;
+    }
+
+    .chip{
+      padding:5px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:10px;
+      border:1px solid;
+      white-space:nowrap;
+      color: inherit !important;
+    }
+
+    .bg-primary{ background: linear-gradient(135deg,#eef2ff 0%, #dde5ff 100%); }
+    .bg-success{ background: linear-gradient(135deg,#e8fbf2 0%, #d2f7e5 100%); }
+    .bg-warning{ background: linear-gradient(135deg,#fff6df 0%, #ffeab6 100%); }
+
+    .chip-primary{ background:#eef2ff; border-color:#c7d2fe; }
+    .chip-success{ background:#ecfdf5; border-color:#a7f3d0; }
+    .chip-warning{ background:#fff7ed; border-color:#fed7aa; }
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      table-layout:fixed;
+      direction: rtl !important;
+    }
+
+    thead th{
+      background:#f8fafc;
+      font-weight:900;
+      font-size:11px;
+      padding:8px 7px;
+      border-bottom:1px solid #eef2f7;
+      text-align:start;
+      color:#000 !important;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    tbody td{
+      padding:8px 7px;
+      border-bottom:1px solid #f0f4fa;
+      font-size:11px;
+      vertical-align:middle;
+      text-align:start;
+      color:#000 !important;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    tbody tr:nth-child(even) td{
+      background:#fcfdff;
+    }
+
+    .td-end{ text-align:end; }
+    .td-center{ text-align:center; }
+
+    .count-pill{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:10px;
+      border:1px solid;
+      color: inherit !important;
+    }
+
+    .count-primary{ border-color:#c7d2fe; background:#eef2ff; }
+    .count-success{ border-color:#a7f3d0; background:#ecfdf5; }
+
+    .hero-logo{
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      padding:8px 10px;
+      border-radius:12px;
+      min-width:120px;
+    }
+
+    .hero-logo img{
+      height:70px;
+      width:auto;
+      object-fit:contain;
+      display:block;
+    }
+
+    .no-break {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .etype{
+      display:inline-block;
+      padding:3px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:10px;
+      border:1px solid rgba(17,24,39,.12);
+      color:#000 !important;
+    }
+
+    .etype-red{ background:#fee2e2; border-color:#fecaca; }
+    .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
+    .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
+    .etype-purple{ background:#ede9fe; border-color:#ddd6fe; }
+    .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; }
+
+    .fontsizeb {
+      font-size: inherit;
+      color: #000 !important;
+    }
+
+    .margintowline {
+      margin-top:12px;
+    }
+
+    @media print {
       html, body {
-        margin: 0;
-        padding: 0;
-        background: #fff !important;
-        color: #000 !important;
-        font-family: var(--app-font) !important;
-        font-size: 12px;
-        direction: rtl !important;
-        text-align: right !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
+        width: 210mm !important;
+        min-height: 297mm !important;
+        overflow: visible !important;
       }
 
-      .page { width: 100%; padding: 8mm; background: #fff !important; }
-
-      .hero {
-        border-radius: 16px;
-        padding: 18px 18px 14px;
-        background: #547ca3; /* ✅ unify */
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 18px 40px rgba(0,0,0,.08);
-      }
-      .hero::before{
-        content:"";
-        position:absolute;
-        inset:0;
-        opacity:.28;
-        background:
-          radial-gradient(circle at 16% 26%, rgba(255,255,255,.22) 0 2px, transparent 3px) 0 0/26px 26px,
-          radial-gradient(circle at 70% 40%, rgba(255,255,255,.14) 0 2px, transparent 3px) 0 0/34px 34px;
-        pointer-events:none;
+      .page {
+        width: 190mm !important;
+        min-height: auto !important;
       }
 
-      .hero-top{
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap:12px;
-        position:relative;
-        z-index:1;
-        direction: rtl !important;
+      .hero,
+      .stats-grid,
+      .stat-card,
+      .header-strip {
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
 
-      .hero, .hero * { color: #fff !important; }
-
-      .hero-text{ flex: 1.2; min-width: 0; }
-      .hero-mid{ flex: 1; display:flex; justify-content:center; }
-      .hero-logo{ flex: 0.6; display:flex; justify-content:flex-start; align-items:flex-start; }
-
-      .hero-system{
-        font-weight: 900;
-        font-size: 12px;
-        margin: 0 0 6px;
-        line-height: 1.4;
+      .section,
+      .card,
+      table,
+      tbody,
+      tr,
+      td {
+        break-inside: auto;
+        page-break-inside: auto;
       }
 
-      .hero-bismillah-mid{
-        font-weight: 900;
-        font-size: 13px;
-        margin: 0;
-        line-height: 1.4;
-        text-align: center;
-        border: 1px solid rgba(255,255,255,.28);
-        background: rgba(255,255,255,.14);
-        padding: 6px 10px;
-        border-radius: 999px;
-        align-self: flex-start;
+      thead {
+        display: table-header-group;
       }
 
-      .hero-title{ font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; text-align:start; }
-      .hero-sub{ margin:0; font-size:12px; line-height:1.55; font-weight:700; text-align:start; }
-
-      .pills{
-        margin-top:10px;
-        display:flex;
-        gap:8px;
-        flex-wrap:wrap;
-        position:relative;
-        z-index:1;
-        justify-content:flex-start;
-      }
-      .pill{
-        display:inline-block;
-        padding:6px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:11px;
-        border:1px solid rgba(255,255,255,.28);
-        background: rgba(255,255,255,.14);
-        color:#fff !important;
+      tfoot {
+        display: table-footer-group;
       }
 
-      .section { margin-top: 12px; }
-
-      .stats-grid{
-        display:grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap:10px;
-        margin-top:12px;
+      tr {
+        page-break-inside: avoid;
       }
 
-      .card{
-        background:#fff;
-        border:1px solid #e9eef7;
-        border-radius:14px;
-        overflow:hidden;
-        box-shadow: 0 10px 22px rgba(17,24,39,.06);
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
-
-      .stat-card{
-        padding:12px 12px;
-        min-height:90px;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:10px;
-      }
-      .stat-label{ font-size:11px; font-weight:900; margin-bottom:4px; color:#000 !important; text-align:start; }
-      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; color:#000 !important; text-align:start; }
-
-      .badge{
-        display:inline-flex;
-        align-items:center;
-        gap:6px;
-        padding:4px 10px;
-        border-radius:999px;
-        font-size:10px;
-        font-weight:900;
-        margin-top:6px;
-        border:1px solid;
-        white-space:nowrap;
-        color: inherit !important;
-      }
-      .b-primary{ background:#eef2ff; border-color:#c7d2fe; }
-      .b-info{ background:#e0f2fe; border-color:#bae6fd; }
-      .b-warning{ background:#fff7ed; border-color:#fed7aa; }
-      .b-success{ background:#ecfdf5; border-color:#a7f3d0; }
-
-      .header-strip{
-        padding:10px 12px;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:10px;
-        direction: rtl !important;
-      }
-      .strip-title{ font-weight:900; font-size:12px; margin:0; color:#000 !important; text-align:start; }
-      .strip-sub{ margin:2px 0 0; font-size:10px; font-weight:800; color:#000 !important; text-align:start; }
-
-      .chip{
-        padding:5px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid;
-        white-space:nowrap;
-        color: inherit !important;
-      }
-
-      .bg-primary{ background: linear-gradient(135deg,#eef2ff 0%, #dde5ff 100%); }
-      .bg-success{ background: linear-gradient(135deg,#e8fbf2 0%, #d2f7e5 100%); }
-      .bg-warning{ background: linear-gradient(135deg,#fff6df 0%, #ffeab6 100%); }
-
-      .chip-primary{ background:#eef2ff; border-color:#c7d2fe; }
-      .chip-success{ background:#ecfdf5; border-color:#a7f3d0; }
-      .chip-warning{ background:#fff7ed; border-color:#fed7aa; }
-
-      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; direction: rtl !important; }
-      thead th{
-        background:#f8fafc;
-        font-weight:900;
-        font-size:11px;
-        padding:9px 8px;
-        border-bottom:1px solid #eef2f7;
-        text-align:start;
-        color:#000 !important;
-      }
-      tbody td{
-        padding:9px 8px;
-        border-bottom:1px solid #f0f4fa;
-        font-size:11px;
-        vertical-align:middle;
-        text-align:start;
-        color:#000 !important;
-      }
-      tbody tr:nth-child(even) td{ background: #fcfdff; }
-
-      .td-end{ text-align:end; }
-
-      .count-pill{
-        display:inline-block;
-        padding:4px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid;
-        color: inherit !important;
-      }
-      .count-primary{ border-color:#c7d2fe; background:#eef2ff; }
-      .count-success{ border-color:#a7f3d0; background:#ecfdf5; }
-
-      .etype{
-        display:inline-block;
-        padding:4px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid #e5e7eb;
-        background:#f3f4f6;
-        color:#000 !important;
-      }
-      .etype-red{ background:#fee2e2; border-color:#fecaca; }
-      .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
-      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; }
-      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
-      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; }
-
-      .hero-logo{
-        display:flex;
-        align-items:center;
-        justify-content:flex-start;
-        padding:10px 12px;
-        border-radius:12px;
-        min-width: 150px;
-      }
-      .hero-logo img{ height:82px; width:auto; object-fit:contain; display:block; }
-
-      .no-break { break-inside: avoid; page-break-inside: avoid; }
-      .card { break-inside: avoid; page-break-inside: avoid; }
-
-      @media print{ .stats-grid{ grid-template-columns: repeat(2, 1fr); } }
-    `;
-  }
-
+    }
+  `;
+}
   function eventTypeClass(type) {
     const t = String(type ?? '').trim();
     const map = {
@@ -696,87 +866,96 @@ export const useFoulAllTimeReportsRepository = defineStore('FoulAllTimeReportsRe
   // =========================
   // ✅ Print helper (FIX BLANK PDF) — SAME as yearly
   // =========================
-  function printHtmlViaIframe(html) {
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
-    iframe.style.opacity = '0';
-    iframe.style.pointerEvents = 'none';
-    iframe.setAttribute('aria-hidden', 'true');
+function printHtmlViaIframe(html) {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.opacity = '0';
+  iframe.style.pointerEvents = 'none';
+  iframe.setAttribute('aria-hidden', 'true');
 
-    document.body.appendChild(iframe);
+  document.body.appendChild(iframe);
 
-    const w = iframe.contentWindow;
-    const doc = iframe.contentDocument || w.document;
+  const w = iframe.contentWindow;
+  const doc = iframe.contentDocument || w.document;
 
-    doc.open();
-    doc.write(html);
-    doc.close();
+  let hasPrinted = false;
 
-    const waitImages = () =>
-      new Promise((resolve) => {
-        try {
-          const imgs = Array.from(doc.images || []);
-          if (!imgs.length) return resolve();
+  doc.open();
+  doc.write(html);
+  doc.close();
 
-          let done = 0;
-          const tick = () => {
-            done += 1;
-            if (done >= imgs.length) resolve();
-          };
-
-          imgs.forEach((img) => {
-            if (img.complete) tick();
-            else {
-              img.addEventListener('load', tick, { once: true });
-              img.addEventListener('error', tick, { once: true });
-            }
-          });
-
-          setTimeout(resolve, 2000);
-        } catch {
-          resolve();
-        }
-      });
-
-    const waitFonts = () =>
-      new Promise((resolve) => {
-        try {
-          const fonts = doc.fonts;
-          if (fonts && typeof fonts.ready?.then === 'function') {
-            fonts.ready.then(resolve).catch(resolve);
-          } else resolve();
-        } catch {
-          resolve();
-        }
-      });
-
-    const doPrint = async () => {
+  const waitImages = () =>
+    new Promise((resolve) => {
       try {
-        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-        await waitFonts();
-        await waitImages();
+        const imgs = Array.from(doc.images || []);
+        if (!imgs.length) return resolve();
 
-        w.focus();
-        w.print();
-      } finally {
-        setTimeout(() => {
-          try {
-            document.body.removeChild(iframe);
-          } catch {}
-        }, 1200);
+        let done = 0;
+        const tick = () => {
+          done += 1;
+          if (done >= imgs.length) resolve();
+        };
+
+        imgs.forEach((img) => {
+          if (img.complete) tick();
+          else {
+            img.addEventListener('load', tick, { once: true });
+            img.addEventListener('error', tick, { once: true });
+          }
+        });
+
+        setTimeout(resolve, 2500);
+      } catch {
+        resolve();
       }
-    };
+    });
 
-    iframe.onload = () => setTimeout(doPrint, 150);
-    setTimeout(doPrint, 600);
+  const waitFonts = () =>
+    new Promise((resolve) => {
+      try {
+        const fonts = doc.fonts;
+        if (fonts && typeof fonts.ready?.then === 'function') {
+          fonts.ready.then(resolve).catch(resolve);
+        } else {
+          resolve();
+        }
+      } catch {
+        resolve();
+      }
+    });
 
-    return true;
-  }
+  const doPrint = async () => {
+    if (hasPrinted) return;
+    hasPrinted = true;
+
+    try {
+      await new Promise((r) => setTimeout(r, 400));
+      await waitFonts();
+      await waitImages();
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+      w.focus();
+      w.print();
+    } finally {
+      setTimeout(() => {
+        try {
+          document.body.removeChild(iframe);
+        } catch {}
+      }, 1500);
+    }
+  };
+
+  iframe.onload = () => {
+    setTimeout(doPrint, 300);
+  };
+
+  return true;
+}
 
   function downloadWordFile(html, filename) {
     const blob = new Blob(['\ufeff', html], { type: 'application/msword' });

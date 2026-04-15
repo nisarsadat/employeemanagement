@@ -483,6 +483,7 @@
                   item-value="id"
                   :label="t('کود کارمند اطلاع گیرنده')"
                   density="compact"
+                  :rules="[rules.required]"
                   variant="outlined"
                   clearable
                   :error="hasError('office_employee_info_id')"

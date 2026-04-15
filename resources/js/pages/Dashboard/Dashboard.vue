@@ -201,6 +201,7 @@
                     variant="tonal"
                     :color="chip.color"
                     class="chip-compact"
+                    @click.stop="goEmployeeCardChip(chip)"
                   >
                     {{ chip.label }}: {{ num(chip.value) }}
                   </v-chip>
@@ -384,6 +385,7 @@
                     variant="tonal"
                     :color="getEventTypeColor(eventType.type)"
                     class="chip-compact"
+                    @click.stop="goEvents(eventType.type)"
                   >
                     {{ eventType.type }}: {{ num(eventType.count) }}
                   </v-chip>
@@ -698,26 +700,43 @@
 
                 <!-- Metrics -->
                 <template #item.resources_count="{ item }">
-                  <div class="metric-chip">
-                    <v-icon size="16" color="primary">mdi-folder</v-icon>
-                    <span class="font-weight-bold">{{ num(item.resources_count) }}</span>
-                  </div>
+                  <v-btn
+                    size="small"
+                    variant="tonal"
+                    color="teal"
+                    class="text-none"
+                    @click.stop="goEmployeeResources(item)"
+                  >
+                    <v-icon start size="16">mdi-database</v-icon>
+                    {{ num(item.resources_count) }}
+                  </v-btn>
                 </template>
 
                 <template #item.informations_count="{ item }">
-                  <div class="metric-chip">
-                    <v-icon size="16" color="indigo">mdi-file-document</v-icon>
-                    <span class="font-weight-bold">{{ num(item.informations_count) }}</span>
-                  </div>
+                  <v-btn
+                    size="small"
+                    variant="tonal"
+                    color="primary"
+                    class="text-none"
+                    @click.stop="goEmployeeInformations(item)"
+                  >
+                    <v-icon start size="16">mdi-file-document-multiple</v-icon>
+                    {{ num(item.informations_count) }}
+                  </v-btn>
                 </template>
 
                 <template #item.events_count="{ item }">
-                  <div class="metric-chip">
-                    <v-icon size="16" color="teal">mdi-calendar</v-icon>
-                    <span class="font-weight-bold">{{ num(item.events_count) }}</span>
-                  </div>
+                  <v-btn
+                    size="small"
+                    variant="tonal"
+                    color="deep-purple"
+                    class="text-none"
+                    @click.stop="goEmployeeEvents(item)"
+                  >
+                    <v-icon start size="16">mdi-calendar-alert</v-icon>
+                    {{ num(item.events_count) }}
+                  </v-btn>
                 </template>
-
                 <!-- Khayrat Reports (only in new mode) -->
                 <template #item.khayrat_reports_count="{ item }">
                   <div class="metric-chip">
@@ -929,35 +948,181 @@
     refreshData();
   }
 
-  function go(path, query = {}) {
-    router.push({ path, query });
+  function cleanQuery(query = {}) {
+    return Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== null && value !== undefined && value !== ''
+      )
+    );
   }
+
+  function pushDashboard(path, query = {}) {
+    return router.push({
+      path,
+      query: cleanQuery({
+        source: 'dashboard',
+        ...query,
+      }),
+    });
+  }
+
+  /* ---------- main dashboard cards ---------- */
 
   function goEmployees() {
-    go('/app/officeemployee');
-  }
-  function goResources(status = null) {
-    go('/app/resources', status ? { status } : {});
-  }
-  function goActiveResources() {
-    go('/app/activeresource');
-  }
-  function goInactiveResources() {
-    go('/app/inactiveresource');
-  }
-  function goInformations(stat = null) {
-    go('/app/informations', stat ? { stat, source: 'dashboard' } : {});
-  }
-  function goEvents() {
-    go('/app/events');
-  }
-  function goFinance() {
-    go('/app/finincalindex');
-  }
-  function goOil() {
-    go('/app/finincalindex', { tab: 'oil' });
+    pushDashboard('/app/officeemployee');
   }
 
+  function goResources(stat = null) {
+    pushDashboard('/app/resources', {
+      stat,
+    });
+  }
+
+  function goActiveResources() {
+    pushDashboard('/app/resources', {
+      stat: 'active',
+    });
+  }
+
+  function goInactiveResources() {
+    pushDashboard('/app/resources', {
+      stat: 'inactive',
+    });
+  }
+  function goEmployeeCardChip(chip) {
+    const key = String(chip?.key || '').trim();
+
+    if (key === 'active') {
+      return pushDashboard('/app/officeemployee', {
+        status: 'active',
+      });
+    }
+
+    if (key === 'inactive') {
+      return pushDashboard('/app/officeemployee', {
+        status: 'inactive',
+      });
+    }
+
+    if (key === 'admin') {
+      return pushDashboard('/app/officeemployee', {
+        status: 'all',
+        job_type: 'اداری',
+      });
+    }
+
+    if (key === 'oper') {
+      return pushDashboard('/app/officeemployee', {
+        status: 'all',
+        job_type: 'اوپراتیفی',
+      });
+    }
+
+    return pushDashboard('/app/officeemployee');
+  }
+  function goInformations(stat = null) {
+    pushDashboard('/app/informations', {
+      stat,
+    });
+  }
+
+  function mapEventTypeToRouteValue(type) {
+    const value = String(type || '').trim();
+
+    const map = {
+      سیاسي: 'syasi',
+      سیاسی: 'syasi',
+      جنایي: 'jenayee',
+      جنایی: 'jenayee',
+      جینایی: 'jenayee',
+      الهي: 'elahi',
+      الهی: 'elahi',
+      ترافیکي: 'traffic',
+      ترافیکی: 'traffic',
+    };
+
+    return map[value] || value;
+  }
+
+  function goEvents(type = null) {
+    pushDashboard('/app/events', {
+      type: mapEventTypeToRouteValue(type),
+    });
+  }
+
+  function goFinance() {
+    pushDashboard('/app/finincalindex');
+  }
+
+  function goOil() {
+    pushDashboard('/app/finincalindex', {
+      tab: 'oil',
+    });
+  }
+
+  /* ---------- employee ranking chips/buttons ---------- */
+
+  function goEmployeeResources(payload) {
+    const row = payload?.raw ?? payload;
+    const id = row?.id;
+    if (!id) return;
+
+    pushDashboard('/app/resources', {
+      office_employee_id: String(id),
+    });
+  }
+
+  function goEmployeeActiveResources(payload) {
+    const row = payload?.raw ?? payload;
+    const id = row?.id;
+    if (!id) return;
+
+    pushDashboard('/app/resources', {
+      office_employee_id: String(id),
+      stat: 'active',
+    });
+  }
+
+  function goEmployeeInactiveResources(payload) {
+    const row = payload?.raw ?? payload;
+    const id = row?.id;
+    if (!id) return;
+
+    pushDashboard('/app/resources', {
+      office_employee_id: String(id),
+      stat: 'inactive',
+    });
+  }
+
+  function goEmployeeInformations(payload) {
+    const row = payload?.raw ?? payload;
+    const id = row?.id;
+    if (!id) return;
+
+    pushDashboard('/app/informations', {
+      office_employee_id: String(id),
+    });
+  }
+
+  function goEmployeeEvents(payload) {
+    const row = payload?.raw ?? payload;
+    const id = row?.id;
+    if (!id) return;
+
+    pushDashboard('/app/events', {
+      office_employee_id: String(id),
+    });
+  }
+
+  function goEmployeeDetails(payload) {
+    const row = payload?.raw ?? payload;
+    const id = row?.id;
+    if (!id) return;
+
+    pushDashboard('/app/officeemployee', {
+      office_employee_id: String(id),
+    });
+  }
   function getEventTypeColor(type) {
     const colors = {
       سیاسي: 'blue',

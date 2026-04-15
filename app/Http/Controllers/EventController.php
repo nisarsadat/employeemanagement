@@ -67,6 +67,7 @@ class EventController extends Controller
             new EventsExport(
                 $request->input('search'),
                 $request->input('search_field'),
+                $request->input('search_value'),
                 $request->filled('year') ? (int) $request->input('year') : null,
                 $request->filled('month') ? (int) $request->input('month') : null,
                 $request->input('stat', 'all'),
@@ -227,13 +228,17 @@ class EventController extends Controller
         return $months[$month] ?? (string) $month;
     }
 
+
     private function searchableColumns(): array
     {
         return [
             'id',
             'resource_id',
+            'resource_display',
             'office_employee_id',
+            'office_employee_display',
             'office_employee_akhistonky_id',
+            'office_employee_akhistonky_code',
             'talks',
             'finance_paid_amount',
             'finance_status',
@@ -264,26 +269,76 @@ class EventController extends Controller
         return in_array($field, $this->searchableColumns(), true) ? $field : null;
     }
 
-    private function applySearchFilter($query, ?string $search, ?string $searchField = null)
+    private function applySearchFilter($query, ?string $search, ?string $searchField = null, $searchValue = null)
     {
-        $s = trim((string) $search);
-        if ($s === '') {
-            return $query;
+        $resolvedField = $this->resolveSearchField($searchField);
+        $search = trim((string) $search);
+
+        if ($searchValue !== null && $searchValue !== '' && $resolvedField) {
+            if ($resolvedField === 'resource_display') {
+                $query->whereHas('resource', function ($q) use ($searchValue) {
+                    $q->where('code_number', $searchValue);
+                });
+            } elseif ($resolvedField === 'office_employee_display') {
+                $query->whereHas('officeEmployee', function ($q) use ($searchValue) {
+                    $q->where('code_number', $searchValue);
+                });
+            } elseif ($resolvedField === 'office_employee_akhistonky_code') {
+                $query->whereHas('akhistonkyEmployee', function ($q) use ($searchValue) {
+                    $q->where('code_number', $searchValue);
+                });
+            } else {
+                $query->where($resolvedField, $searchValue);
+            }
         }
 
-        $resolvedField = $this->resolveSearchField($searchField);
+        if ($search === '') {
+            return $query;
+        }
 
         if ($resolvedField) {
-            $query->where($resolvedField, 'like', "%{$s}%");
+            if ($resolvedField === 'resource_display') {
+                $query->whereHas('resource', function ($q) use ($search) {
+                    $q->where('code_number', 'like', "%{$search}%");
+                });
+            } elseif ($resolvedField === 'office_employee_display') {
+                $query->whereHas('officeEmployee', function ($q) use ($search) {
+                    $q->where('code_number', 'like', "%{$search}%");
+                });
+            } elseif ($resolvedField === 'office_employee_akhistonky_code') {
+                $query->whereHas('akhistonkyEmployee', function ($q) use ($search) {
+                    $q->where('code_number', 'like', "%{$search}%");
+                });
+            } else {
+                $query->where($resolvedField, 'like', "%{$search}%");
+            }
+
             return $query;
         }
 
-        $query->where(function ($qq) use ($s) {
+        $query->where(function ($qq) use ($search) {
             foreach ($this->searchableColumns() as $index => $column) {
-                if ($index === 0) {
-                    $qq->where($column, 'like', "%{$s}%");
+                if ($column === 'resource_display') {
+                    $method = $index === 0 ? 'whereHas' : 'orWhereHas';
+                    $qq->{$method}('resource', function ($q) use ($search) {
+                        $q->where('code_number', 'like', "%{$search}%");
+                    });
+                } elseif ($column === 'office_employee_display') {
+                    $method = $index === 0 ? 'whereHas' : 'orWhereHas';
+                    $qq->{$method}('officeEmployee', function ($q) use ($search) {
+                        $q->where('code_number', 'like', "%{$search}%");
+                    });
+                } elseif ($column === 'office_employee_akhistonky_code') {
+                    $method = $index === 0 ? 'whereHas' : 'orWhereHas';
+                    $qq->{$method}('akhistonkyEmployee', function ($q) use ($search) {
+                        $q->where('code_number', 'like', "%{$search}%");
+                    });
                 } else {
-                    $qq->orWhere($column, 'like', "%{$s}%");
+                    if ($index === 0) {
+                        $qq->where($column, 'like', "%{$search}%");
+                    } else {
+                        $qq->orWhere($column, 'like', "%{$search}%");
+                    }
                 }
             }
         });
@@ -337,9 +392,14 @@ class EventController extends Controller
         ]);
     }
 
-    private function applyCommonFilters($query, ?string $search, ?string $cardFilter, ?string $searchField = null)
-    {
-        $this->applySearchFilter($query, $search, $searchField);
+    private function applyCommonFilters(
+        $query,
+        ?string $search,
+        ?string $cardFilter,
+        ?string $searchField = null,
+        $searchValue = null
+    ) {
+        $this->applySearchFilter($query, $search, $searchField, $searchValue);
 
         $query->when($cardFilter && $cardFilter !== 'all', function ($q) use ($cardFilter) {
             if ($cardFilter === 'syasi') {
@@ -370,27 +430,24 @@ class EventController extends Controller
 
         return $query;
     }
+
     private function buildCardCounts(
-    Request $request,
-    ?string $search,
-    ?string $searchField,
-    ?int $year,
-    ?int $month,
-    string $dateField,
-    ?string $type
+        Request $request,
+        ?string $search,
+        ?string $searchField,
+        $searchValue,
+        ?int $year,
+        ?int $month,
+        string $dateField,
+        ?string $type
     ): array
     {
         $base = Event::query();
 
-        $this->applyCommonFilters($base, $search, null, $searchField);
+        $this->applyCommonFilters($base, $search, null, $searchField, $searchValue);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
         $this->applyRelatedFilters($base, $request);
         $this->applyDateRangeFilter($base, $request, $dateField);
-        $this->applyTypeFilter($base, $type);
-        if (!empty($exactDate)) {
-    $base->whereDate($dateField, $exactDate);
-        }
-
         $this->applyTypeFilter($base, $type);
 
         return [
@@ -483,17 +540,195 @@ class EventController extends Controller
     }
 
     private function applyTypeFilter($query, ?string $type)
-    {
-        $type = trim((string) $type);
+{
+    $type = trim((string) $type);
 
-        if ($type === '') {
-            return $query;
-        }
+    if ($type === '') {
+        return $query;
+    }
 
-        $query->where('event_specific_type', $type);
+    if ($type === 'syasi') {
+        $query->where(function ($q) {
+            $q->where('event_type', 'like', '%سیاسی%')
+              ->orWhere('event_type', 'like', '%سیاسي%')
+              ->orWhere('event_type', 'like', '%syasi%');
+        });
 
         return $query;
     }
+
+    if ($type === 'jenayee') {
+        $query->where(function ($q) {
+            $q->where('event_type', 'like', '%جینایی%')
+              ->orWhere('event_type', 'like', '%جنایی%')
+              ->orWhere('event_type', 'like', '%جنایي%')
+              ->orWhere('event_type', 'like', '%jinayee%')
+              ->orWhere('event_type', 'like', '%jenayee%');
+        });
+
+        return $query;
+    }
+
+    if ($type === 'elahi') {
+        $query->where(function ($q) {
+            $q->where('event_type', 'like', '%الهی%')
+              ->orWhere('event_type', 'like', '%الهي%')
+              ->orWhere('event_type', 'like', '%elahi%');
+        });
+
+        return $query;
+    }
+
+    if ($type === 'traffic') {
+        $query->where(function ($q) {
+            $q->where('event_type', 'like', '%ترافیکی%')
+              ->orWhere('event_type', 'like', '%ترافیکي%')
+              ->orWhere('event_type', 'like', '%traffic%');
+        });
+
+        return $query;
+    }
+
+    // fallback for direct exact specific-type filter if needed later
+    $query->where('event_specific_type', $type);
+
+    return $query;
+}
+
+
+    public function filterOptions(Request $request)
+    {
+        $request->validate([
+            'field' => 'required|string',
+            'q'     => 'nullable|string',
+        ]);
+
+        $field = $this->resolveSearchField($request->input('field'));
+
+        if (!$field) {
+            return response()->json([
+                'options' => [],
+            ]);
+        }
+
+        $q = trim((string) $request->input('q', ''));
+
+        // resource_display => only resource codes that are actually used in events
+        if ($field === 'resource_display') {
+            $query = Event::query()
+                ->whereNotNull('resource_id')
+                ->whereHas('resource', function ($sub) use ($q) {
+                    $sub->whereNotNull('code_number')
+                        ->where('code_number', '!=', '');
+
+                    if ($q !== '') {
+                        $sub->where('code_number', 'like', "%{$q}%");
+                    }
+                })
+                ->with(['resource:id,code_number']);
+
+            $options = $query
+                ->get()
+                ->pluck('resource.code_number')
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values()
+                ->take(100)
+                ->map(fn ($value) => [
+                    'title' => (string) $value,
+                    'value' => $value,
+                ]);
+
+            return response()->json(['options' => $options]);
+        }
+
+        // office_employee_display => only employee codes that are actually used in office_employee_id
+        if ($field === 'office_employee_display') {
+            $query = Event::query()
+                ->whereNotNull('office_employee_id')
+                ->whereHas('officeEmployee', function ($sub) use ($q) {
+                    $sub->whereNotNull('code_number')
+                        ->where('code_number', '!=', '');
+
+                    if ($q !== '') {
+                        $sub->where('code_number', 'like', "%{$q}%");
+                    }
+                })
+                ->with(['officeEmployee:id,code_number']);
+
+            $options = $query
+                ->get()
+                ->pluck('officeEmployee.code_number')
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values()
+                ->take(100)
+                ->map(fn ($value) => [
+                    'title' => (string) $value,
+                    'value' => $value,
+                ]);
+
+            return response()->json(['options' => $options]);
+        }
+
+        // office_employee_akhistonky_code => only employee codes actually used in office_employee_akhistonky_id
+        if ($field === 'office_employee_akhistonky_code') {
+            $query = Event::query()
+                ->whereNotNull('office_employee_akhistonky_id')
+                ->whereHas('akhistonkyEmployee', function ($sub) use ($q) {
+                    $sub->whereNotNull('code_number')
+                        ->where('code_number', '!=', '');
+
+                    if ($q !== '') {
+                        $sub->where('code_number', 'like', "%{$q}%");
+                    }
+                })
+                ->with(['akhistonkyEmployee:id,code_number']);
+
+            $options = $query
+                ->get()
+                ->pluck('akhistonkyEmployee.code_number')
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values()
+                ->take(100)
+                ->map(fn ($value) => [
+                    'title' => (string) $value,
+                    'value' => $value,
+                ]);
+
+            return response()->json(['options' => $options]);
+        }
+
+        // normal direct event columns
+        $query = Event::query()
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->select($field)
+            ->distinct()
+            ->orderBy($field)
+            ->limit(100)
+            ->pluck($field)
+            ->map(fn ($value) => [
+                'title' => (string) $value,
+                'value' => $value,
+            ])
+            ->values();
+
+        return response()->json([
+            'options' => $options,
+        ]);
+    }
+
     public function index(Request $request)
     {
         $request->validate([
@@ -501,6 +736,7 @@ class EventController extends Controller
             'perPage'              => 'sometimes',
             'search'               => 'nullable|string',
             'search_field'         => 'nullable|string',
+            'search_value'         => 'nullable',
             'year'                 => 'nullable|integer|min:1|max:2500',
             'month'                => 'nullable|integer|min:1|max:12',
             'date_field'           => 'nullable|string',
@@ -520,6 +756,7 @@ class EventController extends Controller
 
         $search      = $request->input('search');
         $searchField = $this->resolveSearchField($request->input('search_field'));
+        $searchValue = $request->input('search_value');
         $rawPerPage  = $request->input('perPage', null);
         $page        = (int) $request->input('page', 1);
         $cardFilter  = $request->input('card_filter', 'all');
@@ -527,22 +764,22 @@ class EventController extends Controller
         $year      = $request->filled('year') ? (int) $request->input('year') : null;
         $month     = $request->filled('month') ? (int) $request->input('month') : null;
         $dateField = $this->resolveDateField($request->input('date_field'));
-        $type = trim((string) $request->input('type', ''));
-        $exactDate = trim((string) $request->input('date', ''));
         $type      = trim((string) $request->input('type', ''));
 
         $cardCounts = $this->buildCardCounts(
-        $request,
-        $search,
-        $searchField,
-        $year,
-        $month,
-        $dateField,
-        $type
-    );
+            $request,
+            $search,
+            $searchField,
+            $searchValue,
+            $year,
+            $month,
+            $dateField,
+            $type
+        );
+
         $query = $this->baseListQuery();
 
-        $this->applyCommonFilters($query, $search, $cardFilter, $searchField);
+        $this->applyCommonFilters($query, $search, $cardFilter, $searchField, $searchValue);
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
         $this->applyRelatedFilters($query, $request);
         $this->applyDateRangeFilter($query, $request, $dateField);

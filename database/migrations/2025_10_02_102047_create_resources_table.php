@@ -79,7 +79,6 @@ return new class extends Migration {
                 'father_name',
                 'grand_father_name',
                 'nick_name',
-                'code_number',
                 'main_province',
                 'main_district',
                 'main_village',

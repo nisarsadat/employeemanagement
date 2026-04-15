@@ -260,6 +260,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('officeemployees/date-options', [OfficeEmployeeController::class, 'dateOptions']);
 
+    Route::get('/officeemployee/filter-options', [OfficeEmployeeController::class, 'filterOptions']);
     protectResource('office-employees', 'office_employees', OfficeEmployeeController::class);
 
 
@@ -279,12 +280,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get   ('informations/{information}/documents/zip',           [InformationDocumentController::class, 'downloadAll']);
     Route::get('informations/date-options', [InformationController::class, 'dateOptions']);
     Route::get('informations/export/excel', [InformationController::class, 'exportExcel']);
+    Route::get('/informations/filter-options', [InformationController::class, 'filterOptions']);
     // events (API) => module: events_api
     protectResource('events', 'events_api', EventController::class);
     Route::get('events/export/excel', [EventController::class, 'exportExcel']);
     Route::get('events/{event}/documents/zip', [EventDocumentController::class, 'downloadAll']);
     Route::get('events/date-options', [EventController::class, 'dateOptions']);
-
+    Route::get('/events/filter-options', [EventController::class, 'filterOptions']);
     // captive-deliveries => module: captive_deliveries
     protectResource('captive-deliveries', 'captive_deliveries', CaptiveDeliveryController::class);
     Route::get('/captive-deliveries/export/excel', [CaptiveDeliveryController::class, 'exportExcel']);
@@ -585,7 +587,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/resource-activity/{id}', [ResourceActivityController::class, 'show']);
     Route::get('resources/date-options', [ResourceController::class, 'dateOptions']);
     Route::get('/resources/export/excel', [ResourceController::class, 'exportExcel']);
-
+    Route::get('/resources/filter-options', [ResourceController::class, 'filterOptions']);
     // daily report + monthly report + yearly report
 
     Route::middleware('auth:sanctum')->group(function () {

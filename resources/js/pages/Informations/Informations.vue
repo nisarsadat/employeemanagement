@@ -37,11 +37,13 @@
           <SearchColumnFilter
             v-model:modelSearch="repo.Search"
             v-model:modelColumn="searchField"
+            v-model:modelSelectedValue="searchValue"
             :headers="headersFT"
             :search-label="t('جستجو در اطلاعات...')"
             :column-label="t('ستون جستجو')"
             :all-columns-label="t('همه ستون‌ها')"
             :exclude-keys="['matched_links', 'map']"
+            :fetch-column-values="fetchFilterValues"
             @search="fetchAll"
             @clear="clearSearch"
           />
@@ -74,6 +76,7 @@
             density="comfortable"
             variant="outlined"
             rounded="lg"
+            size="large"
             hide-details
             clearable
             :label="t('ماه')"
@@ -371,7 +374,7 @@
         </div>
       </template>
       <!-- RESOURCE -->
-      <template #cell-resource_id="{ row }">
+      <template #cell-resource_display="{ row }">
         <div class="d-flex flex-column align-start">
           <v-tooltip v-if="row.resource_id" text="برای رفتن به صفحه منابع کلیک کنید" location="top">
             <template #activator="{ props: tooltipProps }">
@@ -392,7 +395,7 @@
       </template>
 
       <!-- OFFICE EMPLOYEE codes -->
-      <template #cell-office_employee_code_number="{ row }">
+      <template #cell-office_employee_display="{ row }">
         <div class="d-flex flex-column align-start">
           <v-tooltip
             v-if="row.office_employee_code_number"
@@ -416,7 +419,7 @@
         </div>
       </template>
 
-      <template #cell-office_employee_info_code_number="{ row }">
+      <template #cell-office_employee_info_display="{ row }">
         <div class="d-flex flex-column align-start">
           <v-tooltip
             v-if="row.office_employee_info_code_number"
@@ -659,6 +662,7 @@
   const router = useRouter();
   const route = useRoute();
   const searchField = ref(null);
+  const searchValue = ref(null);
   const excelDownloadDialog = ref(false);
   const excelDownloadProgress = ref(0);
   const excelDownloading = ref(false);
@@ -668,6 +672,7 @@
       await repo.FetchInformationsData?.({
         search: repo.Search,
         search_field: searchField.value,
+        search_value: searchValue.value,
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'information_saved_date',
@@ -705,7 +710,21 @@
       display: a.name ? `${a.name} (${a.price ?? '0'})` : `${a.id}`,
     }))
   );
+  async function fetchFilterValues(field, q = '') {
+    if (!field) return [];
 
+    try {
+      const res = await repo.FetchInformationFilterOptions({
+        field,
+        q,
+      });
+
+      return res?.data?.options || [];
+    } catch (e) {
+      console.error('fetchFilterValues error', e);
+      return [];
+    }
+  }
   /* ===== RTL ===== */
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (newLocale) => (isRtl.value = newLocale === 'fa'));
@@ -832,6 +851,7 @@
         params: {
           search: repo.Search,
           search_field: searchField.value,
+          search_value: searchValue.value,
           year: filterYear.value,
           month: filterMonth.value,
           date_field: 'information_saved_date',
@@ -887,9 +907,8 @@
   /* ===== Headers / Groups (unchanged) ===== */
   const headersFT = computed(() => [
     { title: t('آی ډی'), key: 'id' },
-    { title: t('تعقیبي'), key: 'matched_links', sortable: false },
-    { title: t('کود منبع'), key: 'resource_id' },
-    { title: t('کارمند مربوط'), key: 'office_employee_code_number' },
+    { title: t('کود منبع'), key: 'resource_display' },
+    { title: t('کارمند مربوط'), key: 'office_employee_display' },
     { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
     { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
     { title: t('نقشه'), key: 'map', sortable: false },
@@ -923,7 +942,7 @@
     { title: t('ساعت اطلاع'), key: 'information_saved_hour' },
     { title: t('درجه موثقیت اطلاع'), key: 'information_degree' },
     { title: t('د اطلاع کتګوري'), key: 'information_category' },
-    { title: t('کارمند اطلاع گیرنده'), key: 'office_employee_info_code_number' },
+    { title: t('کارمند اطلاع گیرنده'), key: 'office_employee_info_display' },
     { title: t('د منبع لاسرسی'), key: 'resource_lasrasy' },
 
     { title: t('تفصیل'), key: 'tafseel' },
@@ -1058,6 +1077,7 @@
   async function resetAllFilters() {
     repo.Search = '';
     searchField.value = null;
+    searchValue.value = null;
     filterYear.value = null;
     filterMonth.value = null;
     activeStat.value = null;
@@ -1196,6 +1216,7 @@
   async function clearSearch() {
     repo.Search = '';
     searchField.value = null;
+    searchValue.value = null;
     repo.page = 1;
 
     await fetchAll();
@@ -1209,6 +1230,7 @@
       await repo.DownloadInformationsExcel({
         search: repo.Search || '',
         search_field: searchField.value,
+        search_value: searchValue.value,
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'information_saved_date',
@@ -1320,7 +1342,6 @@
   }
 
   :deep(.v-field__input) {
-    min-height: 26px !important;
     padding: 2px 6px !important;
     font-size: 12px !important;
     line-height: 1.2 !important;

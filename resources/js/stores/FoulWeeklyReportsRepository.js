@@ -297,7 +297,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
   // =========================
   function appFontStack() {
     return (
-      `'Amiri','Scheherazade New','Noto Naskh Arabic','Noto Sans Arabic','Tahoma',` +
+      `'Amiri','Noto Naskh Arabic','Noto Sans','Tahoma',` +
       `ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif`
     );
   }
@@ -330,252 +330,425 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const fontStack = appFontStack();
 
     return `
-      @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
+    @font-face {
+      font-family: 'Amiri';
+      src: url('/fonts/Amiri-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      @page { size: A4 portrait; margin: 14mm; }
+    @font-face {
+      font-family: 'Amiri';
+      src: url('/fonts/Amiri-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      :root{
-        --app-font: ${fontStack};
-        --v-font-family: var(--app-font);
-      }
+    @font-face {
+      font-family: 'Noto Naskh Arabic';
+      src: url('/fonts/NotoNaskhArabic-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      * {
-        box-sizing: border-box;
-        font-family: var(--app-font) !important;
-        color: #000 !important;
-      }
+    @font-face {
+      font-family: 'Noto Naskh Arabic';
+      src: url('/fonts/NotoNaskhArabic-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: #fff !important;
-        color: #000 !important;
-        font-family: var(--app-font) !important;
-        font-size: 12px;
-        direction: rtl !important;
-        text-align: right !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
+    @font-face {
+      font-family: 'Noto Sans';
+      src: url('/fonts/NotoSans-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      .page { width: 100%; padding: 8mm; background: #fff !important; }
+    @font-face {
+      font-family: 'Noto Sans';
+      src: url('/fonts/NotoSans-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
 
-      .hero {
-        border-radius: 16px;
-        padding: 18px 18px 14px;
-        background: #547ca3;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 18px 40px rgba(79,70,229,.18);
-      }
-      .hero::before{
-        content:"";
-        position:absolute;
-        inset:0;
-        opacity:.42;
-        background:
-          radial-gradient(circle at 16% 26%, rgba(255,255,255,.20) 0 2px, transparent 3px) 0 0/26px 26px,
-          radial-gradient(circle at 70% 40%, rgba(255,255,255,.14) 0 2px, transparent 3px) 0 0/34px 34px;
-        pointer-events:none;
-      }
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
 
-      .hero-top{
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap:12px;
-        position:relative;
-        z-index:1;
-        direction: rtl !important;
-      }
+    :root{
+      --app-font: ${fontStack};
+      --v-font-family: var(--app-font);
+    }
 
-      /* ✅ HERO TEXT MUST BE BLACK (same as daily/monthly) */
-      .hero, .hero * { color: #000 !important; }
+    * {
+      box-sizing: border-box;
+      font-family: var(--app-font) !important;
+      color: #000 !important;
+    }
 
-      .hero-system{
-        font-weight: 900;
-        font-size: 12px;
-        margin: 0 0 6px;
-        line-height: 1.4;
-      }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 210mm;
+      min-height: 297mm;
+      background: #fff !important;
+      color: #000 !important;
+      font-family: var(--app-font) !important;
+      font-size: 11px;
+      line-height: 1.45;
+      direction: rtl !important;
+      text-align: right !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      overflow: visible !important;
+    }
 
-      .hero-bismillah{
-        font-weight: 900;
-        font-size: 18px;
-        margin: 0 0 6px;
-        line-height: 1.4;
-        margin-top: 24px;
-        text-align: center;
-      }
+    .page {
+      width: 190mm;
+      min-height: auto;
+      margin: 0 auto;
+      padding: 0;
+      background: #fff !important;
+    }
 
-      .hero-title{ font-weight:900; font-size:18px; margin:0 0 4px; line-height:1.25; }
-      .hero-sub{ margin:0; font-size:12px; line-height:1.55; font-weight:700; }
+    .hero {
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      background: #547ca3;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(79,70,229,.18);
+    }
 
-      .pills{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
-      .pill{
-        display:inline-block;
-        padding:6px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:11px;
-        border:1px solid rgba(255,255,255,.28);
-        background: rgba(255,255,255,.14);
-      }
+    .hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      opacity:.42;
+      background:
+        radial-gradient(circle at 16% 26%, rgba(255,255,255,.20) 0 2px, transparent 3px) 0 0/26px 26px,
+        radial-gradient(circle at 70% 40%, rgba(255,255,255,.14) 0 2px, transparent 3px) 0 0/34px 34px;
+      pointer-events:none;
+    }
 
-      .section { margin-top: 12px; }
+    .hero-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      position:relative;
+      z-index:1;
+      direction: rtl !important;
+    }
 
-      .stats-grid{
-        display:grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap:10px;
-        margin-top:12px;
-      }
+    .hero, .hero * {
+      color: #000 !important;
+    }
 
-      .card{
-        background:#fff;
-        border:1px solid #e9eef7;
-        border-radius:14px;
-        overflow:hidden;
-        box-shadow: 0 10px 22px rgba(17,24,39,.06);
-      }
+    .hero-bismillah{
+      font-weight: 900;
+      font-size: 16px;
+      margin: 0 0 4px;
+      line-height: 1.4;
+      margin-top: 18px;
+      text-align: center;
+    }
 
-      .stat-card{
-        padding:12px 12px;
-        min-height:90px;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:10px;
-      }
-      .stat-label{ font-size:11px; font-weight:900; margin-bottom:4px; color:#000 !important; }
-      .stat-number{ font-size:22px; font-weight:900; line-height:1.1; color:#000 !important; }
+    .hero-system{
+      font-weight: 900;
+      font-size: 13px;
+      margin: 0 0 6px;
+      line-height: 1.4;
+    }
 
-      .badge{
-        display:inline-flex;
-        align-items:center;
-        gap:6px;
-        padding:4px 10px;
-        border-radius:999px;
-        font-size:10px;
-        font-weight:900;
-        margin-top:6px;
-        border:1px solid;
-        white-space:nowrap;
-        color: inherit !important;
-      }
-      .b-primary{ background:#eef2ff; border-color:#c7d2fe; }
-      .b-info{ background:#e0f2fe; border-color:#bae6fd; }
-      .b-warning{ background:#fff7ed; border-color:#fed7aa; }
-      .b-success{ background:#ecfdf5; border-color:#a7f3d0; }
+    .hero-title{
+      font-weight:900;
+      font-size:16px;
+      margin:0 0 4px;
+      line-height:1.25;
+    }
 
-      .header-strip{
-        padding:10px 12px;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:10px;
-        direction: rtl !important;
-      }
-      .strip-title{ font-weight:900; font-size:12px; margin:0; color:#000 !important; }
-      .strip-sub{ margin:2px 0 0; font-size:10px; font-weight:800; color:#000 !important; }
+    .hero-sub{
+      margin:0;
+      font-size:11px;
+      line-height:1.55;
+      font-weight:700;
+    }
 
-      .chip{
-        padding:5px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid;
-        white-space:nowrap;
-        color: inherit !important;
-      }
+    .pills{
+      margin-top:10px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      position:relative;
+      z-index:1;
+    }
 
-      .bg-primary{ background: linear-gradient(135deg,#eef2ff 0%, #dde5ff 100%); }
-      .bg-success{ background: linear-gradient(135deg,#e8fbf2 0%, #d2f7e5 100%); }
-      .bg-warning{ background: linear-gradient(135deg,#fff6df 0%, #ffeab6 100%); }
+    .pill{
+      display:inline-block;
+      padding:5px 9px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:10px;
+      border:1px solid rgba(255,255,255,.28);
+      background: rgba(255,255,255,.14);
+    }
 
-      .chip-primary{ background:#eef2ff; border-color:#c7d2fe; }
-      .chip-success{ background:#ecfdf5; border-color:#a7f3d0; }
-      .chip-warning{ background:#fff7ed; border-color:#fed7aa; }
+    .section {
+      margin-top: 10px;
+    }
 
-      table{ width:100%; border-collapse:separate; border-spacing: 0; table-layout: fixed; direction: rtl !important; }
-
-      thead th{
-        background:#f8fafc;
-        font-weight:900;
-        font-size:11px;
-        padding:9px 8px;
-        border-bottom:1px solid #eef2f7;
-        text-align: start;
-        color:#000 !important;
-      }
-      tbody td{
-        padding:9px 8px;
-        border-bottom:1px solid #f0f4fa;
-        font-size:11px;
-        vertical-align:middle;
-        text-align:start;
-        color:#000 !important;
-      }
-      tbody tr:nth-child(even) td{ background: #fcfdff; }
-
-      .td-end{ text-align:end; }
-      .td-center{ text-align:center; }
-
-      .count-pill{
-        display:inline-block;
-        padding:4px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid;
-        color: inherit !important;
-      }
-      .count-primary{ border-color:#c7d2fe; background:#eef2ff; }
-      .count-success{ border-color:#a7f3d0; background:#ecfdf5; }
-
-      .hero-logo{
-        display:flex;
-        align-items:center;
-        justify-content:flex-start;
-        padding:10px 12px;
-        border-radius:12px;
-        min-width: 150px;
-      }
-      .hero-logo img{ height:82px; width:auto; object-fit:contain; display:block; }
-
-      .no-break { break-inside: avoid; page-break-inside: avoid; }
-      .card { break-inside: avoid; page-break-inside: avoid; }
-
-      .etype{
-        display:inline-block;
-        padding:3px 10px;
-        border-radius:999px;
-        font-weight:900;
-        font-size:10px;
-        border:1px solid rgba(17,24,39,.12);
-        color:#000 !important;
-      }
-      .margintowline
-      {
+    .stats-grid{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
       margin-top:12px;
-      }
-      .fontsizeb
-      {
-      font-size: 18px;
-      color: #0000;
-      }
-      .etype-red{ background:#fee2e2; border-color:#fecaca; }
-      .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
-      .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
-      .etype-purple{ background:#ede9fe; border-color:#ddd6fe; }
-      .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; }
+    }
 
-      @media print{
-        .stats-grid{ grid-template-columns: repeat(2, 1fr); }
+    .card{
+      background:#fff;
+      border:1px solid #e9eef7;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow: 0 10px 22px rgba(17,24,39,.06);
+    }
+
+    .stat-card{
+      padding:10px 10px;
+      min-height:84px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .stat-label{
+      font-size:11px;
+      font-weight:900;
+      margin-bottom:4px;
+      color:#000 !important;
+    }
+
+    .stat-number{
+      font-size:20px;
+      font-weight:900;
+      line-height:1.1;
+      color:#000 !important;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:900;
+      margin-top:6px;
+      border:1px solid;
+      white-space:nowrap;
+      color: inherit !important;
+    }
+
+    .b-primary{ background:#eef2ff; border-color:#c7d2fe; }
+    .b-info{ background:#e0f2fe; border-color:#bae6fd; }
+    .b-warning{ background:#fff7ed; border-color:#fed7aa; }
+    .b-success{ background:#ecfdf5; border-color:#a7f3d0; }
+
+    .header-strip{
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      direction: rtl !important;
+    }
+
+    .strip-title{
+      font-weight:900;
+      font-size:12px;
+      margin:0;
+      color:#000 !important;
+    }
+
+    .strip-sub{
+      margin:2px 0 0;
+      font-size:10px;
+      font-weight:800;
+      color:#000 !important;
+    }
+
+    .chip{
+      padding:5px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:10px;
+      border:1px solid;
+      white-space:nowrap;
+      color: inherit !important;
+    }
+
+    .bg-primary{ background: linear-gradient(135deg,#eef2ff 0%, #dde5ff 100%); }
+    .bg-success{ background: linear-gradient(135deg,#e8fbf2 0%, #d2f7e5 100%); }
+    .bg-warning{ background: linear-gradient(135deg,#fff6df 0%, #ffeab6 100%); }
+
+    .chip-primary{ background:#eef2ff; border-color:#c7d2fe; }
+    .chip-success{ background:#ecfdf5; border-color:#a7f3d0; }
+    .chip-warning{ background:#fff7ed; border-color:#fed7aa; }
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      table-layout:fixed;
+      direction: rtl !important;
+    }
+
+    thead th{
+      background:#f8fafc;
+      font-weight:900;
+      font-size:11px;
+      padding:8px 7px;
+      border-bottom:1px solid #eef2f7;
+      text-align:start;
+      color:#000 !important;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    tbody td{
+      padding:8px 7px;
+      border-bottom:1px solid #f0f4fa;
+      font-size:11px;
+      vertical-align:middle;
+      text-align:start;
+      color:#000 !important;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    tbody tr:nth-child(even) td{
+      background:#fcfdff;
+    }
+
+    .td-end{ text-align:end; }
+    .td-center{ text-align:center; }
+
+    .count-pill{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:10px;
+      border:1px solid;
+      color: inherit !important;
+    }
+
+    .count-primary{ border-color:#c7d2fe; background:#eef2ff; }
+    .count-success{ border-color:#a7f3d0; background:#ecfdf5; }
+
+    .hero-logo{
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      padding:8px 10px;
+      border-radius:12px;
+      min-width:120px;
+    }
+
+    .hero-logo img{
+      height:70px;
+      width:auto;
+      object-fit:contain;
+      display:block;
+    }
+
+    .no-break {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .etype{
+      display:inline-block;
+      padding:3px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:10px;
+      border:1px solid rgba(17,24,39,.12);
+      color:#000 !important;
+    }
+
+    .etype-red{ background:#fee2e2; border-color:#fecaca; }
+    .etype-amber{ background:#ffedd5; border-color:#fed7aa; }
+    .etype-blue{ background:#dbeafe; border-color:#bfdbfe; }
+    .etype-purple{ background:#ede9fe; border-color:#ddd6fe; }
+    .etype-gray{ background:#f3f4f6; border-color:#e5e7eb; }
+
+    .fontsizeb {
+      font-size: inherit;
+      color: #000 !important;
+    }
+
+    .margintowline {
+      margin-top:12px;
+    }
+
+    @media print {
+      html, body {
+        width: 210mm !important;
+        min-height: 297mm !important;
+        overflow: visible !important;
       }
-    `;
+
+      .page {
+        width: 190mm !important;
+        min-height: auto !important;
+      }
+
+      .hero,
+      .stats-grid,
+      .stat-card,
+      .header-strip {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .section,
+      .card,
+      table,
+      tbody,
+      tr,
+      td {
+        break-inside: auto;
+        page-break-inside: auto;
+      }
+
+      thead {
+        display: table-header-group;
+      }
+
+      tfoot {
+        display: table-footer-group;
+      }
+
+      tr {
+        page-break-inside: avoid;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  `;
   }
-
   function eventTypeClass(type) {
     const t = String(type ?? '').trim();
     const map = {
@@ -617,9 +790,8 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
 
     const heroDatePills = buildDatePillsRange(fromIso, toIso);
 
-    const infoSection =
-      hasUsefulRows(infoTypes, 'count')
-        ? `
+    const infoSection = hasUsefulRows(infoTypes, 'count')
+      ? `
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-primary">
@@ -649,11 +821,10 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
             </div>
           </div>
         `
-        : '';
+      : '';
 
-    const formatsSection =
-      hasUsefulRows(formats, 'count')
-        ? `
+    const formatsSection = hasUsefulRows(formats, 'count')
+      ? `
           <div class="section">
             <div class="card no-break">
               <div class="header-strip bg-success">
@@ -683,11 +854,10 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
             </div>
           </div>
         `
-        : '';
+      : '';
 
-    const eventsSection =
-      hasUsefulRows(eventTypes, 'count')
-        ? `
+    const eventsSection = hasUsefulRows(eventTypes, 'count')
+      ? `
           <div class="section">
             <div class="card">
               <div class="header-strip bg-warning">
@@ -718,7 +888,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
             </div>
           </div>
         `
-        : '';
+      : '';
 
     return `
       <html dir="rtl">
@@ -806,6 +976,8 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const w = iframe.contentWindow;
     const doc = iframe.contentDocument || w.document;
 
+    let hasPrinted = false;
+
     doc.open();
     doc.write(html);
     doc.close();
@@ -830,7 +1002,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
             }
           });
 
-          setTimeout(resolve, 2000);
+          setTimeout(resolve, 2500);
         } catch {
           resolve();
         }
@@ -842,17 +1014,23 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
           const fonts = doc.fonts;
           if (fonts && typeof fonts.ready?.then === 'function') {
             fonts.ready.then(resolve).catch(resolve);
-          } else resolve();
+          } else {
+            resolve();
+          }
         } catch {
           resolve();
         }
       });
 
     const doPrint = async () => {
+      if (hasPrinted) return;
+      hasPrinted = true;
+
       try {
-        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        await new Promise((r) => setTimeout(r, 400));
         await waitFonts();
         await waitImages();
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
         w.focus();
         w.print();
@@ -861,12 +1039,13 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
           try {
             document.body.removeChild(iframe);
           } catch {}
-        }, 1200);
+        }, 1500);
       }
     };
 
-    iframe.onload = () => setTimeout(doPrint, 150);
-    setTimeout(doPrint, 600);
+    iframe.onload = () => {
+      setTimeout(doPrint, 300);
+    };
 
     return true;
   }

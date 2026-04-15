@@ -69,7 +69,7 @@ return [
             'join_resource' => false,
         ],
         [
-            'table' => 'informations',
+            'table' => 'information',
             'type' => 'information',
             'typeLabel' => 'اطلاع',
             'show_url' => '/api/informations/',

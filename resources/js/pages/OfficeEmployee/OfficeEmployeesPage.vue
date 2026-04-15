@@ -15,10 +15,12 @@
           <SearchColumnFilter
             v-model:modelSearch="repo.Search"
             v-model:modelColumn="searchField"
+            v-model:modelSelectedValue="selectedColumnValue"
             :headers="headersFT"
             :search-label="t('جستجو در کارمندان...')"
             :column-label="t('ستون جستجو')"
             :all-columns-label="t('همه ستون‌ها')"
+            :value-label="t('ارزش ستون')"
             :exclude-keys="[
               'picture',
               'map',
@@ -28,8 +30,10 @@
               'informations_count',
               'events_count',
             ]"
+            :fetch-column-values="fetchColumnValues"
             @search="fetchAll"
-            @clear="clearSearch"
+            @clearSearch="clearSearch"
+            @clearSelectedValue="clearSelectedValue"
           />
         </v-col>
 
@@ -539,7 +543,7 @@
   const { relatedFilters } = useRelatedRouteFilters();
   const repo = useEmployeOfficeRepository();
   const auth = useLoginRepository();
-
+  const selectedColumnValue = ref(null);
   const filterYear = ref(null);
   const filterMonth = ref(null);
 
@@ -819,6 +823,7 @@
         status: selectedCardStatus.value,
         job_type: selectedCardJobType.value,
         search_field: searchField.value,
+        search_value: selectedColumnValue.value,
         office_employee_id: relatedFilters.value.office_employee_id,
         resource_id: relatedFilters.value.resource_id,
         information_id: relatedFilters.value.information_id,
@@ -829,7 +834,25 @@
       showErrorMessage(t('خطا در دریافت فهرست کارمندان'));
     }
   }
+  async function fetchColumnValues(field, q = '') {
+    try {
+      const res = await repo.FetchEmployeeFilterOptions({
+        field,
+        q,
+      });
 
+      return res?.data?.options || [];
+    } catch (e) {
+      console.error('fetchColumnValues error', e);
+      return [];
+    }
+  }
+
+  function clearSelectedValue() {
+    selectedColumnValue.value = null;
+    repo.page = 1;
+    fetchAll();
+  }
   function handlePageChange(value) {
     repo.page = value;
     fetchAll();
@@ -915,6 +938,7 @@
   async function clearAllFilters() {
     repo.Search = '';
     searchField.value = null;
+    selectedColumnValue.value = null;
     filterYear.value = null;
     filterMonth.value = null;
     selectedCardStatus.value = 'all';

@@ -10,6 +10,7 @@ return new class extends Migration {
       $table->id();
       $table->foreignId('account_id')->constrained('accounts')->cascadeOnUpdate()->restrictOnDelete();
       $table->decimal('amount', 18, 2);        // price amount (دریافت پول)
+      $table->string('amount_by_word');        // price amount (دریافت پول)
       $table->date('received_at');             // date
       $table->text('note')->nullable();        // note
       $table->timestamps();

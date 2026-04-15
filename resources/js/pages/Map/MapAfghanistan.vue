@@ -1068,7 +1068,11 @@
         bindMapPointEvents();
 
         await loadAllModulePoints();
-        applyFlyTarget(mapBus.flyTarget);
+
+        if (mapBus.flyTarget?.coords) {
+          applyFlyTarget(mapBus.flyTarget);
+          mapBus.flyTarget = null;
+        }
 
         map.value.on('moveend', debouncedReloadPoints);
       });
@@ -1115,6 +1119,7 @@
           highlightMarker.remove();
           highlightMarker = null;
         }
+        mapBus.flyTarget = null;
         return;
       }
 
@@ -1131,6 +1136,8 @@
           },
         },
       });
+
+      mapBus.flyTarget = null;
     },
     { deep: true }
   );

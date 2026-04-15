@@ -293,6 +293,7 @@ class ResourceController extends Controller
             'date_field'           => 'nullable|string',
             'perPage'              => 'nullable',
             'resource_id'          => 'nullable|integer',
+            'search_value'         => 'nullable',
             'office_employee_id'   => 'nullable|integer',
             'information_id'       => 'nullable|integer',
             'event_id'             => 'nullable|integer',
@@ -309,7 +310,7 @@ class ResourceController extends Controller
 
         $year  = $req->filled('year') ? (int) $req->get('year') : null;
         $month = $req->filled('month') ? (int) $req->get('month') : null;
-
+        $searchValue = $req->get('search_value');
         $stat = trim((string) $req->get('stat', 'all'));
         $allowedStats = ['all', 'today', 'active', 'inactive'];
         if (!in_array($stat, $allowedStats, true)) {
@@ -322,23 +323,9 @@ class ResourceController extends Controller
             $dateField = 'resource_saved_date';
         }
 
-        $baseQuery = Resource::query()
-            ->when($search !== '', function ($w) use ($search, $searchField) {
-                if ($searchField) {
-                    $w->where($searchField, 'like', "%{$search}%");
-                } else {
-                    $w->where(function ($q2) use ($search) {
-                        foreach ($this->searchableColumns() as $index => $column) {
-                            if ($index === 0) {
-                                $q2->where($column, 'like', "%{$search}%");
-                            } else {
-                                $q2->orWhere($column, 'like', "%{$search}%");
-                            }
-                        }
-                    });
-                }
-            });
+        $baseQuery = Resource::query();
 
+        $this->applyCommonFilters($baseQuery, $search, $searchField, $searchValue);
         $this->applyShamsiDateFilter($baseQuery, $year, $month, $dateField);
         $this->applyRelatedFilters($baseQuery, $req);
         $this->applyDateRangeFilter($baseQuery, $req, $dateField);
@@ -360,43 +347,29 @@ class ResourceController extends Controller
             ->where('activity', 'غیر فعال')
             ->count();
 
-        $q = Resource::query()
-            ->with(['officeEmployee:id,name,code_number,father_name'])
-            ->withSum('finances as payed_money', 'money_amount_number')
-            ->withCount([
-                'events',
-                'informations',
-                'khayratReports',
-            ])
-            ->when($search !== '', function ($w) use ($search, $searchField) {
-                if ($searchField) {
-                    $w->where($searchField, 'like', "%{$search}%");
-                } else {
-                    $w->where(function ($q2) use ($search) {
-                        foreach ($this->searchableColumns() as $index => $column) {
-                            if ($index === 0) {
-                                $q2->where($column, 'like', "%{$search}%");
-                            } else {
-                                $q2->orWhere($column, 'like', "%{$search}%");
-                            }
-                        }
-                    });
-                }
-            })
-            ->when($stat === 'today', function ($w) use ($dateField, $today) {
-                $w->whereNotNull($dateField)->whereDate($dateField, $today);
-            })
-            ->when($stat === 'active', function ($w) {
-                $w->where('activity', 'فعال');
-            })
-            ->when($stat === 'inactive', function ($w) {
-                $w->where('activity', 'غیر فعال');
-            })
-            ->latest('id');
+            $q = Resource::query()
+    ->with(['officeEmployee:id,name,code_number,father_name'])
+    ->withSum('finances as payed_money', 'money_amount_number')
+    ->withCount([
+        'events',
+        'informations',
+        'khayratReports',
+    ])
+    ->when($stat === 'today', function ($w) use ($dateField, $today) {
+        $w->whereNotNull($dateField)->whereDate($dateField, $today);
+    })
+    ->when($stat === 'active', function ($w) {
+        $w->where('activity', 'فعال');
+    })
+    ->when($stat === 'inactive', function ($w) {
+        $w->where('activity', 'غیر فعال');
+    })
+    ->latest('id');
 
-            $this->applyShamsiDateFilter($q, $year, $month, $dateField);
-            $this->applyRelatedFilters($q, $req);
-            $this->applyDateRangeFilter($q, $req, $dateField);
+    $this->applyCommonFilters($q, $search, $searchField, $searchValue);
+    $this->applyShamsiDateFilter($q, $year, $month, $dateField);
+    $this->applyRelatedFilters($q, $req);
+    $this->applyDateRangeFilter($q, $req, $dateField);
 
         $perPage = $req->filled('perPage') ? (int) $req->get('perPage') : null;
 
@@ -683,7 +656,7 @@ class ResourceController extends Controller
     {
         $search = trim((string) $req->get('search', ''));
         $searchField = $this->resolveSearchField($req->get('search_field'));
-
+        $searchValue = $req->get('search_value');
         $year  = $req->filled('year') ? (int) $req->get('year') : null;
         $month = $req->filled('month') ? (int) $req->get('month') : null;
 
@@ -707,6 +680,7 @@ class ResourceController extends Controller
                 $searchField,
                 $year,
                 $month,
+                $searchValue,
                 $stat,
                 $dateField
             ),
@@ -774,4 +748,75 @@ class ResourceController extends Controller
             'months'     => $months,
         ]);
     }
+    private function applyCommonFilters(
+    $query,
+    ?string $search,
+    ?string $searchField = null,
+    $searchValue = null
+) {
+    $query
+        ->when($searchValue !== null && $searchValue !== '' && $searchField, function ($q) use ($searchField, $searchValue) {
+            $q->where($searchField, $searchValue);
+        })
+        ->when($search, function ($q) use ($search, $searchField) {
+            $resolvedField = $this->resolveSearchField($searchField);
+
+            if ($resolvedField) {
+                $q->where($resolvedField, 'like', "%{$search}%");
+            } else {
+                $q->where(function ($qq) use ($search) {
+                    foreach ($this->searchableColumns() as $index => $column) {
+                        if ($index === 0) {
+                            $qq->where($column, 'like', "%{$search}%");
+                        } else {
+                            $qq->orWhere($column, 'like', "%{$search}%");
+                        }
+                    }
+                });
+            }
+        });
+
+    return $query;
+}
+public function filterOptions(Request $request)
+{
+    $request->validate([
+        'field' => 'required|string',
+        'q'     => 'nullable|string',
+    ]);
+
+    $field = $this->resolveSearchField($request->input('field'));
+
+    if (!$field) {
+        return response()->json([
+            'options' => [],
+        ]);
+    }
+
+    $q = trim((string) $request->input('q', ''));
+
+    $query = Resource::query()
+        ->whereNotNull($field)
+        ->where($field, '!=', '');
+
+    if ($q !== '') {
+        $query->where($field, 'like', "%{$q}%");
+    }
+
+    $options = $query
+        ->select($field)
+        ->distinct()
+        ->orderBy($field)
+        ->limit(100)
+        ->pluck($field)
+        ->map(fn ($value) => [
+            'title' => (string) $value,
+            'value' => $value,
+        ])
+        ->values();
+
+    return response()->json([
+        'options' => $options,
+    ]);
+}
 }

@@ -291,6 +291,7 @@
   const headersFT = computed(() => [
     { title: t('incomes.table.account'), key: 'account_name', sortable: true },
     { title: t('incomes.table.amount'), key: 'amount', sortable: true },
+    { title: t('incomes.table.amount_by_word'), key: 'amount_by_word', sortable: true },
     { title: t('incomes.table.receivedAt'), key: 'received_at', sortable: true },
     { title: t('incomes.table.note'), key: 'note', sortable: false },
   ]);

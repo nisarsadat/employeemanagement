@@ -309,62 +309,75 @@ class OfficeEmployeeController extends Controller
             ]);
     }
 
-    private function applyCommonFilters($query, ?string $search, ?string $status, ?string $jobType, ?string $searchField = null)
-    {
-        $query
-            ->when($search, function ($q) use ($search, $searchField) {
-                $resolvedField = $this->resolveSearchField($searchField);
 
-                if ($resolvedField) {
-                    $q->where($resolvedField, 'like', "%{$search}%");
-                } else {
-                    $q->where(function ($qq) use ($search) {
-                        foreach ($this->searchableColumns() as $index => $column) {
-                            if ($index === 0) {
-                                $qq->where($column, 'like', "%{$search}%");
-                            } else {
-                                $qq->orWhere($column, 'like', "%{$search}%");
-                            }
+    private function applyCommonFilters(
+    $query,
+    ?string $search,
+    ?string $status,
+    ?string $jobType,
+    ?string $searchField = null,
+    $searchValue = null
+) {
+    $query
+        ->when($searchValue !== null && $searchValue !== '' && $searchField, function ($q) use ($searchField, $searchValue) {
+            $q->where($searchField, $searchValue);
+        })
+        ->when($search, function ($q) use ($search, $searchField) {
+            $resolvedField = $this->resolveSearchField($searchField);
+
+            if ($resolvedField) {
+                $q->where($resolvedField, 'like', "%{$search}%");
+            } else {
+                $q->where(function ($qq) use ($search) {
+                    foreach ($this->searchableColumns() as $index => $column) {
+                        if ($index === 0) {
+                            $qq->where($column, 'like', "%{$search}%");
+                        } else {
+                            $qq->orWhere($column, 'like', "%{$search}%");
                         }
-                    });
-                }
-            })
-            ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
-                $activeVals   = ['active', OfficeEmployee::ACTIVE];
-                $inactiveVals = ['inactive', OfficeEmployee::INACTIVE];
+                    }
+                });
+            }
+        })
+        ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
+            $activeVals   = ['active', OfficeEmployee::ACTIVE];
+            $inactiveVals = ['inactive', OfficeEmployee::INACTIVE];
 
-                if (in_array($status, $activeVals, true)) {
-                    $q->active();
-                } elseif (in_array($status, $inactiveVals, true)) {
-                    $q->inactive();
-                }
-            })
-            ->when($jobType, function ($q) use ($jobType) {
-                if ($jobType === 'اداری') {
-                    $q->whereIn('job_type', ['اداری', 'اداري']);
-                } elseif ($jobType === 'اوپراتیفی') {
-                    $q->whereIn('job_type', ['اوپراتیفی', 'اوپراتیفي']);
-                } else {
-                    $q->where('job_type', $jobType);
-                }
-            });
+            if (in_array($status, $activeVals, true)) {
+                $q->active();
+            } elseif (in_array($status, $inactiveVals, true)) {
+                $q->inactive();
+            }
+        })
+        ->when($jobType, function ($q) use ($jobType) {
+            if ($jobType === 'اداری') {
+                $q->whereIn('job_type', ['اداری', 'اداري']);
+            } elseif ($jobType === 'اوپراتیفی') {
+                $q->whereIn('job_type', ['اوپراتیفی', 'اوپراتیفي']);
+            } else {
+                $q->where('job_type', $jobType);
+            }
+        });
 
-        return $query;
-    }
+    return $query;
+}
+
 
     private function buildCardCounts(
-        Request $request,
-        ?string $search,
-        ?string $status,
-        ?string $jobType,
-        ?int $year,
-        ?int $month,
-        string $dateField,
-        ?string $searchField = null
-    ): array {
+    Request $request,
+    ?string $search,
+    ?string $status,
+    ?string $jobType,
+    ?int $year,
+    ?int $month,
+    string $dateField,
+    ?string $searchField = null,
+    $searchValue = null
+): array {
+
         $base = OfficeEmployee::query();
 
-        $this->applyCommonFilters($base, $search, $status, $jobType, $searchField);
+        $this->applyCommonFilters($base, $search, $status, $jobType, $searchField, $searchValue);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
         $this->applyRelatedFilters($base, $request);
 
@@ -453,6 +466,7 @@ class OfficeEmployeeController extends Controller
             'resource_id'        => 'nullable|integer',
             'information_id'     => 'nullable|integer',
             'event_id'           => 'nullable|integer',
+            'search_value'       => 'nullable',
         ]);
 
         $search      = $request->input('search');
@@ -465,21 +479,24 @@ class OfficeEmployeeController extends Controller
         $year      = $request->filled('year') ? (int) $request->input('year') : null;
         $month     = $request->filled('month') ? (int) $request->input('month') : null;
         $dateField = $this->resolveDateField($request->input('date_field'));
+        $searchValue = $request->input('search_value');
+        
 
         $cardCounts = $this->buildCardCounts(
-            $request,
-            $search,
-            $status,
-            $jobType,
-            $year,
-            $month,
-            $dateField,
-            $searchField
-        );
+    $request,
+    $search,
+    $status,
+    $jobType,
+    $year,
+    $month,
+    $dateField,
+    $searchField,
+    $searchValue
+);
 
         $query = $this->baseListQuery();
 
-        $this->applyCommonFilters($query, $search, $status, $jobType, $searchField);
+        $this->applyCommonFilters($query, $search, $status, $jobType, $searchField, $searchValue);
         $this->applyMonthYearFilter($query, $year, $month, $dateField);
         $this->applyRelatedFilters($query, $request);
 
@@ -876,4 +893,45 @@ class OfficeEmployeeController extends Controller
 
         return OfficeEmployeeResource::collection($query->paginate((int) $perPage));
     }
+    public function filterOptions(Request $request)
+{
+    $request->validate([
+        'field' => 'required|string',
+        'q'     => 'nullable|string',
+    ]);
+
+    $field = $this->resolveSearchField($request->input('field'));
+
+    if (!$field) {
+        return response()->json([
+            'options' => [],
+        ]);
+    }
+
+    $q = trim((string) $request->input('q', ''));
+
+    $query = OfficeEmployee::query()
+        ->whereNotNull($field)
+        ->where($field, '!=', '');
+
+    if ($q !== '') {
+        $query->where($field, 'like', "%{$q}%");
+    }
+
+    $options = $query
+        ->select($field)
+        ->distinct()
+        ->orderBy($field)
+        ->limit(100)
+        ->pluck($field)
+        ->map(fn ($value) => [
+            'title' => (string) $value,
+            'value' => $value,
+        ])
+        ->values();
+
+    return response()->json([
+        'options' => $options,
+    ]);
+}
 }

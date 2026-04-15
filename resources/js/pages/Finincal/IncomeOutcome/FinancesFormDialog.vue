@@ -74,15 +74,18 @@
               />
 
               <!-- Date -->
-              <DateInput
-                v-model="draft.date"
-                :label="t('finances.form.dateRequired')"
-                density="compact"
-                :rules="[rules.required]"
-                :error="hasError('date')"
-                :error-messages="getErrorMessages('date')"
-                class="field"
-              />
+              <v-row>
+                <v-col>
+                  <DateInput
+                    v-model="draft.date"
+                    :label="t('finances.form.dateRequired')"
+                    :rules="[rules.required]"
+                    :error="hasError('date')"
+                    :error-messages="getErrorMessages('date')"
+                    class="field"
+                  />
+                </v-col>
+              </v-row>
 
               <!-- Amount Number -->
               <v-text-field

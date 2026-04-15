@@ -4,7 +4,7 @@
     <v-card rounded="xl" class="details-card" :dir="rtl ? 'rtl' : 'ltr'">
       <!-- Header -->
       <div class="px-5 pt-5 pb-3 d-flex align-center justify-space-between">
-        <div class="d-flex align-center" style="gap: 12px;">
+        <div class="d-flex align-center" style="gap: 12px">
           <v-avatar size="46" class="avatar-glow">
             <span class="text-white font-weight-bold">
               {{ initials(employee?.name) }}
@@ -23,7 +23,7 @@
           </div>
         </div>
 
-        <div class="d-flex align-center" style="gap: 8px;">
+        <div class="d-flex align-center" style="gap: 8px">
           <v-tooltip location="bottom">
             <template #activator="{ props }">
               <v-btn
@@ -88,9 +88,7 @@
               </div>
               <div class="pc-body">
                 <div class="pc-title">{{ t('منابع') }}</div>
-                <div class="pc-sub">
-                  {{ t('تعداد') }}: {{ num(employee?.resources_count) }}
-                </div>
+                <div class="pc-sub">{{ t('تعداد') }}: {{ num(employee?.resources_count) }}</div>
               </div>
               <v-icon class="pc-arrow" color="teal">mdi-chevron-left</v-icon>
             </div>
@@ -108,9 +106,7 @@
               </div>
               <div class="pc-body">
                 <div class="pc-title">{{ t('اطلاعات') }}</div>
-                <div class="pc-sub">
-                  {{ t('تعداد') }}: {{ num(employee?.informations_count) }}
-                </div>
+                <div class="pc-sub">{{ t('تعداد') }}: {{ num(employee?.informations_count) }}</div>
               </div>
               <v-icon class="pc-arrow" color="indigo">mdi-chevron-left</v-icon>
             </div>
@@ -128,9 +124,7 @@
               </div>
               <div class="pc-body">
                 <div class="pc-title">{{ t('رویدادها') }}</div>
-                <div class="pc-sub">
-                  {{ t('تعداد') }}: {{ num(employee?.events_count) }}
-                </div>
+                <div class="pc-sub">{{ t('تعداد') }}: {{ num(employee?.events_count) }}</div>
               </div>
               <v-icon class="pc-arrow" color="teal-darken-1">mdi-chevron-left</v-icon>
             </div>
@@ -205,7 +199,7 @@
       <v-divider />
 
       <!-- Footer -->
-      <div class="px-5 py-4 d-flex align-center justify-end" style="gap: 10px;">
+      <div class="px-5 py-4 d-flex align-center justify-end" style="gap: 10px">
         <!-- ✅ HTML export (PDF button = printable HTML) -->
         <v-tooltip location="top">
           <template #activator="{ props }">
@@ -245,104 +239,138 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+  import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
 
-const props = defineProps({
-  modelValue: { type: Boolean, default: false },
-  employee: { type: Object, default: null },
-  loading: { type: Boolean, default: false },
-});
+  const props = defineProps({
+    modelValue: { type: Boolean, default: false },
+    employee: { type: Object, default: null },
+    loading: { type: Boolean, default: false },
+  });
 
-const emit = defineEmits(['update:modelValue', 'close']);
+  const emit = defineEmits(['update:modelValue', 'close']);
 
-const { t, locale } = useI18n();
-const router = useRouter();
+  const { t, locale } = useI18n();
+  const router = useRouter();
 
-const rtl = computed(() => String(locale.value).toLowerCase().startsWith('fa'));
+  const rtl = computed(() => String(locale.value).toLowerCase().startsWith('fa'));
 
-const model = computed({
-  get: () => props.modelValue,
-  set: (v) => emit('update:modelValue', v),
-});
+  const model = computed({
+    get: () => props.modelValue,
+    set: (v) => emit('update:modelValue', v),
+  });
 
-function close() {
-  model.value = false;
-  emit('close');
-}
-
-/* ✅ safe navigation (won’t route while loading) */
-function go(path, query = {}) {
-  if (props.loading) return;
-  close(); // close popup before navigating
-  router.push({ path, query });
-}
-
-/* ✅ ROUTES (edit paths if yours are different) */
-function goEmployeeDetails() {
-  const id = props.employee?.id;
-  if (!id) return;
-  go(`/app/officeemployee/${id}`);
-}
-function goResources() {
-  go('/app/resources');
-}
-function goInformations() {
-  go('/app/informations');
-}
-function goEvents() {
-  go('/app/events');
-}
-
-/* Helpers */
-function num(v) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n.toLocaleString() : '0';
-}
-
-function initials(name) {
-  if (!name) return '—';
-  return String(name)
-    .split(' ')
-    .filter(Boolean)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-async function copyText(text) {
-  try {
-    if (!text) return;
-    await navigator.clipboard.writeText(text);
-  } catch (_) {
-    // ignore
+  function close() {
+    model.value = false;
+    emit('close');
   }
-}
 
-/* Score helpers */
-function scorePercentage(score) {
-  const s = Number(score) || 0;
-  const maxScore = Math.max(s, 100);
-  return Math.min((s / maxScore) * 100, 100);
-}
-function scoreColor(score) {
-  const p = scorePercentage(score);
-  if (p >= 80) return 'success';
-  if (p >= 60) return 'primary';
-  if (p >= 40) return 'warning';
-  return 'error';
-}
-function scoreLabel(score) {
-  const p = scorePercentage(score);
-  if (p >= 80) return t('عالی');
-  if (p >= 60) return t('خوب');
-  if (p >= 40) return t('متوسط');
-  return t('د کاري فعالیت درجه');
-}
+  /* ✅ safe navigation (won’t route while loading) */
+  function cleanQuery(query = {}) {
+    return Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== null && value !== undefined && value !== ''
+      )
+    );
+  }
 
-/* ---------------------------
+  function go(path, query = {}) {
+    if (props.loading) return;
+    close();
+    router.push({
+      path,
+      query: cleanQuery(query),
+    });
+  }
+
+  function goEmployeeDetails() {
+    const id = props.employee?.id;
+    if (!id) return;
+
+    go('/app/officeemployee', {
+      office_employee_id: id,
+      source: 'dashboard',
+    });
+  }
+
+  function goResources() {
+    const id = props.employee?.id;
+    if (!id) return;
+
+    go('/app/resources', {
+      office_employee_id: id,
+      source: 'dashboard',
+    });
+  }
+
+  function goInformations() {
+    const id = props.employee?.id;
+    if (!id) return;
+
+    go('/app/informations', {
+      office_employee_id: id,
+      source: 'dashboard',
+    });
+  }
+
+  function goEvents() {
+    const id = props.employee?.id;
+    if (!id) return;
+
+    go('/app/events', {
+      office_employee_id: id,
+      source: 'dashboard',
+    });
+  }
+  /* Helpers */
+  function num(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n.toLocaleString() : '0';
+  }
+
+  function initials(name) {
+    if (!name) return '—';
+    return String(name)
+      .split(' ')
+      .filter(Boolean)
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  }
+
+  async function copyText(text) {
+    try {
+      if (!text) return;
+      await navigator.clipboard.writeText(text);
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  /* Score helpers */
+  function scorePercentage(score) {
+    const s = Number(score) || 0;
+    const maxScore = Math.max(s, 100);
+    return Math.min((s / maxScore) * 100, 100);
+  }
+  function scoreColor(score) {
+    const p = scorePercentage(score);
+    if (p >= 80) return 'success';
+    if (p >= 60) return 'primary';
+    if (p >= 40) return 'warning';
+    return 'error';
+  }
+  function scoreLabel(score) {
+    const p = scorePercentage(score);
+    if (p >= 80) return t('عالی');
+    if (p >= 60) return t('خوب');
+    if (p >= 40) return t('متوسط');
+    return t('د کاري فعالیت درجه');
+  }
+
+  /* ---------------------------
    ✅ Beautiful HTML Export (Browser-open + Download)
    - "PDF": downloads a PRINTABLE HTML (open in browser → Ctrl+P → Save as PDF)
    - "Word": downloads a Word-friendly HTML (still HTML)
@@ -350,74 +378,74 @@ function scoreLabel(score) {
    - Omits empty rows (but keeps numeric counts)
 ---------------------------- */
 
-function escapeHtml(v) {
-  return String(v ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
-
-function getAppFontFamily() {
-  try {
-    const ff = window.getComputedStyle(document.body).fontFamily;
-    return ff && ff.trim() ? ff : 'Arial, Helvetica, sans-serif';
-  } catch {
-    return 'Arial, Helvetica, sans-serif';
+  function escapeHtml(v) {
+    return String(v ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
   }
-}
 
-function isEmptyValue(v) {
-  // keep 0 as valid
-  if (typeof v === 'number') return false;
-  const s = String(v ?? '').trim();
-  return !s || s === '—' || s === '-';
-}
+  function getAppFontFamily() {
+    try {
+      const ff = window.getComputedStyle(document.body).fontFamily;
+      return ff && ff.trim() ? ff : 'Arial, Helvetica, sans-serif';
+    } catch {
+      return 'Arial, Helvetica, sans-serif';
+    }
+  }
 
-function buildRows() {
-  const e = props.employee || {};
-  const rows = [
-    { label: t('نام'), value: e.name ?? '—', keepIfZero: false },
-    { label: t('کود'), value: e.code_number ?? '—', keepIfZero: false },
-    { label: t('رتبه'), value: e.rank ?? '—', keepIfZero: false },
-    { label: t('امتیاز'), value: num(e.score), keepIfZero: true },
-    { label: t('منابع'), value: num(e.resources_count), keepIfZero: true },
-    { label: t('اطلاعات'), value: num(e.informations_count), keepIfZero: true },
-    { label: t('رویدادها'), value: num(e.events_count), keepIfZero: true },
-  ];
+  function isEmptyValue(v) {
+    // keep 0 as valid
+    if (typeof v === 'number') return false;
+    const s = String(v ?? '').trim();
+    return !s || s === '—' || s === '-';
+  }
 
-  // ✅ omit empty rows (but keep numeric rows like 0 counts)
-  return rows.filter((r) => {
-    if (r.keepIfZero) return true;
-    return !isEmptyValue(r.value);
-  });
-}
+  function buildRows() {
+    const e = props.employee || {};
+    const rows = [
+      { label: t('نام'), value: e.name ?? '—', keepIfZero: false },
+      { label: t('کود'), value: e.code_number ?? '—', keepIfZero: false },
+      { label: t('رتبه'), value: e.rank ?? '—', keepIfZero: false },
+      { label: t('امتیاز'), value: num(e.score), keepIfZero: true },
+      { label: t('منابع'), value: num(e.resources_count), keepIfZero: true },
+      { label: t('اطلاعات'), value: num(e.informations_count), keepIfZero: true },
+      { label: t('رویدادها'), value: num(e.events_count), keepIfZero: true },
+    ];
 
-function exportHtmlDocument({ mode = 'pdf' } = {}) {
-  const e = props.employee || {};
-  const dir = rtl.value ? 'ltr' : 'ltr';
-  const lang = rtl.value ? 'fa' : 'en';
-  const title = `${t('')} - ${e.name || ''}`.trim();
-  const fontFamily = getAppFontFamily();
+    // ✅ omit empty rows (but keep numeric rows like 0 counts)
+    return rows.filter((r) => {
+      if (r.keepIfZero) return true;
+      return !isEmptyValue(r.value);
+    });
+  }
 
-  const rowsHtml = buildRows()
-    .map(
-      (r) => `
+  function exportHtmlDocument({ mode = 'pdf' } = {}) {
+    const e = props.employee || {};
+    const dir = rtl.value ? 'ltr' : 'ltr';
+    const lang = rtl.value ? 'fa' : 'en';
+    const title = `${t('')} - ${e.name || ''}`.trim();
+    const fontFamily = getAppFontFamily();
+
+    const rowsHtml = buildRows()
+      .map(
+        (r) => `
         <tr>
           <th>${escapeHtml(r.label)}</th>
           <td>${escapeHtml(r.value)}</td>
         </tr>
       `
-    )
-    .join('');
+      )
+      .join('');
 
-  const scoreP = scorePercentage(e.score);
-  const scoreTxt = scoreLabel(e.score);
+    const scoreP = scorePercentage(e.score);
+    const scoreTxt = scoreLabel(e.score);
 
-  const softBg = mode === 'word' ? '#ffffff' : '#f7f8fb';
+    const softBg = mode === 'word' ? '#ffffff' : '#f7f8fb';
 
-  return `
+    return `
 <!doctype html>
 <html lang="${escapeHtml(lang)}" dir="${escapeHtml(dir)}">
 <head>
@@ -660,7 +688,9 @@ function exportHtmlDocument({ mode = 'pdf' } = {}) {
 
         <div class="scoreWrap">
           <div class="scoreTop">
-            <div>${escapeHtml(t('امتیاز'))}: <b style="color:#111;">${escapeHtml(num(e.score))}</b></div>
+            <div>${escapeHtml(t('امتیاز'))}: <b style="color:#111;">${escapeHtml(
+      num(e.score)
+    )}</b></div>
             <div>${escapeHtml(scoreTxt)}</div>
           </div>
           <div class="bar"><span></span></div>
@@ -682,228 +712,240 @@ function exportHtmlDocument({ mode = 'pdf' } = {}) {
 </body>
 </html>
   `.trim();
-}
+  }
 
-function downloadBlob(content, mime, filename) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
+  function downloadBlob(content, mime, filename) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
 
-function safeFileName(name) {
-  return String(name || 'employee')
-    .trim()
-    .replace(/[\\/:*?"<>|]+/g, '-')
-    .replace(/\s+/g, '_')
-    .slice(0, 80);
-}
+  function safeFileName(name) {
+    return String(name || 'employee')
+      .trim()
+      .replace(/[\\/:*?"<>|]+/g, '-')
+      .replace(/\s+/g, '_')
+      .slice(0, 80);
+  }
 
-function exportPdf() {
-  if (props.loading || !props.employee) return;
-  const e = props.employee;
+  function exportPdf() {
+    if (props.loading || !props.employee) return;
+    const e = props.employee;
 
-  // ✅ printable HTML file (open in browser then Ctrl+P → Save as PDF)
-  const html = exportHtmlDocument({ mode: 'pdf' });
-  const fname = `Employee_${safeFileName(e?.name)}_${e?.code_number || ''}.html`
-    .replace(/_+\.html$/, '.html');
+    // ✅ printable HTML file (open in browser then Ctrl+P → Save as PDF)
+    const html = exportHtmlDocument({ mode: 'pdf' });
+    const fname = `Employee_${safeFileName(e?.name)}_${e?.code_number || ''}.html`.replace(
+      /_+\.html$/,
+      '.html'
+    );
 
-  downloadBlob(html, 'text/html;charset=utf-8', fname);
-}
+    downloadBlob(html, 'text/html;charset=utf-8', fname);
+  }
 
-function exportWord() {
-  if (props.loading || !props.employee) return;
-  const e = props.employee;
+  function exportWord() {
+    if (props.loading || !props.employee) return;
+    const e = props.employee;
 
-  // ✅ Word-friendly HTML (still HTML)
-  const html = exportHtmlDocument({ mode: 'word' });
+    // ✅ Word-friendly HTML (still HTML)
+    const html = exportHtmlDocument({ mode: 'word' });
 
-  // Minimal Word wrapper
-  const wordHtml = `<!doctype html><html><head><meta charset="utf-8"></head><body>${html
-    .replace(/^[\s\S]*<body>/i, '')
-    .replace(/<\/body>[\s\S]*$/i, '')}</body></html>`;
+    // Minimal Word wrapper
+    const wordHtml = `<!doctype html><html><head><meta charset="utf-8"></head><body>${html
+      .replace(/^[\s\S]*<body>/i, '')
+      .replace(/<\/body>[\s\S]*$/i, '')}</body></html>`;
 
-  const fname = `Employee_${safeFileName(e?.name)}_${e?.code_number || ''}.doc`
-    .replace(/_+\.doc$/, '.doc');
+    const fname = `Employee_${safeFileName(e?.name)}_${e?.code_number || ''}.doc`.replace(
+      /_+\.doc$/,
+      '.doc'
+    );
 
-  downloadBlob(wordHtml, 'application/msword;charset=utf-8', fname);
-}
+    downloadBlob(wordHtml, 'application/msword;charset=utf-8', fname);
+  }
 </script>
 
 <style scoped>
-.details-card {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-}
+  .details-card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
 
-.avatar-glow {
-  background: linear-gradient(
-    135deg,
-    rgba(var(--v-theme-primary), 1),
-    rgba(var(--v-theme-secondary), 1)
-  );
-  box-shadow: 0 10px 22px rgba(var(--v-theme-primary), 0.22);
-}
+  .avatar-glow {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-primary), 1),
+      rgba(var(--v-theme-secondary), 1)
+    );
+    box-shadow: 0 10px 22px rgba(var(--v-theme-primary), 0.22);
+  }
 
-/* ✅ popup route cards */
-.popup-cards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.popup-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 14px;
-  border-radius: 18px;
-  border: 1px solid rgba(0,0,0,0.08);
-  background: rgba(0,0,0,0.02);
-  cursor: pointer;
-  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
-  user-select: none;
-}
-.popup-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(0,0,0,0.10);
-  border-color: rgba(var(--v-theme-primary), 0.22);
-}
-
-.pc-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(var(--v-theme-primary), 0.10);
-}
-.pc-icon.primary { background: rgba(var(--v-theme-primary), 0.10); }
-.pc-icon.teal { background: rgba(var(--v-theme-teal), 0.10); }
-.pc-icon.indigo { background: rgba(var(--v-theme-indigo), 0.10); }
-.pc-icon.cyan { background: rgba(var(--v-theme-teal), 0.10); }
-
-.pc-body {
-  min-width: 0;
-  flex: 1;
-}
-.pc-title {
-  font-weight: 900;
-  font-size: 0.95rem;
-  line-height: 1.2;
-}
-.pc-sub {
-  margin-top: 4px;
-  font-size: 0.78rem;
-  color: rgba(0,0,0,0.62);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.pc-arrow {
-  opacity: 0.85;
-}
-
-/* Metrics */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.metric-box {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-  padding: 12px 14px;
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.metric-title {
-  font-size: 0.8rem;
-  color: rgba(0, 0, 0, 0.62);
-  margin-bottom: 6px;
-}
-
-.metric-value {
-  font-size: 1.25rem;
-  font-weight: 900;
-}
-
-/* Details */
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 16px;
-}
-
-.detail-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px dashed rgba(0, 0, 0, 0.08);
-  border-radius: 14px;
-  background: white;
-}
-
-.label {
-  font-size: 0.82rem;
-  color: rgba(0, 0, 0, 0.62);
-  white-space: nowrap;
-}
-
-.value {
-  font-weight: 800;
-  text-align: end;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (max-width: 960px) {
+  /* ✅ popup route cards */
   .popup-cards {
-    grid-template-columns: 1fr;
-  }
-  .metrics-grid {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
-  .details-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
-/* Dark mode */
-:deep(.v-theme--dark) .details-card {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: #1e1e1e;
-}
-:deep(.v-theme--dark) .popup-card {
-  border-color: rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.04);
-}
-:deep(.v-theme--dark) .pc-sub {
-  color: rgba(255,255,255,0.70);
-}
-:deep(.v-theme--dark) .metric-box {
-  border-color: rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.04);
-}
-:deep(.v-theme--dark) .metric-title {
-  color: rgba(255, 255, 255, 0.70);
-}
-:deep(.v-theme--dark) .detail-row {
-  border-color: rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.03);
-}
-:deep(.v-theme--dark) .label {
-  color: rgba(255, 255, 255, 0.70);
-}
+  .popup-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+    user-select: none;
+  }
+  .popup-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.1);
+    border-color: rgba(var(--v-theme-primary), 0.22);
+  }
+
+  .pc-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--v-theme-primary), 0.1);
+  }
+  .pc-icon.primary {
+    background: rgba(var(--v-theme-primary), 0.1);
+  }
+  .pc-icon.teal {
+    background: rgba(var(--v-theme-teal), 0.1);
+  }
+  .pc-icon.indigo {
+    background: rgba(var(--v-theme-indigo), 0.1);
+  }
+  .pc-icon.cyan {
+    background: rgba(var(--v-theme-teal), 0.1);
+  }
+
+  .pc-body {
+    min-width: 0;
+    flex: 1;
+  }
+  .pc-title {
+    font-weight: 900;
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+  .pc-sub {
+    margin-top: 4px;
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.62);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pc-arrow {
+    opacity: 0.85;
+  }
+
+  /* Metrics */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .metric-box {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .metric-title {
+    font-size: 0.8rem;
+    color: rgba(0, 0, 0, 0.62);
+    margin-bottom: 6px;
+  }
+
+  .metric-value {
+    font-size: 1.25rem;
+    font-weight: 900;
+  }
+
+  /* Details */
+  .details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 16px;
+  }
+
+  .detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px dashed rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
+    background: white;
+  }
+
+  .label {
+    font-size: 0.82rem;
+    color: rgba(0, 0, 0, 0.62);
+    white-space: nowrap;
+  }
+
+  .value {
+    font-weight: 800;
+    text-align: end;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 960px) {
+    .popup-cards {
+      grid-template-columns: 1fr;
+    }
+    .metrics-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .details-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Dark mode */
+  :deep(.v-theme--dark) .details-card {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: #1e1e1e;
+  }
+  :deep(.v-theme--dark) .popup-card {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  :deep(.v-theme--dark) .pc-sub {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  :deep(.v-theme--dark) .metric-box {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  :deep(.v-theme--dark) .metric-title {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  :deep(.v-theme--dark) .detail-row {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+  }
+  :deep(.v-theme--dark) .label {
+    color: rgba(255, 255, 255, 0.7);
+  }
 </style>
