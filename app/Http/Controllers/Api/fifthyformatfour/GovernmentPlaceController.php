@@ -36,38 +36,114 @@ class GovernmentPlaceController extends Controller
 
     /**
      * GET /government-places
-     *
-     * ✅ Same pattern as others:
-     * - supports ?search=...&perPage=...&page=...
-     * - if page/perPage invalid → return ALL (no pagination)
      */
     public function index(Request $request)
     {
-        $query = GovernmentPlace::query()
-            ->with(['resource:id,name,code_number,phone_number']);
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page', $request->query('itemsPerPage')));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
         $search = trim((string) $request->query('search', ''));
-        if ($search !== '') {
-            $query->where(function (Builder $w) use ($search) {
-                $w->where('government_place_name', 'like', "%{$search}%")
-                    ->orWhere('province', 'like', "%{$search}%")
-                    ->orWhere('district', 'like', "%{$search}%")
-                    ->orWhere('village', 'like', "%{$search}%");
-            });
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+
+                'government_place_name','daily_clientele',
+        'responsible_name','responsible_f_name','responsible_possition','responsible_phone',
+        'province','zone','district','village','specefic_place','coordinates',
+        'tafseel','amnyatee_khala','guard_quantity',
+        'picture',
+        'Province_addr',
+        'employee_quantity',
+        'resource_id','note',
+        ];
+
+        $query = GovernmentPlace::query()
+            ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
+                $sub->where(function (Builder $w) use ($search) {
+                    $w->where('government_place_name', 'like', "%{$search}%")
+                        ->orWhere('province', 'like', "%{$search}%")
+                        ->orWhere('district', 'like', "%{$search}%")
+                        ->orWhere('village', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
+            ->orderByDesc('id');
+
+        if ($isValidPage && $isValidPerPage) {
+            $rows = $query->paginate((int) $perPage, ['*'], 'page', (int) $page);
+            return GovernmentPlaceResource::collection($rows);
         }
 
-        $perPage = $request->query('perPage', $request->query('per_page'));
-        $page    = $request->query('page');
+        return GovernmentPlaceResource::collection($query->get());
+    }
 
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    /**
+     * GET /government-places/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
 
-        if ($perPageInt === false || $pageInt === false) {
-            return GovernmentPlaceResource::collection($query->orderByDesc('id')->get());
+        $allowedFields = [
+
+                'government_place_name','daily_clientele',
+        'responsible_name','responsible_f_name','responsible_possition','responsible_phone',
+        'province','zone','district','village','specefic_place','coordinates',
+        'tafseel','amnyatee_khala','guard_quantity',
+        'picture',
+        'Province_addr',
+        'employee_quantity',
+        'resource_id','note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
         }
 
-        $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
-        return GovernmentPlaceResource::collection($rows);
+        $query = GovernmentPlace::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**
@@ -103,7 +179,7 @@ class GovernmentPlaceController extends Controller
                     action: 'created',
                     title: 'دولتي ځایونه ثبت شوو',
                     message: 'نوم: ' . ($row->government_place_name ?? ''),
-                    routeName: 'government-places',     // ✅ set your real route name
+                    routeName: 'government-places',
                     routeParams: ['id' => $row->id],
                     level: 'success',
                     changes: null
@@ -187,7 +263,7 @@ class GovernmentPlaceController extends Controller
                     action: 'updated',
                     title: 'دولتي ځایونه اصلاح شوو',
                     message: 'نوم: ' . ($governmentplace->government_place_name ?? ''),
-                    routeName: 'government-places',     // ✅ set your real route name
+                    routeName: 'government-places',
                     routeParams: ['id' => $governmentplace->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null

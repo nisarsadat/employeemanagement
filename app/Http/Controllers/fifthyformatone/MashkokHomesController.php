@@ -68,17 +68,25 @@ class MashkokHomesController extends Controller
             : 'desc';
 
         $allowedSearchFields = [
-            'province',
-            'zone',
-            'district',
-            'village',
-            'specific_place',
-            'home_type',
-            'tafseel',
-            'note',
-            'owner_name',
-            'owner_phone',
-            'coordinates',
+            
+         'information_id',
+
+        'picture',
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'home_number',
+        'coordinates',
+        'home_type',
+        'mashkok_type',
+        'Province_addr',
+        'shak_symbols',
+        'note',
+        'tafseel',
+        'resource_id',
         ];
 
         $q = MashkokHomes::query()->with([
@@ -133,17 +141,25 @@ class MashkokHomesController extends Controller
         $q = trim((string) $request->query('q', ''));
 
         $allowedFields = [
-            'province',
-            'zone',
-            'district',
-            'village',
-            'specific_place',
-            'home_type',
-            'tafseel',
-            'note',
-            'owner_name',
-            'owner_phone',
-            'coordinates',
+            
+         'information_id',
+
+        'picture',
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'home_number',
+        'coordinates',
+        'home_type',
+        'mashkok_type',
+        'Province_addr',
+        'shak_symbols',
+        'note',
+        'tafseel',
+        'resource_id',
         ];
 
         if ($field === '' || !in_array($field, $allowedFields, true)) {

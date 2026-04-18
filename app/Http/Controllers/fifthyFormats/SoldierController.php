@@ -39,17 +39,33 @@ class SoldierController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->get('perPage', 15);
-        $search  = $request->get('search');
+        $search  = trim((string) $request->get('search', ''));
         $rid     = $request->get('resource_id');
+        $searchField = trim((string) $request->get('search_field', ''));
+        $searchValue = trim((string) $request->get('search_value', ''));
 
         $sortBy  = $request->get('sort_by', 'created_at');
         $sortDir = in_array($request->get('sort_dir'), ['asc', 'desc'], true) ? $request->get('sort_dir') : 'desc';
+
+        $allowedSearchFields = [
+          
+         'name',
+        'father_name',
+        'picture',
+        'main_province','main_district','main_village',
+        'now_province','now_zone','now_district','now_village',
+        'specific_place','street_number','home_number',
+        'Province_addr',
+        'phone_number',
+        'old_job','now_job','guard_amount','phone_number',
+        'notes','resource_id', 'coordinates'
+        ];
 
         $q = Soldier::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
         ]);
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($qq) use ($search) {
                 $qq->where('name', 'like', "%{$search}%")
                     ->orWhere('father_name', 'like', "%{$search}%")
@@ -62,6 +78,14 @@ class SoldierController extends Controller
             });
         }
 
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
         if ($rid) {
             $q->where('resource_id', $rid);
         }
@@ -69,6 +93,60 @@ class SoldierController extends Controller
         $q->orderBy($sortBy, $sortDir);
 
         return SoldierResource::collection($q->paginate($perPage));
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+          
+         'name',
+        'father_name',
+        'picture',
+        'main_province','main_district','main_village',
+        'now_province','now_zone','now_district','now_village',
+        'specific_place','street_number','home_number',
+        'Province_addr',
+        'phone_number',
+        'old_job','now_job','guard_amount','phone_number',
+        'notes','resource_id', 'coordinates'
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Soldier::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function show(Soldier $soldier)

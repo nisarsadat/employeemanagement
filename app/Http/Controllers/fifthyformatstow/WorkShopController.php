@@ -34,25 +34,136 @@ class WorkShopController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search      = trim((string) $request->input('search', ''));
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
+
+        $allowedSearchFields = [
+            'workshop_name',
+        'workshop_type',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+
+        'province',
+        'Province_addr',
+        'zone',
+        'picture',
+        'district',
+        'village',
+        'specific_place',
+        'coordinates',
+
+        'workers_quantity',
+        'note',
+        'resource_id',
+        ];
 
         $q = WorkShop::query()
             ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
+                $sub->where(function ($qq) use ($search) {
+                    $qq->where('workshop_name', 'like', "%{$search}%")
+                       ->orWhere('workshop_type', 'like', "%{$search}%")
+                       ->orWhere('responsible_name', 'like', "%{$search}%")
+                       ->orWhere('responsible_phone', 'like', "%{$search}%")
+                       ->orWhere('province', 'like', "%{$search}%")
+                       ->orWhere('district', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
             ->latest();
 
-        if ($search) {
-            $q->where(function ($qq) use ($search) {
-                $qq->where('workshop_name', 'like', "%{$search}%")
-                   ->orWhere('workshop_type', 'like', "%{$search}%")
-                   ->orWhere('responsible_name', 'like', "%{$search}%")
-                   ->orWhere('responsible_phone', 'like', "%{$search}%")
-                   ->orWhere('province', 'like', "%{$search}%")
-                   ->orWhere('district', 'like', "%{$search}%");
-            });
+        if ($isValidPage && $isValidPerPage) {
+            return WorkShopResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
         }
 
-        return WorkShopResource::collection($q->paginate($perPage));
+        return WorkShopResource::collection($q->get());
+    }
+
+    /**
+     * GET /work-shops/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            'workshop_name',
+        'workshop_type',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+
+        'province',
+        'Province_addr',
+        'zone',
+        'picture',
+        'district',
+        'village',
+        'specific_place',
+        'coordinates',
+
+        'workers_quantity',
+        'note',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = WorkShop::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreWorkShopRequest $request)

@@ -62,13 +62,48 @@ class OldJahadiController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $search  = trim((string) $request->input('search', ''));
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
+
+        $allowedSearchFields = [
+           
+         'picture',
+        'nick_name',
+        'name',
+        'father_name',
+
+        'main_province',
+        'main_district',
+        'main_village',
+
+        'now_province',
+        'now_zone',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+
+        'old_job',
+        'Province_addr',
+        'now_job',
+        'employee_quantity',
+        'supplier',
+        'phone_number',
+        'tanzim',
+        'jorm_history',
+        'note',
+        'organ',
+        'coordinates',
+        'resource_id',
+        ];
 
         $q = OldJahadi::query()
             ->with(['resource:id,name,code_number,phone_number'])
             ->latest();
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($qq) use ($search) {
                 $qq->where('name', 'like', "%{$search}%")
                    ->orWhere('father_name', 'like', "%{$search}%")
@@ -77,7 +112,88 @@ class OldJahadiController extends Controller
             });
         }
 
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
         return OldJahadiResource::collection($q->paginate($perPage));
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+           
+         'picture',
+        'nick_name',
+        'name',
+        'father_name',
+
+        'main_province',
+        'main_district',
+        'main_village',
+
+        'now_province',
+        'now_zone',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+
+        'old_job',
+        'Province_addr',
+        'now_job',
+        'employee_quantity',
+        'supplier',
+        'phone_number',
+        'tanzim',
+        'jorm_history',
+        'note',
+        'organ',
+        'coordinates',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = OldJahadi::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreOldJahadiRequest $request)

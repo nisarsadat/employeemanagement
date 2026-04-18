@@ -38,13 +38,37 @@ class CheckpointController extends Controller
     {
         $query = Checkpoint::query()->with(['resource:id,name,code_number,phone_number']);
 
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('checkpoint_name', 'like', "%$s%")
-                    ->orWhere('organ', 'like', "%$s%")
-                    ->orWhere('province', 'like', "%$s%")
-                    ->orWhere('village', 'like', "%$s%");
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+        'check_point_place',
+        'checkpoint_name','employee_quantity',
+        'organ','create_reason',
+        'officer_name','officer_f_name','officer_phone',
+        'gun_type',
+        'province','zone','district','village','specefic_place',
+        'coordinates',
+        'resource_id','note',
+        'Province_addr'
+        ];
+
+        if ($search !== '' && $searchField === '') {
+            $query->where(function (Builder $q) use ($search) {
+                $q->where('checkpoint_name', 'like', "%{$search}%")
+                    ->orWhere('organ', 'like', "%{$search}%")
+                    ->orWhere('province', 'like', "%{$search}%")
+                    ->orWhere('village', 'like', "%{$search}%");
             });
+        }
+
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
         }
 
         $perPage = $request->query('perPage');
@@ -60,6 +84,58 @@ class CheckpointController extends Controller
 
         $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
         return CheckpointResource::collection($rows);
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+        'check_point_place',
+        'checkpoint_name','employee_quantity',
+        'organ','create_reason',
+        'officer_name','officer_f_name','officer_phone',
+        'gun_type',
+        'province','zone','district','village','specefic_place',
+        'coordinates',
+        'resource_id','note',
+        'Province_addr'
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Checkpoint::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreCheckpointRequest $request)

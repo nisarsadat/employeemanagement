@@ -24,10 +24,10 @@ class UniversityController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'دا پوهنتونونه مخکې نه ثبت شوی دی.',
+            'message' => 'دا پوهنتونونه مخکې نه ثبت شوي دي.',
             'errors'  => [
                 'duplicate' => [
-                    'د همدې معلوماتو (پوهنتونونه نوم/ډول + ولایت/زون/ولسوالۍ/کلی/ځانګړی ځای/کوڅه/کور) سره پوهنتونونه مخکې موجود دی.',
+                    'د همدې معلوماتو (د پوهنتون نوم/ډول + ولایت/زون/ولسوالۍ/کلی/ځانګړی ځای/کوڅه/کور) سره پوهنتونونه مخکې موجود دي.',
                 ],
             ],
         ], 422);
@@ -35,33 +35,118 @@ class UniversityController extends Controller
 
     public function index(Request $request)
     {
-        $query = University::query()->with(['resource:id,name,code_number,phone_number']);
-
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('uni_name', 'like', "%{$s}%")
-                  ->orWhere('uni_type', 'like', "%{$s}%")
-                  ->orWhere('responsible_name', 'like', "%{$s}%")
-                  ->orWhere('responsible_phone', 'like', "%{$s}%")
-                  ->orWhere('province', 'like', "%{$s}%")
-                  ->orWhere('district', 'like', "%{$s}%")
-                  ->orWhere('village', 'like', "%{$s}%");
-            });
-        }
-
-        $perPage = $request->query('perPage');
         $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
 
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
-        // Fallback → return ALL when missing/invalid
-        if ($perPageInt === false || $pageInt === false) {
-            return UniversityResource::collection($query->orderByDesc('id')->get());
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+
+                'uni_name','uni_type',
+        'responsible_name','responsible_f_name','responsible_position','responsible_phone',
+        'male_teachers_quantity','female_teachers_quantity',
+        'picture',
+        'male_students_quantity','female_students_quantity',
+        'province','zone','district','village','specific_place','street_number','home_number',
+        'Province_addr',
+        'coordinates',
+        'resource_id',
+        'note',
+        ];
+
+        $query = University::query()
+            ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function (Builder $sub) use ($search) {
+                $sub->where(function (Builder $q) use ($search) {
+                    $q->where('uni_name', 'like', "%{$search}%")
+                        ->orWhere('uni_type', 'like', "%{$search}%")
+                        ->orWhere('responsible_name', 'like', "%{$search}%")
+                        ->orWhere('responsible_phone', 'like', "%{$search}%")
+                        ->orWhere('province', 'like', "%{$search}%")
+                        ->orWhere('district', 'like', "%{$search}%")
+                        ->orWhere('village', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function (Builder $sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
+            ->orderByDesc('id');
+
+        if ($isValidPage && $isValidPerPage) {
+            $rows = $query->paginate((int) $perPage, ['*'], 'page', (int) $page);
+            return UniversityResource::collection($rows);
         }
 
-        $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
-        return UniversityResource::collection($rows);
+        return UniversityResource::collection($query->get());
+    }
+
+    /**
+     * GET /universities/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+
+                'uni_name','uni_type',
+        'responsible_name','responsible_f_name','responsible_position','responsible_phone',
+        'male_teachers_quantity','female_teachers_quantity',
+        'picture',
+        'male_students_quantity','female_students_quantity',
+        'province','zone','district','village','specific_place','street_number','home_number',
+        'Province_addr',
+        'coordinates',
+        'resource_id',
+        'note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = University::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**
@@ -97,7 +182,7 @@ class UniversityController extends Controller
                     action: 'created',
                     title: 'نوی پوهنتونونه  شو',
                     message: 'نوم: ' . ($university->uni_name ?? ''),
-                    routeName: 'universities',            // ⚠️ set to your real route name
+                    routeName: 'universities',
                     routeParams: ['id' => $university->id],
                     level: 'success',
                     changes: null
@@ -180,7 +265,7 @@ class UniversityController extends Controller
                     action: 'updated',
                     title: 'پوهنتونونه اصلاح شو',
                     message: 'نوم: ' . ($university->uni_name ?? ''),
-                    routeName: 'universities',            // ⚠️ set to your real route name
+                    routeName: 'universities',
                     routeParams: ['id' => $university->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null

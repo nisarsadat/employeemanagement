@@ -47,27 +47,64 @@ class CarSalesCompanyController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
-        $rid     = $request->input('resource_id');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search      = trim((string) $request->input('search', ''));
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
+        $rid         = $request->input('resource_id');
 
         $sortBy  = $request->input('sort_by', 'created_at');
         $sortDir = in_array($request->input('sort_dir'), ['asc','desc'], true)
             ? $request->input('sort_dir')
             : 'desc';
 
+        $allowedSearchFields = [
+           
+        'car_sales_company_name',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+        'Province_addr',
+
+        'province',
+        'zone',
+        'picture',
+        'district',
+        'village',
+        'specific_place',
+        'coordinates',
+
+        'note',
+        'resource_id',
+        ];
+
         $q = CarSalesCompany::query()->with([
             'resource' => fn ($qr) => $qr->select('id','name','code_number','phone_number'),
         ]);
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($qq) use ($search) {
                 $qq->where('car_sales_company_name', 'like', "%{$search}%")
-                   ->orWhere('responsible_name', 'like', "%{$search}%")
-                   ->orWhere('responsible_phone', 'like', "%{$search}%")
-                   ->orWhere('province', 'like', "%{$search}%")
-                   ->orWhere('district', 'like', "%{$search}%");
+                    ->orWhere('responsible_name', 'like', "%{$search}%")
+                    ->orWhere('responsible_phone', 'like', "%{$search}%")
+                    ->orWhere('province', 'like', "%{$search}%")
+                    ->orWhere('district', 'like', "%{$search}%");
             });
+        }
+
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
         }
 
         if ($rid) {
@@ -76,7 +113,78 @@ class CarSalesCompanyController extends Controller
 
         $q->orderBy($sortBy, $sortDir);
 
-        return CarSalesCompanyResource::collection($q->paginate($perPage));
+        if ($isValidPage && $isValidPerPage) {
+            return CarSalesCompanyResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
+        }
+
+        return CarSalesCompanyResource::collection($q->get());
+    }
+
+    /**
+     * GET /car-sales-companies/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+           
+        'car_sales_company_name',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+        'Province_addr',
+
+        'province',
+        'zone',
+        'picture',
+        'district',
+        'village',
+        'specific_place',
+        'coordinates',
+
+        'note',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = CarSalesCompany::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**

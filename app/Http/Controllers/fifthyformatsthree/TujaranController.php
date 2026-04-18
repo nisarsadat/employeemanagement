@@ -35,13 +35,52 @@ class TujaranController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $search  = trim((string) $request->input('search', ''));
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
+
+        $allowedSearchFields = [
+            
+         'name',
+        'father_name',
+        'picture',
+
+        // Main address
+        'main_province',
+        'main_district',
+        'main_village',
+
+        // Current address
+        'now_province',
+        'now_zone',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'Province_addr',
+        'now_home_number',
+
+        // Work & org
+        'old_job',
+        'now_job',
+        'organ',
+
+        // Other
+        'guard_guntity',   // kept spelling as provided in the note
+        'phone_number',
+        'tahdid_mutawaji',
+        'people_type',
+
+        'note',
+        'coordinates',
+        'resource_id',
+        ];
 
         $q = Tujaran::query()
             ->with(['resource:id,name,code_number,phone_number'])
             ->latest();
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($qq) use ($search) {
                 $qq->where('name', 'like', "%{$search}%")
                    ->orWhere('father_name', 'like', "%{$search}%")
@@ -50,7 +89,92 @@ class TujaranController extends Controller
             });
         }
 
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
         return TujaranResource::collection($q->paginate($perPage));
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            
+         'name',
+        'father_name',
+        'picture',
+
+        // Main address
+        'main_province',
+        'main_district',
+        'main_village',
+
+        // Current address
+        'now_province',
+        'now_zone',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'Province_addr',
+        'now_home_number',
+
+        // Work & org
+        'old_job',
+        'now_job',
+        'organ',
+
+        // Other
+        'guard_guntity',   // kept spelling as provided in the note
+        'phone_number',
+        'tahdid_mutawaji',
+        'people_type',
+
+        'note',
+        'coordinates',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Tujaran::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreTujaranRequest $request)

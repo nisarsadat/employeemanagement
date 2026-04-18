@@ -38,13 +38,36 @@ class CompanyController extends Controller
     {
         $query = Company::query()->with(['resource:id,name,code_number,phone_number']);
 
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('com_name', 'like', "%$s%")
-                    ->orWhere('product_type', 'like', "%$s%")
-                    ->orWhere('com_district', 'like', "%$s%")
-                    ->orWhere('com_village', 'like', "%$s%");
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+
+                'com_name','com_type','product_type','com_level','main_owner',
+        'responsible_name','responsible_f_name','responsible_position','responsible_phone',
+        'com_province','com_zone','com_district','com_village','com_specific_place','com_coordinates',
+        'male_employee_quantity_inner','female_employee_quantity_inner',
+        'male_employee_quantity_out','female_employee_quantity_out','guard_quantity',
+        'resource_id','note',
+        'Province_addr',
+        ];
+
+        if ($search !== '' && $searchField === '') {
+            $query->where(function (Builder $q) use ($search) {
+                $q->where('com_name', 'like', "%{$search}%")
+                    ->orWhere('product_type', 'like', "%{$search}%")
+                    ->orWhere('com_district', 'like', "%{$search}%")
+                    ->orWhere('com_village', 'like', "%{$search}%");
             });
+        }
+
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
         }
 
         $perPage = $request->query('perPage');
@@ -60,6 +83,57 @@ class CompanyController extends Controller
 
         $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
         return CompanyResource::collection($rows);
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+
+                'com_name','com_type','product_type','com_level','main_owner',
+        'responsible_name','responsible_f_name','responsible_position','responsible_phone',
+        'com_province','com_zone','com_district','com_village','com_specific_place','com_coordinates',
+        'male_employee_quantity_inner','female_employee_quantity_inner',
+        'male_employee_quantity_out','female_employee_quantity_out','guard_quantity',
+        'resource_id','note',
+        'Province_addr',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Company::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**

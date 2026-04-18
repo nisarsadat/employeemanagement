@@ -47,9 +47,41 @@ class ParkingController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
-        $rid     = $request->input('resource_id');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page', $request->query('itemsPerPage')));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search      = trim((string) $request->query('search', ''));
+        $rid         = $request->input('resource_id');
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+            
+         'parking_name',
+        'parking_type',
+        'parking_type_pe',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+
+        'province',
+        'picture',
+        'zone',
+        'district',
+        'Province_addr',
+        'village',
+        'specific_place',
+        'coordinates',
+
+        'daily_cars_parking_quantity',
+        'note',
+        'resource_id',
+        ];
 
         $sortBy  = $request->input('sort_by', 'created_at');
         $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
@@ -60,7 +92,7 @@ class ParkingController extends Controller
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
         ]);
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($qq) use ($search) {
                 $qq->where('parking_name', 'like', "%{$search}%")
                    ->orWhere('responsible_name', 'like', "%{$search}%")
@@ -70,13 +102,95 @@ class ParkingController extends Controller
             });
         }
 
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
         if ($rid) {
             $q->where('resource_id', $rid);
         }
 
         $q->orderBy($sortBy, $sortDir);
 
-        return ParkingResource::collection($q->paginate($perPage));
+        if ($isValidPage && $isValidPerPage) {
+            return ParkingResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
+        }
+
+        return ParkingResource::collection($q->get());
+    }
+
+    /**
+     * GET /parkings/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            
+         'parking_name',
+        'parking_type',
+        'parking_type_pe',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+
+        'province',
+        'picture',
+        'zone',
+        'district',
+        'Province_addr',
+        'village',
+        'specific_place',
+        'coordinates',
+
+        'daily_cars_parking_quantity',
+        'note',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Parking::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**

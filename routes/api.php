@@ -272,6 +272,99 @@ Route::middleware('auth:sanctum')->group(function () {
     // resources (API) => module: resources_api
     protectResource('resources', 'resources_api', ResourceController::class);
 
+    Route::get('fasads/filter-options', [FasadController::class, 'filterOptions']);
+
+    Route::get('saeen-fasads/filter-options', [SaeenFasadController::class, 'filterOptions']);
+
+    Route::get('jawasis/filter-options', [JawasisController::class, 'filterOptions']);
+
+    Route::get('heists/filter-options', [HeistController::class, 'filterOptions']);
+
+    Route::get('mahajerats/filter-options', [MahajeratController::class, 'filterOptions']);
+
+    Route::get('non-responsable-people/filter-options', [NonResponsablePeopleController::class, 'filterOptions']);
+
+    Route::get('mashkok-homes/filter-options', [MashkokHomesController::class, 'filterOptions']);
+    Route::get('mawads/filter-options', [MawadController::class, 'filterOptions']);
+
+    Route::get('robbers/filter-options', [RobbersController::class, 'filterOptions']);
+
+    Route::get('badmashanos/filter-options', [BadmashanoController::class, 'filterOptions']);
+
+    Route::get('old-soldiers-homes/filter-options', [OldSoldiersHomesController::class, 'filterOptions']);
+
+    Route::get('clubs/filter-options', [ClubsController::class, 'filterOptions']);
+
+    Route::get('entry-exits/filter-options', [EntryExitController::class, 'filterOptions']);
+
+    Route::get('emarat-offices/filter-options', [EmaratOfficeController::class, 'filterOptions']);
+
+    Route::get('hostels/filter-options', [HostelController::class, 'filterOptions']);
+
+    Route::get('hotels/filter-options', [HotelController::class, 'filterOptions']);
+
+    Route::get('hado-bus-stops/filter-options', [HadoBusStopController::class, 'filterOptions']);
+
+    Route::get('hosppitals/filter-options', [HosppitalController::class, 'filterOptions']);
+
+    Route::get('parkings/filter-options', [ParkingController::class, 'filterOptions']);
+
+    Route::get('captive-deliveries/filter-options', [CaptiveDeliveryController::class, 'filterOptions']);
+    Route::get('luchakano/filter-options', [LuchakanoController::class, 'filterOptions']);
+
+    Route::get('madrasas/filter-options', [MadrasaController::class, 'filterOptions']);
+
+    Route::get('luchakanos/filter-options', [LuchakanoController::class, 'filterOptions']);
+    Route::get('sarayanos/filter-options', [SarayanoController::class, 'filterOptions']);
+
+    Route::get('madrasas/filter-options', [MadrasaController::class, 'filterOptions']);
+    Route::get('mujahedinos/filter-options', [MujahedinoController::class, 'filterOptions']);
+
+    Route::get('highways/filter-options', [HighwayController::class, 'filterOptions']);
+    Route::get('econemy-projects/filter-options', [EconemyProjectController::class, 'filterOptions']);
+    Route::get('wakilanos/filter-options', [WakilanoController::class, 'filterOptions']);
+    Route::get('done-lost-places/filter-options', [DoneLostPlaceController::class, 'filterOptions']);
+    Route::get('criminal-capture-places/filter-options', [CriminalCapturePlaceController::class, 'filterOptions']);
+    Route::get('shoras/filter-options', [ShoraController::class, 'filterOptions']);
+    Route::get('governmentplaces/filter-options', [GovernmentPlaceController::class, 'filterOptions']);
+    Route::get('supermarkets/filter-options', [SuperMarketController::class, 'filterOptions']);
+    Route::get('deplomaticplaces/filter-options', [DeplomaticPlaceController::class, 'filterOptions']);
+    Route::get('universities/filter-options', [UniversityController::class, 'filterOptions']);
+    Route::get('apartments/filter-options', [ApartmentController::class, 'filterOptions']);
+    Route::get('banks/filter-options', [BankController::class, 'filterOptions']);
+    Route::get('car-sales-companies/filter-options', [CarSalesCompanyController::class, 'filterOptions']);
+    Route::get('transport-companies/filter-options', [TransportCompanyController::class, 'filterOptions']);
+    Route::get('work-shops/filter-options', [WorkShopController::class, 'filterOptions']);
+    Route::get('checkpoints/filter-options', [CheckpointController::class, 'filterOptions']);
+    Route::get('companies/filter-options', [CompanyController::class, 'filterOptions']);
+    Route::get('complexes/filter-options', [ComplexController::class, 'filterOptions']);
+
+    Route::get('masjids/filter-options', [MasjidController::class, 'filterOptions']);
+    Route::get('parks/filter-options', [ParkController::class, 'filterOptions']);
+    Route::get('pumps/filter-options', [PumpController::class, 'filterOptions']);
+
+    Route::get('damage-places/filter-options', [DamagePlacesController::class, 'filterOptions']);
+    Route::get('damage-rasan-places/filter-options', [DamageRasanPlacesController::class, 'filterOptions']);
+    Route::get('lost-mujremeens/filter-options', [LostMujremeenController::class, 'filterOptions']);
+
+    Route::get('mulkanos/filter-options', [MulkanoController::class, 'filterOptions']);
+    Route::get('sarafyanos/filter-options', [SarafyanoController::class, 'filterOptions']);
+    Route::get('soldiers/filter-options', [SoldierController::class, 'filterOptions']);
+
+    Route::get('old-jahadis/filter-options', [OldJahadiController::class, 'filterOptions']);
+    Route::get('sarayano/filter-options', [SarayanoController::class, 'filterOptions']);
+    Route::get('tujarans/filter-options', [TujaranController::class, 'filterOptions']);
+
+    Route::get('hostels/filter-options', [HostelController::class, 'filterOptions']);
+    Route::get('rahnoma-mamlats/filter-options', [RahnomaMamlatController::class, 'filterOptions']);
+    Route::get('schools/filter-options', [SchoolController::class, 'filterOptions']);
+
+    Route::get('hotels/filter-options', [HotelController::class, 'filterOptions']);
+    Route::get('mashkok-shops/filter-options', [MashkokShopsController::class, 'filterOptions']);
+
+    Route::get('mashkok-people/filter-options', [MashkokPeopleController::class, 'filterOptions']);
+
+    Route::get('captives/filter-options', [CaptiveController::class, 'filterOptions']);
     // informations (API) => module: informations_api
     protectResource('informations', 'informations_api', InformationController::class);
     Route::get   ('informations/{information}/documents',               [InformationDocumentController::class, 'index']);

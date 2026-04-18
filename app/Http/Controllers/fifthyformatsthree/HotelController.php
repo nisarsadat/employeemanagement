@@ -35,13 +35,39 @@ class HotelController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $search  = trim((string) $request->input('search', ''));
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
+
+        $allowedSearchFields = [
+            
+        'hotel_name',
+        'type',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+
+        'province',
+        'zone',
+        'Province_addr',
+        'district',
+        'village',
+        'specific_place',
+        'cordenate',
+
+        'employee_quantity',
+        'note',
+
+        'resource_id',
+        ];
 
         $q = Hotel::query()
             ->with(['resource:id,name,code_number,phone_number'])
             ->latest();
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($qq) use ($search) {
                 $qq->where('hotel_name', 'like', "%{$search}%")
                    ->orWhere('responsible_name', 'like', "%{$search}%")
@@ -49,7 +75,79 @@ class HotelController extends Controller
             });
         }
 
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
         return HotelResource::collection($q->paginate($perPage));
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            
+        'hotel_name',
+        'type',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+
+        'province',
+        'zone',
+        'Province_addr',
+        'district',
+        'village',
+        'specific_place',
+        'cordenate',
+
+        'employee_quantity',
+        'note',
+
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Hotel::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreHotelRequest $request)

@@ -34,22 +34,131 @@ class EmaratOfficeController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page', $request->query('itemsPerPage')));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search      = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+           
+        'type',
+        're_name',
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'home_number',
+        'coordenates',      // kept spelling as written
+        'home_type',
+        'Province_addr',
+        'responsible_office',
+        'job',
+        'tahdid_mutawajeh', // kept as provided
+        'guard_quantity',
+        'note',
+        'resource_id',
+        ];
 
         $q = EmaratOffice::query()
             ->with(['resource:id,name,code_number,phone_number'])
-            ->latest();
+            ->latest()
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
+                $sub->where(function ($qq) use ($search) {
+                    $qq->where('province', 'like', "%{$search}%")
+                       ->orWhere('district', 'like', "%{$search}%")
+                       ->orWhere('responsible_office', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
 
-        if ($search) {
-            $q->where(function ($qq) use ($search) {
-                $qq->where('province', 'like', "%{$search}%")
-                   ->orWhere('district', 'like', "%{$search}%")
-                   ->orWhere('responsible_office', 'like', "%{$search}%");
-            });
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            );
+
+        if ($isValidPage && $isValidPerPage) {
+            return EmaratOfficeResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
         }
 
-        return EmaratOfficeResource::collection($q->paginate($perPage));
+        return EmaratOfficeResource::collection($q->get());
+    }
+
+    /**
+     * GET /emarat-offices/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+           
+        'type',
+        're_name',
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'home_number',
+        'coordenates',      // kept spelling as written
+        'home_type',
+        'Province_addr',
+        'responsible_office',
+        'job',
+        'tahdid_mutawajeh', // kept as provided
+        'guard_quantity',
+        'note',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = EmaratOffice::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreEmaratOfficeRequest $request)

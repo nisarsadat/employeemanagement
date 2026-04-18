@@ -48,19 +48,48 @@ class SchoolController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $search  = trim((string) $request->input('search', ''));
         $rid     = $request->input('resource_id');
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
 
         $sortBy  = $request->input('sort_by', 'created_at');
         $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
             ? $request->input('sort_dir')
             : 'desc';
 
+        $allowedSearchFields = [
+            'school_name',
+        'school_type',
+
+        'principle_name',
+        'principle_f_name',
+        'principle_phone',
+
+        'male_teachers_quantity',
+        'female_teachers_quantity',
+        'male_students_quantity',
+        'female_students_quantity',
+        'picture',
+
+        'province',
+        'Province_addr',
+        'zone',
+        'district',
+        'specific_place',
+        'village',
+        'street_number',
+        'coordinates',
+
+        'note',
+        'resource_id',
+        ];
+
         $q = School::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
         ]);
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($qq) use ($search) {
                 $qq->where('school_name', 'like', "%{$search}%")
                    ->orWhere('principle_name', 'like', "%{$search}%")
@@ -70,6 +99,14 @@ class SchoolController extends Controller
             });
         }
 
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
         if ($rid) {
             $q->where('resource_id', $rid);
         }
@@ -77,6 +114,73 @@ class SchoolController extends Controller
         $q->orderBy($sortBy, $sortDir);
 
         return SchoolResource::collection($q->paginate($perPage));
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            'school_name',
+        'school_type',
+
+        'principle_name',
+        'principle_f_name',
+        'principle_phone',
+
+        'male_teachers_quantity',
+        'female_teachers_quantity',
+        'male_students_quantity',
+        'female_students_quantity',
+        'picture',
+
+        'province',
+        'Province_addr',
+        'zone',
+        'district',
+        'specific_place',
+        'village',
+        'street_number',
+        'coordinates',
+
+        'note',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = School::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /** POST /schools

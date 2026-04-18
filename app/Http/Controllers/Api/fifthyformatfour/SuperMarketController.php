@@ -24,10 +24,10 @@ class SuperMarketController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این تجارتي مرکزونه او سوپرمارکیټونه قبلاً ثبت شده است.',
+            'message' => 'دا تجارتي مرکزونه او سوپرمارکیټونه مخکې ثبت شوي دي.',
             'errors' => [
                 'duplicate' => [
-                    'تجارتي مرکزونه او سوپرمارکیټونه با همین مشخصات (نام، نوع فعالیت، تعداد مراجعین/دکان‌ها و ولایت/زون/ولسوالی/قریه) قبلاً در سیستم موجود است.',
+                    'تجارتي مرکزونه او سوپرمارکیټونه په همدې مشخصاتو (نوم، د فعالیت ډول، د مراجعینو/دوکانونو شمېر او ولایت/زون/ولسوالي/قریه) سره مخکې په سیستم کې موجود دي.',
                 ],
             ],
         ], 422);
@@ -35,27 +35,110 @@ class SuperMarketController extends Controller
 
     public function index(Request $request)
     {
-        $query = SuperMarket::query()->with(['resource:id,name,code_number,phone_number']);
-
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('supermarket_name', 'like', "%$s%")
-                    ->orWhere('province', 'like', "%$s%")
-                    ->orWhere('village', 'like', "%$s%");
-            });
-        }
-
-        $perPage = $request->query('perPage');
         $page    = $request->query('page');
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $perPage = $request->query('perPage', $request->query('per_page'));
 
-        if ($perPageInt === false || $pageInt === false) {
-            return SuperMarketResource::collection($query->orderByDesc('id')->get());
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+
+                'supermarket_name','market_activity_type','daily_clientele','shops_quantity',
+        'responsible_name','responsible_f_name',
+        'responsible_phone',
+        'picture',
+        'responsible_job',
+        'province','zone','district','village','specefic_place','coordinates',
+        'Province_addr',
+        'employee_quantity','guard_quantity','resource_id','note',
+        ];
+
+        $query = SuperMarket::query()
+            ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function (Builder $sub) use ($search) {
+                $sub->where(function (Builder $q) use ($search) {
+                    $q->where('supermarket_name', 'like', "%{$search}%")
+                        ->orWhere('province', 'like', "%{$search}%")
+                        ->orWhere('village', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function (Builder $sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
+            ->orderByDesc('id');
+
+        if ($isValidPage && $isValidPerPage) {
+            $rows = $query->paginate((int) $perPage, ['*'], 'page', (int) $page);
+            return SuperMarketResource::collection($rows);
         }
 
-        $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
-        return SuperMarketResource::collection($rows);
+        return SuperMarketResource::collection($query->get());
+    }
+
+    /**
+     * GET /super-markets/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+
+                'supermarket_name','market_activity_type','daily_clientele','shops_quantity',
+        'responsible_name','responsible_f_name',
+        'responsible_phone',
+        'picture',
+        'responsible_job',
+        'province','zone','district','village','specefic_place','coordinates',
+        'Province_addr',
+        'employee_quantity','guard_quantity','resource_id','note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = SuperMarket::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**
@@ -91,7 +174,7 @@ class SuperMarketController extends Controller
                     action: 'created',
                     title: 'تجارتي مرکزونه او سوپرمارکیټونه  ثبت شوو',
                     message: 'نوم: ' . ($row->supermarket_name ?? ''),
-                    routeName: 'super-markets',         // ✅ set your real route name
+                    routeName: 'super-markets',
                     routeParams: ['id' => $row->id],
                     level: 'success',
                     changes: null
@@ -172,7 +255,7 @@ class SuperMarketController extends Controller
                     action: 'updated',
                     title: 'تجارتي مرکزونه او سوپرمارکیټونه اصلاح شوو',
                     message: 'نوم: ' . ($supermarket->supermarket_name ?? ''),
-                    routeName: 'super-markets',         // ✅ set your real route name
+                    routeName: 'super-markets',
                     routeParams: ['id' => $supermarket->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null

@@ -34,25 +34,148 @@ class HosppitalController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page', $request->query('itemsPerPage')));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search      = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+           
+         'name',
+        'specific_past',   // as provided
+        'hospita_type',    // as provided
+
+        'responsible_name',
+        'responsible_position',
+        'responsible_phone',
+        'responsible_f_name',
+
+        'male_quantity',
+        'picture',
+        'female_quantity',
+        'guard_quantity',
+
+        'Province_addr',
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'coordinates',
+
+        'note',
+        'resource_id',
+        ];
 
         $q = Hosppital::query()
             ->with(['resource:id,name,code_number,phone_number'])
-            ->latest();
+            ->latest()
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
+                $sub->where(function ($qq) use ($search) {
+                    $qq->where('name', 'like', "%{$search}%")
+                       ->orWhere('hospita_type', 'like', "%{$search}%")
+                       ->orWhere('responsible_name', 'like', "%{$search}%")
+                       ->orWhere('responsible_phone', 'like', "%{$search}%")
+                       ->orWhere('province', 'like', "%{$search}%")
+                       ->orWhere('district', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
 
-        if ($search) {
-            $q->where(function ($qq) use ($search) {
-                $qq->where('name', 'like', "%{$search}%")
-                   ->orWhere('hospita_type', 'like', "%{$search}%")
-                   ->orWhere('responsible_name', 'like', "%{$search}%")
-                   ->orWhere('responsible_phone', 'like', "%{$search}%")
-                   ->orWhere('province', 'like', "%{$search}%")
-                   ->orWhere('district', 'like', "%{$search}%");
-            });
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            );
+
+        if ($isValidPage && $isValidPerPage) {
+            return HosppitalResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
         }
 
-        return HosppitalResource::collection($q->paginate($perPage));
+        return HosppitalResource::collection($q->get());
+    }
+
+    /**
+     * GET /hosppitals/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+           
+         'name',
+        'specific_past',   // as provided
+        'hospita_type',    // as provided
+
+        'responsible_name',
+        'responsible_position',
+        'responsible_phone',
+        'responsible_f_name',
+
+        'male_quantity',
+        'picture',
+        'female_quantity',
+        'guard_quantity',
+
+        'Province_addr',
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'coordinates',
+
+        'note',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Hosppital::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreHosppitalRequest $request)

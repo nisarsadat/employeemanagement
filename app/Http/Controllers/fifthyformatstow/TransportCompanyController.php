@@ -47,20 +47,47 @@ class TransportCompanyController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
-        $rid     = $request->input('resource_id');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search      = trim((string) $request->input('search', ''));
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
+        $rid         = $request->input('resource_id');
 
         $sortBy  = $request->input('sort_by', 'created_at');
         $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
             ? $request->input('sort_dir')
             : 'desc';
 
+        $allowedSearchFields = [
+           'transport_company_name',
+        'type',
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+        'province',
+        'zone',
+        'district',
+        'village',
+        'picture',
+        'specific_place',
+        'coordinate',
+        'Province_addr',
+        'ways',
+        'note',
+        'resource_id', // <— ensure this is present
+        ];
+
         $q = TransportCompany::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
         ]);
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($qq) use ($search) {
                 $qq->where('transport_company_name', 'like', "%{$search}%")
                    ->orWhere('responsible_name', 'like', "%{$search}%")
@@ -70,13 +97,90 @@ class TransportCompanyController extends Controller
             });
         }
 
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
         if ($rid) {
             $q->where('resource_id', $rid);
         }
 
         $q->orderBy($sortBy, $sortDir);
 
-        return TransportCompanyResource::collection($q->paginate($perPage));
+        if ($isValidPage && $isValidPerPage) {
+            return TransportCompanyResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
+        }
+
+        return TransportCompanyResource::collection($q->get());
+    }
+
+    /**
+     * GET /transport-companies/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+           'transport_company_name',
+        'type',
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+        'province',
+        'zone',
+        'district',
+        'village',
+        'picture',
+        'specific_place',
+        'coordinate',
+        'Province_addr',
+        'ways',
+        'note',
+        'resource_id', // <— ensure this is present
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = TransportCompany::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**

@@ -33,23 +33,148 @@ class MadrasaController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search      = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+           
+         'name',
+        'madrasa_type',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+        'responsible_main_province',
+        'tarafdari_type_responsible',
+
+        'mazhab',
+        'male_teacher_quantity',
+        'female_teacher_quantity',
+        'male_students_quantity',
+        'Province_addr',
+        'female_students_quantity',
+
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'coordinates',
+        'note',
+        'resource_id',
+        ];
 
         $q = Madrasa::query()
             ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
+                $sub->where(function ($qq) use ($search) {
+                    $qq->where('name', 'like', "%{$search}%")
+                        ->orWhere('manager_name', 'like', "%{$search}%")
+                        ->orWhere('main_province', 'like', "%{$search}%")
+                        ->orWhere('main_district', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
             ->latest();
 
-        if ($search) {
-            $q->where(function ($qq) use ($search) {
-                $qq->where('name', 'like', "%{$search}%")
-                   ->orWhere('manager_name', 'like', "%{$search}%")
-                   ->orWhere('main_province', 'like', "%{$search}%")
-                   ->orWhere('main_district', 'like', "%{$search}%");
-            });
+        if ($isValidPage && $isValidPerPage) {
+            return MadrasaResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
         }
 
-        return MadrasaResource::collection($q->paginate($perPage));
+        return MadrasaResource::collection($q->get());
+    }
+
+    /**
+     * GET /madrasas/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+           
+         'name',
+        'madrasa_type',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+        'responsible_main_province',
+        'tarafdari_type_responsible',
+
+        'mazhab',
+        'male_teacher_quantity',
+        'female_teacher_quantity',
+        'male_students_quantity',
+        'Province_addr',
+        'female_students_quantity',
+
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'coordinates',
+        'note',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Madrasa::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreMadrasaRequest $request)

@@ -44,23 +44,37 @@ class MawadController extends Controller
         $table = (new Mawad())->getTable();
 
         $candidates = [
-            'name',
-            'father_name',
-            'nick_name',
-            'nickname',
-            'type',
-            'phone_number',
-            'main_province',
-            'main_district',
-            'main_village',
-            'now_province',
-            'now_district',
-            'now_village',
-            'original_address',
-            'current_address',
-            'address',
-            'note',
-            'tafseel',
+           'information_id',
+
+        'mawad_type',
+        'nickname',
+        'name',
+        'father_name',
+        'picture',
+
+        'main_province',
+        'main_district',
+        'main_village',
+
+        'now_province',
+        'now_district',
+        'Province_addr',
+        'now_village',
+
+        'province',
+        'zone',
+        'district',
+        'village',
+
+        'specific_place',
+        'coordinates',
+        'mawad_sales_phone',
+
+        'history_form',
+        'supplier',
+        'note',
+
+        'resource_id',
         ];
 
         return array_values(array_filter($candidates, fn ($field) => Schema::hasColumn($table, $field)));

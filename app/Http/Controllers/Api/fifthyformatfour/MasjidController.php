@@ -42,13 +42,40 @@ class MasjidController extends Controller
         $query = Masjid::query()
             ->with(['resource:id,name,code_number,phone_number']);
 
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('masjid_name', 'like', "%$s%")
-                    ->orWhere('responsible_name', 'like', "%$s%")
-                    ->orWhere('responsible_f_name', 'like', "%$s%")
-                    ->orWhere('masjid_village', 'like', "%$s%");
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+
+                'masjid_name','masjid_type',
+        'responsible_name','responsible_f_name','responsible_position',
+        'responsible_mazhab','responsible_old_job','responsible_now_job','responsible_tarfdary',
+        'responsible_main_province','responsible_main_district','responsible_main_village',
+        'responsible_now_province','responsible_now_district','responsible_now_village',
+        'masjid_people_mazhab','masjid_homes_quantity',
+        'masjid_province','masjid_zone','masjid_district','masjid_village',
+        'masjid_specific_place','masjid_street_number','masjid_coordinates',
+        'Province_addr',
+        'picture',
+        'resource_id','note',
+        ];
+
+        if ($search !== '' && $searchField === '') {
+            $query->where(function (Builder $q) use ($search) {
+                $q->where('masjid_name', 'like', "%{$search}%")
+                    ->orWhere('responsible_name', 'like', "%{$search}%")
+                    ->orWhere('responsible_f_name', 'like', "%{$search}%")
+                    ->orWhere('masjid_village', 'like', "%{$search}%");
             });
+        }
+
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
         }
 
         $perPage = $request->query('perPage');
@@ -67,6 +94,61 @@ class MasjidController extends Controller
             ->paginate($perPageInt, ['*'], 'page', $pageInt);
 
         return MasjidResource::collection($rows);
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+
+                'masjid_name','masjid_type',
+        'responsible_name','responsible_f_name','responsible_position',
+        'responsible_mazhab','responsible_old_job','responsible_now_job','responsible_tarfdary',
+        'responsible_main_province','responsible_main_district','responsible_main_village',
+        'responsible_now_province','responsible_now_district','responsible_now_village',
+        'masjid_people_mazhab','masjid_homes_quantity',
+        'masjid_province','masjid_zone','masjid_district','masjid_village',
+        'masjid_specific_place','masjid_street_number','masjid_coordinates',
+        'Province_addr',
+        'picture',
+        'resource_id','note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Masjid::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**

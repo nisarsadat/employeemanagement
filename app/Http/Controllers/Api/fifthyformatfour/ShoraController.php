@@ -24,10 +24,10 @@ class ShoraController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این محلي شوراګانې قبلاً ثبت شده است.',
+            'message' => 'دا محلي شوراګانې مخکې ثبت شوې دي.',
             'errors' => [
                 'duplicate' => [
-                    'محلي شوراګانې با همین مشخصات (قریه، نام، هدف، تعداد افراد/جلسات، ثبت و محل جلسه) قبلاً در سیستم موجود است.',
+                    'محلي شوراګانې په همدې مشخصاتو (قریه، نوم، هدف، د افرادو/جلسو شمېر، ثبت او د جلسې ځای) سره مخکې په سیستم کې موجودې دي.',
                 ],
             ],
         ], 422);
@@ -35,31 +35,113 @@ class ShoraController extends Controller
 
     public function index(Request $request)
     {
-        $query = Shora::query()
-            ->with(['resource:id,name,code_number,phone_number']);
-
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('shora_name', 'like', "%$s%")
-                    ->orWhere('responsible_name', 'like', "%$s%")
-                    ->orWhere('shora_province', 'like', "%$s%")
-                    ->orWhere('shora_village', 'like', "%$s%");
-            });
-        }
-
-        $perPage = $request->query('perPage');
         $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
 
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
-        // Fallback → return ALL when missing/invalid
-        if ($perPageInt === false || $pageInt === false) {
-            return ShoraResource::collection($query->orderByDesc('id')->get());
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+                    'shora_village','note',
+        'shora_name','shora_goal','people_quantity','week_meeting_quantity','regester','shora_meeting_place',
+        'responsible_name','responsible_f_name','responsible_job','responsible_phone',
+        'picture',
+        'supplier_name','supplier_job','supplier_phone',
+        'emarat_tarfdary',
+        'shora_province','shora_zone','shora_district',
+        'Province_addr',
+        'coordinates',
+        'resource_id',
+        ];
+
+        $query = Shora::query()
+            ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function (Builder $sub) use ($search) {
+                $sub->where(function (Builder $q) use ($search) {
+                    $q->where('shora_name', 'like', "%{$search}%")
+                        ->orWhere('responsible_name', 'like', "%{$search}%")
+                        ->orWhere('shora_province', 'like', "%{$search}%")
+                        ->orWhere('shora_village', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function (Builder $sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
+            ->orderByDesc('id');
+
+        if ($isValidPage && $isValidPerPage) {
+            $rows = $query->paginate((int) $perPage, ['*'], 'page', (int) $page);
+            return ShoraResource::collection($rows);
         }
 
-        $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
-        return ShoraResource::collection($rows);
+        return ShoraResource::collection($query->get());
+    }
+
+    /**
+     * GET /shoras/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+                    'shora_village','note',
+        'shora_name','shora_goal','people_quantity','week_meeting_quantity','regester','shora_meeting_place',
+        'responsible_name','responsible_f_name','responsible_job','responsible_phone',
+        'picture',
+        'supplier_name','supplier_job','supplier_phone',
+        'emarat_tarfdary',
+        'shora_province','shora_zone','shora_district',
+        'Province_addr',
+        'coordinates',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Shora::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**
@@ -95,7 +177,7 @@ class ShoraController extends Controller
                     action: 'created',
                     title: 'محلي شوراګانې  ثبت شوو',
                     message: 'نوم: ' . ($row->shora_name ?? ''),
-                    routeName: 'shoras',              // ✅ set your real route name
+                    routeName: 'shoras',
                     routeParams: ['id' => $row->id],
                     level: 'success',
                     changes: null
@@ -176,7 +258,7 @@ class ShoraController extends Controller
                     action: 'updated',
                     title: 'محلي شوراګانې اصلاح شوو',
                     message: ' نوم : ' . ($shora->shora_name ?? ''),
-                    routeName: 'shoras',              // ✅ set your real route name
+                    routeName: 'shoras',
                     routeParams: ['id' => $shora->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null

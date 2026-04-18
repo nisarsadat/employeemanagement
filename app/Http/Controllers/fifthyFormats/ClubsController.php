@@ -23,8 +23,22 @@ class ClubsController extends Controller
         $isValidPage    = is_numeric($page) && (int) $page > 0;
         $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
-        $search = trim((string) $request->query('search', ''));
-        $rid    = $request->query('resource_id');
+        $search      = trim((string) $request->query('search', ''));
+        $rid         = $request->query('resource_id');
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+           
+         'name',
+        'club_name','club_type','father_name','position','phone_number',
+        'province','zone','district','specific_place','cordinate',
+        'am_students','pm_students',
+        'picture',
+        'Province_addr',
+        'notes',
+        'resource_id',
+        ];
 
         $sortable = ['id', 'name', 'created_at', 'updated_at'];
         $sortBy   = in_array($request->query('sort_by', 'created_at'), $sortable, true)
@@ -38,7 +52,7 @@ class ClubsController extends Controller
 
         $q = Clubs::query()
             ->with(['resource:id,name,code_number,phone_number'])
-            ->when($search !== '', function ($sub) use ($search) {
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('name', 'like', "%{$search}%")
                         ->orWhere('club_name', 'like', "%{$search}%")
@@ -52,6 +66,16 @@ class ClubsController extends Controller
                         ->orWhere('specific_place', 'like', "%{$search}%");
                 });
             })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
             ->when($rid, fn ($sub) => $sub->where('resource_id', $rid))
             ->orderBy($sortBy, $sortDir);
 
@@ -62,6 +86,61 @@ class ClubsController extends Controller
         }
 
         return ClubsResource::collection($q->get());
+    }
+
+    /**
+     * GET /clubs/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+           
+         'name',
+        'club_name','club_type','father_name','position','phone_number',
+        'province','zone','district','specific_place','cordinate',
+        'am_students','pm_students',
+        'picture',
+        'Province_addr',
+        'notes',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Clubs::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function show(Clubs $club)

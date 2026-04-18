@@ -37,13 +37,36 @@ class PumpController extends Controller
     {
         $query = Pump::query()->with(['resource:id,name,code_number,phone_number']);
 
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('pump_name', 'like', "%$s%")
-                    ->orWhere('main_owner', 'like', "%$s%")
-                    ->orWhere('province', 'like', "%$s%")
-                    ->orWhere('village', 'like', "%$s%");
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+
+                'pump_name','pump_type','main_owner',
+        'responsible_name','responsible_f_name','responsible_possition','responsible_phone',
+        'province','zone','district','village','specefic_place',
+        'picture',
+        'coordinates','employee_quantity','guard_quantity',
+        'Province_addr',
+        'resource_id','note',
+        ];
+
+        if ($search !== '' && $searchField === '') {
+            $query->where(function (Builder $q) use ($search) {
+                $q->where('pump_name', 'like', "%{$search}%")
+                    ->orWhere('main_owner', 'like', "%{$search}%")
+                    ->orWhere('province', 'like', "%{$search}%")
+                    ->orWhere('village', 'like', "%{$search}%");
             });
+        }
+
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
         }
 
         $perPage = $request->query('perPage');
@@ -58,6 +81,57 @@ class PumpController extends Controller
 
         $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
         return PumpResource::collection($rows);
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+
+                'pump_name','pump_type','main_owner',
+        'responsible_name','responsible_f_name','responsible_possition','responsible_phone',
+        'province','zone','district','village','specefic_place',
+        'picture',
+        'coordinates','employee_quantity','guard_quantity',
+        'Province_addr',
+        'resource_id','note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Pump::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**

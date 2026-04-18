@@ -62,21 +62,65 @@ class WakilanoController extends Controller
         $query = Wakilano::query()
             ->with(['resource:id,name,code_number,phone_number']);
 
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('name', 'like', "%$s%")
-                  ->orWhere('f_name', 'like', "%$s%")
-                  ->orWhere('grand_father_name', 'like', "%$s%")
-                  ->orWhere('phone_number', 'like', "%$s%")
-                  ->orWhere('now_village', 'like', "%$s%");
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+
+                'name',
+        'f_name',
+        'grand_father_name',
+        'main_province',
+        'main_district',
+        'main_village',
+        'now_province',
+        'now_zone',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+        'hawza',
+        'nahya',
+        'Guzar',
+        'coordinates',
+        'place_tafseel',
+        'old_job',
+        'now_job',
+        'home_quantity',
+        'tanzim',
+        'agent_quantity',
+        'phone_number',
+        'history_form',
+        'Province_addr',
+        'resource_id',
+        'note',
+        ];
+
+        if ($search !== '' && $searchField === '') {
+            $query->where(function (Builder $q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('f_name', 'like', "%{$search}%")
+                  ->orWhere('grand_father_name', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$search}%")
+                  ->orWhere('now_village', 'like', "%{$search}%");
             });
         }
 
-        $perPage = $request->query('perPage');
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
+        $perPage = $request->query('perPage', $request->query('per_page'));
         $page    = $request->query('page');
 
         $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page,    FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         if ($perPageInt === false || $pageInt === false) {
             $rows = $query->orderByDesc('id')->get();
@@ -86,6 +130,81 @@ class WakilanoController extends Controller
         $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
 
         return WakilanoResource::collection($rows);
+    }
+
+    /**
+     * GET /wakilanos/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+
+                'name',
+        'f_name',
+        'grand_father_name',
+        'main_province',
+        'main_district',
+        'main_village',
+        'now_province',
+        'now_zone',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+        'hawza',
+        'nahya',
+        'Guzar',
+        'coordinates',
+        'place_tafseel',
+        'old_job',
+        'now_job',
+        'home_quantity',
+        'tanzim',
+        'agent_quantity',
+        'phone_number',
+        'history_form',
+        'Province_addr',
+        'resource_id',
+        'note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Wakilano::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreWakilanoRequest $request)

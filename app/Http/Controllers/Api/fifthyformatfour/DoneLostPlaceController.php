@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-    class DoneLostPlaceController extends Controller
+class DoneLostPlaceController extends Controller
 {
     private function isDuplicateKey(QueryException $e): bool
     {
@@ -36,39 +36,121 @@ use Illuminate\Support\Facades\Storage;
 
     /**
      * GET /done-lost-places
-     * Supports: ?search=...&perPage=...&page=...
+     * Supports: ?search=...&search_field=...&search_value=...&perPage=...&page=...
      */
     public function index(Request $request)
     {
-        $query = Donelostplace::query()
-            ->with(['resource:id,name,code_number,phone_number']);
-
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('place_name', 'like', "%{$s}%")
-                    ->orWhere('lost_person_name', 'like', "%{$s}%")
-                    ->orWhere('lost_person_phone', 'like', "%{$s}%")
-                    ->orWhere('village', 'like', "%{$s}%");
-            });
-        }
-
-        $perPage = $request->query('perPage');
         $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
 
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
-        // ✅ Same pattern: if perPage / page invalid or missing → return ALL rows, no pagination
-        if ($perPageInt === false || $pageInt === false) {
-            $rows = $query->orderByDesc('id')->get();
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+
+                'place_name',
+        'lost_person_name','lost_person_f_name','lost_person_phone','lost_person_job',
+        'main_province','main_district','main_village',
+        'now_province','now_district','now_village',
+        'picture',
+        'province','zone','district','village','specific_place','coordinates',
+        'lost_quantity',
+        'Province_addr',
+        'resource_id','note',
+        ];
+
+        $query = Donelostplace::query()
+            ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function (Builder $sub) use ($search) {
+                $sub->where(function (Builder $q) use ($search) {
+                    $q->where('place_name', 'like', "%{$search}%")
+                        ->orWhere('lost_person_name', 'like', "%{$search}%")
+                        ->orWhere('lost_person_phone', 'like', "%{$search}%")
+                        ->orWhere('village', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function (Builder $sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
+            ->orderByDesc('id');
+
+        if ($isValidPage && $isValidPerPage) {
+            $rows = $query->paginate((int) $perPage, ['*'], 'page', (int) $page);
             return DonelostplaceResource::collection($rows);
         }
 
-        $rows = $query
-            ->orderByDesc('id')
-            ->paginate($perPageInt, ['*'], 'page', $pageInt);
+        return DonelostplaceResource::collection($query->get());
+    }
 
-        return DonelostplaceResource::collection($rows);
+    /**
+     * GET /done-lost-places/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            'place_name',
+            'lost_person_name',
+            'father_name',
+            'lost_person_phone',
+            'province',
+            'zone',
+            'district',
+            'village',
+            'specific_place',
+            'street',
+            'house',
+            'details',
+            'note',
+            'coordinates',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Donelostplace::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**

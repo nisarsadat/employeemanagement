@@ -36,38 +36,111 @@ class EconemyProjectController extends Controller
 
     public function index(Request $request)
     {
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page', $request->query('itemsPerPage')));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+
+                'coordinates',
+        'name','type',
+        'responsiable_name','responsiable_f_name','responsible_possition','responsible_phone',
+        'province','zone','district','village','specefic_place',
+        'amnyatee_khala','employee_quantity','gaurd_quantity',
+        'Province_addr',
+        'picture',
+        'resource_id','note',
+        ];
+
         $query = EconemyProject::query()
-            ->with(['resource:id,name,code_number,phone_number']);
+            ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
+                $sub->where(function (Builder $q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('responsiable_name', 'like', "%{$search}%")
+                        ->orWhere('province', 'like', "%{$search}%")
+                        ->orWhere('district', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
 
-        // 🔍 Search
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('name', 'like', "%{$s}%")
-                    ->orWhere('responsiable_name', 'like', "%{$s}%")
-                    ->orWhere('province', 'like', "%{$s}%")
-                    ->orWhere('district', 'like', "%{$s}%");
-            });
-        }
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
+            ->orderByDesc('id');
 
-        // 📄 Pagination (supports itemsPerPage from Vue + perPage fallback)
-        $perPageRaw = $request->query('itemsPerPage', $request->query('perPage'));
-        $pageRaw    = $request->query('page');
-
-        $perPageInt = filter_var($perPageRaw, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($pageRaw, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-
-        // If no valid pagination → return ALL
-        if ($perPageInt === false || $pageInt === false) {
-            $rows = $query->orderByDesc('id')->get();
+        if ($isValidPage && $isValidPerPage) {
+            $rows = $query->paginate((int) $perPage, ['*'], 'page', (int) $page);
             return EconemyProjectResource::collection($rows);
         }
 
-        // Normal paginated response
-        $rows = $query
-            ->orderByDesc('id')
-            ->paginate($perPageInt, ['*'], 'page', $pageInt);
+        return EconemyProjectResource::collection($query->get());
+    }
 
-        return EconemyProjectResource::collection($rows);
+    /**
+     * GET /econemy-projects/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+
+                'coordinates',
+        'name','type',
+        'responsiable_name','responsiable_f_name','responsible_possition','responsible_phone',
+        'province','zone','district','village','specefic_place',
+        'amnyatee_khala','employee_quantity','gaurd_quantity',
+        'Province_addr',
+        'picture',
+        'resource_id','note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = EconemyProject::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**
@@ -103,7 +176,7 @@ class EconemyProjectController extends Controller
                     action: 'created',
                     title: 'د اسلامي امارت مهم تاسیسات  ثبت شوو',
                     message: 'نوم: ' . ($row->name ?? ''),
-                    routeName: 'econemy-projects',        // ✅ set your real route name
+                    routeName: 'econemy-projects',
                     routeParams: ['id' => $row->id],
                     level: 'success',
                     changes: null
@@ -184,7 +257,7 @@ class EconemyProjectController extends Controller
                     action: 'updated',
                     title: 'د اسلامي امارت مهم تاسیسات اصلاح شوو',
                     message: 'نوم: ' . ($econemyProject->name ?? ''),
-                    routeName: 'econemy-projects',        // ✅ set your real route name
+                    routeName: 'econemy-projects',
                     routeParams: ['id' => $econemyProject->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null

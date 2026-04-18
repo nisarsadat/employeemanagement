@@ -98,22 +98,67 @@ class LostMujremeenController extends Controller
         $perPage = (int) $request->get('perPage', 15);
         $search  = trim((string) $request->get('search', ''));
         $rid     = $request->get('resource_id');
+        $searchField = trim((string) $request->get('search_field', ''));
+        $searchValue = trim((string) $request->get('search_value', ''));
 
         $sortBy  = $request->get('sort_by', 'created_at');
         $sortDir = in_array($request->get('sort_dir'), ['asc', 'desc'], true) ? $request->get('sort_dir') : 'desc';
+
+        $allowedSearchFields = [
+            
+                'picture',
+        'nickname',
+        'name',
+        'father_name',
+
+        'main_province',
+        'main_district',
+        'main_village',
+
+        'now_province',
+        'Province_addr',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+
+        'province',
+        'zone',
+        'district',
+
+        'old_job',
+
+        'jorm',
+        'history_jorm',
+        'lost_reason',
+        'phone_number',
+
+        'note',
+        'resource_id',
+        'coordinates',
+        ];
 
         $q = LostMujremeen::query()->with([
             'resource:id,name,code_number,phone_number,coordinates',
             'documents:id,lost_mujremeen_id,file_path,original_name,mime_type,size,created_at',
         ]);
 
-        if ($search !== '') {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($qq) use ($search) {
                 $qq->where('name', 'like', "%{$search}%")
                     ->orWhere('father_name', 'like', "%{$search}%")
                     ->orWhere('now_province', 'like', "%{$search}%")
                     ->orWhere('jorm', 'like', "%{$search}%");
             });
+        }
+
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
         }
 
         if ($rid) {
@@ -123,6 +168,81 @@ class LostMujremeenController extends Controller
         $q->orderBy($sortBy, $sortDir);
 
         return LostMujremeenResource::collection($q->paginate($perPage));
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            
+                'picture',
+        'nickname',
+        'name',
+        'father_name',
+
+        'main_province',
+        'main_district',
+        'main_village',
+
+        'now_province',
+        'Province_addr',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+
+        'province',
+        'zone',
+        'district',
+
+        'old_job',
+
+        'jorm',
+        'history_jorm',
+        'lost_reason',
+        'phone_number',
+
+        'note',
+        'resource_id',
+        'coordinates',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = LostMujremeen::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function show(LostMujremeen $lostMujremeen)

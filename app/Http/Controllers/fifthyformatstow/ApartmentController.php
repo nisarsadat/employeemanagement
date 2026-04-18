@@ -17,25 +17,140 @@ class ApartmentController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = trim((string) $request->input('search', ''));
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search      = trim((string) $request->input('search', ''));
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
+
+        $allowedSearchFields = [
+           
+         'block_name',
+        'apartments_quantity',
+        'shahrak_name',
+        'picture',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+
+        'province',
+        'zone',
+        'Province_addr',
+        'district',
+        'village',
+        'specific_place',
+        'coordinates',
+
+        'guard_quantity',
+        'note',
+        'resource_id',
+        ];
 
         $q = Apartment::query()
             ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
+                $sub->where(function ($qq) use ($search) {
+                    $qq->where('block_name', 'like', "%{$search}%")
+                        ->orWhere('shahrak_name', 'like', "%{$search}%")
+                        ->orWhere('responsible_name', 'like', "%{$search}%")
+                        ->orWhere('responsible_phone', 'like', "%{$search}%")
+                        ->orWhere('province', 'like', "%{$search}%")
+                        ->orWhere('district', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
             ->latest();
 
-        if ($search !== '') {
-            $q->where(function ($qq) use ($search) {
-                $qq->where('block_name', 'like', "%{$search}%")
-                   ->orWhere('shahrak_name', 'like', "%{$search}%")
-                   ->orWhere('responsible_name', 'like', "%{$search}%")
-                   ->orWhere('responsible_phone', 'like', "%{$search}%")
-                   ->orWhere('province', 'like', "%{$search}%")
-                   ->orWhere('district', 'like', "%{$search}%");
-            });
+        if ($isValidPage && $isValidPerPage) {
+            return ApartmentResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
         }
 
-        return ApartmentResource::collection($q->paginate($perPage));
+        return ApartmentResource::collection($q->get());
+    }
+
+    /**
+     * GET /apartments/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+           
+         'block_name',
+        'apartments_quantity',
+        'shahrak_name',
+        'picture',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+
+        'province',
+        'zone',
+        'Province_addr',
+        'district',
+        'village',
+        'specific_place',
+        'coordinates',
+
+        'guard_quantity',
+        'note',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Apartment::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreApartmentRequest $request)

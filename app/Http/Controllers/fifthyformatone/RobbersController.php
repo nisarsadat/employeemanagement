@@ -45,21 +45,37 @@ class RobbersController extends Controller
         $table = (new Robbers())->getTable();
 
         $candidates = [
-            'name',
-            'nickname',
-            'father_name',
-            'phone_number',
-            'main_province',
-            'main_district',
-            'main_village',
-            'now_province',
-            'now_district',
-            'now_village',
-            'original_address',
-            'current_address',
-            'address',
-            'note',
-            'tafseel',
+           
+        'information_id',
+
+        'nickname',
+        'name',
+        'father_name',
+
+        'main_province',
+        'main_district',
+        'main_village',
+
+        'now_province',
+        'picture',
+        'now_zone',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'Province_addr',
+        'now_home_number',
+
+        'old_job',
+        'now_job',
+        'supplier',
+        'phone_number',
+        'freinds_quantity',
+        'history_form',
+        'coordinates',
+
+        'note',
+        'resource_id',
         ];
 
         return array_values(array_filter($candidates, fn ($field) => Schema::hasColumn($table, $field)));

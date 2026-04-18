@@ -36,32 +36,111 @@ class DeplomaticPlaceController extends Controller
 
     public function index(Request $request)
     {
-        $query = DeplomaticPlace::query()->with(['resource:id,name,code_number,phone_number']);
-
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('deplomatic_place_name', 'like', "%$s%")
-                  ->orWhere('province', 'like', "%$s%")
-                  ->orWhere('zone', 'like', "%$s%")
-                  ->orWhere('district', 'like', "%$s%")
-                  ->orWhere('village', 'like', "%$s%")
-                  ->orWhere('specefic_place', 'like', "%$s%");
-            });
-        }
-
-        $perPage = $request->query('perPage');
         $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
 
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
-        // Fallback → return ALL when missing/invalid
-        if ($perPageInt === false || $pageInt === false) {
-            return DeplomaticPlaceResource::collection($query->orderByDesc('id')->get());
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+        'deplomatic_place_name','activity_type','activity_place',
+        'enter_male_quantity','outer_male_quantity','enter_female_quantity','outer_female_quantity',
+        'responsible_name','responsible_f_name','responsible_possition','responsible_country','responsible_phone',
+        'province','zone','district','village','specefic_place','street_number','home_number',
+        'supplier_country',
+        'picture',
+        'Province_addr',
+        'guard_quantity','coordinates','resource_id','note',
+        ];
+
+        $query = DeplomaticPlace::query()
+            ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function (Builder $sub) use ($search) {
+                $sub->where(function (Builder $q) use ($search) {
+                    $q->where('deplomatic_place_name', 'like', "%{$search}%")
+                        ->orWhere('province', 'like', "%{$search}%")
+                        ->orWhere('zone', 'like', "%{$search}%")
+                        ->orWhere('district', 'like', "%{$search}%")
+                        ->orWhere('village', 'like', "%{$search}%")
+                        ->orWhere('specefic_place', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function (Builder $sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
+            ->orderByDesc('id');
+
+        if ($isValidPage && $isValidPerPage) {
+            $rows = $query->paginate((int) $perPage, ['*'], 'page', (int) $page);
+            return DeplomaticPlaceResource::collection($rows);
         }
 
-        $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
-        return DeplomaticPlaceResource::collection($rows);
+        return DeplomaticPlaceResource::collection($query->get());
+    }
+
+    /**
+     * GET /deplomaticplaces/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+        'deplomatic_place_name','activity_type','activity_place',
+        'enter_male_quantity','outer_male_quantity','enter_female_quantity','outer_female_quantity',
+        'responsible_name','responsible_f_name','responsible_possition','responsible_country','responsible_phone',
+        'province','zone','district','village','specefic_place','street_number','home_number',
+        'supplier_country',
+        'picture',
+        'Province_addr',
+        'guard_quantity','coordinates','resource_id','note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = DeplomaticPlace::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreDeplomaticPlaceRequest $request)

@@ -39,33 +39,157 @@ class MujahedinoController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = trim((string) $request->input('search'));
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search      = trim((string) $request->input('search', ''));
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
 
         $sortBy  = $request->input('sort_by', 'created_at');
         $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
             ? $request->input('sort_dir')
             : 'desc';
 
+        $allowedSearchFields = [
+            
+         'picture',
+        'nickname',
+        'name',
+        'father_name',
+
+        'main_province',
+        'main_district',
+        'main_village',
+
+        'now_province',
+        'now_zone',
+        'Province_addr',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+
+        'duty_type',
+        'now_job',
+        'organ',
+        'friends_quantity',
+        'phone_number',
+        'note',
+        'coordinates',
+        'resource_id',
+        ];
+
         $q = Mujahedino::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
         ]);
 
-        if ($search !== '') {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($qq) use ($search) {
                 $qq->where('name', 'like', "%{$search}%")
-                   ->orWhere('nickname', 'like', "%{$search}%")
-                   ->orWhere('father_name', 'like', "%{$search}%")
-                   ->orWhere('organ', 'like', "%{$search}%")
-                   ->orWhere('now_province', 'like', "%{$search}%")
-                   ->orWhere('now_district', 'like', "%{$search}%")
-                   ->orWhere('now_village', 'like', "%{$search}%");
+                    ->orWhere('nickname', 'like', "%{$search}%")
+                    ->orWhere('father_name', 'like', "%{$search}%")
+                    ->orWhere('organ', 'like', "%{$search}%")
+                    ->orWhere('now_province', 'like', "%{$search}%")
+                    ->orWhere('now_district', 'like', "%{$search}%")
+                    ->orWhere('now_village', 'like', "%{$search}%");
             });
+        }
+
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
         }
 
         $q->orderBy($sortBy, $sortDir);
 
-        return MujahedinoResource::collection($q->paginate($perPage));
+        if ($isValidPage && $isValidPerPage) {
+            return MujahedinoResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
+        }
+
+        return MujahedinoResource::collection($q->get());
+    }
+
+    /**
+     * GET /mujahedinos/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            
+         'picture',
+        'nickname',
+        'name',
+        'father_name',
+
+        'main_province',
+        'main_district',
+        'main_village',
+
+        'now_province',
+        'now_zone',
+        'Province_addr',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+
+        'duty_type',
+        'now_job',
+        'organ',
+        'friends_quantity',
+        'phone_number',
+        'note',
+        'coordinates',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Mujahedino::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**

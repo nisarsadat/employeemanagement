@@ -18,20 +18,35 @@ class MashkokPeopleController extends Controller
         $table = (new MashkokPeople())->getTable();
 
         $candidates = [
-            'name',
-            'father_name',
-            'phone_number',
-            'now_province',
-            'now_districts',
-            'now_village',
-            'main_province',
-            'main_district',
-            'main_village',
-            'note',
-            'tafseel',
-            'address',
-            'current_address',
-            'original_address',
+                   'information_id',
+
+        'picture',
+        'name',
+        'father_name',
+
+        'main_province',
+        'main_district',
+        'main_village',
+
+        'now_province',
+        'now_zone',
+        'Province_addr',
+        'now_districts',     // kept as written in your note
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+        'coordinates',
+
+        'old_job',
+        'now_job',
+        'phone_number',
+        'mashkokyat_type',
+        'mushkokyat_points', // kept spelling as requested
+
+        'note',
+        'tafseel',
+        'resource_id',
         ];
 
         return array_values(array_filter($candidates, fn ($field) => Schema::hasColumn($table, $field)));

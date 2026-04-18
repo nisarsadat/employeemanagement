@@ -16,43 +16,48 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use App\Exports\CaptiveDeliveriesExport;
 use Maatwebsite\Excel\Facades\Excel;
+
 class CaptiveDeliveryController extends Controller
 {
     private function searchableColumns(): array
     {
         return [
-            'name',
-            'father_name',
-            'grand_father_name',
-            'nickname',
-            'tazkira',
-            'age',
-            'halat_madani',
-            'criminal_history',
-            'old_job',
-            'new_job',
-            'language',
-            'scientific_level',
-            'main_province',
-            'main_district',
-            'main_village',
-            'now_province',
-            'now_district',
-            'now_village',
-            'captive_reason',
-            'maznonyat_type',
-            'taslimi_warkawonky_person',
-            'taslimi_akhistonky_person',
-            'taslimi_akhistonky_organ',
-            'captive_place',
-            'coordinates',
-            'captive_marja',
-            'captive_date',
-            'captive_hour',
-            'phone_number',
-            'captive_halat',
-            'suspect_tools',
-            'notes',
+             'name',
+        'father_name',
+        'grand_father_name',
+        'nickname',
+        'tazkira',
+        'age',
+        'halat_madani',
+        'criminal_history',
+        'old_job',
+        'new_job',
+        'language',
+        'picture',
+        'scientific_level',
+        'main_province',
+        'main_district',
+        'main_village',
+        'now_province',
+        'now_district',
+        'now_village',
+        'captive_place',
+        'coordinates',
+        'captive_marja',
+        'captive_date',
+        'captive_hour',
+        'suspect_type',
+        'phone_number',
+        'captive_halat',
+        'suspect_tools',
+        'notes',
+        'captive_reason',
+        'taslimi_warkawonky_person',
+        'taslimi_akhistonky_person',
+        'taslimi_akhistonky_organ',
+        'maznonyat_type',
+        'Province_addr',
+        'picture',
         ];
     }
 
@@ -71,10 +76,10 @@ class CaptiveDeliveryController extends Controller
     private function duplicateResponse()
     {
         return response()->json([
-            'message' => 'این زندانی قبلاً ثبت شده است.',
+            'message' => 'دا تسلیم شوی زنداني مخکې ثبت شوی دی.',
             'errors'  => [
                 'duplicate' => [
-                    'زندانی با همین مشخصات قبلاً در سیستم موجود است.',
+                    'د همدې مشخصاتو سره زنداني مخکې له مخکې په سیسټم کې موجود دی.',
                 ],
             ],
         ], 422);
@@ -89,17 +94,21 @@ class CaptiveDeliveryController extends Controller
         Builder $query,
         ?string $search,
         ?string $searchField = null,
+        ?string $searchValue = null,
         string $stat = 'all'
     ): Builder {
-        $query->when($search, function (Builder $q) use ($search, $searchField) {
-            $resolvedField = $this->resolveSearchField($searchField);
+        $resolvedField = $this->resolveSearchField($searchField);
+        $search = trim((string) $search);
+        $searchValue = trim((string) $searchValue);
 
-            if ($resolvedField) {
-                $q->where($resolvedField, 'like', "%{$search}%");
-                return;
+        if ($resolvedField) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $query->where($resolvedField, 'like', "%{$value}%");
             }
-
-            $q->where(function (Builder $sub) use ($search) {
+        } elseif ($search !== '') {
+            $query->where(function (Builder $sub) use ($search) {
                 foreach ($this->searchableColumns() as $index => $column) {
                     if ($index === 0) {
                         $sub->where($column, 'like', "%{$search}%");
@@ -108,7 +117,7 @@ class CaptiveDeliveryController extends Controller
                     }
                 }
             });
-        });
+        }
 
         $query->when($stat === 'spy', function (Builder $q) {
             $q->where(function (Builder $sub) {
@@ -132,26 +141,33 @@ class CaptiveDeliveryController extends Controller
         return $query;
     }
 
-    private function buildCardCounts(?string $search, ?string $searchField = null): array
-    {
+    private function buildCardCounts(
+        ?string $search,
+        ?string $searchField = null,
+        ?string $searchValue = null
+    ): array {
         $base = CaptiveDelivery::query();
 
-        if ($search) {
-            $resolvedField = $this->resolveSearchField($searchField);
+        $resolvedField = $this->resolveSearchField($searchField);
+        $search = trim((string) $search);
+        $searchValue = trim((string) $searchValue);
 
-            if ($resolvedField) {
-                $base->where($resolvedField, 'like', "%{$search}%");
-            } else {
-                $base->where(function (Builder $sub) use ($search) {
-                    foreach ($this->searchableColumns() as $index => $column) {
-                        if ($index === 0) {
-                            $sub->where($column, 'like', "%{$search}%");
-                        } else {
-                            $sub->orWhere($column, 'like', "%{$search}%");
-                        }
-                    }
-                });
+        if ($resolvedField) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $base->where($resolvedField, 'like', "%{$value}%");
             }
+        } elseif ($search !== '') {
+            $base->where(function (Builder $sub) use ($search) {
+                foreach ($this->searchableColumns() as $index => $column) {
+                    if ($index === 0) {
+                        $sub->where($column, 'like', "%{$search}%");
+                    } else {
+                        $sub->orWhere($column, 'like', "%{$search}%");
+                    }
+                }
+            });
         }
 
         return [
@@ -181,19 +197,21 @@ class CaptiveDeliveryController extends Controller
             'perPage' => 'sometimes',
             'search' => 'nullable|string',
             'search_field' => 'nullable|string',
+            'search_value' => 'nullable|string',
             'stat' => 'nullable|string|in:all,spy,saeen,sharFasad,today',
         ]);
 
         $search = $request->input('search');
-        $searchField = $this->resolveSearchField($request->input('search_field'));
+        $searchField = $request->input('search_field');
+        $searchValue = $request->input('search_value');
         $stat = $request->input('stat', 'all');
         $rawPerPage = $request->input('perPage', null);
         $page = (int) $request->input('page', 1);
 
-        $cardCounts = $this->buildCardCounts($search, $searchField);
+        $cardCounts = $this->buildCardCounts($search, $searchField, $searchValue);
 
         $query = $this->baseListQuery();
-        $this->applyCommonFilters($query, $search, $searchField, $stat);
+        $this->applyCommonFilters($query, $search, $searchField, $searchValue, $stat);
 
         $query->latest('id');
 
@@ -213,6 +231,46 @@ class CaptiveDeliveryController extends Controller
             $query->paginate(max(1, (int) $rawPerPage), ['*'], 'page', $page)
         )->additional([
             'card_counts' => $cardCounts,
+        ]);
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = $this->resolveSearchField($request->query('field'));
+        $q = trim((string) $request->query('q', ''));
+
+        if (!$field) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = CaptiveDelivery::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
         ]);
     }
 
@@ -426,23 +484,24 @@ class CaptiveDeliveryController extends Controller
             ], 500);
         }
     }
-    public function exportExcel(Request $request)
-{
-    $request->validate([
-        'search' => 'nullable|string',
-        'search_field' => 'nullable|string',
-        'stat' => 'nullable|string|in:all,spy,saeen,sharFasad,today',
-        'date_field' => 'nullable|string|in:captive_date,created_at,updated_at',
-    ]);
 
-    return Excel::download(
-        new CaptiveDeliveriesExport(
-            search: $request->input('search'),
-            searchField: $request->input('search_field'),
-            stat: $request->input('stat', 'all'),
-            dateField: $request->input('date_field', 'captive_date'),
-        ),
-        'captive_deliveries.xlsx'
-    );
-}
+    public function exportExcel(Request $request)
+    {
+        $request->validate([
+            'search' => 'nullable|string',
+            'search_field' => 'nullable|string',
+            'stat' => 'nullable|string|in:all,spy,saeen,sharFasad,today',
+            'date_field' => 'nullable|string|in:captive_date,created_at,updated_at',
+        ]);
+
+        return Excel::download(
+            new CaptiveDeliveriesExport(
+                search: $request->input('search'),
+                searchField: $request->input('search_field'),
+                stat: $request->input('stat', 'all'),
+                dateField: $request->input('date_field', 'captive_date'),
+            ),
+            'captive_deliveries.xlsx'
+        );
+    }
 }

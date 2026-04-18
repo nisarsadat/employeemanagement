@@ -38,17 +38,30 @@ class MashkokShopsController extends Controller
         $table = (new MashkokShops())->getTable();
 
         $candidates = [
-            'province',
-            'district',
-            'village',
-            'market_name',
-            'name',
-            'father_name',
-            'phone_number',
-            'shop_type',
-            'address',
-            'note',
-            'tafseel',
+            'information_id',
+
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'market_name',
+        'shop_number',
+        'picture',
+        'coordinates',
+
+        'name',
+        'Province_addr',
+        'father_name',
+        'main_province',
+        'phone_numbers',
+
+        'shop_type',
+        'mashkok_type',
+
+        'note',
+        'tafseel',
+        'resource_id',
         ];
 
         return array_values(array_filter($candidates, fn ($field) => Schema::hasColumn($table, $field)));

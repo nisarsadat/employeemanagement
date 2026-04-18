@@ -40,23 +40,17 @@ class MahajeratController extends Controller
         }
 
         $allowedSearchFields = [
-            'name',
-            'father_name',
-            'scientific_level',
-            'main_province',
-            'main_district',
-            'main_village',
-            'now_province',
-            'now_zone',
-            'now_district',
-            'now_vinage',
-            'specific_place',
-            'country',
-            'phone_number',
-            'old_job',
-            'now_job',
-            'tafseel',
-            'note',
+                   'information_id',
+
+        'name',
+        'father_name','scientific_level',
+        'main_province','main_district','main_village',
+        'picture',
+        'now_province','now_zone','now_district','now_vinage',
+        'specific_place','street_number','home_number','cordinates',
+        'country','male_amount','female_amount','phone_number',
+        'Province_addr',
+        'note','resource_id',
         ];
 
         $q = Mahajerat::query()
@@ -114,23 +108,17 @@ class MahajeratController extends Controller
         $q = trim((string) $request->query('q', ''));
 
         $allowedFields = [
-            'name',
-            'father_name',
-            'scientific_level',
-            'main_province',
-            'main_district',
-            'main_village',
-            'now_province',
-            'now_zone',
-            'now_district',
-            'now_vinage',
-            'specific_place',
-            'country',
-            'phone_number',
-            'old_job',
-            'now_job',
-            'tafseel',
-            'note',
+                   'information_id',
+
+        'name',
+        'father_name','scientific_level',
+        'main_province','main_district','main_village',
+        'picture',
+        'now_province','now_zone','now_district','now_vinage',
+        'specific_place','street_number','home_number','cordinates',
+        'country','male_amount','female_amount','phone_number',
+        'Province_addr',
+        'note','resource_id',
         ];
 
         if ($field === '' || !in_array($field, $allowedFields, true)) {

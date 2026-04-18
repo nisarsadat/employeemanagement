@@ -38,15 +38,41 @@ class ComplexController extends Controller
     {
         $query = Complex::query()->with(['resource:id,name,code_number,phone_number']);
 
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('complex_name', 'like', "%$s%")
-                  ->orWhere('province', 'like', "%$s%")
-                  ->orWhere('zone', 'like', "%$s%")
-                  ->orWhere('district', 'like', "%$s%")
-                  ->orWhere('village', 'like', "%$s%")
-                  ->orWhere('specefic_place', 'like', "%$s%");
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+
+                'province','zone','district','village','specefic_place','street_number','home_number',
+        'complex_name','activity_type','activity_place','supplier',
+        'enter_male_quantity','outer_male_quantity','enter_femal_quantity','outer_femal_quantity',
+        'responsible_name',
+        'responsible_job',
+        'responsible_f_name','responsible_phone','responsible_country',
+        'Province_addr',
+        'picture',
+        'coordinates',
+        'guard_quantity','resource_id','note',
+        ];
+
+        if ($search !== '' && $searchField === '') {
+            $query->where(function (Builder $q) use ($search) {
+                $q->where('complex_name', 'like', "%{$search}%")
+                  ->orWhere('province', 'like', "%{$search}%")
+                  ->orWhere('zone', 'like', "%{$search}%")
+                  ->orWhere('district', 'like', "%{$search}%")
+                  ->orWhere('village', 'like', "%{$search}%")
+                  ->orWhere('specefic_place', 'like', "%{$search}%");
             });
+        }
+
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
         }
 
         $perPage = $request->query('perPage');
@@ -61,6 +87,60 @@ class ComplexController extends Controller
 
         $rows = $query->orderByDesc('id')->paginate($perPageInt, ['*'], 'page', $pageInt);
         return ComplexResource::collection($rows);
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+
+                'province','zone','district','village','specefic_place','street_number','home_number',
+        'complex_name','activity_type','activity_place','supplier',
+        'enter_male_quantity','outer_male_quantity','enter_femal_quantity','outer_femal_quantity',
+        'responsible_name',
+        'responsible_job',
+        'responsible_f_name','responsible_phone','responsible_country',
+        'Province_addr',
+        'picture',
+        'coordinates',
+        'guard_quantity','resource_id','note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Complex::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreComplexRequest $request)

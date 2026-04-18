@@ -19,13 +19,32 @@ class DamageRasanPlacesController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $search  = trim((string) $request->input('search', ''));
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
+
+        $allowedSearchFields = [
+                    'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'specific_dot',
+        'picture',
+        'coordinates',
+        'tahdid_type',
+        'percentage',
+        'damage_place',
+        'Province_addr',
+        'note',
+        'resource_id',
+        ];
 
         $q = DamageRasanPlaces::query()
             ->with(['resource:id,name,code_number,phone_number'])
             ->latest();
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($w) use ($search) {
                 $w->where('province', 'like', "%{$search}%")
                   ->orWhere('district', 'like', "%{$search}%")
@@ -34,7 +53,72 @@ class DamageRasanPlacesController extends Controller
             });
         }
 
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
         return DamageRasanPlacesResource::collection($q->paginate($perPage));
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+                    'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'specific_dot',
+        'picture',
+        'coordinates',
+        'tahdid_type',
+        'percentage',
+        'damage_place',
+        'Province_addr',
+        'note',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = DamageRasanPlaces::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     // ✅ SaeenFasad-style picture delete helper (handles "storage/..." too)

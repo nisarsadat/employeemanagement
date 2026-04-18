@@ -36,35 +36,107 @@ class CriminalCapturePlaceController extends Controller
 
     public function index(Request $request)
     {
-        $query = CriminalCapturePlace::query()
-            ->with(['resource:id,name,code_number,phone_number']);
-
-        if ($s = trim((string) $request->query('search', ''))) {
-            $query->where(function (Builder $q) use ($s) {
-                $q->where('name', 'like', "%{$s}%")
-                    ->orWhere('father_name', 'like', "%{$s}%")
-                    ->orWhere('office', 'like', "%{$s}%")
-                    ->orWhere('village', 'like', "%{$s}%");
-            });
-        }
-
-        $perPage = $request->query('perPage');
         $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page'));
 
-        $perPageInt = filter_var($perPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $pageInt    = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
-        // ✅ Same pattern: invalid pagination → return ALL
-        if ($perPageInt === false || $pageInt === false) {
-            return CriminalCapturePlaceResource::collection(
-                $query->orderByDesc('id')->get()
-            );
+        $search = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+                    'name','father_name','job',
+        'jorm_type','criminals_quantity','office',
+        'province','zone','district','village','specefic_place',
+        'picture',
+        'coordinates',
+        'Province_addr',
+        'resource_id','note',
+        ];
+
+        $query = CriminalCapturePlace::query()
+            ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function (Builder $sub) use ($search) {
+                $sub->where(function (Builder $q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('father_name', 'like', "%{$search}%")
+                        ->orWhere('office', 'like', "%{$search}%")
+                        ->orWhere('village', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function (Builder $sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
+            ->orderByDesc('id');
+
+        if ($isValidPage && $isValidPerPage) {
+            $rows = $query->paginate((int) $perPage, ['*'], 'page', (int) $page);
+            return CriminalCapturePlaceResource::collection($rows);
         }
 
-        $rows = $query->orderByDesc('id')
-            ->paginate($perPageInt, ['*'], 'page', $pageInt);
+        return CriminalCapturePlaceResource::collection($query->get());
+    }
 
-        return CriminalCapturePlaceResource::collection($rows);
+    /**
+     * GET /criminal-capture-places/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+                    'name','father_name','job',
+        'jorm_type','criminals_quantity','office',
+        'province','zone','district','village','specefic_place',
+        'picture',
+        'coordinates',
+        'Province_addr',
+        'resource_id','note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = CriminalCapturePlace::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**

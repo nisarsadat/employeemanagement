@@ -39,26 +39,135 @@ class OldSoldiersHomesController extends Controller
     /** GET /old-soldiers-homes */
     public function index(Request $request)
     {
-        $perPage = (int) ($request->input('perPage', $request->input('itemsPerPage', 10)));
-        $search  = $request->input('search');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page', $request->query('itemsPerPage')));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search      = trim((string) $request->query('search', ''));
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+           
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'home_number',
+        'phone_number',
+        'picture',
+        'coordinates',
+        'name',
+        'father_name',
+        'main_province',
+        'old_job',
+        'now_activity',
+        'Province_addr',
+        'note',
+        'resource_id',
+        ];
 
         $q = OldSoldiersHomes::query()
             ->with(['resource:id,name,code_number,phone_number'])
-            ->latest();
+            ->latest()
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
+                $sub->where(function ($w) use ($search) {
+                    $w->where('name', 'like', "%{$search}%")
+                        ->orWhere('father_name', 'like', "%{$search}%")
+                        ->orWhere('province', 'like', "%{$search}%")
+                        ->orWhere('district', 'like', "%{$search}%")
+                        ->orWhere('village', 'like', "%{$search}%")
+                        ->orWhere('old_job', 'like', "%{$search}%")
+                        ->orWhere('now_activity', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
 
-        if ($search) {
-            $q->where(function ($w) use ($search) {
-                $w->where('name', 'like', "%{$search}%")
-                    ->orWhere('father_name', 'like', "%{$search}%")
-                    ->orWhere('province', 'like', "%{$search}%")
-                    ->orWhere('district', 'like', "%{$search}%")
-                    ->orWhere('village', 'like', "%{$search}%")
-                    ->orWhere('old_job', 'like', "%{$search}%")
-                    ->orWhere('now_activity', 'like', "%{$search}%");
-            });
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            );
+
+        if ($isValidPage && $isValidPerPage) {
+            return OldSoldiersHomesResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
         }
 
-        return OldSoldiersHomesResource::collection($q->paginate($perPage));
+        return OldSoldiersHomesResource::collection($q->get());
+    }
+
+    /**
+     * GET /old-soldiers-homes/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+           
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'home_number',
+        'phone_number',
+        'picture',
+        'coordinates',
+        'name',
+        'father_name',
+        'main_province',
+        'old_job',
+        'now_activity',
+        'Province_addr',
+        'note',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = OldSoldiersHomes::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /** POST /old-soldiers-homes */

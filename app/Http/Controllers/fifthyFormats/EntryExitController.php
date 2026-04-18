@@ -23,8 +23,20 @@ class EntryExitController extends Controller
         $isValidPage    = is_numeric($page) && (int) $page > 0;
         $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
-        $search = trim((string) $request->query('search', ''));
-        $rid    = $request->query('resource_id');
+        $search      = trim((string) $request->query('search', ''));
+        $rid         = $request->query('resource_id');
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+            
+          'entry_way','way_type','province','zone','district','village',
+        'specific_place','cordinate','amnayaty_poste','amnayaty_ishala',
+        'Province_addr',
+        'where_went','where_come',
+        'notes','resource_id',
+        'picture'
+        ];
 
         // ✅ columns that exist
         $sortable = ['id', 'created_at', 'updated_at'];
@@ -39,7 +51,7 @@ class EntryExitController extends Controller
 
         $q = EntryExit::query()
             ->with(['resource:id,name,code_number,phone_number'])
-            ->when($search !== '', function ($sub) use ($search) {
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('entry_way', 'like', "%{$search}%")
                         ->orWhere('way_type', 'like', "%{$search}%")
@@ -51,6 +63,16 @@ class EntryExitController extends Controller
                         ->orWhere('where_come', 'like', "%{$search}%");
                 });
             })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
             ->when($rid, fn ($sub) => $sub->where('resource_id', $rid))
             ->orderBy($sortBy, $sortDir);
 
@@ -61,6 +83,59 @@ class EntryExitController extends Controller
         }
 
         return EntryExitResource::collection($q->get());
+    }
+
+    /**
+     * GET /entry-exits/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            
+          'entry_way','way_type','province','zone','district','village',
+        'specific_place','cordinate','amnayaty_poste','amnayaty_ishala',
+        'Province_addr',
+        'where_went','where_come',
+        'notes','resource_id',
+        'picture'
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = EntryExit::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function show(EntryExit $entry_exit)

@@ -49,25 +49,60 @@ class DamagePlacesController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $search  = trim((string) $request->input('search', ''));
         $rid     = $request->input('resource_id');
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
 
         $sortBy  = $request->input('sort_by', 'created_at');
         $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
             ? $request->input('sort_dir')
             : 'desc';
 
+        $allowedSearchFields = [
+            
+                'province',
+        'zone',
+        'picture',
+        'district',
+        'village',
+        'specific_place',
+        'specific_dot',
+        'coordinates',
+        'tahdid_type',
+        'percentage',
+        'tahdid_place',
+        'Province_addr',
+        'amnyat_khala',
+        'cameesa_tafseel',
+        'guard_quantity',
+        'masool_name',
+        'masool_f_name',
+        'masool_position',
+        'masool_phone',
+        'note',
+        'resource_id',
+        ];
+
         $q = DamagePlaces::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
         ]);
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($w) use ($search) {
                 $w->where('province', 'like', "%{$search}%")
                   ->orWhere('district', 'like', "%{$search}%")
                   ->orWhere('village', 'like', "%{$search}%")
                   ->orWhere('tahdid_type', 'like', "%{$search}%");
             });
+        }
+
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
         }
 
         if ($rid) {
@@ -77,6 +112,71 @@ class DamagePlacesController extends Controller
         $q->orderBy($sortBy, $sortDir);
 
         return DamagePlacesResource::collection($q->paginate($perPage));
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            
+                'province',
+        'zone',
+        'picture',
+        'district',
+        'village',
+        'specific_place',
+        'specific_dot',
+        'coordinates',
+        'tahdid_type',
+        'percentage',
+        'tahdid_place',
+        'Province_addr',
+        'amnyat_khala',
+        'cameesa_tafseel',
+        'guard_quantity',
+        'masool_name',
+        'masool_f_name',
+        'masool_position',
+        'masool_phone',
+        'note',
+        'resource_id',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = DamagePlaces::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /** POST /damage-places
