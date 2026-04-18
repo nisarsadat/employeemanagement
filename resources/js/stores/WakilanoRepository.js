@@ -19,7 +19,7 @@ function setContentType(type) {
 }
 
 // small helper for error text
-function errText(e, fallback = 'بغضی شیی ') {
+function errText(e, fallback = 'یو څه ناسم شول') {
   return e?.response?.data?.message || e?.message || (typeof e === 'string' ? e : fallback);
 }
 
@@ -34,68 +34,67 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       totalItems: 0,
 
       // ===== collections (reactive like your format) =====
-      // 
+      //
       Wakilanos: reactive([]),
       Wakilano: reactive({}),
 
-      // 
+      //
       Universities: reactive([]),
       University: reactive({}),
 
-      // 
+      //
       Masjids: reactive([]),
       Masjid: reactive({}),
 
-      // 
+      //
       Companies: reactive([]),
       Company: reactive({}),
 
-      // 
+      //
       Highways: reactive([]),
       Highway: reactive({}),
 
-      // 
+      //
       DoneLostPlaces: reactive([]),
       DoneLostPlace: reactive({}),
 
-      // 
+      //
       EconemyProjects: reactive([]),
       EconemyProject: reactive({}),
 
-      // 
+      //
       CriminalCapturePlaces: reactive([]),
       CriminalCapturePlace: reactive({}),
 
-      // 
+      //
       Pumps: reactive([]),
       Pump: reactive({}),
 
-      // 
+      //
       Shoras: reactive([]),
       Shora: reactive({}),
 
-      // 
+      //
       DeplomaticPlaces: reactive([]),
       DeplomaticPlace: reactive({}),
 
-      // 
+      //
       Checkpoints: reactive([]),
       Checkpoint: reactive({}),
-      
-      
-      // 
+
+      //
       Parks: reactive([]),
       Park: reactive({}),
 
-      // 
+      //
       GovernmentPlaces: reactive([]),
       GovernmentPlace: reactive({}),
 
-      // 
+      //
       SuperMarkets: reactive([]),
       SuperMarket: reactive({}),
 
-      // 
+      //
       Complexes: reactive([]),
       Complex: reactive({}),
 
@@ -140,7 +139,6 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        // adjust endpoint if yours is different:
         const { data } = await axios.get(`/resources`);
         this.resourcecode = data?.data ?? data ?? [];
       } catch (e) {
@@ -157,14 +155,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`wakilanos`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'Wakilanos');
       } catch (e) {
         console.error(e);
@@ -173,6 +183,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchWakilanoFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/wakilanos/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchWakilanoData(id) {
@@ -191,12 +216,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/wakilanos`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -211,23 +236,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/wakilanos/${id}`, data);
         }
-        toast.success('ریکارډ بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteWakilano(id) {
       try {
         await axios.delete(`/wakilanos/${id}`);
-        toast.success('ریکارډ بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -236,14 +261,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`universities`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'Universities');
       } catch (e) {
         console.error(e);
@@ -252,6 +289,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchUniversityFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/universities/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchUniversityData(id) {
@@ -270,12 +322,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/universities`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -290,23 +342,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/universities/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteUniversity(id) {
       try {
         await axios.delete(`/universities/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -315,14 +367,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`masjids`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'Masjids');
       } catch (e) {
         console.error(e);
@@ -331,6 +395,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchMasjidFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/masjids/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchMasjidData(id) {
@@ -349,12 +428,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/masjids`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -369,23 +448,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/masjids/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteMasjid(id) {
       try {
         await axios.delete(`/masjids/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -394,14 +473,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`companies`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'Companies');
       } catch (e) {
         console.error(e);
@@ -410,6 +501,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchCompanyFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/companies/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchCompanyData(id) {
@@ -428,12 +534,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/companies`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -448,23 +554,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/companies/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteCompany(id) {
       try {
         await axios.delete(`/companies/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -473,14 +579,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`highways`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'Highways');
       } catch (e) {
         console.error(e);
@@ -489,6 +607,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchHighwayFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/highways/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchHighwayData(id) {
@@ -507,12 +640,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/highways`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -527,23 +660,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/highways/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteHighway(id) {
       try {
         await axios.delete(`/highways/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -552,14 +685,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`done-lost-places`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'DoneLostPlaces');
       } catch (e) {
         console.error(e);
@@ -568,6 +713,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchDoneLostPlaceFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/done-lost-places/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchDoneLostPlaceData(id) {
@@ -586,12 +746,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/done-lost-places`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -606,23 +766,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/done-lost-places/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteDoneLostPlace(id) {
       try {
         await axios.delete(`/done-lost-places/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -631,14 +791,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`econemy-projects`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'EconemyProjects');
       } catch (e) {
         console.error(e);
@@ -647,6 +819,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchEconemyProjectFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/econemy-projects/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchEconemyProjectData(id) {
@@ -665,12 +852,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/econemy-projects`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -685,23 +872,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/econemy-projects/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteEconemyProject(id) {
       try {
         await axios.delete(`/econemy-projects/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -710,14 +897,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`criminal-capture-places`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'CriminalCapturePlaces');
       } catch (e) {
         console.error(e);
@@ -726,6 +925,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchCriminalCapturePlaceFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/criminal-capture-places/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchCriminalCapturePlaceData(id) {
@@ -744,12 +958,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/criminal-capture-places`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -764,23 +978,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/criminal-capture-places/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteCriminalCapturePlace(id) {
       try {
         await axios.delete(`/criminal-capture-places/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -789,14 +1003,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`pumps`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'Pumps');
       } catch (e) {
         console.error(e);
@@ -805,6 +1031,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchPumpFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/pumps/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchPumpData(id) {
@@ -823,12 +1064,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/pumps`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -843,23 +1084,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/pumps/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeletePump(id) {
       try {
         await axios.delete(`/pumps/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -868,14 +1109,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`shoras`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'Shoras');
       } catch (e) {
         console.error(e);
@@ -884,6 +1137,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchShoraFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/shoras/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchShoraData(id) {
@@ -902,12 +1170,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/shoras`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -922,23 +1190,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/shoras/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteShora(id) {
       try {
         await axios.delete(`/shoras/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -947,14 +1215,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`deplomaticplaces`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'DeplomaticPlaces');
       } catch (e) {
         console.error(e);
@@ -963,6 +1243,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchDeplomaticPlaceFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/deplomaticplaces/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchDeplomaticPlaceData(id) {
@@ -981,12 +1276,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/deplomaticplaces`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -1001,23 +1296,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/deplomaticplaces/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteDeplomaticPlace(id) {
       try {
         await axios.delete(`/deplomaticplaces/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -1026,14 +1321,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`checkpoints`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'Checkpoints');
       } catch (e) {
         console.error(e);
@@ -1042,6 +1349,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchCheckpointFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/checkpoints/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchCheckpointData(id) {
@@ -1060,12 +1382,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/checkpoints`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -1080,23 +1402,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/checkpoints/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteCheckpoint(id) {
       try {
         await axios.delete(`/checkpoints/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -1105,14 +1427,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`parks`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'Parks');
       } catch (e) {
         console.error(e);
@@ -1121,6 +1455,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchParkFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/parks/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchParkData(id) {
@@ -1139,12 +1488,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/parks`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -1159,23 +1508,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/parks/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeletePark(id) {
       try {
         await axios.delete(`/parks/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -1184,14 +1533,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`governmentplaces`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'GovernmentPlaces');
       } catch (e) {
         console.error(e);
@@ -1200,6 +1561,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchGovernmentPlaceFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/governmentplaces/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchGovernmentPlaceData(id) {
@@ -1218,12 +1594,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/governmentplaces`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -1238,23 +1614,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/governmentplaces/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteGovernmentPlace(id) {
       try {
         await axios.delete(`/governmentplaces/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -1263,14 +1639,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`supermarkets`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'SuperMarkets');
       } catch (e) {
         console.error(e);
@@ -1279,6 +1667,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchSuperMarketFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/supermarkets/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchSuperMarketData(id) {
@@ -1297,12 +1700,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/supermarkets`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -1317,23 +1720,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/supermarkets/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteSuperMarket(id) {
       try {
         await axios.delete(`/supermarkets/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -1342,14 +1745,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`complexes`, {
           params: queryParams,
         });
+
         applyPaginatedResponse(this, res, 'Complexes');
       } catch (e) {
         console.error(e);
@@ -1358,6 +1773,21 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+    async FetchComplexFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/complexes/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
     async FetchComplexData(id) {
@@ -1376,12 +1806,12 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         setContentType(null);
         const res = await axios.post(`/complexes`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -1396,23 +1826,23 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/complexes/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
     async DeleteComplex(id) {
       try {
         await axios.delete(`/complexes/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', { autoClose: 1200 });
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
   },

@@ -44,8 +44,13 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
         }
       );
 
+      const finalParams = {
+        ...queryParams,
+        ...extraParams,
+      };
+
       const res = await axios.get('/outgoing-incomings', {
-        params: queryParams,
+        params: finalParams,
       });
 
       // direct mapping
@@ -65,6 +70,20 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
       throw e;
     } finally {
       loading.value = false;
+    }
+  }
+
+  async function FetchOutgoingIncomingFilterOptions(params = {}) {
+    try {
+      const res = await axios.get('/outgoing-incomings/filter-options', {
+        params,
+      });
+
+      return res?.data ?? { data: { options: [] } };
+    } catch (e) {
+      error.value = e;
+      console.error(e);
+      return { data: { options: [] } };
     }
   }
 
@@ -172,7 +191,7 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
 
       if (!isZip) {
         console.error('Not a ZIP. First bytes:', bytes.slice(0, 20));
-        throw new Error('Server did not return a valid ZIP file');
+        throw new Error('سرور سم ZIP فایل را وانه ستاوه');
       }
 
       const blob = new Blob([res.data], { type: 'application/zip' });
@@ -205,6 +224,7 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
     totalItems,
 
     FetchOutgoingIncomingData,
+    FetchOutgoingIncomingFilterOptions,
     FetchOutgoingIncomingItem,
     CreateOutgoingIncoming,
     UpdateOutgoingIncoming,

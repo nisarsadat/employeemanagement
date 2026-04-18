@@ -16,7 +16,7 @@ function setContentType(type) {
   axios.defaults.headers.common['Content-Type'] = type;
 }
 
-function errText(e, fallback = 'خطا') {
+function errText(e, fallback = 'یوه ستونزه رامنځته شوه') {
   return e?.response?.data?.message || e?.message || (typeof e === 'string' ? e : fallback);
 }
 
@@ -29,7 +29,7 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
       itemsPerPage: 10,
       totalItems: 0,
 
-      // done 
+      // done
       Jawasis: reactive([]),
       Jawasi: reactive({}),
 
@@ -76,11 +76,20 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`jawasis`, {
           params: queryParams,
@@ -94,6 +103,22 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchJawasiFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/jawasis/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -114,12 +139,12 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
         setContentType(null);
         const res = await axios.post(`/jawasis`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ جواسیس اضافه شد', { autoClose: 1200 });
+        toast.success('د جواسیس رېکارډ په بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ اضافه نشد'));
+        toast.error(errText(e, 'رېکارډ اضافه نشو'));
         throw e;
       }
     },
@@ -135,12 +160,12 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
           setContentType('application/json');
           res = await axios.put(`/jawasis/${id}`, data);
         }
-        toast.success('ریکارډ جواسیس تغییر شد', { autoClose: 1200 });
+        toast.success('د جواسیس رېکارډ په بریالیتوب سره بدل شو', { autoClose: 1200 });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشد'));
+        toast.error(errText(e, 'رېکارډ بدل نشو'));
         throw e;
       }
     },
@@ -148,12 +173,12 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
     async DeleteJawasi(id) {
       try {
         await axios.delete(`/jawasis/${id}`);
-        toast.success('ریکارډ جواسیس حذف شد', { autoClose: 1200 });
+        toast.success('د جواسیس رېکارډ په بریالیتوب سره حذف شو', { autoClose: 1200 });
         await this.FetchJawasisData({ page: this.page, itemsPerPage: this.itemsPerPage });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'حذف ناکام شد'));
+        toast.error(errText(e, 'حذف ناکام شو'));
         throw e;
       }
     },
@@ -178,7 +203,7 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
             }));
 
           console.error('DownloadJawasiZip not zip:', text);
-          toast.error('سرور فایل زیپ برنگرداند (ممکن است ارور باشد).');
+          toast.error('سرور د ZIP فایل بېرته را ونه لېږه، کېدای شي کومه تېروتنه وي.');
           return;
         }
 
@@ -196,7 +221,7 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'دانلود اسناد ناکام شد'));
+        toast.error(errText(e, 'د اسنادو ډاونلوډ ناکام شو'));
         throw e;
       }
     },

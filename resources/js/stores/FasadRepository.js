@@ -19,7 +19,7 @@ function setContentType(type) {
 }
 
 // small helper for error text
-function errText(e, fallback = 'بغضی شیی ') {
+function errText(e, fallback = 'بعضې ستونزه رامنځته شوه') {
   return e?.response?.data?.message || e?.message || (typeof e === 'string' ? e : fallback);
 }
 
@@ -132,11 +132,20 @@ export const useFasadRepository = defineStore('FasadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`fasads`, {
           params: queryParams,
@@ -150,6 +159,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchFasadFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/fasads/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -258,6 +283,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.loading = false;
       }
     },
+
     async FetchSaeenFasadFilterOptions(params = {}) {
       try {
         setContentType('application/json');
@@ -273,6 +299,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
         return { data: { options: [] } };
       }
     },
+
     async FetchSaeenFasadData(id) {
       try {
         setContentType('application/json');
@@ -349,11 +376,20 @@ export const useFasadRepository = defineStore('FasadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`heists`, {
           params: queryParams,
@@ -367,6 +403,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchHeistFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/heists/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -446,11 +498,20 @@ export const useFasadRepository = defineStore('FasadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`captives`, {
           params: queryParams,
@@ -464,6 +525,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchCaptiveFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/captives/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -557,7 +634,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
             }));
 
           console.error('Download not a zip:', text);
-          toast.error('سرور فایل زیپ برنگرداند (ممکن است ارور HTML باشد).');
+          toast.error('سرور د ZIP فایل پر ځای بل ځواب راولېږه.');
           return;
         }
 
@@ -572,7 +649,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'د اسنادو دانلود ناکام شو'));
+        toast.error(errText(e, 'د اسنادو ډاونلوډ ناکام شو'));
       }
     },
 
@@ -582,11 +659,20 @@ export const useFasadRepository = defineStore('FasadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`mulkanos`, {
           params: queryParams,
@@ -600,6 +686,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchMulkanoFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/mulkanos/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -679,11 +781,20 @@ export const useFasadRepository = defineStore('FasadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`entry-exits`, {
           params: queryParams,
@@ -697,6 +808,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchEntryExitFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/entry-exits/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -776,11 +903,20 @@ export const useFasadRepository = defineStore('FasadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`sarafyanos`, {
           params: queryParams,
@@ -794,6 +930,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchSarafyanoFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/sarafyanos/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -873,11 +1025,20 @@ export const useFasadRepository = defineStore('FasadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`clubs`, {
           params: queryParams,
@@ -891,6 +1052,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchClubFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/clubs/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -970,11 +1147,20 @@ export const useFasadRepository = defineStore('FasadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`mahajerats`, {
           params: queryParams,
@@ -988,6 +1174,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchMahajeratFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/mahajerats/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -1067,11 +1269,20 @@ export const useFasadRepository = defineStore('FasadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`soldiers`, {
           params: queryParams,
@@ -1085,6 +1296,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchSoldierFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/soldiers/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -1178,7 +1405,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
             }));
 
           console.error('DownloadZip not zip:', text);
-          toast.error('سرور فایل زیپ برنگرداند (ممکن است ارور باشد).');
+          toast.error('سرور د ZIP فایل پر ځای بل ځواب راولېږه.');
           return;
         }
 
@@ -1196,7 +1423,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'دانلود اسناد ناکام شد'));
+        toast.error(errText(e, 'د اسنادو ډاونلوډ ناکام شو'));
         throw e;
       }
     },
@@ -1221,7 +1448,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
             }));
 
           console.error('DownloadSaeenFasadZip not zip:', text);
-          toast.error('سرور فایل زیپ برنگرداند (ممکن است ارور باشد).');
+          toast.error('سرور د ZIP فایل پر ځای بل ځواب راولېږه.');
           return;
         }
 
@@ -1239,7 +1466,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'دانلود اسناد ناکام شد'));
+        toast.error(errText(e, 'د اسنادو ډاونلوډ ناکام شو'));
         throw e;
       }
     },
@@ -1264,7 +1491,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
             }));
 
           console.error('DownloadHeistZip not zip:', text);
-          toast.error('سرور فایل زیپ برنگرداند (ممکن است ارور باشد).');
+          toast.error('سرور د ZIP فایل پر ځای بل ځواب راولېږه.');
           return;
         }
 
@@ -1282,7 +1509,7 @@ export const useFasadRepository = defineStore('FasadRepository', {
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'دانلود اسناد ناکام شد'));
+        toast.error(errText(e, 'د اسنادو ډاونلوډ ناکام شو'));
         throw e;
       }
     },

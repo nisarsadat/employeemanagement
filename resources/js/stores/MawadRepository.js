@@ -19,7 +19,7 @@ function setContentType(type) {
 }
 
 // small helper for error text
-function errText(e, fallback = 'بغضی شیی ') {
+function errText(e, fallback = 'بعضې ستونزه رامنځته شوه') {
   return e?.response?.data?.message || e?.message || (typeof e === 'string' ? e : fallback);
 }
 
@@ -57,11 +57,11 @@ export const useMawadRepository = defineStore('MawadRepository', {
       MashkokHomes: reactive([]),
       MashkokHome: reactive({}),
 
-      // done 
+      // done
       DamagePLaces: reactive([]),
       DamagePlace: reactive({}),
 
-      // done 
+      // done
       DamageRasanPlaces: reactive([]),
       DamageRasanPlace: reactive({}),
 
@@ -132,11 +132,20 @@ export const useMawadRepository = defineStore('MawadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`mawads`, {
           params: queryParams,
@@ -150,6 +159,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchMawadFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/mawads/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -231,11 +256,20 @@ export const useMawadRepository = defineStore('MawadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`lost-mujremeens`, {
           params: queryParams,
@@ -249,6 +283,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchLostMujremeenFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/lost-mujremeens/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -326,11 +376,20 @@ export const useMawadRepository = defineStore('MawadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`old-soldiers-homes`, {
           params: queryParams,
@@ -344,6 +403,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchOldSoldiersHomeFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/old-soldiers-homes/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -425,11 +500,20 @@ export const useMawadRepository = defineStore('MawadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`robbers`, {
           params: queryParams,
@@ -443,6 +527,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchRobberFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/robbers/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -524,11 +624,20 @@ export const useMawadRepository = defineStore('MawadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`non-responsable-people`, {
           params: queryParams,
@@ -542,6 +651,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchNonResponsablePeopleFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/non-responsable-people/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -623,11 +748,20 @@ export const useMawadRepository = defineStore('MawadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`mashkok-homes`, {
           params: queryParams,
@@ -641,6 +775,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchMashkokHomeFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/mashkok-homes/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -722,11 +872,20 @@ export const useMawadRepository = defineStore('MawadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`damage-places`, {
           params: queryParams,
@@ -740,6 +899,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchDamagePlaceFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/damage-places/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -821,11 +996,20 @@ export const useMawadRepository = defineStore('MawadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`damage-rasan-places`, {
           params: queryParams,
@@ -839,6 +1023,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchDamageRasanPlaceFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/damage-rasan-places/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -916,11 +1116,20 @@ export const useMawadRepository = defineStore('MawadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`mashkok-shops`, {
           params: queryParams,
@@ -934,6 +1143,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchMashkokShopFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/mashkok-shops/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -1011,11 +1236,20 @@ export const useMawadRepository = defineStore('MawadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`luchakanos`, {
           params: queryParams,
@@ -1029,6 +1263,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchLuchakanoFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/luchakanos/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 

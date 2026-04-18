@@ -19,7 +19,7 @@ function setContentType(type) {
 }
 
 // small helper for error text
-function errText(e, fallback = 'بغضی شیی ') {
+function errText(e, fallback = 'یو څه ناسم شول') {
   return e?.response?.data?.message || e?.message || (typeof e === 'string' ? e : fallback);
 }
 
@@ -36,24 +36,24 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       // collections  // done
       Schools: reactive([]),
       School: reactive({}),
- 
-      // done 
+
+      // done
       HadoBusStops: reactive([]),
       HadoBusStop: reactive({}),
 
-      // done 
+      // done
       TransportCompanies: reactive([]),
       TransportCompany: reactive({}),
 
-      // done 
+      // done
       CarSalesCompanies: reactive([]),
       CarSalesCompany: reactive({}),
 
-      // done 
+      // done
       Parkings: reactive([]),
       Parking: reactive({}),
 
-      // done 
+      // done
       Banks: reactive([]),
       Bank: reactive({}),
 
@@ -65,7 +65,7 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       RahnomaMamlats: reactive([]),
       RahnomaMamlat: reactive({}),
 
-      // done 
+      // done
       Hosppitals: reactive([]),
       Hosppital: reactive({}),
 
@@ -114,7 +114,6 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        // adjust endpoint if yours is different:
         const { data } = await axios.get(`/resources`);
         this.resourcecode = data?.data ?? data ?? [];
       } catch (e) {
@@ -132,11 +131,20 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`schools`, {
           params: queryParams,
@@ -150,6 +158,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchSchoolFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/schools/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -167,18 +191,17 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
 
     async CreateSchool(formData) {
       try {
-        // let the browser set proper multipart boundary
         setContentType(null);
         const res = await axios.post(`/schools`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ فساد بریالیتوب سره اضافه شو', {
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ فساد اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -194,14 +217,14 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
           setContentType('application/json');
           res = await axios.put(`/schools/${id}`, data);
         }
-        toast.success('ریکارډ فساد بریالیتوب سره تغییر شو', {
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ فساد تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
@@ -209,13 +232,13 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     async DeleteSchool(id) {
       try {
         await axios.delete(`/schools/${id}`);
-        toast.success('ریکارډ فساد بریالیتوب سره حذف شو', {
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ فساد حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -225,11 +248,20 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`hado-bus-stops`, {
           params: queryParams,
@@ -243,6 +275,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchHadoBusStopFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/hado-bus-stops/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -260,18 +308,17 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
 
     async CreateHadoBusStop(formData) {
       try {
-        // let the browser set proper multipart boundary
         setContentType(null);
         const res = await axios.post(`/hado-bus-stops`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -287,14 +334,14 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
           setContentType('application/json');
           res = await axios.put(`/hado-bus-stops/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
@@ -302,13 +349,13 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     async DeleteHadoBusStop(id) {
       try {
         await axios.delete(`/hado-bus-stops/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -318,11 +365,20 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`transport-companies`, {
           params: queryParams,
@@ -336,6 +392,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchTransportCompanyFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/transport-companies/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -353,18 +425,17 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
 
     async CreateTransportCompany(formData) {
       try {
-        // let the browser set proper multipart boundary
         setContentType(null);
         const res = await axios.post(`/transport-companies`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -380,14 +451,14 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
           setContentType('application/json');
           res = await axios.put(`/transport-companies/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
@@ -395,13 +466,13 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     async DeleteTransportCompany(id) {
       try {
         await axios.delete(`/transport-companies/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -411,11 +482,20 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`car-sales-companies`, {
           params: queryParams,
@@ -429,6 +509,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchCarSalesCompanyFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/car-sales-companies/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -446,18 +542,17 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
 
     async CreateCarSalesCompany(formData) {
       try {
-        // let the browser set proper multipart boundary
         setContentType(null);
         const res = await axios.post(`/car-sales-companies`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -473,14 +568,14 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
           setContentType('application/json');
           res = await axios.put(`/car-sales-companies/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
@@ -488,13 +583,13 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     async DeleteCarSalesCompany(id) {
       try {
         await axios.delete(`/car-sales-companies/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -504,11 +599,20 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`parkings`, {
           params: queryParams,
@@ -522,6 +626,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchParkingFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/parkings/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -539,18 +659,17 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
 
     async CreateParking(formData) {
       try {
-        // let the browser set proper multipart boundary
         setContentType(null);
         const res = await axios.post(`/parkings`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -566,14 +685,14 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
           setContentType('application/json');
           res = await axios.put(`/parkings/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
@@ -581,13 +700,13 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     async DeleteParking(id) {
       try {
         await axios.delete(`/parkings/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -597,11 +716,20 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`banks`, {
           params: queryParams,
@@ -615,6 +743,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchBankFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/banks/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -632,18 +776,17 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
 
     async CreateBank(formData) {
       try {
-        // let the browser set proper multipart boundary
         setContentType(null);
         const res = await axios.post(`/banks`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -659,14 +802,14 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
           setContentType('application/json');
           res = await axios.put(`/banks/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
@@ -674,13 +817,13 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     async DeleteBank(id) {
       try {
         await axios.delete(`/banks/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -690,11 +833,20 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`apartments`, {
           params: queryParams,
@@ -708,6 +860,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchApartmentFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/apartments/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -725,18 +893,17 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
 
     async CreateApartment(formData) {
       try {
-        // let the browser set proper multipart boundary
         setContentType(null);
         const res = await axios.post(`/apartments`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -752,14 +919,14 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
           setContentType('application/json');
           res = await axios.put(`/apartments/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
@@ -767,13 +934,13 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     async DeleteApartment(id) {
       try {
         await axios.delete(`/apartments/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -783,11 +950,20 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`rahnoma-mamlats`, {
           params: queryParams,
@@ -801,6 +977,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchRahnomaMamlatFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/rahnoma-mamlats/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -818,18 +1010,17 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
 
     async CreateRahnomaMamlat(formData) {
       try {
-        // let the browser set proper multipart boundary
         setContentType(null);
         const res = await axios.post(`/rahnoma-mamlats`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -845,14 +1036,14 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
           setContentType('application/json');
           res = await axios.put(`/rahnoma-mamlats/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
@@ -860,13 +1051,13 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     async DeleteRahnomaMamlat(id) {
       try {
         await axios.delete(`/rahnoma-mamlats/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -876,11 +1067,20 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`hosppitals`, {
           params: queryParams,
@@ -894,6 +1094,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchHosppitalFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/hosppitals/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -911,18 +1127,17 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
 
     async CreateHosppital(formData) {
       try {
-        // let the browser set proper multipart boundary
         setContentType(null);
         const res = await axios.post(`/hosppitals`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -938,14 +1153,14 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
           setContentType('application/json');
           res = await axios.put(`/hosppitals/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
@@ -953,13 +1168,13 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     async DeleteHosppital(id) {
       try {
         await axios.delete(`/hosppitals/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
 
@@ -969,11 +1184,20 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`work-shops`, {
           params: queryParams,
@@ -987,6 +1211,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchWorkShopFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/work-shops/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -1004,18 +1244,17 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
 
     async CreateWorkShop(formData) {
       try {
-        // let the browser set proper multipart boundary
         setContentType(null);
         const res = await axios.post(`/work-shops`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('ریکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
     },
@@ -1031,14 +1270,14 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
           setContentType('application/json');
           res = await axios.put(`/work-shops/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('ریکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'ریکارډ بدل نه شو'));
         throw e;
       }
     },
@@ -1046,13 +1285,13 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
     async DeleteWorkShop(id) {
       try {
         await axios.delete(`/work-shops/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('ریکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
   },

@@ -1,4 +1,3 @@
-// src/stores/FasadRepository.js
 import { defineStore } from 'pinia';
 import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
@@ -19,7 +18,7 @@ function setContentType(type) {
 }
 
 // small helper for error text
-function errText(e, fallback = 'بغضی شیی ') {
+function errText(e, fallback = 'یوه ستونزه رامنځته شوه') {
   return e?.response?.data?.message || e?.message || (typeof e === 'string' ? e : fallback);
 }
 
@@ -37,39 +36,39 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       Badmashanos: reactive([]),
       Badmashano: reactive({}),
 
-      // 
+      //
       Sarayanos: reactive([]),
       Sarayano: reactive({}),
 
-      // 
+      //
       Hotels: reactive([]),
       Hotel: reactive({}),
 
-      // 
+      //
       Hostels: reactive([]),
       Hostel: reactive({}),
 
-      // 
+      //
       Tujarans: reactive([]),
       Tujaran: reactive({}),
 
-      // 
+      //
       Mujahedinos: reactive([]),
       Mujahedino: reactive({}),
 
-      // 
+      //
       EmaratOffices: reactive([]),
       EmaratOffice: reactive({}),
 
-      // 
+      //
       OldJahadis: reactive([]),
       OldJahadi: reactive({}),
 
-      // 
+      //
       MashkokPeoples: reactive([]),
       MashkokPeople: reactive({}),
 
-      // 
+      //
       Madrasas: reactive([]),
       Madrasa: reactive([]),
 
@@ -131,11 +130,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`badmashanos`, {
           params: queryParams,
         });
@@ -147,6 +157,20 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchBadmashanoFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.get(`/badmashanos/filter-options`, {
+          params,
+        });
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -168,16 +192,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         setContentType(null);
         const res = await axios.post(`/badmashanos`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ فساد بریالیتوب سره اضافه شو', {
+        toast.success('رېکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ فساد اضافه نشو'));
+        toast.error(errText(e, 'رېکارډ اضافه نشو'));
         throw e;
       }
     },
@@ -193,14 +215,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/badmashanos/${id}`, data);
         }
-        toast.success('ریکارډ فساد بریالیتوب سره تغییر شو', {
+        toast.success('رېکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ فساد تغییر نشو'));
+        toast.error(errText(e, 'رېکارډ بدل نشو'));
         throw e;
       }
     },
@@ -208,13 +230,13 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     async DeleteBadmashano(id) {
       try {
         await axios.delete(`/badmashanos/${id}`);
-        toast.success('ریکارډ فساد بریالیتوب سره حذف شو', {
+        toast.success('رېکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ فساد حذف نشو'));
+        toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
     },
 
@@ -223,11 +245,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`sarayanos`, {
           params: queryParams,
         });
@@ -239,6 +272,20 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchSarayanoFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.get(`/sarayanos/filter-options`, {
+          params,
+        });
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -260,16 +307,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         setContentType(null);
         const res = await axios.post(`/sarayanos`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('رېکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'رېکارډ اضافه نشو'));
         throw e;
       }
     },
@@ -285,14 +330,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/sarayanos/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('رېکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'رېکارډ بدل نشو'));
         throw e;
       }
     },
@@ -300,13 +345,13 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     async DeleteSarayano(id) {
       try {
         await axios.delete(`/sarayanos/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('رېکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
     },
 
@@ -315,11 +360,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`hotels`, {
           params: queryParams,
         });
@@ -331,6 +387,20 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchHotelFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.get(`/hotels/filter-options`, {
+          params,
+        });
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -352,16 +422,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         setContentType(null);
         const res = await axios.post(`/hotels`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('رېکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'رېکارډ اضافه نشو'));
         throw e;
       }
     },
@@ -377,14 +445,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/hotels/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('رېکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'رېکارډ بدل نشو'));
         throw e;
       }
     },
@@ -392,13 +460,13 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     async DeleteHotel(id) {
       try {
         await axios.delete(`/hotels/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('رېکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
     },
 
@@ -407,11 +475,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`hostels`, {
           params: queryParams,
         });
@@ -423,6 +502,20 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchHostelFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.get(`/hostels/filter-options`, {
+          params,
+        });
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -444,16 +537,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         setContentType(null);
         const res = await axios.post(`/hostels`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('رېکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'رېکارډ اضافه نشو'));
         throw e;
       }
     },
@@ -469,14 +560,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/hostels/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('رېکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'رېکارډ بدل نشو'));
         throw e;
       }
     },
@@ -484,13 +575,13 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     async DeleteHostel(id) {
       try {
         await axios.delete(`/hostels/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('رېکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
     },
 
@@ -499,11 +590,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`tujarans`, {
           params: queryParams,
         });
@@ -515,6 +617,20 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchTujaranFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.get(`/tujarans/filter-options`, {
+          params,
+        });
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -536,16 +652,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         setContentType(null);
         const res = await axios.post(`/tujarans`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('رېکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'رېکارډ اضافه نشو'));
         throw e;
       }
     },
@@ -561,14 +675,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/tujarans/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('رېکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'رېکارډ بدل نشو'));
         throw e;
       }
     },
@@ -576,13 +690,13 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     async DeleteTujaran(id) {
       try {
         await axios.delete(`/tujarans/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('رېکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
     },
 
@@ -591,11 +705,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`mujahedinos`, {
           params: queryParams,
         });
@@ -607,6 +732,20 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchMujahedinoFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.get(`/mujahedinos/filter-options`, {
+          params,
+        });
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -628,16 +767,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         setContentType(null);
         const res = await axios.post(`/mujahedinos`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('رېکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'رېکارډ اضافه نشو'));
         throw e;
       }
     },
@@ -653,14 +790,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/mujahedinos/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('رېکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'رېکارډ بدل نشو'));
         throw e;
       }
     },
@@ -668,13 +805,13 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     async DeleteMujahedino(id) {
       try {
         await axios.delete(`/mujahedinos/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('رېکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
     },
 
@@ -683,11 +820,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`emarat-offices`, {
           params: queryParams,
         });
@@ -699,6 +847,20 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchEmaratOfficeFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.get(`/emarat-offices/filter-options`, {
+          params,
+        });
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -720,16 +882,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         setContentType(null);
         const res = await axios.post(`/emarat-offices`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('رېکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'رېکارډ اضافه نشو'));
         throw e;
       }
     },
@@ -745,14 +905,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/emarat-offices/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('رېکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'رېکارډ بدل نشو'));
         throw e;
       }
     },
@@ -760,13 +920,13 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     async DeleteEmaratOffice(id) {
       try {
         await axios.delete(`/emarat-offices/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('رېکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
     },
 
@@ -775,11 +935,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`old-jahadis`, {
           params: queryParams,
         });
@@ -791,6 +962,20 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchOldJahadiFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.get(`/old-jahadis/filter-options`, {
+          params,
+        });
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -812,16 +997,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         setContentType(null);
         const res = await axios.post(`/old-jahadis`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('رېکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'رېکارډ اضافه نشو'));
         throw e;
       }
     },
@@ -837,14 +1020,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/old-jahadis/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('رېکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'رېکارډ بدل نشو'));
         throw e;
       }
     },
@@ -852,13 +1035,13 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     async DeleteOldJahadi(id) {
       try {
         await axios.delete(`/old-jahadis/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('رېکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
     },
 
@@ -867,11 +1050,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`mashkok-people`, {
           params: queryParams,
         });
@@ -883,6 +1077,20 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchMashkokPeopleFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.get(`/mashkok-people/filter-options`, {
+          params,
+        });
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -904,16 +1112,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         setContentType(null);
         const res = await axios.post(`/mashkok-people`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('رېکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'رېکارډ اضافه نشو'));
         throw e;
       }
     },
@@ -929,14 +1135,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/mashkok-people/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('رېکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'رېکارډ بدل نشو'));
         throw e;
       }
     },
@@ -944,13 +1150,13 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     async DeleteMashkokPeople(id) {
       try {
         await axios.delete(`/mashkok-people/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('رېکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
     },
 
@@ -959,11 +1165,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       this.loading = true;
       try {
         setContentType('application/json');
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
+
         const { data: res } = await axios.get(`madrasas`, {
           params: queryParams,
         });
@@ -975,6 +1192,20 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.totalItems = 0;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async FetchMadrasaFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.get(`/madrasas/filter-options`, {
+          params,
+        });
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
       }
     },
 
@@ -996,16 +1227,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         setContentType(null);
         const res = await axios.post(`/madrasas`, formData);
         const saved = res.data?.data ?? res.data;
-        toast.success('ریکارډ  بریالیتوب سره اضافه شو', {
+        toast.success('رېکارډ په بریالیتوب سره اضافه شو', {
           autoClose: 1200,
         });
-        // optionally refresh list here
-        // await this.FetchFasadsData({ page: this.page, itemsPerPage: this.itemsPerPage });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  اضافه نشو'));
+        toast.error(errText(e, 'رېکارډ اضافه نشو'));
         throw e;
       }
     },
@@ -1021,14 +1250,14 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
           setContentType('application/json');
           res = await axios.put(`/madrasas/${id}`, data);
         }
-        toast.success('ریکارډ  بریالیتوب سره تغییر شو', {
+        toast.success('رېکارډ په بریالیتوب سره بدل شو', {
           autoClose: 1200,
         });
         return res.data?.data ?? res.data;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ تغییر نشو'));
+        toast.error(errText(e, 'رېکارډ بدل نشو'));
         throw e;
       }
     },
@@ -1036,13 +1265,13 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
     async DeleteMadrasa(id) {
       try {
         await axios.delete(`/madrasas/${id}`);
-        toast.success('ریکارډ  بریالیتوب سره حذف شو', {
+        toast.success('رېکارډ په بریالیتوب سره حذف شو', {
           autoClose: 1200,
         });
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'ریکارډ  حذف نشو'));
+        toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
     },
   },
