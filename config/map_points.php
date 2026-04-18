@@ -31,7 +31,7 @@ return [
             'type' => 'office_employee',
             'typeLabel' => 'کارمند',
             'show_url' => '/api/office-employees/',
-            'list_path' => '/app/officeemployees',
+            'list_path' => '/app/officeemployee',
             'relation_query_key' => 'office_employee_id',
             'title_candidates' => ['nick_name', 'name', 'full_name', 'code_number'],
             'code_candidates' => ['code_number', 'office_employee_code'],
