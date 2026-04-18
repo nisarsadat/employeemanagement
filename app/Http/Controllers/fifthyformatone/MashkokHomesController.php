@@ -50,36 +50,135 @@ class MashkokHomesController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
-        $rid     = $request->input('resource_id');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page', 10));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search  = trim((string) $request->query('search', ''));
+        $rid     = $request->query('resource_id');
+        $fiftySixFormatId = $request->query('fifty_six_format_id');
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
 
         $sortBy  = $request->input('sort_by', 'created_at');
         $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
             ? $request->input('sort_dir')
             : 'desc';
 
+        $allowedSearchFields = [
+            'province',
+            'zone',
+            'district',
+            'village',
+            'specific_place',
+            'home_type',
+            'tafseel',
+            'note',
+            'owner_name',
+            'owner_phone',
+            'coordinates',
+        ];
+
         $q = MashkokHomes::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
             'documents',
-        ]);
-
-        if ($search) {
-            $q->where(function ($w) use ($search) {
+        ])
+        ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
+            $sub->where(function ($w) use ($search) {
                 $w->where('province', 'like', "%{$search}%")
-                  ->orWhere('district', 'like', "%{$search}%")
-                  ->orWhere('village', 'like', "%{$search}%")
-                  ->orWhere('home_type', 'like', "%{$search}%");
+                    ->orWhere('district', 'like', "%{$search}%")
+                    ->orWhere('village', 'like', "%{$search}%")
+                    ->orWhere('home_type', 'like', "%{$search}%");
             });
-        }
+        })
+        ->when(
+            $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+            function ($sub) use ($searchField, $searchValue, $search) {
+                $value = $searchValue !== '' ? $searchValue : $search;
 
-        if ($rid) {
-            $q->where('resource_id', $rid);
-        }
+                if ($value !== '') {
+                    $sub->where($searchField, 'like', "%{$value}%");
+                }
+            }
+        )
+        ->when($rid, function ($sub) use ($rid) {
+            $sub->where('resource_id', $rid);
+        })
+        ->when(
+            is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0,
+            function ($sub) use ($fiftySixFormatId) {
+                $sub->where('id', (int) $fiftySixFormatId);
+            }
+        );
 
         $q->orderBy($sortBy, $sortDir);
 
-        return MashkokHomesResource::collection($q->paginate($perPage));
+        if ($isValidPage && $isValidPerPage) {
+            return MashkokHomesResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
+        }
+
+        return MashkokHomesResource::collection($q->get());
+    }
+
+    /**
+     * GET /mashkok-homes/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            'province',
+            'zone',
+            'district',
+            'village',
+            'specific_place',
+            'home_type',
+            'tafseel',
+            'note',
+            'owner_name',
+            'owner_phone',
+            'coordinates',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = MashkokHomes::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreMashkokHomesRequest $request)

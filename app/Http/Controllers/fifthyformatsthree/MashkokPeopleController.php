@@ -8,20 +8,49 @@ use App\Http\Resources\fifthyformatsthree\MashkokPeopleResource;
 use App\Http\Requests\fifthyformatsthree\StoreMashkokPeopleRequest;
 use App\Http\Requests\fifthyformatsthree\UpdateMashkokPeopleRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class MashkokPeopleController extends Controller
 {
+    private function allowedSearchFields(): array
+    {
+        $table = (new MashkokPeople())->getTable();
+
+        $candidates = [
+            'name',
+            'father_name',
+            'phone_number',
+            'now_province',
+            'now_districts',
+            'now_village',
+            'main_province',
+            'main_district',
+            'main_village',
+            'note',
+            'tafseel',
+            'address',
+            'current_address',
+            'original_address',
+        ];
+
+        return array_values(array_filter($candidates, fn ($field) => Schema::hasColumn($table, $field)));
+    }
+
     public function index(Request $request)
     {
         $perPage = (int) $request->get('perPage', 10);
         $search  = trim((string) $request->get('search', ''));
+        $searchField = trim((string) $request->get('search_field', ''));
+        $searchValue = trim((string) $request->get('search_value', ''));
+
+        $allowedSearchFields = $this->allowedSearchFields();
 
         $q = MashkokPeople::query()
             ->with(['resource:id,name,code_number,phone_number'])
             ->latest('id');
 
-        if ($search !== '') {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($w) use ($search) {
                 $w->where('name', 'like', "%{$search}%")
                     ->orWhere('father_name', 'like', "%{$search}%")
@@ -32,7 +61,60 @@ class MashkokPeopleController extends Controller
             });
         }
 
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
         return MashkokPeopleResource::collection($q->paginate($perPage));
+    }
+
+    /**
+     * GET /mashkok-people/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = $this->allowedSearchFields();
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = MashkokPeople::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreMashkokPeopleRequest $request)

@@ -1,12 +1,24 @@
 <!-- src/components/dialogs/EmployeeDetailsDialog.vue -->
 <template>
+  <v-dialog v-model="imagePreviewDialog" max-width="600">
+    <v-card class="pa-2" rounded="xl">
+      <v-img :src="imagePreviewUrl" max-height="70vh" contain class="rounded-lg" />
+
+      <div class="d-flex justify-end mt-2">
+        <v-btn variant="text" @click="imagePreviewDialog = false">
+          {{ t('بستن') }}
+        </v-btn>
+      </div>
+    </v-card>
+  </v-dialog>
   <v-dialog v-model="model" max-width="920" scrollable :scrim="true">
     <v-card rounded="xl" class="details-card" :dir="rtl ? 'rtl' : 'ltr'">
       <!-- Header -->
       <div class="px-5 pt-5 pb-3 d-flex align-center justify-space-between">
         <div class="d-flex align-center" style="gap: 12px">
-          <v-avatar size="46" class="avatar-glow">
-            <span class="text-white font-weight-bold">
+          <v-avatar size="46" class="avatar-glow cursor-pointer" @click="openImagePreview">
+            <v-img v-if="employee?.picture" :src="employee.picture" cover />
+            <span v-else class="text-white font-weight-bold">
               {{ initials(employee?.name) }}
             </span>
           </v-avatar>
@@ -239,7 +251,7 @@
 </template>
 
 <script setup>
-  import { computed } from 'vue';
+  import { computed, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
 
@@ -254,6 +266,15 @@
   const { t, locale } = useI18n();
   const router = useRouter();
 
+  const imagePreviewDialog = ref(false);
+  const imagePreviewUrl = ref(null);
+
+  function openImagePreview() {
+    if (!props.employee?.picture) return;
+
+    imagePreviewUrl.value = props.employee.picture;
+    imagePreviewDialog.value = true;
+  }
   const rtl = computed(() => String(locale.value).toLowerCase().startsWith('fa'));
 
   const model = computed({
@@ -826,6 +847,9 @@
   }
   .pc-icon.indigo {
     background: rgba(var(--v-theme-indigo), 0.1);
+  }
+  .cursor-pointer {
+    cursor: pointer;
   }
   .pc-icon.cyan {
     background: rgba(var(--v-theme-teal), 0.1);

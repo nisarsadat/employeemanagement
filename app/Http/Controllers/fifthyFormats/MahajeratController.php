@@ -25,6 +25,9 @@ class MahajeratController extends Controller
 
         $search = trim((string) $request->query('search', ''));
         $rid    = $request->query('resource_id');
+        $fiftySixFormatId = $request->query('fifty_six_format_id');
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
 
         $sortable = ['id', 'name', 'created_at', 'updated_at'];
         $sortBy   = in_array($request->query('sort_by', 'created_at'), $sortable, true)
@@ -36,9 +39,29 @@ class MahajeratController extends Controller
             $sortDir = 'desc';
         }
 
+        $allowedSearchFields = [
+            'name',
+            'father_name',
+            'scientific_level',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_zone',
+            'now_district',
+            'now_vinage',
+            'specific_place',
+            'country',
+            'phone_number',
+            'old_job',
+            'now_job',
+            'tafseel',
+            'note',
+        ];
+
         $q = Mahajerat::query()
             ->with(['resource:id,name,code_number,phone_number'])
-            ->when($search !== '', function ($sub) use ($search) {
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('name', 'like', "%{$search}%")
                         ->orWhere('father_name', 'like', "%{$search}%")
@@ -54,7 +77,23 @@ class MahajeratController extends Controller
                         ->orWhere('country', 'like', "%{$search}%");
                 });
             })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
             ->when($rid, fn ($sub) => $sub->where('resource_id', $rid))
+            ->when(
+                is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0,
+                function ($sub) use ($fiftySixFormatId) {
+                    $sub->where('id', (int) $fiftySixFormatId);
+                }
+            )
             ->orderBy($sortBy, $sortDir);
 
         if ($isValidPage && $isValidPerPage) {
@@ -64,6 +103,69 @@ class MahajeratController extends Controller
         }
 
         return MahajeratResource::collection($q->get());
+    }
+
+    /**
+     * GET /mahajerats/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            'name',
+            'father_name',
+            'scientific_level',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_zone',
+            'now_district',
+            'now_vinage',
+            'specific_place',
+            'country',
+            'phone_number',
+            'old_job',
+            'now_job',
+            'tafseel',
+            'note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Mahajerat::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function show(Mahajerat $mahajerat)

@@ -11,6 +11,7 @@ use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage; // ✅ picture handling
 
 class RobbersController extends Controller
@@ -36,28 +37,69 @@ class RobbersController extends Controller
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
+    /**
+     * Searchable columns for selected-column filter
+     */
+    private function allowedSearchFields(): array
+    {
+        $table = (new Robbers())->getTable();
+
+        $candidates = [
+            'name',
+            'nickname',
+            'father_name',
+            'phone_number',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_district',
+            'now_village',
+            'original_address',
+            'current_address',
+            'address',
+            'note',
+            'tafseel',
+        ];
+
+        return array_values(array_filter($candidates, fn ($field) => Schema::hasColumn($table, $field)));
+    }
+
     public function index(Request $request)
     {
         $perPage = (int) $request->get('perPage', 15);
-        $search  = $request->get('search');
+        $search  = trim((string) $request->get('search', ''));
         $rid     = $request->get('resource_id');
+
+        $searchField = trim((string) $request->get('search_field', ''));
+        $searchValue = trim((string) $request->get('search_value', ''));
 
         $sortBy  = $request->get('sort_by', 'created_at');
         $sortDir = in_array($request->get('sort_dir'), ['asc', 'desc'], true)
             ? $request->get('sort_dir')
             : 'desc';
 
+        $allowedSearchFields = $this->allowedSearchFields();
+
         $query = Robbers::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
         ]);
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('nickname', 'like', "%{$search}%")
                     ->orWhere('father_name', 'like', "%{$search}%")
                     ->orWhere('phone_number', 'like', "%{$search}%");
             });
+        }
+
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
         }
 
         if ($rid) {
@@ -67,6 +109,51 @@ class RobbersController extends Controller
         $query->orderBy($sortBy, $sortDir);
 
         return RobbersResource::collection($query->paginate($perPage));
+    }
+
+    /**
+     * GET /robbers/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = $this->allowedSearchFields();
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Robbers::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreRobbersRequest $request)

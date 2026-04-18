@@ -151,7 +151,6 @@ class MapPointController extends Controller
                     if (($src['type'] ?? '') === 'resource') {
                         $isActive = $this->normalizeActive($row->own_active ?? null);
                     }
-
                     return [
                         'type' => $src['type'],
                         'typeLabel' => $src['typeLabel'],
@@ -162,6 +161,8 @@ class MapPointController extends Controller
                         'picture' => $picture ?: null,
                         'is_active' => $isActive,
                         '_showUrl' => rtrim($src['show_url'], '/') . '/' . $row->id,
+                        '_listPath' => $src['list_path'] ?? null,
+                        '_relationQueryKey' => $src['relation_query_key'] ?? null,
                     ];
                 })
                 ->values();

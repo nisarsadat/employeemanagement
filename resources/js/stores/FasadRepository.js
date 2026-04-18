@@ -61,11 +61,11 @@ export const useFasadRepository = defineStore('FasadRepository', {
       Sarafyanos: reactive([]),
       Sarafyano: reactive({}),
 
-      // done 
+      // done
       Clubs: reactive([]),
       Club: reactive({}),
 
-      // done 
+      // done
       Soldiers: reactive([]),
       Soldier: reactive({}),
 
@@ -229,11 +229,20 @@ export const useFasadRepository = defineStore('FasadRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
-          includeSearch: true,
-          includePagination: true,
-          includeDateFilter: false,
-        });
+        const baseParams = buildListParams(
+          this,
+          {},
+          {
+            includeSearch: true,
+            includePagination: true,
+            includeDateFilter: false,
+          }
+        );
+
+        const queryParams = {
+          ...baseParams,
+          ...params,
+        };
 
         const { data: res } = await axios.get(`saeen-fasads`, {
           params: queryParams,
@@ -249,7 +258,21 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.loading = false;
       }
     },
+    async FetchSaeenFasadFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
 
+        const { data } = await axios.get(`/saeen-fasads/filter-options`, {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
+      }
+    },
     async FetchSaeenFasadData(id) {
       try {
         setContentType('application/json');

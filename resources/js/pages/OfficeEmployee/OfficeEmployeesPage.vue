@@ -552,7 +552,11 @@
 
   const selectedCardStatus = ref('all');
   const selectedCardJobType = ref(null);
+  function syncCardFiltersFromRoute() {
+    selectedCardStatus.value = route.query?.status ? String(route.query.status) : 'all';
 
+    selectedCardJobType.value = route.query?.job_type ? String(route.query.job_type) : null;
+  }
   async function fetchYearItemsFromDb() {
     try {
       const res = await repo.FetchEmployeeDateOptions({ date_field: 'join_date' });
@@ -913,13 +917,13 @@
       },
     });
   }
-
   function goActiveResources(rowPayload) {
     const row = getRow(rowPayload);
     router.push({
-      path: '/app/activeresource',
+      path: '/app/resources',
       query: {
         office_employee_id: row.id,
+        stat: 'active',
         source: 'officeemployee',
       },
     });
@@ -928,9 +932,10 @@
   function goInactiveResources(rowPayload) {
     const row = getRow(rowPayload);
     router.push({
-      path: '/app/inactiveresource',
+      path: '/app/resources',
       query: {
         office_employee_id: row.id,
+        stat: 'inactive',
         source: 'officeemployee',
       },
     });
@@ -1010,10 +1015,22 @@
   usePageRefresh('/app/officeemployee', fetchAll);
 
   onMounted(async () => {
+    syncCardFiltersFromRoute(); // 🔥 IMPORTANT
+
     await fetchYearItemsFromDb();
-    await fetchMonthItemsFromDb(null);
+    await fetchMonthItemsFromDb(filterYear.value);
+
     await fetchAll();
   });
+  watch(
+    () => [route.query.status, route.query.job_type],
+    async () => {
+      syncCardFiltersFromRoute(); // 🔥 update filters from URL
+
+      repo.page = 1; // reset pagination
+      await fetchAll(); // reload with new filter
+    }
+  );
 </script>
 
 <style scoped>

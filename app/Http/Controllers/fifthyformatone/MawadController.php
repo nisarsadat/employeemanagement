@@ -11,6 +11,7 @@ use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class MawadController extends Controller
@@ -36,25 +37,68 @@ class MawadController extends Controller
     }
 
     /**
+     * Searchable columns for selected-column filter
+     */
+    private function allowedSearchFields(): array
+    {
+        $table = (new Mawad())->getTable();
+
+        $candidates = [
+            'name',
+            'father_name',
+            'nick_name',
+            'nickname',
+            'type',
+            'phone_number',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_district',
+            'now_village',
+            'original_address',
+            'current_address',
+            'address',
+            'note',
+            'tafseel',
+        ];
+
+        return array_values(array_filter($candidates, fn ($field) => Schema::hasColumn($table, $field)));
+    }
+
+    /**
      * GET /mawads
      */
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $search  = trim((string) $request->input('search', ''));
         $rid     = $request->input('resource_id');
+
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
 
         $sortBy  = $request->input('sort_by', 'created_at');
         $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
             ? $request->input('sort_dir')
             : 'desc';
 
+        $allowedSearchFields = $this->allowedSearchFields();
+
         $q = Mawad::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
         ]);
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where('name', 'like', "%{$search}%");
+        }
+
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
         }
 
         if ($rid) {
@@ -64,6 +108,51 @@ class MawadController extends Controller
         $q->orderBy($sortBy, $sortDir);
 
         return MawadResource::collection($q->paginate($perPage));
+    }
+
+    /**
+     * GET /mawads/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = $this->allowedSearchFields();
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Mawad::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**

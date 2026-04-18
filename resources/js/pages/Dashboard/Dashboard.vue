@@ -625,7 +625,6 @@
                   <v-btn
                     :loading="repo.loading"
                     variant="tonal"
-                    color="primary"
                     rounded="xl"
                     @click="refreshData"
                     :disabled="repo.loading"
@@ -662,9 +661,19 @@
                 <!-- Employee -->
                 <template #item.nick_name="{ item }">
                   <div class="employee-cell" @click="openEmployeeDialog(item)">
-                    <v-avatar size="40" class="avatar-glow mr-3">
-                      <span class="text-white text-body-2 font-weight-bold">
-                        {{ getInitials(item.nick_name || item.name) }}
+                    <v-avatar
+                      size="40"
+                      class="avatar-glow mr-3 employee-photo-avatar"
+                      @click.stop="openEmployeeImage(item)"
+                    >
+                      <v-img
+                        v-if="getEmployeePhotoUrl(item)"
+                        :src="getEmployeePhotoUrl(item)"
+                        cover
+                        eager
+                      />
+                      <span v-else class="text-white text-body-2 font-weight-bold">
+                        {{ getInitials((item.raw ?? item).nick_name || (item.raw ?? item).name) }}
                       </span>
                     </v-avatar>
 
@@ -899,6 +908,26 @@
       </v-tooltip>
     </div>
   </div>
+  <v-dialog v-model="imagePreviewDialog" max-width="900">
+    <v-card rounded="xl">
+      <v-toolbar color="primary" density="comfortable">
+        <v-toolbar-title>{{ t('پیش نمایش عکس کارمند') }}</v-toolbar-title>
+        <v-spacer />
+        <v-btn icon="mdi-close" variant="text" @click="imagePreviewDialog = false" />
+      </v-toolbar>
+
+      <v-card-text class="d-flex justify-center pa-4">
+        <v-img
+          v-if="imagePreviewUrl"
+          :src="imagePreviewUrl"
+          max-width="100%"
+          max-height="75vh"
+          contain
+          class="rounded-lg"
+        />
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 <script setup>
   import { computed, onMounted, ref } from 'vue';
@@ -934,7 +963,8 @@
   const employeeDialog = ref(false);
   const selectedEmployee = ref(null);
   const employeeDialogLoading = ref(false);
-
+  const imagePreviewDialog = ref(false);
+  const imagePreviewUrl = ref(null);
   function closeEmployeeDialog() {
     employeeDialog.value = false;
     employeeDialogLoading.value = false;
@@ -955,7 +985,13 @@
       )
     );
   }
+  function openEmployeeImage(item) {
+    const url = getEmployeePhotoUrl(item);
+    if (!url) return;
 
+    imagePreviewUrl.value = url;
+    imagePreviewDialog.value = true;
+  }
   function pushDashboard(path, query = {}) {
     return router.push({
       path,
@@ -1316,7 +1352,10 @@
       .toUpperCase()
       .slice(0, 2);
   }
-
+  function getEmployeePhotoUrl(item) {
+    const row = item?.raw ?? item;
+    return row?.picture || null;
+  }
   async function copyText(text) {
     try {
       if (!text) return;
@@ -2085,7 +2124,9 @@
     gap: 10px;
     flex-wrap: wrap;
   }
-
+  .employee-photo-avatar {
+    cursor: pointer;
+  }
   .meta-item {
     display: inline-flex;
     align-items: center;

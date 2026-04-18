@@ -10,6 +10,7 @@ use App\Http\Requests\fifthyformatsthree\UpdateBadmashanoRequest;
 use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class BadmashanoController extends Controller
@@ -32,16 +33,46 @@ class BadmashanoController extends Controller
         ], 422);
     }
 
+    private function allowedSearchFields(): array
+    {
+        $table = (new Badmashano())->getTable();
+
+        $candidates = [
+            'name',
+            'nickname',
+            'father_name',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_district',
+            'now_village',
+            'phone_number',
+            'note',
+            'tafseel',
+            'job',
+            'address',
+            'current_address',
+            'original_address',
+        ];
+
+        return array_values(array_filter($candidates, fn ($field) => Schema::hasColumn($table, $field)));
+    }
+
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $search  = trim((string) $request->input('search', ''));
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
+
+        $allowedSearchFields = $this->allowedSearchFields();
 
         $q = Badmashano::query()
             ->with(['resource:id,name,code_number,phone_number'])
             ->latest();
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($qq) use ($search) {
                 $qq->where('name', 'like', "%{$search}%")
                    ->orWhere('nickname', 'like', "%{$search}%")
@@ -49,7 +80,60 @@ class BadmashanoController extends Controller
             });
         }
 
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
         return BadmashanoResource::collection($q->paginate($perPage));
+    }
+
+    /**
+     * GET /badmashanos/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = $this->allowedSearchFields();
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Badmashano::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreBadmashanoRequest $request)

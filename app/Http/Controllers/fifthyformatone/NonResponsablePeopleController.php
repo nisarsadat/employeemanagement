@@ -38,25 +38,151 @@ class NonResponsablePeopleController extends Controller
     /** GET /non-responsable-people */
     public function index(Request $request)
     {
-        $perPage = (int) $request->get('perPage', 15);
-        $search  = $request->get('search');
+        $page    = $request->query('page');
+        $perPage = $request->query('perPage', $request->query('per_page', 15));
+
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
+
+        $search = trim((string) $request->query('search', ''));
+        $fiftySixFormatId = $request->query('fifty_six_format_id');
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+            'name',
+            'nick_name',
+            'father_name',
+            'phone_number',
+            'old_job',
+            'now_job',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_zone',
+            'now_district',
+            'now_village',
+            'specific_place',
+            'street_number',
+            'home_number',
+            'coordinates',
+            'responsiability',
+            'activity_place',
+            'friends_number',
+            'band_distince',
+            'band_place',
+            'tafseel',
+            'note',
+        ];
 
         $q = NonResponsablePeople::query()
             ->with(['resource:id,name,code_number,phone_number'])
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
+                $sub->where(function ($w) use ($search) {
+                    $w->where('name', 'like', "%{$search}%")
+                        ->orWhere('nick_name', 'like', "%{$search}%")
+                        ->orWhere('father_name', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%")
+                        ->orWhere('old_job', 'like', "%{$search}%")
+                        ->orWhere('now_job', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
+            ->when(
+                is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0,
+                function ($sub) use ($fiftySixFormatId) {
+                    $sub->where('id', (int) $fiftySixFormatId);
+                }
+            )
             ->latest();
 
-        if ($search) {
-            $q->where(function ($w) use ($search) {
-                $w->where('name', 'like', "%{$search}%")
-                  ->orWhere('nick_name', 'like', "%{$search}%")
-                  ->orWhere('father_name', 'like', "%{$search}%")
-                  ->orWhere('phone_number', 'like', "%{$search}%")
-                  ->orWhere('old_job', 'like', "%{$search}%")
-                  ->orWhere('now_job', 'like', "%{$search}%");
-            });
+        if ($isValidPage && $isValidPerPage) {
+            return NonResponsablePeopleResource::collection(
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
+            );
         }
 
-        return NonResponsablePeopleResource::collection($q->paginate($perPage));
+        return NonResponsablePeopleResource::collection($q->get());
+    }
+
+    /**
+     * GET /non-responsable-people/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            'name',
+            'nick_name',
+            'father_name',
+            'phone_number',
+            'old_job',
+            'now_job',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_zone',
+            'now_district',
+            'now_village',
+            'specific_place',
+            'street_number',
+            'home_number',
+            'coordinates',
+            'responsiability',
+            'activity_place',
+            'friends_number',
+            'band_distince',
+            'band_place',
+            'tafseel',
+            'note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = NonResponsablePeople::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /** POST /non-responsable-people */

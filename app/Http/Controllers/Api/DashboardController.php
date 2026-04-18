@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 use Morilog\Jalali\Jalalian;
 
@@ -111,8 +112,9 @@ class DashboardController extends Controller
         /* -------------------------------------------------
         | ✅ EMPLOYEES TABLE (OLD) - FINANCE period (Shamsi-based range)
         |-------------------------------------------------*/
+
         $employeesOld = OfficeEmployee::query()
-            ->select('id', 'name', 'nick_name', 'code_number')
+            ->select('id', 'name', 'nick_name', 'code_number', 'picture')
             ->withCount([
                 'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),           
                 'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
@@ -137,6 +139,7 @@ class DashboardController extends Controller
             'id'                 => $e->id,
             'name'               => $e->name,
             'nick_name'          => $e->nick_name,
+            'picture' => $e->picture ? Storage::url($e->picture) : null,
             'code_number'        => $e->code_number,
             'events_count'       => $events,
             'resources_count'    => $resources,
@@ -169,7 +172,7 @@ class DashboardController extends Controller
         | ✅ EMPLOYEES TABLE (NEW) - includes KHAYRAT - FINANCE period
         |-------------------------------------------------*/
         $employeesNew = OfficeEmployee::query()
-            ->select('id', 'name', 'nick_name', 'code_number')
+            ->select('id', 'name', 'nick_name', 'code_number' ,'picture')
             ->withCount([
             'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),            
             'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
@@ -205,6 +208,7 @@ class DashboardController extends Controller
             'name'                  => $e->name,
             'nick_name'             => $e->nick_name,
             'code_number'           => $e->code_number,
+            'picture' => $e->picture ? Storage::url($e->picture) : null,
             'events_count'          => $events,
             'resources_count'       => $resources,
             'informations_count'    => $infos,

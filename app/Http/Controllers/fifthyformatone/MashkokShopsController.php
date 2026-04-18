@@ -11,6 +11,7 @@ use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class MashkokShopsController extends Controller
@@ -32,6 +33,27 @@ class MashkokShopsController extends Controller
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
+    private function allowedSearchFields(): array
+    {
+        $table = (new MashkokShops())->getTable();
+
+        $candidates = [
+            'province',
+            'district',
+            'village',
+            'market_name',
+            'name',
+            'father_name',
+            'phone_number',
+            'shop_type',
+            'address',
+            'note',
+            'tafseel',
+        ];
+
+        return array_values(array_filter($candidates, fn ($field) => Schema::hasColumn($table, $field)));
+    }
+
     // ✅ SaeenFasad-style picture delete helper (handles "storage/..." too)
     private function deletePictureIfStored(?string $picture): void
     {
@@ -49,19 +71,23 @@ class MashkokShopsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->input('perPage', 10);
-        $search  = $request->input('search');
+        $search  = trim((string) $request->input('search', ''));
         $rid     = $request->input('resource_id');
+        $searchField = trim((string) $request->input('search_field', ''));
+        $searchValue = trim((string) $request->input('search_value', ''));
 
         $sortBy  = $request->input('sort_by', 'created_at');
         $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'], true)
             ? $request->input('sort_dir')
             : 'desc';
 
+        $allowedSearchFields = $this->allowedSearchFields();
+
         $q = MashkokShops::query()->with([
             'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
         ]);
 
-        if ($search) {
+        if ($search !== '' && $searchField === '') {
             $q->where(function ($w) use ($search) {
                 $w->where('province', 'like', "%{$search}%")
                   ->orWhere('district', 'like', "%{$search}%")
@@ -71,6 +97,14 @@ class MashkokShopsController extends Controller
             });
         }
 
+        if ($searchField !== '' && in_array($searchField, $allowedSearchFields, true)) {
+            $value = $searchValue !== '' ? $searchValue : $search;
+
+            if ($value !== '') {
+                $q->where($searchField, 'like', "%{$value}%");
+            }
+        }
+
         if ($rid) {
             $q->where('resource_id', $rid);
         }
@@ -78,6 +112,51 @@ class MashkokShopsController extends Controller
         $q->orderBy($sortBy, $sortDir);
 
         return MashkokShopsResource::collection($q->paginate($perPage));
+    }
+
+    /**
+     * GET /mashkok-shops/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = $this->allowedSearchFields();
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = MashkokShops::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /** POST /mashkok-shops
@@ -112,7 +191,7 @@ class MashkokShopsController extends Controller
                     $user,
                     module: 'مشکوک دوکانونه',
                     action: 'created',
-                    title: 'دوکان مشکوک ثبت شوو',
+                    title: ' مشکوک دوکان ثبت شوو',
                     message: 'نوم: ' . ($record->name ?? '') . ' | مارکیټ نوم: ' . ($record->market_name ?? ''),
                     routeName: 'mashkok-shops', // ⚠️ set your real route name
                     routeParams: ['id' => $record->id],
@@ -195,7 +274,7 @@ class MashkokShopsController extends Controller
                     $user,
                     module: 'مشکوک دوکانونه',
                     action: 'updated',
-                    title: 'دوکان مشکوک اصلاح شوو',
+                    title: ' مشکوک  دوکاناصلاح شوو',
                     message: 'نوم: ' . ($mashkok_shop->name ?? '') . ' | مارکیټ نوم: ' . ($mashkok_shop->market_name ?? ''),
                     routeName: 'mashkok-shops', // ⚠️ set your real route name
                     routeParams: ['id' => $mashkok_shop->id],
@@ -230,7 +309,7 @@ class MashkokShopsController extends Controller
                 $user,
                 module: 'مشکوک دوکانونه',
                 action: 'deleted',
-                title: 'دوکان مشکوک حذف شوو',
+                title: ' مشکوک دوکان حذف شوو',
                 message: 'نوم: ' . ($name ?? ''),
                 routeName: null,
                 routeParams: ['mashkok-shops'],

@@ -9,12 +9,35 @@ use App\Http\Resources\fifthyFormats\CaptiveResource;
 use App\Models\fifthyFormats\Captive;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use App\Services\NotificationService; // 🔔 notifications
 
 class CaptiveController extends Controller
 {
+    private function allowedSearchFields(): array
+    {
+        $table = (new Captive())->getTable();
+
+        $candidates = [
+            'name',
+            'father_name',
+            'nick_name',
+            'note',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_district',
+            'now_village',
+            'phone_number',
+            'tafseel',
+        ];
+
+        return array_values(array_filter($candidates, fn ($field) => Schema::hasColumn($table, $field)));
+    }
+
     public function index(Request $request)
     {
         $page    = $request->query('page');
@@ -25,6 +48,8 @@ class CaptiveController extends Controller
 
         $search = trim((string) $request->query('search', ''));
         $rid    = $request->query('resource_id');
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
 
         $sortable = ['id', 'name', 'created_at', 'updated_at'];
         $sortBy   = in_array($request->query('sort_by', 'created_at'), $sortable, true)
@@ -35,6 +60,8 @@ class CaptiveController extends Controller
         if (!in_array($sortDir, ['asc', 'desc'], true)) {
             $sortDir = 'desc';
         }
+
+        $allowedSearchFields = $this->allowedSearchFields();
 
         $q = Captive::query()
             ->leftJoin('resources', 'captives.resource_id', '=', 'resources.id')
@@ -47,7 +74,7 @@ class CaptiveController extends Controller
                 'resource:id,name,code_number,phone_number',
                 'documents',
             ])
-            ->when($search !== '', function ($sub) use ($search) {
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('captives.name', 'like', "%{$search}%")
                       ->orWhere('captives.father_name', 'like', "%{$search}%")
@@ -55,6 +82,16 @@ class CaptiveController extends Controller
                       ->orWhere('captives.note', 'like', "%{$search}%");
                 });
             })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where("captives.{$searchField}", 'like', "%{$value}%");
+                    }
+                }
+            )
             ->when($rid, fn ($sub) => $sub->where('captives.resource_id', $rid))
             ->orderBy($sortBy, $sortDir);
 
@@ -65,6 +102,51 @@ class CaptiveController extends Controller
         }
 
         return CaptiveResource::collection($q->get());
+    }
+
+    /**
+     * GET /captives/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q     = trim((string) $request->query('q', ''));
+
+        $allowedFields = $this->allowedSearchFields();
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Captive::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function show(Captive $captive)

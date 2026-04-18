@@ -303,6 +303,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('fasads/{id}/download-zip', [FasadController::class, 'downloadZip']);
 
     // (optional) delete single document by id
+    Route::get('saeen-fasads/filter-options', [SaeenFasadController::class, 'filterOptions']);
     Route::delete('fasad-documents/{docId}', [FasadController::class, 'deleteDocument']);
     Route::apiResource('saeen-fasads', SaeenFasadController::class);
     Route::get('saeen-fasads/{saeenFasad}/download-zip', [SaeenFasadController::class, 'downloadZip']);

@@ -149,6 +149,7 @@
       :item="selectedItem"
       :data="detailsData"
       @flyToItem="flyToItem"
+      @openRelated="goToRelatedPage"
     />
   </div>
 </template>
@@ -164,7 +165,8 @@
   import { ICON_MAP } from '../../../constants/moduleIcons';
   import { useMapBusStore } from '../../stores/MapBusStore';
   import AppBar from '@/components/AppBar.vue';
-
+  import { useRouter } from 'vue-router';
+  const router = useRouter();
   // MDI paths
   import {
     mdiSilverwareForkKnife,
@@ -827,6 +829,8 @@
               coordinates: item.coordinates || '',
               is_active: item.is_active ? 1 : 0,
               _showUrl: item._showUrl || '',
+              _listPath: item._listPath || '',
+              _relationQueryKey: item._relationQueryKey || '',
               iconName: pointImageName(item.type, item.is_active ? 1 : 0),
             },
           };
@@ -968,10 +972,28 @@
         coordinates: p.coordinates,
         is_active: Number(p.is_active) === 1,
         _showUrl: p._showUrl,
+        _listPath: p._listPath,
+        _relationQueryKey: p._relationQueryKey,
       };
 
       openDetailsMenu(item);
     });
+    function goToRelatedPage(item) {
+      const path = item?._listPath;
+      const relationKey = item?._relationQueryKey;
+      const id = item?.id;
+
+      if (!path || !relationKey || !id) return;
+
+      router.push({
+        path,
+        query: {
+          [relationKey]: id,
+          source: 'related',
+          open: 'peek',
+        },
+      });
+    }
 
     // map.value.on('mouseenter', MAP_POINTS_CLUSTER_LAYER_ID, () => {
     //   map.value.getCanvas().style.cursor = 'pointer';
@@ -1046,12 +1068,9 @@
       console.log('SPRITE_URL', SPRITE_URL);
       console.log('GLYPHS_URL', GLYPHS_URL);
       console.log('styleJson before map init', styleJson);
-
       map.value = new maplibregl.Map({
         container: mapEl.value,
         style: styleJson,
-        center: [69.2, 34.5],
-        zoom: 7,
         minZoom: 3,
         maxZoom: 18,
       });
@@ -1063,6 +1082,16 @@
 
       map.value.on('load', async () => {
         console.log('Map load event fired');
+
+        const afghanistanBounds = [
+          [60.5, 29.0], // southwest [lng, lat]
+          [75.5, 38.8], // northeast [lng, lat]
+        ];
+
+        map.value.fitBounds(afghanistanBounds, {
+          padding: 20,
+          duration: 0,
+        });
 
         ensureMapPointLayers();
         bindMapPointEvents();

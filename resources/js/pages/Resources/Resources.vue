@@ -157,7 +157,12 @@
       </v-col>
 
       <v-col cols="12" md="3" lg="3">
-        <v-card class="stat-card" @click="goActiveResources" rounded="xl">
+        <v-card
+          class="stat-card"
+          :class="{ 'stat-card-active': quickFilter === 'active' }"
+          @click="goActiveResources"
+          rounded="xl"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-green fontfamily">
@@ -175,7 +180,12 @@
       </v-col>
 
       <v-col cols="12" md="3" lg="3">
-        <v-card class="stat-card" @click="goInactiveResources" rounded="xl">
+        <v-card
+          class="stat-card"
+          :class="{ 'stat-card-active': quickFilter === 'inactive' }"
+          @click="goInactiveResources"
+          rounded="xl"
+        >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-purple fontfamily">
@@ -678,6 +688,7 @@
         information_id: relatedFilters.value.information_id,
         event_id: relatedFilters.value.event_id,
         fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
+        stat: relatedFilters.value.stat || (quickFilter.value === 'all' ? null : quickFilter.value),
       });
     } catch (e) {
       console.error('fetchAll error', e);
@@ -754,11 +765,15 @@
   const todayAddedCount = computed(() => Number(repo.resourceStats?.today_added_count) || 0);
 
   function goActiveResources() {
-    router.push('/app/activeresource');
+    quickFilter.value = 'active';
+    repo.page = 1;
+    fetchAll();
   }
 
   function goInactiveResources() {
-    router.push('/app/inactiveresource');
+    quickFilter.value = 'inactive';
+    repo.page = 1;
+    fetchAll();
   }
 
   const quickFilter = ref('all');

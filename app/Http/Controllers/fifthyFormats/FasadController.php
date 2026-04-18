@@ -26,19 +26,65 @@ class FasadController extends Controller
         $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
         $search = trim((string) $request->query('search', ''));
+        $fiftySixFormatId = $request->query('fifty_six_format_id');
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+            'name',
+            'father_name',
+            'nick_name',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_zone',
+            'now_district',
+            'now_village',
+            'specific_place',
+            'street_number',
+            'home_number',
+            'coordinates',
+            'responsiability',
+            'activity_place',
+            'friends_number',
+            'phone_number',
+            'band_distince',
+            'band_place',
+            'old_job',
+            'now_job',
+            'tafseel',
+            'note',
+        ];
 
         $q = Fasad::query()
             ->with([
                 'resource:id,name,code_number,phone_number',
                 'documents:id,fasad_id,file_path,original_name,mime_type,size,created_at',
             ])
-            ->when($search !== '', function ($sub) use ($search) {
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('name', 'like', "%{$search}%")
-                      ->orWhere('father_name', 'like', "%{$search}%")
-                      ->orWhere('nick_name', 'like', "%{$search}%");
+                        ->orWhere('father_name', 'like', "%{$search}%")
+                        ->orWhere('nick_name', 'like', "%{$search}%");
                 });
             })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
+            ->when(
+                is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0,
+                function ($sub) use ($fiftySixFormatId) {
+                    $sub->where('id', (int) $fiftySixFormatId);
+                }
+            )
             ->orderByDesc('id');
 
         if ($isValidPage && $isValidPerPage) {
@@ -47,6 +93,76 @@ class FasadController extends Controller
         }
 
         return FasadResource::collection($q->get());
+    }
+
+    /**
+     * GET /fasads/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            'name',
+            'father_name',
+            'nick_name',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_zone',
+            'now_district',
+            'now_village',
+            'specific_place',
+            'street_number',
+            'home_number',
+            'coordinates',
+            'responsiability',
+            'activity_place',
+            'friends_number',
+            'phone_number',
+            'band_distince',
+            'band_place',
+            'old_job',
+            'now_job',
+            'tafseel',
+            'note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = Fasad::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     public function store(StoreFasadRequest $request)
@@ -390,7 +506,7 @@ class FasadController extends Controller
         return $name !== '' ? $name : 'file';
     }
 
-   public function downloadZip(Request $request, $id)
+    public function downloadZip(Request $request, $id)
     {
         $fasad = Fasad::with('documents')->findOrFail($id);
 
@@ -445,9 +561,8 @@ class FasadController extends Controller
             $zipName,
             [
                 'Content-Type' => 'application/zip',
-                'Content-Disposition' => 'attachment; filename="'.$zipName.'"',
+                'Content-Disposition' => 'attachment; filename="' . $zipName . '"',
             ]
         )->deleteFileAfterSend(true);
     }
-
 }

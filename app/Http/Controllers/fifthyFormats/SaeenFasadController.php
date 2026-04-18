@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
-use App\Services\NotificationService; // 🔔 notifications
+use App\Services\NotificationService;
 use ZipArchive;
 
 class SaeenFasadController extends Controller
@@ -28,19 +28,65 @@ class SaeenFasadController extends Controller
         $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
         $search = trim((string) $request->query('search', ''));
+        $fiftySixFormatId = $request->query('fifty_six_format_id');
+        $searchField = trim((string) $request->query('search_field', ''));
+        $searchValue = trim((string) $request->query('search_value', ''));
+
+        $allowedSearchFields = [
+            'name',
+            'father_name',
+            'nick_name',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_zone',
+            'now_district',
+            'now_village',
+            'specific_place',
+            'street_number',
+            'home_number',
+            'coordinates',
+            'responsiability',
+            'activity_place',
+            'friends_number',
+            'phone_number',
+            'band_distince',
+            'band_place',
+            'old_job',
+            'now_job',
+            'tafseel',
+            'note',
+        ];
 
         $q = SaeenFasad::query()
             ->with([
                 'resource:id,name,code_number,phone_number',
-                'documents', // ✅ include documents for list/zip icon
+                'documents',
             ])
-            ->when($search !== '', function ($sub) use ($search) {
+            ->when($search !== '' && $searchField === '', function ($sub) use ($search) {
                 $sub->where(function ($x) use ($search) {
                     $x->where('name', 'like', "%{$search}%")
                         ->orWhere('father_name', 'like', "%{$search}%")
                         ->orWhere('nick_name', 'like', "%{$search}%");
                 });
             })
+            ->when(
+                $searchField !== '' && in_array($searchField, $allowedSearchFields, true),
+                function ($sub) use ($searchField, $searchValue, $search) {
+                    $value = $searchValue !== '' ? $searchValue : $search;
+
+                    if ($value !== '') {
+                        $sub->where($searchField, 'like', "%{$value}%");
+                    }
+                }
+            )
+            ->when(
+                is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0,
+                function ($sub) use ($fiftySixFormatId) {
+                    $sub->where('id', (int) $fiftySixFormatId);
+                }
+            )
             ->orderByDesc('id');
 
         if ($isValidPage && $isValidPerPage) {
@@ -49,6 +95,76 @@ class SaeenFasadController extends Controller
         }
 
         return SaeenFasadResource::collection($q->get());
+    }
+
+    /**
+     * GET /saeen-fasadas/filter-options
+     */
+    public function filterOptions(Request $request)
+    {
+        $field = trim((string) $request->query('field', ''));
+        $q = trim((string) $request->query('q', ''));
+
+        $allowedFields = [
+            'name',
+            'father_name',
+            'nick_name',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_zone',
+            'now_district',
+            'now_village',
+            'specific_place',
+            'street_number',
+            'home_number',
+            'coordinates',
+            'responsiability',
+            'activity_place',
+            'friends_number',
+            'phone_number',
+            'band_distince',
+            'band_place',
+            'old_job',
+            'now_job',
+            'tafseel',
+            'note',
+        ];
+
+        if ($field === '' || !in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $query = SaeenFasad::query()
+            ->select($field)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->distinct()
+            ->limit(50)
+            ->pluck($field)
+            ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
+            ->values()
+            ->map(fn ($v) => [
+                'title' => (string) $v,
+                'value' => (string) $v,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'options' => $options,
+            ],
+        ]);
     }
 
     /**
@@ -66,18 +182,14 @@ class SaeenFasadController extends Controller
 
     /**
      * POST /saeen-fasadas
-     * Accepts:
-     * - picture as FILE or STRING
-     * - documents[] as multiple FILES (optional)
      */
     public function store(StoreSaeenFasadRequest $request)
     {
-        $user = $request->user(); // 🔔 who did this
+        $user = $request->user();
         $data = $request->validated();
 
         try {
             return DB::transaction(function () use ($request, $data, $user) {
-                // ✅ picture: file OR string
                 if ($request->hasFile('picture')) {
                     $path = $request->file('picture')->store('uploads/saeen-fasads', 'public');
                     $data['picture'] = "storage/{$path}";
@@ -89,10 +201,11 @@ class SaeenFasadController extends Controller
 
                 $item = SaeenFasad::create($data);
 
-                // ✅ documents (multiple)
                 if ($request->hasFile('documents')) {
                     foreach ($request->file('documents') as $file) {
-                        if (!$file) continue;
+                        if (!$file) {
+                            continue;
+                        }
 
                         $path = $file->store('uploads/saeen-fasads/documents', 'public');
 
@@ -110,14 +223,13 @@ class SaeenFasadController extends Controller
                     'documents',
                 ]);
 
-                // 🔔 Notification: CREATED
                 NotificationService::record(
                     $user,
                     module: 'ساعین بالفساد',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . ($item->name ?? ''),
-                    routeName: 'saeen-fasads', // ⚠️ adjust to your real route name
+                    routeName: 'saeen-fasads',
                     routeParams: ['id' => $item->id],
                     level: 'success',
                     changes: null
@@ -129,7 +241,6 @@ class SaeenFasadController extends Controller
                     ->setStatusCode(201);
             });
         } catch (QueryException $e) {
-            // ✅ Duplicate unique constraint (MySQL: 1062)
             if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
                 return response()->json([
                     'message' => 'دا ریکارډ له مخکې نه موجود دی (تکراري ثبت اجازه نشته).',
@@ -145,19 +256,14 @@ class SaeenFasadController extends Controller
 
     /**
      * PUT /saeen-fasadas/{saeenFasad}
-     * Accepts:
-     * - picture as FILE or STRING (replaces old file if new uploaded)
-     * - documents[] as multiple FILES (optional)
-     * - removed_document_ids as JSON string or array (optional)
      */
     public function update(UpdateSaeenFasadRequest $request, SaeenFasad $saeenFasad)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
         $data = $request->validated();
 
         try {
             return DB::transaction(function () use ($request, $data, $saeenFasad, $user) {
-                // 🧮 build changes BEFORE update
                 $original = $saeenFasad->getOriginal();
                 $changes  = [];
 
@@ -170,7 +276,6 @@ class SaeenFasadController extends Controller
                     }
                 }
 
-                // ✅ picture: replace file if uploaded
                 if ($request->hasFile('picture')) {
                     if ($saeenFasad->picture && str_starts_with($saeenFasad->picture, 'storage/')) {
                         $old = str_replace('storage/', '', $saeenFasad->picture);
@@ -190,7 +295,6 @@ class SaeenFasadController extends Controller
                     }
                 }
 
-                // ✅ remove documents by ids
                 $removedIds = $request->input('removed_document_ids', []);
                 if (is_string($removedIds)) {
                     $removedIds = json_decode($removedIds, true) ?: [];
@@ -208,13 +312,13 @@ class SaeenFasadController extends Controller
                     $changes['documents_removed'] = ['old' => $removedIds, 'new' => []];
                 }
 
-                // ✅ update main record
                 $saeenFasad->update($data);
 
-                // ✅ add new documents
                 if ($request->hasFile('documents')) {
                     foreach ($request->file('documents') as $file) {
-                        if (!$file) continue;
+                        if (!$file) {
+                            continue;
+                        }
 
                         $path = $file->store('uploads/saeen-fasads/documents', 'public');
 
@@ -233,14 +337,13 @@ class SaeenFasadController extends Controller
                     'documents',
                 ]);
 
-                // 🔔 Notification: UPDATED + changes
                 NotificationService::record(
                     $user,
                     module: 'ساعین بالفساد',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . ($saeenFasad->name ?? ''),
-                    routeName: 'saeen-fasads', // ⚠️ adjust if needed
+                    routeName: 'saeen-fasads',
                     routeParams: ['id' => $saeenFasad->id],
                     level: 'info',
                     changes: !empty($changes) ? $changes : null
@@ -264,25 +367,19 @@ class SaeenFasadController extends Controller
 
     /**
      * DELETE /saeen-fasadas/{saeenFasad}
-     * ✅ deletes:
-     * - picture file
-     * - documents files
-     * - DB rows (documents table cascades)
      */
     public function destroy(Request $request, SaeenFasad $saeenFasad)
     {
-        $user = $request->user(); // 🔔
+        $user = $request->user();
 
         return DB::transaction(function () use ($saeenFasad, $user) {
             $name = $saeenFasad->name;
 
-            // ✅ delete picture file
             if ($saeenFasad->picture && str_starts_with($saeenFasad->picture, 'storage/')) {
                 $old = str_replace('storage/', '', $saeenFasad->picture);
                 Storage::disk('public')->delete($old);
             }
 
-            // ✅ delete documents files
             $docs = $saeenFasad->documents()->get();
             foreach ($docs as $doc) {
                 if ($doc->file_path && str_starts_with($doc->file_path, 'storage/')) {
@@ -291,10 +388,8 @@ class SaeenFasadController extends Controller
                 }
             }
 
-            // ✅ delete record (doc rows will be deleted via cascadeOnDelete)
             $saeenFasad->delete();
 
-            // 🔔 Notification: DELETED
             NotificationService::record(
                 $user,
                 module: 'ساعین بالفساد',
@@ -311,15 +406,10 @@ class SaeenFasadController extends Controller
         });
     }
 
-    /* ================= ZIP helpers ================= */
     private function safeZipName(string $name): string
     {
         $name = basename($name);
-
-        // Convert UTF-8 (Persian/Pashto) to ASCII for Windows
         $name = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name) ?: $name;
-
-        // Replace anything unsafe
         $name = preg_replace('/[^A-Za-z0-9\.\-_]/', '_', $name);
         $name = preg_replace('/_+/', '_', $name);
         $name = trim($name, '_');
@@ -329,7 +419,6 @@ class SaeenFasadController extends Controller
 
     /**
      * GET /saeen-fasadas/{id}/download-zip
-     * ✅ Windows-safe ZIP (same style as FasadController)
      */
     public function downloadZip(Request $request, $id)
     {
@@ -350,11 +439,9 @@ class SaeenFasadController extends Controller
             return response()->json(['message' => 'Could not create zip'], 500);
         }
 
-        // ✅ picture (optional)
         if ($saeenFasad->picture) {
             $picPath = (string) $saeenFasad->picture;
 
-            // if saved as "storage/xxxx" convert to "xxxx"
             if (str_starts_with($picPath, 'storage/')) {
                 $picPath = str_replace('storage/', '', $picPath);
             }
@@ -369,10 +456,11 @@ class SaeenFasadController extends Controller
             }
         }
 
-        // ✅ documents
         foreach ($saeenFasad->documents as $doc) {
             $docPath = (string) ($doc->file_path ?? '');
-            if ($docPath === '') continue;
+            if ($docPath === '') {
+                continue;
+            }
 
             if (str_starts_with($docPath, 'storage/')) {
                 $docPath = str_replace('storage/', '', $docPath);
@@ -392,7 +480,6 @@ class SaeenFasadController extends Controller
 
         $zip->close();
 
-        // 🚨 fixes Windows "zip invalid" (output buffer corruption)
         if (ob_get_level()) {
             ob_end_clean();
         }
