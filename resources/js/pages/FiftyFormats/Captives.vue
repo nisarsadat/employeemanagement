@@ -7,29 +7,59 @@
       </template>
     </AppBar>
 
-    <!-- 🔍 Search + Cards + ➕ Create -->
+    <!-- 🔍 Search + Filter + Reset + Create -->
     <v-container class="pa-0">
       <v-row class="align-center">
-        <!-- Search Field -->
-        <v-col cols="12" sm="8" md="9" lg="10">
-          <v-text-field
-            v-model.trim="repo.Search"
-            :label="t('جستجو...')"
-            density="comfortable"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            color="primary"
-            rounded="lg"
-            hide-details
-            @keyup.enter="() => { repo.page = 1; fetchAll(); }"
-            clearable
-            @click:clear="clearSearch"
-            class="bg-white"
+        <!-- Search Column -->
+        <v-col cols="12" sm="12" md="12" lg="12">
+          <SearchColumnFilter
+            v-model:modelSearch="repo.Search"
+            v-model:modelColumn="searchField"
+            v-model:modelSelectedValue="selectedColumnValue"
+            :headers="headersFT"
+            :search-label="t('جستجو در اسیر/گرفتارها...')"
+            :column-label="t('ستون جستجو')"
+            :all-columns-label="t('همه ستون‌ها')"
+            :value-label="t('ارزش ستون')"
+            :exclude-keys="['picture', 'map', 'resource_code', 'resource_phone_number']"
+            :fetch-column-values="fetchColumnValues"
+            @search="handleSearch"
+            @clearSearch="clearSearch"
+            @clearSelectedValue="clearSelectedValue"
           />
         </v-col>
 
+        <!-- Apply filter -->
+        <v-col cols="12" sm="6" md="2" lg="2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter"
+            @click="handleSearch"
+          >
+            {{ t('فلتر') }}
+          </v-btn>
+        </v-col>
+
+        <!-- Reset filter -->
+        <v-col cols="12" sm="6" md="2" lg="2">
+          <v-btn
+            color="orange"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter-remove"
+            @click="clearAllFilters"
+          >
+            {{ t('ریست فلتر') }}
+          </v-btn>
+        </v-col>
+
         <!-- Create Button -->
-        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+        <v-col cols="12" sm="12" md="8" lg="8" class="pl-sm-2">
           <v-btn
             color="primary"
             variant="flat"
@@ -326,7 +356,7 @@
 <script setup>
   import { ref, computed, onMounted, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { useRouter } from 'vue-router';
+  import { useRouter, useRoute } from 'vue-router';
 
   import AppBar from '@/components/AppBar.vue';
   import FilterableTable from '@/components/FilterableTable.vue';
@@ -334,19 +364,25 @@
   import FlyToMapButton from '@/components/FlyToMapButton.vue';
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
   import GlobalPagination from '@/components/GlobalPagination.vue';
+  import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
   import { useLoginRepository } from '../../stores/LoginRepository';
   const auth = useLoginRepository();
   import { useFasadRepository } from '@/stores/FasadRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
 
-  usePageRefresh('/app/captives', fetchAll);
   const repo = useFasadRepository();
   const router = useRouter();
+  const route = useRoute();
+  const { relatedFilters, clearRelationQueries } = useRelatedRouteFilters();
 
   /* i18n / RTL */
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (l) => (isRtl.value = l === 'fa'));
+
+  const searchField = ref(null);
+  const selectedColumnValue = ref(null);
 
   /* Snackbar */
   const showError = ref(false);
@@ -355,20 +391,36 @@
     errorMessage.value = m;
     showError.value = true;
   };
-function goToResource(row) {
-  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
-  if (!resourceId) return;
 
-  router.push({
-    path: '/app/resources',
-    query: {
-      resource_id: resourceId,
-      source: 'related',
-    },
-  });
-}
+  function goToResource(row) {
+    const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+    if (!resourceId) return;
+
+    router.push({
+      path: '/app/resources',
+      query: {
+        resource_id: resourceId,
+        source: 'related',
+      },
+    });
+  }
+
   /* Helpers */
   const getRow = (s) => (s && s.raw ? s.raw : s);
+
+  const normalizedSearchField = computed(() => {
+    const v = searchField.value;
+    if (!v) return null;
+    if (typeof v === 'string') return v;
+    return v.key ?? v.value ?? null;
+  });
+
+  const normalizedSearchValue = computed(() => {
+    const v = selectedColumnValue.value;
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'string' || typeof v === 'number') return v;
+    return v.value ?? v.title ?? null;
+  });
 
   /* rows from store */
   const rowsFT = computed(() => {
@@ -441,7 +493,6 @@ function goToResource(row) {
     { title: t('کود منبع'), key: 'resource_code' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
 
- 
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('ملاحظات'), key: 'note' },
   ]);
@@ -558,11 +609,68 @@ function goToResource(row) {
         page: repo.page,
         perPage: repo.itemsPerPage,
         search: repo.Search || '',
+        search_field: normalizedSearchField.value,
+        search_value: normalizedSearchValue.value,
+        fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
+        source: relatedFilters.value.source,
+        open: relatedFilters.value.open,
       });
     } catch (e) {
       console.error(e);
       showErrorMessage(t('خطا در دریافت فهرست اسیر/گرفتارها'));
     }
+  }
+
+  async function fetchColumnValues(field, q = '') {
+    try {
+      const normalizedField =
+        typeof field === 'string' ? field : field?.key ?? field?.value ?? null;
+
+      if (!normalizedField) return [];
+
+      const res = await repo.FetchCaptiveFilterOptions?.({
+        field: normalizedField,
+        q,
+      });
+
+      return res?.data?.options || [];
+    } catch (e) {
+      console.error('fetchColumnValues error', e);
+      return [];
+    }
+  }
+
+  async function handleSearch() {
+    repo.page = 1;
+    await fetchAll();
+  }
+
+  async function clearSearch() {
+    repo.Search = '';
+    repo.page = 1;
+    await fetchAll();
+  }
+
+  async function clearSelectedValue() {
+    selectedColumnValue.value = null;
+    repo.page = 1;
+    await fetchAll();
+  }
+
+  async function clearAllFilters() {
+    repo.Search = '';
+    searchField.value = null;
+    selectedColumnValue.value = null;
+    cardFilter.value = 'all';
+    filters.value = {};
+    repo.page = 1;
+
+    expanded.value = false;
+    selectedId.value = null;
+    detail.value = null;
+
+    await clearRelationQueries();
+    await fetchAll();
   }
 
   function handlePageChange(page) {
@@ -572,12 +680,6 @@ function goToResource(row) {
 
   function handlePerPageChange(perPage) {
     repo.itemsPerPage = perPage;
-    repo.page = 1;
-    fetchAll();
-  }
-
-  function clearSearch() {
-    repo.Search = '';
     repo.page = 1;
     fetchAll();
   }
@@ -607,9 +709,36 @@ function goToResource(row) {
     previewOpen.value = true;
   }
 
+  usePageRefresh('/app/captives', fetchAll);
+
+  watch(
+    () => [relatedFilters.value.fifty_six_format_id, relatedFilters.value.open],
+    async ([id, open]) => {
+      if (!id) return;
+
+      await fetchAll();
+
+      if (open === 'peek') {
+        openPeek({ id });
+      }
+    },
+    { immediate: true }
+  );
+
+  watch(
+    () => route.query,
+    async () => {
+      repo.page = 1;
+      await fetchAll();
+    },
+    { deep: true }
+  );
+
   /* init */
   onMounted(async () => {
-    await fetchAll();
+    if (!relatedFilters.value.fifty_six_format_id) {
+      await fetchAll();
+    }
   });
 </script>
 

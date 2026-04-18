@@ -10,29 +10,59 @@
       </template>
     </AppBar>
 
-    <!-- 🔍 Search + ➕ Create -->
+    <!-- 🔍 Search + Filter + Reset + Create -->
     <v-container class="pa-0">
       <v-row class="align-center">
-        <!-- Search Field -->
-        <v-col cols="12" sm="8" md="9" lg="10">
-          <v-text-field
-            v-model.trim="repo.Search"
-            :label="t('جستجو...')"
-            density="comfortable"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            color="primary"
-            rounded="lg"
-            hide-details
-            @keyup.enter="fetchAll"
-            clearable
-            @click:clear="clearSearch"
-            class="bg-white"
+        <!-- Search Column -->
+        <v-col cols="12" sm="12" md="12" lg="12">
+          <SearchColumnFilter
+            v-model:modelSearch="repo.Search"
+            v-model:modelColumn="searchField"
+            v-model:modelSelectedValue="selectedColumnValue"
+            :headers="headersFT"
+            :search-label="t('جستجو در سرایانو...')"
+            :column-label="t('ستون جستجو')"
+            :all-columns-label="t('همه ستون‌ها')"
+            :value-label="t('ارزش ستون')"
+            :exclude-keys="['picture', 'map', 'resource_code', 'resource_phone']"
+            :fetch-column-values="fetchColumnValues"
+            @search="handleSearch"
+            @clearSearch="clearSearch"
+            @clearSelectedValue="clearSelectedValue"
           />
         </v-col>
 
+        <!-- Apply filter -->
+        <v-col cols="12" sm="6" md="2" lg="2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter"
+            @click="handleSearch"
+          >
+            {{ t('فلتر') }}
+          </v-btn>
+        </v-col>
+
+        <!-- Reset filter -->
+        <v-col cols="12" sm="6" md="2" lg="2">
+          <v-btn
+            color="orange"
+            rounded="lg"
+            block
+            class="text-none"
+            prepend-icon="mdi-filter-remove"
+            @click="clearAllFilters"
+          >
+            {{ t('ریست فلتر') }}
+          </v-btn>
+        </v-col>
+
         <!-- Create Button -->
-        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+        <v-col cols="12" sm="12" md="8" lg="8" class="pl-sm-2">
           <v-btn
             color="primary"
             variant="flat"
@@ -296,13 +326,17 @@ import PeekButton from '@/components/PeekButton.vue';
 import FlyToMapButton from '@/components/FlyToMapButton.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 import GlobalPagination from '@/components/GlobalPagination.vue';
+import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
 
 import { useBadmashanoRepository } from '@/stores/BadmashanoRepository';
 import PictureCell from '@/components/table/PictureCell.vue';
-  import { usePageRefresh } from '@/composables/usePageRefresh';
+import { usePageRefresh } from '@/composables/usePageRefresh';
 
 const repo = useBadmashanoRepository();
 const router = useRouter();
+
+const searchField = ref(null);
+const selectedColumnValue = ref(null);
 
 /* i18n / RTL */
 const { t, locale } = useI18n();
@@ -333,6 +367,20 @@ function goToResource(row) {
 
 /* Helpers */
 const getRow = (s) => (s && s.raw ? s.raw : s);
+
+const normalizedSearchField = computed(() => {
+  const v = searchField.value;
+  if (!v) return null;
+  if (typeof v === 'string') return v;
+  return v.key ?? v.value ?? null;
+});
+
+const normalizedSearchValue = computed(() => {
+  const v = selectedColumnValue.value;
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'string' || typeof v === 'number') return v;
+  return v.value ?? v.title ?? null;
+});
 
 /* rows from store */
 const rowsFT = computed(() => {
@@ -498,11 +546,62 @@ async function handleDeleteConfirmed(target) {
 /* fetch all */
 async function fetchAll() {
   try {
-    await repo.FetchSarayanosData?.();
+    await repo.FetchSarayanosData?.({
+      page: repo.page,
+      perPage: repo.itemsPerPage,
+      search: repo.Search || '',
+      search_field: normalizedSearchField.value,
+      search_value: normalizedSearchValue.value,
+    });
   } catch (e) {
     console.error(e);
     showErrorMessage(t('خطا در دریافت فهرست سرایانو'));
   }
+}
+
+async function fetchColumnValues(field, q = '') {
+  try {
+    const normalizedField =
+      typeof field === 'string' ? field : field?.key ?? field?.value ?? null;
+
+    if (!normalizedField) return [];
+
+    const res = await repo.FetchSarayanoFilterOptions?.({
+      field: normalizedField,
+      q,
+    });
+
+    return res?.data?.options || [];
+  } catch (e) {
+    console.error('fetchColumnValues error', e);
+    return [];
+  }
+}
+
+async function handleSearch() {
+  repo.page = 1;
+  await fetchAll();
+}
+
+async function clearSelectedValue() {
+  selectedColumnValue.value = null;
+  repo.page = 1;
+  await fetchAll();
+}
+
+async function clearAllFilters() {
+  repo.Search = '';
+  searchField.value = null;
+  selectedColumnValue.value = null;
+  cardFilter.value = 'all';
+  filters.value = {};
+  repo.page = 1;
+
+  expanded.value = false;
+  selectedId.value = null;
+  detail.value = null;
+
+  await fetchAll();
 }
 
 function clearSearch() {
@@ -521,7 +620,8 @@ function handlePerPageChange(perPage) {
   repo.page = 1;
   fetchAll();
 }
-  usePageRefresh('/app/sarayanos', fetchAll);
+
+usePageRefresh('/app/sarayanos', fetchAll);
 
 /* init */
 onMounted(async () => {

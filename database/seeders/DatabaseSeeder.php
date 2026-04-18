@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,     // then create/assign the admin user
             ProvinceSeeder::class,
             DistrictSeeder::class,
+            // ResourceSeeder::class,
         ]);
     }
 }
